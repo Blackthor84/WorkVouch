@@ -2,7 +2,7 @@
 pid: 4596
 cwd: |
   C:\Users\ajaye\.cursor
-active_command: git add .
+active_command: git add -A
 last_command: git pull origin main --rebase
 last_exit_code: 1
 ---
@@ -619,3 +619,12 @@ hint: See the 'Note about fast-forwards' in 'git push --help' for details.
 PS C:\Users\ajaye\.cursor> git pull origin main --rebase
 error: cannot pull with rebase: You have unstaged changes.
 error: Please commit or stash them.
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> git commit -m "Add expanded roles and onboarding updates"
+[main 6a6d789] Add expanded roles and onboarding updates
+ 2 files changed, 57 insertions(+), 3 deletions(-)
+PS C:\Users\ajaye\.cursor> git pull origin main --rebase
+error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+PS C:\Users\ajaye\.cursor> git add -A
