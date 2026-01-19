@@ -1,76 +1,115 @@
-# Quick Start Guide - View Your App
+# Quick Start Guide - How to Start the App
 
-## Prerequisites
-
-1. **Install Node.js** (if not already installed)
-   - Download from: https://nodejs.org/
-   - Choose the LTS version
-   - Install and restart your terminal/IDE
-
-2. **Set up Supabase** (if not already done)
-   - Create account at: https://supabase.com
-   - Create a new project
-   - Get your project URL and anon key from Settings > API
-
-## Setup Steps
+## 🚀 Step-by-Step Instructions
 
 ### 1. Install Dependencies
-
 ```bash
 npm install
 ```
 
-### 2. Create Environment File
-
-Create a file named `.env.local` in the project root with:
+### 2. Set Up Environment Variables
+Create a `.env.local` file in the root directory with:
 
 ```env
+# Supabase (Required)
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Stripe (Optional - only needed for payments)
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_BASIC=price_...  # Basic plan price ID ($49/mo)
+STRIPE_PRICE_PRO=price_...    # Pro plan price ID ($99/mo)
+
+# App URL (Optional - for redirects)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Replace with your actual Supabase values.
+**To get your Supabase credentials:**
+1. Go to [supabase.com](https://supabase.com)
+2. Open your project
+3. Go to Settings → API
+4. Copy the "Project URL" and "anon public" key
 
 ### 3. Set Up Database
+Run these SQL files in Supabase SQL Editor (in order):
 
-1. Open your Supabase project dashboard
-2. Go to **SQL Editor**
-3. Open the file `supabase/schema.sql` from this project
-4. Copy the entire contents
-5. Paste into Supabase SQL Editor
-6. Click **Run** to execute
+1. **`supabase/schema.sql`** - Main database schema
+2. **`supabase/workvouch_schema_additions.sql`** - WorkVouch tables (employer_accounts, disputes, etc.)
+3. **`supabase/fix_signup_trigger_WITH_ROLES.sql`** - Signup trigger with employer account creation
 
-### 4. Start Development Server
-
+### 4. Start the Development Server
 ```bash
 npm run dev
 ```
 
-### 5. View the App
+### 5. Open Your Browser
+Navigate to: **http://localhost:3000**
 
-Open your browser and go to:
+---
+
+## ✅ That's It!
+
+The app should now be running. You can:
+- Sign up as an employee or employer
+- Add job history
+- Search employees (if you're an employer with a paid plan)
+- Access admin features (if you're a superadmin)
+
+---
+
+## 🔧 Troubleshooting
+
+### "Module not found" errors
+```bash
+npm install
 ```
-http://localhost:3000
+
+### "Supabase connection error"
+- Check your `.env.local` file has correct Supabase credentials
+- Make sure you've run the database migrations
+
+### "Port 3000 already in use"
+```bash
+# Use a different port
+npm run dev -- -p 3001
 ```
 
-## First Steps After Launching
+### Database errors
+- Make sure you've run all SQL files in Supabase SQL Editor
+- Check that the `employer_accounts` table exists
 
-1. **Sign Up**: Create your first user account
-2. **Create Admin** (optional): 
-   - Note your user ID from Supabase Auth dashboard
-   - Run this SQL in Supabase:
-   ```sql
-   INSERT INTO public.user_roles (user_id, role) 
-   VALUES ('your-user-id-here', 'admin');
-   ```
+---
 
-## Troubleshooting
+## 📝 Next Steps
 
-- **"npm not recognized"**: Install Node.js and restart terminal
-- **Port 3000 in use**: Change port with `npm run dev -- -p 3001`
-- **Database errors**: Make sure you ran the schema.sql file
-- **Auth errors**: Verify your Supabase URL and key in `.env.local`
+1. **Create a superadmin account:**
+   - Run `MAKE_AJAYE_SUPERADMIN.sql` in Supabase SQL Editor (or create your own)
 
+2. **Test employer signup:**
+   - Sign up as an employer
+   - Check that `employer_accounts` entry was created automatically
 
+3. **Set up Stripe (optional):**
+   - Create products in Stripe Dashboard
+   - Add price IDs to `.env.local`
+   - Set up webhook endpoint: `https://your-domain.com/api/stripe/webhook`
 
+---
 
+## 🎯 Common Commands
+
+```bash
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+
+# Run linter
+npm run lint
+```

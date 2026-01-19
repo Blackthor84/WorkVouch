@@ -14,7 +14,7 @@ export function SignUpForm() {
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [userType, setUserType] = useState<'employee' | 'employer'>('employee')
-  const [industry, setIndustry] = useState<'law_enforcement' | 'security' | 'hospitality' | 'retail' | 'warehousing' | ''>('')
+  const [industry, setIndustry] = useState<'law_enforcement' | 'security' | 'hospitality' | 'retail' | 'warehousing' | 'healthcare' | ''>('')
   const [companyName, setCompanyName] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,6 +74,10 @@ export function SignUpForm() {
             window.location.href = '/employer/dashboard'
           } else if (industry === 'warehousing') {
             window.location.href = '/onboarding/warehouse'
+          } else if (industry === 'healthcare') {
+            window.location.href = '/onboarding/healthcare/role'
+          } else if (industry === 'law_enforcement' || industry === 'security' || industry === 'hospitality' || industry === 'retail') {
+            window.location.href = `/onboarding/${industry}/role`
           } else {
             window.location.href = '/dashboard'
           }
@@ -96,6 +100,10 @@ export function SignUpForm() {
               window.location.href = '/employer/dashboard'
             } else if (industry === 'warehousing') {
               window.location.href = '/onboarding/warehouse'
+            } else if (industry === 'healthcare') {
+              window.location.href = '/onboarding/healthcare/role'
+            } else if (industry === 'law_enforcement' || industry === 'security' || industry === 'hospitality' || industry === 'retail') {
+              window.location.href = `/onboarding/${industry}/role`
             } else {
               window.location.href = '/dashboard'
             }
@@ -207,6 +215,7 @@ export function SignUpForm() {
             <option value="hospitality">Hospitality (Hotels + Restaurants)</option>
             <option value="retail">Retail</option>
             <option value="warehousing">Warehousing & Logistics</option>
+            <option value="healthcare">Healthcare</option>
           </select>
         </div>
       )}

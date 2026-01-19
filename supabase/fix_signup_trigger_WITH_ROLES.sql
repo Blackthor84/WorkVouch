@@ -40,9 +40,10 @@ BEGIN
         WHEN NEW.raw_user_meta_data->>'industry' = 'law_enforcement' THEN 'law_enforcement'::industry_type
         WHEN NEW.raw_user_meta_data->>'industry' = 'security' THEN 'security'::industry_type
         WHEN NEW.raw_user_meta_data->>'industry' = 'hospitality' THEN 'hospitality'::industry_type
-        WHEN NEW.raw_user_meta_data->>'industry' = 'retail' THEN 'retail'::industry_type
-        WHEN NEW.raw_user_meta_data->>'industry' = 'warehousing' THEN 'warehousing'::industry_type
-        ELSE NULL
+            WHEN NEW.raw_user_meta_data->>'industry' = 'retail' THEN 'retail'::industry_type
+            WHEN NEW.raw_user_meta_data->>'industry' = 'warehousing' THEN 'warehousing'::industry_type
+            WHEN NEW.raw_user_meta_data->>'industry' = 'healthcare' THEN 'healthcare'::industry_type
+            ELSE NULL
       END,
       v_role
     )
@@ -64,6 +65,7 @@ BEGIN
             WHEN NEW.raw_user_meta_data->>'industry' = 'hospitality' THEN 'hospitality'::industry_type
             WHEN NEW.raw_user_meta_data->>'industry' = 'retail' THEN 'retail'::industry_type
             WHEN NEW.raw_user_meta_data->>'industry' = 'warehousing' THEN 'warehousing'::industry_type
+            WHEN NEW.raw_user_meta_data->>'industry' = 'healthcare' THEN 'healthcare'::industry_type
             ELSE NULL
           END
         )
