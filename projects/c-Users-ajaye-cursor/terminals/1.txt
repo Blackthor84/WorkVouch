@@ -3,8 +3,8 @@ pid: 4596
 cwd: |
   C:\Users\ajaye\.cursor
 active_command: git add .
-last_command: git init
-last_exit_code: 0
+last_command: git pull origin main --rebase
+last_exit_code: 1
 ---
     at eval (./app/admin/signups/page.tsx:241:68)
     at Array.map (<anonymous>)
@@ -564,4 +564,58 @@ Did you mean this?
   npm run dev # run the "dev" package script
 To see a list of supported npm commands, run:
   npm help
-PS C:\Users\
+PS C:\Users\ajaye\.cursor> git init
+Reinitialized existing Git repository in C:/Users/ajaye/.cursor/.git/
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of 'components/sign-up-form.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/3.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> git commit -m "Add expanded roles and onboarding updates"
+[main 75d3d29] Add expanded roles and onboarding updates
+ 24 files changed, 3562 insertions(+), 51 deletions(-)
+ create mode 100644 HEALTHCARE_ONBOARDING_COMPLETE.md
+ create mode 100644 HOW_TO_RUN_SQL.md
+ create mode 100644 MULTI_INDUSTRY_ONBOARDING_COMPLETE.md
+ create mode 100644 app/employer/search/healthcare/page.tsx
+ create mode 100644 app/onboarding/[industry]/coworkers/page.tsx
+ create mode 100644 app/onboarding/[industry]/job/page.tsx
+ create mode 100644 app/onboarding/[industry]/role/page.tsx
+ create mode 100644 app/onboarding/[industry]/setting/page.tsx
+ create mode 100644 app/onboarding/employer/healthcare/job-post/page.tsx
+ create mode 100644 app/onboarding/employer/healthcare/page.tsx
+ create mode 100644 app/onboarding/healthcare/coworkers/page.tsx
+ create mode 100644 app/onboarding/healthcare/job/page.tsx
+ create mode 100644 app/onboarding/healthcare/role/page.tsx
+ create mode 100644 app/onboarding/healthcare/setting/page.tsx
+ create mode 100644 lib/constants/industries.ts
+ create mode 100644 projects/c-Users-ajaye-cursor/terminals/3.txt
+ create mode 100644 supabase/schema_healthcare_onboarding.sql
+ create mode 100644 supabase/schema_multi_industry_onboarding.sql
+PS C:\Users\ajaye\.cursor> git remote add origin https://github.com/Blackthor84/workvouch.git
+error: remote origin already exists.
+PS C:\Users\ajaye\.cursor> git branch -M main
+PS C:\Users\ajaye\.cursor> git push -u origin main
+info: please complete authentication in your browser...
+To https://github.com/Blackthor84/workvouch.git
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/Blackthor84/workvouch.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+PS C:\Users\ajaye\.cursor> git remote add origin https://github.com/Blackthor84/workvouch.git
+error: remote origin already exists.
+PS C:\Users\ajaye\.cursor> git branch -M main
+PS C:\Users\ajaye\.cursor> git push -u origin main
+To https://github.com/Blackthor84/workvouch.git
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/Blackthor84/workvouch.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+PS C:\Users\ajaye\.cursor> git pull origin main --rebase
+error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
