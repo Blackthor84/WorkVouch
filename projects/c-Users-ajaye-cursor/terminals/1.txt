@@ -1,0 +1,172 @@
+---
+pid: 4596
+cwd: |
+  C:\Users\ajaye\.cursor
+last_command: git config --global --list
+last_exit_code: 0
+---
+    at eval (./app/admin/signups/page.tsx:241:68)
+    at Array.map (<anonymous>)
+    at AdminSignupsPage (./app/admin/signups/page.tsx:136:43)
+digest: "1946025389"
+  113 |                   <div className="flex gap-4 text-xs text-grey-medium dark:text-gray-400 mt-3">
+  114 |                     <span>
+> 115 |                       <strong>Signed Up:</strong> {signup.createdAt ? format(new Date(signup.createdAt), 'PPpp') : 'N/A'}
+      |                                                          ^
+  116 |                     </span>
+  117 |                     {signup.lastSignIn && (
+  118 |                       <span>
+ ✓ Compiled in 363ms (1337 modules)
+ ⚠ The "images.domains" configuration is deprecated. Please use "images.remotePatterns" configuration instead.
+ ○ Compiling /admin ...
+ ✓ Compiled /admin in 2.5s (543 modules)
+ ○ Compiling /admin/superadmin ...
+ ✓ Compiled /admin/superadmin in 5s (1330 modules)
+ ○ Compiling /dashboard/simple ...
+ ✓ Compiled /dashboard/simple in 2.4s (1336 modules)
+ ○ Compiling /employer/dashboard ...
+ ✓ Compiled /employer/dashboard in 6.4s (1364 modules)
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 1211ms (582 modules)
+ ○ Compiling /my-jobs ...
+ ✓ Compiled /my-jobs in 9.3s (1414 modules)
+ ○ Compiling /profile ...
+ ✓ Compiled /profile in 6.6s (1478 modules)
+ ○ Compiling /not-found ...
+ ✓ Compiled /not-found in 2.3s (1494 modules)
+ ○ Compiling /employer/employees ...
+ ✓ Compiled /employer/employees in 1038ms (1486 modules)
+ ○ Compiling /employer/billing ...
+ ✓ Compiled /employer/billing in 2.1s (1682 modules)
+ ○ Compiling /pricing ...
+ ✓ Compiled /pricing in 848ms (1678 modules)
+ ✓ Compiled in 426ms (849 modules)
+ ✓ Compiled in 245ms (849 modules)
+ ✓ Compiled in 231ms (849 modules)
+ ✓ Compiled in 236ms (849 modules)
+ ○ Compiling /employer/candidates ...
+ ✓ Compiled /employer/candidates in 2.3s (1495 modules)
+ ✓ Compiled /dashboard in 298ms (658 modules)
+
+PS C:\Users\ajaye\.cursor> git status
+git : The term 'git' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the 
+spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ git status
++ ~~~
+    + CategoryInfo          : ObjectNotFound: (git:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS C:\Users\ajaye\.cursor> git init
+git : The term 'git' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the 
+spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ git init
++ ~~~
+    + CategoryInfo          : ObjectNotFound: (git:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS C:\Users\ajaye\.cursor> git add .
+git : The term 'git' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the 
+spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ git add .
++ ~~~
+    + CategoryInfo          : ObjectNotFound: (git:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS C:\Users\ajaye\.cursor> git commit -m "Initial commit"
+git : The term 'git' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the 
+spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ git commit -m "Initial commit"
++ ~~~
+    + CategoryInfo          : ObjectNotFound: (git:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS C:\Users\ajaye\.cursor> git initgit add .git commit -m "Initial commit"
+git : The term 'git' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the 
+spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ git initgit add .git commit -m "Initial commit"
++ ~~~
+    + CategoryInfo          : ObjectNotFound: (git:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS C:\Users\ajaye\.cursor> git --version
+git : The term 'git' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the 
+spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ git --version
++ ~~~
+    + CategoryInfo          : ObjectNotFound: (git:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS C:\Users\ajaye\.cursor> 
+ *  History restored 
+
+PS C:\Users\ajaye\.cursor> git --version
+git version 2.52.0.windows.1
+PS C:\Users\ajaye\.cursor> git initgit add .git commit -m "Initial commit"
+git: 'initgit' is not a git command. See 'git --help'.
+PS C:\Users\ajaye\.cursor> git remote add origin https://github.com/Blackthor84/workvouch.git
+fatal: not a git repository (or any of the parent directories): .git
+PS C:\Users\ajaye\.cursor> git init
+Initialized empty Git repository in C:/Users/ajaye/.cursor/.git/
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/admin/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/auth/signin/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/auth/signup/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/dashboard/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/employer/search/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/globals.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/jobs/[jobId]/coworkers/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/layout.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/references/request/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'argv.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/admin-panel.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/connections-section.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/coworker-list.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/employer-search-form.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/jobs-section.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/navbar.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/profile-section.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/request-reference-form.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/sign-in-form.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/sign-out-button.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/sign-up-form.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/trust-score-card.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/actions/jobs.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/auth.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/supabase/server.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'middleware.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'next.config.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package-lock.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/schema.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tailwind.config.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tsconfig.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'types/database.ts', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> git commit -m "Initial commit"
+Author identity unknown
+
+*** Please tell me who you are.
+
+Run
+
+  git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
+
+to set your account's default identity.
+Omit --global to set the identity only in this repository.
+
+fatal: unable to auto-detect email address (got 'ajaye@Legacymaker.(none)')
+PS C:\Users\ajaye\.cursor> git config --global user.name "AJ Eaglin"
+PS C:\Users\ajaye\.cursor> git config --global user.email "ajayeaglin@gmail.com" 
+PS C:\Users\ajaye\.cursor> git config --global --list
+user.name=AJ Eaglin
+user.email=ajayeaglin@gmail.com
+PS C:\Users\ajaye\.cursor> git add .

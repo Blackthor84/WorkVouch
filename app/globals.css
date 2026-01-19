@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #F3F4F6;
+  --foreground: #1F2937;
+  --grey-dark: #1F2937;
+  --grey-medium: #4B5563;
+  --grey-light: #9CA3AF;
+  --grey-background: #F3F4F6;
+}
+
+.dark {
+  --background: #0D1117;
+  --foreground: #D1D5DB;
+  --grey-dark: #D1D5DB;
+  --grey-medium: #9CA3AF;
+  --grey-light: #6B7280;
+  --grey-background: #111827;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  @apply transition-colors duration-200;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
+/* Ensure all text has maximum contrast */
+h1, h2, h3, h4, h5, h6 {
+  @apply font-bold;
+  color: var(--grey-dark);
+}
+
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  @apply text-gray-200;
+}
+
+p, span, div, li {
+  color: var(--grey-dark);
+}
+
+.dark p, .dark span, .dark div, .dark li {
+  @apply text-gray-300;
+}
+
+/* Make sure text on white backgrounds is very dark */
+.bg-white p,
+.bg-white span,
+.bg-white div,
+.bg-white li {
+  color: var(--grey-dark);
+}
+
+.dark .bg-white p,
+.dark .bg-white span,
+.dark .bg-white div,
+.dark .bg-white li {
+  @apply text-gray-200;
+}
+
+/* Make sure text on light backgrounds is very dark */
+.bg-background p,
+.bg-background span,
+.bg-background div {
+  color: var(--grey-dark);
+}
+
+.dark .bg-background p,
+.dark .bg-background span,
+.dark .bg-background div {
+  @apply text-gray-300;
+}

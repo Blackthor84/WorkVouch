@@ -1,0 +1,53 @@
+import { redirect } from 'next/navigation'
+import { getCurrentUser, hasRole } from '@/lib/auth'
+import { getCandidateProfileForEmployer } from '@/lib/actions/employer/candidate-search'
+import { Navbar } from '@/components/navbar'
+import { CandidateProfileViewer } from '@/components/employer/candidate-profile-viewer'
+
+export default async function CandidateProfilePage({
+  params,
+}: {
+  params: { id: string }
+}) {
+  const user = await getCurrentUser()
+  
+  if (!user) {
+    redirect('/auth/signin')
+  }
+
+  const isEmployer = await hasRole('employer')
+  
+  if (!isEmployer) {
+    redirect('/dashboard')
+  }
+
+  let candidateData
+  try {
+    candidateData = await getCandidateProfileForEmployer(params.id)
+  } catch (error: any) {
+    return (
+      <>
+        <Navbar />
+        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-grey-dark dark:text-gray-200 mb-2">
+              Candidate Not Found
+            </h1>
+            <p className="text-grey-medium dark:text-gray-400">
+              {error.message || 'This candidate profile could not be loaded.'}
+            </p>
+          </div>
+        </main>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <Navbar />
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
+        <CandidateProfileViewer candidateData={candidateData} />
+      </main>
+    </>
+  )
+}

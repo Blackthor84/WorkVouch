@@ -1,0 +1,191 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum VerificationStatus {
+  unverified
+  pending
+  verified
+  disputed
+}
+
+enum DisputeStatus {
+  open
+  waiting_employee
+  awaiting_review
+  resolved
+  rejected
+}
+
+enum VerificationRequestStatus {
+  pending
+  approved
+  rejected
+}
+
+enum PlanTier {
+  free
+  basic
+  pro
+}
+
+enum AdminRole {
+  superadmin
+  admin
+}
+
+model User {
+  id                    String   @id @default(uuid())
+  name                  String
+  email                 String   @unique
+  passwordHash          String
+  industry              String?
+  currentEmployerHidden Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  jobHistories          JobHistory[]
+  coworkerReferences    CoworkerReference[] @relation("FromUser")
+  receivedReferences   CoworkerReference[] @relation("ToUser")
+  verificationRequests  VerificationRequest[]
+  documents             DisputeDocument[]
+}
+
+model JobHistory {
+  id                  String            @id @default(uuid())
+  userId              String
+  employerName        String
+  jobTitle            String
+  startDate           DateTime
+  endDate             DateTime?
+  isVisibleToEmployer Boolean           @default(false)
+  verificationStatus  VerificationStatus @default(unverified)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  // Relations
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coworkerReferences  CoworkerReference[]
+  disputes            EmployerDispute[]
+  verificationRequests VerificationRequest[]
+  documents           DisputeDocument[]
+
+  @@index([userId])
+  @@index([employerName])
+  @@index([verificationStatus])
+}
+
+model CoworkerReference {
+  id            String   @id @default(uuid())
+  jobHistoryId  String
+  fromUserId    String
+  toUserId      String
+  rating        Int      @db.SmallInt // 1-5
+  message       String?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  jobHistory    JobHistory @relation(fields: [jobHistoryId], references: [id], onDelete: Cascade)
+  fromUser      User       @relation("FromUser", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser        User       @relation("ToUser", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([jobHistoryId])
+  @@index([toUserId])
+  @@index([fromUserId])
+}
+
+model EmployerAccount {
+  id              String   @id @default(uuid())
+  companyName     String
+  email           String   @unique
+  passwordHash    String
+  stripeCustomerId String? @unique
+  planTier        PlanTier @default(free)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  disputes        EmployerDispute[]
+  verificationRequests VerificationRequest[]
+
+  @@index([email])
+  @@index([planTier])
+}
+
+model EmployerDispute {
+  id              String       @id @default(uuid())
+  employerAccountId String
+  jobHistoryId    String
+  disputeReason   String
+  status          DisputeStatus @default(open)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relations
+  employerAccount EmployerAccount @relation(fields: [employerAccountId], references: [id], onDelete: Cascade)
+  jobHistory      JobHistory      @relation(fields: [jobHistoryId], references: [id], onDelete: Cascade)
+  documents       DisputeDocument[]
+
+  @@index([employerAccountId])
+  @@index([jobHistoryId])
+  @@index([status])
+}
+
+model VerificationRequest {
+  id              String                  @id @default(uuid())
+  jobHistoryId    String
+  requestedBy     String                  // "user" or "employer"
+  requestedById   String?                 // User ID or EmployerAccount ID
+  status          VerificationRequestStatus @default(pending)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  // Relations
+  jobHistory      JobHistory               @relation(fields: [jobHistoryId], references: [id], onDelete: Cascade)
+  user            User?                    @relation(fields: [requestedById], references: [id], onDelete: Cascade)
+  employerAccount EmployerAccount?         @relation(fields: [requestedById], references: [id], onDelete: Cascade)
+
+  @@index([jobHistoryId])
+  @@index([status])
+}
+
+model DisputeDocument {
+  id              String   @id @default(uuid())
+  disputeId       String?
+  jobHistoryId     String
+  userId          String
+  documentType    String   // "pay_stub" | "w2" | "offer_letter" | "badge_photo" | "schedule"
+  fileUrl         String
+  fileName        String
+  fileSize        Int
+  createdAt       DateTime @default(now())
+
+  // Relations
+  dispute         EmployerDispute? @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  jobHistory      JobHistory       @relation(fields: [jobHistoryId], references: [id], onDelete: Cascade)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([disputeId])
+  @@index([jobHistoryId])
+  @@index([userId])
+}
+
+model AdminUser {
+  id            String     @id @default(uuid())
+  email         String     @unique
+  passwordHash  String
+  role          AdminRole   @default(admin)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([email])
+}
