@@ -18,9 +18,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const status = searchParams.get('status')
 
-    const supabase = await createServerClient()
+    const supabaseAny = (await createServerClient()) as any
 
-    let query = supabase
+    let query = supabaseAny
       .from('verification_requests')
       .select(`
         *,
@@ -53,7 +53,22 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    return NextResponse.json({ requests: requests || [] })
+    // Normalize requests: convert string | null to string
+    const safeRequests = (requests || []).map((request: any) => ({
+      ...request,
+      jobs: request.jobs ? {
+        ...request.jobs,
+        company_name: request.jobs.company_name ?? "",
+        job_title: request.jobs.job_title ?? "",
+        profiles: request.jobs.profiles ? {
+          ...request.jobs.profiles,
+          full_name: request.jobs.profiles.full_name ?? "",
+          email: request.jobs.profiles.email ?? "",
+        } : null,
+      } : null,
+    }))
+
+    return NextResponse.json({ requests: safeRequests })
   } catch (error) {
     console.error('Get verification requests error:', error)
     return NextResponse.json(

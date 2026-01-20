@@ -233,9 +233,23 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
     .select('*')
     .eq('user_id', candidateId)
 
+  // Normalize profile: convert string | null to string
+  const safeProfile = profile ? {
+    ...profile,
+    full_name: profile.full_name ?? "",
+    email: profile.email ?? "",
+  } : null
+
+  // Normalize jobs: convert string | null to string
+  const safeJobs = (jobs || []).map((job: any) => ({
+    ...job,
+    company_name: job.company_name ?? "",
+    job_title: job.job_title ?? "",
+  }))
+
   return {
-    profile,
-    jobs: jobs || [],
+    profile: safeProfile,
+    jobs: safeJobs,
     references: references || [],
     trust_score: trustScore?.score || 0,
     industry_fields: industryFields || [],

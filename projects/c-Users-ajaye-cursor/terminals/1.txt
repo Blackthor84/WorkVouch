@@ -5,23 +5,6 @@ cwd: |
 last_command: git push
 last_exit_code: 0
 ---
--a----         1/16/2026  10:08 AM          20392 CHANGELOG.md
--a----         1/16/2026  10:08 AM           1080 LICENSE
--a----         1/16/2026  10:08 AM            872 package.json
--a----         1/16/2026  10:08 AM           2430 README.md
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\xmlbuilder\lib
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
--a----         1/16/2026  10:08 AM           1463 index.js
--a----         1/16/2026  10:08 AM           2149 Utility.js
--a----         1/16/2026  10:08 AM           1149 XMLAttribute.js
--a----         1/16/2026  10:08 AM           1031 XMLCData.js
--a----         1/16/2026  10:08 AM           1053 XMLComment.js
--a----         1/16/2026  10:08 AM           1399 XMLDeclaration.js
 -a----         1/16/2026  10:08 AM           3399 XMLDocType.js
 -a----         1/16/2026  10:08 AM           1591 XMLDocument.js
 -a----         1/16/2026  10:08 AM          13039 XMLDocumentCB.js
@@ -1004,4 +987,21 @@ remote: This repository moved. Please use the new location:
 remote:   https://github.com/Blackthor84/WorkVouch.git
 To https://github.com/Blackthor84/workvouch.git
    b088293..e5cc2f5  main -> main
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> git commit -m "Fix industry type error for warehouse onboarding"
+[main 9158f81] Fix industry type error for warehouse onboarding
+ 3 files changed, 31 insertions(+), 23 deletions(-)
+PS C:\Users\ajaye\.cursor> git push
+Enumerating objects: 23, done.
+Counting objects: 100% (23/23), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (8/8), done.
+Writing objects: 100% (12/12), 4.39 KiB | 264.00 KiB/s, done.
+Total 12 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   e5cc2f5..9158f81  main -> main
 PS C:\Users\ajaye\.cursor>

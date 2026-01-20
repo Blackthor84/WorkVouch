@@ -22,6 +22,21 @@ export default async function ProfilePage() {
   const jobs = await getUserJobs()
   const references = profile ? await getUserReferences(profile.id) : []
 
+  // Normalize profile: convert string | null to string
+  const safeProfile = profile ? {
+    ...profile,
+    full_name: profile.full_name ?? "",
+    email: profile.email ?? "",
+  } : null
+
+  // Normalize jobs: convert string | null to string
+  const safeJobs = (jobs && Array.isArray(jobs)) ? jobs.map((job: any) => ({
+    ...job,
+    company_name: job.company_name ?? "",
+    job_title: job.job_title ?? "",
+    location: job.location ?? null, // location can remain null
+  })) : []
+
   return (
     <>
       <NavbarServer />
@@ -37,8 +52,8 @@ export default async function ProfilePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            {profile && <ProfileSection profile={profile} />}
-            {jobs && jobs.length > 0 && <JobsSection jobs={jobs} />}
+            {safeProfile && <ProfileSection profile={safeProfile} />}
+            {safeJobs && safeJobs.length > 0 && <JobsSection jobs={safeJobs} />}
             
             {/* Peer References */}
             <Card className="p-6">
@@ -112,9 +127,9 @@ export default async function ProfilePage() {
                 Skills & Certifications
               </h3>
               <div className="space-y-2">
-                {profile?.industry && (
+                {safeProfile?.industry && (
                   <Badge variant="info" className="mr-2 mb-2">
-                    {profile.industry.replace('_', ' ')}
+                    {safeProfile.industry.replace('_', ' ')}
                   </Badge>
                 )}
                 <p className="text-sm text-grey-medium dark:text-gray-400">

@@ -64,34 +64,52 @@ export function CandidateProfileViewer({ candidateData }: CandidateProfileViewer
 
   const { profile, jobs, references, trust_score, industry_fields } = candidateData
 
+  // Normalize profile: convert string | null to string
+  const safeProfile = profile ? {
+    ...profile,
+    full_name: profile.full_name ?? "",
+    email: profile.email ?? "",
+  } : null
+
+  // Normalize jobs: convert string | null to string
+  const safeJobs = jobs ? jobs.map((job: any) => ({
+    ...job,
+    company_name: job.company_name ?? "",
+    job_title: job.job_title ?? "",
+  })) : []
+
+  if (!safeProfile) {
+    return <div>Profile not found</div>
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          {profile.profile_photo_url ? (
+          {safeProfile.profile_photo_url ? (
             <img
-              src={profile.profile_photo_url}
-              alt={profile.full_name}
+              src={safeProfile.profile_photo_url}
+              alt={safeProfile.full_name}
               className="h-24 w-24 rounded-full object-cover"
             />
           ) : (
             <div className="h-24 w-24 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
               <span className="text-blue-600 dark:text-blue-400 font-semibold text-2xl">
-                {profile.full_name?.charAt(0)}
+                {safeProfile.full_name?.charAt(0) || 'U'}
               </span>
             </div>
           )}
           <div>
             <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
-              {profile.full_name}
+              {safeProfile.full_name}
             </h1>
             <p className="text-grey-medium dark:text-gray-400">
-              {profile.city && profile.state ? `${profile.city}, ${profile.state}` : 'Location not specified'}
+              {safeProfile.city && safeProfile.state ? `${safeProfile.city}, ${safeProfile.state}` : 'Location not specified'}
             </p>
-            {profile.industry && (
+            {safeProfile.industry && (
               <p className="text-sm text-grey-medium dark:text-gray-400 capitalize">
-                {profile.industry.replace('_', ' ')}
+                {safeProfile.industry.replace('_', ' ')}
               </p>
             )}
           </div>
@@ -165,7 +183,7 @@ export function CandidateProfileViewer({ candidateData }: CandidateProfileViewer
       )}
 
       {/* Verified Work History */}
-      <WorkHistoryViewer jobs={jobs} />
+      <WorkHistoryViewer jobs={safeJobs} />
 
       {/* Peer References */}
       <ReferenceViewer references={references} />

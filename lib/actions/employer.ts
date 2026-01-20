@@ -108,10 +108,38 @@ export async function getPublicProfile(userId: string) {
     .eq('user_id', userId)
     .single()
 
+  // Normalize profile: convert string | null to string
+  const safeProfile = profile ? {
+    ...profile,
+    full_name: profile.full_name ?? "",
+    email: profile.email ?? "",
+  } : null
+
+  // Normalize jobs: convert string | null to string
+  const safeJobs = (jobs || []).map((job: any) => ({
+    ...job,
+    company_name: job.company_name ?? "",
+    job_title: job.job_title ?? "",
+  }))
+
+  // Normalize references: convert string | null to string
+  const safeReferences = (publicReferences || []).map((ref: any) => ({
+    ...ref,
+    from_user: ref.from_user ? {
+      ...ref.from_user,
+      full_name: ref.from_user.full_name ?? "",
+    } : null,
+    job: ref.job ? {
+      ...ref.job,
+      company_name: ref.job.company_name ?? "",
+      job_title: ref.job.job_title ?? "",
+    } : null,
+  }))
+
   return {
-    profile,
-    jobs: jobs || [],
-    references: publicReferences,
+    profile: safeProfile,
+    jobs: safeJobs,
+    references: safeReferences,
     trust_score: trustScore,
   }
 }

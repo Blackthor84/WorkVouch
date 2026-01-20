@@ -18,11 +18,19 @@ export default async function MyJobsPage() {
 
   const supabase = await createServerClient()
 
-  const { data: jobs, error } = await supabase
+  const supabaseAny = supabase as any
+  const { data: jobs, error } = await supabaseAny
     .from('jobs')
     .select('*')
     .eq('user_id', user.id)
     .order('start_date', { ascending: false })
+
+  // Normalize jobs: convert string | null to string
+  const safeJobs = jobs ? jobs.map((job: any) => ({
+    ...job,
+    company_name: job.company_name ?? "",
+    job_title: job.job_title ?? "",
+  })) : []
 
   return (
     <>
@@ -44,8 +52,8 @@ export default async function MyJobsPage() {
           <Card className="p-8 text-center">
             <p className="text-red-600 dark:text-red-400">Error loading jobs</p>
           </Card>
-        ) : jobs && jobs.length > 0 ? (
-          <JobList jobs={jobs} />
+        ) : safeJobs && safeJobs.length > 0 ? (
+          <JobList jobs={safeJobs} />
         ) : (
           <Card className="p-12 text-center">
             <BriefcaseIcon className="h-12 w-12 text-grey-medium dark:text-gray-400 mx-auto mb-4" />

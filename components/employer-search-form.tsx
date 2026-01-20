@@ -33,11 +33,11 @@ export function EmployerSearchForm() {
 
     try {
       const users = await searchUsers(searchQuery)
-      setResults(users)
+      setResults(users as Profile[])
       
       // Check purchase status for all results
       const statuses: Record<string, boolean> = {}
-      for (const user of users) {
+      for (const user of (users as any[])) {
         try {
           statuses[user.id] = await hasPurchasedReport(user.id)
         } catch {

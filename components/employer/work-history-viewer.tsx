@@ -8,7 +8,14 @@ interface WorkHistoryViewerProps {
 }
 
 export function WorkHistoryViewer({ jobs }: WorkHistoryViewerProps) {
-  if (jobs.length === 0) {
+  // Normalize jobs: convert string | null to string
+  const safeJobs = jobs ? jobs.map((job: any) => ({
+    ...job,
+    company_name: job.company_name ?? "",
+    job_title: job.job_title ?? "",
+  })) : []
+
+  if (safeJobs.length === 0) {
     return (
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
@@ -27,7 +34,7 @@ export function WorkHistoryViewer({ jobs }: WorkHistoryViewerProps) {
         Verified Work History
       </h2>
       <div className="space-y-4">
-        {jobs.map((job) => {
+        {safeJobs.map((job) => {
           const hasMatches = job.coworker_matches && job.coworker_matches.length > 0
           const isVerified = hasMatches
 

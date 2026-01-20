@@ -29,6 +29,13 @@ export default async function UserDashboardPage() {
 
   const profile = await getCurrentUserProfile()
 
+  // Normalize profile: convert string | null to string
+  const safeProfile = profile ? {
+    ...profile,
+    full_name: profile.full_name ?? "",
+    email: profile.email ?? "",
+  } : null
+
   // Mock data
   const shortcuts = [
     { href: '/upload-resume', label: 'Upload Resume', icon: DocumentArrowUpIcon, color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' },
@@ -54,7 +61,7 @@ export default async function UserDashboardPage() {
             Dashboard
           </h1>
           <p className="text-grey-medium dark:text-gray-400 mt-1">
-            Welcome back, {profile?.full_name || user.email}
+            Welcome back, {safeProfile?.full_name || user.email}
           </p>
         </div>
 
@@ -115,7 +122,7 @@ export default async function UserDashboardPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <TrustScoreCard userId={profile?.id || user.id} />
+            <TrustScoreCard userId={safeProfile?.id || user.id} />
             
             <Card className="p-6">
               <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
