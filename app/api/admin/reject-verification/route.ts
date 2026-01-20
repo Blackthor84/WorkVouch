@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { getCurrentUser, isAdmin } from '@/lib/auth'
+import { Database } from '@/types/database'
 import { z } from 'zod'
 
 const rejectVerificationSchema = z.object({
@@ -23,11 +24,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const data = rejectVerificationSchema.parse(body)
 
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
+
+    // Type definitions for verification_requests (not in Database types yet)
+    type VerificationRequestRow = { id: string; job_id: string; status: string }
+    type VerificationRequestUpdate = { status?: string }
 
     // Get verification request to find job_id
-    const { data: verificationRequest, error: fetchError } = await supabase
-      .from('verification_requests')
+    const { data: verificationRequest, error: fetchError } = await (supabase as any)
+      .from<VerificationRequestRow>('verification_requests')
       .select('id, job_id')
       .eq('id', data.verificationRequestId)
       .single()
@@ -37,9 +42,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Update verification request
-    const { data: updatedRequest, error: updateError } = await supabase
-      .from('verification_requests')
-      .update({ status: 'rejected' })
+    const { data: updatedRequest, error: updateError } = await (supabase as any)
+      .from<VerificationRequestRow>('verification_requests')
+      .update({ status: 'rejected' } as Partial<VerificationRequestUpdate>)
       .eq('id', data.verificationRequestId)
       .select()
       .single()
@@ -53,9 +58,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Update job history verification status
+    // Note: verification_status field may not be in Database types yet
     const { error: jobUpdateError } = await supabase
-      .from('jobs')
-      .update({ verification_status: 'unverified' })
+      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
+      .update({ verification_status: 'unverified' } as any)
       .eq('id', verificationRequest.job_id)
 
     if (jobUpdateError) {

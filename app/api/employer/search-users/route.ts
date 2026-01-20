@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { isEmployer } from '@/lib/auth'
+import { Database } from '@/types/database'
 
 const MAX_RESULTS = 50
 
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Search query must be at least 2 characters' }, { status: 400 })
     }
 
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
 
     // Search profiles by full_name (case-insensitive)
     // Split the query to search for first name, last name, or full name
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
     // Build the query - search for profiles where full_name contains the query (case-insensitive)
     // Using ilike for case-insensitive pattern matching
     const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
+      .from<Database['public']['Tables']['profiles']['Row']>('profiles')
       .select(`
         id,
         full_name,
@@ -56,11 +57,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user IDs
-    const userIds = profiles.map(p => p.id)
+    const userIds = (profiles as any[]).map((p: any) => p.id)
 
     // Fetch skills for all users
-    const { data: skillsData, error: skillsError } = await supabase
-      .from('skills')
+    // Note: skills table may not be in Database types yet
+    type SkillRow = { user_id: string; skill_name: string }
+    const { data: skillsData, error: skillsError } = await (supabase as any)
+      .from<SkillRow>('skills')
       .select('user_id, skill_name')
       .in('user_id', userIds)
 
@@ -71,7 +74,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch jobs for all users (limit to most recent 3 per user for summary)
     const { data: jobsData, error: jobsError } = await supabase
-      .from('jobs')
+      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
       .select('user_id, job_title, company_name, start_date, is_current')
       .in('user_id', userIds)
       .eq('is_private', false) // Only show public jobs
@@ -85,7 +88,7 @@ export async function GET(request: NextRequest) {
     // Group skills by user_id
     const skillsByUser = new Map<string, string[]>()
     if (skillsData) {
-      skillsData.forEach((skill) => {
+      (skillsData as any[]).forEach((skill: any) => {
         if (!skillsByUser.has(skill.user_id)) {
           skillsByUser.set(skill.user_id, [])
         }
@@ -97,7 +100,8 @@ export async function GET(request: NextRequest) {
     const jobsByUser = new Map<string, Array<{ title: string; company: string; date: string }>>()
     if (jobsData) {
       const userJobCounts = new Map<string, number>()
-      jobsData.forEach((job) => {
+      const jobsArray = jobsData as any[]
+      jobsArray.forEach((job: any) => {
         const userId = job.user_id
         const currentCount = userJobCounts.get(userId) || 0
         
@@ -122,7 +126,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Combine data into result array
-    const users = profiles.map((profile) => {
+    const users = (profiles as any[]).map((profile: any) => {
       const skills = skillsByUser.get(profile.id) || []
       const jobs = jobsByUser.get(profile.id) || []
 

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { getCurrentUser, hasRole } from '@/lib/auth'
 import { canViewEmployees } from '@/lib/middleware/plan-enforcement-supabase'
+import { Database } from '@/types/database'
 
 export async function GET(req: NextRequest) {
   try {
@@ -25,11 +26,14 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
+
+    // Type definition for employer_accounts (not in Database types yet)
+    type EmployerAccountRow = { company_name: string }
 
     // Get employer's company name
-    const { data: employerAccount } = await supabase
-      .from('employer_accounts')
+    const { data: employerAccount } = await (supabase as any)
+      .from<EmployerAccountRow>('employer_accounts')
       .select('company_name')
       .eq('user_id', user.id)
       .single()
@@ -52,7 +56,7 @@ export async function GET(req: NextRequest) {
     // 3. Match the name search
 
     const { data: jobs, error: jobsError } = await supabase
-      .from('jobs')
+      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
       .select(`
         id,
         user_id,

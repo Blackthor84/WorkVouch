@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { getCurrentUser, isAdmin } from '@/lib/auth'
+import { Database } from '@/types/database'
 import { z } from 'zod'
 
 const resolveDisputeSchema = z.object({
@@ -25,11 +26,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const data = resolveDisputeSchema.parse(body)
 
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
+
+    // Type definitions for employer_disputes (not in Database types yet)
+    type EmployerDisputeRow = { id: string; job_id: string; status: string }
+    type EmployerDisputeUpdate = { status?: string }
 
     // Get dispute to find job_id
-    const { data: dispute, error: disputeError } = await supabase
-      .from('employer_disputes')
+    const { data: dispute, error: disputeError } = await (supabase as any)
+      .from<EmployerDisputeRow>('employer_disputes')
       .select('id, job_id')
       .eq('id', data.disputeId)
       .single()
@@ -39,11 +44,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Update dispute status
-    const { data: updatedDispute, error: updateError } = await supabase
-      .from('employer_disputes')
+    const { data: updatedDispute, error: updateError } = await (supabase as any)
+      .from<EmployerDisputeRow>('employer_disputes')
       .update({
         status: data.resolution === 'resolved' ? 'resolved' : 'rejected',
-      })
+      } as Partial<EmployerDisputeUpdate>)
       .eq('id', data.disputeId)
       .select()
       .single()
@@ -58,10 +63,10 @@ export async function POST(req: NextRequest) {
 
     // Update job history verification status
     const { error: jobUpdateError } = await supabase
-      .from('jobs')
+      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
       .update({
         verification_status: data.verificationStatus,
-      })
+      } as any)
       .eq('id', dispute.job_id)
 
     if (jobUpdateError) {

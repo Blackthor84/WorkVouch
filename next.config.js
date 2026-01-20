@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    turbo: false, // disable Turbopack to allow existing webpack
-  },
   webpack: (config, { isServer }) => {
     // Suppress Supabase getSession warnings
     if (isServer) {

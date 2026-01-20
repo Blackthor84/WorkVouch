@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { isSuperAdmin } from '@/lib/auth'
-import { Navbar } from '@/components/navbar'
+import { NavbarServer } from '@/components/navbar-server'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
 
@@ -13,7 +13,7 @@ export default async function SuperAdminPanel() {
 
   return (
     <>
-      <Navbar />
+      <NavbarServer />
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
         <h1 className="text-3xl font-bold text-red-600 dark:text-red-400 mb-6">
           Superadmin Control

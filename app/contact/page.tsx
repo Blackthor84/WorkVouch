@@ -1,11 +1,11 @@
-import { Navbar } from '@/components/navbar'
+import { NavbarServer } from '@/components/navbar-server'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
 export default function ContactPage() {
   return (
     <>
-      <Navbar />
+      <NavbarServer />
       <main className="min-h-screen bg-background dark:bg-[#0D1117]">
         <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="text-center mb-12">

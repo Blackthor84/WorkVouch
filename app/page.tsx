@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Navbar } from '@/components/navbar'
+import { NavbarServer } from '@/components/navbar-server'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Logo } from '@/components/logo'
@@ -15,7 +15,7 @@ import {
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background dark:bg-[#0D1117]">
-      <Navbar />
+      <NavbarServer />
       
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 dark:from-blue-500 dark:via-blue-600 dark:to-[#1E40AF] pt-20 pb-32">

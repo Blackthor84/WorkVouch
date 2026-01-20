@@ -1,12 +1,12 @@
 import { SignInForm } from '@/components/sign-in-form'
-import { Navbar } from '@/components/navbar'
+import { NavbarServer } from '@/components/navbar-server'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
 
 export default function SignInPage() {
   return (
     <div className="min-h-screen bg-background dark:bg-[#0D1117]">
-      <Navbar />
+      <NavbarServer />
       <main className="flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">

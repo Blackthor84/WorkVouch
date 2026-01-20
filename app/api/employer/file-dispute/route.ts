@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { getCurrentUser, hasRole } from '@/lib/auth'
 import { canFileDispute } from '@/lib/middleware/plan-enforcement-supabase'
+import { Database } from '@/types/database'
 import { z } from 'zod'
 
 const fileDisputeSchema = z.object({
@@ -34,11 +35,20 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const data = fileDisputeSchema.parse(body)
 
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
+
+    // Type definitions for tables not in Database types yet
+    type EmployerAccountRow = { id: string; company_name: string; user_id: string }
+    type EmployerDisputeInsert = {
+      employer_account_id: string
+      job_id: string
+      dispute_reason: string
+      status: string
+    }
 
     // Get employer's company name
-    const { data: employerAccount, error: employerError } = await supabase
-      .from('employer_accounts')
+    const { data: employerAccount, error: employerError } = await (supabase as any)
+      .from<EmployerAccountRow>('employer_accounts')
       .select('id, company_name')
       .eq('user_id', user.id)
       .single()
@@ -49,7 +59,7 @@ export async function POST(req: NextRequest) {
 
     // Verify job history exists and is for this employer
     const { data: jobHistory, error: jobError } = await supabase
-      .from('jobs')
+      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
       .select('id, company_name')
       .eq('id', data.jobHistoryId)
       .single()
@@ -66,14 +76,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Create dispute
-    const { data: dispute, error: disputeError } = await supabase
+    const { data: dispute, error: disputeError } = await (supabase as any)
       .from('employer_disputes')
       .insert({
         employer_account_id: employerAccount.id,
         job_id: data.jobHistoryId,
         dispute_reason: data.disputeReason,
         status: 'open',
-      })
+      } as EmployerDisputeInsert)
       .select()
       .single()
 
@@ -87,8 +97,8 @@ export async function POST(req: NextRequest) {
 
     // Update job history status to disputed
     await supabase
-      .from('jobs')
-      .update({ verification_status: 'disputed' })
+      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
+      .update({ verification_status: 'disputed' } as any)
       .eq('id', data.jobHistoryId)
 
     return NextResponse.json({ success: true, dispute })

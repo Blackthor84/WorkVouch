@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { getCurrentUser, isAdmin } from '@/lib/auth'
+import { Database } from '@/types/database'
 import { z } from 'zod'
 
 const approveVerificationSchema = z.object({
@@ -23,12 +24,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const data = approveVerificationSchema.parse(body)
 
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
+
+    // Type definitions for verification_requests (not in Database types yet)
+    type VerificationRequestRow = { id: string; job_id: string; status: string }
+    type VerificationRequestUpdate = { status?: string }
 
     // Get verification request to find job_id
-    // Note: verification_requests table not in Database types yet
     const { data: verificationRequest, error: fetchError } = await (supabase as any)
-      .from('verification_requests')
+      .from<VerificationRequestRow>('verification_requests')
       .select('id, job_id')
       .eq('id', data.verificationRequestId)
       .single()
@@ -39,8 +43,8 @@ export async function POST(req: NextRequest) {
 
     // Update verification request
     const { data: updatedRequest, error: updateError } = await (supabase as any)
-      .from('verification_requests')
-      .update({ status: 'approved' })
+      .from<VerificationRequestRow>('verification_requests')
+      .update({ status: 'approved' } as Partial<VerificationRequestUpdate>)
       .eq('id', data.verificationRequestId)
       .select()
       .single()
@@ -55,10 +59,10 @@ export async function POST(req: NextRequest) {
 
     // Update job history verification status
     // Note: verification_status field may not be in Database types yet
-    const { error: jobUpdateError } = await (supabase as any)
-      .from('jobs')
-      .update({ verification_status: 'verified' })
-      .eq('id', (verificationRequest as any).job_id)
+    const { error: jobUpdateError } = await supabase
+      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
+      .update({ verification_status: 'verified' } as any)
+      .eq('id', verificationRequest.job_id)
 
     if (jobUpdateError) {
       console.error('Update job error:', jobUpdateError)

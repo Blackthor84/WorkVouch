@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { getCurrentUser, hasRole } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
@@ -15,10 +15,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Not an employer account' }, { status: 403 })
     }
 
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
 
-    const { data: employerAccount, error } = await supabase
-      .from('employer_accounts')
+    // Type definition for employer_accounts (not in Database types yet)
+    type EmployerAccountRow = {
+      id: string
+      company_name: string
+      plan_tier: string
+      stripe_customer_id: string | null
+      created_at: string
+    }
+
+    const { data: employerAccount, error } = await (supabase as any)
+      .from<EmployerAccountRow>('employer_accounts')
       .select('*')
       .eq('user_id', user.id)
       .single()

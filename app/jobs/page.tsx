@@ -1,5 +1,5 @@
 import { getPublishedJobPostings } from '@/lib/actions/employer/job-postings'
-import { Navbar } from '@/components/navbar'
+import { NavbarServer } from '@/components/navbar-server'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -15,7 +15,7 @@ export default async function JobsPage() {
 
   return (
     <>
-      <Navbar />
+      <NavbarServer />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">

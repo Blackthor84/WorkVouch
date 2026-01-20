@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
+import { Database } from '@/types/database'
 
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
     const {
       data: { user },
       error: authError,
@@ -37,10 +38,12 @@ export async function POST(request: NextRequest) {
         responsibilities: job.responsibilities || null,
       }))
 
-      const { error: jobsError } = await supabase.from('jobs').upsert(jobsToInsert, {
-        onConflict: 'id',
-        ignoreDuplicates: false,
-      })
+      const { error: jobsError } = await supabase
+        .from<Database['public']['Tables']['jobs']['Row']>('jobs')
+        .upsert(jobsToInsert as Database['public']['Tables']['jobs']['Insert'][], {
+          onConflict: 'id',
+          ignoreDuplicates: false,
+        })
 
       if (jobsError) {
         console.error('Jobs insert error:', jobsError)
@@ -62,10 +65,24 @@ export async function POST(request: NextRequest) {
         description: edu.description || null,
       }))
 
-      const { error: educationError } = await supabase.from('education').upsert(educationToInsert, {
-        onConflict: 'id',
-        ignoreDuplicates: false,
-      })
+      // Note: education table may not be in Database types yet
+      type EducationInsert = {
+        user_id: string
+        school: string
+        degree: string | null
+        field_of_study: string | null
+        start_year: number | null
+        end_year: number | null
+        is_current: boolean
+        gpa: number | null
+        description: string | null
+      }
+      const { error: educationError } = await (supabase as any)
+        .from('education')
+        .upsert(educationToInsert as EducationInsert[], {
+          onConflict: 'id',
+          ignoreDuplicates: false,
+        })
 
       if (educationError) {
         console.error('Education insert error:', educationError)
@@ -75,8 +92,10 @@ export async function POST(request: NextRequest) {
 
     // Save skills
     if (skills && Array.isArray(skills) && skills.length > 0) {
+      // Note: skills table may not be in Database types yet
+      type SkillRow = { user_id: string; skill_name: string; skill_category: string; proficiency_level: null }
       // Delete existing skills first to avoid duplicates
-      await supabase.from('skills').delete().eq('user_id', user.id)
+      await (supabase as any).from<SkillRow>('skills').delete().eq('user_id', user.id)
 
       const skillsToInsert = skills.map((skill: string) => ({
         user_id: user.id,
@@ -85,7 +104,9 @@ export async function POST(request: NextRequest) {
         proficiency_level: null,
       }))
 
-      const { error: skillsError } = await supabase.from('skills').insert(skillsToInsert)
+      const { error: skillsError } = await (supabase as any)
+        .from<SkillRow>('skills')
+        .insert(skillsToInsert as SkillRow[])
 
       if (skillsError) {
         console.error('Skills insert error:', skillsError)
@@ -102,10 +123,13 @@ export async function POST(request: NextRequest) {
         proficiency_level: null,
       }))
 
-      const { error: certsError } = await supabase.from('skills').upsert(certsToInsert, {
-        onConflict: 'user_id,skill_name',
-        ignoreDuplicates: false,
-      })
+      type SkillRow = { user_id: string; skill_name: string; skill_category: string; proficiency_level: null }
+      const { error: certsError } = await (supabase as any)
+        .from<SkillRow>('skills')
+        .upsert(certsToInsert as SkillRow[], {
+          onConflict: 'user_id,skill_name',
+          ignoreDuplicates: false,
+        })
 
       if (certsError) {
         console.error('Certifications insert error:', certsError)

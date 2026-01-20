@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { getCurrentUser } from '@/lib/auth'
+import { Database } from '@/types/database'
 
 export async function POST(req: Request) {
   try {
@@ -18,16 +19,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Warehouse type is required' }, { status: 400 })
     }
 
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
 
     // Update the profile with warehouse-specific data
+    // Note: warehouse-specific fields may not be in Database types yet
     const { error: updateError } = await supabase
-      .from('profiles')
+      .from<Database['public']['Tables']['profiles']['Row']>('profiles')
       .update({
         warehouse_type: warehouseType,
         equipment_operated: equipmentOperated || [],
         warehouse_responsibilities: responsibilities || [],
         warehouse_certifications: certifications || [],
+      } as Partial<Database['public']['Tables']['profiles']['Update']> & {
+        warehouse_type?: string
+        equipment_operated?: any[]
+        warehouse_responsibilities?: any[]
+        warehouse_certifications?: any[]
       })
       .eq('id', user.id)
 

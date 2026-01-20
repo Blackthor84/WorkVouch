@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { extractTextFromPDF, extractTextFromDOCX, parseResumeText } from '@/lib/utils/resume-parser'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -8,7 +8,7 @@ const ALLOWED_MIME_TYPES = ['application/pdf', 'application/vnd.openxmlformats-o
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
     const {
       data: { user },
       error: authError,
@@ -86,14 +86,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Save file metadata to database
-    const { error: dbError } = await supabase.from('resume_files').insert({
-      user_id: user.id,
-      file_name: file.name,
-      file_path: filePath,
-      file_size: file.size,
-      file_type: fileExtension === 'pdf' ? 'pdf' : 'docx',
-      parsed_at: new Date().toISOString(),
-    })
+    // Note: resume_files table may not be in Database types yet
+    type ResumeFileInsert = {
+      user_id: string
+      file_name: string
+      file_path: string
+      file_size: number
+      file_type: string
+      parsed_at: string
+    }
+    const { error: dbError } = await (supabase as any)
+      .from('resume_files')
+      .insert({
+        user_id: user.id,
+        file_name: file.name,
+        file_path: filePath,
+        file_size: file.size,
+        file_type: fileExtension === 'pdf' ? 'pdf' : 'docx',
+        parsed_at: new Date().toISOString(),
+      } as ResumeFileInsert)
 
     if (dbError) {
       console.error('Database error:', dbError)

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { getCurrentUser, hasRole } from '@/lib/auth'
 import { canViewEmployees } from '@/lib/middleware/plan-enforcement-supabase'
+import { Database } from '@/types/database'
 
 export async function GET(req: NextRequest) {
   try {
@@ -35,11 +36,14 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
+
+    // Type definitions for tables not in Database types yet
+    type EmployerAccountRow = { id: string; company_name: string }
 
     // Get employer's company name
-    const { data: employerAccount } = await supabase
-      .from('employer_accounts')
+    const { data: employerAccount } = await (supabase as any)
+      .from<EmployerAccountRow>('employer_accounts')
       .select('id, company_name')
       .eq('user_id', user.id)
       .single()
@@ -50,7 +54,7 @@ export async function GET(req: NextRequest) {
 
     // Get job history
     const { data: jobHistory, error: jobError } = await supabase
-      .from('jobs')
+      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
       .select(`
         *,
         profiles!inner (
@@ -76,7 +80,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Verify visibility (unless employer is searching manually - paid feature)
-    if (!jobHistory.is_visible_to_employer) {
+    if (!(jobHistory as any).is_visible_to_employer) {
       return NextResponse.json(
         { error: 'This job history is not visible to employers' },
         { status: 403 }
@@ -84,8 +88,10 @@ export async function GET(req: NextRequest) {
     }
 
     // Get references
-    const { data: references } = await supabase
-      .from('references')
+    // Note: references table may not be in Database types yet
+    type ReferenceRow = { id: string; rating: number; written_feedback: string; from_user_id: string; profiles?: { full_name: string } }
+    const { data: references } = await (supabase as any)
+      .from<ReferenceRow>('references')
       .select(`
         id,
         rating,
@@ -99,8 +105,9 @@ export async function GET(req: NextRequest) {
       .eq('to_user_id', jobHistory.user_id)
 
     // Get disputes for this job by this employer
-    const { data: disputes } = await supabase
-      .from('employer_disputes')
+    type EmployerDisputeRow = { id: string; dispute_reason: string; status: string; created_at: string }
+    const { data: disputes } = await (supabase as any)
+      .from<EmployerDisputeRow>('employer_disputes')
       .select('id, dispute_reason, status, created_at')
       .eq('job_id', jobHistoryId)
       .eq('employer_account_id', employerAccount.id)
@@ -113,15 +120,15 @@ export async function GET(req: NextRequest) {
         jobTitle: jobHistory.job_title,
         startDate: jobHistory.start_date,
         endDate: jobHistory.end_date,
-        verificationStatus: jobHistory.verification_status,
-        isVisibleToEmployer: jobHistory.is_visible_to_employer,
+        verificationStatus: (jobHistory as any).verification_status,
+        isVisibleToEmployer: (jobHistory as any).is_visible_to_employer,
         user: {
-          id: jobHistory.profiles?.id,
-          name: jobHistory.profiles?.full_name,
-          email: jobHistory.profiles?.email,
-          industry: jobHistory.profiles?.industry,
+          id: (jobHistory as any).profiles?.id,
+          name: (jobHistory as any).profiles?.full_name,
+          email: (jobHistory as any).profiles?.email,
+          industry: (jobHistory as any).profiles?.industry,
         },
-        coworkerReferences: (references || []).map((ref: any) => ({
+        coworkerReferences: (references || []).map((ref: ReferenceRow) => ({
           id: ref.id,
           fromUser: {
             id: ref.from_user_id,

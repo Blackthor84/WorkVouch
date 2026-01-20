@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser, hasRole } from '@/lib/auth'
 import { getCandidateProfileForEmployer } from '@/lib/actions/employer/candidate-search'
-import { Navbar } from '@/components/navbar'
+import { NavbarServer } from '@/components/navbar-server'
 import { CandidateProfileViewer } from '@/components/employer/candidate-profile-viewer'
 
 export default async function CandidateProfilePage({
@@ -27,7 +27,7 @@ export default async function CandidateProfilePage({
   } catch (error: any) {
     return (
       <>
-        <Navbar />
+        <NavbarServer />
         <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-grey-dark dark:text-gray-200 mb-2">
@@ -44,7 +44,7 @@ export default async function CandidateProfilePage({
 
   return (
     <>
-      <Navbar />
+      <NavbarServer />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
         <CandidateProfileViewer candidateData={candidateData} />
       </main>

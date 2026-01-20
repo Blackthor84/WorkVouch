@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser, getCurrentUserProfile } from '@/lib/auth'
 import { getUserJobs } from '@/lib/actions/jobs'
 import { getUserReferences } from '@/lib/actions/references'
-import { Navbar } from '@/components/navbar'
+import { NavbarServer } from '@/components/navbar-server'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -24,7 +24,7 @@ export default async function ProfilePage() {
 
   return (
     <>
-      <Navbar />
+      <NavbarServer />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
