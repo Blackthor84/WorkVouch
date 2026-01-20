@@ -1,14 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors. Only use this if you need to.
-    ignoreDuringBuilds: true,
+  experimental: {
+    turbo: false, // disable Turbopack to allow your existing webpack config
   },
-  images: {
-    domains: ['localhost'],
-  },
-  // Exclude mobile directory from web build
   webpack: (config, { isServer }) => {
     // Suppress Supabase getSession warnings
     if (isServer) {
@@ -33,7 +27,16 @@ const nextConfig = {
         ignored: ['**/node_modules/**', '**/mobile/**'],
       }
     }
+    
     return config
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**', // adjust to your trusted image hosts
+      },
+    ],
   },
 }
 
