@@ -1,0 +1,113 @@
+---
+pid: 17712
+cwd: |
+  C:\Users\ajaye\.cursor
+active_command: git add .
+last_command: git push --set-upstream origin main
+last_exit_code: 0
+---
+PS C:\Users\ajaye\.cursor> git push -u origin main
+info: please complete authentication in your browser...
+remote: Repository not found.
+fatal: repository 'https://github.com/Blackthor84/workvouch.git/' not found
+PS C:\Users\ajaye\.cursor> npm dev run
+Unknown command: "dev"
+
+
+Did you mean this?
+  npm run dev # run the "dev" package script
+To see a list of supported npm commands, run:
+  npm help
+PS C:\Users\ajaye\.cursor> git init
+Reinitialized existing Git repository in C:/Users/ajaye/.cursor/.git/
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of 'components/sign-up-form.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/3.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> git commit -m "Add expanded roles and onboarding updates"
+[main 75d3d29] Add expanded roles and onboarding updates
+ 24 files changed, 3562 insertions(+), 51 deletions(-)
+ create mode 100644 HEALTHCARE_ONBOARDING_COMPLETE.md
+ create mode 100644 HOW_TO_RUN_SQL.md
+ create mode 100644 MULTI_INDUSTRY_ONBOARDING_COMPLETE.md
+ create mode 100644 app/employer/search/healthcare/page.tsx
+ create mode 100644 app/onboarding/[industry]/coworkers/page.tsx
+ create mode 100644 app/onboarding/[industry]/job/page.tsx
+ create mode 100644 app/onboarding/[industry]/role/page.tsx
+ create mode 100644 app/onboarding/[industry]/setting/page.tsx
+ create mode 100644 app/onboarding/employer/healthcare/job-post/page.tsx
+ create mode 100644 app/onboarding/employer/healthcare/page.tsx
+ create mode 100644 app/onboarding/healthcare/coworkers/page.tsx
+ create mode 100644 app/onboarding/healthcare/job/page.tsx
+ create mode 100644 app/onboarding/healthcare/role/page.tsx
+ create mode 100644 app/onboarding/healthcare/setting/page.tsx
+ create mode 100644 lib/constants/industries.ts
+ create mode 100644 projects/c-Users-ajaye-cursor/terminals/3.txt
+ create mode 100644 supabase/schema_healthcare_onboarding.sql
+ create mode 100644 supabase/schema_multi_industry_onboarding.sql
+PS C:\Users\ajaye\.cursor> git remote add origin https://github.com/Blackthor84/workvouch.git
+error: remote origin already exists.
+PS C:\Users\ajaye\.cursor> git branch -M main
+PS C:\Users\ajaye\.cursor> git push -u origin main
+info: please complete authentication in your browser...
+To https://github.com/Blackthor84/workvouch.git
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/Blackthor84/workvouch.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+PS C:\Users\ajaye\.cursor> git remote add origin https://github.com/Blackthor84/workvouch.git
+error: remote origin already exists.
+PS C:\Users\ajaye\.cursor> git branch -M main
+PS C:\Users\ajaye\.cursor> git push -u origin main
+To https://github.com/Blackthor84/workvouch.git
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/Blackthor84/workvouch.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+PS C:\Users\ajaye\.cursor> git pull origin main --rebase
+error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> git commit -m "Add expanded roles and onboarding updates"
+[main 6a6d789] Add expanded roles and onboarding updates
+ 2 files changed, 57 insertions(+), 3 deletions(-)
+PS C:\Users\ajaye\.cursor> git pull origin main --rebase
+error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+PS C:\Users\ajaye\.cursor> git add -A
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> git commit -m "Stage all remaining changes before pull"
+[main e27ff72] Stage all remaining changes before pull
+ 2 files changed, 10 insertions(+), 1 deletion(-)
+PS C:\Users\ajaye\.cursor> git pull origin main --rebase
+error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+PS C:\Users\ajaye\.cursor> git config --global core.autocrlf true
+PS C:\Users\ajaye\.cursor> git reset --hard
+Unlink of file 'ai-tracking/ai-code-tracking.db' failed. Should I try again? (y/n) 
+ *  History restored 
+
+PS C:\Users\ajaye\.cursor> git reset --hard
+fatal: Unable to create 'C:/Users/ajaye/.cursor/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+PS C:\Users\ajaye\.cursor> del .git\index.lock
+PS C:\Users\ajaye\.cursor> git reset --hard
+Unlink of file 'ai-tracking/ai-code-tracking.db' failed. Should I try again? (y/n) 
+ *  History restored 
+
+PS C:\Users\ajaye\.cursor> git push --set-upstream origin main
+branch 'main' set up to track 'origin/main'.
+Everything up-to-date
+PS C:\User

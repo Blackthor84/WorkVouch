@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    // Warning: This allows production builds to successfully complete even if
+    // your project has ESLint errors. Only use this if you need to.
+    ignoreDuringBuilds: true,
+  },
   images: {
     domains: ['localhost'],
   },

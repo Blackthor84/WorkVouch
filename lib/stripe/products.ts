@@ -21,13 +21,13 @@ export interface StripeProduct {
 
 export const STRIPE_PRODUCTS: StripeProduct[] = [
   {
-    name: 'PeerCV Starter',
+    name: 'WorkVouch Starter',
     description: 'Perfect for job seekers starting their verified employment journey. Build your trust score with real coworker references and share a clean professional profile.',
     id: 'peer-starter-000',
     prices: [],
   },
   {
-    name: 'PeerCV Pro',
+    name: 'WorkVouch Pro',
     description: 'Unlock AI résumé tools, expanded coworker network requests, ATS optimization, and profile analytics. Perfect for active job seekers and people moving between industries.',
     id: 'peer-pro',
     prices: [
@@ -46,7 +46,7 @@ export const STRIPE_PRODUCTS: StripeProduct[] = [
     ],
   },
   {
-    name: 'PeerCV Elite',
+    name: 'WorkVouch Elite',
     description: 'Designed for professionals who want the strongest verification and visibility. Includes Blue Verified Badge, unlimited coworker requests, premium themes, AI Career Coach, and anonymous employer browsing.',
     id: 'peer-elite',
     prices: [

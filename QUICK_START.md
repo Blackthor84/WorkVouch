@@ -108,8 +108,6 @@ npm run dev
 npm run build
 
 # Start production server
-npm start
-
-# Run linter
+npm start# Run linter
 npm run lint
 ```

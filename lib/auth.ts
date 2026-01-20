@@ -131,3 +131,25 @@ export async function requireAuth(): Promise<User> {
   }
   return user
 }
+
+/**
+ * Require a specific role - throws if user doesn't have the role
+ */
+export async function requireRole(role: string): Promise<void> {
+  const hasAccess = await hasRoleOrSuperadmin(role)
+  if (!hasAccess) {
+    throw new Error(`Unauthorized: ${role} role required`)
+  }
+}
+
+/**
+ * Hash password using bcrypt (for legacy Prisma-based signup route)
+ * Note: Supabase Auth handles password hashing automatically
+ * This function is kept for backward compatibility but the signup route is not used
+ */
+export async function hashPassword(password: string): Promise<string> {
+  // This is a placeholder - the signup route using this is deprecated
+  // Supabase Auth handles password hashing automatically
+  // If you need password hashing, install bcryptjs: npm install bcryptjs @types/bcryptjs
+  throw new Error('hashPassword is not implemented. Use Supabase Auth signup instead.')
+}

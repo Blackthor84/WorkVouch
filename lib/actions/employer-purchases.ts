@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { requireAuth, hasRole } from '@/lib/auth'
 
 /**
@@ -15,7 +15,7 @@ export async function hasPurchasedReport(candidateId: string) {
     return false
   }
 
-  const supabase = await createServerClient()
+  const supabase = await createSupabaseServerClient()
 
   // First check if they have a subscription with available quota
   const { data: quotaCheck } = await supabase.rpc('check_employer_lookup_quota', {
@@ -60,7 +60,7 @@ export async function getEmployerPurchases() {
     throw new Error('Only employers can view purchases')
   }
 
-  const supabase = await createServerClient()
+  const supabase = await createSupabaseServerClient()
 
   const { data: purchases, error } = await supabase
     .from('employer_purchases')
@@ -103,7 +103,7 @@ export async function getCandidateReport(candidateId: string) {
   }
 
   // Record lookup if using subscription
-  const supabase = await createServerClient()
+  const supabase = await createSupabaseServerClient()
   const { data: quotaCheck } = await supabase.rpc('check_employer_lookup_quota', {
     p_employer_id: user.id,
   })
@@ -116,8 +116,6 @@ export async function getCandidateReport(candidateId: string) {
       p_lookup_type: 'report',
     })
   }
-
-  const supabase = await createServerClient()
 
   // Get full candidate data
   const { data: profile } = await supabase
@@ -163,4 +161,57 @@ export async function getCandidateReport(candidateId: string) {
     references: references || [],
     trustScore,
   }
+}
+
+/**
+ * Record employer lookup and return candidate profile
+ * Checks access (subscription quota or one-time purchase) before returning profile
+ */
+export const recordEmployerLookup = async (userId: string, candidateId: string) => {
+  const supabase = await createSupabaseServerClient()
+
+  // First check if they have a subscription with available quota
+  const { data: quotaCheck } = await supabase.rpc('check_employer_lookup_quota', {
+    p_employer_id: userId
+  })
+
+  let hasAccess = false
+
+  if (quotaCheck === true) {
+    // Has subscription with quota - record the lookup
+    await supabase.rpc('record_employer_lookup', {
+      p_employer_id: userId,
+      p_candidate_id: candidateId,
+      p_lookup_type: 'report'
+    })
+    hasAccess = true
+  } else {
+    // Check if they have a one-time purchase for this candidate
+    const { data: purchase, error } = await supabase
+      .from('employer_purchases')
+      .select('id')
+      .eq('employer_id', userId)
+      .eq('candidate_id', candidateId)
+      .eq('status', 'completed')
+      .single()
+
+    hasAccess = !error && !!purchase
+  }
+
+  if (!hasAccess) {
+    throw new Error('Access denied. Please purchase this report or subscribe to a plan with available quota.')
+  }
+
+  // Get and return the profile
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', candidateId)
+    .single()
+
+  if (profileError || !profile) {
+    throw new Error('Candidate profile not found')
+  }
+
+  return profile
 }

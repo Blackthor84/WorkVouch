@@ -89,15 +89,6 @@ export async function POST(req: NextRequest) {
         endDate: job.end_date,
       }))
 
-    const potentialCoworkers = (potentialCoworkerJobs || []).map((job: any) => ({
-      userId: job.user_id,
-      name: job.profiles?.full_name || null,
-      email: job.profiles?.email || null,
-      jobTitle: job.job_title,
-      startDate: job.start_date,
-      endDate: job.end_date,
-    }))
-
     return NextResponse.json({
       success: true,
       jobHistory: {

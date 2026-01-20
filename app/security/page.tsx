@@ -140,7 +140,7 @@ export default function SecurityPage() {
               <p className="text-grey-medium dark:text-gray-400 mb-4">
                 If you discover a security vulnerability, please report it to us immediately at:
               </p>
-              <p className="text-primary font-semibold">security@peercv.com</p>
+              <p className="text-primary font-semibold">security@workvouch.com</p>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-4">
                 Please include as much detail as possible about the vulnerability. We appreciate responsible disclosure 
                 and will work with you to address any security issues.

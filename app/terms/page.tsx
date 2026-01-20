@@ -29,7 +29,7 @@ export default function TermsPage() {
                   <div>
                     <h3 className="font-semibold text-grey-dark dark:text-gray-200 mb-2">Account Creation</h3>
                     <ul className="list-disc list-inside space-y-1 ml-4">
-                      <li>You must be at least 18 years old to use PeerCV</li>
+                      <li>You must be at least 18 years old to use WorkVouch</li>
                       <li>You must provide accurate, current, and complete information</li>
                       <li>You are responsible for maintaining account security</li>
                       <li>One person or entity may maintain only one account</li>

@@ -25,7 +25,7 @@ export default function ContactPage() {
               <p className="text-grey-medium dark:text-gray-400 mb-4">
                 For questions about your account, features, or how to use WorkVouch.
               </p>
-              <a href="mailto:support@peercv.com" className="text-primary hover:underline font-semibold">
+              <a href="mailto:support@workvouch.com" className="text-primary hover:underline font-semibold">
                 support@workvouch.com
               </a>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-2">
@@ -40,7 +40,7 @@ export default function ContactPage() {
               <p className="text-grey-medium dark:text-gray-400 mb-4">
                 For privacy requests, legal questions, or data deletion requests.
               </p>
-              <a href="mailto:privacy@peercv.com" className="text-primary hover:underline font-semibold">
+              <a href="mailto:privacy@workvouch.com" className="text-primary hover:underline font-semibold">
                 privacy@workvouch.com
               </a>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-2">
@@ -55,7 +55,7 @@ export default function ContactPage() {
               <p className="text-grey-medium dark:text-gray-400 mb-4">
                 To report security vulnerabilities or security concerns.
               </p>
-              <a href="mailto:security@peercv.com" className="text-primary hover:underline font-semibold">
+              <a href="mailto:security@workvouch.com" className="text-primary hover:underline font-semibold">
                 security@workvouch.com
               </a>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-2">
@@ -70,7 +70,7 @@ export default function ContactPage() {
               <p className="text-grey-medium dark:text-gray-400 mb-4">
                 For employers interested in using WorkVouch for hiring.
               </p>
-              <a href="mailto:employers@peercv.com" className="text-primary hover:underline font-semibold">
+              <a href="mailto:employers@workvouch.com" className="text-primary hover:underline font-semibold">
                 employers@workvouch.com
               </a>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-2">

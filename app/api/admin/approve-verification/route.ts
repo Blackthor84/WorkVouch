@@ -26,7 +26,8 @@ export async function POST(req: NextRequest) {
     const supabase = await createServerClient()
 
     // Get verification request to find job_id
-    const { data: verificationRequest, error: fetchError } = await supabase
+    // Note: verification_requests table not in Database types yet
+    const { data: verificationRequest, error: fetchError } = await (supabase as any)
       .from('verification_requests')
       .select('id, job_id')
       .eq('id', data.verificationRequestId)
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Update verification request
-    const { data: updatedRequest, error: updateError } = await supabase
+    const { data: updatedRequest, error: updateError } = await (supabase as any)
       .from('verification_requests')
       .update({ status: 'approved' })
       .eq('id', data.verificationRequestId)
@@ -53,10 +54,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Update job history verification status
-    const { error: jobUpdateError } = await supabase
+    // Note: verification_status field may not be in Database types yet
+    const { error: jobUpdateError } = await (supabase as any)
       .from('jobs')
       .update({ verification_status: 'verified' })
-      .eq('id', verificationRequest.job_id)
+      .eq('id', (verificationRequest as any).job_id)
 
     if (jobUpdateError) {
       console.error('Update job error:', jobUpdateError)
