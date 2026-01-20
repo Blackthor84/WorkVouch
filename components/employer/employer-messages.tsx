@@ -72,29 +72,29 @@ export function EmployerMessages() {
             const unreadCount = threadMessages.filter(m => !m.is_read && m.recipient_id === userId).length
 
             return (
-              <Card
+              <div
                 key={userId}
-                className={`p-4 cursor-pointer hover:shadow-md transition-shadow ${
-                  selectedThread === userId ? 'ring-2 ring-blue-600 dark:ring-blue-400' : ''
-                }`}
+                className={`cursor-pointer ${selectedThread === userId ? 'ring-2 ring-blue-600 dark:ring-blue-400' : ''}`}
                 onClick={() => setSelectedThread(userId)}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-grey-dark dark:text-gray-200">
-                      {otherUser?.full_name || otherUser?.email}
-                    </p>
-                    <p className="text-sm text-grey-medium dark:text-gray-400 line-clamp-1">
-                      {threadMessages[0].body}
-                    </p>
+                <Card className="p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-grey-dark dark:text-gray-200">
+                        {otherUser?.full_name || otherUser?.email}
+                      </p>
+                      <p className="text-sm text-grey-medium dark:text-gray-400 line-clamp-1">
+                        {threadMessages[0].body}
+                      </p>
+                    </div>
+                    {unreadCount > 0 && (
+                      <span className="px-2 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded-full text-xs font-semibold">
+                        {unreadCount}
+                      </span>
+                    )}
                   </div>
-                  {unreadCount > 0 && (
-                    <span className="px-2 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded-full text-xs font-semibold">
-                      {unreadCount}
-                    </span>
-                  )}
-                </div>
-              </Card>
+                </Card>
+              </div>
             )
           })}
         </div>

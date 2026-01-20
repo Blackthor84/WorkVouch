@@ -9,23 +9,6 @@ last_exit_code: 0
 
 Mode                 LastWriteTime         Length Name
 ----                 -------------         ------ ----
-d-----          1/9/2026   3:00 PM                benchmarks
-d-----          1/9/2026   3:00 PM                helpers
-d-----          1/9/2026   3:00 PM                locales
-d-----          1/9/2026   3:00 PM                tests
--a----          1/9/2026   3:00 PM            305 errors.ts
--a----          1/9/2026   3:00 PM            205 external.ts
--a----          1/9/2026   3:00 PM             99 index.ts
--a----          1/9/2026   3:00 PM           2678 standard-schema.ts
--a----          1/9/2026   3:00 PM         160294 types.ts
--a----          1/9/2026   3:00 PM           8991 ZodError.ts
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\src\v3\benchmarks
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
 -a----          1/9/2026   3:00 PM           1908 datetime.ts
 -a----          1/9/2026   3:00 PM           1593 discriminatedUnion.ts
 -a----          1/9/2026   3:00 PM           1582 index.ts
@@ -1002,4 +985,21 @@ remote: This repository moved. Please use the new location:
 remote:   https://github.com/Blackthor84/WorkVouch.git
 To https://github.com/Blackthor84/workvouch.git
    784e034..d8ae5e2  main -> main
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> git commit -m "fix: convert Set spreads + update tsconfig for downlevelIteration"
+[main f179d13] fix: convert Set spreads + update tsconfig for downlevelIteration
+ 3 files changed, 20 insertions(+), 21 deletions(-)
+PS C:\Users\ajaye\.cursor> git push origin main
+Enumerating objects: 21, done.
+Counting objects: 100% (21/21), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (7/7), done.
+Writing objects: 100% (11/11), 7.86 KiB | 335.00 KiB/s, done.
+Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   d8ae5e2..f179d13  main -> main
 PS C:\Users\ajaye\.cursor>
