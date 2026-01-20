@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    turbo: false, // disable Turbopack to allow your existing webpack config
+    turbo: false, // disable Turbopack to allow existing webpack
   },
   webpack: (config, { isServer }) => {
     // Suppress Supabase getSession warnings
@@ -38,6 +38,7 @@ const nextConfig = {
       },
     ],
   },
+  turbopack: {}, // ensures Next.js knows Turbopack is explicitly disabled
 }
 
 module.exports = nextConfig
