@@ -2,28 +2,9 @@
 pid: 17712
 cwd: |
   C:\Users\ajaye\.cursor
-last_command: |
-  git add . && git commit -m "fix: convert Set spreads + update tsconfig for downlevelIteration" && git push origin main
+last_command: git push origin main
 last_exit_code: 0
 ---
--a----          1/9/2026   3:00 PM            105 index.js
--a----          1/9/2026   3:00 PM           1072 LICENSE
--a----          1/9/2026   3:00 PM           3284 package.json
--a----          1/9/2026   3:00 PM           6247 README.md
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\src
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
-d-----          1/9/2026   3:00 PM                v3
-d-----          1/9/2026   3:00 PM                v4
-d-----          1/9/2026   3:00 PM                v4-mini
--a----          1/9/2026   3:00 PM            105 index.ts
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\src\v3
 
 
 Mode                 LastWriteTime         Length Name
@@ -1003,4 +984,22 @@ The token '&&' is not a valid statement separator in this version.
     + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
     + FullyQualifiedErrorId : InvalidEndOfLine
 
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tsconfig.json', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> git commit -m "fix: convert Set spreads + update tsconfig for downlevelIteration"
+[main d8ae5e2] fix: convert Set spreads + update tsconfig for downlevelIteration
+ 4 files changed, 46 insertions(+), 46 deletions(-)
+PS C:\Users\ajaye\.cursor> git push origin main
+Enumerating objects: 23, done.
+Counting objects: 100% (23/23), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (8/8), done.
+Writing objects: 100% (12/12), 17.86 KiB | 731.00 KiB/s, done.
+Total 12 (delta 7), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (7/7), completed with 7 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   784e034..d8ae5e2  main -> main
 PS C:\Users\ajaye\.cursor>

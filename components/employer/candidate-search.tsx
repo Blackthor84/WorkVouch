@@ -160,7 +160,7 @@ export function CandidateSearch() {
                       <p className="text-sm text-grey-medium dark:text-gray-400">
                         {candidate.city && candidate.state
                           ? `${candidate.city}, ${candidate.state}`
-                          : candidate.location || 'Location not specified'}
+                          : 'Location not specified'}
                       </p>
                       {candidate.trust_score !== null && (
                         <div className="flex items-center gap-1 mt-1">
