@@ -121,13 +121,13 @@ export async function initiateConnection(
   // We create two records to simplify queries, but the unique constraint ensures no duplicates
   const { data: connection, error } = await supabase
     .from('connections')
-    .insert({
+    .insert([{
       user_id: user.id,
       connected_user_id: connectedUserId,
       job_id: jobId || null,
       status: 'pending',
       initiated_by: user.id,
-    })
+    }])
     .select()
     .single()
 

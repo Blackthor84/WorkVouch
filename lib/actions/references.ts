@@ -68,10 +68,10 @@ export async function createReference(input: CreateReferenceInput) {
   // Create reference
   const { data: reference, error } = await supabase
     .from('references')
-    .insert({
+    .insert([{
       ...input,
       from_user_id: user.id,
-    })
+    }])
     .select()
     .single()
 

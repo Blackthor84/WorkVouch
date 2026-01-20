@@ -98,14 +98,14 @@ export async function POST(request: NextRequest) {
     const supabaseAny = supabase as any
     const { error: dbError } = await supabaseAny
       .from('resume_files')
-      .insert({
+      .insert([{
         user_id: user.id,
         file_name: file.name,
         file_path: filePath,
         file_size: file.size,
         file_type: fileExtension === 'pdf' ? 'pdf' : 'docx',
         parsed_at: new Date().toISOString(),
-      } as ResumeFileInsert)
+      }] as ResumeFileInsert[])
 
     if (dbError) {
       console.error('Database error:', dbError)

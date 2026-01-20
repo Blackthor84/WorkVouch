@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     // Note: verification_status and is_visible_to_employer may not be in Database types yet
     const { data: jobHistory, error: jobError } = await supabaseAny
       .from('jobs')
-      .insert({
+      .insert([{
         user_id: user.id,
         company_name: data.employerName,
         job_title: data.jobTitle,
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         is_visible_to_employer: data.isVisibleToEmployer,
         verification_status: 'unverified',
         employment_type: 'full_time', // Default, can be updated later
-      })
+      }])
       .select()
       .single()
 

@@ -47,11 +47,11 @@ export default function FixProfilePage() {
       const supabaseAny = supabase as any
       const { data: profile, error: profileError } = await supabaseAny
         .from('profiles')
-        .insert({
+        .insert([{
           id: user.id,
           full_name: user.user_metadata?.full_name || 'User',
           email: user.email || '',
-        })
+        }])
         .select()
         .single()
 
@@ -74,10 +74,10 @@ export default function FixProfilePage() {
       if (!existingRole) {
         const { error: roleError } = await supabaseAny
           .from('user_roles')
-          .insert({
+          .insert([{
             user_id: user.id,
             role: 'user',
-          })
+          }])
 
         if (roleError) {
           setMessage(`Profile created but role failed: ${roleError.message}`)

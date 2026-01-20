@@ -83,12 +83,12 @@ export async function POST(req: NextRequest) {
     // Create dispute
     const { data: dispute, error: disputeError } = await supabaseAny
       .from('employer_disputes')
-      .insert({
+      .insert([{
         employer_account_id: employerAccountTyped.id,
         job_id: data.jobHistoryId,
         dispute_reason: data.disputeReason,
         status: 'open',
-      } as EmployerDisputeInsert)
+      }] as EmployerDisputeInsert[])
       .select()
       .single()
 

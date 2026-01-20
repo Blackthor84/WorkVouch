@@ -85,14 +85,14 @@ export function EmployerOnboardingClient() {
         // If employer_accounts doesn't exist, create it
         const { error: createError } = await supabaseAny
           .from('employer_accounts')
-          .insert({
+          .insert([{
             user_id: user.id,
             company_name: companyName,
             industry: 'healthcare',
             work_setting: workSetting,
             location: location,
             plan_tier: 'free'
-          })
+          }])
 
         if (createError) {
           console.error('Error creating employer account:', createError)

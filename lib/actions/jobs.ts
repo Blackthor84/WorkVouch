@@ -26,10 +26,10 @@ export async function createJob(input: CreateJobInput) {
 
   const { data: job, error } = await supabase
     .from('jobs')
-    .insert({
+    .insert([{
       ...input,
       user_id: user.id,
-    })
+    }])
     .select()
     .single()
 

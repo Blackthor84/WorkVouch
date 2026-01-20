@@ -66,10 +66,10 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
       const supabaseAny = supabase as any
       const { error } = await supabaseAny
         .from('coworker_matches')
-        .insert({
+        .insert([{
           user_id: user.id,
           coworker_name: input.trim()
-        })
+        }])
 
       if (error) {
         console.error('Error adding coworker:', error)

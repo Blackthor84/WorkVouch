@@ -54,7 +54,7 @@ export function HealthcareJobClient() {
       const supabaseAny = supabase as any
       const { error: jobError } = await supabaseAny
         .from('jobs')
-        .insert({
+        .insert([{
           user_id: user.id,
           company_name: employer,
           job_title: jobTitle,
@@ -67,7 +67,7 @@ export function HealthcareJobClient() {
           work_setting: null,
           is_visible_to_employer: false,
           verification_status: 'unverified'
-        })
+        }])
 
       if (jobError) {
         console.error('Error saving job:', jobError)

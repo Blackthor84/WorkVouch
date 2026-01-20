@@ -33,11 +33,11 @@ export async function createProfileIfMissing() {
   // Create profile (using service role would bypass RLS, but we'll try with current user)
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .insert({
+    .insert([{
       id: user.id,
       full_name: fullName,
       email: user.email || '',
-    })
+    }])
     .select()
     .single()
 
@@ -56,10 +56,10 @@ export async function createProfileIfMissing() {
 
   if (!existingRole) {
     // Try to add role (might fail due to RLS, but trigger should handle it)
-    await supabase.from('user_roles').insert({
+    await supabase.from('user_roles').insert([{
       user_id: user.id,
       role: 'user',
-    })
+    }])
   }
 
   return { success: true, profile }

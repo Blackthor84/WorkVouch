@@ -30,13 +30,13 @@ export async function sendMessage(
 
   const { data, error } = await supabase
     .from('messages')
-    .insert({
+    .insert([{
       sender_id: user.id,
       recipient_id: recipientId,
       subject,
       body,
       related_job_posting_id: relatedJobPostingId,
-    })
+    }])
     .select()
     .single()
 

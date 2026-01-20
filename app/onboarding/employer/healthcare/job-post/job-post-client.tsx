@@ -83,7 +83,7 @@ export function JobPostClient() {
       // Insert job posting
       const { error: jobError } = await supabaseAny
         .from('job_postings')
-        .insert({
+        .insert([{
           employer_id: employerAccountTyped.id,
           job_title: jobTitle,
           industry: 'healthcare',
@@ -92,7 +92,7 @@ export function JobPostClient() {
           required_certifications: certificationsArray.length > 0 ? certificationsArray : null,
           description: description || null,
           status: 'active'
-        })
+        }])
 
       if (jobError) {
         console.error('Error creating job posting:', jobError)

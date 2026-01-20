@@ -183,13 +183,13 @@ export async function POST(request: NextRequest) {
 
         await supabaseAdminAny
           .from('employer_purchases')
-          .insert({
+          .insert([{
             employer_id: user.id,
             candidate_id: candidateId,
             stripe_checkout_session_id: session.id,
             amount_paid: 7.99, // Default, should come from price
             status: 'pending',
-          })
+          }])
 
         return NextResponse.json({ url: session.url })
       } else {

@@ -38,13 +38,17 @@ export function HealthcareRoleClient() {
       }
 
       // Check if user's industry is healthcare
-      const { data: profile } = await supabase
+      const supabaseAny = supabase as any
+      const { data: profile } = await supabaseAny
         .from('profiles')
         .select('industry')
         .eq('id', currentUser.id)
         .single()
 
-      if (profile?.industry !== 'healthcare') {
+      type ProfileRow = { industry: string | null }
+      const profileTyped = profile as ProfileRow | null
+
+      if (profileTyped?.industry !== 'healthcare') {
         router.push('/dashboard')
         return
       }
@@ -65,7 +69,8 @@ export function HealthcareRoleClient() {
 
     try {
       // Create or update healthcare profile
-      const { error } = await supabase
+      const supabaseAny = supabase as any
+      const { error } = await supabaseAny
         .from('healthcare_profiles')
         .upsert({
           user_id: user.id,

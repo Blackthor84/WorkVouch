@@ -54,10 +54,10 @@ export async function createJobPosting(input: CreateJobPostingInput) {
 
   const { data, error } = await supabase
     .from('job_postings')
-    .insert({
+    .insert([{
       employer_id: user.id,
       ...input,
-    })
+    }])
     .select()
     .single()
 
@@ -253,11 +253,11 @@ export async function applyToJob(jobPostingId: string, coverLetter?: string) {
 
   const { data, error } = await supabase
     .from('job_applications')
-    .insert({
+    .insert([{
       job_posting_id: jobPostingId,
       candidate_id: user.id,
       cover_letter: coverLetter,
-    })
+    }])
     .select()
     .single()
 

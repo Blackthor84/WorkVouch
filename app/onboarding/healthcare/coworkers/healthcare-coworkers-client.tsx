@@ -34,7 +34,8 @@ export function HealthcareCoworkersClient() {
 
   const fetchCoworkers = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      const supabaseAny = supabase as any
+      const { data, error } = await supabaseAny
         .from('coworker_matches')
         .select('*')
         .eq('user_id', userId)
@@ -58,12 +59,13 @@ export function HealthcareCoworkersClient() {
     setLoading(true)
 
     try {
-      const { data, error } = await supabase
+      const supabaseAny = supabase as any
+      const { data, error } = await supabaseAny
         .from('coworker_matches')
-        .insert({
+        .insert([{
           user_id: user.id,
           coworker_name: input.trim()
-        })
+        }])
         .select()
         .single()
 
@@ -88,7 +90,8 @@ export function HealthcareCoworkersClient() {
     if (!user) return
 
     try {
-      const { error } = await supabase
+      const supabaseAny = supabase as any
+      const { error } = await supabaseAny
         .from('coworker_matches')
         .delete()
         .eq('user_id', user.id)

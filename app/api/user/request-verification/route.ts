@@ -61,12 +61,12 @@ export async function POST(req: NextRequest) {
     // Create verification request
     const { data: verificationRequest, error: createError } = await supabaseAny
       .from('verification_requests')
-      .insert({
+      .insert([{
         job_id: data.jobHistoryId,
         requested_by_type: 'user',
         requested_by_id: user.id,
         status: 'pending',
-      })
+      }])
       .select()
       .single()
 
