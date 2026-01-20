@@ -2,27 +2,9 @@
 pid: 17712
 cwd: |
   C:\Users\ajaye\.cursor
-active_command: git add .
-last_command: ls -R
+last_command: git push
 last_exit_code: 0
 ---
--a----         1/18/2026   2:24 PM          14510 permessage-deflate.js
--a----         1/18/2026   2:24 PM          16460 receiver.js
--a----         1/18/2026   2:24 PM          16711 sender.js
--a----         1/18/2026   2:24 PM           4204 stream.js
--a----         1/18/2026   2:24 PM           1498 subprotocol.js
--a----         1/18/2026   2:24 PM           3903 validation.js
--a----         1/18/2026   2:24 PM          16616 websocket-server.js
--a----         1/18/2026   2:24 PM          36740 websocket.js
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\xmlbuilder
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
-d-----         1/16/2026  10:08 AM                lib
--a----         1/16/2026  10:08 AM            350 appveyor.yml
 -a----         1/16/2026  10:08 AM          20392 CHANGELOG.md
 -a----         1/16/2026  10:08 AM           1080 LICENSE
 -a----         1/16/2026  10:08 AM            872 package.json
@@ -1005,3 +987,21 @@ Mode                 LastWriteTime         Length Name
 -a----         1/19/2026   6:40 PM            446 next-auth.d.ts
 
 
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> git commit -m "fix: supabase insert typing on jobs"
+[main e5cc2f5] fix: supabase insert typing on jobs
+ 22 files changed, 1059 insertions(+), 837 deletions(-)
+PS C:\Users\ajaye\.cursor> git push
+Enumerating objects: 104, done.
+Counting objects: 100% (104/104), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (42/42), done.
+Writing objects: 100% (54/54), 91.93 KiB | 2.70 MiB/s, done.
+Total 54 (delta 29), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (29/29), completed with 27 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   b088293..e5cc2f5  main -> main
+PS C:\Users\ajaye\.cursor>
