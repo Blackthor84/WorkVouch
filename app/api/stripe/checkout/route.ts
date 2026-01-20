@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, isStripeConfigured } from '@/lib/stripe/config'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { createClient } from '@supabase/supabase-js'
 import { hasRole } from '@/lib/auth'
 import { productIdToTier } from '@/lib/stripe/products'
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get authenticated user
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
     const {
       data: { user },
       error: authError,
@@ -57,23 +57,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Get or create Stripe customer
-    const { data: profile } = await supabaseAdmin
+    const supabaseAdminAny = supabaseAdmin as any
+    type ProfileRow = { stripe_customer_id: string | null; email: string }
+    const { data: profile } = await supabaseAdminAny
       .from('profiles')
       .select('stripe_customer_id, email')
       .eq('id', user.id)
       .single()
 
-    let customerId = profile?.stripe_customer_id
+    const profileTyped = profile as ProfileRow | null
+    let customerId = profileTyped?.stripe_customer_id
 
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: user.email || profile?.email,
+        email: user.email || profileTyped?.email,
         metadata: { supabase_user_id: user.id },
       })
 
       customerId = customer.id
 
-      await supabaseAdmin
+      await supabaseAdminAny
         .from('profiles')
         .update({ stripe_customer_id: customerId })
         .eq('id', user.id)
@@ -119,7 +122,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Verify candidate exists
-        const { data: candidate } = await supabase
+        type CandidateRow = { id: string; full_name: string; email: string }
+        const { data: candidate } = await supabaseAdmin
           .from('profiles')
           .select('id, full_name, email')
           .eq('id', candidateId)
@@ -132,7 +136,9 @@ export async function POST(request: NextRequest) {
           )
         }
 
-        if (candidate.id === user.id) {
+        const candidateTyped = candidate as CandidateRow
+
+        if (candidateTyped.id === user.id) {
           return NextResponse.json(
             { error: 'Cannot purchase your own report' },
             { status: 400 }
@@ -140,7 +146,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if already purchased
-        const { data: existingPurchase } = await supabase
+        type EmployerPurchaseRow = { id: string; status: string }
+        const { data: existingPurchase } = await supabaseAdminAny
           .from('employer_purchases')
           .select('id, status')
           .eq('employer_id', user.id)
@@ -149,8 +156,9 @@ export async function POST(request: NextRequest) {
           .single()
 
         if (existingPurchase) {
+          const purchaseTyped = existingPurchase as EmployerPurchaseRow
           return NextResponse.json(
-            { error: 'Report already purchased', purchaseId: existingPurchase.id },
+            { error: 'Report already purchased', purchaseId: purchaseTyped.id },
             { status: 400 }
           )
         }
@@ -173,7 +181,7 @@ export async function POST(request: NextRequest) {
           metadata,
         })
 
-        await supabaseAdmin
+        await supabaseAdminAny
           .from('employer_purchases')
           .insert({
             employer_id: user.id,

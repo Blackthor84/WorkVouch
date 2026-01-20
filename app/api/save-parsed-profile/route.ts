@@ -6,6 +6,7 @@ export async function POST(request: NextRequest) {
   try {
     // Check authentication
     const supabase = await supabaseTyped()
+    const supabaseAny = supabase as any
     const {
       data: { user },
       error: authError,
@@ -38,9 +39,9 @@ export async function POST(request: NextRequest) {
         responsibilities: job.responsibilities || null,
       }))
 
-      const { error: jobsError } = await supabase
-        .from<Database['public']['Tables']['jobs']['Row']>('jobs')
-        .upsert(jobsToInsert as Database['public']['Tables']['jobs']['Insert'][], {
+      const { error: jobsError } = await (supabase as any)
+        .from('jobs')
+        .upsert(jobsToInsert, {
           onConflict: 'id',
           ignoreDuplicates: false,
         })
@@ -77,9 +78,10 @@ export async function POST(request: NextRequest) {
         gpa: number | null
         description: string | null
       }
-      const { error: educationError } = await (supabase as any)
+      const supabaseAny = supabase as any
+      const { error: educationError } = await supabaseAny
         .from('education')
-        .upsert(educationToInsert as EducationInsert[], {
+        .upsert(educationToInsert, {
           onConflict: 'id',
           ignoreDuplicates: false,
         })
@@ -94,8 +96,9 @@ export async function POST(request: NextRequest) {
     if (skills && Array.isArray(skills) && skills.length > 0) {
       // Note: skills table may not be in Database types yet
       type SkillRow = { user_id: string; skill_name: string; skill_category: string; proficiency_level: null }
+      const supabaseAny = supabase as any
       // Delete existing skills first to avoid duplicates
-      await (supabase as any).from<SkillRow>('skills').delete().eq('user_id', user.id)
+      await supabaseAny.from('skills').delete().eq('user_id', user.id)
 
       const skillsToInsert = skills.map((skill: string) => ({
         user_id: user.id,
@@ -104,8 +107,8 @@ export async function POST(request: NextRequest) {
         proficiency_level: null,
       }))
 
-      const { error: skillsError } = await (supabase as any)
-        .from<SkillRow>('skills')
+      const { error: skillsError } = await supabaseAny
+        .from('skills')
         .insert(skillsToInsert as SkillRow[])
 
       if (skillsError) {
@@ -124,9 +127,9 @@ export async function POST(request: NextRequest) {
       }))
 
       type SkillRow = { user_id: string; skill_name: string; skill_category: string; proficiency_level: null }
-      const { error: certsError } = await (supabase as any)
-        .from<SkillRow>('skills')
-        .upsert(certsToInsert as SkillRow[], {
+      const { error: certsError } = await supabaseAny
+        .from('skills')
+        .upsert(certsToInsert, {
           onConflict: 'user_id,skill_name',
           ignoreDuplicates: false,
         })
@@ -151,7 +154,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (Object.keys(profileUpdates).length > 0) {
-      const { error: profileError } = await supabase
+      const { error: profileError } = await supabaseAny
         .from('profiles')
         .update(profileUpdates)
         .eq('id', user.id)

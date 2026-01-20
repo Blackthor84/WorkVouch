@@ -223,7 +223,7 @@ export function HealthcareSearchClient() {
               {candidate.healthcare_profile && (
                 <div className="flex gap-2 mb-4">
                   <Badge>{candidate.healthcare_profile.role}</Badge>
-                  <Badge variant="secondary">{candidate.healthcare_profile.work_setting}</Badge>
+                  <Badge variant="info">{candidate.healthcare_profile.work_setting}</Badge>
                 </div>
               )}
 
@@ -243,7 +243,7 @@ export function HealthcareSearchClient() {
                     {job.certifications && job.certifications.length > 0 && (
                       <div className="flex gap-1 mt-2">
                         {job.certifications.map((cert, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
+                          <Badge key={idx} variant="info" className="text-xs">
                             {cert}
                           </Badge>
                         ))}

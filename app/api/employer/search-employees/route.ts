@@ -32,8 +32,9 @@ export async function GET(req: NextRequest) {
     type EmployerAccountRow = { company_name: string }
 
     // Get employer's company name
-    const { data: employerAccount } = await (supabase as any)
-      .from<EmployerAccountRow>('employer_accounts')
+    const supabaseAny = supabase as any
+    const { data: employerAccount } = await supabaseAny
+      .from('employer_accounts')
       .select('company_name')
       .eq('user_id', user.id)
       .single()
@@ -56,7 +57,7 @@ export async function GET(req: NextRequest) {
     // 3. Match the name search
 
     const { data: jobs, error: jobsError } = await supabase
-      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
+      .from('jobs')
       .select(`
         id,
         user_id,

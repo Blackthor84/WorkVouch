@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { BriefcaseIcon, MapPinIcon, CurrencyDollarIcon, ClockIcon } from '@heroicons/react/24/outline'
 
 export default async function JobsPage() {
-  let postings = []
+  let postings: any[] = []
   try {
     postings = await getPublishedJobPostings()
   } catch (error) {

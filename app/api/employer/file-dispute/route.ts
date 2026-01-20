@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
 
     // Type definitions for tables not in Database types yet
     type EmployerAccountRow = { id: string; company_name: string; user_id: string }
+    type JobHistoryRow = { id: string; company_name: string }
     type EmployerDisputeInsert = {
       employer_account_id: string
       job_id: string
@@ -47,8 +48,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Get employer's company name
-    const { data: employerAccount, error: employerError } = await (supabase as any)
-      .from<EmployerAccountRow>('employer_accounts')
+    const supabaseAny = supabase as any
+    const { data: employerAccount, error: employerError } = await supabaseAny
+      .from('employer_accounts')
       .select('id, company_name')
       .eq('user_id', user.id)
       .single()
@@ -58,8 +60,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify job history exists and is for this employer
-    const { data: jobHistory, error: jobError } = await supabase
-      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
+    const { data: jobHistory, error: jobError } = await supabaseAny
+      .from('jobs')
       .select('id, company_name')
       .eq('id', data.jobHistoryId)
       .single()
@@ -68,7 +70,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Job history not found' }, { status: 404 })
     }
 
-    if (jobHistory.company_name.toLowerCase() !== employerAccount.company_name.toLowerCase()) {
+    const jobHistoryTyped = jobHistory as JobHistoryRow
+    const employerAccountTyped = employerAccount as EmployerAccountRow
+
+    if (jobHistoryTyped.company_name.toLowerCase() !== employerAccountTyped.company_name.toLowerCase()) {
       return NextResponse.json(
         { error: 'Unauthorized to dispute this job history' },
         { status: 403 }
@@ -76,10 +81,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Create dispute
-    const { data: dispute, error: disputeError } = await (supabase as any)
+    const { data: dispute, error: disputeError } = await supabaseAny
       .from('employer_disputes')
       .insert({
-        employer_account_id: employerAccount.id,
+        employer_account_id: employerAccountTyped.id,
         job_id: data.jobHistoryId,
         dispute_reason: data.disputeReason,
         status: 'open',
@@ -96,9 +101,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Update job history status to disputed
-    await supabase
-      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
-      .update({ verification_status: 'disputed' } as any)
+    await (supabase as any)
+      .from('jobs')
+      .update({ verification_status: 'disputed' })
       .eq('id', data.jobHistoryId)
 
     return NextResponse.json({ success: true, dispute })

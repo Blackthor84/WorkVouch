@@ -95,7 +95,8 @@ export async function POST(request: NextRequest) {
       file_type: string
       parsed_at: string
     }
-    const { error: dbError } = await (supabase as any)
+    const supabaseAny = supabase as any
+    const { error: dbError } = await supabaseAny
       .from('resume_files')
       .insert({
         user_id: user.id,

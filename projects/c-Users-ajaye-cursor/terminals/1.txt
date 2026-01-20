@@ -755,4 +755,22 @@ remote: This repository moved. Please use the new location:
 remote:   https://github.com/Blackthor84/WorkVouch.git
 To https://github.com/Blackthor84/workvouch.git
    0f8a595..815ed0b  main -> main
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> git commit -m "Remove middleware.ts for Next.js proxy"
+[main ba4d870] Remove middleware.ts for Next.js proxy
+ 4 files changed, 24 insertions(+), 5 deletions(-)
+ delete mode 100644 middleware.ts
+PS C:\Users\ajaye\.cursor> git push
+Enumerating objects: 17, done.
+Counting objects: 100% (17/17), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (9/9), 1.81 KiB | 924.00 KiB/s, done.
+Total 9 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   815ed0b..ba4d870  main -> main
 PS C:\Users\ajaye\.cursor>

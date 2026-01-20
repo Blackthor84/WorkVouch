@@ -138,13 +138,13 @@ export function VerificationsList() {
             {request.status === 'pending' && (
               <div className="flex gap-3 pt-4 border-t border-grey-background dark:border-[#374151]">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => handleApprove(request.id)}
                 >
                   Approve
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => handleReject(request.id)}
                 >
                   Reject

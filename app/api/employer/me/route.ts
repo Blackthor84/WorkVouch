@@ -26,8 +26,9 @@ export async function GET(req: NextRequest) {
       created_at: string
     }
 
-    const { data: employerAccount, error } = await (supabase as any)
-      .from<EmployerAccountRow>('employer_accounts')
+    const supabaseAny = supabase as any
+    const { data: employerAccount, error } = await supabaseAny
+      .from('employer_accounts')
       .select('*')
       .eq('user_id', user.id)
       .single()

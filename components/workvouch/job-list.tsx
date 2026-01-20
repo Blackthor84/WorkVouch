@@ -158,7 +158,7 @@ export function JobList({ jobs }: JobListProps) {
 
             {job.verification_status === 'unverified' && (
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={() => handleRequestVerification(job.id)}
                 disabled={updating === job.id}
               >

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { getCurrentUser } from '@/lib/auth'
+import { Database } from '@/types/database'
 import { z } from 'zod'
 
 const addJobSchema = z.object({
@@ -22,10 +23,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const data = addJobSchema.parse(body)
 
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
+    const supabaseAny = supabase as any
 
     // Insert job
-    const { data: jobHistory, error: jobError } = await supabase
+    // Note: verification_status and is_visible_to_employer may not be in Database types yet
+    const { data: jobHistory, error: jobError } = await supabaseAny
       .from('jobs')
       .insert({
         user_id: user.id,
@@ -51,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     // Smart matching: Find potential coworkers with overlapping dates
     // Use RPC function or query with date overlap logic
-    const { data: potentialCoworkerJobs } = await supabase
+    const { data: potentialCoworkerJobs } = await supabaseAny
       .from('jobs')
       .select(`
         id,
@@ -89,17 +92,29 @@ export async function POST(req: NextRequest) {
         endDate: job.end_date,
       }))
 
+    type JobHistoryRow = {
+      id: string
+      user_id: string
+      company_name: string
+      job_title: string
+      start_date: string
+      end_date: string | null
+      is_visible_to_employer: boolean
+      verification_status: string
+    }
+    const jobHistoryTyped = jobHistory as JobHistoryRow
+
     return NextResponse.json({
       success: true,
       jobHistory: {
-        id: jobHistory.id,
-        userId: jobHistory.user_id,
-        employerName: jobHistory.company_name,
-        jobTitle: jobHistory.job_title,
-        startDate: jobHistory.start_date,
-        endDate: jobHistory.end_date,
-        isVisibleToEmployer: jobHistory.is_visible_to_employer,
-        verificationStatus: jobHistory.verification_status,
+        id: jobHistoryTyped.id,
+        userId: jobHistoryTyped.user_id,
+        employerName: jobHistoryTyped.company_name,
+        jobTitle: jobHistoryTyped.job_title,
+        startDate: jobHistoryTyped.start_date,
+        endDate: jobHistoryTyped.end_date,
+        isVisibleToEmployer: jobHistoryTyped.is_visible_to_employer,
+        verificationStatus: jobHistoryTyped.verification_status,
       },
       potentialCoworkers,
     })

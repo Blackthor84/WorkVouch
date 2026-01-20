@@ -89,7 +89,7 @@ export default async function EmployerAccessPage() {
                   </Link>
                 </Button>
               )}
-              <Button asChild variant="outline" size="lg">
+              <Button asChild variant="ghost" size="lg">
                 <Link href="/">
                   Home
                 </Link>

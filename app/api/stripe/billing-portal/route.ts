@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { getCurrentUser, hasRole } from '@/lib/auth'
 import { stripe } from '@/lib/stripe/config'
 
@@ -23,15 +23,19 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
+    const supabaseAny = supabase as any
 
-    const { data: employerAccount, error: employerError } = await supabase
+    type EmployerAccountRow = { stripe_customer_id: string | null }
+    const { data: employerAccount, error: employerError } = await supabaseAny
       .from('employer_accounts')
       .select('stripe_customer_id')
       .eq('user_id', user.id)
       .single()
 
-    if (employerError || !employerAccount || !employerAccount.stripe_customer_id) {
+    const employerAccountTyped = employerAccount as EmployerAccountRow | null
+
+    if (employerError || !employerAccountTyped || !employerAccountTyped.stripe_customer_id) {
       return NextResponse.json(
         { error: 'No active subscription found' },
         { status: 400 }
@@ -39,7 +43,7 @@ export async function POST(req: NextRequest) {
     }
 
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: employerAccount.stripe_customer_id,
+      customer: employerAccountTyped.stripe_customer_id,
       return_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL}/employer/dashboard`,
     })
 

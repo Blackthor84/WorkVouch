@@ -12,7 +12,7 @@ export default async function NotificationsPage() {
     redirect('/auth/signin')
   }
 
-  let notifications = []
+  let notifications: any[] = []
   try {
     notifications = await getUserNotifications()
   } catch (error: any) {

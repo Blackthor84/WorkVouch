@@ -46,8 +46,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Get employer's company name
-    const { data: employerAccount, error: employerError } = await (supabase as any)
-      .from<EmployerAccountRow>('employer_accounts')
+    const supabaseAny = supabase as any
+    const { data: employerAccount, error: employerError } = await supabaseAny
+      .from('employer_accounts')
       .select('id, company_name')
       .eq('user_id', user.id)
       .single()
@@ -57,8 +58,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify job history exists and is for this employer
-    const { data: jobHistory, error: jobError } = await supabase
-      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
+    const { data: jobHistory, error: jobError } = await supabaseAny
+      .from('jobs')
       .select('id, company_name')
       .eq('id', data.jobHistoryId)
       .single()
@@ -67,7 +68,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Job history not found' }, { status: 404 })
     }
 
-    if (jobHistory.company_name.toLowerCase() !== employerAccount.company_name.toLowerCase()) {
+    type JobHistoryRow = { id: string; company_name: string }
+    const jobHistoryTyped = jobHistory as JobHistoryRow
+    const employerAccountTyped = employerAccount as EmployerAccountRow
+
+    if (jobHistoryTyped.company_name.toLowerCase() !== employerAccountTyped.company_name.toLowerCase()) {
       return NextResponse.json(
         { error: 'Unauthorized to request verification for this job history' },
         { status: 403 }
@@ -75,12 +80,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Create verification request
-    const { data: verificationRequest, error: createError } = await (supabase as any)
+    const { data: verificationRequest, error: createError } = await supabaseAny
       .from('verification_requests')
       .insert({
         job_id: data.jobHistoryId,
         requested_by_type: 'employer',
-        requested_by_id: employerAccount.id,
+        requested_by_id: employerAccountTyped.id,
         status: 'pending',
       } as VerificationRequestInsert)
       .select()
@@ -95,12 +100,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Update job history to make it visible and set status to pending
-    await supabase
-      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
+    await (supabase as any)
+      .from('jobs')
       .update({
         is_visible_to_employer: true,
         verification_status: 'pending',
-      } as any)
+      })
       .eq('id', data.jobHistoryId)
 
     return NextResponse.json({ success: true, verificationRequest })

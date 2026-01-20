@@ -44,7 +44,8 @@ export default function FixProfilePage() {
         email: user.email || '',
       })
 
-      const { data: profile, error: profileError } = await supabase
+      const supabaseAny = supabase as any
+      const { data: profile, error: profileError } = await supabaseAny
         .from('profiles')
         .insert({
           id: user.id,
@@ -64,14 +65,14 @@ export default function FixProfilePage() {
       setMessage(`Profile created! ${JSON.stringify(profile)}`)
 
       // Check if role exists
-      const { data: existingRole } = await supabase
+      const { data: existingRole } = await supabaseAny
         .from('user_roles')
         .select('*')
         .eq('user_id', user.id)
         .single()
 
       if (!existingRole) {
-        const { error: roleError } = await supabase
+        const { error: roleError } = await supabaseAny
           .from('user_roles')
           .insert({
             user_id: user.id,

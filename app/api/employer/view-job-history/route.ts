@@ -42,8 +42,9 @@ export async function GET(req: NextRequest) {
     type EmployerAccountRow = { id: string; company_name: string }
 
     // Get employer's company name
-    const { data: employerAccount } = await (supabase as any)
-      .from<EmployerAccountRow>('employer_accounts')
+    const supabaseAny = supabase as any
+    const { data: employerAccount } = await supabaseAny
+      .from('employer_accounts')
       .select('id, company_name')
       .eq('user_id', user.id)
       .single()
@@ -53,8 +54,8 @@ export async function GET(req: NextRequest) {
     }
 
     // Get job history
-    const { data: jobHistory, error: jobError } = await supabase
-      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
+    const { data: jobHistory, error: jobError } = await supabaseAny
+      .from('jobs')
       .select(`
         *,
         profiles!inner (
@@ -71,8 +72,29 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Job history not found' }, { status: 404 })
     }
 
+    // Type definitions for job history
+    type JobHistoryWithProfile = {
+      id: string
+      user_id: string
+      company_name: string
+      job_title: string
+      start_date: string
+      end_date: string | null
+      verification_status?: string
+      is_visible_to_employer?: boolean
+      profiles?: {
+        id: string
+        full_name: string
+        email: string
+        industry: string
+      }
+    }
+
+    const jobHistoryTyped = jobHistory as JobHistoryWithProfile
+    const employerAccountTyped = employerAccount as EmployerAccountRow
+
     // Verify the job is for this employer's company
-    if (jobHistory.company_name.toLowerCase() !== employerAccount.company_name.toLowerCase()) {
+    if (jobHistoryTyped.company_name.toLowerCase() !== employerAccountTyped.company_name.toLowerCase()) {
       return NextResponse.json(
         { error: 'Unauthorized to view this job history' },
         { status: 403 }
@@ -90,8 +112,8 @@ export async function GET(req: NextRequest) {
     // Get references
     // Note: references table may not be in Database types yet
     type ReferenceRow = { id: string; rating: number; written_feedback: string; from_user_id: string; profiles?: { full_name: string } }
-    const { data: references } = await (supabase as any)
-      .from<ReferenceRow>('references')
+    const { data: references } = await supabaseAny
+      .from('references')
       .select(`
         id,
         rating,
@@ -106,27 +128,27 @@ export async function GET(req: NextRequest) {
 
     // Get disputes for this job by this employer
     type EmployerDisputeRow = { id: string; dispute_reason: string; status: string; created_at: string }
-    const { data: disputes } = await (supabase as any)
-      .from<EmployerDisputeRow>('employer_disputes')
+    const { data: disputes } = await supabaseAny
+      .from('employer_disputes')
       .select('id, dispute_reason, status, created_at')
       .eq('job_id', jobHistoryId)
-      .eq('employer_account_id', employerAccount.id)
+      .eq('employer_account_id', employerAccountTyped.id)
 
     return NextResponse.json({
       jobHistory: {
-        id: jobHistory.id,
-        userId: jobHistory.user_id,
-        employerName: jobHistory.company_name,
-        jobTitle: jobHistory.job_title,
-        startDate: jobHistory.start_date,
-        endDate: jobHistory.end_date,
-        verificationStatus: (jobHistory as any).verification_status,
-        isVisibleToEmployer: (jobHistory as any).is_visible_to_employer,
+        id: jobHistoryTyped.id,
+        userId: jobHistoryTyped.user_id,
+        employerName: jobHistoryTyped.company_name,
+        jobTitle: jobHistoryTyped.job_title,
+        startDate: jobHistoryTyped.start_date,
+        endDate: jobHistoryTyped.end_date,
+        verificationStatus: jobHistoryTyped.verification_status,
+        isVisibleToEmployer: jobHistoryTyped.is_visible_to_employer,
         user: {
-          id: (jobHistory as any).profiles?.id,
-          name: (jobHistory as any).profiles?.full_name,
-          email: (jobHistory as any).profiles?.email,
-          industry: (jobHistory as any).profiles?.industry,
+          id: jobHistoryTyped.profiles?.id,
+          name: jobHistoryTyped.profiles?.full_name,
+          email: jobHistoryTyped.profiles?.email,
+          industry: jobHistoryTyped.profiles?.industry,
         },
         coworkerReferences: (references || []).map((ref: ReferenceRow) => ({
           id: ref.id,

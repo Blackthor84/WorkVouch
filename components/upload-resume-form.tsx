@@ -186,7 +186,7 @@ export function UploadResumeForm() {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           className="mt-4"
-          variant="outline"
+          variant="ghost"
         >
           Select File
         </Button>

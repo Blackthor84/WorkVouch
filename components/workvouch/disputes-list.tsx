@@ -193,13 +193,13 @@ export function DisputesList() {
               {dispute.status === 'awaiting_review' && (
                 <div className="flex gap-3 pt-4 border-t border-grey-background dark:border-[#374151]">
                   <Button
-                    variant="outline"
+                    variant="info"
                     onClick={() => handleResolve(dispute.id, 'resolved', 'verified')}
                   >
                     Approve (Mark Verified)
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="info"
                     onClick={() => handleResolve(dispute.id, 'rejected', 'unverified')}
                   >
                     Reject (Mark Unverified)

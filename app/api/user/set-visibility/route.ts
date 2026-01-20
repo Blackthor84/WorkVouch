@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { getCurrentUser } from '@/lib/auth'
 import { z } from 'zod'
 
@@ -19,10 +19,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const data = setVisibilitySchema.parse(body)
 
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
+    const supabaseAny = supabase as any
 
     // Verify ownership
-    const { data: existingJob, error: fetchError } = await supabase
+    type JobRow = { id: string; user_id: string }
+    const { data: existingJob, error: fetchError } = await supabaseAny
       .from('jobs')
       .select('id, user_id')
       .eq('id', data.jobHistoryId)
@@ -32,11 +34,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 })
     }
 
-    if (existingJob.user_id !== user.id) {
+    const existingJobTyped = existingJob as JobRow
+
+    if (existingJobTyped.user_id !== user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    const { data: jobHistory, error: updateError } = await supabase
+    const { data: jobHistory, error: updateError } = await supabaseAny
       .from('jobs')
       .update({ is_visible_to_employer: data.isVisibleToEmployer })
       .eq('id', data.jobHistoryId)

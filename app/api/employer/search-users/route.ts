@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     // Build the query - search for profiles where full_name contains the query (case-insensitive)
     // Using ilike for case-insensitive pattern matching
     const { data: profiles, error: profilesError } = await supabase
-      .from<Database['public']['Tables']['profiles']['Row']>('profiles')
+      .from('profiles')
       .select(`
         id,
         full_name,
@@ -62,8 +62,9 @@ export async function GET(request: NextRequest) {
     // Fetch skills for all users
     // Note: skills table may not be in Database types yet
     type SkillRow = { user_id: string; skill_name: string }
-    const { data: skillsData, error: skillsError } = await (supabase as any)
-      .from<SkillRow>('skills')
+    const supabaseAny = supabase as any
+    const { data: skillsData, error: skillsError } = await supabaseAny
+      .from('skills')
       .select('user_id, skill_name')
       .in('user_id', userIds)
 
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch jobs for all users (limit to most recent 3 per user for summary)
     const { data: jobsData, error: jobsError } = await supabase
-      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
+      .from('jobs')
       .select('user_id, job_title, company_name, start_date, is_current')
       .in('user_id', userIds)
       .eq('is_private', false) // Only show public jobs

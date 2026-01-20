@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import { getCurrentUser, hasRole } from '@/lib/auth'
 import { stripe, STRIPE_PRICE_BASIC, STRIPE_PRICE_PRO } from '@/lib/stripe/config'
+import { Database } from '@/types/database'
 
 export async function POST(req: NextRequest) {
   try {
@@ -42,10 +43,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const supabase = await createServerClient()
+    const supabase = await supabaseTyped()
+    const supabaseAny = supabase as any
 
     // Get employer account
-    const { data: employerAccount, error: employerError } = await supabase
+    type EmployerAccountRow = { id: string; stripe_customer_id: string | null; company_name: string }
+    const { data: employerAccount, error: employerError } = await supabaseAny
       .from('employer_accounts')
       .select('id, stripe_customer_id, company_name')
       .eq('user_id', user.id)
@@ -55,31 +58,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Employer not found' }, { status: 404 })
     }
 
+    const employerAccountTyped = employerAccount as EmployerAccountRow
+
     // Get user email from profile
-    const { data: profile } = await supabase
+    type ProfileRow = { email: string }
+    const { data: profile } = await supabaseAny
       .from('profiles')
       .select('email')
       .eq('id', user.id)
       .single()
 
-    let customerId = employerAccount.stripe_customer_id
+    const profileTyped = profile as ProfileRow | null
+
+    let customerId = employerAccountTyped.stripe_customer_id
 
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: profile?.email || user.email || '',
-        name: employerAccount.company_name,
+        email: profileTyped?.email || user.email || '',
+        name: employerAccountTyped.company_name,
         metadata: {
-          employerId: employerAccount.id,
+          employerId: employerAccountTyped.id,
           userId: user.id,
         },
       })
 
       customerId = customer.id
 
-      await supabase
+      await supabaseAny
         .from('employer_accounts')
         .update({ stripe_customer_id: customerId })
-        .eq('id', employerAccount.id)
+        .eq('id', employerAccountTyped.id)
     }
 
     // Create checkout session
@@ -96,7 +104,7 @@ export async function POST(req: NextRequest) {
       success_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL}/employer/dashboard?success=true`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL}/employer/dashboard?canceled=true`,
       metadata: {
-        employerId: employerAccount.id,
+        employerId: employerAccountTyped.id,
         userId: user.id,
         planTier,
       },

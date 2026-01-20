@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe/config'
-import { createServerClient } from '@/lib/supabase/server'
+import { supabaseTyped } from '@/lib/supabase-fixed'
 import Stripe from 'stripe'
 
 export async function POST(req: NextRequest) {
@@ -51,8 +51,9 @@ export async function POST(req: NextRequest) {
           const planTier = session.metadata?.planTier
 
           if (employerId && planTier) {
-            const supabase = await createServerClient()
-            await supabase
+            const supabase = await supabaseTyped()
+            const supabaseAny = supabase as any
+            await supabaseAny
               .from('employer_accounts')
               .update({
                 plan_tier: planTier as 'basic' | 'pro',
@@ -67,22 +68,25 @@ export async function POST(req: NextRequest) {
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
 
-        const supabase = await createServerClient()
-        const { data: employer } = await supabase
+        const supabase = await supabaseTyped()
+        const supabaseAny = supabase as any
+        type EmployerAccountRow = { id: string }
+        const { data: employer } = await supabaseAny
           .from('employer_accounts')
           .select('id')
           .eq('stripe_customer_id', subscription.customer as string)
           .single()
 
         if (employer) {
+          const employerTyped = employer as EmployerAccountRow
           // Determine plan tier from subscription
           // You may need to map price IDs to plan tiers
           const planTier = subscription.status === 'active' ? 'basic' : 'free'
 
-          await supabase
+          await supabaseAny
             .from('employer_accounts')
             .update({ plan_tier: planTier })
-            .eq('id', employer.id)
+            .eq('id', employerTyped.id)
         }
         break
       }
@@ -90,18 +94,21 @@ export async function POST(req: NextRequest) {
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
 
-        const supabase = await createServerClient()
-        const { data: employer } = await supabase
+        const supabase = await supabaseTyped()
+        const supabaseAny = supabase as any
+        type EmployerAccountRow = { id: string }
+        const { data: employer } = await supabaseAny
           .from('employer_accounts')
           .select('id')
           .eq('stripe_customer_id', subscription.customer as string)
           .single()
 
         if (employer) {
-          await supabase
+          const employerTyped = employer as EmployerAccountRow
+          await supabaseAny
             .from('employer_accounts')
             .update({ plan_tier: 'free' })
-            .eq('id', employer.id)
+            .eq('id', employerTyped.id)
         }
         break
       }

@@ -23,18 +23,13 @@ export async function POST(req: Request) {
 
     // Update the profile with warehouse-specific data
     // Note: warehouse-specific fields may not be in Database types yet
-    const { error: updateError } = await supabase
-      .from<Database['public']['Tables']['profiles']['Row']>('profiles')
+    const { error: updateError } = await (supabase as any)
+      .from('profiles')
       .update({
         warehouse_type: warehouseType,
         equipment_operated: equipmentOperated || [],
         warehouse_responsibilities: responsibilities || [],
         warehouse_certifications: certifications || [],
-      } as Partial<Database['public']['Tables']['profiles']['Update']> & {
-        warehouse_type?: string
-        equipment_operated?: any[]
-        warehouse_responsibilities?: any[]
-        warehouse_certifications?: any[]
       })
       .eq('id', user.id)
 

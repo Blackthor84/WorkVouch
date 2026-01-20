@@ -38,7 +38,8 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
   }, [router, supabase])
 
   const fetchCoworkers = async (userId: string) => {
-    const { data, error } = await supabase
+    const supabaseAny = supabase as any
+    const { data, error } = await supabaseAny
       .from('coworker_matches')
       .select('*')
       .eq('user_id', userId)
@@ -62,7 +63,8 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
     setLoading(true)
 
     try {
-      const { error } = await supabase
+      const supabaseAny = supabase as any
+      const { error } = await supabaseAny
         .from('coworker_matches')
         .insert({
           user_id: user.id,
@@ -92,7 +94,8 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
     setLoading(true)
 
     try {
-      const { error } = await supabase
+      const supabaseAny = supabase as any
+      const { error } = await supabaseAny
         .from('coworker_matches')
         .delete()
         .eq('user_id', user.id)

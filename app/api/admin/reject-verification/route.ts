@@ -31,8 +31,9 @@ export async function POST(req: NextRequest) {
     type VerificationRequestUpdate = { status?: string }
 
     // Get verification request to find job_id
-    const { data: verificationRequest, error: fetchError } = await (supabase as any)
-      .from<VerificationRequestRow>('verification_requests')
+    const supabaseAny = supabase as any
+    const { data: verificationRequest, error: fetchError } = await supabaseAny
+      .from('verification_requests')
       .select('id, job_id')
       .eq('id', data.verificationRequestId)
       .single()
@@ -42,8 +43,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Update verification request
-    const { data: updatedRequest, error: updateError } = await (supabase as any)
-      .from<VerificationRequestRow>('verification_requests')
+    const { data: updatedRequest, error: updateError } = await supabaseAny
+      .from('verification_requests')
       .update({ status: 'rejected' } as Partial<VerificationRequestUpdate>)
       .eq('id', data.verificationRequestId)
       .select()
@@ -59,9 +60,9 @@ export async function POST(req: NextRequest) {
 
     // Update job history verification status
     // Note: verification_status field may not be in Database types yet
-    const { error: jobUpdateError } = await supabase
-      .from<Database['public']['Tables']['jobs']['Row']>('jobs')
-      .update({ verification_status: 'unverified' } as any)
+    const { error: jobUpdateError } = await (supabase as any)
+      .from('jobs')
+      .update({ verification_status: 'unverified' })
       .eq('id', verificationRequest.job_id)
 
     if (jobUpdateError) {
