@@ -49,7 +49,7 @@ export function CandidateSearch() {
   const handleSaveCandidate = async (candidateId: string) => {
     try {
       await saveCandidate(candidateId)
-      setSavedCandidates(new Set([...savedCandidates, candidateId]))
+      setSavedCandidates(new Set(Array.from(savedCandidates).concat(candidateId)))
     } catch (error: any) {
       alert(error.message || 'Failed to save candidate')
     }
