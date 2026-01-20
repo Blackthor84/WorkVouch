@@ -2,8 +2,7 @@
 pid: 17712
 cwd: |
   C:\Users\ajaye\.cursor
-active_command: git add .
-last_command: git push --set-upstream origin main
+last_command: npm install next@latest eslint@latest rimraf@latest glob@latest
 last_exit_code: 0
 ---
 PS C:\Users\ajaye\.cursor> git push -u origin main
@@ -110,4 +109,75 @@ Unlink of file 'ai-tracking/ai-code-tracking.db' failed. Should I try again? (y/
 PS C:\Users\ajaye\.cursor> git push --set-upstream origin main
 branch 'main' set up to track 'origin/main'.
 Everything up-to-date
-PS C:\User
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of 'QUICK_START.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/sign-up-form.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/fix_signup_trigger_WITH_ROLES.sql', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> git commit -m "Fix server/client issues, remove duplicate variables, rename app to WorkVouch"
+[main 1047dd0] Fix server/client issues, remove duplicate variables, rename app to WorkVouch
+ 46 files changed, 2419 insertions(+), 2133 deletions(-)
+ create mode 100644 ai-tracking/ai-code-tracking.db
+ create mode 100644 app/api/user/filter-coworkers/route.ts
+ create mode 100644 app/employer/search/healthcare/healthcare-search-client.tsx
+ create mode 100644 app/onboarding/[industry]/coworkers/coworkers-form-client.tsx
+ create mode 100644 app/onboarding/[industry]/job/job-form-client.tsx
+ create mode 100644 app/onboarding/[industry]/role/role-form-client.tsx
+ create mode 100644 app/onboarding/[industry]/setting/setting-form-client.tsx
+ create mode 100644 app/onboarding/employer/healthcare/employer-onboarding-client.tsx
+ create mode 100644 app/onboarding/employer/healthcare/job-post/job-post-client.tsx
+ create mode 100644 app/onboarding/healthcare/coworkers/healthcare-coworkers-client.tsx
+ create mode 100644 app/onboarding/healthcare/job/healthcare-job-client.tsx
+ create mode 100644 app/onboarding/healthcare/role/healthcare-role-client.tsx
+ create mode 100644 app/onboarding/healthcare/setting/healthcare-setting-client.tsx
+ create mode 100644 app/onboarding/warehouse/warehouse-onboarding-client.tsx
+ create mode 100644 app/onboarding/warehouse/warehouse-onboarding-wrapper.tsx
+ create mode 100644 projects/c-Users-ajaye-cursor/terminals/1.txt
+PS C:\Users\ajaye\.cursor> git push
+Enumerating objects: 154, done.
+Counting objects: 100% (154/154), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (77/77), done.
+Writing objects: 100% (90/90), 116.19 KiB | 3.87 MiB/s, done.
+Total 90 (delta 48), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (48/48), completed with 32 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   ee78ef2..1047dd0  main -> main
+PS C:\Users\ajaye\.cursor> npm install next@latest eslint@latest rimraf@latest glob@latest
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: workvouch@0.1.0
+npm warn Found: eslint@8.57.1
+npm warn node_modules/eslint
+npm warn   peer eslint@"^6.0.0 || ^7.0.0 || >=8.0.0" from @eslint-community/eslint-utils@4.9.1
+npm warn   node_modules/@eslint-community/eslint-utils
+npm warn     @eslint-community/eslint-utils@"^4.2.0" from eslint@8.57.1
+npm warn   8 more (@typescript-eslint/parser, eslint-config-next, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer eslint@"^7.23.0 || ^8.0.0" from eslint-config-next@14.0.4
+npm warn node_modules/eslint-config-next
+npm warn   dev eslint-config-next@"14.0.4" from the root project
+npm warn ERESOLVE overriding peer dependency
+npm warn ERESOLVE overriding peer dependency
+npm warn deprecated glob@7.1.7: Glob versions prior to v9 are no longer supported
+
+added 27 packages, removed 17 packages, changed 15 packages, and audited 582 packages in 36s
+
+161 packages are looking for funding
+  run `npm fund` for details
+
+5 vulnerabilities (3 low, 2 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues possible (including breaking changes), run:
+  npm audit fix --force
+
+Some issues need review, and may require choosing
+a different dependency.
+
+Run `npm audit` for details.
+PS C:\Users\ajaye\.cursor>

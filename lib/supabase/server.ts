@@ -1,3 +1,8 @@
+/**
+ * Server-only Supabase client creation
+ * ✅ Only import this file in server components or API routes
+ * ✅ Declare supabase once per function and reuse for all queries
+ */
 import { createServerClient as createSupabaseClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { Database } from '@/types/database'
