@@ -2,7 +2,7 @@
 pid: 17712
 cwd: |
   C:\Users\ajaye\.cursor
-last_command: cursor open app/page.tsx
+last_command: git push
 last_exit_code: 0
 ---
 PS C:\Users\ajaye\.cursor> git push -u origin main
@@ -733,4 +733,26 @@ d-----         1/19/2026   6:40 PM                upload-resume
 
 PS C:\Users\ajaye\.cursor> cursor open app/page.tsx
 PS C:\Users\ajaye\.cursor> cursor open app/page.tsx
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tsconfig.json', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> git commit -m "fix: supabase route types + next16 compatibility"
+[main 815ed0b] fix: supabase route types + next16 compatibility
+ 71 files changed, 855 insertions(+), 353 deletions(-)
+ create mode 100644 components/navbar-client.tsx
+ create mode 100644 components/navbar-server.tsx
+ create mode 100644 lib/supabase-fixed.ts
+ create mode 100644 proxy.ts
+PS C:\Users\ajaye\.cursor> git push
+Enumerating objects: 287, done.
+Counting objects: 100% (287/287), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (101/101), done.
+Writing objects: 100% (152/152), 146.09 KiB | 2.52 MiB/s, done.
+Total 152 (delta 72), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (72/72), completed with 62 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   0f8a595..815ed0b  main -> main
 PS C:\Users\ajaye\.cursor>
