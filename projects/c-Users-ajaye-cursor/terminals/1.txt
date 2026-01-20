@@ -773,4 +773,21 @@ remote: This repository moved. Please use the new location:
 remote:   https://github.com/Blackthor84/WorkVouch.git
 To https://github.com/Blackthor84/workvouch.git
    815ed0b..ba4d870  main -> main
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> git commit -m "Fix proxy file export"
+[main 3abc3bc] Fix proxy file export
+ 34 files changed, 296 insertions(+), 241 deletions(-)
+PS C:\Users\ajaye\.cursor> git push
+Enumerating objects: 151, done.
+Counting objects: 100% (151/151), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (51/51), done.
+Writing objects: 100% (79/79), 117.92 KiB | 3.37 MiB/s, done.
+Total 79 (delta 36), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (36/36), completed with 33 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   ba4d870..3abc3bc  main -> main
 PS C:\Users\ajaye\.cursor>

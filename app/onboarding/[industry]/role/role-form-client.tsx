@@ -28,13 +28,17 @@ export function RoleFormClient({ industry }: RoleFormClientProps) {
       }
 
       // Check if user's industry matches
-      const { data: profile } = await supabase
+      const supabaseAny = supabase as any
+      const { data: profile } = await supabaseAny
         .from('profiles')
         .select('industry')
         .eq('id', currentUser.id)
         .single()
 
-      if (profile?.industry !== industry) {
+      type ProfileRow = { industry: string | null }
+      const profileTyped = profile as ProfileRow | null
+
+      if (profileTyped?.industry !== industry) {
         router.push('/dashboard')
         return
       }
@@ -55,8 +59,9 @@ export function RoleFormClient({ industry }: RoleFormClientProps) {
 
     try {
       const tableName = `${industry}_profiles`
+      const supabaseAny = supabase as any
       
-      const { error } = await supabase
+      const { error } = await supabaseAny
         .from(tableName)
         .upsert({
           user_id: user.id,

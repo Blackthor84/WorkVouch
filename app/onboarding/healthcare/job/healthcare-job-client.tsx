@@ -51,7 +51,8 @@ export function HealthcareJobClient() {
         : []
 
       // Insert job
-      const { error: jobError } = await supabase
+      const supabaseAny = supabase as any
+      const { error: jobError } = await supabaseAny
         .from('jobs')
         .insert({
           user_id: user.id,

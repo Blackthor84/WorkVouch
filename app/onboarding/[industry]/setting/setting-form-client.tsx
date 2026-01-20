@@ -43,8 +43,9 @@ export function SettingFormClient({ industry }: SettingFormClientProps) {
 
     try {
       const tableName = `${industry}_profiles`
+      const supabaseAny = supabase as any
       
-      const { error } = await supabase
+      const { error } = await supabaseAny
         .from(tableName)
         .update({ work_setting: setting })
         .eq('user_id', user.id)

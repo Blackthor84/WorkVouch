@@ -38,13 +38,17 @@ export function EmployerOnboardingClient() {
       }
 
       // Check if user is an employer
-      const { data: profile } = await supabase
+      const supabaseAny = supabase as any
+      const { data: profile } = await supabaseAny
         .from('profiles')
         .select('role')
         .eq('id', currentUser.id)
         .single()
 
-      if (profile?.role !== 'employer') {
+      type ProfileRow = { role: string | null }
+      const profileTyped = profile as ProfileRow | null
+
+      if (profileTyped?.role !== 'employer') {
         router.push('/dashboard')
         return
       }
@@ -64,8 +68,9 @@ export function EmployerOnboardingClient() {
     setLoading(true)
 
     try {
+      const supabaseAny = supabase as any
       // Update employer account with healthcare info
-      const { error: employerError } = await supabase
+      const { error: employerError } = await supabaseAny
         .from('employer_accounts')
         .update({
           company_name: companyName,
@@ -78,7 +83,7 @@ export function EmployerOnboardingClient() {
       if (employerError) {
         console.error('Error updating employer account:', employerError)
         // If employer_accounts doesn't exist, create it
-        const { error: createError } = await supabase
+        const { error: createError } = await supabaseAny
           .from('employer_accounts')
           .insert({
             user_id: user.id,

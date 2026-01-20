@@ -64,7 +64,9 @@ export function JobPostClient() {
         : []
 
       // Get employer account
-      const { data: employerAccount } = await supabase
+      const supabaseAny = supabase as any
+      type EmployerAccountRow = { id: string }
+      const { data: employerAccount } = await supabaseAny
         .from('employer_accounts')
         .select('id')
         .eq('user_id', user.id)
@@ -76,11 +78,13 @@ export function JobPostClient() {
         return
       }
 
+      const employerAccountTyped = employerAccount as EmployerAccountRow
+
       // Insert job posting
-      const { error: jobError } = await supabase
+      const { error: jobError } = await supabaseAny
         .from('job_postings')
         .insert({
-          employer_id: employerAccount.id,
+          employer_id: employerAccountTyped.id,
           job_title: jobTitle,
           industry: 'healthcare',
           work_setting: workSetting,
