@@ -7,8 +7,14 @@ import { ThemeToggle } from "./theme-toggle"
 import { NotificationsBell } from "./notifications-bell"
 import { DashboardNavButton } from "./dashboard-nav-button"
 import { Logo } from "./logo"
+import { User } from "@/lib/auth"
 
-export function NavbarClient({ user, roles }) {
+interface NavbarClientProps {
+  user: User | null
+  roles: string[]
+}
+
+export function NavbarClient({ user, roles }: NavbarClientProps) {
   return (
     <nav className="sticky top-0 z-50 border-b border-grey-background dark:border-[#374151] bg-white dark:bg-[#0D1117] shadow-sm py-2">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
