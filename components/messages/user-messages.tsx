@@ -104,29 +104,29 @@ export function UserMessages() {
             const unreadCount = thread.messages.filter((m: any) => !m.is_read && m.recipient_id === currentUserId).length
 
             return (
-              <Card
+              <div
                 key={threadKey}
-                className={`p-4 cursor-pointer hover:shadow-md transition-shadow ${
-                  selectedThread === thread.otherUserId ? 'ring-2 ring-blue-600 dark:ring-blue-400' : ''
-                }`}
+                className={`cursor-pointer ${selectedThread === thread.otherUserId ? 'ring-2 ring-blue-600 dark:ring-blue-400' : ''}`}
                 onClick={() => setSelectedThread(thread.otherUserId)}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-grey-dark dark:text-gray-200">
-                      {thread.otherUser?.full_name || thread.otherUser?.email}
-                    </p>
-                    <p className="text-sm text-grey-medium dark:text-gray-400 line-clamp-1">
-                      {firstMsg.body}
-                    </p>
+                <Card className="p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-grey-dark dark:text-gray-200">
+                        {thread.otherUser?.full_name || thread.otherUser?.email}
+                      </p>
+                      <p className="text-sm text-grey-medium dark:text-gray-400 line-clamp-1">
+                        {firstMsg.body}
+                      </p>
+                    </div>
+                    {unreadCount > 0 && (
+                      <span className="px-2 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded-full text-xs font-semibold">
+                        {unreadCount}
+                      </span>
+                    )}
                   </div>
-                  {unreadCount > 0 && (
-                    <span className="px-2 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded-full text-xs font-semibold">
-                      {unreadCount}
-                    </span>
-                  )}
-                </div>
-              </Card>
+                </Card>
+              </div>
             )
           })}
         </div>

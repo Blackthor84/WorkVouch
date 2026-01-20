@@ -104,45 +104,49 @@ export function NotificationsList({ notifications }: { notifications: Notificati
 
       <div className="space-y-3">
         {localNotifications.map((notification) => (
-          <Card
+          <div
             key={notification.id}
-            className={`cursor-pointer transition-all ${
-              !notification.is_read
-                ? 'border-blue-600 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-                : 'border-grey-background dark:border-[#374151]'
-            }`}
+            className="cursor-pointer"
             onClick={() => !notification.is_read && handleMarkRead(notification.id)}
           >
-            <Link href={getActionLink(notification)}>
-              <div className="flex items-start gap-4 p-4">
-                <div className="flex-shrink-0 mt-0.5">
-                  {getIcon(notification.type)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <h3 className={`text-sm font-semibold ${
-                        !notification.is_read
-                          ? 'text-grey-dark dark:text-gray-200'
-                          : 'text-grey-medium dark:text-gray-400'
-                      }`}>
-                        {notification.title}
-                      </h3>
-                      <p className="mt-1 text-sm text-grey-medium dark:text-gray-400">
-                        {notification.message}
-                      </p>
-                      <p className="mt-2 text-xs text-grey-light dark:text-gray-500">
-                        {new Date(notification.created_at).toLocaleString()}
-                      </p>
+            <Card
+              className={`transition-all ${
+                !notification.is_read
+                  ? 'border-blue-600 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
+                  : 'border-grey-background dark:border-[#374151]'
+              }`}
+            >
+              <Link href={getActionLink(notification)}>
+                <div className="flex items-start gap-4 p-4">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {getIcon(notification.type)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <h3 className={`text-sm font-semibold ${
+                          !notification.is_read
+                            ? 'text-grey-dark dark:text-gray-200'
+                            : 'text-grey-medium dark:text-gray-400'
+                        }`}>
+                          {notification.title}
+                        </h3>
+                        <p className="mt-1 text-sm text-grey-medium dark:text-gray-400">
+                          {notification.message}
+                        </p>
+                        <p className="mt-2 text-xs text-grey-light dark:text-gray-500">
+                          {new Date(notification.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      {!notification.is_read && (
+                        <div className="h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400 flex-shrink-0 mt-1" />
+                      )}
                     </div>
-                    {!notification.is_read && (
-                      <div className="h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400 flex-shrink-0 mt-1" />
-                    )}
                   </div>
                 </div>
-              </div>
-            </Link>
-          </Card>
+              </Link>
+            </Card>
+          </div>
         ))}
       </div>
     </div>
