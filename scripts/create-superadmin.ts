@@ -1,8 +1,10 @@
-import { PrismaClient } from '@prisma/client'
+// Prisma is not used - Supabase handles database
+// This script is deprecated - use Supabase directly instead
+// import { PrismaClient } from '@prisma/client'
 import * as readline from 'readline'
-import { hash } from 'bcryptjs'
+// import { hash } from 'bcryptjs'
 
-const prisma = new PrismaClient()
+// const prisma = new PrismaClient()
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -25,6 +27,12 @@ async function main() {
       process.exit(1)
     }
 
+    console.error('This script is deprecated. Use Supabase directly to create superadmin users.')
+    console.error('See: supabase/add_superadmin_role.sql for SQL-based approach')
+    process.exit(1)
+    
+    // Deprecated Prisma code - commented out
+    /*
     // Check if admin already exists
     const existing = await prisma.adminUser.findUnique({
       where: { email },
@@ -61,12 +69,13 @@ async function main() {
     console.log(`   Email: ${admin.email}`)
     console.log(`   Role: ${admin.role}`)
     console.log(`   ID: ${admin.id}\n`)
+    */
   } catch (error) {
     console.error('Error creating superadmin:', error)
     process.exit(1)
   } finally {
     rl.close()
-    await prisma.$disconnect()
+    // await prisma.$disconnect()
   }
 }
 

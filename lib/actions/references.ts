@@ -37,18 +37,19 @@ export async function createReference(input: CreateReferenceInput) {
   }
 
   // Verify job belongs to the target user
-  const { data: job } = await supabase
+  const supabaseAny = supabase as any
+  const { data: job } = await supabaseAny
     .from('jobs')
     .select('user_id')
     .eq('id', input.job_id)
     .single()
 
-  if (!job || job.user_id !== input.to_user_id) {
+  if (!job || (job as any).user_id !== input.to_user_id) {
     throw new Error('Invalid job: Job must belong to the target user')
   }
 
   // Check if reference already exists for this job
-  const { data: existing } = await supabase
+  const { data: existing } = await supabaseAny
     .from('references')
     .select('id')
     .eq('from_user_id', user.id)
@@ -66,7 +67,7 @@ export async function createReference(input: CreateReferenceInput) {
   }
 
   // Create reference
-  const { data: reference, error } = await supabase
+  const { data: reference, error } = await supabaseAny
     .from('references')
     .insert([{
       ...input,
@@ -117,7 +118,7 @@ export async function getUserReferences(userId: string) {
   }
 
   // Filter based on visibility rules
-  const filtered = references?.filter((ref) => {
+  const filtered = (references as any[])?.filter((ref: any) => {
     // User can always see references they gave or received
     if (ref.from_user_id === user.id || ref.to_user_id === user.id) {
       return true

@@ -15,30 +15,31 @@ export async function getUserSubscription(userId: string): Promise<'free' | 'pro
   const supabase = await createServerClient()
 
   // Get stripe_customer_id from profile
-  const { data: profile } = await supabase
+  const supabaseAny = supabase as any
+  const { data: profile } = await supabaseAny
     .from('profiles')
     .select('stripe_customer_id')
     .eq('id', userId)
     .single()
 
-  if (!profile?.stripe_customer_id) {
+  if (!profile || !(profile as any).stripe_customer_id) {
     return 'free'
   }
 
   // Get active subscription from subscriptions table
-  const { data: subscription } = await supabase
+  const { data: subscription } = await supabaseAny
     .from('subscriptions')
     .select('price_id, status')
-    .eq('stripe_customer_id', profile.stripe_customer_id)
+    .eq('stripe_customer_id', (profile as any).stripe_customer_id)
     .eq('status', 'active')
     .single()
 
-  if (!subscription || subscription.status !== 'active') {
+  if (!subscription || (subscription as any).status !== 'active') {
     return 'free'
   }
 
   // Determine tier from price_id
-  const priceId = subscription.price_id?.toLowerCase() || ''
+  const priceId = (subscription as any).price_id?.toLowerCase() || ''
   if (priceId.includes('elite')) return 'elite'
   if (priceId.includes('pro')) return 'pro'
 

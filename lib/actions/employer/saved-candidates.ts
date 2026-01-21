@@ -23,7 +23,8 @@ export async function saveCandidate(candidateId: string, notes?: string) {
     throw new Error('Only employers can save candidates')
   }
 
-  const { data, error } = await supabase
+  const supabaseAny = supabase as any
+  const { data, error } = await supabaseAny
     .from('saved_candidates')
     .upsert({
       employer_id: user.id,

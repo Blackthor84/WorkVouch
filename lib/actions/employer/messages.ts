@@ -27,8 +27,9 @@ export async function sendMessage(
 ) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAny
     .from('messages')
     .insert([{
       sender_id: user.id,
@@ -45,7 +46,7 @@ export async function sendMessage(
   }
 
   // Create notification for recipient
-  await supabase.rpc('create_notification', {
+  await supabaseAny.rpc('create_notification', {
     p_user_id: recipientId,
     p_type: 'message',
     p_title: 'New Message',
@@ -117,7 +118,8 @@ export async function markMessageAsRead(messageId: string) {
   const user = await requireAuth()
   const supabase = await createServerClient()
 
-  const { error } = await supabase
+  const supabaseAny = supabase as any
+  const { error } = await supabaseAny
     .from('messages')
     .update({ is_read: true })
     .eq('id', messageId)

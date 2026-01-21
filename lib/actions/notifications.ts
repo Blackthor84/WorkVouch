@@ -36,8 +36,9 @@ export async function getUserNotifications(limit: number = 50) {
 export async function markNotificationRead(notificationId: string) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAny
     .from('notifications')
     .update({
       is_read: true,
@@ -62,8 +63,9 @@ export async function markNotificationRead(notificationId: string) {
 export async function markAllNotificationsRead() {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { error } = await supabase
+  const { error } = await supabaseAny
     .from('notifications')
     .update({
       is_read: true,

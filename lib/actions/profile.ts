@@ -17,8 +17,9 @@ export async function updateProfile(data: {
 }) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { data: profile, error } = await supabase
+  const { data: profile, error } = await supabaseAny
     .from('profiles')
     .update(data)
     .eq('id', user.id)
@@ -56,7 +57,8 @@ export async function uploadProfilePhoto(file: File) {
   // For now, return a placeholder
   const photoUrl = `/api/placeholder/${fileName}`
   
-  const { error } = await supabase
+  const supabaseAny = supabase as any
+  const { error } = await supabaseAny
     .from('profiles')
     .update({ profile_photo_url: photoUrl })
     .eq('id', user.id)

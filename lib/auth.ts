@@ -79,7 +79,7 @@ export async function getCurrentUserRoles(): Promise<string[]> {
     return []
   }
 
-  return roles.map(r => r.role)
+  return (roles as any[]).map((r: any) => r.role)
 }
 
 /**

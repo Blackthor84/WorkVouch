@@ -2,84 +2,11 @@
 pid: 17712
 cwd: |
   C:\Users\ajaye\.cursor
-last_command: git status
+active_command: git add .
+last_command: |
+  # 2 Stage all changes for commit
 last_exit_code: 0
 ---
--a----          1/9/2026   3:00 PM           7649 primitive.test.ts
--a----          1/9/2026   3:00 PM           2315 promise.test.ts
--a----          1/9/2026   3:00 PM            498 prototypes.test.ts
--a----          1/9/2026   3:00 PM          11777 readonly.test.ts
--a----          1/9/2026   3:00 PM           8118 record.test.ts
--a----          1/9/2026   3:00 PM           7335 recursive-types.test.ts
--a----          1/9/2026   3:00 PM          14774 refine.test.ts
--a----          1/9/2026   3:00 PM           5999 registries.test.ts
--a----          1/9/2026   3:00 PM           5572 set.test.ts
--a----          1/9/2026   3:00 PM           1369 standard-schema.test.ts
--a----          1/9/2026   3:00 PM           3068 string-formats.test.ts
--a----          1/9/2026   3:00 PM          64124 string.test.ts
--a----          1/9/2026   3:00 PM           2333 stringbool.test.ts
--a----          1/9/2026   3:00 PM          34836 template-literal.test.ts
--a----          1/9/2026   3:00 PM          59276 to-json-schema.test.ts
--a----          1/9/2026   3:00 PM           6000 transform.test.ts
--a----          1/9/2026   3:00 PM           4702 tuple.test.ts
--a----          1/9/2026   3:00 PM           2497 union.test.ts
--a----          1/9/2026   3:00 PM           6736 validations.test.ts
--a----          1/9/2026   3:00 PM            306 void.test.ts
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\src\v4\core
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
-d-----          1/9/2026   3:00 PM                tests
--a----          1/9/2026   3:00 PM          47508 api.ts
--a----          1/9/2026   3:00 PM          37301 checks.ts
--a----          1/9/2026   3:00 PM            472 config.ts
--a----          1/9/2026   3:00 PM           4756 core.ts
--a----          1/9/2026   3:00 PM           1192 doc.ts
--a----          1/9/2026   3:00 PM          13154 errors.ts
--a----          1/9/2026   3:00 PM           6285 function.ts
--a----          1/9/2026   3:00 PM            499 index.ts
--a----          1/9/2026   3:00 PM           3709 json-schema.ts
--a----          1/9/2026   3:00 PM           3822 parse.ts
--a----          1/9/2026   3:00 PM           6953 regexes.ts
--a----          1/9/2026   3:00 PM           2850 registries.ts
--a----          1/9/2026   3:00 PM         118421 schemas.ts
--a----          1/9/2026   3:00 PM           2327 standard-schema.ts
--a----          1/9/2026   3:00 PM          32423 to-json-schema.ts
--a----          1/9/2026   3:00 PM          22813 util.ts
--a----          1/9/2026   3:00 PM             83 versions.ts
--a----          1/9/2026   3:00 PM           6677 zsf.ts
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\src\v4\core\tests
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
-d-----          1/9/2026   3:00 PM                locales
--a----          1/9/2026   3:00 PM           1176 index.test.ts
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\src\v4\core\tests\locales
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
--a----          1/9/2026   3:00 PM           3778 be.test.ts
--a----          1/9/2026   3:00 PM            837 en.test.ts
--a----          1/9/2026   3:00 PM           3759 ru.test.ts
--a----          1/9/2026   3:00 PM           3335 tr.test.ts
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\src\v4\locales
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
--a----          1/9/2026   3:00 PM           4985 ar.ts
--a----          1/9/2026   3:00 PM           4334 az.ts
 -a----          1/9/2026   3:00 PM           6242 be.ts
 -a----          1/9/2026   3:00 PM           4654 ca.ts
 -a----          1/9/2026   3:00 PM           4834 cs.ts
@@ -1003,3 +930,73 @@ Untracked files:
 
 no changes added to commit (use "git add" and/or "git commit -a")
 PS C:\Users\ajaye\.cursor>
+PS C:\Users\ajaye\.cursor> # 2 Stage all changes for commit
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor> 
+PS C:\Users\ajaye\.cursor> # 3 Commit the changes with a clear message
+PS C:\Users\ajaye\.cursor> git commit -m "fix: add next-auth, TypeScript types, and global declarations"
+[main 7ba61ff] fix: add next-auth, TypeScript types, and global declarations
+ 7 files changed, 959 insertions(+), 164 deletions(-)
+ create mode 100644 types/global.d.ts
+PS C:\Users\ajaye\.cursor> 
+PS C:\Users\ajaye\.cursor> # 4 Push changes to the main branch
+PS C:\Users\ajaye\.cursor> git push origin main
+Enumerating objects: 30, done.
+Counting objects: 100% (30/30), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (11/11), done.
+Writing objects: 100% (16/16), 25.00 KiB | 853.00 KiB/s, done.
+Total 16 (delta 8), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (8/8), completed with 8 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   3bf0ec1..7ba61ff  main -> main
+PS C:\Users\ajaye\.cursor> # 1 Check the status of your files
+PS C:\Users\ajaye\.cursor> git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   ai-tracking/ai-code-tracking.db
+        modified:   app/api/admin/approve-verification/route.ts
+        modified:   app/api/admin/reject-verification/route.ts
+        modified:   app/api/admin/resolve-dispute/route.ts
+        modified:   app/api/employer/file-dispute/route.ts
+        modified:   app/api/employer/request-verification/route.ts
+        modified:   app/api/user/add-job/route.ts
+        modified:   app/api/user/edit-job/route.ts
+        modified:   app/api/user/filter-coworkers/route.ts
+        modified:   app/api/user/request-verification/route.ts
+        modified:   app/api/user/set-visibility/route.ts
+        modified:   components/ui/badge.tsx
+        modified:   components/ui/button.tsx
+        modified:   components/ui/switch.tsx
+        modified:   lib/actions/admin.ts
+        modified:   lib/actions/connections.ts
+        modified:   lib/actions/create-profile.ts
+        modified:   lib/actions/employer-purchases.ts
+        modified:   lib/actions/employer.ts
+        modified:   lib/actions/employer/candidate-search.ts
+        modified:   lib/actions/employer/job-postings.ts
+        modified:   lib/actions/employer/messages.ts
+        modified:   lib/actions/employer/saved-candidates.ts
+        modified:   lib/actions/jobs.ts
+        modified:   lib/actions/notifications.ts
+        modified:   lib/actions/profile.ts
+        modified:   lib/actions/references.ts
+        modified:   lib/actions/subscription-helpers.ts
+        modified:   lib/actions/subscriptions.ts
+        modified:   lib/ai/matching.ts
+        modified:   lib/auth.ts
+        modified:   lib/checkSubscription.ts
+        modified:   lib/middleware/plan-enforcement-supabase.ts
+        modified:   lib/middleware/plan-enforcement.ts
+        modified:   lib/stripe/config.ts
+        modified:   package-lock.json
+        modified:   package.json
+        modified:   projects/c-Users-ajaye-cursor/terminals/1.txt
+        modified:   script

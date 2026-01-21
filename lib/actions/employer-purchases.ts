@@ -18,13 +18,14 @@ export async function hasPurchasedReport(candidateId: string) {
   const supabase = await createSupabaseServerClient()
 
   // First check if they have a subscription with available quota
-  const { data: quotaCheck } = await supabase.rpc('check_employer_lookup_quota', {
+  const supabaseAny = supabase as any
+  const { data: quotaCheck } = await supabaseAny.rpc('check_employer_lookup_quota', {
     p_employer_id: user.id,
   })
 
   if (quotaCheck === true) {
     // Has subscription with quota, check if they've already looked up this candidate
-    const { data: existingLookup } = await supabase
+    const { data: existingLookup } = await supabaseAny
       .from('employer_lookups')
       .select('id')
       .eq('employer_id', user.id)
@@ -38,7 +39,7 @@ export async function hasPurchasedReport(candidateId: string) {
   }
 
   // Fall back to checking one-time purchases
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAny
     .from('employer_purchases')
     .select('id')
     .eq('employer_id', user.id)
@@ -61,8 +62,9 @@ export async function getEmployerPurchases() {
   }
 
   const supabase = await createSupabaseServerClient()
+  const supabaseAny = supabase as any
 
-  const { data: purchases, error } = await supabase
+  const { data: purchases, error } = await supabaseAny
     .from('employer_purchases')
     .select(`
       *,
@@ -104,13 +106,14 @@ export async function getCandidateReport(candidateId: string) {
 
   // Record lookup if using subscription
   const supabase = await createSupabaseServerClient()
-  const { data: quotaCheck } = await supabase.rpc('check_employer_lookup_quota', {
+  const supabaseAny = supabase as any
+  const { data: quotaCheck } = await supabaseAny.rpc('check_employer_lookup_quota', {
     p_employer_id: user.id,
   })
 
   if (quotaCheck === true) {
     // Record the lookup for subscription tracking
-    await supabase.rpc('record_employer_lookup', {
+    await supabaseAny.rpc('record_employer_lookup', {
       p_employer_id: user.id,
       p_candidate_id: candidateId,
       p_lookup_type: 'report',
@@ -118,19 +121,19 @@ export async function getCandidateReport(candidateId: string) {
   }
 
   // Get full candidate data
-  const { data: profile } = await supabase
+  const { data: profile } = await supabaseAny
     .from('profiles')
     .select('*')
     .eq('id', candidateId)
     .single()
 
-  const { data: jobs } = await supabase
+  const { data: jobs } = await supabaseAny
     .from('jobs')
     .select('*')
     .eq('user_id', candidateId)
     .order('start_date', { ascending: false })
 
-  const { data: references } = await supabase
+  const { data: references } = await supabaseAny
     .from('references')
     .select(`
       *,
@@ -149,7 +152,7 @@ export async function getCandidateReport(candidateId: string) {
     .eq('is_deleted', false)
     .order('created_at', { ascending: false })
 
-  const { data: trustScore } = await supabase
+  const { data: trustScore } = await supabaseAny
     .from('trust_scores')
     .select('*')
     .eq('user_id', candidateId)
@@ -169,9 +172,10 @@ export async function getCandidateReport(candidateId: string) {
  */
 export const recordEmployerLookup = async (userId: string, candidateId: string) => {
   const supabase = await createSupabaseServerClient()
+  const supabaseAny = supabase as any
 
   // First check if they have a subscription with available quota
-  const { data: quotaCheck } = await supabase.rpc('check_employer_lookup_quota', {
+  const { data: quotaCheck } = await supabaseAny.rpc('check_employer_lookup_quota', {
     p_employer_id: userId
   })
 
@@ -179,7 +183,7 @@ export const recordEmployerLookup = async (userId: string, candidateId: string) 
 
   if (quotaCheck === true) {
     // Has subscription with quota - record the lookup
-    await supabase.rpc('record_employer_lookup', {
+    await supabaseAny.rpc('record_employer_lookup', {
       p_employer_id: userId,
       p_candidate_id: candidateId,
       p_lookup_type: 'report'
@@ -187,7 +191,7 @@ export const recordEmployerLookup = async (userId: string, candidateId: string) 
     hasAccess = true
   } else {
     // Check if they have a one-time purchase for this candidate
-    const { data: purchase, error } = await supabase
+    const { data: purchase, error } = await supabaseAny
       .from('employer_purchases')
       .select('id')
       .eq('employer_id', userId)
@@ -203,7 +207,7 @@ export const recordEmployerLookup = async (userId: string, candidateId: string) 
   }
 
   // Get and return the profile
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile, error: profileError } = await supabaseAny
     .from('profiles')
     .select('*')
     .eq('id', candidateId)

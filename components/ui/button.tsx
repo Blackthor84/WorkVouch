@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'info'
   size?: 'sm' | 'md' | 'lg'
   children: ReactNode
   asChild?: boolean
@@ -26,6 +26,7 @@ export function Button({
     secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 dark:bg-[#111827] dark:text-gray-300 dark:border-[#374151] dark:hover:bg-[#1A1F2B]',
     ghost: 'text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-[#1A1F2B] dark:hover:text-blue-300 rounded-lg',
     danger: 'bg-red-600 hover:bg-red-700 text-white dark:bg-red-500 dark:hover:bg-red-400',
+    info: 'bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400',
   }
   
   const sizes = {

@@ -5,8 +5,9 @@ import { createServerClient } from '@/lib/supabase/server'
  */
 export async function canViewEmployees(userId: string): Promise<boolean> {
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
   
-  const { data: employerAccount } = await supabase
+  const { data: employerAccount } = await supabaseAny
     .from('employer_accounts')
     .select('plan_tier')
     .eq('user_id', userId)
@@ -16,7 +17,8 @@ export async function canViewEmployees(userId: string): Promise<boolean> {
     return false
   }
 
-  return employerAccount.plan_tier === 'basic' || employerAccount.plan_tier === 'pro'
+  const employerAccountAny = employerAccount as any
+  return employerAccountAny.plan_tier === 'basic' || employerAccountAny.plan_tier === 'pro'
 }
 
 /**
@@ -24,8 +26,9 @@ export async function canViewEmployees(userId: string): Promise<boolean> {
  */
 export async function canFileDispute(userId: string): Promise<boolean> {
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
   
-  const { data: employerAccount } = await supabase
+  const { data: employerAccount } = await supabaseAny
     .from('employer_accounts')
     .select('plan_tier')
     .eq('user_id', userId)
@@ -35,7 +38,8 @@ export async function canFileDispute(userId: string): Promise<boolean> {
     return false
   }
 
-  return employerAccount.plan_tier === 'pro'
+  const employerAccountAny = employerAccount as any
+  return employerAccountAny.plan_tier === 'pro'
 }
 
 /**

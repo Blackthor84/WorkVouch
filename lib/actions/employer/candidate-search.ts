@@ -91,17 +91,18 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
   const results: CandidateSearchResult[] = []
 
   for (const profile of profiles) {
+    const profileAny = profile as any
     // Get jobs
     const { data: jobs } = await supabase
       .from('jobs')
       .select('id, company_name, job_title, start_date, end_date')
-      .eq('user_id', profile.id)
+      .eq('user_id', profileAny.id)
       .order('start_date', { ascending: false })
 
     // Apply job title filter if provided
     if (filters.job_title && jobs) {
-      const filteredJobs = jobs.filter(job =>
-        job.job_title.toLowerCase().includes(filters.job_title!.toLowerCase())
+      const filteredJobs = (jobs as any[]).filter((job: any) =>
+        job.job_title?.toLowerCase().includes(filters.job_title!.toLowerCase())
       )
       if (filteredJobs.length === 0) continue
     }
@@ -110,19 +111,19 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
     const { data: references } = await supabase
       .from('references')
       .select('id, rating, written_feedback')
-      .eq('to_user_id', profile.id)
+      .eq('to_user_id', profileAny.id)
       .eq('is_deleted', false)
 
     // Get trust score
     const { data: trustScoreData } = await supabase
       .from('trust_scores')
       .select('score')
-      .eq('user_id', profile.id)
+      .eq('user_id', profileAny.id)
       .order('calculated_at', { ascending: false })
       .limit(1)
       .single()
 
-    const trustScore = trustScoreData?.score || 0
+    const trustScore = (trustScoreData as any)?.score || 0
 
     // Apply trust score filter
     if (filters.min_trust_score && trustScore < filters.min_trust_score) {
@@ -134,10 +135,10 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
       const { data: fields } = await supabase
         .from('industry_profile_fields')
         .select('field_value')
-        .eq('user_id', profile.id)
+        .eq('user_id', profileAny.id)
         .eq('field_type', 'certification')
 
-      const hasCert = fields?.some(field =>
+      const hasCert = (fields as any[])?.some((field: any) =>
         filters.certifications!.some(cert =>
           field.field_value?.toLowerCase().includes(cert.toLowerCase())
         )
@@ -147,13 +148,13 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
     }
 
     results.push({
-      id: profile.id,
-      full_name: profile.full_name,
-      email: profile.email,
-      city: profile.city,
-      state: profile.state,
-      industry: profile.industry,
-      profile_photo_url: profile.profile_photo_url,
+      id: profileAny.id,
+      full_name: profileAny.full_name,
+      email: profileAny.email,
+      city: profileAny.city,
+      state: profileAny.state,
+      industry: profileAny.industry,
+      profile_photo_url: profileAny.profile_photo_url,
       trust_score: trustScore,
       jobs: jobs || [],
       references: references || [],
@@ -234,10 +235,11 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
     .eq('user_id', candidateId)
 
   // Normalize profile: convert string | null to string
-  const safeProfile = profile ? {
-    ...profile,
-    full_name: profile.full_name ?? "",
-    email: profile.email ?? "",
+  const profileAny = profile as any
+  const safeProfile = profileAny ? {
+    ...profileAny,
+    full_name: profileAny.full_name ?? "",
+    email: profileAny.email ?? "",
   } : null
 
   // Normalize jobs: convert string | null to string
@@ -251,7 +253,7 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
     profile: safeProfile,
     jobs: safeJobs,
     references: references || [],
-    trust_score: trustScore?.score || 0,
+    trust_score: (trustScore as any)?.score || 0,
     industry_fields: industryFields || [],
   }
 }

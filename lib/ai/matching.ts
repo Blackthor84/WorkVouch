@@ -67,9 +67,9 @@ export async function calculateMatchScore(
     .select('field_type, field_value')
     .eq('user_id', candidateId)
 
-  const skills = industryFields
-    ?.filter((f) => f.field_type === 'certification' || f.field_type === 'skill')
-    .map((f) => f.field_value) || []
+  const skills = (industryFields as any[])
+    ?.filter((f: any) => f.field_type === 'certification' || f.field_type === 'skill')
+    .map((f: any) => f.field_value) || []
 
   // Calculate semantic similarity
   const jobEmbedding = await generateJobEmbedding({
@@ -80,30 +80,31 @@ export async function calculateMatchScore(
     location: jobInput.location,
   })
 
+  const profileAny = profile as any
   const candidateEmbedding = await generateCandidateEmbedding({
     jobs: jobs || [],
-    industry: profile.industry || undefined,
+    industry: profileAny?.industry || undefined,
     skills: skills as string[],
-    location: profile.city && profile.state ? `${profile.city}, ${profile.state}` : undefined,
+    location: profileAny?.city && profileAny?.state ? `${profileAny.city}, ${profileAny.state}` : undefined,
   })
 
   const semanticScore = cosineSimilarity(jobEmbedding, candidateEmbedding)
 
   // Calculate trust score (0-100)
-  const trustScore = profile.trust_scores?.[0]?.score || 0
+  const trustScore = (profileAny?.trust_scores as any[])?.[0]?.score || 0
 
   // Calculate experience score
   const experienceScore = calculateExperienceScore(jobs || [], jobInput)
 
   // Calculate location score
   const locationScore = calculateLocationScore(
-    profile.city,
-    profile.state,
+    profileAny?.city,
+    profileAny?.state,
     jobInput.location
   )
 
   // Industry match
-  const industryMatch = !jobInput.industry || profile.industry === jobInput.industry
+  const industryMatch = !jobInput.industry || profileAny?.industry === jobInput.industry
 
   // Generate match reasons
   const reasons = generateMatchReasons({
@@ -277,8 +278,8 @@ export async function findTopMatches(
   }
 
   // Calculate match scores for all candidates
-  const matchPromises = profiles.map((profile) =>
-    calculateMatchScore(profile.id, jobInput).catch((error) => {
+  const matchPromises = (profiles as any[]).map((profile: any) =>
+    calculateMatchScore(profile.id, jobInput).catch((error: any) => {
       console.error(`Error calculating match for ${profile.id}:`, error)
       return null
     })

@@ -14,21 +14,22 @@ export async function getUserSubscription() {
   const supabase = await createServerClient()
 
   // Get stripe_customer_id from profile
-  const { data: profile } = await supabase
+  const supabaseAny = supabase as any
+  const { data: profile } = await supabaseAny
     .from('profiles')
     .select('stripe_customer_id')
     .eq('id', user.id)
     .single()
 
-  if (!profile?.stripe_customer_id) {
+  if (!profile || !(profile as any).stripe_customer_id) {
     return null
   }
 
   // Get subscription by customer_id (matching the pattern)
-  const { data: subscription, error } = await supabase
+  const { data: subscription, error } = await supabaseAny
     .from('user_subscriptions')
     .select('*')
-    .eq('stripe_customer_id', profile.stripe_customer_id)
+    .eq('stripe_customer_id', (profile as any).stripe_customer_id)
     .in('status', ['active', 'trialing'])
     .order('created_at', { ascending: false })
     .limit(1)
@@ -36,7 +37,7 @@ export async function getUserSubscription() {
 
   if (error && error.code !== 'PGRST116') {
     // Also try by user_id as fallback
-    const { data: fallbackSub } = await supabase
+    const { data: fallbackSub } = await supabaseAny
       .from('user_subscriptions')
       .select('*')
       .eq('user_id', user.id)
@@ -60,47 +61,48 @@ export async function getUserSubscriptionTier() {
   const supabase = await createServerClient()
 
   // Get stripe_customer_id from profile
-  const { data: profile } = await supabase
+  const supabaseAny = supabase as any
+  const { data: profile } = await supabaseAny
     .from('profiles')
     .select('stripe_customer_id')
     .eq('id', user.id)
     .single()
 
-  if (!profile?.stripe_customer_id) {
+  if (!profile || !(profile as any).stripe_customer_id) {
     return 'free'
   }
 
   // Get active subscription
-  const { data: subscription } = await supabase
+  const { data: subscription } = await supabaseAny
     .from('user_subscriptions')
     .select('stripe_price_id, status')
-    .eq('stripe_customer_id', profile.stripe_customer_id)
+    .eq('stripe_customer_id', (profile as any).stripe_customer_id)
     .in('status', ['active', 'trialing'])
     .order('created_at', { ascending: false })
     .limit(1)
     .single()
 
-  if (!subscription || subscription.status !== 'active') {
+  if (!subscription || (subscription as any).status !== 'active') {
     return 'free'
   }
 
   // Determine tier from price_id
-  const priceId = subscription.stripe_price_id?.toLowerCase() || ''
+  const priceId = (subscription as any).stripe_price_id?.toLowerCase() || ''
   if (priceId.includes('elite')) return 'elite'
   if (priceId.includes('pro')) return 'pro'
 
   // Fallback: check tier column if available
-  const { data: subWithTier } = await supabase
+  const { data: subWithTier } = await supabaseAny
     .from('user_subscriptions')
     .select('tier')
-    .eq('stripe_customer_id', profile.stripe_customer_id)
+    .eq('stripe_customer_id', (profile as any).stripe_customer_id)
     .in('status', ['active', 'trialing'])
     .order('created_at', { ascending: false })
     .limit(1)
     .single()
 
-  if (subWithTier?.tier) {
-    const tier = subWithTier.tier as string
+  if (subWithTier && (subWithTier as any).tier) {
+    const tier = (subWithTier as any).tier as string
     if (tier === 'elite') return 'elite'
     if (tier === 'pro') return 'pro'
   }
@@ -178,7 +180,8 @@ export async function cancelSubscription(subscriptionId: string) {
   const supabase = await createServerClient()
 
   // Verify ownership
-  const { data: subscription } = await supabase
+  const supabaseAny = supabase as any
+  const { data: subscription } = await supabaseAny
     .from('user_subscriptions')
     .select('stripe_subscription_id')
     .eq('id', subscriptionId)
@@ -189,18 +192,20 @@ export async function cancelSubscription(subscriptionId: string) {
     throw new Error('Subscription not found')
   }
 
+  const subscriptionTyped = subscription as any
+
   // Cancel in Stripe
-  if (subscription.stripe_subscription_id && isStripeConfigured && stripe) {
-    await stripe.subscriptions.update(subscription.stripe_subscription_id, {
+  if (subscriptionTyped.stripe_subscription_id && isStripeConfigured && stripe) {
+    await stripe.subscriptions.update(subscriptionTyped.stripe_subscription_id, {
       cancel_at_period_end: true,
     })
-  } else if (subscription.stripe_subscription_id && !isStripeConfigured) {
+  } else if (subscriptionTyped.stripe_subscription_id && !isStripeConfigured) {
     // Stripe not configured - just update database
     console.warn('Stripe not configured - subscription cancellation will only update database')
   }
 
   // Update in database
-  const { error } = await supabase
+  const { error } = await supabaseAny
     .from('user_subscriptions')
     .update({
       cancel_at_period_end: true,
@@ -223,7 +228,8 @@ export async function getEmployerLookupUsage() {
   const supabase = await createServerClient()
 
   // Get active subscription
-  const { data: subscription } = await supabase
+  const supabaseAny = supabase as any
+  const { data: subscription } = await supabaseAny
     .from('user_subscriptions')
     .select('id, tier, current_period_start, current_period_end')
     .eq('user_id', user.id)
@@ -241,9 +247,11 @@ export async function getEmployerLookupUsage() {
     }
   }
 
+  const subscriptionTyped = subscription as any
+
   // Get quota based on tier
   let limit = 0
-  switch (subscription.tier) {
+  switch (subscriptionTyped.tier) {
     case 'emp_enterprise':
       limit = 999999 // Unlimited
       break
@@ -256,16 +264,16 @@ export async function getEmployerLookupUsage() {
   }
 
   // Count lookups in current period
-  const { count } = await supabase
+  const { count } = await supabaseAny
     .from('employer_lookups')
     .select('*', { count: 'exact', head: true })
     .eq('employer_id', user.id)
-    .eq('subscription_id', subscription.id)
+    .eq('subscription_id', subscriptionTyped.id)
 
   return {
     used: count || 0,
     limit,
-    tier: subscription.tier,
-    periodEnd: subscription.current_period_end,
+    tier: subscriptionTyped.tier,
+    periodEnd: subscriptionTyped.current_period_end,
   }
 }

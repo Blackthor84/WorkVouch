@@ -98,8 +98,9 @@ export async function getPublicProfile(userId: string) {
   }
 
   // Filter references to only those for public jobs
+  type ReferenceWithJob = { job?: { is_private?: boolean } | null }
   const publicReferences =
-    references?.filter((ref) => ref.job && !ref.job.is_private) || []
+    (references as ReferenceWithJob[] | null)?.filter((ref: ReferenceWithJob) => ref.job && !ref.job.is_private) || []
 
   // Get trust score
   const { data: trustScore } = await supabase
@@ -109,10 +110,11 @@ export async function getPublicProfile(userId: string) {
     .single()
 
   // Normalize profile: convert string | null to string
-  const safeProfile = profile ? {
-    ...profile,
-    full_name: profile.full_name ?? "",
-    email: profile.email ?? "",
+  const profileAny = profile as any
+  const safeProfile = profileAny ? {
+    ...profileAny,
+    full_name: profileAny.full_name ?? "",
+    email: profileAny.email ?? "",
   } : null
 
   // Normalize jobs: convert string | null to string

@@ -1,17 +1,26 @@
-import { prisma } from '../prisma'
-import { PlanTier } from '@prisma/client'
+// This file is deprecated - use plan-enforcement-supabase.ts instead
+// Keeping for backward compatibility but redirecting to Supabase version
+
+import { canFileDispute as canFileDisputeSupabase } from './plan-enforcement-supabase'
+import { createServerClient } from '@/lib/supabase/server'
+
+export type PlanTier = 'free' | 'basic' | 'pro'
 
 export async function checkEmployerPlan(employerId: string): Promise<{
   hasAccess: boolean
   planTier: PlanTier
   message?: string
 }> {
-  const employer = await prisma.employerAccount.findUnique({
-    where: { id: employerId },
-    select: { planTier: true },
-  })
+  const supabase = await createServerClient()
+  const supabaseAny = supabase as any
+  
+  const { data: employerAccount } = await supabaseAny
+    .from('employer_accounts')
+    .select('plan_tier')
+    .eq('id', employerId)
+    .single()
 
-  if (!employer) {
+  if (!employerAccount) {
     return {
       hasAccess: false,
       planTier: 'free',
@@ -19,7 +28,9 @@ export async function checkEmployerPlan(employerId: string): Promise<{
     }
   }
 
-  if (employer.planTier === 'free') {
+  const planTier = (employerAccount as any).plan_tier || 'free'
+
+  if (planTier === 'free') {
     return {
       hasAccess: false,
       planTier: 'free',
@@ -29,13 +40,13 @@ export async function checkEmployerPlan(employerId: string): Promise<{
 
   return {
     hasAccess: true,
-    planTier: employer.planTier,
+    planTier: planTier as PlanTier,
   }
 }
 
 export async function canFileDispute(employerId: string): Promise<boolean> {
-  const { hasAccess, planTier } = await checkEmployerPlan(employerId)
-  return hasAccess && planTier === 'pro'
+  // Use Supabase version
+  return canFileDisputeSupabase(employerId)
 }
 
 export async function canViewEmployees(employerId: string): Promise<boolean> {

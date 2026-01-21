@@ -52,7 +52,8 @@ export async function createJobPosting(input: CreateJobPostingInput) {
     throw new Error('Only employers can create job postings')
   }
 
-  const { data, error } = await supabase
+  const supabaseAny = supabase as any
+  const { data, error } = await supabaseAny
     .from('job_postings')
     .insert([{
       employer_id: user.id,
@@ -77,17 +78,18 @@ export async function updateJobPosting(id: string, input: Partial<CreateJobPosti
   const supabase = await createServerClient()
 
   // Verify ownership
-  const { data: posting } = await supabase
+  const supabaseAny = supabase as any
+  const { data: posting } = await supabaseAny
     .from('job_postings')
     .select('employer_id')
     .eq('id', id)
     .single()
 
-  if (!posting || posting.employer_id !== user.id) {
+  if (!posting || (posting as any).employer_id !== user.id) {
     throw new Error('Unauthorized')
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAny
     .from('job_postings')
     .update(input)
     .eq('id', id)
@@ -117,20 +119,21 @@ export async function boostJobPosting(id: string, days: number = 30) {
   const supabase = await createServerClient()
 
   // Verify ownership
-  const { data: posting } = await supabase
+  const supabaseAny = supabase as any
+  const { data: posting } = await supabaseAny
     .from('job_postings')
     .select('employer_id')
     .eq('id', id)
     .single()
 
-  if (!posting || posting.employer_id !== user.id) {
+  if (!posting || (posting as any).employer_id !== user.id) {
     throw new Error('Unauthorized')
   }
 
   const boostExpiresAt = new Date()
   boostExpiresAt.setDate(boostExpiresAt.getDate() + days)
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAny
     .from('job_postings')
     .update({
       is_boosted: true,
@@ -227,7 +230,7 @@ export async function getJobApplications(jobPostingId: string) {
     .eq('id', jobPostingId)
     .single()
 
-  if (!posting || posting.employer_id !== user.id) {
+  if (!posting || (posting as any).employer_id !== user.id) {
     throw new Error('Unauthorized')
   }
 
@@ -251,7 +254,8 @@ export async function applyToJob(jobPostingId: string, coverLetter?: string) {
   const user = await requireAuth()
   const supabase = await createServerClient()
 
-  const { data, error } = await supabase
+  const supabaseAny = supabase as any
+  const { data, error } = await supabaseAny
     .from('job_applications')
     .insert([{
       job_posting_id: jobPostingId,

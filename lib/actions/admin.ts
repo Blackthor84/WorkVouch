@@ -101,8 +101,9 @@ export async function getAllReferences() {
 export async function softDeleteReference(referenceId: string) {
   await requireRole('admin')
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { data: reference, error } = await supabase
+  const { data: reference, error } = await supabaseAny
     .from('references')
     .update({ is_deleted: true })
     .eq('id', referenceId)

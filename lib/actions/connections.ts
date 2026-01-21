@@ -13,7 +13,8 @@ export async function findPotentialCoworkers(jobId: string) {
   const supabase = await createServerClient()
 
   // Get the job details
-  const { data: job, error: jobError } = await supabase
+  const supabaseAny = supabase as any
+  const { data: job, error: jobError } = await supabaseAny
     .from('jobs')
     .select('*')
     .eq('id', jobId)
@@ -24,10 +25,13 @@ export async function findPotentialCoworkers(jobId: string) {
     throw new Error('Job not found')
   }
 
+  type JobRow = { company_name: string; start_date: string; end_date: string | null }
+  const jobTyped = job as JobRow
+
   // Find users with overlapping employment at the same company
   // Case-insensitive company name matching
   // We'll filter date overlaps in code for better reliability
-  const { data: potentialCoworkers, error } = await supabase
+  const { data: potentialCoworkers, error } = await supabaseAny
     .from('jobs')
     .select(`
       *,
@@ -43,7 +47,7 @@ export async function findPotentialCoworkers(jobId: string) {
     `)
     .eq('is_private', false) // Only match with public jobs
     .neq('user_id', user.id) // Exclude self
-    .ilike('company_name', job.company_name)
+    .ilike('company_name', jobTyped.company_name)
 
   if (error) {
     throw new Error(`Failed to find potential coworkers: ${error.message}`)
@@ -51,10 +55,11 @@ export async function findPotentialCoworkers(jobId: string) {
 
   // Filter for date overlaps
   // Date overlap: (start1 <= end2) AND (end1 >= start2)
-  const jobEndDate = job.end_date ? new Date(job.end_date) : new Date('9999-12-31')
-  const jobStartDate = new Date(job.start_date)
+  const jobEndDate = jobTyped.end_date ? new Date(jobTyped.end_date) : new Date('9999-12-31')
+  const jobStartDate = new Date(jobTyped.start_date)
 
-  const dateOverlaps = potentialCoworkers?.filter((otherJob) => {
+  type PotentialCoworkerJob = { start_date: string; end_date: string | null; profiles?: any; id: string; company_name: string; job_title: string }
+  const dateOverlaps = (potentialCoworkers as PotentialCoworkerJob[] | null)?.filter((otherJob: PotentialCoworkerJob) => {
     const otherStart = new Date(otherJob.start_date)
     const otherEnd = otherJob.end_date ? new Date(otherJob.end_date) : new Date('9999-12-31')
     
@@ -63,18 +68,19 @@ export async function findPotentialCoworkers(jobId: string) {
   }) || []
 
   // Filter out users who are already connected
-  const { data: existingConnections } = await supabase
+  type ConnectionRow = { connected_user_id: string }
+  const { data: existingConnections } = await supabaseAny
     .from('connections')
     .select('connected_user_id')
     .eq('user_id', user.id)
     .eq('status', 'confirmed')
 
   const connectedUserIds = new Set(
-    existingConnections?.map((c) => c.connected_user_id) || []
+    (existingConnections as ConnectionRow[] | null)?.map((c: ConnectionRow) => c.connected_user_id) || []
   )
 
   const filtered = dateOverlaps.filter(
-    (job) => job.profiles && !connectedUserIds.has(job.profiles.id)
+    (job: PotentialCoworkerJob) => job.profiles && !connectedUserIds.has(job.profiles.id)
   )
 
   return filtered.map((job) => ({
@@ -98,6 +104,7 @@ export async function initiateConnection(
 ) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
   // Prevent self-connection
   if (user.id === connectedUserId) {
@@ -105,7 +112,7 @@ export async function initiateConnection(
   }
 
   // Check if connection already exists
-  const { data: existing } = await supabase
+  const { data: existing } = await supabaseAny
     .from('connections')
     .select('*')
     .or(
@@ -119,7 +126,7 @@ export async function initiateConnection(
 
   // Create connection (bidirectional)
   // We create two records to simplify queries, but the unique constraint ensures no duplicates
-  const { data: connection, error } = await supabase
+  const { data: connection, error } = await supabaseAny
     .from('connections')
     .insert([{
       user_id: user.id,
@@ -145,27 +152,31 @@ export async function initiateConnection(
 export async function confirmConnection(connectionId: string) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
   // Verify the connection is for this user
-  const { data: connection } = await supabase
+  type ConnectionFullRow = { user_id: string; connected_user_id: string }
+  const { data: connection } = await supabaseAny
     .from('connections')
     .select('*')
     .eq('id', connectionId)
     .single()
+  
+  const connectionTyped = connection as ConnectionFullRow | null
 
-  if (!connection) {
+  if (!connectionTyped) {
     throw new Error('Connection not found')
   }
 
   if (
-    connection.user_id !== user.id &&
-    connection.connected_user_id !== user.id
+    connectionTyped.user_id !== user.id &&
+    connectionTyped.connected_user_id !== user.id
   ) {
     throw new Error('Unauthorized')
   }
 
   // Update status to confirmed
-  const { data: updated, error } = await supabase
+  const { data: updated, error } = await supabaseAny
     .from('connections')
     .update({ status: 'confirmed' })
     .eq('id', connectionId)
@@ -186,8 +197,9 @@ export async function confirmConnection(connectionId: string) {
 export async function getUserConnections() {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { data: connections, error } = await supabase
+  const { data: connections, error } = await supabaseAny
     .from('connections')
     .select(`
       *,

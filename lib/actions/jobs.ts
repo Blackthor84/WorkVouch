@@ -23,8 +23,9 @@ export interface CreateJobInput {
 export async function createJob(input: CreateJobInput) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { data: job, error } = await supabase
+  const { data: job, error } = await supabaseAny
     .from('jobs')
     .insert([{
       ...input,
@@ -40,12 +41,12 @@ export async function createJob(input: CreateJobInput) {
   // Trigger coworker matching (async, don't wait)
   if (job && !input.is_private) {
     // Fire and forget - matching happens in background
-    supabase.rpc('detect_coworker_matches', { p_job_id: job.id })
+    supabaseAny.rpc('detect_coworker_matches', { p_job_id: (job as any).id })
       .then(() => {
         // Optionally revalidate notifications page
         revalidatePath('/notifications')
       })
-      .catch(err => console.error('Failed to detect coworker matches:', err))
+      .catch((err: any) => console.error('Failed to detect coworker matches:', err))
   }
 
   revalidatePath('/dashboard')
@@ -60,17 +61,18 @@ export async function updateJob(jobId: string, input: Partial<CreateJobInput>) {
   const supabase = await createServerClient()
 
   // Verify ownership
-  const { data: existingJob } = await supabase
+  const supabaseAny = supabase as any
+  const { data: existingJob } = await supabaseAny
     .from('jobs')
     .select('user_id')
     .eq('id', jobId)
     .single()
 
-  if (!existingJob || existingJob.user_id !== user.id) {
+  if (!existingJob || (existingJob as any).user_id !== user.id) {
     throw new Error('Unauthorized: You can only update your own jobs')
   }
 
-  const { data: job, error } = await supabase
+  const { data: job, error } = await supabaseAny
     .from('jobs')
     .update(input)
     .eq('id', jobId)
@@ -93,17 +95,18 @@ export async function deleteJob(jobId: string) {
   const supabase = await createServerClient()
 
   // Verify ownership
-  const { data: existingJob } = await supabase
+  const supabaseAny = supabase as any
+  const { data: existingJob } = await supabaseAny
     .from('jobs')
     .select('user_id')
     .eq('id', jobId)
     .single()
 
-  if (!existingJob || existingJob.user_id !== user.id) {
+  if (!existingJob || (existingJob as any).user_id !== user.id) {
     throw new Error('Unauthorized: You can only delete your own jobs')
   }
 
-  const { error } = await supabase
+  const { error } = await supabaseAny
     .from('jobs')
     .delete()
     .eq('id', jobId)
