@@ -1,14 +1,13 @@
-"use client"; // This ensures the page is client-side only
+"use client"; // ensures this page runs on the client only
 
 import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// Get environment variables at runtime
-// Use NEXT_PUBLIC_ prefix for client-side access
+// Create Supabase client at runtime only
+// Use NEXT_PUBLIC_ prefix for client-side access, with fallback to custom names
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.supabaseUrl;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.supabaseKey;
 
-// Only create the client if both variables exist
 if (!supabaseUrl || !supabaseKey) {
   throw new Error("Supabase URL and Key are required at runtime");
 }
@@ -17,20 +16,26 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
 
-    const { error } = await supabase.auth.signInWithOtp({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
+      password,
     });
 
     if (error) {
       setMessage(`Error: ${error.message}`);
     } else {
-      setMessage("Check your email for the login link!");
+      setMessage("Signed in successfully!");
+      // Redirect to dashboard after successful sign in
+      if (data.session) {
+        window.location.href = "/dashboard";
+      }
     }
   };
 
@@ -46,8 +51,16 @@ export default function SignInPage() {
           required
           className="border rounded p-2"
         />
+        <input
+          type="password"
+          placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          className="border rounded p-2"
+        />
         <button type="submit" className="bg-blue-600 text-white rounded p-2">
-          Send Magic Link
+          Sign In
         </button>
       </form>
       {message && <p className="mt-4 text-center">{message}</p>}

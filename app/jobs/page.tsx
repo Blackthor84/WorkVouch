@@ -5,6 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { BriefcaseIcon, MapPinIcon, CurrencyDollarIcon, ClockIcon } from '@heroicons/react/24/outline'
 
+// Mark as dynamic to prevent build-time prerendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export default async function JobsPage() {
   let postings: any[] = []
   try {

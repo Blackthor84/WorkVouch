@@ -1,6 +1,10 @@
 import { NavbarServer } from '@/components/navbar-server'
 import { HealthcareCoworkersClient } from './healthcare-coworkers-client'
 
+// Mark as dynamic to prevent build-time prerendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export default function HealthcareCoworkersStep() {
   return (
     <>

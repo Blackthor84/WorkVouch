@@ -2,6 +2,10 @@ import { NavbarServer } from '@/components/navbar-server'
 import { SettingFormClient } from './setting-form-client'
 import { type Industry } from '@/lib/constants/industries'
 
+// Mark as dynamic to prevent build-time prerendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 interface PageProps {
   params: {
     industry: Industry

@@ -6,21 +6,6 @@ active_command: ./push.ps1
 last_command: ./push.ps1
 last_exit_code: 0
 ---
--a----          1/9/2026   3:00 PM           4055 util.js
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\v3\locales
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
--a----          1/9/2026   3:00 PM           5971 en.cjs
--a----          1/9/2026   3:00 PM            114 en.d.cts
--a----          1/9/2026   3:00 PM            113 en.d.ts
--a----          1/9/2026   3:00 PM           5602 en.js
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\v4
 
 
 Mode                 LastWriteTime         Length Name
@@ -999,4 +984,19 @@ remote: This repository moved. Please use the new location:
 remote:   https://github.com/Blackthor84/WorkVouch.git
 To https://github.com/Blackthor84/workvouch.git
    8bc6f9e..204f7cf  main -> main
+PS C:\Users\ajaye\.cursor> ./push.ps1
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+[main bf8a6e5] auto push from cursor
+ 3 files changed, 68 insertions(+), 46 deletions(-)
+Enumerating objects: 23, done.
+Counting objects: 100% (23/23), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (7/7), done.
+Writing objects: 100% (12/12), 6.01 KiB | 212.00 KiB/s, done.
+Total 12 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   204f7cf..bf8a6e5  main -> main
 PS C:\Users\ajaye\.cursor> ./push.ps1

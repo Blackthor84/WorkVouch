@@ -3,6 +3,10 @@ import { WarehouseOnboardingWrapper } from './warehouse-onboarding-wrapper'
 import { createServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
+// Mark as dynamic to prevent build-time prerendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export default async function WarehouseOnboardingPage() {
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()

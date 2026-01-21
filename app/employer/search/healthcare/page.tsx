@@ -1,6 +1,10 @@
 import { NavbarServer } from '@/components/navbar-server'
 import { HealthcareSearchClient } from './healthcare-search-client'
 
+// Mark as dynamic to prevent build-time prerendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export default function HealthcareSearchPage() {
   return (
     <>
