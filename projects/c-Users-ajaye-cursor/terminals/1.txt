@@ -3,25 +3,9 @@ pid: 17712
 cwd: |
   C:\Users\ajaye\.cursor
 active_command: ./push.ps1
-last_command: npm uninstall pdf-parse
+last_command: ./push.ps1
 last_exit_code: 0
 ---
--a----          1/9/2026   3:00 PM            300 errorUtil.js
--a----          1/9/2026   3:00 PM           4272 parseUtil.cjs
--a----          1/9/2026   3:00 PM           2757 parseUtil.d.cts
--a----          1/9/2026   3:00 PM           2755 parseUtil.d.ts
--a----          1/9/2026   3:00 PM           3601 parseUtil.js
--a----          1/9/2026   3:00 PM             77 partialUtil.cjs
--a----          1/9/2026   3:00 PM            828 partialUtil.d.cts
--a----          1/9/2026   3:00 PM            827 partialUtil.d.ts
--a----          1/9/2026   3:00 PM             11 partialUtil.js
--a----          1/9/2026   3:00 PM             77 typeAliases.cjs
--a----          1/9/2026   3:00 PM            135 typeAliases.d.cts
--a----          1/9/2026   3:00 PM            135 typeAliases.d.ts
--a----          1/9/2026   3:00 PM             11 typeAliases.js
--a----          1/9/2026   3:00 PM           4401 util.cjs
--a----          1/9/2026   3:00 PM           3387 util.d.cts
--a----          1/9/2026   3:00 PM           3387 util.d.ts
 -a----          1/9/2026   3:00 PM           4055 util.js
 
 
@@ -999,4 +983,20 @@ Some issues need review, and may require choosing
 a different dependency.
 
 Run `npm audit` for details.
+PS C:\Users\ajaye\.cursor> ./push.ps1
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+[main 204f7cf] auto push from cursor
+ 8 files changed, 82 insertions(+), 747 deletions(-)
+ create mode 100644 app/api/resume-upload/route.js
+Enumerating objects: 38, done.
+Counting objects: 100% (38/38), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (15/15), done.
+Writing objects: 100% (20/20), 8.82 KiB | 347.00 KiB/s, done.
+Total 20 (delta 9), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (9/9), completed with 9 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   8bc6f9e..204f7cf  main -> main
 PS C:\Users\ajaye\.cursor> ./push.ps1
