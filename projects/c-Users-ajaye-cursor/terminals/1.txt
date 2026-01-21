@@ -2,42 +2,10 @@
 pid: 17712
 cwd: |
   C:\Users\ajaye\.cursor
-last_command: push
-last_exit_code: 1
+active_command: ./push.ps1
+last_command: npm uninstall pdf-parse
+last_exit_code: 0
 ---
--a----          1/9/2026   3:00 PM            211 external.d.cts
--a----          1/9/2026   3:00 PM            205 external.d.ts
--a----          1/9/2026   3:00 PM            205 external.js
--a----          1/9/2026   3:00 PM           1464 index.cjs
--a----          1/9/2026   3:00 PM            101 index.d.cts
--a----          1/9/2026   3:00 PM             99 index.d.ts
--a----          1/9/2026   3:00 PM             99 index.js
--a----          1/9/2026   3:00 PM             77 standard-schema.cjs
--a----          1/9/2026   3:00 PM           2843 standard-schema.d.cts
--a----          1/9/2026   3:00 PM           2843 standard-schema.d.ts
--a----          1/9/2026   3:00 PM             11 standard-schema.js
--a----          1/9/2026   3:00 PM         140100 types.cjs
--a----          1/9/2026   3:00 PM          51985 types.d.cts
--a----          1/9/2026   3:00 PM          51977 types.d.ts
--a----          1/9/2026   3:00 PM         131212 types.js
--a----          1/9/2026   3:00 PM           4576 ZodError.cjs
--a----          1/9/2026   3:00 PM           6415 ZodError.d.cts
--a----          1/9/2026   3:00 PM           6412 ZodError.d.ts
--a----          1/9/2026   3:00 PM           4349 ZodError.js
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\v3\helpers
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
--a----          1/9/2026   3:00 PM             77 enumUtil.cjs
--a----          1/9/2026   3:00 PM            609 enumUtil.d.cts
--a----          1/9/2026   3:00 PM            609 enumUtil.d.ts
--a----          1/9/2026   3:00 PM             11 enumUtil.js
--a----          1/9/2026   3:00 PM            418 errorUtil.cjs
--a----          1/9/2026   3:00 PM            276 errorUtil.d.cts
--a----          1/9/2026   3:00 PM            276 errorUtil.d.ts
 -a----          1/9/2026   3:00 PM            300 errorUtil.js
 -a----          1/9/2026   3:00 PM           4272 parseUtil.cjs
 -a----          1/9/2026   3:00 PM           2757 parseUtil.d.cts
@@ -998,4 +966,37 @@ At line:1 char:1
 
 
 Suggestion [3,General]: The command push was not found, but does exist in the current location. Windows PowerShell does not load commands from the current location by default. If you trust this command, instead type: ".\push". See "get-help about_Command_Precedence" for more details.
+PS C:\Users\ajaye\.cursor> ./push.ps1
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+[main 8bc6f9e] auto push from cursor
+ 4 files changed, 198 insertions(+), 16 deletions(-)
+ create mode 100644 .vscode/tasks.json
+ create mode 100644 app/api/resume-upload-openai/route.ts
+Enumerating objects: 23, done.
+Counting objects: 100% (23/23), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (8/8), done.
+Writing objects: 100% (14/14), 13.62 KiB | 498.00 KiB/s, done.
+Total 14 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   b2b3dc3..8bc6f9e  main -> main
+PS C:\Users\ajaye\.cursor> npm uninstall pdf-parse
+
+removed 4 packages, and audited 637 packages in 2s
+
+173 packages are looking for funding
+  run `npm fund` for details
+
+3 vulnerabilities (1 low, 2 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+Some issues need review, and may require choosing
+a different dependency.
+
+Run `npm audit` for details.
 PS C:\Users\ajaye\.cursor> ./push.ps1
