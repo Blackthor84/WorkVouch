@@ -1,0 +1,231 @@
+---
+pid: 6488
+cwd: |
+  C:\Users\ajaye\.cursor
+active_command: ./push.ps1
+last_command: ./push.ps1
+last_exit_code: 0
+---
+PS C:\Users\ajaye\.cursor>    npm run dev
+
+> workvouch@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.138:3000
+- Environments: .env.local
+
+✓ Starting...
+⚠ Duplicate page detected. app\api\resume-upload\route.js and app\api\resume-upload\route.ts resolve to /api/resume-upload
+⚠ Duplicate page detected. app\api\resume-upload\route.js and app\api\resume-upload\route.ts resolve to /api/resume-upload
+✓ Ready in 1764ms
+⨯ Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at <unknown> (https://supabase.com/dashboard/project/_/settings/api)
+    at createSupabaseServerClient (lib\supabase\server.ts:13:30)
+    at async getCurrentUser (lib\auth.ts:27:20)
+    at async NavbarServer (components\navbar-server.tsx:5:16)
+  11 |   const cookieStore = await cookies()
+  12 |
+> 13 |   return createSupabaseClient<Database>(
+     |                              ^
+  14 |     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  15 |     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  16 |     { {
+  digest: '3772553213'
+}
+ GET / 500 in 2.6s (compile: 1895ms, proxy.ts: 164ms, render: 491ms)
+⨯ Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at <unknown> (https://supabase.com/dashboard/project/_/settings/api)
+    at createSupabaseServerClient (lib\supabase\server.ts:13:30)
+    at async getCurrentUser (lib\auth.ts:27:20)
+    at async NavbarServer (components\navbar-server.tsx:5:16)
+  11 |   const cookieStore = await cookies()
+  12 |
+> 13 |   return createSupabaseClient<Database>(
+     |                              ^
+  14 |     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  15 |     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  16 |     { {
+  digest: '3772553213'
+}
+ GET / 500 in 253ms (compile: 5ms, proxy.ts: 5ms, render: 243ms)
+⨯ Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at <unknown> (https://supabase.com/dashboard/project/_/settings/api)
+    at createSupabaseServerClient (lib\supabase\server.ts:13:30)
+    at async getCurrentUser (lib\auth.ts:27:20)
+    at async NavbarServer (components\navbar-server.tsx:5:16)
+  11 |   const cookieStore = await cookies()
+  12 |
+> 13 |   return createSupabaseClient<Database>(
+     |                              ^
+  14 |     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  15 |     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  16 |     { {
+  digest: '3772553213'
+}
+ GET / 500 in 221ms (compile: 4ms, proxy.ts: 4ms, render: 214ms)
+PS C:\Users\ajaye\.cursor> 
+                           ./push.ps1                                                                                                       
+warning: in the working copy of '.eslintrc.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'QUICK_START.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/about/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/admin/disputes/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/admin/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/admin/signups/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/admin/superadmin/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/admin/users/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/admin/verifications/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/admin/approve-verification/route.ts', LF will be replaced by CRLF the next time Git touches it     
+warning: in the working copy of 'app/api/admin/reject-verification/route.ts', LF will be replaced by CRLF the next time Git touches it      
+warning: in the working copy of 'app/api/admin/resolve-dispute/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/admin/verification-requests/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/auth/signup/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/employer/file-dispute/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/employer/me/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/employer/request-verification/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/employer/search-employees/route.ts', LF will be replaced by CRLF the next time Git touches it      
+warning: in the working copy of 'app/api/employer/search-users/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/employer/view-job-history/route.ts', LF will be replaced by CRLF the next time Git touches it      
+warning: in the working copy of 'app/api/profile/warehouse/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/resume-upload/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/save-parsed-profile/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/stripe/billing-portal/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/stripe/checkout/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/stripe/create-checkout-session/route.ts', LF will be replaced by CRLF the next time Git touches it 
+warning: in the working copy of 'app/api/stripe/create-checkout/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/stripe/portal/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/stripe/webhook/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/user/add-job/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/user/edit-job/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/api/user/request-verification/route.ts', LF will be replaced by CRLF the next time Git touches it      
+warning: in the working copy of 'app/api/user/set-visibility/route.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/auth/signin/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/auth/signup/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/contact/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/coworker-matches/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/dashboard/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/dashboard/simple/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/employer/access/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/employer/candidates/[id]/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/employer/dashboard/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/employer/reports/[candidateId]/page.tsx', LF will be replaced by CRLF the next time Git touches it     
+warning: in the working copy of 'app/employer/search-users/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/employer/search/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/faq/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/features/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/fix-profile/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/help/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/jobs/[jobId]/coworkers/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/jobs/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/messages/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/my-jobs/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/notifications/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/onboarding/warehouse/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/pricing/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/privacy/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/profile/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/references/request/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/security/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/settings/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/superadmin/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/superadmin/roles/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/terms/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/upload-resume/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/candidate-report-view.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/employer-search-form.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/employer/candidate-profile-viewer.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/employer/candidate-search.tsx', LF will be replaced by CRLF the next time Git touches it        
+warning: in the working copy of 'components/employer/employer-messages.tsx', LF will be replaced by CRLF the next time Git touches it       
+warning: in the working copy of 'components/employer/work-history-viewer.tsx', LF will be replaced by CRLF the next time Git touches it     
+warning: in the working copy of 'components/messages/user-messages.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/navbar.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/notifications-list.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/sign-up-form.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/superadmin/role-manager.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/trust-score-card.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/ui/badge.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/ui/button.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/ui/switch.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/upload-resume-form.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/workvouch/disputes-list.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/workvouch/employee-search.tsx', LF will be replaced by CRLF the next time Git touches it        
+warning: in the working copy of 'components/workvouch/job-list.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/workvouch/verifications-list.tsx', LF will be replaced by CRLF the next time Git touches it     
+warning: in the working copy of 'lib/actions/admin.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/actions/connections.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/actions/create-profile.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/actions/employer-purchases.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/actions/employer.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/actions/employer/candidate-search.ts', LF will be replaced by CRLF the next time Git touches it        
+warning: in the working copy of 'lib/actions/employer/job-postings.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/actions/employer/messages.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/actions/employer/saved-candidates.ts', LF will be replaced by CRLF the next time Git touches it        
+warning: in the working copy of 'lib/actions/jobs.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/actions/notifications.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/actions/profile.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/actions/references.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/actions/subscription-helpers.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/actions/subscriptions.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/ai/matching.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/auth.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/checkSubscription.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/middleware/plan-enforcement-supabase.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/middleware/plan-enforcement.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/stripe/config.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/stripe/products.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/supabase/client.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/supabase/server.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/utils/resume-parser.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/utils/stripe-helpers.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'next.config.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it   
+warning: in the working copy of 'proxy.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/create-superadmin.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'supabase/fix_signup_trigger_WITH_ROLES.sql', LF will be replaced by CRLF the next time Git touches it      
+warning: in the working copy of 'tsconfig.json', LF will be replaced by CRLF the next time Git touches it
+[main 36b9a3c] auto push from cursor
+ 18 files changed, 270 insertions(+), 1126 deletions(-)
+ create mode 100644 SUPABASE_SETUP_COMPLETE.md
+ create mode 100644 lib/supabase/admin.ts
+ create mode 100644 workvouchapp.txt
+Enumerating objects: 76, done.
+Counting objects: 100% (76/76), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (30/30), done.
+Writing objects: 100% (40/40), 35.41 KiB | 884.00 KiB/s, done.
+Total 40 (delta 18), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (18/18), completed with 18 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   0b7c829..36b9a3c  main -> main
+PS C:\Users\ajaye\.cursor> ./push.ps1    
+[main 88d12e0] auto push from cursor
+ 2 files changed, 81 deletions(-)
+Enumerating objects: 13, done.
+Counting objects: 100% (13/13), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (7/7), 755 bytes | 755.00 KiB/s, done.
+Total 7 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   36b9a3c..88d12e0  main -> main
+PS C:\Users\ajaye\.cursor> ./push.ps1
