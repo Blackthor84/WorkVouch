@@ -2,22 +2,9 @@
 pid: 17712
 cwd: |
   C:\Users\ajaye\.cursor
-last_command: New-Item push.ps1 -ItemType File -Value 'git add .; git commit -m "auto push from cursor"; git push'
-last_exit_code: 0
+last_command: push
+last_exit_code: 1
 ---
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\v3
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
-d-----          1/9/2026   3:00 PM                helpers
-d-----          1/9/2026   3:00 PM                locales
--a----          1/9/2026   3:00 PM            579 errors.cjs
--a----          1/9/2026   3:00 PM            240 errors.d.cts
--a----          1/9/2026   3:00 PM            238 errors.d.ts
--a----          1/9/2026   3:00 PM            243 errors.js
--a----          1/9/2026   3:00 PM           1076 external.cjs
 -a----          1/9/2026   3:00 PM            211 external.d.cts
 -a----          1/9/2026   3:00 PM            205 external.d.ts
 -a----          1/9/2026   3:00 PM            205 external.js
@@ -1000,4 +987,15 @@ Mode                 LastWriteTime         Length Name
 -a----         1/21/2026   9:17 AM             58 push.ps1
 
 
-PS C:\Users\ajaye\.cursor>
+PS C:\Users\ajaye\.cursor> push
+push : The term 'push' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the 
+name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ push
++ ~~~~
+    + CategoryInfo          : ObjectNotFound: (push:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+
+Suggestion [3,General]: The command push was not found, but does exist in the current location. Windows PowerShell does not load commands from the current location by default. If you trust this command, instead type: ".\push". See "get-help about_Command_Precedence" for more details.
+PS C:\Users\ajaye\.cursor> ./push.ps1
