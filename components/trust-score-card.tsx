@@ -4,13 +4,14 @@ import { InformationCircleIcon } from '@heroicons/react/24/outline'
 
 export async function TrustScoreCard({ userId }: { userId: string }) {
   const supabase = await createServerClient()
-  const { data: trustScore } = await supabase
+  const supabaseAny = supabase as any
+  const { data: trustScore } = await supabaseAny
     .from('trust_scores')
     .select('*')
     .eq('user_id', userId)
     .single()
 
-  const score = trustScore?.score || 0
+  const score = (trustScore as any)?.score || 0
   const getScoreColor = (score: number) => {
     if (score < 300) return 'text-red-500'
     if (score < 600) return 'text-yellow-500'
@@ -95,17 +96,17 @@ export async function TrustScoreCard({ userId }: { userId: string }) {
             <div className="space-y-3 pt-4 border-t border-grey-background dark:border-[#374151]">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-grey-dark dark:text-gray-200 font-semibold">Jobs</span>
-                <span className="text-sm font-bold text-grey-dark dark:text-gray-200">{trustScore.job_count}</span>
+                <span className="text-sm font-bold text-grey-dark dark:text-gray-200">{(trustScore as any)?.job_count || 0}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-grey-dark dark:text-gray-200 font-semibold">References</span>
-                <span className="text-sm font-bold text-grey-dark dark:text-gray-200">{trustScore.reference_count}</span>
+                <span className="text-sm font-bold text-grey-dark dark:text-gray-200">{(trustScore as any)?.reference_count || 0}</span>
               </div>
-              {trustScore.average_rating && (
+              {(trustScore as any)?.average_rating && (
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-grey-dark dark:text-gray-200 font-semibold">Avg Rating</span>
                   <span className="text-sm font-bold text-grey-dark dark:text-gray-200">
-                    {trustScore.average_rating.toFixed(1)} / 5.0
+                    {((trustScore as any)?.average_rating || 0).toFixed(1)} / 5.0
                   </span>
                 </div>
               )}

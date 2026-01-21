@@ -42,7 +42,8 @@ export function RoleManager() {
   const updateRole = async (id: string, newRole: string) => {
     setUpdating(id)
     try {
-      const { error } = await supabase
+      const supabaseAny = supabase as any
+      const { error } = await supabaseAny
         .from('profiles')
         .update({ role: newRole })
         .eq('id', id)
