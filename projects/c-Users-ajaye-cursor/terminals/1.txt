@@ -2,63 +2,27 @@
 pid: 17712
 cwd: |
   C:\Users\ajaye\.cursor
-active_command: git add .
+active_command: |
+  # 1?? Initialize a new Git repository (if not already initialized)
+  git init
+  
+  # 2?? Add all files from your Cursor project
+  git add .
+  
+  # 3?? Commit the files with a message
+  git commit -m "Initial commit from Cursor"
+  
+  # 4?? Add your GitHub remote (replace USERNAME and REPO with your GitHub info)
+  git remote add origin https://github.com/USERNAME/REPO.git
+  
+  # 5?? Push to the main branch on GitHub
+  git branch -M main
+  git push -u origin main
 last_command: |
-  # 2 Stage all changes for commit
+  # 1?? Check the status of your files git status # 2?? Stage all changes for commit git add . # 3?? Commit the changes with a clear message git commit -m "fix: add next-auth, TypeScript types, and global declarations" # 4?? Push changes to the main branch git push origin magit add . && git commit -m "Update from Cursor" && git push origin main
+  git add . && git commit -m "Update from Cursor" && git push origin main
 last_exit_code: 0
 ---
--a----          1/9/2026   3:00 PM           6242 be.ts
--a----          1/9/2026   3:00 PM           4654 ca.ts
--a----          1/9/2026   3:00 PM           4834 cs.ts
--a----          1/9/2026   3:00 PM           4369 de.ts
--a----          1/9/2026   3:00 PM           4213 en.ts
--a----          1/9/2026   3:00 PM           4330 eo.ts
--a----          1/9/2026   3:00 PM           4535 es.ts
--a----          1/9/2026   3:00 PM           4873 fa.ts
--a----          1/9/2026   3:00 PM           4644 fi.ts
--a----          1/9/2026   3:00 PM           4392 fr-CA.ts
--a----          1/9/2026   3:00 PM           4371 fr.ts
--a----          1/9/2026   3:00 PM           4770 he.ts
--a----          1/9/2026   3:00 PM           4575 hu.ts
--a----          1/9/2026   3:00 PM           4417 id.ts
--a----          1/9/2026   3:00 PM           1616 index.ts
--a----          1/9/2026   3:00 PM           4464 it.ts
--a----          1/9/2026   3:00 PM           4608 ja.ts
--a----          1/9/2026   3:00 PM           5925 kh.ts
--a----          1/9/2026   3:00 PM           4708 ko.ts
--a----          1/9/2026   3:00 PM           5026 mk.ts
--a----          1/9/2026   3:00 PM           4299 ms.ts
--a----          1/9/2026   3:00 PM           4206 nl.ts
--a----          1/9/2026   3:00 PM           4295 no.ts
--a----          1/9/2026   3:00 PM           4395 ota.ts
--a----          1/9/2026   3:00 PM           4743 pl.ts
--a----          1/9/2026   3:00 PM           4666 ps.ts
--a----          1/9/2026   3:00 PM           4354 pt.ts
--a----          1/9/2026   3:00 PM           6330 ru.ts
--a----          1/9/2026   3:00 PM           4359 sl.ts
--a----          1/9/2026   3:00 PM           4449 sv.ts
--a----          1/9/2026   3:00 PM           6055 ta.ts
--a----          1/9/2026   3:00 PM           6011 th.ts
--a----          1/9/2026   3:00 PM           4252 tr.ts
--a----          1/9/2026   3:00 PM           5332 ua.ts
--a----          1/9/2026   3:00 PM           5015 ur.ts
--a----          1/9/2026   3:00 PM           4542 vi.ts
--a----          1/9/2026   3:00 PM           4223 zh-CN.ts
--a----          1/9/2026   3:00 PM           4326 zh-TW.ts
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\src\v4\mini
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
-d-----          1/9/2026   3:00 PM                tests
--a----          1/9/2026   3:00 PM            736 checks.ts
--a----          1/9/2026   3:00 PM           1062 coerce.ts
--a----          1/9/2026   3:00 PM            766 external.ts
--a----          1/9/2026   3:00 PM             81 index.ts
--a----          1/9/2026   3:00 PM           2131 iso.ts
--a----          1/9/2026   3:00 PM             81 parse.ts
 -a----          1/9/2026   3:00 PM          49079 schemas.ts
 
 
@@ -999,4 +963,44 @@ Changes not staged for commit:
         modified:   package-lock.json
         modified:   package.json
         modified:   projects/c-Users-ajaye-cursor/terminals/1.txt
-        modified:   script
+        modified:   scripts/create-superadmin.ts
+
+no changes added to commit (use "git add" and/or "git commit -a")
+PS C:\Users\ajaye\.cursor>
+PS C:\Users\ajaye\.cursor> # 2 Stage all changes for commit
+PS C:\Users\ajaye\.cursor> git add .
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\ajaye\.cursor>
+PS C:\Users\ajaye\.cursor> # 3 Commit the changes with a clear message
+PS C:\Users\ajaye\.cursor> git commit -m "fix: add next-auth, TypeScript types, and global declarations"
+[main 11921c0] fix: add next-auth, TypeScript types, and global declarations
+ 39 files changed, 2034 insertions(+), 1538 deletions(-)
+PS C:\Users\ajaye\.cursor>
+PS C:\Users\ajaye\.cursor> # 4 Push changes to the main branch
+PS C:\Users\ajaye\.cursor> git push origin main
+Enumerating objects: 132, done.
+Counting objects: 100% (132/132), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (54/54), done.
+Writing objects: 100% (69/69), 97.33 KiB | 2.43 MiB/s, done.
+Total 69 (delta 47), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (47/47), completed with 43 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   7ba61ff..11921c0  main -> main
+PS C:\Users\ajaye\.cursor> # 1️⃣ Check the status of your files git status # 2️⃣ Stage all changes for commit git add . # 3️⃣ Commit the changes with a clear message git commit -m "fix: add next-auth, TypeScript types, and global declarations" # 4️⃣ Push changes to the main branch git push origin magit add . && git commit -m "Update from Cursor" && git push origin main
+>> git add . && git commit -m "Update from Cursor" && git push origin main
+>>
+At line:2 char:11
++ git add . && git commit -m "Update from Cursor" && git push origin ma ...
++           ~~
+The token '&&' is not a valid statement separator in this version.
+At line:2 char:49
++ git add . && git commit -m "Update from Cursor" && git push origin ma ...
++                                                 ~~
+The token '&&' is not a valid statement separator in this version.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : InvalidEndOfLine
+
+PS C:\Users\ajaye\.cursor> # 1️⃣ In
