@@ -1,23 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, isStripeConfigured } from '@/lib/stripe/config'
 import { getCurrentUser } from '@/lib/auth'
-import { createClient } from '@supabase/supabase-js'
+import { supabaseServer } from '@/lib/supabase/admin'
 
 // Mark route as dynamic
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-
-// Get Supabase admin client for updates
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.supabaseUrl || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.supabaseKey || '',
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
-)
 
 export async function POST(req: NextRequest) {
   try {

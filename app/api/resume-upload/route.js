@@ -1,18 +1,14 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseServer } from "@/lib/supabase/admin";
 
 export async function POST(req) {
   try {
-    const supabaseUrl = process.env.supabaseUrl;
-    const supabaseKey = process.env.supabaseKey;
     const openaiApiKey = process.env.OPENAI_API_KEY;
 
-    if (!supabaseUrl) throw new Error("supabaseUrl is required");
-    if (!supabaseKey) throw new Error("supabaseKey is required");
     if (!openaiApiKey) throw new Error("OPENAI_API_KEY is required");
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = supabaseServer;
     const openai = new OpenAI({ apiKey: openaiApiKey });
 
     const formData = await req.formData();

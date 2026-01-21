@@ -1,0 +1,19 @@
+# ==========================
+# Client-side (browser) keys
+# Safe to expose to frontend
+# ==========================
+NEXT_PUBLIC_SUPABASE_URL=https://sjwxcrmtivmhbqqlkrsh.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqd3hjcm10aXZtaGJxcWxrcnNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MTg3NTgsImV4cCI6MjA4MzI5NDc1OH0.k_ymo3UDNSfMnvvZvGPwg6AJm5c2Tfu5jhT_bthQ7og
+
+# ==========================
+# Server-side (API routes / SSR)
+# MUST remain secret
+# ==========================
+SUPABASE_URL=https://sjwxcrmtivmhbqqlkrsh.supabase.co
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqd3hjcm10aXZtaGJxcWxrcnNoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzcxODc1OCwiZXhwIjoyMDgzMjk0NzU4fQ.INSERT_YOUR_SERVICE_ROLE_KEY_HERE
+
+# ==========================
+# Next.js environment
+# ==========================
+NODE_ENV=development
+PORT=3000

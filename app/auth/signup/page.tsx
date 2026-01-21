@@ -1,18 +1,7 @@
 "use client"; // ensures this page runs on the client only
 
 import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-// Create Supabase client at runtime only
-// Use NEXT_PUBLIC_ prefix for client-side access, with fallback to custom names
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.supabaseUrl;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.supabaseKey;
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Supabase URL and Key are required at runtime");
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabaseClient } from "@/lib/supabase/client";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -23,7 +12,7 @@ export default function SignUpPage() {
     e.preventDefault();
     setMessage("");
 
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await supabaseClient.auth.signUp({
       email,
       password,
     });

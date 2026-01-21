@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { supabaseServer } from '@/lib/supabase/admin'
 import Stripe from 'stripe'
 
 // Stripe secret key from environment variable
@@ -11,23 +11,6 @@ const stripe = process.env.STRIPE_SECRET_KEY
 
 export async function POST(req: NextRequest) {
   try {
-    // Only access sensitive Supabase key at runtime
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL // non-sensitive
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY // sensitive, runtime-only
-
-    if (!supabaseUrl) {
-      return NextResponse.json(
-        { error: 'supabaseUrl is required' },
-        { status: 500 }
-      )
-    }
-    if (!supabaseKey) {
-      return NextResponse.json(
-        { error: 'supabaseKey is required' },
-        { status: 500 }
-      )
-    }
-
     if (!stripe) {
       return NextResponse.json(
         { error: 'Stripe is not configured' },
@@ -35,7 +18,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = supabaseServer
 
     // Example: fetch user data if needed
     // const { data, error } = await supabase.from('users').select('*')

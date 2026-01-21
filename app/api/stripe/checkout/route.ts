@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { supabaseServer } from '@/lib/supabase/admin'
 import Stripe from 'stripe'
 
 // Mark route as dynamic to prevent build-time evaluation
@@ -18,25 +18,8 @@ function getStripe() {
 
 export async function POST(req: NextRequest) {
   try {
-    // Support both custom env var names and standard names
-    const supabaseUrl = process.env.supabaseUrl || process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.supabaseKey || process.env.SUPABASE_SERVICE_ROLE_KEY
-
-    if (!supabaseUrl) {
-      return NextResponse.json(
-        { error: 'supabaseUrl is required (set supabaseUrl or NEXT_PUBLIC_SUPABASE_URL)' },
-        { status: 500 }
-      )
-    }
-    if (!supabaseKey) {
-      return NextResponse.json(
-        { error: 'supabaseKey is required (set supabaseKey or SUPABASE_SERVICE_ROLE_KEY)' },
-        { status: 500 }
-      )
-    }
-
     const stripe = getStripe()
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = supabaseServer
 
     const body = await req.json()
 

@@ -1,29 +1,11 @@
 import { NextResponse } from 'next/server'
 import { stripe, isStripeConfigured } from '@/lib/stripe/config'
-import { createServerClient } from '@/lib/supabase/server'
-import { createClient } from '@supabase/supabase-js'
+import { supabaseServer } from '@/lib/supabase/admin'
 import { getCurrentUser } from '@/lib/auth'
 
 // Mark route as dynamic to prevent build-time evaluation
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-
-// Create Supabase admin client lazily to avoid build-time errors
-function getSupabaseAdmin() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.supabaseUrl
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.supabaseKey
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Supabase credentials not configured')
-  }
-
-  return createClient(supabaseUrl, supabaseKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  })
-}
 
 /**
  * Create Stripe Billing Portal Session
@@ -51,14 +33,16 @@ export async function POST() {
     }
 
     // Get profile with Stripe customer ID using admin client
-    const supabaseAdmin = getSupabaseAdmin()
-    const { data: profile } = await supabaseAdmin
+    const supabaseAny = supabaseServer as any
+    const { data: profile } = await supabaseAny
       .from('profiles')
       .select('stripe_customer_id')
       .eq('id', user.id)
       .single()
 
-    if (!profile?.stripe_customer_id) {
+    const profileTyped = profile as { stripe_customer_id: string | null } | null
+
+    if (!profileTyped?.stripe_customer_id) {
       return NextResponse.json(
         { error: 'No Stripe customer found. Please subscribe first.' },
         { status: 400 }
@@ -66,7 +50,7 @@ export async function POST() {
     }
 
     const portal = await stripe.billingPortal.sessions.create({
-      customer: profile.stripe_customer_id,
+      customer: profileTyped.stripe_customer_id,
       return_url: `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/dashboard`,
     })
 
