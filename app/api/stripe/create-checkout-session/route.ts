@@ -3,16 +3,26 @@ import { stripe, isStripeConfigured } from '@/lib/stripe/config'
 import { createClient } from '@supabase/supabase-js'
 import { getCurrentUser } from '@/lib/auth'
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
+// Mark route as dynamic to prevent build-time evaluation
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
+// Create Supabase admin client lazily to avoid build-time errors
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.supabaseUrl
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.supabaseKey
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase credentials not configured')
+  }
+
+  return createClient(supabaseUrl, supabaseKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
     },
-  }
-)
+  })
+}
 
 /**
  * Create Stripe Checkout Session
@@ -49,6 +59,7 @@ export async function POST(req: Request) {
     }
 
     // Get or create Stripe customer
+    const supabaseAdmin = getSupabaseAdmin()
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('stripe_customer_id, email')

@@ -2,56 +2,9 @@
 pid: 17712
 cwd: |
   C:\Users\ajaye\.cursor
-active_command: |
-  # 1?? Initialize a new Git repository (if not already initialized)
-  git init
-  
-  # 2?? Add all files from your Cursor project
-  git add .
-  
-  # 3?? Commit the files with a message
-  git commit -m "Initial commit from Cursor"
-  
-  # 4?? Add your GitHub remote (replace USERNAME and REPO with your GitHub info)
-  git remote add origin https://github.com/USERNAME/REPO.git
-  
-  # 5?? Push to the main branch on GitHub
-  git branch -M main
-  git push -u origin main
-last_command: |
-  # 1?? Check the status of your files git status # 2?? Stage all changes for commit git add . # 3?? Commit the changes with a clear message git commit -m "fix: add next-auth, TypeScript types, and global declarations" # 4?? Push changes to the main branch git push origin magit add . && git commit -m "Update from Cursor" && git push origin main
-  git add . && git commit -m "Update from Cursor" && git push origin main
+last_command: New-Item push.ps1 -ItemType File -Value 'git add .; git commit -m "auto push from cursor"; git push'
 last_exit_code: 0
 ---
--a----          1/9/2026   3:00 PM          49079 schemas.ts
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\src\v4\mini\tests
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
--a----          1/9/2026   3:00 PM           3301 assignability.test.ts
--a----          1/9/2026   3:00 PM           1841 brand.test.ts
--a----          1/9/2026   3:00 PM           4071 checks.test.ts
--a----          1/9/2026   3:00 PM           1168 computed.test.ts
--a----          1/9/2026   3:00 PM            644 error.test.ts
--a----          1/9/2026   3:00 PM           1176 functions.test.ts
--a----          1/9/2026   3:00 PM          28753 index.test.ts
--a----          1/9/2026   3:00 PM           3665 number.test.ts
--a----          1/9/2026   3:00 PM           5190 object.test.ts
--a----          1/9/2026   3:00 PM            870 prototypes.test.ts
--a----          1/9/2026   3:00 PM           5640 recursive-types.test.ts
--a----          1/9/2026   3:00 PM          11223 string.test.ts
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\src\v4-mini
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
--a----          1/9/2026   3:00 PM             37 index.ts
-
 
     Directory: C:\Users\ajaye\.cursor\node_modules\zod\v3
 
@@ -1003,4 +956,48 @@ The token '&&' is not a valid statement separator in this version.
     + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
     + FullyQualifiedErrorId : InvalidEndOfLine
 
-PS C:\Users\ajaye\.cursor> # 1️⃣ In
+PS C:\Users\ajaye\.cursor> # 1️⃣ Initialize a new Git repository (if not already initialized)
+>> git init
+>>
+>> # 2️⃣ Add all files from your Cursor project
+>> git add .
+>>
+>> # 3️⃣ Commit the files with a message
+>> git commit -m "Initial commit from Cursor"
+>>
+>> # 4️⃣ Add your GitHub remote (replace USERNAME and REPO with your GitHub info)
+>> git remote add origin https://github.com/USERNAME/REPO.git
+>>
+>> # 5️⃣ Push to the main branch on GitHub
+>> git branch -M main
+>> git push -u origin main
+>>
+Reinitialized existing Git repository in C:/Users/ajaye/.cursor/.git/
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+[main 4bf5483] Initial commit from Cursor
+ 2 files changed, 59 insertions(+), 55 deletions(-)
+error: remote origin already exists.
+Enumerating objects: 15, done.
+Counting objects: 100% (15/15), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (8/8), 1.62 KiB | 829.00 KiB/s, done.
+Total 8 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   11921c0..4bf5483  main -> main
+branch 'main' set up to track 'origin/main'.
+PS C:\Users\ajaye\.cursor> New-Item push.ps1 -ItemType File -Value 'git add .; git commit -m "auto push from cursor"; git push'
+
+
+    Directory: C:\Users\ajaye\.cursor
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         1/21/2026   9:17 AM             58 push.ps1
+
+
+PS C:\Users\ajaye\.cursor>

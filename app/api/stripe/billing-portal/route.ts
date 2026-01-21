@@ -3,6 +3,10 @@ import { supabaseTyped } from '@/lib/supabase-fixed'
 import { getCurrentUser, hasRole } from '@/lib/auth'
 import { stripe } from '@/lib/stripe/config'
 
+// Mark route as dynamic to prevent build-time evaluation
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser()

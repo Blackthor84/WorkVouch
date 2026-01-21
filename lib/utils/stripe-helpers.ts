@@ -3,6 +3,35 @@
  * Reusable functions for Stripe operations
  */
 
+export interface CheckoutItem {
+  name: string
+  price: number
+  quantity: number
+}
+
+/**
+ * Create checkout session with items and redirect to Stripe
+ * @param items - Array of items to purchase with name, price, and quantity
+ */
+export async function createCheckoutSession(items: CheckoutItem[]) {
+  const origin = window.location.origin
+
+  const res = await fetch('/api/stripe/checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items, origin }),
+  })
+
+  const data = await res.json()
+  if (data.error) throw new Error(data.error)
+
+  if (data.url) {
+    window.location.href = data.url
+  } else {
+    throw new Error('No checkout URL returned')
+  }
+}
+
 /**
  * Open Stripe billing portal
  */

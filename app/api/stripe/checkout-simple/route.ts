@@ -2,51 +2,56 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
-// Mark route as dynamic to prevent build-time evaluation
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
-
-// Initialize Stripe lazily to avoid build-time errors
-function getStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY is required')
-  }
-  return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-12-15.clover',
-  })
-}
+// Stripe secret key from environment variable
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-12-15.clover',
+    })
+  : null
 
 export async function POST(req: NextRequest) {
   try {
-    // Support both custom env var names and standard names
-    const supabaseUrl = process.env.supabaseUrl || process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.supabaseKey || process.env.SUPABASE_SERVICE_ROLE_KEY
+    // Only access sensitive Supabase key at runtime
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL // non-sensitive
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY // sensitive, runtime-only
 
     if (!supabaseUrl) {
       return NextResponse.json(
-        { error: 'supabaseUrl is required (set supabaseUrl or NEXT_PUBLIC_SUPABASE_URL)' },
+        { error: 'supabaseUrl is required' },
         { status: 500 }
       )
     }
     if (!supabaseKey) {
       return NextResponse.json(
-        { error: 'supabaseKey is required (set supabaseKey or SUPABASE_SERVICE_ROLE_KEY)' },
+        { error: 'supabaseKey is required' },
         { status: 500 }
       )
     }
 
-    const stripe = getStripe()
+    if (!stripe) {
+      return NextResponse.json(
+        { error: 'Stripe is not configured' },
+        { status: 500 }
+      )
+    }
+
     const supabase = createClient(supabaseUrl, supabaseKey)
 
+    // Example: fetch user data if needed
+    // const { data, error } = await supabase.from('users').select('*')
+    // if (error) throw error
+
+    // Read JSON payload from frontend
     const body = await req.json()
 
+    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: body.items.map((item: { name: string; price: number; quantity: number }) => ({
         price_data: {
           currency: 'usd',
           product_data: { name: item.name },
-          unit_amount: item.price * 100,
+          unit_amount: item.price * 100, // convert to cents
         },
         quantity: item.quantity,
       })),
