@@ -3,169 +3,10 @@ pid: 17712
 cwd: |
   C:\Users\ajaye\.cursor
 active_command: ./push.ps1
-last_command: ./push.ps1
+last_command: |
+  C:\Users\ajaye\.cursor\package.json
 last_exit_code: 0
 ---
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
-d-----          1/9/2026   3:00 PM                classic
-d-----          1/9/2026   3:00 PM                core
-d-----          1/9/2026   3:00 PM                locales
-d-----          1/9/2026   3:00 PM                mini
--a----          1/9/2026   3:00 PM           1057 index.cjs
--a----          1/9/2026   3:00 PM             94 index.d.cts
--a----          1/9/2026   3:00 PM             92 index.d.ts
--a----          1/9/2026   3:00 PM             92 index.js
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\v4\classic
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
--a----          1/9/2026   3:00 PM           3883 checks.cjs
--a----          1/9/2026   3:00 PM            643 checks.d.cts
--a----          1/9/2026   3:00 PM            642 checks.d.ts
--a----          1/9/2026   3:00 PM            642 checks.js
--a----          1/9/2026   3:00 PM           1772 coerce.cjs
--a----          1/9/2026   3:00 PM           1149 coerce.d.cts
--a----          1/9/2026   3:00 PM           1147 coerce.d.ts
--a----          1/9/2026   3:00 PM            550 coerce.js
--a----          1/9/2026   3:00 PM           2316 compat.cjs
--a----          1/9/2026   3:00 PM           2017 compat.d.cts
--a----          1/9/2026   3:00 PM           2013 compat.d.ts
--a----          1/9/2026   3:00 PM            861 compat.js
--a----          1/9/2026   3:00 PM           2465 errors.cjs
--a----          1/9/2026   3:00 PM           1623 errors.d.cts
--a----          1/9/2026   3:00 PM           1620 errors.d.ts
--a----          1/9/2026   3:00 PM           1292 errors.js
--a----          1/9/2026   3:00 PM           5131 external.cjs
--a----          1/9/2026   3:00 PM            820 external.d.cts
--a----          1/9/2026   3:00 PM            807 external.d.ts
--a----          1/9/2026   3:00 PM            803 external.js
--a----          1/9/2026   3:00 PM           1464 index.cjs
--a----          1/9/2026   3:00 PM            101 index.d.cts
--a----          1/9/2026   3:00 PM             99 index.d.ts
--a----          1/9/2026   3:00 PM             99 index.js
--a----          1/9/2026   3:00 PM           2413 iso.cjs
--a----          1/9/2026   3:00 PM           1137 iso.d.cts
--a----          1/9/2026   3:00 PM           1135 iso.d.ts
--a----          1/9/2026   3:00 PM           1151 iso.js
--a----          1/9/2026   3:00 PM           1552 parse.cjs
--a----          1/9/2026   3:00 PM           1167 parse.d.cts
--a----          1/9/2026   3:00 PM           1165 parse.d.ts
--a----          1/9/2026   3:00 PM            378 parse.js
--a----          1/9/2026   3:00 PM          41292 schemas.cjs
--a----          1/9/2026   3:00 PM          38862 schemas.d.cts
--a----          1/9/2026   3:00 PM          38859 schemas.d.ts
--a----          1/9/2026   3:00 PM          36871 schemas.js
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\v4\core
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
--a----          1/9/2026   3:00 PM          26465 api.cjs
--a----          1/9/2026   3:00 PM          29445 api.d.cts
--a----          1/9/2026   3:00 PM          29440 api.d.ts
--a----          1/9/2026   3:00 PM          22983 api.js
--a----          1/9/2026   3:00 PM          21098 checks.cjs
--a----          1/9/2026   3:00 PM          12782 checks.d.cts
--a----          1/9/2026   3:00 PM          12778 checks.d.ts
--a----          1/9/2026   3:00 PM          19544 checks.js
--a----          1/9/2026   3:00 PM           2309 core.cjs
--a----          1/9/2026   3:00 PM           1811 core.d.cts
--a----          1/9/2026   3:00 PM           1808 core.d.ts
--a----          1/9/2026   3:00 PM           2085 core.js
--a----          1/9/2026   3:00 PM           1199 doc.cjs
--a----          1/9/2026   3:00 PM            353 doc.d.cts
--a----          1/9/2026   3:00 PM            353 doc.d.ts
--a----          1/9/2026   3:00 PM           1088 doc.js
--a----          1/9/2026   3:00 PM           7650 errors.cjs
--a----          1/9/2026   3:00 PM           7893 errors.d.cts
--a----          1/9/2026   3:00 PM           7889 errors.d.ts
--a----          1/9/2026   3:00 PM           6316 errors.js
--a----          1/9/2026   3:00 PM           4012 function.cjs
--a----          1/9/2026   3:00 PM           3597 function.d.cts
--a----          1/9/2026   3:00 PM           3593 function.d.ts
--a----          1/9/2026   3:00 PM           2717 function.js
--a----          1/9/2026   3:00 PM           2163 index.cjs
--a----          1/9/2026   3:00 PM            514 index.d.cts
--a----          1/9/2026   3:00 PM            499 index.d.ts
--a----          1/9/2026   3:00 PM            499 index.js
--a----          1/9/2026   3:00 PM             77 json-schema.cjs
--a----          1/9/2026   3:00 PM           2676 json-schema.d.cts
--a----          1/9/2026   3:00 PM           2676 json-schema.d.ts
--a----          1/9/2026   3:00 PM             11 json-schema.js
--a----          1/9/2026   3:00 PM           3957 parse.cjs
--a----          1/9/2026   3:00 PM           1505 parse.d.cts
--a----          1/9/2026   3:00 PM           1501 parse.d.ts
--a----          1/9/2026   3:00 PM           2552 parse.js
--a----          1/9/2026   3:00 PM           7062 regexes.cjs
--a----          1/9/2026   3:00 PM           2762 regexes.d.cts
--a----          1/9/2026   3:00 PM           2762 regexes.d.ts
--a----          1/9/2026   3:00 PM           6411 regexes.js
--a----          1/9/2026   3:00 PM           1676 registries.cjs
--a----          1/9/2026   3:00 PM           1646 registries.d.cts
--a----          1/9/2026   3:00 PM           1644 registries.d.ts
--a----          1/9/2026   3:00 PM           1485 registries.js
--a----          1/9/2026   3:00 PM          64843 schemas.cjs
--a----          1/9/2026   3:00 PM          44698 schemas.d.cts
--a----          1/9/2026   3:00 PM          44691 schemas.d.ts
--a----          1/9/2026   3:00 PM          62652 schemas.js
--a----          1/9/2026   3:00 PM             77 standard-schema.cjs
--a----          1/9/2026   3:00 PM           2403 standard-schema.d.cts
--a----          1/9/2026   3:00 PM           2403 standard-schema.d.ts
--a----          1/9/2026   3:00 PM             11 standard-schema.js
--a----          1/9/2026   3:00 PM          35910 to-json-schema.cjs
--a----          1/9/2026   3:00 PM           3729 to-json-schema.d.cts
--a----          1/9/2026   3:00 PM           3726 to-json-schema.d.ts
--a----          1/9/2026   3:00 PM          35687 to-json-schema.js
--a----          1/9/2026   3:00 PM          16438 util.cjs
--a----          1/9/2026   3:00 PM          10750 util.d.cts
--a----          1/9/2026   3:00 PM          10746 util.d.ts
--a----          1/9/2026   3:00 PM          15004 util.js
--a----          1/9/2026   3:00 PM            168 versions.cjs
--a----          1/9/2026   3:00 PM            109 versions.d.cts
--a----          1/9/2026   3:00 PM            109 versions.d.ts
--a----          1/9/2026   3:00 PM             70 versions.js
-
-
-    Directory: C:\Users\ajaye\.cursor\node_modules\zod\v4\locales
-
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
--a----          1/9/2026   3:00 PM           6420 ar.cjs
--a----          1/9/2026   3:00 PM            122 ar.d.cts
--a----          1/9/2026   3:00 PM            121 ar.d.ts
--a----          1/9/2026   3:00 PM           5278 ar.js
--a----          1/9/2026   3:00 PM           5782 az.cjs
--a----          1/9/2026   3:00 PM            122 az.d.cts
--a----          1/9/2026   3:00 PM            121 az.d.ts
--a----          1/9/2026   3:00 PM           4640 az.js
--a----          1/9/2026   3:00 PM           7818 be.cjs
--a----          1/9/2026   3:00 PM            122 be.d.cts
--a----          1/9/2026   3:00 PM            121 be.d.ts
--a----          1/9/2026   3:00 PM           6676 be.js
--a----          1/9/2026   3:00 PM           6103 ca.cjs
--a----          1/9/2026   3:00 PM            122 ca.d.cts
--a----          1/9/2026   3:00 PM            121 ca.d.ts
--a----          1/9/2026   3:00 PM           4961 ca.js
--a----          1/9/2026   3:00 PM           6408 cs.cjs
--a----          1/9/2026   3:00 PM            122 cs.d.cts
--a----          1/9/2026   3:00 PM            121 cs.d.ts
--a----          1/9/2026   3:00 PM           5266 cs.js
--a----          1/9/2026   3:00 PM           5814 de.cjs
--a----          1/9/2026   3:00 PM            122 de.d.cts
--a----          1/9/2026   3:00 PM            121 de.d.ts
--a----          1/9/2026   3:00 PM           4672 de.js
--a----          1/9/2026   3:00 PM           5683 en.cjs
--a----          1/9/2026   3:00 PM            178 en.d.cts
--a----          1/9/2026   3:00 PM            177 en.d.ts
 -a----          1/9/2026   3:00 PM           4473 en.js
 -a----          1/9/2026   3:00 PM           5802 eo.cjs
 -a----          1/9/2026   3:00 PM            178 eo.d.cts
@@ -999,4 +840,164 @@ remote: This repository moved. Please use the new location:
 remote:   https://github.com/Blackthor84/WorkVouch.git
 To https://github.com/Blackthor84/workvouch.git
    204f7cf..bf8a6e5  main -> main
+PS C:\Users\ajaye\.cursor> ./push.ps1
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+[main 9d3f5ff] auto push from cursor
+ 17 files changed, 147 insertions(+), 51 deletions(-)
+Enumerating objects: 87, done.
+Counting objects: 100% (87/87), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (39/39), done.
+Writing objects: 100% (46/46), 25.97 KiB | 759.00 KiB/s, done.
+Total 46 (delta 23), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (23/23), completed with 16 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   bf8a6e5..9d3f5ff  main -> main
+PS C:\Users\ajaye\.cursor> ls
+
+
+    Directory: C:\Users\ajaye\.cursor
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         1/21/2026  10:04 AM                .next
+d-----         1/21/2026   9:23 AM                .vscode
+d-----         1/21/2026   3:18 PM                ai-tracking
+d-----         1/19/2026   6:40 PM                app
+d-----         1/20/2026  10:15 AM                components
+d-----         1/19/2026   6:40 PM                docs
+d-----         1/19/2026   6:40 PM                extensions
+d-----         1/20/2026  10:58 AM                lib
+d-----         1/19/2026   6:40 PM                mobile
+d-----         1/21/2026   9:40 AM                node_modules
+d-----         1/19/2026   6:40 PM                prisma
+d-----         1/19/2026   7:08 PM                projects
+d-----         1/19/2026   6:40 PM                public
+d-----         1/19/2026   6:40 PM                scripts
+d-----         1/19/2026   6:41 PM                supabase
+d-----         1/20/2026   7:04 PM                types
+-a----         1/21/2026   9:16 AM            818 .env.local
+-a----         1/19/2026   8:37 PM            150 .eslintrc.json
+-a----         1/19/2026   6:40 PM            516 .gitignore
+-a----         1/19/2026   6:40 PM              9 .nextignore
+-a----         1/19/2026   6:40 PM           1832 ADD_LOGO_INSTRUCTIONS.md
+-a----         1/19/2026   6:40 PM           5349 AI_MATCHING_SETUP.md
+-a----         1/19/2026   6:40 PM           6945 ARCHITECTURE.md
+-a----         1/19/2026   6:40 PM            817 argv.json
+-a----         1/19/2026   6:40 PM           1474 ASSIGN_EMPLOYER_ROLE.sql
+-a----         1/19/2026   6:40 PM           1560 CHECK_TRIGGER_ERROR.md
+-a----         1/19/2026   6:40 PM           4087 COMPLETE_ADMIN_SETUP.md
+-a----         1/19/2026   6:40 PM              0 COMPLETE_FIX.sql
+-a----         1/19/2026   6:40 PM           7475 COMPLETE_SETUP_CHECKLIST.md
+-a----         1/19/2026   6:40 PM           2018 CREATE_ADMIN_USER.md
+-a----         1/19/2026   6:40 PM           1078 CREATE_MESSAGES_AND_JOBS_TABLES.md
+-a----         1/19/2026   6:40 PM           1288 CREATE_PROFILE_MANUAL.sql
+-a----         1/19/2026   6:40 PM           1477 DEBUG_500_ERROR.md
+-a----         1/19/2026   6:40 PM            982 DEBUG_BLANK_PAGE.md
+-a----         1/19/2026   6:40 PM           1128 DEBUG_SIGNUP.md
+-a----         1/19/2026   6:40 PM           1066 DISABLE_EMAIL_CONFIRMATION.md
+-a----         1/19/2026   6:40 PM           3308 EMPLOYER_SEARCH_SETUP.md
+-a----         1/19/2026   6:40 PM           5615 EMPLOYER_TOOLS_COMPLETE.md
+-a----         1/19/2026   6:40 PM           2497 EMPLOYER_TOOLS_IMPLEMENTATION.md
+-a----         1/19/2026   6:40 PM           4826 FEATURE_DEPLOYMENT_STATUS.md
+-a----         1/19/2026   6:40 PM           3673 FINAL_IMPLEMENTATION_SUMMARY.md
+-a----         1/19/2026   6:40 PM           2133 FINAL_SETUP_INSTRUCTIONS.md
+-a----         1/19/2026   6:40 PM           2041 FINAL_SIGNUP_FIX.md
+-a----         1/19/2026   6:40 PM            726 FIX_BLANK_PAGE.md
+-a----         1/19/2026   6:40 PM           1695 FIX_CANDIDATE_SEARCH.md
+-a----         1/19/2026   6:40 PM           1861 FIX_EMPLOYER_REDIRECT.md
+-a----         1/19/2026   6:40 PM           1928 FIX_FAILED_TO_FETCH.md
+-a----         1/19/2026   6:40 PM           1995 fix_infinite_recursion.sql
+-a----         1/19/2026   6:40 PM           1211 FIX_MY_EMPLOYER_ROLE.sql
+-a----         1/19/2026   6:40 PM            862 FIX_POWERSHELL.md
+-a----         1/19/2026   6:40 PM           1631 fix_profile_trigger.sql
+-a----         1/19/2026   6:40 PM           2616 FIX_RECURSION_FINAL.sql
+-a----         1/19/2026   6:40 PM           4673 FIX_RECURSION_NOW.sql
+-a----         1/19/2026   6:40 PM           1313 fix_rls_policies.sql
+-a----         1/19/2026   6:40 PM           1529 FIX_ROUTE_CONFLICT.md
+-a----         1/19/2026   6:40 PM           1223 FIX_SEARCH_USERS_ERROR.md
+-a----         1/19/2026   6:40 PM           1454 FIX_SIGNUP_ERROR.md
+-a----         1/19/2026   6:40 PM           1476 FIX_SIGNUP_NOW.md
+-a----         1/19/2026   6:40 PM           1786 FIX_USERS_TABLE_ERROR.md
+-a----         1/19/2026   6:40 PM            393 fix_user_roles_policy.sql
+-a----         1/19/2026   6:40 PM           2156 GET_SUPABASE_CREDENTIALS.md
+-a----         1/19/2026   7:08 PM           5921 HEALTHCARE_ONBOARDING_COMPLETE.md
+-a----         1/19/2026   6:40 PM            958 HIDE_WARNINGS.md
+-a----         1/19/2026   6:40 PM           2639 HOW_TO_ADD_SUPERADMIN.md
+-a----         1/19/2026   7:08 PM           2862 HOW_TO_RUN_SQL.md
+-a----         1/19/2026   6:40 PM           2292 HOW_TO_RUN_WAREHOUSING_MIGRATION.md
+-a----         1/21/2026   3:16 PM           1246 ide_state.json
+-a----         1/19/2026   6:40 PM           5540 IMPLEMENTATION_SUMMARY.md
+-a----         1/19/2026   6:40 PM           4206 INDUSTRY_FOCUS_UPDATE.md
+-a----         1/19/2026   6:40 PM           1889 MAKE_AJAYE_SUPERADMIN.sql
+-a----         1/19/2026   6:40 PM           2310 MAKE_MYSELF_ADMIN.sql
+-a----         1/19/2026   6:40 PM           1846 MAKE_MYSELF_SUPERADMIN.sql
+-a----         1/19/2026   6:40 PM           3714 MATCHING_SYSTEMS_STATUS.md
+-a----         1/19/2026   6:40 PM           2638 MIGRATION_INSTRUCTIONS.md
+-a----         1/19/2026   7:08 PM           6060 MULTI_INDUSTRY_ONBOARDING_COMPLETE.md
+-a----         1/19/2026  10:00 PM            253 next-env.d.ts
+-a----         1/20/2026  11:05 AM           1246 next.config.js
+-a----         1/21/2026   9:40 AM         342473 package-lock.json
+-a----         1/21/2026   9:47 AM           1129 package.json
+-a----         1/19/2026   6:40 PM           8729 PEERCV_COMPLETE_UPDATE.md
+-a----         1/20/2026   7:17 PM             90 postcss.config.js
+-a----         1/20/2026  11:36 AM            304 proxy.ts
+-a----         1/21/2026   9:17 AM             58 push.ps1
+-a----         1/19/2026   6:40 PM           2083 QUICK_ADD_ROLE_COLUMN.sql
+-a----         1/19/2026   6:40 PM           2013 QUICK_ADMIN_SETUP.md
+-a----         1/19/2026   6:40 PM            855 QUICK_COMMANDS.md
+-a----         1/19/2026   6:40 PM           3012 QUICK_CREATE_NOTIFICATIONS_TABLE.sql
+-a----         1/19/2026   6:40 PM           2854 QUICK_FIX_TABLES.sql
+-a----         1/19/2026   7:08 PM           2675 QUICK_START.md
+-a----         1/19/2026   6:40 PM           2097 QUICK_START_CHECKLIST.md
+-a----         1/19/2026   6:40 PM           2157 QUICK_STATUS_CHECK.md
+-a----         1/19/2026   6:40 PM           2892 QUICK_SUPERADMIN_SETUP.md
+-a----         1/19/2026   6:41 PM           1545 README.md
+-a----         1/19/2026   6:40 PM           7677 README_V2.md
+-a----         1/19/2026   6:40 PM            950 RESTART_DEV_SERVER.md
+-a----         1/19/2026   6:40 PM           1147 RESTART_DEV_SERVER_FIX.md
+-a----         1/19/2026   6:40 PM           3804 RESUME_UPLOAD_SETUP.md
+-a----         1/19/2026   6:40 PM           3742 SETUP.md
+-a----         1/19/2026   6:40 PM           1804 SETUP_COMMANDS.md
+-a----         1/19/2026   6:40 PM           5225 SETUP_INSTRUCTIONS.md
+-a----         1/19/2026   6:40 PM           1358 SETUP_ROLE_COLUMN_FIRST.md
+-a----         1/19/2026   6:40 PM           1116 START_APP.md
+-a----         1/19/2026   6:40 PM           9188 STEP_BY_STEP_SETUP.md
+-a----         1/19/2026   6:40 PM           8340 STRIPE_CONNECTION_GUIDE.md
+-a----         1/19/2026   6:40 PM           1273 STRIPE_OPTIONAL.md
+-a----         1/19/2026   6:40 PM           9400 STRIPE_SETUP_GUIDE.md
+-a----         1/19/2026   6:40 PM           6340 SUBSCRIPTIONS_GUIDE.md
+-a----         1/19/2026   6:40 PM           4451 SUPABASE_SETUP_GUIDE.md
+-a----         1/19/2026   6:40 PM           3834 SUPERADMIN_SETUP_COMPLETE.md
+-a----         1/19/2026   6:40 PM           1689 SUPPRESS_SUPABASE_WARNINGS.md
+-a----         1/19/2026   6:40 PM           1531 SUPPRESS_WARNINGS.md
+-a----         1/19/2026   6:40 PM           1821 SYNC_ROLE_TO_JWT.md
+-a----         1/19/2026   6:40 PM           1111 tailwind.config.ts
+-a----         1/20/2026   5:42 PM            744 tsconfig.json
+-a----         1/19/2026   6:40 PM           2981 UI_PAGES_COMPLETE.md
+-a----         1/19/2026   6:40 PM           1187 URGENT_FIX_RECURSION.md
+-a----         1/19/2026   6:40 PM           1144 URGENT_FIX_SIGNUP.md
+-a----         1/19/2026   6:40 PM           1646 URGENT_SIGNUP_FIX.md
+-a----         1/19/2026   6:40 PM           5507 V2_FEATURES.md
+-a----         1/19/2026   6:40 PM           1022 VERIFY_FIX.sql
+-a----         1/19/2026   6:40 PM           1169 VERIFY_SUPABASE.md
+-a----         1/19/2026   6:40 PM           2737 WAREHOUSE_ONBOARDING_COMPLETE.md
+-a----         1/19/2026   6:40 PM           5249 WAREHOUSING_INDUSTRY_IMPLEMENTATION.md
+-a----         1/19/2026   6:40 PM           1263 WEB_ERROR_FIX.md
+-a----         1/19/2026   6:40 PM           4487 WORKVOUCH_BUILD_COMPLETE.md
+-a----         1/19/2026   6:40 PM           2953 WORKVOUCH_COMPLETE_STATUS.md
+-a----         1/19/2026   6:40 PM           2402 WORKVOUCH_CONVERSION_STATUS.md
+-a----         1/19/2026   6:40 PM           5288 WORKVOUCH_FINAL_SUMMARY.md
+-a----         1/19/2026   6:40 PM           1979 WORKVOUCH_LOGO_SETUP.md
+-a----         1/19/2026   6:40 PM           2830 WORKVOUCH_REBRAND_COMPLETE.md
+-a----         1/19/2026   6:40 PM           6724 WORKVOUCH_REBUILD_SETUP.md
+-a----         1/19/2026   6:40 PM           3436 WORKVOUCH_REBUILD_STATUS.md
+
+
+PS C:\Users\ajaye\.cursor> ^C
+PS C:\Users\ajaye\.cursor> C:\Users\ajaye\.cursor\package.json
+
 PS C:\Users\ajaye\.cursor> ./push.ps1

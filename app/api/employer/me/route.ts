@@ -37,15 +37,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Employer not found' }, { status: 404 })
     }
 
+    const employerAccountTyped = employerAccount as EmployerAccountRow
+
     return NextResponse.json({
       employer: {
-        id: employerAccount.id,
-        companyName: employerAccount.company_name,
+        id: employerAccountTyped.id,
+        companyName: employerAccountTyped.company_name,
         email: user.email,
-        planTier: employerAccount.plan_tier,
-        stripeCustomerId: employerAccount.stripe_customer_id,
-        createdAt: employerAccount.created_at,
+        planTier: employerAccountTyped.plan_tier,
+        stripeCustomerId: employerAccountTyped.stripe_customer_id,
+        createdAt: employerAccountTyped.created_at,
       },
+      planTier: employerAccountTyped.plan_tier,
     })
   } catch (error) {
     console.error('Get employer error:', error)

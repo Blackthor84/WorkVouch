@@ -48,18 +48,58 @@ export async function POST(req: NextRequest) {
           )
 
           const employerId = session.metadata?.employerId
-          const planTier = session.metadata?.planTier
+          const planTier = session.metadata?.planTier || session.metadata?.plan
 
           if (employerId && planTier) {
             const supabase = await supabaseTyped()
             const supabaseAny = supabase as any
+            
+            // Map plan names to plan_tier values
+            const planTierMap: Record<string, string> = {
+              pro: 'pro',
+              enterprise: 'enterprise',
+              basic: 'basic',
+            }
+            
+            const mappedTier = planTierMap[planTier.toLowerCase()] || planTier
+
             await supabaseAny
               .from('employer_accounts')
               .update({
-                plan_tier: planTier as 'basic' | 'pro',
+                plan_tier: mappedTier as 'basic' | 'pro' | 'enterprise',
                 stripe_customer_id: subscription.customer as string,
               })
               .eq('id', employerId)
+          } else if (session.customer_email) {
+            // Fallback: find employer by email if metadata not available
+            const supabase = await supabaseTyped()
+            const supabaseAny = supabase as any
+            
+            type ProfileRow = { id: string }
+            const { data: profile } = await supabaseAny
+              .from('profiles')
+              .select('id')
+              .eq('email', session.customer_email)
+              .single()
+
+            if (profile) {
+              const profileTyped = profile as ProfileRow
+              const planTier = session.metadata?.plan || 'pro'
+              const planTierMap: Record<string, string> = {
+                pro: 'pro',
+                enterprise: 'enterprise',
+                basic: 'basic',
+              }
+              const mappedTier = planTierMap[planTier.toLowerCase()] || 'pro'
+
+              await supabaseAny
+                .from('employer_accounts')
+                .update({
+                  plan_tier: mappedTier as 'basic' | 'pro' | 'enterprise',
+                  stripe_customer_id: subscription.customer as string,
+                })
+                .eq('user_id', profileTyped.id)
+            }
           }
         }
         break

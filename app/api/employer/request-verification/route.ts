@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     const supabase = await supabaseTyped()
 
     // Type definitions for tables not in Database types yet
-    type EmployerAccountRow = { id: string; company_name: string }
+    type EmployerAccountRow = { id: string; company_name: string; plan_tier: string }
     type VerificationRequestInsert = {
       job_id: string
       requested_by_type: string
@@ -45,16 +45,34 @@ export async function POST(req: NextRequest) {
       status: string
     }
 
-    // Get employer's company name
+    // Get employer's company name and plan tier
     const supabaseAny = supabase as any
     const { data: employerAccount, error: employerError } = await supabaseAny
       .from('employer_accounts')
-      .select('id, company_name')
+      .select('id, company_name, plan_tier')
       .eq('user_id', user.id)
       .single()
 
     if (employerError || !employerAccount) {
       return NextResponse.json({ error: 'Employer not found' }, { status: 404 })
+    }
+
+    // Check verification limit for Basic plan
+    const employerAccountTyped = employerAccount as EmployerAccountRow
+    if (employerAccountTyped.plan_tier === 'free' || employerAccountTyped.plan_tier === 'basic') {
+      const { checkVerificationLimit } = await import('@/lib/utils/verification-limit')
+      const limitCheck = await checkVerificationLimit(employerAccountTyped.id)
+      if (!limitCheck.canVerify) {
+        return NextResponse.json(
+          { 
+            error: limitCheck.message || 'Verification limit reached',
+            limitReached: true,
+            currentCount: limitCheck.currentCount,
+            limit: limitCheck.limit,
+          },
+          { status: 403 }
+        )
+      }
     }
 
     // Verify job history exists and is for this employer
@@ -70,7 +88,6 @@ export async function POST(req: NextRequest) {
 
     type JobHistoryRow = { id: string; company_name: string }
     const jobHistoryTyped = jobHistory as JobHistoryRow
-    const employerAccountTyped = employerAccount as EmployerAccountRow
 
     if (jobHistoryTyped.company_name.toLowerCase() !== employerAccountTyped.company_name.toLowerCase()) {
       return NextResponse.json(

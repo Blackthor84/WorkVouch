@@ -1,100 +1,61 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { stripe, isStripeConfigured } from '@/lib/stripe/config'
-import { createClient } from '@supabase/supabase-js'
 import { getCurrentUser } from '@/lib/auth'
+import { createClient } from '@supabase/supabase-js'
 
-// Mark route as dynamic to prevent build-time evaluation
+// Mark route as dynamic
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-// Create Supabase admin client lazily to avoid build-time errors
-function getSupabaseAdmin() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.supabaseUrl
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.supabaseKey
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Supabase credentials not configured')
-  }
-
-  return createClient(supabaseUrl, supabaseKey, {
+// Get Supabase admin client for updates
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.supabaseUrl || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.supabaseKey || '',
+  {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
     },
-  })
-}
+  }
+)
 
-/**
- * Create Stripe Checkout Session
- * POST /api/stripe/create-checkout-session
- * Body: { priceId: string }
- */
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    // Check if Stripe is configured
     if (!isStripeConfigured || !stripe) {
       return NextResponse.json(
-        { error: 'Stripe is not configured. Please set STRIPE_SECRET_KEY in your environment variables.' },
-        { status: 503 }
+        { error: 'Stripe is not configured' },
+        { status: 500 }
       )
     }
 
-    const { priceId } = await req.json()
+    const { plan, email } = await req.json()
+
+    // Map plan names to price IDs (you'll need to set these in your .env)
+    const priceIdMap: Record<string, string> = {
+      pro: process.env.STRIPE_PRICE_PRO || '',
+      enterprise: process.env.STRIPE_PRICE_ENTERPRISE || '',
+    }
+
+    const priceId = priceIdMap[plan as string]
 
     if (!priceId) {
       return NextResponse.json(
-        { error: 'priceId is required' },
+        { error: `Invalid plan: ${plan}. Valid plans: pro, enterprise` },
         { status: 400 }
       )
     }
 
-    // Get authenticated user
-    const user = await getCurrentUser()
+    const baseUrl = process.env.NEXT_PUBLIC_URL || process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Not logged in' },
-        { status: 401 }
-      )
-    }
-
-    // Get or create Stripe customer
-    const supabaseAdmin = getSupabaseAdmin()
-    const { data: profile } = await supabaseAdmin
-      .from('profiles')
-      .select('stripe_customer_id, email')
-      .eq('id', user.id)
-      .single()
-
-    let customerId = profile?.stripe_customer_id
-
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email || profile?.email,
-        metadata: { supabase_user_id: user.id },
-      })
-
-      customerId = customer.id
-
-      await supabaseAdmin
-        .from('profiles')
-        .update({ stripe_customer_id: customerId })
-        .eq('id', user.id)
-    }
-
-    // Get price details to determine if it's subscription or one-time
-    const price = await stripe.prices.retrieve(priceId)
-    const isSubscription = price.type === 'recurring'
-
-    // Create checkout session
     const session = await stripe.checkout.sessions.create({
-      mode: isSubscription ? 'subscription' : 'payment',
-      customer: customerId,
+      payment_method_types: ['card'],
+      mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/dashboard?subscription=success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/pricing?canceled=true`,
+      customer_email: email,
+      success_url: `${baseUrl}/employer/upgrade/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/pricing`,
       metadata: {
-        user_id: user.id,
+        plan: plan as string,
       },
     })
 
