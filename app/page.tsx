@@ -12,14 +12,15 @@ export default function HomePage() {
       {/* Navigation Bar */}
       <nav className="container mx-auto px-4 py-4 md:py-6 lg:py-8 flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <Link href="/" className="flex items-center">
-            <div className="relative h-40 w-auto max-w-[560px]">
+          <Link href="/" className="flex items-center m-0 p-0">
+            <div className="relative h-40 w-auto max-w-[560px] m-0 p-0">
               <Image
                 src="/logo.png"
                 alt="WorkVouch Logo"
                 width={560}
                 height={160}
-                className="h-full w-auto object-contain"
+                className="h-full w-auto object-contain m-0 p-0"
+                style={{ backgroundColor: 'transparent', margin: 0, padding: 0 }}
                 priority
               />
             </div>
@@ -63,27 +64,25 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <main className="flex-1 flex flex-col justify-between container mx-auto px-4 py-8 md:py-12 lg:py-16">
-        <div className="max-w-4xl mx-auto text-center relative w-full space-y-8 md:space-y-12 lg:space-y-16">
+      <main className="flex-1 flex flex-col justify-between container mx-auto px-4">
+        <div className="max-w-4xl mx-auto text-center relative w-full flex flex-col items-center space-y-12 md:space-y-16 lg:space-y-20">
           {/* Spacer between navbar and hero logo - 2 inches = 192px */}
           <div className="h-[192px]"></div>
           
-          {/* Hero Logo - 8x bigger */}
-          <div className="flex justify-center">
-            <div className="relative h-[1152px] w-auto max-w-[16128px]">
+          {/* Hero Logo - 8x bigger, transparent background, no padding */}
+          <div className="flex justify-center m-0 p-0">
+            <div className="relative h-[1152px] w-auto max-w-[16128px] m-0 p-0">
               <Image
                 src="/logo.png"
                 alt="WorkVouch Logo"
                 width={16128}
                 height={4608}
-                className="h-full w-auto object-contain"
+                className="h-full w-auto object-contain m-0 p-0"
+                style={{ backgroundColor: 'transparent', margin: 0, padding: 0 }}
                 priority
               />
             </div>
           </div>
-          
-          {/* Spacer between hero logo and text */}
-          <div className="h-8"></div>
           
           {/* Main Heading */}
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent animate-gradient relative z-10">
@@ -119,7 +118,7 @@ export default function HomePage() {
           <div className="h-8"></div>
 
           {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-8 md:gap-12 lg:gap-16">
+          <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow border border-gray-100">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
                 <CheckCircleIcon className="w-6 h-6 text-blue-600" />
