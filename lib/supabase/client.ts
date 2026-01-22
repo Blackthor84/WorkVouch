@@ -6,8 +6,12 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { Database } from '@/types/database'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://sjwxcrmtivmhbqqlkrsh.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqd3hjcm10aXZtaGJxcWxrcnNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MTg3NTgsImV4cCI6MjA4MzI5NDc1OH0.k_ymo3UDNSfMnvvZvGPwg6AJm5c2Tfu5jhT_bthQ7og'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing required Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set in .env.local')
+}
 
 // Export the client instance
 export const supabaseClient = createSupabaseClient<Database>(supabaseUrl, supabaseAnonKey)
