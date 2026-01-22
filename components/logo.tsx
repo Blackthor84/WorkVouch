@@ -39,12 +39,13 @@ export function Logo({ className = '', showText = false, size = 'xl' }: LogoProp
       <Link href="/" className={`flex items-center ${className}`}>
         <div className={`relative ${sizeClasses[size]} flex-shrink-0`}>
           <Image
-            src="/logo.png"
+            src="/logo.png?v=3"
             alt="WorkVouch Logo"
             width={dims.width}
             height={dims.height}
             className="h-full w-auto object-contain"
             priority
+            unoptimized
             style={{ backgroundColor: 'transparent' }}
           />
         </div>
@@ -61,11 +62,12 @@ export function Logo({ className = '', showText = false, size = 'xl' }: LogoProp
     <Link href="/" className={`flex items-center gap-3 ${className}`}>
       <div className={`relative ${sizeClasses[size]} flex-shrink-0`}>
         <Image
-          src="/logo.png"
+          src="/logo.png?v=2"
           alt="WorkVouch Logo"
           fill
           className="object-contain"
           priority
+          unoptimized
         />
       </div>
       {showText && (

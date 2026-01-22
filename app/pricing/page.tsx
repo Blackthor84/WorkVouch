@@ -11,14 +11,19 @@ export default function PricingPage() {
   return (
     <>
       <NavbarServer />
-      <div className="min-h-screen bg-gray-50 dark:bg-[#0D1117] py-20 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-4xl font-bold mb-6 text-grey-dark dark:text-gray-200">
-            WorkVouch Employer Plans
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 mb-12">
-            Choose a plan that fits your hiring needs
-          </p>
+      <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-gray-50 dark:bg-[#0D1117]">
+        <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20 max-w-6xl mx-auto text-center">
+          {/* Page Header */}
+          <div>
+            <h1 className="text-4xl font-bold text-grey-dark dark:text-gray-200">
+              WorkVouch Employer Plans
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400 mt-4">
+              Choose a plan that fits your hiring needs
+            </p>
+          </div>
+
+          {/* Pricing Cards */}
           <div className="grid md:grid-cols-3 gap-8">
             {/* Basic Plan */}
             <div className="bg-white dark:bg-[#1A1F2B] rounded-2xl shadow p-8 flex flex-col border border-grey-background dark:border-[#374151]">
@@ -126,7 +131,7 @@ export default function PricingPage() {
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </>
   )
 }

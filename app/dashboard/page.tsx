@@ -55,19 +55,21 @@ export default async function UserDashboardPage() {
   return (
     <>
       <NavbarServer />
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
-            Dashboard
-          </h1>
-          <p className="text-grey-medium dark:text-gray-400 mt-1">
-            Welcome back, {safeProfile?.full_name || user.email}
-          </p>
-        </div>
+      <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-background dark:bg-[#0D1117]">
+        <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
+          {/* Page Header */}
+          <div>
+            <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
+              Dashboard
+            </h1>
+            <p className="text-grey-medium dark:text-gray-400 mt-1">
+              Welcome back, {safeProfile?.full_name || user.email}
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
             {/* Shortcuts */}
             <Card className="p-6">
               <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
@@ -121,7 +123,7 @@ export default async function UserDashboardPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
             <TrustScoreCard userId={safeProfile?.id || user.id} />
             
             <Card className="p-6">

@@ -15,13 +15,14 @@ export default function HomePage() {
           <Link href="/" className="flex items-center m-0 p-0">
             <div className="relative h-40 w-auto max-w-[560px] m-0 p-0">
               <Image
-                src="/logo.png"
+                src="/logo.png?v=3"
                 alt="WorkVouch Logo"
                 width={560}
                 height={160}
                 className="h-full w-auto object-contain m-0 p-0"
                 style={{ backgroundColor: 'transparent', margin: 0, padding: 0 }}
                 priority
+                unoptimized
               />
             </div>
           </Link>
@@ -73,13 +74,14 @@ export default function HomePage() {
           <div className="flex justify-center m-0 p-0">
             <div className="relative h-[1152px] w-auto max-w-[16128px] m-0 p-0">
               <Image
-                src="/logo.png"
+                src="/logo.png?v=3"
                 alt="WorkVouch Logo"
                 width={16128}
                 height={4608}
                 className="h-full w-auto object-contain m-0 p-0"
                 style={{ backgroundColor: 'transparent', margin: 0, padding: 0 }}
                 priority
+                unoptimized
               />
             </div>
           </div>

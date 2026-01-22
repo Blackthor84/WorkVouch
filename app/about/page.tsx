@@ -5,18 +5,20 @@ export default function AboutPage() {
   return (
     <>
       <NavbarServer />
-      <main className="min-h-screen bg-background dark:bg-[#0D1117]">
-        <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-grey-dark dark:text-gray-200 mb-4">
+      <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-background dark:bg-[#0D1117]">
+        <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20 max-w-4xl mx-auto">
+          {/* Page Header */}
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-grey-dark dark:text-gray-200">
               About WorkVouch
             </h1>
-            <p className="text-lg text-grey-medium dark:text-gray-400">
+            <p className="text-lg text-grey-medium dark:text-gray-400 mt-4">
               Building the world's first peer-verified career network
             </p>
           </div>
 
-          <div className="space-y-8">
+          {/* Content Sections */}
+          <div className="flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
             <Card className="p-8">
               <h2 className="text-2xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
                 Our Mission

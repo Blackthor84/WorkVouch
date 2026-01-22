@@ -13,16 +13,22 @@ export default async function MessagesPage() {
   return (
     <>
       <NavbarServer />
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
-            Messages
-          </h1>
-          <p className="text-grey-medium dark:text-gray-400 mt-1">
-            Your conversations and notifications
-          </p>
+      <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-background dark:bg-[#0D1117]">
+        <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
+          {/* Page Header */}
+          <div>
+            <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
+              Messages
+            </h1>
+            <p className="text-grey-medium dark:text-gray-400 mt-1">
+              Your conversations and notifications
+            </p>
+          </div>
+          {/* Messages Content */}
+          <div>
+            <UserMessages />
+          </div>
         </div>
-        <UserMessages />
       </main>
     </>
   )

@@ -29,30 +29,34 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <h1 className="text-3xl font-bold mb-6">Sign In</h1>
-      <form onSubmit={handleSignIn} className="flex flex-col gap-4 w-full max-w-sm">
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="border rounded p-2"
-        />
-        <input
-          type="password"
-          placeholder="Enter your password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="border rounded p-2"
-        />
-        <button type="submit" className="bg-blue-600 text-white rounded p-2">
-          Sign In
-        </button>
-      </form>
-      {message && <p className="mt-4 text-center">{message}</p>}
+    <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 md:py-12 lg:py-16">
+      <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20 max-w-sm">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold">Sign In</h1>
+        </div>
+        <form onSubmit={handleSignIn} className="flex flex-col gap-4 w-full">
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="border rounded p-2"
+          />
+          <input
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="border rounded p-2"
+          />
+          <button type="submit" className="bg-blue-600 text-white rounded p-2">
+            Sign In
+          </button>
+        </form>
+        {message && <p className="text-center">{message}</p>}
+      </div>
     </div>
   );
 }

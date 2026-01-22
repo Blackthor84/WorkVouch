@@ -20,17 +20,21 @@ export default async function JobsPage() {
   return (
     <>
       <NavbarServer />
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">
-            Job Opportunities
-          </h1>
-          <p className="text-grey-medium dark:text-gray-400">
-            Browse verified job postings from employers in law enforcement, security, hospitality, retail, and warehousing
-          </p>
-        </div>
+      <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-background dark:bg-[#0D1117]">
+        <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
+          {/* Page Header */}
+          <div>
+            <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
+              Job Opportunities
+            </h1>
+            <p className="text-grey-medium dark:text-gray-400 mt-1">
+              Browse verified job postings from employers in law enforcement, security, hospitality, retail, and warehousing
+            </p>
+          </div>
 
-        {postings.length === 0 ? (
+          {/* Job Listings */}
+          <div>
+            {postings.length === 0 ? (
           <Card className="p-12 text-center">
             <BriefcaseIcon className="h-12 w-12 text-grey-medium dark:text-gray-400 mx-auto mb-4" />
             <p className="text-grey-medium dark:text-gray-400">
@@ -88,7 +92,9 @@ export default async function JobsPage() {
               </Card>
             ))}
           </div>
-        )}
+            )}
+          </div>
+        </div>
       </main>
     </>
   )

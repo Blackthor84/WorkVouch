@@ -44,12 +44,14 @@ export default async function EmployerDashboardPage() {
       <EmployerSidebar />
       <div className="flex-1 flex flex-col">
         <EmployerHeader />
-        <main className="flex-1 p-6">
-          <EmployerDashboardClient 
-            userRole={userRole} 
-            planTier={planTier}
-            employerId={employerId}
-          />
+        <main className="flex-1 flex flex-col px-6 py-8 md:py-12 lg:py-16">
+          <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
+            <EmployerDashboardClient 
+              userRole={userRole} 
+              planTier={planTier}
+              employerId={employerId}
+            />
+          </div>
         </main>
       </div>
     </div>
