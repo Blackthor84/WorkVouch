@@ -39,7 +39,7 @@ export function Logo({ className = '', showText = false, size = 'xl' }: LogoProp
       <Link href="/" className={`flex items-center ${className}`}>
         <div className={`relative ${sizeClasses[size]} flex-shrink-0`}>
           <Image
-            src="/logo.png?v=3"
+            src="/logo.png?v=4"
             alt="WorkVouch Logo"
             width={dims.width}
             height={dims.height}
@@ -62,7 +62,7 @@ export function Logo({ className = '', showText = false, size = 'xl' }: LogoProp
     <Link href="/" className={`flex items-center gap-3 ${className}`}>
       <div className={`relative ${sizeClasses[size]} flex-shrink-0`}>
         <Image
-          src="/logo.png?v=2"
+          src="/logo.png?v=4"
           alt="WorkVouch Logo"
           fill
           className="object-contain"
