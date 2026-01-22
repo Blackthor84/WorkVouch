@@ -13,6 +13,10 @@ import {
   DocumentArrowUpIcon,
 } from "@heroicons/react/24/outline";
 
+// Ensure runtime rendering - prevents build-time prerendering
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
+
 export default async function UserDashboardPage() {
   const user = await getCurrentUser();
 

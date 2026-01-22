@@ -3,8 +3,8 @@ import { cookies } from 'next/headers'
 import type { Database } from './types'
 
 // Function to create Supabase client per request - runtime only, no top-level await
+// In Next.js 16, cookies() is async and must be awaited
 export const getSupabaseClient = async () => {
-  // In Next.js 16, cookies() is async and must be awaited
   const cookieStore = await cookies()
 
   return createSupabaseSSRClient<Database>(

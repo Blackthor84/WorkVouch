@@ -10,6 +10,10 @@ import { JobsSection } from "@/components/jobs-section";
 import { BriefcaseIcon, StarIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 
+// Ensure runtime rendering - prevents build-time prerendering
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
+
 export default async function ProfilePage() {
   const user = await getCurrentUser();
 

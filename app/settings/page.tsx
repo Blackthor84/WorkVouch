@@ -4,6 +4,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserSettings } from "@/components/settings/user-settings";
 
+// Ensure runtime rendering - prevents build-time prerendering
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
+
 export default async function SettingsPage() {
   const user = await getCurrentUser();
 

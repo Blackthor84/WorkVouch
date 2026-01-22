@@ -2,6 +2,10 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { UserMessages } from "@/components/messages/user-messages";
 
+// Ensure runtime rendering - prevents build-time prerendering
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
+
 export default async function MessagesPage() {
   const user = await getCurrentUser();
 

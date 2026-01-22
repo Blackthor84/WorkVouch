@@ -9,6 +9,10 @@ import { JobList } from "@/components/workvouch/job-list";
 import { AddJobButton } from "@/components/workvouch/add-job-button";
 import { BriefcaseIcon } from "@heroicons/react/24/outline";
 
+// Ensure runtime rendering - prevents build-time prerendering
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
+
 export default async function MyJobsPage() {
   const user = await getCurrentUser();
 
