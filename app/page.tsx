@@ -67,8 +67,8 @@ export default function HomePage() {
       {/* Hero Section */}
       <main className="flex-1 flex flex-col justify-between container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center relative w-full flex flex-col items-center space-y-12 md:space-y-16 lg:space-y-20">
-          {/* Spacer between navbar and hero logo - 2 inches = 192px */}
-          <div className="h-[192px]"></div>
+          {/* Spacer between navbar and hero logo - EXACT 2 inches */}
+          <div style={{ height: '2in' }}></div>
           
           {/* Hero Logo - 8x bigger, transparent background, no padding */}
           <div className="flex justify-center m-0 p-0">
@@ -85,6 +85,9 @@ export default function HomePage() {
               />
             </div>
           </div>
+          
+          {/* Spacer between hero logo and text - EXACT 1 inch */}
+          <div style={{ height: '1in' }}></div>
           
           {/* Main Heading */}
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent animate-gradient relative z-10">
