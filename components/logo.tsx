@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 interface LogoProps {
   className?: string;
@@ -13,22 +14,34 @@ export function Logo({
   showText = false,
   size = "xl",
 }: LogoProps) {
-  const textSizes = {
-    sm: "text-xl",
-    md: "text-2xl",
-    lg: "text-3xl",
-    xl: "text-4xl",
-    "2xl": "text-5xl",
-    hero: "text-6xl",
+  const sizeClasses = {
+    sm: "h-8 w-auto",
+    md: "h-10 w-auto",
+    lg: "h-12 w-auto",
+    xl: "h-40 w-auto max-w-[560px]",
+    "2xl": "h-32 w-auto max-w-[400px]",
+    hero: "h-[1152px] w-auto max-w-[16128px]",
   };
 
   return (
     <Link href="/" className={`flex items-center ${className}`}>
-      <span
-        className={`font-bold ${textSizes[size]} bg-gradient-to-br from-blue-600 to-green-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-green-400`}
-      >
-        WorkVouch
-      </span>
+      <div className={`relative ${sizeClasses[size]} flex-shrink-0`}>
+        <Image
+          src="/logo.png"
+          alt="WorkVouch Logo"
+          width={size === "hero" ? 16128 : size === "xl" ? 560 : 400}
+          height={size === "hero" ? 4608 : size === "xl" ? 160 : 120}
+          className="h-full w-auto object-contain"
+          priority
+          unoptimized
+          style={{ backgroundColor: "transparent" }}
+        />
+      </div>
+      {showText && (
+        <span className="ml-3 text-2xl font-bold bg-gradient-to-br from-blue-600 to-green-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-green-400">
+          WorkVouch
+        </span>
+      )}
     </Link>
   );
 }

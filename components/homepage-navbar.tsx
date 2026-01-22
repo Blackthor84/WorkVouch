@@ -1,15 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 export function HomepageNavbar() {
   return (
     <nav className="container mx-auto px-4 py-4 md:py-6 lg:py-8 flex justify-between items-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="flex items-center space-x-2">
         <Link href="/" className="flex items-center m-0 p-0">
-          <span className="text-2xl font-bold bg-gradient-to-br from-blue-600 to-green-500 bg-clip-text text-transparent">
-            WorkVouch
-          </span>
+          <div className="relative h-40 w-auto max-w-[560px] m-0 p-0">
+            <Image
+              src="/logo.png"
+              alt="WorkVouch Logo"
+              width={560}
+              height={160}
+              className="h-full w-auto object-contain m-0 p-0"
+              style={{ backgroundColor: "transparent", margin: 0, padding: 0 }}
+              priority
+              unoptimized
+            />
+          </div>
         </Link>
       </div>
       <div className="hidden md:flex items-center space-x-6">

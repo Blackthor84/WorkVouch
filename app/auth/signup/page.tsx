@@ -1,26 +1,59 @@
 "use client"; // ensures this page runs on the client only
 
 import { useState } from "react";
-import { supabaseClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function SignUpPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
+    setLoading(true);
 
-    const { data, error } = await supabaseClient.auth.signUp({
-      email,
-      password,
-    });
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
 
-    if (error) {
-      setMessage(`Error: ${error.message}`);
-    } else {
-      setMessage("Check your email to confirm your account!");
+      if (error) {
+        setMessage(`Error: ${error.message}`);
+        setLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        // Check if email confirmation is required
+        if (data.session) {
+          // User is immediately signed in (email confirmation disabled)
+          setMessage("Account created successfully! Redirecting...");
+          setTimeout(() => {
+            router.push("/dashboard");
+            router.refresh();
+          }, 500);
+        } else {
+          // Email confirmation required
+          setMessage("Check your email to confirm your account!");
+          setLoading(false);
+        }
+      } else {
+        setMessage("Error: Account creation failed. Please try again.");
+        setLoading(false);
+      }
+    } catch (err: any) {
+      console.error("Sign up error:", err);
+      setMessage(`Error: ${err.message || "An unexpected error occurred"}`);
+      setLoading(false);
     }
   };
 
@@ -50,7 +83,8 @@ export default function SignUpPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+              disabled={loading}
+              className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all disabled:opacity-50"
             />
           </div>
           <div>
@@ -67,14 +101,16 @@ export default function SignUpPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+              disabled={loading}
+              className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all disabled:opacity-50"
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-green-600 text-white rounded-xl px-4 py-3 font-semibold hover:bg-green-700 transition-all"
+            disabled={loading}
+            className="w-full bg-green-600 text-white rounded-xl px-4 py-3 font-semibold hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign Up
+            {loading ? "Creating account..." : "Sign Up"}
           </button>
         </form>
         {message && (
