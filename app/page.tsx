@@ -9,16 +9,13 @@ export const revalidate = false;
 export default function HomePage() {
   return (
     <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen">
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto text-center relative w-full flex flex-col items-center">
-          {/* Spacer between navbar and hero section */}
-          <div className="pt-[2in]"></div>
-
+      <div className="container mx-auto px-4 py-8 md:py-12 lg:py-16">
+        <div className="max-w-4xl mx-auto text-center relative w-full flex flex-col items-center space-y-12 md:space-y-16 lg:space-y-20">
           {/* Hero Section Component */}
           <HeroSection />
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-[1.5in]">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               href="/auth/signup"
               className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2"
@@ -35,7 +32,7 @@ export default function HomePage() {
           </div>
 
           {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-8 mt-[1.5in]">
+          <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow border border-gray-100">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
                 <CheckCircleIcon className="w-6 h-6 text-blue-600" />
@@ -73,7 +70,7 @@ export default function HomePage() {
           </div>
 
           {/* Secondary CTA */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 md:p-12 text-white mt-[1.5in]">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 md:p-12 text-white">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">
               Ready to Get Started?
             </h2>
@@ -90,7 +87,7 @@ export default function HomePage() {
           </div>
 
           {/* Quick Links */}
-          <div className="flex flex-wrap justify-center gap-6 text-gray-600 mt-[1.5in]">
+          <div className="flex flex-wrap justify-center gap-6 text-gray-600">
             <Link
               href="/dashboard"
               className="hover:text-blue-600 transition-colors font-medium"
