@@ -365,3 +365,17 @@ PS C:\Users\ajaye\.cursor>
 ✓ Starting...
 ✓ Ready in 870ms
  GET / 200 in 550ms (compile: 168ms, proxy.ts: 124ms, render: 257ms)
+PS C:\Users\ajaye\.cursor> 
+                           npm run dev
+
+> workvouch@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.138:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 967ms
+ GET / 200 in 496ms (compile: 152ms, proxy.ts: 143ms, render: 202ms)
