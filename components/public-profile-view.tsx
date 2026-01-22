@@ -1,51 +1,51 @@
 interface PublicProfileData {
   profile: {
-    id: string
-    full_name: string
-    email: string
-    city: string | null
-    state: string | null
-    professional_summary: string | null
-    profile_photo_url: string | null
-  }
+    id: string;
+    full_name: string;
+    email: string;
+    city: string | null;
+    state: string | null;
+    professional_summary: string | null;
+    profile_photo_url: string | null;
+  };
   jobs: Array<{
-    id: string
-    company_name: string
-    job_title: string
-    employment_type: string
-    start_date: string
-    end_date: string | null
-    is_current: boolean
-    location: string | null
-  }>
+    id: string;
+    company_name: string;
+    job_title: string;
+    employment_type: string;
+    start_date: string;
+    end_date: string | null;
+    is_current: boolean;
+    location: string | null;
+  }>;
   references: Array<{
-    id: string
-    relationship_type: string
-    rating: number
-    written_feedback: string | null
+    id: string;
+    relationship_type: string;
+    rating: number;
+    written_feedback: string | null;
     from_user: {
-      id: string
-      full_name: string
-      profile_photo_url: string | null
-    } | null
+      id: string;
+      full_name: string;
+      profile_photo_url: string | null;
+    } | null;
     job: {
-      id: string
-      company_name: string
-      job_title: string
-    } | null
-  }>
+      id: string;
+      company_name: string;
+      job_title: string;
+    } | null;
+  }>;
   trust_score: {
-    score: number
-    job_count: number
-    reference_count: number
-    average_rating: number | null
-  } | null
+    score: number;
+    job_count: number;
+    reference_count: number;
+    average_rating: number | null;
+  } | null;
 }
 
 export function PublicProfileView({
   profileData,
 }: {
-  profileData: PublicProfileData
+  profileData: PublicProfileData;
 }) {
   return (
     <div className="space-y-6">
@@ -58,7 +58,7 @@ export function PublicProfileView({
           <p className="text-grey-600">
             {[profileData.profile.city, profileData.profile.state]
               .filter(Boolean)
-              .join(', ')}
+              .join(", ")}
           </p>
         )}
         {profileData.profile.professional_summary && (
@@ -72,10 +72,14 @@ export function PublicProfileView({
               Trust Score: {profileData.trust_score.score.toFixed(1)}/100
             </div>
             <div className="mt-2 text-sm text-grey-600">
-              {profileData.trust_score.job_count} jobs •{' '}
+              {profileData.trust_score.job_count} jobs •{" "}
               {profileData.trust_score.reference_count} references
               {profileData.trust_score.average_rating && (
-                <> • Avg Rating: {profileData.trust_score.average_rating.toFixed(1)}/5.0</>
+                <>
+                  {" "}
+                  • Avg Rating:{" "}
+                  {profileData.trust_score.average_rating.toFixed(1)}/5.0
+                </>
               )}
             </div>
           </div>
@@ -93,12 +97,12 @@ export function PublicProfileView({
                 {job.job_title} at {job.company_name}
               </h3>
               <p className="text-sm text-grey-600">
-                {new Date(job.start_date).toLocaleDateString()} -{' '}
+                {new Date(job.start_date).toLocaleDateString()} -{" "}
                 {job.is_current
-                  ? 'Present'
+                  ? "Present"
                   : job.end_date
-                  ? new Date(job.end_date).toLocaleDateString()
-                  : 'N/A'}
+                    ? new Date(job.end_date).toLocaleDateString()
+                    : "N/A"}
               </p>
               {job.location && (
                 <p className="text-sm text-grey-600">{job.location}</p>
@@ -118,7 +122,7 @@ export function PublicProfileView({
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-semibold text-grey-900">
-                    {ref.from_user?.full_name || 'Anonymous'}
+                    {ref.from_user?.full_name || "Anonymous"}
                   </h3>
                   {ref.job && (
                     <p className="text-sm text-grey-600">
@@ -126,13 +130,11 @@ export function PublicProfileView({
                     </p>
                   )}
                   <p className="text-sm text-grey-600">
-                    Relationship: {ref.relationship_type} • Rating:{' '}
-                    {ref.rating}/5
+                    Relationship: {ref.relationship_type} • Rating: {ref.rating}
+                    /5
                   </p>
                   {ref.written_feedback && (
-                    <p className="mt-2 text-grey-700">
-                      {ref.written_feedback}
-                    </p>
+                    <p className="mt-2 text-grey-700">{ref.written_feedback}</p>
                   )}
                 </div>
               </div>
@@ -141,6 +143,5 @@ export function PublicProfileView({
         </div>
       </div>
     </div>
-  )
+  );
 }
-

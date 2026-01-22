@@ -1,79 +1,81 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { searchUsers, getPublicProfile } from '@/lib/actions/employer'
-import { hasPurchasedReport } from '@/lib/actions/employer-purchases'
-import Link from 'next/link'
-import { Button } from './ui/button'
+import { useState, useEffect } from "react";
+import { searchUsers, getPublicProfile } from "@/lib/actions/employer";
+import { hasPurchasedReport } from "@/lib/actions/employer-purchases";
+import Link from "next/link";
+import { Button } from "./ui/button";
 
 interface Profile {
-  id: string
-  full_name: string
-  email: string
-  city: string | null
-  state: string | null
-  professional_summary: string | null
-  profile_photo_url: string | null
+  id: string;
+  full_name: string;
+  email: string;
+  city: string | null;
+  state: string | null;
+  professional_summary: string | null;
+  profile_photo_url: string | null;
 }
 
 export function EmployerSearchForm() {
-  const [loading, setLoading] = useState(false)
-  const [purchasing, setPurchasing] = useState<string | null>(null)
-  const [results, setResults] = useState<Profile[]>([])
-  const [purchaseStatus, setPurchaseStatus] = useState<Record<string, boolean>>({})
+  const [loading, setLoading] = useState(false);
+  const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [results, setResults] = useState<Profile[]>([]);
+  const [purchaseStatus, setPurchaseStatus] = useState<Record<string, boolean>>(
+    {},
+  );
   const [searchQuery, setSearchQuery] = useState({
-    name: '',
-    city: '',
-    state: '',
-  })
+    name: "",
+    city: "",
+    state: "",
+  });
 
   const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      const users = await searchUsers(searchQuery)
-      setResults(users as Profile[])
-      
+      const users = await searchUsers(searchQuery);
+      setResults(users as Profile[]);
+
       // Check purchase status for all results
-      const statuses: Record<string, boolean> = {}
-      for (const user of (users as any[])) {
+      const statuses: Record<string, boolean> = {};
+      for (const user of users as any[]) {
         try {
-          statuses[user.id] = await hasPurchasedReport(user.id)
+          statuses[user.id] = await hasPurchasedReport(user.id);
         } catch {
-          statuses[user.id] = false
+          statuses[user.id] = false;
         }
       }
-      setPurchaseStatus(statuses)
+      setPurchaseStatus(statuses);
     } catch (error: any) {
-      alert(error.message)
+      alert(error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handlePurchase = async (candidateId: string) => {
-    setPurchasing(candidateId)
+    setPurchasing(candidateId);
     try {
-      const response = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ candidateId }),
-      })
-      
-      const data = await response.json()
-      
+      });
+
+      const data = await response.json();
+
       if (data.url) {
-        window.location.href = data.url
+        window.location.href = data.url;
       } else {
-        alert(data.error || 'Failed to create checkout session')
+        alert(data.error || "Failed to create checkout session");
       }
     } catch (error: any) {
-      alert(error.message || 'Failed to initiate purchase')
+      alert(error.message || "Failed to initiate purchase");
     } finally {
-      setPurchasing(null)
+      setPurchasing(null);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -128,7 +130,7 @@ export function EmployerSearchForm() {
             disabled={loading}
             className="rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 px-6 py-2.5 text-white font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50"
           >
-            {loading ? 'Searching...' : 'Search'}
+            {loading ? "Searching..." : "Search"}
           </button>
         </form>
       </div>
@@ -148,12 +150,12 @@ export function EmployerSearchForm() {
                   <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200">
                     {profile.full_name}
                   </h3>
-                  <p className="text-sm text-grey-medium dark:text-gray-400">{profile.email}</p>
+                  <p className="text-sm text-grey-medium dark:text-gray-400">
+                    {profile.email}
+                  </p>
                   {(profile.city || profile.state) && (
                     <p className="text-sm text-grey-medium dark:text-gray-400">
-                      {[profile.city, profile.state]
-                        .filter(Boolean)
-                        .join(', ')}
+                      {[profile.city, profile.state].filter(Boolean).join(", ")}
                     </p>
                   )}
                   {profile.professional_summary && (
@@ -171,10 +173,7 @@ export function EmployerSearchForm() {
                     View Profile
                   </Button>
                   {purchaseStatus[profile.id] ? (
-                    <Button
-                      size="sm"
-                      href={`/employer/reports/${profile.id}`}
-                    >
+                    <Button size="sm" href={`/employer/reports/${profile.id}`}>
                       View Report
                     </Button>
                   ) : (
@@ -184,13 +183,11 @@ export function EmployerSearchForm() {
                         onClick={() => handlePurchase(profile.id)}
                         disabled={purchasing === profile.id}
                       >
-                        {purchasing === profile.id ? 'Processing...' : 'Purchase Report ($7.99)'}
+                        {purchasing === profile.id
+                          ? "Processing..."
+                          : "Purchase Report ($7.99)"}
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        href="/pricing"
-                      >
+                      <Button variant="ghost" size="sm" href="/pricing">
                         Subscribe
                       </Button>
                     </>
@@ -202,6 +199,5 @@ export function EmployerSearchForm() {
         </div>
       )}
     </div>
-  )
+  );
 }
-

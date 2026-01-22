@@ -1,95 +1,101 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function HealthcareJobClient() {
-  const router = useRouter()
-  const supabase = createClient()
-  const [jobTitle, setJobTitle] = useState('')
-  const [employer, setEmployer] = useState('')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [currentJob, setCurrentJob] = useState(false)
-  const [employmentType, setEmploymentType] = useState('')
-  const [certifications, setCertifications] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const router = useRouter();
+  const supabase = createClient();
+  const [jobTitle, setJobTitle] = useState("");
+  const [employer, setEmployer] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [currentJob, setCurrentJob] = useState(false);
+  const [employmentType, setEmploymentType] = useState("");
+  const [certifications, setCertifications] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     async function checkUser() {
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
+
       if (!currentUser) {
-        router.push('/auth/signin')
-        return
+        router.push("/auth/signin");
+        return;
       }
 
-      setUser(currentUser)
+      setUser(currentUser);
     }
 
-    checkUser()
-  }, [router, supabase])
+    checkUser();
+  }, [router, supabase]);
 
   const handleNext = async () => {
     if (!jobTitle || !employer || !startDate || !employmentType) {
-      alert('Please fill in all required fields')
-      return
+      alert("Please fill in all required fields");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
       // Parse certifications (comma-separated)
       const certificationsArray = certifications
-        ? certifications.split(',').map((c) => c.trim()).filter((c) => c.length > 0)
-        : []
+        ? certifications
+            .split(",")
+            .map((c) => c.trim())
+            .filter((c) => c.length > 0)
+        : [];
 
       // Insert job
-      const supabaseAny = supabase as any
-      const { error: jobError } = await supabaseAny
-        .from('jobs')
-        .insert([{
+      const supabaseAny = supabase as any;
+      const { error: jobError } = await supabaseAny.from("jobs").insert([
+        {
           user_id: user.id,
           company_name: employer,
           job_title: jobTitle,
           start_date: startDate,
-          end_date: currentJob ? null : (endDate || null),
+          end_date: currentJob ? null : endDate || null,
           is_current: currentJob,
           employment_type: employmentType as any,
-          industry: 'healthcare',
-          certifications: certificationsArray.length > 0 ? certificationsArray : null,
+          industry: "healthcare",
+          certifications:
+            certificationsArray.length > 0 ? certificationsArray : null,
           work_setting: null,
           is_visible_to_employer: false,
-          verification_status: 'unverified'
-        }])
+          verification_status: "unverified",
+        },
+      ]);
 
       if (jobError) {
-        console.error('Error saving job:', jobError)
-        alert('Error saving job. Please try again.')
-        setLoading(false)
-        return
+        console.error("Error saving job:", jobError);
+        alert("Error saving job. Please try again.");
+        setLoading(false);
+        return;
       }
 
-      router.push('/onboarding/healthcare/coworkers')
+      router.push("/onboarding/healthcare/coworkers");
     } catch (err: any) {
-      console.error('Error:', err)
-      alert('An error occurred. Please try again.')
-      setLoading(false)
+      console.error("Error:", err);
+      alert("An error occurred. Please try again.");
+      setLoading(false);
     }
-  }
+  };
 
   if (!user) {
     return (
       <div className="text-center">
         <p className="text-grey-medium dark:text-gray-400">Loading...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -181,7 +187,9 @@ export function HealthcareJobClient() {
         </div>
 
         <div>
-          <Label htmlFor="certifications">Certifications (comma-separated)</Label>
+          <Label htmlFor="certifications">
+            Certifications (comma-separated)
+          </Label>
           <Input
             id="certifications"
             type="text"
@@ -197,11 +205,13 @@ export function HealthcareJobClient() {
 
       <Button
         onClick={handleNext}
-        disabled={loading || !jobTitle || !employer || !startDate || !employmentType}
+        disabled={
+          loading || !jobTitle || !employer || !startDate || !employmentType
+        }
         className="w-full"
       >
-        {loading ? 'Saving...' : 'Next'}
+        {loading ? "Saving..." : "Next"}
       </Button>
     </Card>
-  )
+  );
 }

@@ -1,9 +1,9 @@
-import { NavbarServer } from '@/components/navbar-server'
-import { HealthcareSettingClient } from './healthcare-setting-client'
+import { NavbarServer } from "@/components/navbar-server";
+import { HealthcareSettingClient } from "./healthcare-setting-client";
 
 // Mark as dynamic to prevent build-time prerendering
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export default function HealthcareSettingStep() {
   return (
@@ -15,5 +15,5 @@ export default function HealthcareSettingStep() {
         </div>
       </main>
     </>
-  )
+  );
 }

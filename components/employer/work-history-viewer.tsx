@@ -1,19 +1,24 @@
-'use client'
+"use client";
 
-import { Card } from '../ui/card'
-import { CheckBadgeIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { Card } from "../ui/card";
+import {
+  CheckBadgeIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
 
 interface WorkHistoryViewerProps {
-  jobs: any[]
+  jobs: any[];
 }
 
 export function WorkHistoryViewer({ jobs }: WorkHistoryViewerProps) {
   // Normalize jobs: convert string | null to string
-  const safeJobs = jobs ? jobs.map((job: any) => ({
-    ...job,
-    company_name: job.company_name ?? "",
-    job_title: job.job_title ?? "",
-  })) : []
+  const safeJobs = jobs
+    ? jobs.map((job: any) => ({
+        ...job,
+        company_name: job.company_name ?? "",
+        job_title: job.job_title ?? "",
+      }))
+    : [];
 
   if (safeJobs.length === 0) {
     return (
@@ -25,7 +30,7 @@ export function WorkHistoryViewer({ jobs }: WorkHistoryViewerProps) {
           No work history available.
         </p>
       </Card>
-    )
+    );
   }
 
   return (
@@ -35,8 +40,9 @@ export function WorkHistoryViewer({ jobs }: WorkHistoryViewerProps) {
       </h2>
       <div className="space-y-4">
         {safeJobs.map((job) => {
-          const hasMatches = job.coworker_matches && job.coworker_matches.length > 0
-          const isVerified = hasMatches
+          const hasMatches =
+            job.coworker_matches && job.coworker_matches.length > 0;
+          const isVerified = hasMatches;
 
           return (
             <div
@@ -71,12 +77,15 @@ export function WorkHistoryViewer({ jobs }: WorkHistoryViewerProps) {
                 </div>
               </div>
               <div className="text-sm text-grey-medium dark:text-gray-400">
-                {new Date(job.start_date).toLocaleDateString()} -{' '}
-                {job.end_date ? new Date(job.end_date).toLocaleDateString() : 'Present'}
+                {new Date(job.start_date).toLocaleDateString()} -{" "}
+                {job.end_date
+                  ? new Date(job.end_date).toLocaleDateString()
+                  : "Present"}
               </div>
               {hasMatches && (
                 <div className="mt-2 text-sm text-grey-medium dark:text-gray-400">
-                  Matched with {job.coworker_matches.length} coworker{job.coworker_matches.length !== 1 ? 's' : ''}
+                  Matched with {job.coworker_matches.length} coworker
+                  {job.coworker_matches.length !== 1 ? "s" : ""}
                 </div>
               )}
               {job.description && (
@@ -85,9 +94,9 @@ export function WorkHistoryViewer({ jobs }: WorkHistoryViewerProps) {
                 </p>
               )}
             </div>
-          )
+          );
         })}
       </div>
     </Card>
-  )
+  );
 }

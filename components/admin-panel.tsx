@@ -1,56 +1,56 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { softDeleteReference } from '@/lib/actions/admin'
+import { useState } from "react";
+import { softDeleteReference } from "@/lib/actions/admin";
 
 interface User {
-  id: string
-  full_name: string
-  email: string
-  city: string | null
-  state: string | null
-  created_at: string
-  user_roles: Array<{ role: string }>
+  id: string;
+  full_name: string;
+  email: string;
+  city: string | null;
+  state: string | null;
+  created_at: string;
+  user_roles: Array<{ role: string }>;
   trust_scores: Array<{
-    score: number
-    job_count: number
-    reference_count: number
-  }> | null
+    score: number;
+    job_count: number;
+    reference_count: number;
+  }> | null;
 }
 
 interface Job {
-  id: string
-  company_name: string
-  job_title: string
-  created_at: string
+  id: string;
+  company_name: string;
+  job_title: string;
+  created_at: string;
   profiles: {
-    id: string
-    full_name: string
-    email: string
-  }
+    id: string;
+    full_name: string;
+    email: string;
+  };
 }
 
 interface Reference {
-  id: string
-  rating: number
-  written_feedback: string | null
-  is_deleted: boolean
-  created_at: string
+  id: string;
+  rating: number;
+  written_feedback: string | null;
+  is_deleted: boolean;
+  created_at: string;
   from_user: {
-    id: string
-    full_name: string
-    email: string
-  }
+    id: string;
+    full_name: string;
+    email: string;
+  };
   to_user: {
-    id: string
-    full_name: string
-    email: string
-  }
+    id: string;
+    full_name: string;
+    email: string;
+  };
   job: {
-    id: string
-    company_name: string
-    job_title: string
-  } | null
+    id: string;
+    company_name: string;
+    job_title: string;
+  } | null;
 }
 
 export function AdminPanel({
@@ -58,61 +58,61 @@ export function AdminPanel({
   jobs,
   references,
 }: {
-  users: User[]
-  jobs: Job[]
-  references: Reference[]
+  users: User[];
+  jobs: Job[];
+  references: Reference[];
 }) {
-  const [activeTab, setActiveTab] = useState<'users' | 'jobs' | 'references'>(
-    'users'
-  )
-  const [deleting, setDeleting] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<"users" | "jobs" | "references">(
+    "users",
+  );
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const handleDeleteReference = async (refId: string) => {
-    if (!confirm('Are you sure you want to soft-delete this reference?'))
-      return
+    if (!confirm("Are you sure you want to soft-delete this reference?"))
+      return;
 
-    setDeleting(refId)
+    setDeleting(refId);
     try {
-      await softDeleteReference(refId)
-      alert('Reference deleted successfully')
-      window.location.reload()
+      await softDeleteReference(refId);
+      alert("Reference deleted successfully");
+      window.location.reload();
     } catch (error: any) {
-      alert(error.message)
+      alert(error.message);
     } finally {
-      setDeleting(null)
+      setDeleting(null);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
       <div className="border-b border-grey-background dark:border-[#374151]">
         <nav className="-mb-px flex space-x-8">
           <button
-            onClick={() => setActiveTab('users')}
+            onClick={() => setActiveTab("users")}
             className={`border-b-2 px-1 py-4 text-sm font-medium transition-colors ${
-              activeTab === 'users'
-                ? 'border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-grey-medium dark:text-gray-400 hover:border-grey-light dark:hover:border-[#374151] hover:text-grey-dark dark:hover:text-gray-300'
+              activeTab === "users"
+                ? "border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-grey-medium dark:text-gray-400 hover:border-grey-light dark:hover:border-[#374151] hover:text-grey-dark dark:hover:text-gray-300"
             }`}
           >
             Users ({users.length})
           </button>
           <button
-            onClick={() => setActiveTab('jobs')}
+            onClick={() => setActiveTab("jobs")}
             className={`border-b-2 px-1 py-4 text-sm font-medium transition-colors ${
-              activeTab === 'jobs'
-                ? 'border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-grey-medium dark:text-gray-400 hover:border-grey-light dark:hover:border-[#374151] hover:text-grey-dark dark:hover:text-gray-300'
+              activeTab === "jobs"
+                ? "border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-grey-medium dark:text-gray-400 hover:border-grey-light dark:hover:border-[#374151] hover:text-grey-dark dark:hover:text-gray-300"
             }`}
           >
             Jobs ({jobs.length})
           </button>
           <button
-            onClick={() => setActiveTab('references')}
+            onClick={() => setActiveTab("references")}
             className={`border-b-2 px-1 py-4 text-sm font-medium transition-colors ${
-              activeTab === 'references'
-                ? 'border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-grey-medium dark:text-gray-400 hover:border-grey-light dark:hover:border-[#374151] hover:text-grey-dark dark:hover:text-gray-300'
+              activeTab === "references"
+                ? "border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-grey-medium dark:text-gray-400 hover:border-grey-light dark:hover:border-[#374151] hover:text-grey-dark dark:hover:text-gray-300"
             }`}
           >
             References ({references.length})
@@ -120,7 +120,7 @@ export function AdminPanel({
         </nav>
       </div>
 
-      {activeTab === 'users' && (
+      {activeTab === "users" && (
         <div className="rounded-2xl bg-white dark:bg-[#1A1F2B] shadow-md border border-grey-background dark:border-[#374151]">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-grey-background dark:divide-[#374151]">
@@ -145,7 +145,10 @@ export function AdminPanel({
               </thead>
               <tbody className="divide-y divide-grey-background dark:divide-[#374151] bg-white dark:bg-[#1A1F2B]">
                 {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-grey-background dark:hover:bg-[#111827]">
+                  <tr
+                    key={user.id}
+                    className="hover:bg-grey-background dark:hover:bg-[#111827]"
+                  >
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-grey-dark dark:text-gray-200">
                       {user.full_name}
                     </td>
@@ -153,14 +156,14 @@ export function AdminPanel({
                       {user.email}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-grey-medium dark:text-gray-400">
-                      {[user.city, user.state].filter(Boolean).join(', ') ||
-                        'N/A'}
+                      {[user.city, user.state].filter(Boolean).join(", ") ||
+                        "N/A"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-grey-medium dark:text-gray-400">
-                      {user.user_roles.map((r) => r.role).join(', ')}
+                      {user.user_roles.map((r) => r.role).join(", ")}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-grey-medium dark:text-gray-400">
-                      {user.trust_scores?.[0]?.score.toFixed(1) || 'N/A'}
+                      {user.trust_scores?.[0]?.score.toFixed(1) || "N/A"}
                     </td>
                   </tr>
                 ))}
@@ -170,7 +173,7 @@ export function AdminPanel({
         </div>
       )}
 
-      {activeTab === 'jobs' && (
+      {activeTab === "jobs" && (
         <div className="rounded-2xl bg-white dark:bg-[#1A1F2B] shadow-md border border-grey-background dark:border-[#374151]">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-grey-background dark:divide-[#374151]">
@@ -192,7 +195,10 @@ export function AdminPanel({
               </thead>
               <tbody className="divide-y divide-grey-background dark:divide-[#374151] bg-white dark:bg-[#1A1F2B]">
                 {jobs.map((job) => (
-                  <tr key={job.id} className="hover:bg-grey-background dark:hover:bg-[#111827]">
+                  <tr
+                    key={job.id}
+                    className="hover:bg-grey-background dark:hover:bg-[#111827]"
+                  >
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-grey-dark dark:text-gray-200">
                       {job.profiles.full_name}
                     </td>
@@ -213,7 +219,7 @@ export function AdminPanel({
         </div>
       )}
 
-      {activeTab === 'references' && (
+      {activeTab === "references" && (
         <div className="rounded-2xl bg-white dark:bg-[#1A1F2B] shadow-md border border-grey-background dark:border-[#374151]">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-grey-background dark:divide-[#374151]">
@@ -241,7 +247,10 @@ export function AdminPanel({
               </thead>
               <tbody className="divide-y divide-grey-background dark:divide-[#374151] bg-white dark:bg-[#1A1F2B]">
                 {references.map((ref) => (
-                  <tr key={ref.id} className="hover:bg-grey-background dark:hover:bg-[#111827]">
+                  <tr
+                    key={ref.id}
+                    className="hover:bg-grey-background dark:hover:bg-[#111827]"
+                  >
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-grey-dark dark:text-gray-200">
                       {ref.from_user.full_name}
                     </td>
@@ -249,7 +258,7 @@ export function AdminPanel({
                       {ref.to_user.full_name}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-grey-medium dark:text-gray-400">
-                      {ref.job?.company_name || 'N/A'}
+                      {ref.job?.company_name || "N/A"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-grey-medium dark:text-gray-400">
                       {ref.rating}/5
@@ -272,7 +281,7 @@ export function AdminPanel({
                           disabled={deleting === ref.id}
                           className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 font-medium"
                         >
-                          {deleting === ref.id ? 'Deleting...' : 'Delete'}
+                          {deleting === ref.id ? "Deleting..." : "Delete"}
                         </button>
                       )}
                     </td>
@@ -284,6 +293,5 @@ export function AdminPanel({
         </div>
       )}
     </div>
-  )
+  );
 }
-

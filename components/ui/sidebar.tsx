@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   HomeIcon,
   BriefcaseIcon,
@@ -10,38 +10,42 @@ import {
   Cog6ToothIcon,
   ShieldCheckIcon,
   MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline'
-import { cn } from '@/lib/utils'
+} from "@heroicons/react/24/outline";
+import { cn } from "@/lib/utils";
 
 interface SidebarProps {
-  roles: string[]
+  roles: string[];
 }
 
 export function Sidebar({ roles }: SidebarProps) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-    { name: 'Job History', href: '/dashboard/jobs', icon: BriefcaseIcon },
-    { name: 'Connections', href: '/dashboard/connections', icon: UserGroupIcon },
-    { name: 'References', href: '/references/request', icon: DocumentTextIcon },
-    { name: 'Settings', href: '/dashboard/settings', icon: Cog6ToothIcon },
-  ]
+    { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
+    { name: "Job History", href: "/dashboard/jobs", icon: BriefcaseIcon },
+    {
+      name: "Connections",
+      href: "/dashboard/connections",
+      icon: UserGroupIcon,
+    },
+    { name: "References", href: "/references/request", icon: DocumentTextIcon },
+    { name: "Settings", href: "/dashboard/settings", icon: Cog6ToothIcon },
+  ];
 
-  if (roles.includes('employer')) {
+  if (roles.includes("employer")) {
     navigation.push({
-      name: 'Search',
-      href: '/employer/search',
+      name: "Search",
+      href: "/employer/search",
       icon: MagnifyingGlassIcon,
-    })
+    });
   }
 
-  if (roles.includes('admin')) {
+  if (roles.includes("admin")) {
     navigation.push({
-      name: 'Admin',
-      href: '/admin',
+      name: "Admin",
+      href: "/admin",
       icon: ShieldCheckIcon,
-    })
+    });
   }
 
   return (
@@ -55,30 +59,33 @@ export function Sidebar({ roles }: SidebarProps) {
       </div>
       <nav className="flex-1 space-y-1 px-3 py-4">
         {navigation.map((item) => {
-          const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
+          const isActive =
+            pathname === item.href || pathname?.startsWith(item.href + "/");
           return (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                'group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200',
+                "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
                 isActive
-                  ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-md'
-                  : 'text-grey-dark dark:text-gray-300 font-medium hover:bg-blue-50 dark:hover:bg-[#1A1F2B] hover:text-blue-600 dark:hover:text-blue-400'
+                  ? "bg-blue-600 dark:bg-blue-500 text-white shadow-md"
+                  : "text-grey-dark dark:text-gray-300 font-medium hover:bg-blue-50 dark:hover:bg-[#1A1F2B] hover:text-blue-600 dark:hover:text-blue-400",
               )}
             >
               <item.icon
                 className={cn(
-                  'h-5 w-5 transition-transform duration-200',
-                  isActive ? 'text-white' : 'text-grey-medium dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400',
-                  'group-hover:scale-110'
+                  "h-5 w-5 transition-transform duration-200",
+                  isActive
+                    ? "text-white"
+                    : "text-grey-medium dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400",
+                  "group-hover:scale-110",
                 )}
               />
               {item.name}
             </Link>
-          )
+          );
         })}
       </nav>
     </div>
-  )
+  );
 }

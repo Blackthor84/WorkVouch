@@ -1,21 +1,21 @@
-import { redirect } from 'next/navigation'
-import { isSuperAdmin } from '@/lib/auth'
-import { NavbarServer } from '@/components/navbar-server'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
+import { redirect } from "next/navigation";
+import { isSuperAdmin } from "@/lib/auth";
+import { NavbarServer } from "@/components/navbar-server";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   UserGroupIcon,
   ShieldCheckIcon,
   ChartBarIcon,
   Cog6ToothIcon,
-} from '@heroicons/react/24/outline'
+} from "@heroicons/react/24/outline";
 
 export default async function SuperAdminPage() {
-  const isSuper = await isSuperAdmin()
+  const isSuper = await isSuperAdmin();
 
   if (!isSuper) {
-    redirect('/admin')
+    redirect("/admin");
   }
 
   return (
@@ -98,11 +98,12 @@ export default async function SuperAdminPage() {
             Superadmin Access
           </h3>
           <p className="text-sm text-red-800 dark:text-red-300">
-            As a superadmin, you have full access to all features, screens, and data in the system. 
-            You can view all signups, manage users, access employer features, and perform all administrative functions.
+            As a superadmin, you have full access to all features, screens, and
+            data in the system. You can view all signups, manage users, access
+            employer features, and perform all administrative functions.
           </p>
         </div>
       </div>
     </>
-  )
+  );
 }

@@ -1,49 +1,49 @@
-import { redirect } from 'next/navigation'
-import { isAdmin, isSuperAdmin } from '@/lib/auth'
-import { NavbarServer } from '@/components/navbar-server'
-import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { Badge } from '@/components/ui/badge'
+import { redirect } from "next/navigation";
+import { isAdmin, isSuperAdmin } from "@/lib/auth";
+import { NavbarServer } from "@/components/navbar-server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 
 // Mark as dynamic
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export default async function AdminPanel() {
-  const admin = await isAdmin()
-  const superAdmin = await isSuperAdmin()
+  const admin = await isAdmin();
+  const superAdmin = await isSuperAdmin();
 
   if (!admin && !superAdmin) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
   // Get all users with their roles
-  const supabase = await createSupabaseServerClient()
-  const supabaseAny = supabase as any
+  const supabase = await createSupabaseServerClient();
+  const supabaseAny = supabase as any;
 
   // Get all profiles
   const { data: profiles } = await supabaseAny
-    .from('profiles')
-    .select('id, email, full_name, created_at')
-    .order('created_at', { ascending: false })
-    .limit(100) // Limit to recent 100 users for performance
+    .from("profiles")
+    .select("id, email, full_name, created_at")
+    .order("created_at", { ascending: false })
+    .limit(100); // Limit to recent 100 users for performance
 
   // Get all user roles
   const { data: userRoles } = await supabaseAny
-    .from('user_roles')
-    .select('user_id, role')
+    .from("user_roles")
+    .select("user_id, role");
 
   // Create a map of user_id -> roles
-  const rolesMap = new Map<string, string[]>()
+  const rolesMap = new Map<string, string[]>();
   if (userRoles) {
     for (const ur of userRoles as any[]) {
-      const userId = ur.user_id
+      const userId = ur.user_id;
       if (!rolesMap.has(userId)) {
-        rolesMap.set(userId, [])
+        rolesMap.set(userId, []);
       }
-      rolesMap.get(userId)!.push(ur.role)
+      rolesMap.get(userId)!.push(ur.role);
     }
   }
 
@@ -147,17 +147,17 @@ export default async function AdminPanel() {
               <tbody>
                 {profiles && profiles.length > 0 ? (
                   (profiles as any[]).map((profile) => {
-                    const roles = rolesMap.get(profile.id) || []
+                    const roles = rolesMap.get(profile.id) || [];
                     return (
                       <tr
                         key={profile.id}
                         className="border-b border-grey-background dark:border-[#374151] hover:bg-gray-50 dark:hover:bg-[#0D1117] transition-colors"
                       >
                         <td className="py-3 px-4 text-sm text-grey-dark dark:text-gray-200">
-                          {profile.email || 'N/A'}
+                          {profile.email || "N/A"}
                         </td>
                         <td className="py-3 px-4 text-sm text-grey-dark dark:text-gray-200">
-                          {profile.full_name || 'N/A'}
+                          {profile.full_name || "N/A"}
                         </td>
                         <td className="py-3 px-4 text-sm">
                           <div className="flex flex-wrap gap-1">
@@ -166,13 +166,13 @@ export default async function AdminPanel() {
                                 <Badge
                                   key={role}
                                   variant={
-                                    role === 'superadmin'
-                                      ? 'destructive'
-                                      : role === 'admin'
-                                      ? 'warning'
-                                      : role === 'employer'
-                                      ? 'info'
-                                      : 'default'
+                                    role === "superadmin"
+                                      ? "destructive"
+                                      : role === "admin"
+                                        ? "warning"
+                                        : role === "employer"
+                                          ? "info"
+                                          : "default"
                                   }
                                 >
                                   {role}
@@ -187,11 +187,14 @@ export default async function AdminPanel() {
                           {new Date(profile.created_at).toLocaleDateString()}
                         </td>
                       </tr>
-                    )
+                    );
                   })
                 ) : (
                   <tr>
-                    <td colSpan={4} className="py-8 text-center text-grey-medium dark:text-gray-400">
+                    <td
+                      colSpan={4}
+                      className="py-8 text-center text-grey-medium dark:text-gray-400"
+                    >
                       No users found
                     </td>
                   </tr>
@@ -207,5 +210,5 @@ export default async function AdminPanel() {
         </Card>
       </div>
     </>
-  )
+  );
 }

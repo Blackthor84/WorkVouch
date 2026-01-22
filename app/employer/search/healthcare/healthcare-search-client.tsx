@@ -1,49 +1,50 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { supabaseClient } from '@/lib/supabase/client'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
+import { useState, useEffect } from "react";
+import { supabaseClient } from "@/lib/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 
 interface HealthcareCandidate {
-  id: string
-  full_name: string
-  email: string
+  id: string;
+  full_name: string;
+  email: string;
   healthcare_profile: {
-    role: string
-    work_setting: string
-  } | null
+    role: string;
+    work_setting: string;
+  } | null;
   jobs: Array<{
-    id: number
-    job_title: string
-    company_name: string
-    start_date: string
-    end_date: string | null
-    current: boolean
-    certifications: string[] | null
-  }>
+    id: number;
+    job_title: string;
+    company_name: string;
+    start_date: string;
+    end_date: string | null;
+    current: boolean;
+    certifications: string[] | null;
+  }>;
 }
 
 export function HealthcareSearchClient() {
-  const [candidates, setCandidates] = useState<HealthcareCandidate[]>([])
-  const [loading, setLoading] = useState(false)
+  const [candidates, setCandidates] = useState<HealthcareCandidate[]>([]);
+  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
-    role: '',
-    workSetting: '',
-    certification: '',
-    minExperience: ''
-  })
-  const supabase = supabaseClient
+    role: "",
+    workSetting: "",
+    certification: "",
+    minExperience: "",
+  });
+  const supabase = supabaseClient;
 
   const searchCandidates = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       let query = supabase
-        .from('profiles')
-        .select(`
+        .from("profiles")
+        .select(
+          `
           id,
           full_name,
           email,
@@ -60,74 +61,96 @@ export function HealthcareSearchClient() {
             current,
             certifications
           )
-        `)
-        .eq('industry', 'Healthcare')
-        .not('healthcare_profiles', 'is', null)
+        `,
+        )
+        .eq("industry", "Healthcare")
+        .not("healthcare_profiles", "is", null);
 
       if (filters.role) {
-        query = query.eq('healthcare_profiles.role', filters.role)
+        query = query.eq("healthcare_profiles.role", filters.role);
       }
 
       if (filters.workSetting) {
-        query = query.eq('healthcare_profiles.work_setting', filters.workSetting)
+        query = query.eq(
+          "healthcare_profiles.work_setting",
+          filters.workSetting,
+        );
       }
 
-      const { data, error } = await query
+      const { data, error } = await query;
 
-      if (error) throw error
+      if (error) throw error;
 
-      let filtered = data || []
+      let filtered = data || [];
 
       // Filter by certification in JavaScript (since it's an array)
       if (filters.certification) {
         filtered = filtered.filter((candidate: any) => {
-          return candidate.jobs?.some((job: any) => 
-            job.certifications?.includes(filters.certification)
-          )
-        })
+          return candidate.jobs?.some((job: any) =>
+            job.certifications?.includes(filters.certification),
+          );
+        });
       }
 
       // Filter by minimum experience
       if (filters.minExperience) {
-        const minYears = parseInt(filters.minExperience)
+        const minYears = parseInt(filters.minExperience);
         filtered = filtered.filter((candidate: any) => {
-          if (!candidate.jobs || candidate.jobs.length === 0) return false
-          
-          const totalMonths = candidate.jobs.reduce((total: number, job: any) => {
-            const start = new Date(job.start_date)
-            const end = job.end_date ? new Date(job.end_date) : new Date()
-            const months = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30)
-            return total + months
-          }, 0)
-          
-          return totalMonths >= minYears * 12
-        })
+          if (!candidate.jobs || candidate.jobs.length === 0) return false;
+
+          const totalMonths = candidate.jobs.reduce(
+            (total: number, job: any) => {
+              const start = new Date(job.start_date);
+              const end = job.end_date ? new Date(job.end_date) : new Date();
+              const months =
+                (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30);
+              return total + months;
+            },
+            0,
+          );
+
+          return totalMonths >= minYears * 12;
+        });
       }
 
-      setCandidates(filtered as HealthcareCandidate[])
+      setCandidates(filtered as HealthcareCandidate[]);
     } catch (error) {
-      console.error('Error searching candidates:', error)
-      alert('Error searching candidates. Please try again.')
+      console.error("Error searching candidates:", error);
+      alert("Error searching candidates. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    searchCandidates()
-  }, [])
+    searchCandidates();
+  }, []);
 
   const healthcareRoles = [
-    'CNA', 'HHA', 'Medical Assistant', 'Patient Care Tech',
-    'Dental Assistant', 'Medical Receptionist', 'Phlebotomist',
-    'Pharmacy Technician', 'ER Tech', 'Caregiver',
-    'Lab Assistant', 'Sterile Processing Tech'
-  ]
+    "CNA",
+    "HHA",
+    "Medical Assistant",
+    "Patient Care Tech",
+    "Dental Assistant",
+    "Medical Receptionist",
+    "Phlebotomist",
+    "Pharmacy Technician",
+    "ER Tech",
+    "Caregiver",
+    "Lab Assistant",
+    "Sterile Processing Tech",
+  ];
 
   const workSettings = [
-    'Hospital', 'Nursing Home', 'Assisted Living', 'Home Health Agency',
-    'Dental Office', 'Clinic / Outpatient', 'Rehab Center', 'Lab / Diagnostics'
-  ]
+    "Hospital",
+    "Nursing Home",
+    "Assisted Living",
+    "Home Health Agency",
+    "Dental Office",
+    "Clinic / Outpatient",
+    "Rehab Center",
+    "Lab / Diagnostics",
+  ];
 
   return (
     <div className="space-y-6">
@@ -146,8 +169,10 @@ export function HealthcareSearchClient() {
               className="w-full border rounded-md p-2 mt-1"
             >
               <option value="">All Roles</option>
-              {healthcareRoles.map(role => (
-                <option key={role} value={role}>{role}</option>
+              {healthcareRoles.map((role) => (
+                <option key={role} value={role}>
+                  {role}
+                </option>
               ))}
             </select>
           </div>
@@ -156,12 +181,16 @@ export function HealthcareSearchClient() {
             <select
               id="workSetting"
               value={filters.workSetting}
-              onChange={(e) => setFilters({ ...filters, workSetting: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, workSetting: e.target.value })
+              }
               className="w-full border rounded-md p-2 mt-1"
             >
               <option value="">All Settings</option>
-              {workSettings.map(setting => (
-                <option key={setting} value={setting}>{setting}</option>
+              {workSettings.map((setting) => (
+                <option key={setting} value={setting}>
+                  {setting}
+                </option>
               ))}
             </select>
           </div>
@@ -170,7 +199,9 @@ export function HealthcareSearchClient() {
             <Input
               id="certification"
               value={filters.certification}
-              onChange={(e) => setFilters({ ...filters, certification: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, certification: e.target.value })
+              }
               placeholder="e.g., BLS, CPR"
               className="mt-1"
             />
@@ -181,14 +212,16 @@ export function HealthcareSearchClient() {
               id="minExperience"
               type="number"
               value={filters.minExperience}
-              onChange={(e) => setFilters({ ...filters, minExperience: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, minExperience: e.target.value })
+              }
               placeholder="e.g., 2"
               className="mt-1"
             />
           </div>
         </div>
         <Button onClick={searchCandidates} className="mt-4" disabled={loading}>
-          {loading ? 'Searching...' : 'Search Candidates'}
+          {loading ? "Searching..." : "Search Candidates"}
         </Button>
       </Card>
 
@@ -213,17 +246,24 @@ export function HealthcareSearchClient() {
                   <h3 className="text-xl font-bold text-grey-dark dark:text-gray-200">
                     {candidate.full_name}
                   </h3>
-                  <p className="text-grey-medium dark:text-gray-400">{candidate.email}</p>
+                  <p className="text-grey-medium dark:text-gray-400">
+                    {candidate.email}
+                  </p>
                 </div>
-                <Button href={`/employer/reports/${candidate.id}`} variant="primary">
+                <Button
+                  href={`/employer/reports/${candidate.id}`}
+                  variant="primary"
+                >
                   View Full Profile
                 </Button>
               </div>
-              
+
               {candidate.healthcare_profile && (
                 <div className="flex gap-2 mb-4">
                   <Badge>{candidate.healthcare_profile.role}</Badge>
-                  <Badge variant="info">{candidate.healthcare_profile.work_setting}</Badge>
+                  <Badge variant="info">
+                    {candidate.healthcare_profile.work_setting}
+                  </Badge>
                 </div>
               )}
 
@@ -232,13 +272,18 @@ export function HealthcareSearchClient() {
                   Work History ({candidate.jobs.length})
                 </h4>
                 {candidate.jobs.map((job) => (
-                  <div key={job.id} className="border-l-4 border-blue-600 pl-4 py-2">
+                  <div
+                    key={job.id}
+                    className="border-l-4 border-blue-600 pl-4 py-2"
+                  >
                     <p className="font-semibold text-grey-dark dark:text-gray-200">
                       {job.job_title} at {job.company_name}
                     </p>
                     <p className="text-sm text-grey-medium dark:text-gray-400">
-                      {new Date(job.start_date).toLocaleDateString()} -{' '}
-                      {job.end_date ? new Date(job.end_date).toLocaleDateString() : 'Present'}
+                      {new Date(job.start_date).toLocaleDateString()} -{" "}
+                      {job.end_date
+                        ? new Date(job.end_date).toLocaleDateString()
+                        : "Present"}
                     </p>
                     {job.certifications && job.certifications.length > 0 && (
                       <div className="flex gap-1 mt-2">
@@ -257,5 +302,5 @@ export function HealthcareSearchClient() {
         )}
       </div>
     </div>
-  )
+  );
 }

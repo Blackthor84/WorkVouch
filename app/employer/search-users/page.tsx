@@ -1,19 +1,19 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser, isEmployer } from '@/lib/auth'
-import { NavbarServer } from '@/components/navbar-server'
-import { EmployerHeader } from '@/components/employer/employer-header'
-import { UserSearchForm } from '@/components/employer/user-search-form'
+import { redirect } from "next/navigation";
+import { getCurrentUser, isEmployer } from "@/lib/auth";
+import { NavbarServer } from "@/components/navbar-server";
+import { EmployerHeader } from "@/components/employer/employer-header";
+import { UserSearchForm } from "@/components/employer/user-search-form";
 
 export default async function SearchUsersPage() {
-  const user = await getCurrentUser()
-  
+  const user = await getCurrentUser();
+
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
-  const userIsEmployer = await isEmployer()
+  const userIsEmployer = await isEmployer();
   if (!userIsEmployer) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
   return (
@@ -26,12 +26,13 @@ export default async function SearchUsersPage() {
             Search Users
           </h1>
           <p className="text-grey-medium dark:text-gray-400">
-            Search for users by name to view their profiles, skills, and work history
+            Search for users by name to view their profiles, skills, and work
+            history
           </p>
         </div>
 
         <UserSearchForm />
       </main>
     </>
-  )
+  );
 }

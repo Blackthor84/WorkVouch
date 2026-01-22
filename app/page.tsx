@@ -1,20 +1,20 @@
-import Link from 'next/link'
-import { ArrowRightIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
-import HeroSection from '@/components/HeroSection'
+import Link from "next/link";
+import { ArrowRightIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import HeroSection from "@/components/HeroSection";
 
 // Ensure this page is statically generated and doesn't require env vars
-export const dynamic = 'force-static'
-export const revalidate = false
+export const dynamic = "force-static";
+export const revalidate = false;
 
 export default function HomePage() {
   return (
     <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center relative w-full flex flex-col items-center">
-          {/* Spacer between navbar and hero logo - EXACT 2 inches */}
+          {/* Spacer between navbar and hero section */}
           <div className="pt-[2in]"></div>
-          
-          {/* Hero Section Component with 1in gap between logo and text */}
+
+          {/* Hero Section Component */}
           <HeroSection />
 
           {/* CTA Buttons */}
@@ -40,9 +40,12 @@ export default function HomePage() {
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
                 <CheckCircleIcon className="w-6 h-6 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Verified References</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                Verified References
+              </h3>
               <p className="text-gray-600">
-                Get verified by real coworkers who can vouch for your work experience and skills.
+                Get verified by real coworkers who can vouch for your work
+                experience and skills.
               </p>
             </div>
 
@@ -52,7 +55,8 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-semibold mb-2">Build Your Profile</h3>
               <p className="text-gray-600">
-                Showcase your work history, skills, and achievements in one professional profile.
+                Showcase your work history, skills, and achievements in one
+                professional profile.
               </p>
             </div>
 
@@ -62,7 +66,8 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-semibold mb-2">Trust Score</h3>
               <p className="text-gray-600">
-                Build credibility with a trust score based on verified references and work history.
+                Build credibility with a trust score based on verified
+                references and work history.
               </p>
             </div>
           </div>
@@ -117,5 +122,5 @@ export default function HomePage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

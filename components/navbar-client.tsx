@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { SignOutButton } from "./sign-out-button"
-import { Button } from "./ui/button"
-import { ThemeToggle } from "./theme-toggle"
-import { NotificationsBell } from "./notifications-bell"
-import { DashboardNavButton } from "./dashboard-nav-button"
-import { Logo } from "./logo"
-import { User } from "@/lib/auth"
+import Link from "next/link";
+import { SignOutButton } from "./sign-out-button";
+import { Button } from "./ui/button";
+import { ThemeToggle } from "./theme-toggle";
+import { NotificationsBell } from "./notifications-bell";
+import { DashboardNavButton } from "./dashboard-nav-button";
+import { Logo } from "./logo";
+import { User } from "@/lib/auth";
 
 interface NavbarClientProps {
-  user: User | null
-  roles: string[]
+  user: User | null;
+  roles: string[];
 }
 
 export function NavbarClient({ user, roles }: NavbarClientProps) {
@@ -34,14 +34,26 @@ export function NavbarClient({ user, roles }: NavbarClientProps) {
                   Pricing
                 </Button>
 
-                {(roles?.includes("admin") || roles?.includes("superadmin")) && (
-                  <Button variant="ghost" size="sm" href="/admin" className="font-semibold text-primary dark:text-blue-400">
+                {(roles?.includes("admin") ||
+                  roles?.includes("superadmin")) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    href="/admin"
+                    className="font-semibold text-primary dark:text-blue-400"
+                  >
                     Admin
                   </Button>
                 )}
 
-                {(roles?.includes("employer") || roles?.includes("superadmin")) && (
-                  <Button variant="ghost" size="sm" href="/employer/dashboard" className="font-semibold">
+                {(roles?.includes("employer") ||
+                  roles?.includes("superadmin")) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    href="/employer/dashboard"
+                    className="font-semibold"
+                  >
                     Employer Panel
                   </Button>
                 )}
@@ -69,5 +81,5 @@ export function NavbarClient({ user, roles }: NavbarClientProps) {
         </div>
       </div>
     </nav>
-  )
+  );
 }

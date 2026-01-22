@@ -1,121 +1,125 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const HEALTHCARE_SETTINGS = [
-  'Hospital',
-  'Nursing Home',
-  'Assisted Living',
-  'Home Health Agency',
-  'Dental Office',
-  'Clinic / Outpatient',
-  'Rehab Center',
-  'Lab / Diagnostics'
-]
+  "Hospital",
+  "Nursing Home",
+  "Assisted Living",
+  "Home Health Agency",
+  "Dental Office",
+  "Clinic / Outpatient",
+  "Rehab Center",
+  "Lab / Diagnostics",
+];
 
 export function EmployerOnboardingClient() {
-  const router = useRouter()
-  const supabase = createClient()
-  const [companyName, setCompanyName] = useState('')
-  const [workSetting, setWorkSetting] = useState('')
-  const [location, setLocation] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const router = useRouter();
+  const supabase = createClient();
+  const [companyName, setCompanyName] = useState("");
+  const [workSetting, setWorkSetting] = useState("");
+  const [location, setLocation] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     async function checkUser() {
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
+
       if (!currentUser) {
-        router.push('/auth/signin')
-        return
+        router.push("/auth/signin");
+        return;
       }
 
       // Check if user is an employer
-      const supabaseAny = supabase as any
+      const supabaseAny = supabase as any;
       const { data: profile } = await supabaseAny
-        .from('profiles')
-        .select('role')
-        .eq('id', currentUser.id)
-        .single()
+        .from("profiles")
+        .select("role")
+        .eq("id", currentUser.id)
+        .single();
 
-      type ProfileRow = { role: string | null }
-      const profileTyped = profile as ProfileRow | null
+      type ProfileRow = { role: string | null };
+      const profileTyped = profile as ProfileRow | null;
 
-      if (profileTyped?.role !== 'employer') {
-        router.push('/dashboard')
-        return
+      if (profileTyped?.role !== "employer") {
+        router.push("/dashboard");
+        return;
       }
 
-      setUser(currentUser)
+      setUser(currentUser);
     }
 
-    checkUser()
-  }, [router, supabase])
+    checkUser();
+  }, [router, supabase]);
 
   const handleNext = async () => {
     if (!companyName || !workSetting || !location) {
-      alert('Please fill in all required fields')
-      return
+      alert("Please fill in all required fields");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
-      const supabaseAny = supabase as any
+      const supabaseAny = supabase as any;
       // Update employer account with healthcare info
       const { error: employerError } = await supabaseAny
-        .from('employer_accounts')
+        .from("employer_accounts")
         .update({
           company_name: companyName,
-          industry: 'healthcare',
+          industry: "healthcare",
           work_setting: workSetting,
-          location: location
+          location: location,
         })
-        .eq('user_id', user.id)
+        .eq("user_id", user.id);
 
       if (employerError) {
-        console.error('Error updating employer account:', employerError)
+        console.error("Error updating employer account:", employerError);
         // If employer_accounts doesn't exist, create it
         const { error: createError } = await supabaseAny
-          .from('employer_accounts')
-          .insert([{
-            user_id: user.id,
-            company_name: companyName,
-            industry: 'healthcare',
-            work_setting: workSetting,
-            location: location,
-            plan_tier: 'free'
-          }])
+          .from("employer_accounts")
+          .insert([
+            {
+              user_id: user.id,
+              company_name: companyName,
+              industry: "healthcare",
+              work_setting: workSetting,
+              location: location,
+              plan_tier: "free",
+            },
+          ]);
 
         if (createError) {
-          console.error('Error creating employer account:', createError)
-          alert('Error saving information. Please try again.')
-          setLoading(false)
-          return
+          console.error("Error creating employer account:", createError);
+          alert("Error saving information. Please try again.");
+          setLoading(false);
+          return;
         }
       }
 
-      router.push('/onboarding/employer/healthcare/job-post')
+      router.push("/onboarding/employer/healthcare/job-post");
     } catch (err: any) {
-      console.error('Error:', err)
-      alert('An error occurred. Please try again.')
-      setLoading(false)
+      console.error("Error:", err);
+      alert("An error occurred. Please try again.");
+      setLoading(false);
     }
-  }
+  };
 
   if (!user) {
     return (
       <div className="text-center">
         <p className="text-grey-medium dark:text-gray-400">Loading...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -176,8 +180,8 @@ export function EmployerOnboardingClient() {
         disabled={loading || !companyName || !workSetting || !location}
         className="w-full"
       >
-        {loading ? 'Saving...' : 'Next'}
+        {loading ? "Saving..." : "Next"}
       </Button>
     </Card>
-  )
+  );
 }

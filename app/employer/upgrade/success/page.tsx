@@ -1,18 +1,18 @@
-import { redirect } from 'next/navigation'
-import { NavbarServer } from '@/components/navbar-server'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { CheckCircleIcon } from '@heroicons/react/24/solid'
-import Link from 'next/link'
+import { redirect } from "next/navigation";
+import { NavbarServer } from "@/components/navbar-server";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import Link from "next/link";
 
 // Mark as dynamic
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export default function UpgradeSuccessPage({
   searchParams,
 }: {
-  searchParams: { session_id?: string }
+  searchParams: { session_id?: string };
 }) {
   return (
     <>
@@ -26,7 +26,8 @@ export default function UpgradeSuccessPage({
             Upgrade Successful!
           </h1>
           <p className="text-grey-medium dark:text-gray-400 mb-6">
-            Your account has been upgraded. You now have access to all Professional or Enterprise features.
+            Your account has been upgraded. You now have access to all
+            Professional or Enterprise features.
           </p>
           {searchParams.session_id && (
             <p className="text-xs text-grey-medium dark:text-gray-500 mb-6">
@@ -46,5 +47,5 @@ export default function UpgradeSuccessPage({
         </Card>
       </div>
     </>
-  )
+  );
 }

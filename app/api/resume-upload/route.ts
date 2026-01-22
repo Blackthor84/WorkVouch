@@ -6,7 +6,9 @@ import { env } from "@/lib/env";
 export async function POST(req: Request) {
   try {
     if (!env.OPENAI_API_KEY) {
-      throw new Error("OPENAI_API_KEY is required. Please set it in Vercel Project Settings → Environment Variables.");
+      throw new Error(
+        "OPENAI_API_KEY is required. Please set it in Vercel Project Settings → Environment Variables.",
+      );
     }
 
     const supabase = supabaseServer;
@@ -24,8 +26,9 @@ export async function POST(req: Request) {
 
     const parsed = await openai.responses.parse({
       model: "gpt-4.1",
-      input: "Extract job titles, companies, start dates, end dates, and skills from this resume.",
-      file: buffer
+      input:
+        "Extract job titles, companies, start dates, end dates, and skills from this resume.",
+      file: buffer,
     });
 
     return NextResponse.json(parsed.output, { status: 200 });

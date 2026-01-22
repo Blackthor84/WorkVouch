@@ -1,14 +1,14 @@
-import { redirect } from 'next/navigation'
-import { isSuperAdmin } from '@/lib/auth'
-import { NavbarServer } from '@/components/navbar-server'
-import { Card } from '@/components/ui/card'
-import Link from 'next/link'
+import { redirect } from "next/navigation";
+import { isSuperAdmin } from "@/lib/auth";
+import { NavbarServer } from "@/components/navbar-server";
+import { Card } from "@/components/ui/card";
+import Link from "next/link";
 
 export default async function SuperAdminPanel() {
-  const superAdmin = await isSuperAdmin()
+  const superAdmin = await isSuperAdmin();
 
   if (!superAdmin) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
   return (
@@ -36,5 +36,5 @@ export default async function SuperAdminPanel() {
         </div>
       </div>
     </>
-  )
+  );
 }

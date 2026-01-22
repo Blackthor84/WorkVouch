@@ -1,111 +1,117 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { formatDateLong } from '@/lib/utils/date'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { formatDateLong } from "@/lib/utils/date";
+import { useRouter } from "next/navigation";
 
 interface VerificationRequest {
-  id: string
-  job_id: string
-  requested_by_type: string
-  status: string
-  created_at: string
+  id: string;
+  job_id: string;
+  requested_by_type: string;
+  status: string;
+  created_at: string;
   jobs: {
-    company_name: string
-    job_title: string
-    user_id: string
+    company_name: string;
+    job_title: string;
+    user_id: string;
     profiles: {
-      full_name: string
-      email: string
-    }
-  }
+      full_name: string;
+      email: string;
+    };
+  };
 }
 
 export function VerificationsList() {
-  const router = useRouter()
-  const [requests, setRequests] = useState<VerificationRequest[]>([])
-  const [loading, setLoading] = useState(true)
+  const router = useRouter();
+  const [requests, setRequests] = useState<VerificationRequest[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchVerifications()
-  }, [])
+    fetchVerifications();
+  }, []);
 
   const fetchVerifications = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       // We'll need to create an API endpoint for this
       // For now, using the disputes endpoint structure as reference
-      const response = await fetch('/api/admin/verification-requests')
-      const data = await response.json()
+      const response = await fetch("/api/admin/verification-requests");
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch verification requests')
+        throw new Error(data.error || "Failed to fetch verification requests");
       }
 
-      setRequests(data.requests || [])
+      setRequests(data.requests || []);
     } catch (error) {
-      console.error('Error fetching verifications:', error)
+      console.error("Error fetching verifications:", error);
       // Fallback: show empty state
-      setRequests([])
+      setRequests([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleApprove = async (requestId: string) => {
     try {
-      const response = await fetch('/api/admin/approve-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/approve-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ verificationRequestId: requestId }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to approve verification')
+        throw new Error("Failed to approve verification");
       }
 
-      router.refresh()
-      fetchVerifications()
+      router.refresh();
+      fetchVerifications();
     } catch (error) {
-      alert('Failed to approve verification')
+      alert("Failed to approve verification");
     }
-  }
+  };
 
   const handleReject = async (requestId: string) => {
-    if (!confirm('Are you sure you want to reject this verification request?')) {
-      return
+    if (
+      !confirm("Are you sure you want to reject this verification request?")
+    ) {
+      return;
     }
 
     try {
-      const response = await fetch('/api/admin/reject-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/reject-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ verificationRequestId: requestId }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to reject verification')
+        throw new Error("Failed to reject verification");
       }
 
-      router.refresh()
-      fetchVerifications()
+      router.refresh();
+      fetchVerifications();
     } catch (error) {
-      alert('Failed to reject verification')
+      alert("Failed to reject verification");
     }
-  }
+  };
 
   if (loading) {
-    return <Card className="p-8 text-center">Loading verification requests...</Card>
+    return (
+      <Card className="p-8 text-center">Loading verification requests...</Card>
+    );
   }
 
   return (
     <div className="space-y-4">
       {requests.length === 0 ? (
         <Card className="p-8 text-center">
-          <p className="text-grey-medium dark:text-gray-400">No verification requests found</p>
+          <p className="text-grey-medium dark:text-gray-400">
+            No verification requests found
+          </p>
         </Card>
       ) : (
         requests.map((request) => (
@@ -116,15 +122,25 @@ export function VerificationsList() {
                   <h3 className="text-xl font-semibold text-grey-dark dark:text-gray-200">
                     Verification Request
                   </h3>
-                  <Badge variant={request.status === 'pending' ? 'warning' : request.status === 'approved' ? 'success' : 'destructive'}>
+                  <Badge
+                    variant={
+                      request.status === "pending"
+                        ? "warning"
+                        : request.status === "approved"
+                          ? "success"
+                          : "destructive"
+                    }
+                  >
                     {request.status}
                   </Badge>
                 </div>
                 <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">
-                  <strong>Employee:</strong> {request.jobs?.profiles?.full_name} ({request.jobs?.profiles?.email})
+                  <strong>Employee:</strong> {request.jobs?.profiles?.full_name}{" "}
+                  ({request.jobs?.profiles?.email})
                 </p>
                 <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">
-                  <strong>Job:</strong> {request.jobs?.job_title} at {request.jobs?.company_name}
+                  <strong>Job:</strong> {request.jobs?.job_title} at{" "}
+                  {request.jobs?.company_name}
                 </p>
                 <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">
                   <strong>Requested by:</strong> {request.requested_by_type}
@@ -135,7 +151,7 @@ export function VerificationsList() {
               </div>
             </div>
 
-            {request.status === 'pending' && (
+            {request.status === "pending" && (
               <div className="flex gap-3 pt-4 border-t border-grey-background dark:border-[#374151]">
                 <Button
                   variant="ghost"
@@ -155,5 +171,5 @@ export function VerificationsList() {
         ))
       )}
     </div>
-  )
+  );
 }

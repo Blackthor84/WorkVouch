@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import UpgradeModal from './UpgradeModal'
+import { useState, useEffect } from "react";
+import UpgradeModal from "./UpgradeModal";
 
 interface VerificationLimitCheckProps {
-  employerId: string
-  onLimitReached?: () => void
-  children: (canProceed: boolean) => React.ReactNode
+  employerId: string;
+  onLimitReached?: () => void;
+  children: (canProceed: boolean) => React.ReactNode;
 }
 
 export function VerificationLimitCheck({
@@ -14,49 +14,51 @@ export function VerificationLimitCheck({
   onLimitReached,
   children,
 }: VerificationLimitCheckProps) {
-  const [canVerify, setCanVerify] = useState<boolean | null>(null)
-  const [showModal, setShowModal] = useState(false)
+  const [canVerify, setCanVerify] = useState<boolean | null>(null);
+  const [showModal, setShowModal] = useState(false);
   const [limitInfo, setLimitInfo] = useState<{
-    currentCount: number
-    limit: number
-    message?: string
-  } | null>(null)
+    currentCount: number;
+    limit: number;
+    message?: string;
+  } | null>(null);
 
   useEffect(() => {
     async function checkLimit() {
       try {
-        const response = await fetch(`/api/employer/verification-limit?employerId=${employerId}`)
+        const response = await fetch(
+          `/api/employer/verification-limit?employerId=${employerId}`,
+        );
         if (response.ok) {
-          const data = await response.json()
-          setCanVerify(data.canVerify)
+          const data = await response.json();
+          setCanVerify(data.canVerify);
           setLimitInfo({
             currentCount: data.currentCount,
             limit: data.limit,
             message: data.message,
-          })
+          });
 
           if (!data.canVerify) {
-            setShowModal(true)
-            onLimitReached?.()
+            setShowModal(true);
+            onLimitReached?.();
           }
         } else {
           // If check fails, allow proceeding (fail open)
-          setCanVerify(true)
+          setCanVerify(true);
         }
       } catch (error) {
-        console.error('Error checking verification limit:', error)
+        console.error("Error checking verification limit:", error);
         // Fail open - allow proceeding if check fails
-        setCanVerify(true)
+        setCanVerify(true);
       }
     }
 
     if (employerId) {
-      checkLimit()
+      checkLimit();
     }
-  }, [employerId, onLimitReached])
+  }, [employerId, onLimitReached]);
 
   if (canVerify === null) {
-    return <div>Checking verification limit...</div>
+    return <div>Checking verification limit...</div>;
   }
 
   return (
@@ -69,5 +71,5 @@ export function VerificationLimitCheck({
       )}
       {children(canVerify)}
     </>
-  )
+  );
 }

@@ -1,114 +1,123 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
-import { EyeIcon, EyeSlashIcon, CheckCircleIcon, ClockIcon, XCircleIcon } from '@heroicons/react/24/outline'
-import { formatDateShort } from '@/lib/utils/date'
-import { useRouter } from 'next/navigation'
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import {
+  EyeIcon,
+  EyeSlashIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  XCircleIcon,
+} from "@heroicons/react/24/outline";
+import { formatDateShort } from "@/lib/utils/date";
+import { useRouter } from "next/navigation";
 
 interface Job {
-  id: string
-  company_name: string
-  job_title: string
-  start_date: string
-  end_date: string | null
-  is_visible_to_employer: boolean
-  verification_status: 'unverified' | 'pending' | 'verified' | 'disputed'
+  id: string;
+  company_name: string;
+  job_title: string;
+  start_date: string;
+  end_date: string | null;
+  is_visible_to_employer: boolean;
+  verification_status: "unverified" | "pending" | "verified" | "disputed";
 }
 
 interface JobListProps {
-  jobs: Job[]
+  jobs: Job[];
 }
 
 export function JobList({ jobs }: JobListProps) {
-  const router = useRouter()
-  const [updating, setUpdating] = useState<string | null>(null)
+  const router = useRouter();
+  const [updating, setUpdating] = useState<string | null>(null);
 
-  const handleVisibilityToggle = async (jobId: string, currentValue: boolean) => {
-    setUpdating(jobId)
+  const handleVisibilityToggle = async (
+    jobId: string,
+    currentValue: boolean,
+  ) => {
+    setUpdating(jobId);
     try {
-      const response = await fetch('/api/user/set-visibility', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/user/set-visibility", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jobHistoryId: jobId,
           isVisibleToEmployer: !currentValue,
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to update visibility')
+        throw new Error("Failed to update visibility");
       }
 
-      router.refresh()
+      router.refresh();
     } catch (error) {
-      console.error('Error updating visibility:', error)
-      alert('Failed to update visibility')
+      console.error("Error updating visibility:", error);
+      alert("Failed to update visibility");
     } finally {
-      setUpdating(null)
+      setUpdating(null);
     }
-  }
+  };
 
   const handleRequestVerification = async (jobId: string) => {
-    if (!confirm('Requesting verification will make this job visible to employers. Continue?')) {
-      return
+    if (
+      !confirm(
+        "Requesting verification will make this job visible to employers. Continue?",
+      )
+    ) {
+      return;
     }
 
-    setUpdating(jobId)
+    setUpdating(jobId);
     try {
-      const response = await fetch('/api/user/request-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/user/request-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jobHistoryId: jobId }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to request verification')
+        throw new Error("Failed to request verification");
       }
 
-      router.refresh()
+      router.refresh();
     } catch (error) {
-      console.error('Error requesting verification:', error)
-      alert('Failed to request verification')
+      console.error("Error requesting verification:", error);
+      alert("Failed to request verification");
     } finally {
-      setUpdating(null)
+      setUpdating(null);
     }
-  }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'verified':
+      case "verified":
         return (
           <Badge variant="success" className="flex items-center gap-1">
             <CheckCircleIcon className="h-4 w-4" />
             Verified
           </Badge>
-        )
-      case 'pending':
+        );
+      case "pending":
         return (
           <Badge variant="warning" className="flex items-center gap-1">
             <ClockIcon className="h-4 w-4" />
             Pending
           </Badge>
-        )
-      case 'disputed':
+        );
+      case "disputed":
         return (
           <Badge variant="destructive" className="flex items-center gap-1">
             <XCircleIcon className="h-4 w-4" />
             Disputed
           </Badge>
-        )
+        );
       default:
-        return (
-          <Badge variant="secondary">
-            Unverified
-          </Badge>
-        )
+        return <Badge variant="secondary">Unverified</Badge>;
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -126,8 +135,8 @@ export function JobList({ jobs }: JobListProps) {
                 {job.company_name}
               </p>
               <p className="text-sm text-grey-medium dark:text-gray-400">
-                {formatDateShort(job.start_date)} -{' '}
-                {job.end_date ? formatDateShort(job.end_date) : 'Present'}
+                {formatDateShort(job.start_date)} -{" "}
+                {job.end_date ? formatDateShort(job.end_date) : "Present"}
               </p>
             </div>
           </div>
@@ -145,18 +154,20 @@ export function JobList({ jobs }: JobListProps) {
                 </p>
                 <p className="text-xs text-grey-medium dark:text-gray-400">
                   {job.is_visible_to_employer
-                    ? 'Employers can see this job'
-                    : 'Hidden from employers'}
+                    ? "Employers can see this job"
+                    : "Hidden from employers"}
                 </p>
               </div>
               <Switch
                 checked={job.is_visible_to_employer}
-                onCheckedChange={() => handleVisibilityToggle(job.id, job.is_visible_to_employer)}
+                onCheckedChange={() =>
+                  handleVisibilityToggle(job.id, job.is_visible_to_employer)
+                }
                 disabled={updating === job.id}
               />
             </div>
 
-            {job.verification_status === 'unverified' && (
+            {job.verification_status === "unverified" && (
               <Button
                 variant="ghost"
                 onClick={() => handleRequestVerification(job.id)}
@@ -169,5 +180,5 @@ export function JobList({ jobs }: JobListProps) {
         </Card>
       ))}
     </div>
-  )
+  );
 }

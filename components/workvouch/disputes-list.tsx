@@ -1,138 +1,156 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { formatDateLong } from '@/lib/utils/date'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { formatDateLong } from "@/lib/utils/date";
+import { useRouter } from "next/navigation";
 
 interface Dispute {
-  id: string
+  id: string;
   employerAccount: {
-    id: string
-    companyName: string
-    email: string
-  }
+    id: string;
+    companyName: string;
+    email: string;
+  };
   jobHistory: {
-    id: string
-    userId: string
-    employerName: string
-    jobTitle: string
+    id: string;
+    userId: string;
+    employerName: string;
+    jobTitle: string;
     user: {
-      id: string
-      name: string
-      email: string
-    }
+      id: string;
+      name: string;
+      email: string;
+    };
     documents: Array<{
-      id: string
-      documentType: string
-      fileName: string
-      fileUrl: string
-      createdAt: string
-    }>
-  }
-  disputeReason: string
-  status: string
-  createdAt: string
+      id: string;
+      documentType: string;
+      fileName: string;
+      fileUrl: string;
+      createdAt: string;
+    }>;
+  };
+  disputeReason: string;
+  status: string;
+  createdAt: string;
 }
 
 export function DisputesList() {
-  const router = useRouter()
-  const [disputes, setDisputes] = useState<Dispute[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<string>('all')
+  const router = useRouter();
+  const [disputes, setDisputes] = useState<Dispute[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<string>("all");
 
   useEffect(() => {
-    fetchDisputes()
-  }, [filter])
+    fetchDisputes();
+  }, [filter]);
 
   const fetchDisputes = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const url = filter === 'all' 
-        ? '/api/admin/disputes'
-        : `/api/admin/disputes?status=${filter}`
-      
-      const response = await fetch(url)
-      const data = await response.json()
+      const url =
+        filter === "all"
+          ? "/api/admin/disputes"
+          : `/api/admin/disputes?status=${filter}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch disputes')
+        throw new Error(data.error || "Failed to fetch disputes");
       }
 
-      setDisputes(data.disputes || [])
+      setDisputes(data.disputes || []);
     } catch (error) {
-      console.error('Error fetching disputes:', error)
+      console.error("Error fetching disputes:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const handleResolve = async (disputeId: string, resolution: 'resolved' | 'rejected', verificationStatus: 'verified' | 'unverified') => {
-    if (!confirm(`Are you sure you want to ${resolution === 'resolved' ? 'resolve' : 'reject'} this dispute?`)) {
-      return
+  const handleResolve = async (
+    disputeId: string,
+    resolution: "resolved" | "rejected",
+    verificationStatus: "verified" | "unverified",
+  ) => {
+    if (
+      !confirm(
+        `Are you sure you want to ${resolution === "resolved" ? "resolve" : "reject"} this dispute?`,
+      )
+    ) {
+      return;
     }
 
     try {
-      const response = await fetch('/api/admin/resolve-dispute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/resolve-dispute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           disputeId,
           resolution,
           verificationStatus,
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to resolve dispute')
+        throw new Error("Failed to resolve dispute");
       }
 
-      router.refresh()
-      fetchDisputes()
+      router.refresh();
+      fetchDisputes();
     } catch (error) {
-      alert('Failed to resolve dispute')
+      alert("Failed to resolve dispute");
     }
-  }
+  };
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
-      open: { variant: 'warning' as const, label: 'Open' },
-      waiting_employee: { variant: 'info' as const, label: 'Waiting for Employee' },
-      awaiting_review: { variant: 'warning' as const, label: 'Awaiting Review' },
-      resolved: { variant: 'success' as const, label: 'Resolved' },
-      rejected: { variant: 'destructive' as const, label: 'Rejected' },
-    }
+      open: { variant: "warning" as const, label: "Open" },
+      waiting_employee: {
+        variant: "info" as const,
+        label: "Waiting for Employee",
+      },
+      awaiting_review: {
+        variant: "warning" as const,
+        label: "Awaiting Review",
+      },
+      resolved: { variant: "success" as const, label: "Resolved" },
+      rejected: { variant: "destructive" as const, label: "Rejected" },
+    };
 
-    const config = variants[status] || { variant: 'secondary' as const, label: status }
-    return <Badge variant={config.variant}>{config.label}</Badge>
-  }
+    const config = variants[status] || {
+      variant: "secondary" as const,
+      label: status,
+    };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
 
   if (loading) {
-    return <Card className="p-8 text-center">Loading disputes...</Card>
+    return <Card className="p-8 text-center">Loading disputes...</Card>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex gap-2">
         <Button
-          variant={filter === 'all' ? 'primary' : 'secondary'}
-          onClick={() => setFilter('all')}
+          variant={filter === "all" ? "primary" : "secondary"}
+          onClick={() => setFilter("all")}
           size="sm"
         >
           All
         </Button>
         <Button
-          variant={filter === 'open' ? 'primary' : 'secondary'}
-          onClick={() => setFilter('open')}
+          variant={filter === "open" ? "primary" : "secondary"}
+          onClick={() => setFilter("open")}
           size="sm"
         >
           Open
         </Button>
         <Button
-          variant={filter === 'awaiting_review' ? 'primary' : 'secondary'}
-          onClick={() => setFilter('awaiting_review')}
+          variant={filter === "awaiting_review" ? "primary" : "secondary"}
+          onClick={() => setFilter("awaiting_review")}
           size="sm"
         >
           Awaiting Review
@@ -141,7 +159,9 @@ export function DisputesList() {
 
       {disputes.length === 0 ? (
         <Card className="p-8 text-center">
-          <p className="text-grey-medium dark:text-gray-400">No disputes found</p>
+          <p className="text-grey-medium dark:text-gray-400">
+            No disputes found
+          </p>
         </Card>
       ) : (
         <div className="space-y-4">
@@ -156,10 +176,12 @@ export function DisputesList() {
                     {getStatusBadge(dispute.status)}
                   </div>
                   <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">
-                    <strong>Employee:</strong> {dispute.jobHistory.user.name} ({dispute.jobHistory.user.email})
+                    <strong>Employee:</strong> {dispute.jobHistory.user.name} (
+                    {dispute.jobHistory.user.email})
                   </p>
                   <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">
-                    <strong>Job:</strong> {dispute.jobHistory.jobTitle} at {dispute.jobHistory.employerName}
+                    <strong>Job:</strong> {dispute.jobHistory.jobTitle} at{" "}
+                    {dispute.jobHistory.employerName}
                   </p>
                   <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">
                     <strong>Reason:</strong> {dispute.disputeReason}
@@ -190,17 +212,21 @@ export function DisputesList() {
                 </div>
               </div>
 
-              {dispute.status === 'awaiting_review' && (
+              {dispute.status === "awaiting_review" && (
                 <div className="flex gap-3 pt-4 border-t border-grey-background dark:border-[#374151]">
                   <Button
                     variant="info"
-                    onClick={() => handleResolve(dispute.id, 'resolved', 'verified')}
+                    onClick={() =>
+                      handleResolve(dispute.id, "resolved", "verified")
+                    }
                   >
                     Approve (Mark Verified)
                   </Button>
                   <Button
                     variant="info"
-                    onClick={() => handleResolve(dispute.id, 'rejected', 'unverified')}
+                    onClick={() =>
+                      handleResolve(dispute.id, "rejected", "unverified")
+                    }
                   >
                     Reject (Mark Unverified)
                   </Button>
@@ -211,5 +237,5 @@ export function DisputesList() {
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card } from '../ui/card'
-import { Button } from '../ui/button'
-import { updateProfile } from '@/lib/actions/profile'
-import { getCurrentUserProfile } from '@/lib/auth'
+import { useState } from "react";
+import { Card } from "../ui/card";
+import { Button } from "../ui/button";
+import { updateProfile } from "@/lib/actions/profile";
+import { getCurrentUserProfile } from "@/lib/auth";
 
 export function UserSettings() {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -18,9 +18,7 @@ export function UserSettings() {
         <p className="text-sm text-grey-medium dark:text-gray-400 mb-4">
           Manage your account information and preferences.
         </p>
-        <Button href="/dashboard">
-          Edit Profile
-        </Button>
+        <Button href="/dashboard">Edit Profile</Button>
       </Card>
 
       <Card className="p-6">
@@ -30,9 +28,7 @@ export function UserSettings() {
         <p className="text-sm text-grey-medium dark:text-gray-400 mb-4">
           Control who can see your profile and information.
         </p>
-        <Button href="/dashboard">
-          Manage Privacy
-        </Button>
+        <Button href="/dashboard">Manage Privacy</Button>
       </Card>
 
       <Card className="p-6">
@@ -42,10 +38,8 @@ export function UserSettings() {
         <p className="text-sm text-grey-medium dark:text-gray-400 mb-4">
           View and manage your subscription plan.
         </p>
-        <Button href="/pricing">
-          View Plans
-        </Button>
+        <Button href="/pricing">View Plans</Button>
       </Card>
     </div>
-  )
+  );
 }

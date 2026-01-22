@@ -1,108 +1,116 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { ROLE_OPTIONS, LOGISTICS_ROLES, INDUSTRY_DISPLAY_NAMES, type Industry } from '@/lib/constants/industries'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  ROLE_OPTIONS,
+  LOGISTICS_ROLES,
+  INDUSTRY_DISPLAY_NAMES,
+  type Industry,
+} from "@/lib/constants/industries";
 
 interface RoleFormClientProps {
-  industry: Industry
+  industry: Industry;
 }
 
 export function RoleFormClient({ industry }: RoleFormClientProps) {
-  const router = useRouter()
-  const supabase = createClient()
-  const [role, setRole] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const router = useRouter();
+  const supabase = createClient();
+  const [role, setRole] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     async function checkUser() {
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
+
       if (!currentUser) {
-        router.push('/auth/signin')
-        return
+        router.push("/auth/signin");
+        return;
       }
 
       // Check if user's industry matches
-      const supabaseAny = supabase as any
+      const supabaseAny = supabase as any;
       const { data: profile } = await supabaseAny
-        .from('profiles')
-        .select('industry')
-        .eq('id', currentUser.id)
-        .single()
+        .from("profiles")
+        .select("industry")
+        .eq("id", currentUser.id)
+        .single();
 
-      type ProfileRow = { industry: string | null }
-      const profileTyped = profile as ProfileRow | null
+      type ProfileRow = { industry: string | null };
+      const profileTyped = profile as ProfileRow | null;
 
       if (profileTyped?.industry !== industry) {
-        router.push('/dashboard')
-        return
+        router.push("/dashboard");
+        return;
       }
 
-      setUser(currentUser)
+      setUser(currentUser);
     }
 
-    checkUser()
-  }, [router, supabase, industry])
+    checkUser();
+  }, [router, supabase, industry]);
 
   const handleNext = async () => {
     if (!role) {
-      alert('Please select a role')
-      return
+      alert("Please select a role");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
-      const tableName = `${industry}_profiles`
-      const supabaseAny = supabase as any
-      
-      const { error } = await supabaseAny
-        .from(tableName)
-        .upsert({
+      const tableName = `${industry}_profiles`;
+      const supabaseAny = supabase as any;
+
+      const { error } = await supabaseAny.from(tableName).upsert(
+        {
           user_id: user.id,
           role,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        })
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: "user_id",
+        },
+      );
 
       if (error) {
-        console.error(`Error saving ${industry} role:`, error)
-        alert('Error saving role. Please try again.')
-        setLoading(false)
-        return
+        console.error(`Error saving ${industry} role:`, error);
+        alert("Error saving role. Please try again.");
+        setLoading(false);
+        return;
       }
 
-      router.push(`/onboarding/${industry}/setting`)
+      router.push(`/onboarding/${industry}/setting`);
     } catch (err: any) {
-      console.error('Error:', err)
-      alert('An error occurred. Please try again.')
-      setLoading(false)
+      console.error("Error:", err);
+      alert("An error occurred. Please try again.");
+      setLoading(false);
     }
-  }
+  };
 
   if (!user) {
     return (
       <div className="text-center">
         <p className="text-grey-medium dark:text-gray-400">Loading...</p>
       </div>
-    )
+    );
   }
 
   // Get roles for the industry, with special handling for warehousing/logistics
-  let roles: string[] = []
-  if (industry === 'warehousing') {
+  let roles: string[] = [];
+  if (industry === "warehousing") {
     // Combine warehouse and logistics roles
-    roles = [...(ROLE_OPTIONS[industry] || []), ...LOGISTICS_ROLES]
+    roles = [...(ROLE_OPTIONS[industry] || []), ...LOGISTICS_ROLES];
   } else {
-    roles = ROLE_OPTIONS[industry] || []
+    roles = ROLE_OPTIONS[industry] || [];
   }
-  const industryName = INDUSTRY_DISPLAY_NAMES[industry] || industry
+  const industryName = INDUSTRY_DISPLAY_NAMES[industry] || industry;
 
   return (
     <Card className="p-8">
@@ -120,8 +128,8 @@ export function RoleFormClient({ industry }: RoleFormClientProps) {
             onClick={() => setRole(r)}
             className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
               role === r
-                ? 'border-primary bg-primary/10 text-primary font-semibold'
-                : 'border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 hover:border-primary/50'
+                ? "border-primary bg-primary/10 text-primary font-semibold"
+                : "border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 hover:border-primary/50"
             }`}
           >
             {r}
@@ -134,8 +142,8 @@ export function RoleFormClient({ industry }: RoleFormClientProps) {
         disabled={loading || !role}
         className="w-full"
       >
-        {loading ? 'Saving...' : 'Next'}
+        {loading ? "Saving..." : "Next"}
       </Button>
     </Card>
-  )
+  );
 }

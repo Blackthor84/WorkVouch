@@ -1,31 +1,33 @@
-import type { Metadata } from 'next'
-import './globals.css'
-import { LayoutWrapper } from '@/components/layout-wrapper'
-import { getCurrentUser, getCurrentUserRoles } from '@/lib/auth'
+import type { Metadata } from "next";
+import "./globals.css";
+import { LayoutWrapper } from "@/components/layout-wrapper";
+import { getCurrentUser, getCurrentUserRoles } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: 'WorkVouch - Trust-Based Professional Profiles',
-  description: 'Build your professional reputation through verified peer references. Trusted by security, law enforcement & professionals.',
+  title: "WorkVouch - Trust-Based Professional Profiles",
+  description:
+    "Build your professional reputation through verified peer references. Trusted by security, law enforcement & professionals.",
   icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
-}
+};
 
 export default async function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const user = await getCurrentUser()
-  const roles = await getCurrentUserRoles()
+  const user = await getCurrentUser();
+  const roles = await getCurrentUserRoles();
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="bg-background dark:bg-[#0D1117] antialiased transition-colors">
-        <LayoutWrapper user={user} roles={roles}>{children}</LayoutWrapper>
+        <LayoutWrapper user={user} roles={roles}>
+          {children}
+        </LayoutWrapper>
       </body>
     </html>
-  )
+  );
 }
-

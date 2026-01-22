@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { Card } from './ui/card'
-import { Button } from './ui/button'
+import { Card } from "./ui/card";
+import { Button } from "./ui/button";
 
 interface Report {
-  profile: any
-  jobs: any[]
-  references: any[]
-  trustScore: any
+  profile: any;
+  jobs: any[];
+  references: any[];
+  trustScore: any;
 }
 
 export function CandidateReportView({ report }: { report: Report }) {
   const handlePrint = () => {
-    window.print()
-  }
+    window.print();
+  };
 
   const handleExport = () => {
     const data = {
@@ -22,15 +22,17 @@ export function CandidateReportView({ report }: { report: Report }) {
       references: report.references,
       trustScore: report.trustScore,
       generatedAt: new Date().toISOString(),
-    }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `workvouch-report-${report.profile.id}-${Date.now()}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `workvouch-report-${report.profile.id}-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-6 print:space-y-4">
@@ -61,25 +63,41 @@ export function CandidateReportView({ report }: { report: Report }) {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <p className="text-sm font-semibold text-grey-medium dark:text-gray-400">Full Name</p>
-            <p className="text-lg text-grey-dark dark:text-gray-200">{report.profile.full_name}</p>
+            <p className="text-sm font-semibold text-grey-medium dark:text-gray-400">
+              Full Name
+            </p>
+            <p className="text-lg text-grey-dark dark:text-gray-200">
+              {report.profile.full_name}
+            </p>
           </div>
           <div>
-            <p className="text-sm font-semibold text-grey-medium dark:text-gray-400">Email</p>
-            <p className="text-lg text-grey-dark dark:text-gray-200">{report.profile.email}</p>
+            <p className="text-sm font-semibold text-grey-medium dark:text-gray-400">
+              Email
+            </p>
+            <p className="text-lg text-grey-dark dark:text-gray-200">
+              {report.profile.email}
+            </p>
           </div>
           {(report.profile.city || report.profile.state) && (
             <div>
-              <p className="text-sm font-semibold text-grey-medium dark:text-gray-400">Location</p>
+              <p className="text-sm font-semibold text-grey-medium dark:text-gray-400">
+                Location
+              </p>
               <p className="text-lg text-grey-dark dark:text-gray-200">
-                {[report.profile.city, report.profile.state].filter(Boolean).join(', ')}
+                {[report.profile.city, report.profile.state]
+                  .filter(Boolean)
+                  .join(", ")}
               </p>
             </div>
           )}
           {report.profile.professional_summary && (
             <div className="md:col-span-2">
-              <p className="text-sm font-semibold text-grey-medium dark:text-gray-400 mb-2">Summary</p>
-              <p className="text-grey-dark dark:text-gray-200">{report.profile.professional_summary}</p>
+              <p className="text-sm font-semibold text-grey-medium dark:text-gray-400 mb-2">
+                Summary
+              </p>
+              <p className="text-grey-dark dark:text-gray-200">
+                {report.profile.professional_summary}
+              </p>
             </div>
           )}
         </div>
@@ -99,11 +117,14 @@ export function CandidateReportView({ report }: { report: Report }) {
               <div className="w-full bg-grey-background dark:bg-[#374151] rounded-full h-4 mb-2">
                 <div
                   className="bg-primary h-4 rounded-full transition-all"
-                  style={{ width: `${Math.min((report.trustScore.score || 0) / 10, 100)}%` }}
+                  style={{
+                    width: `${Math.min((report.trustScore.score || 0) / 10, 100)}%`,
+                  }}
                 />
               </div>
               <p className="text-sm text-grey-medium dark:text-gray-400">
-                Based on verified jobs, peer references, and verification completeness
+                Based on verified jobs, peer references, and verification
+                completeness
               </p>
             </div>
           </div>
@@ -128,10 +149,10 @@ export function CandidateReportView({ report }: { report: Report }) {
                 {job.company_name}
               </p>
               <p className="text-sm text-grey-medium dark:text-gray-400">
-                {new Date(job.start_date).toLocaleDateString()} -{' '}
+                {new Date(job.start_date).toLocaleDateString()} -{" "}
                 {job.end_date
                   ? new Date(job.end_date).toLocaleDateString()
-                  : 'Present'}
+                  : "Present"}
                 {job.location && ` • ${job.location}`}
               </p>
             </div>
@@ -153,7 +174,7 @@ export function CandidateReportView({ report }: { report: Report }) {
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <p className="font-semibold text-grey-dark dark:text-gray-200">
-                    {ref.from_user?.full_name || 'Anonymous'}
+                    {ref.from_user?.full_name || "Anonymous"}
                   </p>
                   <p className="text-sm text-grey-medium dark:text-gray-400">
                     {ref.job?.company_name} • {ref.relationship_type}
@@ -165,8 +186,8 @@ export function CandidateReportView({ report }: { report: Report }) {
                       key={i}
                       className={`text-lg ${
                         i < ref.rating
-                          ? 'text-yellow-400'
-                          : 'text-grey-light dark:text-gray-600'
+                          ? "text-yellow-400"
+                          : "text-grey-light dark:text-gray-600"
                       }`}
                     >
                       ★
@@ -190,8 +211,10 @@ export function CandidateReportView({ report }: { report: Report }) {
       {/* Footer */}
       <div className="text-center text-sm text-grey-medium dark:text-gray-400 print:break-inside-avoid">
         <p>Report generated by WorkVouch on {new Date().toLocaleString()}</p>
-        <p className="mt-1">This report contains verified information from peer references.</p>
+        <p className="mt-1">
+          This report contains verified information from peer references.
+        </p>
       </div>
     </div>
-  )
+  );
 }

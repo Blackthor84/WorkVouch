@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { Card } from '../ui/card'
-import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid'
-import { StarIcon } from '@heroicons/react/24/outline'
+import { Card } from "../ui/card";
+import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
+import { StarIcon } from "@heroicons/react/24/outline";
 
 interface ReferenceViewerProps {
-  references: any[]
+  references: any[];
 }
 
 export function ReferenceViewer({ references }: ReferenceViewerProps) {
@@ -19,7 +19,7 @@ export function ReferenceViewer({ references }: ReferenceViewerProps) {
           No references available.
         </p>
       </Card>
-    )
+    );
   }
 
   return (
@@ -29,7 +29,7 @@ export function ReferenceViewer({ references }: ReferenceViewerProps) {
       </h2>
       <div className="space-y-4">
         {references.map((ref) => {
-          const coworker = ref.from_user || ref.profiles
+          const coworker = ref.from_user || ref.profiles;
           return (
             <div
               key={ref.id}
@@ -52,7 +52,7 @@ export function ReferenceViewer({ references }: ReferenceViewerProps) {
                   )}
                   <div>
                     <h3 className="font-semibold text-grey-dark dark:text-gray-200">
-                      {coworker?.full_name || 'Anonymous'}
+                      {coworker?.full_name || "Anonymous"}
                     </h3>
                     <p className="text-sm text-grey-medium dark:text-gray-400">
                       Former Coworker
@@ -65,8 +65,8 @@ export function ReferenceViewer({ references }: ReferenceViewerProps) {
                       key={i}
                       className={`h-5 w-5 ${
                         i < ref.rating
-                          ? 'text-yellow-400'
-                          : 'text-gray-300 dark:text-gray-600'
+                          ? "text-yellow-400"
+                          : "text-gray-300 dark:text-gray-600"
                       }`}
                     />
                   ))}
@@ -81,9 +81,9 @@ export function ReferenceViewer({ references }: ReferenceViewerProps) {
                 {new Date(ref.created_at).toLocaleDateString()}
               </p>
             </div>
-          )
+          );
         })}
       </div>
     </Card>
-  )
+  );
 }

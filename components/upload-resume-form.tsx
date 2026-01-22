@@ -1,155 +1,165 @@
-'use client'
+"use client";
 
-import { useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   DocumentArrowUpIcon,
   CheckCircleIcon,
   XCircleIcon,
   PencilIcon,
   TrashIcon,
-} from '@heroicons/react/24/outline'
+} from "@heroicons/react/24/outline";
 
 interface ParsedJob {
-  title: string
-  company: string
-  startDate?: string
-  endDate?: string
-  isCurrent?: boolean
-  location?: string
-  responsibilities?: string
+  title: string;
+  company: string;
+  startDate?: string;
+  endDate?: string;
+  isCurrent?: boolean;
+  location?: string;
+  responsibilities?: string;
 }
 
 interface ParsedEducation {
-  school: string
-  degree?: string
-  fieldOfStudy?: string
-  startYear?: number
-  endYear?: number
-  isCurrent?: boolean
-  gpa?: number
-  description?: string
+  school: string;
+  degree?: string;
+  fieldOfStudy?: string;
+  startYear?: number;
+  endYear?: number;
+  isCurrent?: boolean;
+  gpa?: number;
+  description?: string;
 }
 
 interface ParsedResume {
-  jobs: ParsedJob[]
-  education: ParsedEducation[]
-  skills: string[]
-  certifications: string[]
+  jobs: ParsedJob[];
+  education: ParsedEducation[];
+  skills: string[];
+  certifications: string[];
   contactInfo: {
-    email?: string
-    phone?: string
-  }
-  summary?: string
+    email?: string;
+    phone?: string;
+  };
+  summary?: string;
 }
 
 export function UploadResumeForm() {
-  const router = useRouter()
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [file, setFile] = useState<File | null>(null)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [isUploading, setIsUploading] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [parsedData, setParsedData] = useState<ParsedResume | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [editingIndex, setEditingIndex] = useState<{ type: 'job' | 'education'; index: number } | null>(null)
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [parsedData, setParsedData] = useState<ParsedResume | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [editingIndex, setEditingIndex] = useState<{
+    type: "job" | "education";
+    index: number;
+  } | null>(null);
 
   const handleFileSelect = (selectedFile: File) => {
-    setError(null)
-    setParsedData(null)
-    setUploadProgress(0)
+    setError(null);
+    setParsedData(null);
+    setUploadProgress(0);
 
     // Validate file type
-    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    const allowedTypes = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
     if (!allowedTypes.includes(selectedFile.type)) {
-      setError('Invalid file type. Please upload a PDF or DOCX file.')
-      return
+      setError("Invalid file type. Please upload a PDF or DOCX file.");
+      return;
     }
 
     // Validate file size (5MB)
     if (selectedFile.size > 5 * 1024 * 1024) {
-      setError('File size exceeds 5MB limit.')
-      return
+      setError("File size exceeds 5MB limit.");
+      return;
     }
 
-    setFile(selectedFile)
-  }
+    setFile(selectedFile);
+  };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    const droppedFile = e.dataTransfer.files[0]
+    e.preventDefault();
+    const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
-      handleFileSelect(droppedFile)
+      handleFileSelect(droppedFile);
     }
-  }
+  };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-  }
+    e.preventDefault();
+  };
 
   const handleUpload = async () => {
-    if (!file) return
+    if (!file) return;
 
-    setIsUploading(true)
-    setError(null)
-    setUploadProgress(0)
+    setIsUploading(true);
+    setError(null);
+    setUploadProgress(0);
 
     try {
-      const formData = new FormData()
-      formData.append('resume', file)
+      const formData = new FormData();
+      formData.append("resume", file);
 
-      const response = await fetch('/api/resume-upload', {
-        method: 'POST',
+      const response = await fetch("/api/resume-upload", {
+        method: "POST",
         body: formData,
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to upload and parse resume.')
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || "Failed to upload and parse resume.",
+        );
       }
 
-      const data = await response.json()
-      setParsedData(data.parsedData)
-      setUploadProgress(100)
+      const data = await response.json();
+      setParsedData(data.parsedData);
+      setUploadProgress(100);
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred during upload.')
-      setUploadProgress(0)
+      setError(err.message || "An unexpected error occurred during upload.");
+      setUploadProgress(0);
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   const handleSaveProfile = async () => {
     if (!parsedData) {
-      setError('No parsed data to save.')
-      return
+      setError("No parsed data to save.");
+      return;
     }
 
-    setIsSaving(true)
-    setError(null)
+    setIsSaving(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/save-parsed-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/save-parsed-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsedData),
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to save parsed data to profile.')
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || "Failed to save parsed data to profile.",
+        );
       }
 
-      alert('Profile updated successfully!')
-      router.push('/dashboard')
+      alert("Profile updated successfully!");
+      router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred during saving.')
+      setError(err.message || "An unexpected error occurred during saving.");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -171,8 +181,8 @@ export function UploadResumeForm() {
           accept=".pdf,.docx"
           className="hidden"
           onChange={(e) => {
-            const selectedFile = e.target.files?.[0]
-            if (selectedFile) handleFileSelect(selectedFile)
+            const selectedFile = e.target.files?.[0];
+            if (selectedFile) handleFileSelect(selectedFile);
           }}
         />
         <DocumentArrowUpIcon className="mx-auto h-12 w-12 text-grey-medium dark:text-gray-400 mb-3" />
@@ -196,14 +206,16 @@ export function UploadResumeForm() {
         <div className="flex items-center justify-between bg-grey-background dark:bg-[#1A1F2B] p-4 rounded-lg">
           <div className="flex items-center gap-3">
             <DocumentArrowUpIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            <span className="text-grey-dark dark:text-gray-200">{file.name}</span>
+            <span className="text-grey-dark dark:text-gray-200">
+              {file.name}
+            </span>
           </div>
           <Button
             onClick={handleUpload}
             disabled={isUploading || isSaving}
             className="ml-auto"
           >
-            {isUploading ? 'Parsing...' : 'Upload & Parse'}
+            {isUploading ? "Parsing..." : "Upload & Parse"}
           </Button>
         </div>
       )}
@@ -227,11 +239,14 @@ export function UploadResumeForm() {
           <div className="bg-grey-background dark:bg-[#1A1F2B] p-4 rounded-lg space-y-3">
             {parsedData.jobs.length > 0 && (
               <div>
-                <p className="font-semibold text-grey-dark dark:text-gray-200 mb-1">Work History:</p>
+                <p className="font-semibold text-grey-dark dark:text-gray-200 mb-1">
+                  Work History:
+                </p>
                 <ul className="list-disc list-inside text-grey-medium dark:text-gray-400 ml-4 space-y-1">
                   {parsedData.jobs.map((job, idx) => (
                     <li key={idx}>
-                      {job.title} at {job.company} ({job.startDate} - {job.endDate || 'Present'})
+                      {job.title} at {job.company} ({job.startDate} -{" "}
+                      {job.endDate || "Present"})
                     </li>
                   ))}
                 </ul>
@@ -240,11 +255,14 @@ export function UploadResumeForm() {
 
             {parsedData.education.length > 0 && (
               <div>
-                <p className="font-semibold text-grey-dark dark:text-gray-200 mb-1">Education:</p>
+                <p className="font-semibold text-grey-dark dark:text-gray-200 mb-1">
+                  Education:
+                </p>
                 <ul className="list-disc list-inside text-grey-medium dark:text-gray-400 ml-4 space-y-1">
                   {parsedData.education.map((edu, idx) => (
                     <li key={idx}>
-                      {edu.degree} in {edu.fieldOfStudy} from {edu.school} ({edu.endYear})
+                      {edu.degree} in {edu.fieldOfStudy} from {edu.school} (
+                      {edu.endYear})
                     </li>
                   ))}
                 </ul>
@@ -253,10 +271,15 @@ export function UploadResumeForm() {
 
             {parsedData.skills.length > 0 && (
               <div>
-                <p className="font-semibold text-grey-dark dark:text-gray-200 mb-1">Skills:</p>
+                <p className="font-semibold text-grey-dark dark:text-gray-200 mb-1">
+                  Skills:
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {parsedData.skills.map((skill, idx) => (
-                    <span key={idx} className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm">
+                    <span
+                      key={idx}
+                      className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm"
+                    >
                       {skill}
                     </span>
                   ))}
@@ -270,10 +293,10 @@ export function UploadResumeForm() {
             disabled={isSaving}
             className="w-full"
           >
-            {isSaving ? 'Saving...' : 'Confirm & Save to Profile'}
+            {isSaving ? "Saving..." : "Confirm & Save to Profile"}
           </Button>
         </div>
       )}
     </div>
-  )
+  );
 }

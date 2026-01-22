@@ -1,34 +1,34 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser, hasRole } from '@/lib/auth'
-import { getCandidateProfileForEmployer } from '@/lib/actions/employer/candidate-search'
-import { getPublicProfile } from '@/lib/actions/employer'
-import { EmployerHeader } from '@/components/employer/employer-header'
-import { EmployerSidebar } from '@/components/employer/employer-sidebar'
-import { CandidateProfileViewer } from '@/components/employer/candidate-profile-viewer'
-import { PublicProfileView } from '@/components/public-profile-view'
+import { redirect } from "next/navigation";
+import { getCurrentUser, hasRole } from "@/lib/auth";
+import { getCandidateProfileForEmployer } from "@/lib/actions/employer/candidate-search";
+import { getPublicProfile } from "@/lib/actions/employer";
+import { EmployerHeader } from "@/components/employer/employer-header";
+import { EmployerSidebar } from "@/components/employer/employer-sidebar";
+import { CandidateProfileViewer } from "@/components/employer/candidate-profile-viewer";
+import { PublicProfileView } from "@/components/public-profile-view";
 
 export default async function EmployerCandidateProfilePage({
   params,
 }: {
-  params: { id: string }
+  params: { id: string };
 }) {
-  const user = await getCurrentUser()
-  
+  const user = await getCurrentUser();
+
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
-  const isEmployer = await hasRole('employer')
-  
+  const isEmployer = await hasRole("employer");
+
   if (!isEmployer) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
   // Try to get candidate profile first (full employer view)
-  let candidateData
+  let candidateData;
   try {
-    candidateData = await getCandidateProfileForEmployer(params.id)
-    
+    candidateData = await getCandidateProfileForEmployer(params.id);
+
     return (
       <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
         <EmployerSidebar />
@@ -41,12 +41,12 @@ export default async function EmployerCandidateProfilePage({
           </main>
         </div>
       </div>
-    )
+    );
   } catch (error: any) {
     // Fallback to public profile view
     try {
-      const profileData = await getPublicProfile(params.id)
-      
+      const profileData = await getPublicProfile(params.id);
+
       return (
         <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
           <EmployerSidebar />
@@ -59,7 +59,7 @@ export default async function EmployerCandidateProfilePage({
             </main>
           </div>
         </div>
-      )
+      );
     } catch (fallbackError: any) {
       return (
         <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
@@ -78,7 +78,7 @@ export default async function EmployerCandidateProfilePage({
             </main>
           </div>
         </div>
-      )
+      );
     }
   }
 }

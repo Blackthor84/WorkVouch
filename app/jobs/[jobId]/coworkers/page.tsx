@@ -1,20 +1,23 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth'
-import { findPotentialCoworkers, initiateConnection } from '@/lib/actions/connections'
-import { NavbarServer } from '@/components/navbar-server'
-import { CoworkerList } from '@/components/coworker-list'
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
+import {
+  findPotentialCoworkers,
+  initiateConnection,
+} from "@/lib/actions/connections";
+import { NavbarServer } from "@/components/navbar-server";
+import { CoworkerList } from "@/components/coworker-list";
 
 export default async function CoworkersPage({
   params,
 }: {
-  params: { jobId: string }
+  params: { jobId: string };
 }) {
-  const user = await getCurrentUser()
+  const user = await getCurrentUser();
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
-  const potentialCoworkers = await findPotentialCoworkers(params.jobId)
+  const potentialCoworkers = await findPotentialCoworkers(params.jobId);
 
   return (
     <>
@@ -29,6 +32,5 @@ export default async function CoworkersPage({
         />
       </main>
     </>
-  )
+  );
 }
-

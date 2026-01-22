@@ -1,19 +1,19 @@
-import { NavbarServer } from '@/components/navbar-server'
-import { SettingFormClient } from './setting-form-client'
-import { type Industry } from '@/lib/constants/industries'
+import { NavbarServer } from "@/components/navbar-server";
+import { SettingFormClient } from "./setting-form-client";
+import { type Industry } from "@/lib/constants/industries";
 
 // Mark as dynamic to prevent build-time prerendering
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 interface PageProps {
   params: {
-    industry: Industry
-  }
+    industry: Industry;
+  };
 }
 
 export default function IndustrySettingStep({ params }: PageProps) {
-  const industry = params.industry
+  const industry = params.industry;
 
   return (
     <>
@@ -24,5 +24,5 @@ export default function IndustrySettingStep({ params }: PageProps) {
         </div>
       </main>
     </>
-  )
+  );
 }

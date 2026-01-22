@@ -1,28 +1,28 @@
-'use client'
+"use client";
 
-import { ReactNode, useEffect } from 'react'
-import { XMarkIcon } from '@heroicons/react/24/outline'
-import { cn } from '@/lib/utils'
+import { ReactNode, useEffect } from "react";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { cn } from "@/lib/utils";
 
 interface DialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  children: ReactNode
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: ReactNode;
 }
 
 export function Dialog({ open, onOpenChange, children }: DialogProps) {
   useEffect(() => {
     if (open) {
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset'
+      document.body.style.overflow = "unset";
     }
     return () => {
-      document.body.style.overflow = 'unset'
-    }
-  }, [open])
+      document.body.style.overflow = "unset";
+    };
+  }, [open]);
 
-  if (!open) return null
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -35,21 +35,44 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
         {children}
       </div>
     </div>
-  )
+  );
 }
 
-export function DialogContent({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('p-6', className)}>{children}</div>
+export function DialogContent({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <div className={cn("p-6", className)}>{children}</div>;
 }
 
-export function DialogHeader({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('mb-4', className)}>{children}</div>
+export function DialogHeader({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <div className={cn("mb-4", className)}>{children}</div>;
 }
 
-export function DialogTitle({ children, className }: { children: ReactNode; className?: string }) {
+export function DialogTitle({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <h2 className={cn('text-xl font-semibold text-grey-dark dark:text-gray-200', className)}>
+    <h2
+      className={cn(
+        "text-xl font-semibold text-grey-dark dark:text-gray-200",
+        className,
+      )}
+    >
       {children}
     </h2>
-  )
+  );
 }

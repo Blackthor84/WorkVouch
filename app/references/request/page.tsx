@@ -1,16 +1,16 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth'
-import { getUserConnections } from '@/lib/actions/connections'
-import { NavbarServer } from '@/components/navbar-server'
-import { RequestReferenceForm } from '@/components/request-reference-form'
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
+import { getUserConnections } from "@/lib/actions/connections";
+import { NavbarServer } from "@/components/navbar-server";
+import { RequestReferenceForm } from "@/components/request-reference-form";
 
 export default async function RequestReferencePage() {
-  const user = await getCurrentUser()
+  const user = await getCurrentUser();
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
-  const connections = await getUserConnections()
+  const connections = await getUserConnections();
 
   return (
     <>
@@ -22,6 +22,5 @@ export default async function RequestReferencePage() {
         <RequestReferenceForm connections={connections || []} />
       </main>
     </>
-  )
+  );
 }
-

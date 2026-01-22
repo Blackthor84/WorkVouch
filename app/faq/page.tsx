@@ -1,5 +1,5 @@
-import { NavbarServer } from '@/components/navbar-server'
-import Link from 'next/link'
+import { NavbarServer } from "@/components/navbar-server";
+import Link from "next/link";
 
 export default function FAQPage() {
   return (
@@ -18,8 +18,11 @@ export default function FAQPage() {
 
           <div className="bg-white dark:bg-[#1A1F2B] rounded-2xl shadow-md p-8">
             <p className="text-grey-medium dark:text-gray-400 mb-8">
-              For a comprehensive FAQ covering all topics, please see our{' '}
-              <Link href="/docs/faq/FAQ.md" className="text-primary hover:underline">
+              For a comprehensive FAQ covering all topics, please see our{" "}
+              <Link
+                href="/docs/faq/FAQ.md"
+                className="text-primary hover:underline"
+              >
                 complete FAQ document
               </Link>
               .
@@ -31,21 +34,49 @@ export default function FAQPage() {
                   Quick Links
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Link href="/help#getting-started" className="block p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition">
-                    <h3 className="font-semibold text-grey-dark dark:text-gray-200 mb-2">Getting Started</h3>
-                    <p className="text-sm text-grey-medium dark:text-gray-400">Learn how to create an account and get started</p>
+                  <Link
+                    href="/help#getting-started"
+                    className="block p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition"
+                  >
+                    <h3 className="font-semibold text-grey-dark dark:text-gray-200 mb-2">
+                      Getting Started
+                    </h3>
+                    <p className="text-sm text-grey-medium dark:text-gray-400">
+                      Learn how to create an account and get started
+                    </p>
                   </Link>
-                  <Link href="/help#trust-score" className="block p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition">
-                    <h3 className="font-semibold text-grey-dark dark:text-gray-200 mb-2">Trust Score</h3>
-                    <p className="text-sm text-grey-medium dark:text-gray-400">Understand how Trust Scores work</p>
+                  <Link
+                    href="/help#trust-score"
+                    className="block p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition"
+                  >
+                    <h3 className="font-semibold text-grey-dark dark:text-gray-200 mb-2">
+                      Trust Score
+                    </h3>
+                    <p className="text-sm text-grey-medium dark:text-gray-400">
+                      Understand how Trust Scores work
+                    </p>
                   </Link>
-                  <Link href="/help#coworker-matching" className="block p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition">
-                    <h3 className="font-semibold text-grey-dark dark:text-gray-200 mb-2">Coworker Matching</h3>
-                    <p className="text-sm text-grey-medium dark:text-gray-400">How coworker verification works</p>
+                  <Link
+                    href="/help#coworker-matching"
+                    className="block p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition"
+                  >
+                    <h3 className="font-semibold text-grey-dark dark:text-gray-200 mb-2">
+                      Coworker Matching
+                    </h3>
+                    <p className="text-sm text-grey-medium dark:text-gray-400">
+                      How coworker verification works
+                    </p>
                   </Link>
-                  <Link href="/help#references" className="block p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition">
-                    <h3 className="font-semibold text-grey-dark dark:text-gray-200 mb-2">References</h3>
-                    <p className="text-sm text-grey-medium dark:text-gray-400">About peer references</p>
+                  <Link
+                    href="/help#references"
+                    className="block p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition"
+                  >
+                    <h3 className="font-semibold text-grey-dark dark:text-gray-200 mb-2">
+                      References
+                    </h3>
+                    <p className="text-sm text-grey-medium dark:text-gray-400">
+                      About peer references
+                    </p>
                   </Link>
                 </div>
               </section>
@@ -68,5 +99,5 @@ export default function FAQPage() {
         </div>
       </main>
     </>
-  )
+  );
 }

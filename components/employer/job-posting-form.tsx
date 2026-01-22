@@ -1,62 +1,74 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { createJobPosting, updateJobPosting, type JobPosting } from '@/lib/actions/employer/job-postings'
-import { Card } from '../ui/card'
-import { Button } from '../ui/button'
+import { useState } from "react";
+import {
+  createJobPosting,
+  updateJobPosting,
+  type JobPosting,
+} from "@/lib/actions/employer/job-postings";
+import { Card } from "../ui/card";
+import { Button } from "../ui/button";
 
 interface JobPostingFormProps {
-  posting?: JobPosting | null
-  onSuccess: () => void
-  onCancel: () => void
+  posting?: JobPosting | null;
+  onSuccess: () => void;
+  onCancel: () => void;
 }
 
-export function JobPostingForm({ posting, onSuccess, onCancel }: JobPostingFormProps) {
-  const [loading, setLoading] = useState(false)
+export function JobPostingForm({
+  posting,
+  onSuccess,
+  onCancel,
+}: JobPostingFormProps) {
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    title: posting?.title || '',
-    description: posting?.description || '',
-    location: posting?.location || '',
-    pay_range_min: posting?.pay_range_min?.toString() || '',
-    pay_range_max: posting?.pay_range_max?.toString() || '',
-    shift: posting?.shift || '',
-    requirements: posting?.requirements || '',
-    industry: posting?.industry || '',
-  })
+    title: posting?.title || "",
+    description: posting?.description || "",
+    location: posting?.location || "",
+    pay_range_min: posting?.pay_range_min?.toString() || "",
+    pay_range_max: posting?.pay_range_max?.toString() || "",
+    shift: posting?.shift || "",
+    requirements: posting?.requirements || "",
+    industry: posting?.industry || "",
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
       const data = {
         title: formData.title,
         description: formData.description,
         location: formData.location,
-        pay_range_min: formData.pay_range_min ? parseFloat(formData.pay_range_min) : undefined,
-        pay_range_max: formData.pay_range_max ? parseFloat(formData.pay_range_max) : undefined,
+        pay_range_min: formData.pay_range_min
+          ? parseFloat(formData.pay_range_min)
+          : undefined,
+        pay_range_max: formData.pay_range_max
+          ? parseFloat(formData.pay_range_max)
+          : undefined,
         shift: formData.shift || undefined,
         requirements: formData.requirements || undefined,
         industry: formData.industry || undefined,
-      }
+      };
 
       if (posting) {
-        await updateJobPosting(posting.id, data)
+        await updateJobPosting(posting.id, data);
       } else {
-        await createJobPosting(data)
+        await createJobPosting(data);
       }
-      onSuccess()
+      onSuccess();
     } catch (error: any) {
-      alert(error.message || 'Failed to save job posting')
+      alert(error.message || "Failed to save job posting");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Card className="p-6">
       <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-6">
-        {posting ? 'Edit Job Posting' : 'Create Job Posting'}
+        {posting ? "Edit Job Posting" : "Create Job Posting"}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -67,7 +79,9 @@ export function JobPostingForm({ posting, onSuccess, onCancel }: JobPostingFormP
             type="text"
             required
             value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, title: e.target.value })
+            }
             className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
             placeholder="e.g., Security Guard"
           />
@@ -80,7 +94,9 @@ export function JobPostingForm({ posting, onSuccess, onCancel }: JobPostingFormP
           <textarea
             required
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
             rows={6}
             className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
             placeholder="Describe the position, responsibilities, and what you're looking for..."
@@ -96,7 +112,9 @@ export function JobPostingForm({ posting, onSuccess, onCancel }: JobPostingFormP
               type="text"
               required
               value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, location: e.target.value })
+              }
               className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
               placeholder="City, State"
             />
@@ -108,7 +126,9 @@ export function JobPostingForm({ posting, onSuccess, onCancel }: JobPostingFormP
             </label>
             <select
               value={formData.industry}
-              onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, industry: e.target.value })
+              }
               className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
             >
               <option value="">All Industries</option>
@@ -129,7 +149,9 @@ export function JobPostingForm({ posting, onSuccess, onCancel }: JobPostingFormP
             <input
               type="number"
               value={formData.pay_range_min}
-              onChange={(e) => setFormData({ ...formData, pay_range_min: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, pay_range_min: e.target.value })
+              }
               className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
               placeholder="0.00"
             />
@@ -141,7 +163,9 @@ export function JobPostingForm({ posting, onSuccess, onCancel }: JobPostingFormP
             <input
               type="number"
               value={formData.pay_range_max}
-              onChange={(e) => setFormData({ ...formData, pay_range_max: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, pay_range_max: e.target.value })
+              }
               className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
               placeholder="0.00"
             />
@@ -152,7 +176,9 @@ export function JobPostingForm({ posting, onSuccess, onCancel }: JobPostingFormP
             </label>
             <select
               value={formData.shift}
-              onChange={(e) => setFormData({ ...formData, shift: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, shift: e.target.value })
+              }
               className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
             >
               <option value="">Select shift</option>
@@ -171,7 +197,9 @@ export function JobPostingForm({ posting, onSuccess, onCancel }: JobPostingFormP
           </label>
           <textarea
             value={formData.requirements}
-            onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, requirements: e.target.value })
+            }
             rows={4}
             className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
             placeholder="List required certifications, experience, skills, etc."
@@ -180,7 +208,11 @@ export function JobPostingForm({ posting, onSuccess, onCancel }: JobPostingFormP
 
         <div className="flex gap-3 pt-4">
           <Button type="submit" disabled={loading}>
-            {loading ? 'Saving...' : posting ? 'Update Job Posting' : 'Create Job Posting'}
+            {loading
+              ? "Saving..."
+              : posting
+                ? "Update Job Posting"
+                : "Create Job Posting"}
           </Button>
           <Button type="button" variant="ghost" onClick={onCancel}>
             Cancel
@@ -188,5 +220,5 @@ export function JobPostingForm({ posting, onSuccess, onCancel }: JobPostingFormP
         </div>
       </form>
     </Card>
-  )
+  );
 }

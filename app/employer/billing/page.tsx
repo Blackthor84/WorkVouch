@@ -1,20 +1,20 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser, hasRole } from '@/lib/auth'
-import { EmployerHeader } from '@/components/employer/employer-header'
-import { EmployerSidebar } from '@/components/employer/employer-sidebar'
-import { EmployerBilling } from '@/components/employer/employer-billing'
+import { redirect } from "next/navigation";
+import { getCurrentUser, hasRole } from "@/lib/auth";
+import { EmployerHeader } from "@/components/employer/employer-header";
+import { EmployerSidebar } from "@/components/employer/employer-sidebar";
+import { EmployerBilling } from "@/components/employer/employer-billing";
 
 export default async function EmployerBillingPage() {
-  const user = await getCurrentUser()
-  
+  const user = await getCurrentUser();
+
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
-  const isEmployer = await hasRole('employer')
-  
+  const isEmployer = await hasRole("employer");
+
   if (!isEmployer) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
   return (
@@ -37,5 +37,5 @@ export default async function EmployerBillingPage() {
         </main>
       </div>
     </div>
-  )
+  );
 }

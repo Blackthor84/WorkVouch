@@ -1,29 +1,29 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser, hasRole } from '@/lib/auth'
-import { getCandidateProfileForEmployer } from '@/lib/actions/employer/candidate-search'
-import { NavbarServer } from '@/components/navbar-server'
-import { CandidateProfileViewer } from '@/components/employer/candidate-profile-viewer'
+import { redirect } from "next/navigation";
+import { getCurrentUser, hasRole } from "@/lib/auth";
+import { getCandidateProfileForEmployer } from "@/lib/actions/employer/candidate-search";
+import { NavbarServer } from "@/components/navbar-server";
+import { CandidateProfileViewer } from "@/components/employer/candidate-profile-viewer";
 
 export default async function CandidateProfilePage({
   params,
 }: {
-  params: { id: string }
+  params: { id: string };
 }) {
-  const user = await getCurrentUser()
-  
+  const user = await getCurrentUser();
+
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
-  const isEmployer = await hasRole('employer')
-  
+  const isEmployer = await hasRole("employer");
+
   if (!isEmployer) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
-  let candidateData
+  let candidateData;
   try {
-    candidateData = await getCandidateProfileForEmployer(params.id)
+    candidateData = await getCandidateProfileForEmployer(params.id);
   } catch (error: any) {
     return (
       <>
@@ -34,12 +34,12 @@ export default async function CandidateProfilePage({
               Candidate Not Found
             </h1>
             <p className="text-grey-medium dark:text-gray-400">
-              {error.message || 'This candidate profile could not be loaded.'}
+              {error.message || "This candidate profile could not be loaded."}
             </p>
           </div>
         </main>
       </>
-    )
+    );
   }
 
   return (
@@ -49,5 +49,5 @@ export default async function CandidateProfilePage({
         <CandidateProfileViewer candidateData={candidateData} />
       </main>
     </>
-  )
+  );
 }

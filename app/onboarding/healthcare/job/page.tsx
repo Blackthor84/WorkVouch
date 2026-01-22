@@ -1,9 +1,9 @@
-import { NavbarServer } from '@/components/navbar-server'
-import { HealthcareJobClient } from './healthcare-job-client'
+import { NavbarServer } from "@/components/navbar-server";
+import { HealthcareJobClient } from "./healthcare-job-client";
 
 // Mark as dynamic to prevent build-time prerendering
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export default function HealthcareJobStep() {
   return (
@@ -15,5 +15,5 @@ export default function HealthcareJobStep() {
         </div>
       </main>
     </>
-  )
+  );
 }

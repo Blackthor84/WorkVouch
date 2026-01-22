@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { PlusIcon } from '@heroicons/react/24/outline'
-import { AddJobModal } from './add-job-modal'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { PlusIcon } from "@heroicons/react/24/outline";
+import { AddJobModal } from "./add-job-modal";
 
 export function AddJobButton() {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
@@ -16,5 +16,5 @@ export function AddJobButton() {
       </Button>
       <AddJobModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>
-  )
+  );
 }

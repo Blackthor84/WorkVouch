@@ -1,120 +1,130 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const HEALTHCARE_ROLES = [
-  'CNA',
-  'HHA',
-  'Medical Assistant',
-  'Patient Care Tech',
-  'Dental Assistant',
-  'Medical Receptionist',
-  'Phlebotomist',
-  'Pharmacy Technician',
-  'ER Tech',
-  'Caregiver',
-  'Lab Assistant',
-  'Sterile Processing Tech'
-]
+  "CNA",
+  "HHA",
+  "Medical Assistant",
+  "Patient Care Tech",
+  "Dental Assistant",
+  "Medical Receptionist",
+  "Phlebotomist",
+  "Pharmacy Technician",
+  "ER Tech",
+  "Caregiver",
+  "Lab Assistant",
+  "Sterile Processing Tech",
+];
 
 export function JobPostClient() {
-  const router = useRouter()
-  const supabase = createClient()
-  const [jobTitle, setJobTitle] = useState('')
-  const [workSetting, setWorkSetting] = useState('')
-  const [location, setLocation] = useState('')
-  const [requiredCertifications, setRequiredCertifications] = useState('')
-  const [description, setDescription] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const router = useRouter();
+  const supabase = createClient();
+  const [jobTitle, setJobTitle] = useState("");
+  const [workSetting, setWorkSetting] = useState("");
+  const [location, setLocation] = useState("");
+  const [requiredCertifications, setRequiredCertifications] = useState("");
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     async function checkUser() {
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
+
       if (!currentUser) {
-        router.push('/auth/signin')
-        return
+        router.push("/auth/signin");
+        return;
       }
 
-      setUser(currentUser)
+      setUser(currentUser);
     }
 
-    checkUser()
-  }, [router, supabase])
+    checkUser();
+  }, [router, supabase]);
 
   const handleSubmit = async () => {
     if (!jobTitle || !workSetting || !location) {
-      alert('Please fill in all required fields')
-      return
+      alert("Please fill in all required fields");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
       // Parse certifications (comma-separated)
       const certificationsArray = requiredCertifications
-        ? requiredCertifications.split(',').map((c) => c.trim()).filter((c) => c.length > 0)
-        : []
+        ? requiredCertifications
+            .split(",")
+            .map((c) => c.trim())
+            .filter((c) => c.length > 0)
+        : [];
 
       // Get employer account
-      const supabaseAny = supabase as any
-      type EmployerAccountRow = { id: string }
+      const supabaseAny = supabase as any;
+      type EmployerAccountRow = { id: string };
       const { data: employerAccount } = await supabaseAny
-        .from('employer_accounts')
-        .select('id')
-        .eq('user_id', user.id)
-        .single()
+        .from("employer_accounts")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
 
       if (!employerAccount) {
-        alert('Employer account not found. Please complete employer onboarding first.')
-        setLoading(false)
-        return
+        alert(
+          "Employer account not found. Please complete employer onboarding first.",
+        );
+        setLoading(false);
+        return;
       }
 
-      const employerAccountTyped = employerAccount as EmployerAccountRow
+      const employerAccountTyped = employerAccount as EmployerAccountRow;
 
       // Insert job posting
       const { error: jobError } = await supabaseAny
-        .from('job_postings')
-        .insert([{
-          employer_id: employerAccountTyped.id,
-          job_title: jobTitle,
-          industry: 'healthcare',
-          work_setting: workSetting,
-          location,
-          required_certifications: certificationsArray.length > 0 ? certificationsArray : null,
-          description: description || null,
-          status: 'active'
-        }])
+        .from("job_postings")
+        .insert([
+          {
+            employer_id: employerAccountTyped.id,
+            job_title: jobTitle,
+            industry: "healthcare",
+            work_setting: workSetting,
+            location,
+            required_certifications:
+              certificationsArray.length > 0 ? certificationsArray : null,
+            description: description || null,
+            status: "active",
+          },
+        ]);
 
       if (jobError) {
-        console.error('Error creating job posting:', jobError)
-        alert('Error creating job posting. Please try again.')
-        setLoading(false)
-        return
+        console.error("Error creating job posting:", jobError);
+        alert("Error creating job posting. Please try again.");
+        setLoading(false);
+        return;
       }
 
-      router.push('/employer/dashboard')
+      router.push("/employer/dashboard");
     } catch (err: any) {
-      console.error('Error:', err)
-      alert('An error occurred. Please try again.')
-      setLoading(false)
+      console.error("Error:", err);
+      alert("An error occurred. Please try again.");
+      setLoading(false);
     }
-  }
+  };
 
   if (!user) {
     return (
       <div className="text-center">
         <p className="text-grey-medium dark:text-gray-400">Loading...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -179,7 +189,9 @@ export function JobPostClient() {
         </div>
 
         <div>
-          <Label htmlFor="requiredCertifications">Required Certifications (comma-separated)</Label>
+          <Label htmlFor="requiredCertifications">
+            Required Certifications (comma-separated)
+          </Label>
           <Input
             id="requiredCertifications"
             type="text"
@@ -210,8 +222,8 @@ export function JobPostClient() {
         disabled={loading || !jobTitle || !workSetting || !location}
         className="w-full"
       >
-        {loading ? 'Posting...' : 'Post Job'}
+        {loading ? "Posting..." : "Post Job"}
       </Button>
     </Card>
-  )
+  );
 }

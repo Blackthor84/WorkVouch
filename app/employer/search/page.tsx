@@ -1,13 +1,13 @@
-import { redirect } from 'next/navigation'
-import { hasRole } from '@/lib/auth'
-import { NavbarServer } from '@/components/navbar-server'
-import { EmployerSearchForm } from '@/components/employer-search-form'
+import { redirect } from "next/navigation";
+import { hasRole } from "@/lib/auth";
+import { NavbarServer } from "@/components/navbar-server";
+import { EmployerSearchForm } from "@/components/employer-search-form";
 
 export default async function EmployerSearchPage() {
-  const isEmployer = await hasRole('employer')
+  const isEmployer = await hasRole("employer");
 
   if (!isEmployer) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
   return (
@@ -20,6 +20,5 @@ export default async function EmployerSearchPage() {
         <EmployerSearchForm />
       </main>
     </>
-  )
+  );
 }
-

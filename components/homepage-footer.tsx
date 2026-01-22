@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from "next/link";
 
 export function HomepageFooter() {
   return (
@@ -9,18 +9,27 @@ export function HomepageFooter() {
             © {new Date().getFullYear()} WorkVouch. All rights reserved.
           </p>
           <div className="flex justify-center space-x-6 text-sm">
-            <Link href="/privacy" className="hover:text-blue-600 transition-colors">
+            <Link
+              href="/privacy"
+              className="hover:text-blue-600 transition-colors"
+            >
               Privacy
             </Link>
-            <Link href="/terms" className="hover:text-blue-600 transition-colors">
+            <Link
+              href="/terms"
+              className="hover:text-blue-600 transition-colors"
+            >
               Terms
             </Link>
-            <Link href="/contact" className="hover:text-blue-600 transition-colors">
+            <Link
+              href="/contact"
+              className="hover:text-blue-600 transition-colors"
+            >
               Contact
             </Link>
           </div>
         </div>
       </div>
     </footer>
-  )
+  );
 }

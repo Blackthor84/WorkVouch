@@ -1,18 +1,18 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser, isAdmin } from '@/lib/auth'
-import { NavbarServer } from '@/components/navbar-server'
-import { VerificationsList } from '@/components/workvouch/verifications-list'
+import { redirect } from "next/navigation";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
+import { NavbarServer } from "@/components/navbar-server";
+import { VerificationsList } from "@/components/workvouch/verifications-list";
 
 export default async function AdminVerificationsPage() {
-  const user = await getCurrentUser()
+  const user = await getCurrentUser();
 
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
-  const admin = await isAdmin()
+  const admin = await isAdmin();
   if (!admin) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
   return (
@@ -30,5 +30,5 @@ export default async function AdminVerificationsPage() {
         <VerificationsList />
       </main>
     </>
-  )
+  );
 }

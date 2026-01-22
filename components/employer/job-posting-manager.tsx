@@ -1,75 +1,80 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 import {
   getEmployerJobPostings,
   createJobPosting,
   toggleJobPostingPublish,
   boostJobPosting,
   type JobPosting,
-} from '@/lib/actions/employer/job-postings'
-import { Card } from '../ui/card'
-import { Button } from '../ui/button'
-import { PlusIcon, EyeIcon, EyeSlashIcon, RocketLaunchIcon } from '@heroicons/react/24/outline'
-import { JobPostingForm } from './job-posting-form'
-import { JobPostingList } from './job-posting-list'
+} from "@/lib/actions/employer/job-postings";
+import { Card } from "../ui/card";
+import { Button } from "../ui/button";
+import {
+  PlusIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  RocketLaunchIcon,
+} from "@heroicons/react/24/outline";
+import { JobPostingForm } from "./job-posting-form";
+import { JobPostingList } from "./job-posting-list";
 
 export function JobPostingManager() {
-  const [postings, setPostings] = useState<JobPosting[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [editingPosting, setEditingPosting] = useState<JobPosting | null>(null)
+  const [postings, setPostings] = useState<JobPosting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingPosting, setEditingPosting] = useState<JobPosting | null>(null);
 
   useEffect(() => {
-    loadPostings()
-  }, [])
+    loadPostings();
+  }, []);
 
   const loadPostings = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const data = await getEmployerJobPostings()
-      setPostings(data)
+      const data = await getEmployerJobPostings();
+      setPostings(data);
     } catch (error: any) {
-      alert(error.message || 'Failed to load job postings')
+      alert(error.message || "Failed to load job postings");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleTogglePublish = async (id: string, currentStatus: boolean) => {
     try {
-      await toggleJobPostingPublish(id, !currentStatus)
-      await loadPostings()
+      await toggleJobPostingPublish(id, !currentStatus);
+      await loadPostings();
     } catch (error: any) {
-      alert(error.message || 'Failed to update job posting')
+      alert(error.message || "Failed to update job posting");
     }
-  }
+  };
 
   const handleBoost = async (id: string) => {
     try {
-      await boostJobPosting(id, 30)
-      await loadPostings()
-      alert('Job posting boosted for 30 days!')
+      await boostJobPosting(id, 30);
+      await loadPostings();
+      alert("Job posting boosted for 30 days!");
     } catch (error: any) {
-      alert(error.message || 'Failed to boost job posting')
+      alert(error.message || "Failed to boost job posting");
     }
-  }
+  };
 
   if (showForm || editingPosting) {
     return (
       <JobPostingForm
         posting={editingPosting}
         onSuccess={() => {
-          setShowForm(false)
-          setEditingPosting(null)
-          loadPostings()
+          setShowForm(false);
+          setEditingPosting(null);
+          loadPostings();
         }}
         onCancel={() => {
-          setShowForm(false)
-          setEditingPosting(null)
+          setShowForm(false);
+          setEditingPosting(null);
         }}
       />
-    )
+    );
   }
 
   return (
@@ -91,7 +96,9 @@ export function JobPostingManager() {
 
       {loading ? (
         <Card className="p-12 text-center">
-          <p className="text-grey-medium dark:text-gray-400">Loading job postings...</p>
+          <p className="text-grey-medium dark:text-gray-400">
+            Loading job postings...
+          </p>
         </Card>
       ) : (
         <JobPostingList
@@ -102,5 +109,5 @@ export function JobPostingManager() {
         />
       )}
     </div>
-  )
+  );
 }

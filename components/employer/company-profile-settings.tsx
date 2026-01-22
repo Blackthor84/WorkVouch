@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { Card } from '../ui/card'
-import { Button } from '../ui/button'
+import { Card } from "../ui/card";
+import { Button } from "../ui/button";
 
 export function CompanyProfileSettings() {
   return (
@@ -17,9 +17,10 @@ export function CompanyProfileSettings() {
 
       <Card className="p-6">
         <p className="text-grey-medium dark:text-gray-400">
-          Company profile settings coming soon. This will allow you to customize your company information, logo, and preferences.
+          Company profile settings coming soon. This will allow you to customize
+          your company information, logo, and preferences.
         </p>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,21 +1,21 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser, hasRole } from '@/lib/auth'
-import { EmployerHeader } from '@/components/employer/employer-header'
-import { EmployerSidebar } from '@/components/employer/employer-sidebar'
-import { EmployeeSearch } from '@/components/workvouch/employee-search'
+import { redirect } from "next/navigation";
+import { getCurrentUser, hasRole } from "@/lib/auth";
+import { EmployerHeader } from "@/components/employer/employer-header";
+import { EmployerSidebar } from "@/components/employer/employer-sidebar";
+import { EmployeeSearch } from "@/components/workvouch/employee-search";
 
 export default async function EmployerEmployeesPage() {
-  const user = await getCurrentUser()
+  const user = await getCurrentUser();
 
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
-  const isEmployer = await hasRole('employer')
-  const isSuperAdmin = await hasRole('superadmin')
+  const isEmployer = await hasRole("employer");
+  const isSuperAdmin = await hasRole("superadmin");
 
   if (!isEmployer && !isSuperAdmin) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
   return (
@@ -30,7 +30,8 @@ export default async function EmployerEmployeesPage() {
                 Employee Roster
               </h1>
               <p className="text-grey-medium dark:text-gray-400">
-                Search and view employees who list your company in their work history
+                Search and view employees who list your company in their work
+                history
               </p>
             </div>
             <EmployeeSearch />
@@ -38,5 +39,5 @@ export default async function EmployerEmployeesPage() {
         </main>
       </div>
     </div>
-  )
+  );
 }

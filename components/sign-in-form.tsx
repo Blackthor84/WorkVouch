@@ -1,65 +1,66 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { Button } from './ui/button'
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { Button } from "./ui/button";
 
 export function SignInForm() {
-  const router = useRouter()
-  const supabase = createClient()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const router = useRouter();
+  const supabase = createClient();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
     try {
-      console.log('Attempting sign in...')
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      console.log("Attempting sign in...");
+      const { data, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-      console.log('Sign in response:', { data, error: signInError })
+      console.log("Sign in response:", { data, error: signInError });
 
       if (signInError) {
-        console.error('Sign in error:', signInError)
-        throw signInError
+        console.error("Sign in error:", signInError);
+        throw signInError;
       }
 
       if (data.session) {
-        console.log('✅ Sign in successful!')
-        console.log('Session:', data.session)
-        console.log('User:', data.user)
-        
+        console.log("✅ Sign in successful!");
+        console.log("Session:", data.session);
+        console.log("User:", data.user);
+
         // Redirect immediately - session is already set
-        console.log('🔄 Redirecting to dashboard...')
-        
+        console.log("🔄 Redirecting to dashboard...");
+
         // Force immediate redirect
         setTimeout(() => {
-          window.location.href = '/dashboard'
-        }, 100)
-        
+          window.location.href = "/dashboard";
+        }, 100);
+
         // Also try router immediately
-        router.push('/dashboard')
-        
-        return // Don't continue
+        router.push("/dashboard");
+
+        return; // Don't continue
       } else {
-        console.error('❌ No session in response')
-        throw new Error('No session created')
+        console.error("❌ No session in response");
+        throw new Error("No session created");
       }
     } catch (err: any) {
-      console.error('Sign in failed:', err)
-      setError(err.message || 'An error occurred')
+      console.error("Sign in failed:", err);
+      setError(err.message || "An error occurred");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -105,14 +106,9 @@ export function SignInForm() {
         />
       </div>
 
-      <Button
-        type="submit"
-        disabled={loading}
-        className="w-full"
-      >
-        {loading ? 'Signing in...' : 'Sign In'}
+      <Button type="submit" disabled={loading} className="w-full">
+        {loading ? "Signing in..." : "Sign In"}
       </Button>
     </form>
-  )
+  );
 }
-

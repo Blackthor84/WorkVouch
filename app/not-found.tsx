@@ -1,10 +1,12 @@
-import Link from 'next/link'
+import Link from "next/link";
 
 export default function NotFound() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-grey-dark dark:text-gray-200">404 - Page Not Found</h2>
+        <h2 className="text-2xl font-bold text-grey-dark dark:text-gray-200">
+          404 - Page Not Found
+        </h2>
         <p className="mt-4 text-grey-medium dark:text-gray-400">
           The page you're looking for doesn't exist.
         </p>
@@ -16,5 +18,5 @@ export default function NotFound() {
         </Link>
       </div>
     </div>
-  )
+  );
 }

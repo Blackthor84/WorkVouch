@@ -1,19 +1,29 @@
-'use client'
+"use client";
 
-import { JobPosting } from '@/lib/actions/employer/job-postings'
-import { Card } from '../ui/card'
-import { Button } from '../ui/button'
-import { EyeIcon, EyeSlashIcon, RocketLaunchIcon, PencilIcon } from '@heroicons/react/24/outline'
-import Link from 'next/link'
+import { JobPosting } from "@/lib/actions/employer/job-postings";
+import { Card } from "../ui/card";
+import { Button } from "../ui/button";
+import {
+  EyeIcon,
+  EyeSlashIcon,
+  RocketLaunchIcon,
+  PencilIcon,
+} from "@heroicons/react/24/outline";
+import Link from "next/link";
 
 interface JobPostingListProps {
-  postings: JobPosting[]
-  onTogglePublish: (id: string, currentStatus: boolean) => void
-  onBoost: (id: string) => void
-  onEdit: (posting: JobPosting) => void
+  postings: JobPosting[];
+  onTogglePublish: (id: string, currentStatus: boolean) => void;
+  onBoost: (id: string) => void;
+  onEdit: (posting: JobPosting) => void;
 }
 
-export function JobPostingList({ postings, onTogglePublish, onBoost, onEdit }: JobPostingListProps) {
+export function JobPostingList({
+  postings,
+  onTogglePublish,
+  onBoost,
+  onEdit,
+}: JobPostingListProps) {
   if (postings.length === 0) {
     return (
       <Card className="p-12 text-center">
@@ -21,7 +31,7 @@ export function JobPostingList({ postings, onTogglePublish, onBoost, onEdit }: J
           No job postings yet. Create your first one!
         </p>
       </Card>
-    )
+    );
   }
 
   return (
@@ -47,7 +57,8 @@ export function JobPostingList({ postings, onTogglePublish, onBoost, onEdit }: J
                 )}
               </div>
               <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">
-                {posting.location} {posting.industry && `• ${posting.industry.replace('_', ' ')}`}
+                {posting.location}{" "}
+                {posting.industry && `• ${posting.industry.replace("_", " ")}`}
               </p>
               <p className="text-grey-dark dark:text-gray-200 line-clamp-2">
                 {posting.description}
@@ -62,7 +73,9 @@ export function JobPostingList({ postings, onTogglePublish, onBoost, onEdit }: J
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => onTogglePublish(posting.id, posting.is_published)}
+                onClick={() =>
+                  onTogglePublish(posting.id, posting.is_published)
+                }
               >
                 {posting.is_published ? (
                   <>
@@ -85,19 +98,11 @@ export function JobPostingList({ postings, onTogglePublish, onBoost, onEdit }: J
                 <RocketLaunchIcon className="h-4 w-4 mr-2" />
                 Boost
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onEdit(posting)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => onEdit(posting)}>
                 <PencilIcon className="h-4 w-4 mr-2" />
                 Edit
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                href={`/jobs/${posting.id}`}
-              >
+              <Button variant="ghost" size="sm" href={`/jobs/${posting.id}`}>
                 View
               </Button>
             </div>
@@ -105,5 +110,5 @@ export function JobPostingList({ postings, onTogglePublish, onBoost, onEdit }: J
         </Card>
       ))}
     </div>
-  )
+  );
 }

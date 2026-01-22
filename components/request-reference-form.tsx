@@ -1,79 +1,79 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { createReference } from '@/lib/actions/references'
-import { getJobsForUser } from '@/lib/actions/jobs'
-import { RelationshipType } from '@/types/database'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from "react";
+import { createReference } from "@/lib/actions/references";
+import { getJobsForUser } from "@/lib/actions/jobs";
+import { RelationshipType } from "@/types/database";
+import { useRouter } from "next/navigation";
 
 interface Connection {
-  id: string
+  id: string;
   connected_user: {
-    id: string
-    full_name: string
-    email: string
-  } | null
+    id: string;
+    full_name: string;
+    email: string;
+  } | null;
 }
 
 interface Job {
-  id: string
-  company_name: string
-  job_title: string
-  user_id: string
+  id: string;
+  company_name: string;
+  job_title: string;
+  user_id: string;
 }
 
 export function RequestReferenceForm({
   connections,
 }: {
-  connections: Connection[]
+  connections: Connection[];
 }) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [loadingJobs, setLoadingJobs] = useState(false)
-  const [selectedUserJobs, setSelectedUserJobs] = useState<Job[]>([])
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [loadingJobs, setLoadingJobs] = useState(false);
+  const [selectedUserJobs, setSelectedUserJobs] = useState<Job[]>([]);
   const [formData, setFormData] = useState({
-    to_user_id: '',
-    job_id: '',
-    relationship_type: 'coworker' as RelationshipType,
+    to_user_id: "",
+    job_id: "",
+    relationship_type: "coworker" as RelationshipType,
     rating: 5,
-    written_feedback: '',
-  })
+    written_feedback: "",
+  });
 
   // Fetch jobs when user is selected
   useEffect(() => {
     if (formData.to_user_id) {
-      setLoadingJobs(true)
+      setLoadingJobs(true);
       getJobsForUser(formData.to_user_id)
         .then((jobs) => {
-          setSelectedUserJobs(jobs || [])
-          setFormData((prev) => ({ ...prev, job_id: '' })) // Reset job selection
+          setSelectedUserJobs(jobs || []);
+          setFormData((prev) => ({ ...prev, job_id: "" })); // Reset job selection
         })
         .catch((error) => {
-          alert(error.message)
-          setSelectedUserJobs([])
+          alert(error.message);
+          setSelectedUserJobs([]);
         })
         .finally(() => {
-          setLoadingJobs(false)
-        })
+          setLoadingJobs(false);
+        });
     } else {
-      setSelectedUserJobs([])
+      setSelectedUserJobs([]);
     }
-  }, [formData.to_user_id])
+  }, [formData.to_user_id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      await createReference(formData)
-      alert('Reference created successfully!')
-      router.push('/dashboard')
+      await createReference(formData);
+      alert("Reference created successfully!");
+      router.push("/dashboard");
     } catch (error: any) {
-      alert(error.message)
+      alert(error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="rounded-2xl bg-white dark:bg-[#1A1F2B] p-6 shadow-md">
@@ -86,7 +86,11 @@ export function RequestReferenceForm({
             required
             value={formData.to_user_id}
             onChange={(e) =>
-              setFormData({ ...formData, to_user_id: e.target.value, job_id: '' })
+              setFormData({
+                ...formData,
+                to_user_id: e.target.value,
+                job_id: "",
+              })
             }
             className="mt-1 block w-full rounded-xl border border-grey-light dark:border-[#374151] bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 px-3 py-2"
           >
@@ -111,7 +115,9 @@ export function RequestReferenceForm({
               Select Job *
             </label>
             {loadingJobs ? (
-              <div className="mt-1 text-sm text-grey-medium dark:text-gray-400">Loading jobs...</div>
+              <div className="mt-1 text-sm text-grey-medium dark:text-gray-400">
+                Loading jobs...
+              </div>
             ) : (
               <select
                 required
@@ -202,10 +208,9 @@ export function RequestReferenceForm({
           disabled={loading}
           className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 px-5 py-2.5 text-white font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50"
         >
-          {loading ? 'Submitting...' : 'Submit Reference'}
+          {loading ? "Submitting..." : "Submit Reference"}
         </button>
       </form>
     </div>
-  )
+  );
 }
-

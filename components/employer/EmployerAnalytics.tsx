@@ -1,38 +1,42 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { Card } from '@/components/ui/card'
-import UpgradeModal from '@/components/UpgradeModal'
-import { useState } from 'react'
+import React from "react";
+import { Card } from "@/components/ui/card";
+import UpgradeModal from "@/components/UpgradeModal";
+import { useState } from "react";
 
 interface RehireData {
-  workerEmail: string
-  rehireCount: number
-  lastHired: string
+  workerEmail: string;
+  rehireCount: number;
+  lastHired: string;
 }
 
 interface TrustScore {
-  workerEmail: string
-  score: number
+  workerEmail: string;
+  score: number;
 }
 
 interface EmployerAnalyticsProps {
-  rehireData: RehireData[]
-  trustScores: TrustScore[]
-  userRole: string
-  planTier?: string
+  rehireData: RehireData[];
+  trustScores: TrustScore[];
+  userRole: string;
+  planTier?: string;
 }
 
-export default function EmployerAnalytics({ 
-  rehireData, 
-  trustScores, 
+export default function EmployerAnalytics({
+  rehireData,
+  trustScores,
   userRole,
-  planTier 
+  planTier,
 }: EmployerAnalyticsProps) {
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
-  
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
   // Check if user has access (Pro or Enterprise plan)
-  const isBasicPlan = planTier === 'free' || planTier === 'basic' || !planTier || userRole === 'employer_basic'
+  const isBasicPlan =
+    planTier === "free" ||
+    planTier === "basic" ||
+    !planTier ||
+    userRole === "employer_basic";
 
   if (isBasicPlan) {
     return (
@@ -42,7 +46,8 @@ export default function EmployerAnalytics({
             Rehire Status & Trust Analytics
           </h2>
           <p className="text-grey-medium dark:text-gray-400 mb-6">
-            Upgrade to Professional or Enterprise to access Rehire Status and Trust Analytics.
+            Upgrade to Professional or Enterprise to access Rehire Status and
+            Trust Analytics.
           </p>
           <button
             onClick={() => setShowUpgradeModal(true)}
@@ -58,7 +63,7 @@ export default function EmployerAnalytics({
           />
         )}
       </Card>
-    )
+    );
   }
 
   return (
@@ -69,7 +74,9 @@ export default function EmployerAnalytics({
           Rehire Status
         </h2>
         {rehireData.length === 0 ? (
-          <p className="text-grey-medium dark:text-gray-400">No rehire data available.</p>
+          <p className="text-grey-medium dark:text-gray-400">
+            No rehire data available.
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white dark:bg-[#1A1F2B] rounded-xl shadow overflow-hidden">
@@ -88,8 +95,8 @@ export default function EmployerAnalytics({
               </thead>
               <tbody>
                 {rehireData.map((r, idx) => (
-                  <tr 
-                    key={idx} 
+                  <tr
+                    key={idx}
                     className="border-b border-grey-background dark:border-[#374151] hover:bg-gray-50 dark:hover:bg-[#0D1117] transition-colors"
                   >
                     <td className="py-3 px-4 text-sm text-grey-dark dark:text-gray-200">
@@ -115,7 +122,9 @@ export default function EmployerAnalytics({
           Trust Analytics
         </h2>
         {trustScores.length === 0 ? (
-          <p className="text-grey-medium dark:text-gray-400">No trust score data available.</p>
+          <p className="text-grey-medium dark:text-gray-400">
+            No trust score data available.
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white dark:bg-[#1A1F2B] rounded-xl shadow overflow-hidden">
@@ -131,21 +140,23 @@ export default function EmployerAnalytics({
               </thead>
               <tbody>
                 {trustScores.map((t, idx) => (
-                  <tr 
-                    key={idx} 
+                  <tr
+                    key={idx}
                     className="border-b border-grey-background dark:border-[#374151] hover:bg-gray-50 dark:hover:bg-[#0D1117] transition-colors"
                   >
                     <td className="py-3 px-4 text-sm text-grey-dark dark:text-gray-200">
                       {t.workerEmail}
                     </td>
                     <td className="py-3 px-4 text-sm">
-                      <span className={`font-semibold ${
-                        t.score >= 80 
-                          ? 'text-green-600 dark:text-green-400' 
-                          : t.score >= 60 
-                          ? 'text-yellow-600 dark:text-yellow-400' 
-                          : 'text-red-600 dark:text-red-400'
-                      }`}>
+                      <span
+                        className={`font-semibold ${
+                          t.score >= 80
+                            ? "text-green-600 dark:text-green-400"
+                            : t.score >= 60
+                              ? "text-yellow-600 dark:text-yellow-400"
+                              : "text-red-600 dark:text-red-400"
+                        }`}
+                      >
                         {t.score.toFixed(1)}
                       </span>
                     </td>
@@ -157,5 +168,5 @@ export default function EmployerAnalytics({
         )}
       </Card>
     </div>
-  )
+  );
 }

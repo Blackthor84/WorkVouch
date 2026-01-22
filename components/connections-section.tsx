@@ -1,23 +1,27 @@
-import Link from 'next/link'
-import { Card, CardHeader, CardTitle, CardContent } from './ui/card'
-import { UserGroupIcon, UserCircleIcon, MapPinIcon } from '@heroicons/react/24/outline'
+import Link from "next/link";
+import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
+import {
+  UserGroupIcon,
+  UserCircleIcon,
+  MapPinIcon,
+} from "@heroicons/react/24/outline";
 
 interface Connection {
-  id: string
+  id: string;
   connected_user: {
-    id: string
-    full_name: string
-    email: string
-    city: string | null
-    state: string | null
-    profile_photo_url: string | null
-  } | null
+    id: string;
+    full_name: string;
+    email: string;
+    city: string | null;
+    state: string | null;
+    profile_photo_url: string | null;
+  } | null;
 }
 
 export function ConnectionsSection({
   connections,
 }: {
-  connections: Connection[]
+  connections: Connection[];
 }) {
   return (
     <Card>
@@ -32,8 +36,12 @@ export function ConnectionsSection({
           {connections.length === 0 ? (
             <div className="col-span-2 text-center py-12">
               <UserGroupIcon className="h-12 w-12 text-grey-light dark:text-gray-500 mx-auto mb-4" />
-              <p className="text-grey-dark dark:text-gray-200 font-bold mb-2">No connections yet.</p>
-              <p className="text-sm text-grey-dark dark:text-gray-200 font-semibold">Connect with coworkers to build your network.</p>
+              <p className="text-grey-dark dark:text-gray-200 font-bold mb-2">
+                No connections yet.
+              </p>
+              <p className="text-sm text-grey-dark dark:text-gray-200 font-semibold">
+                Connect with coworkers to build your network.
+              </p>
             </div>
           ) : (
             connections.map((connection) => (
@@ -57,12 +65,13 @@ export function ConnectionsSection({
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-grey-dark dark:text-gray-200 truncate">
-                      {connection.connected_user?.full_name || 'Unknown User'}
+                      {connection.connected_user?.full_name || "Unknown User"}
                     </h3>
                     <p className="text-sm text-grey-dark dark:text-gray-200 font-semibold truncate mt-1">
                       {connection.connected_user?.email}
                     </p>
-                    {(connection.connected_user?.city || connection.connected_user?.state) && (
+                    {(connection.connected_user?.city ||
+                      connection.connected_user?.state) && (
                       <div className="flex items-center gap-1 text-sm text-grey-dark dark:text-gray-200 font-semibold mt-2">
                         <MapPinIcon className="h-4 w-4" />
                         <span>
@@ -71,7 +80,7 @@ export function ConnectionsSection({
                             connection.connected_user?.state,
                           ]
                             .filter(Boolean)
-                            .join(', ')}
+                            .join(", ")}
                         </span>
                       </div>
                     )}
@@ -83,6 +92,5 @@ export function ConnectionsSection({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
-

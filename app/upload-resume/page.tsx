@@ -1,14 +1,14 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth'
-import { NavbarServer } from '@/components/navbar-server'
-import { Card } from '@/components/ui/card'
-import { UploadResumeForm } from '@/components/upload-resume-form'
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
+import { NavbarServer } from "@/components/navbar-server";
+import { Card } from "@/components/ui/card";
+import { UploadResumeForm } from "@/components/upload-resume-form";
 
 export default async function UploadResumePage() {
-  const user = await getCurrentUser()
-  
+  const user = await getCurrentUser();
+
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
   return (
@@ -20,7 +20,8 @@ export default async function UploadResumePage() {
             Upload Resume
           </h1>
           <p className="text-grey-medium dark:text-gray-400">
-            Upload your resume (PDF or DOCX) to auto-fill your WorkVouch profile.
+            Upload your resume (PDF or DOCX) to auto-fill your WorkVouch
+            profile.
           </p>
         </div>
 
@@ -29,5 +30,5 @@ export default async function UploadResumePage() {
         </Card>
       </main>
     </>
-  )
+  );
 }

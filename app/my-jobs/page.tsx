@@ -1,36 +1,38 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth'
-import { createServerClient } from '@/lib/supabase/server'
-import { NavbarServer } from '@/components/navbar-server'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { JobList } from '@/components/workvouch/job-list'
-import { AddJobButton } from '@/components/workvouch/add-job-button'
-import { BriefcaseIcon } from '@heroicons/react/24/outline'
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
+import { createServerClient } from "@/lib/supabase/server";
+import { NavbarServer } from "@/components/navbar-server";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { JobList } from "@/components/workvouch/job-list";
+import { AddJobButton } from "@/components/workvouch/add-job-button";
+import { BriefcaseIcon } from "@heroicons/react/24/outline";
 
 export default async function MyJobsPage() {
-  const user = await getCurrentUser()
+  const user = await getCurrentUser();
 
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
-  const supabase = await createServerClient()
+  const supabase = await createServerClient();
 
-  const supabaseAny = supabase as any
+  const supabaseAny = supabase as any;
   const { data: jobs, error } = await supabaseAny
-    .from('jobs')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('start_date', { ascending: false })
+    .from("jobs")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("start_date", { ascending: false });
 
   // Normalize jobs: convert string | null to string
-  const safeJobs = jobs ? jobs.map((job: any) => ({
-    ...job,
-    company_name: job.company_name ?? "",
-    job_title: job.job_title ?? "",
-  })) : []
+  const safeJobs = jobs
+    ? jobs.map((job: any) => ({
+        ...job,
+        company_name: job.company_name ?? "",
+        job_title: job.job_title ?? "",
+      }))
+    : [];
 
   return (
     <>
@@ -65,5 +67,5 @@ export default async function MyJobsPage() {
         )}
       </main>
     </>
-  )
+  );
 }

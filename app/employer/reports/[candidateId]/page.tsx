@@ -1,29 +1,29 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser, hasRole } from '@/lib/auth'
-import { NavbarServer } from '@/components/navbar-server'
-import { getCandidateReport } from '@/lib/actions/employer-purchases'
-import { CandidateReportView } from '@/components/candidate-report-view'
+import { redirect } from "next/navigation";
+import { getCurrentUser, hasRole } from "@/lib/auth";
+import { NavbarServer } from "@/components/navbar-server";
+import { getCandidateReport } from "@/lib/actions/employer-purchases";
+import { CandidateReportView } from "@/components/candidate-report-view";
 
 export default async function CandidateReportPage({
   params,
 }: {
-  params: { candidateId: string }
+  params: { candidateId: string };
 }) {
-  const user = await getCurrentUser()
-  
+  const user = await getCurrentUser();
+
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
-  const isEmployer = await hasRole('employer')
-  
+  const isEmployer = await hasRole("employer");
+
   if (!isEmployer) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
-  let report
+  let report;
   try {
-    report = await getCandidateReport(params.candidateId)
+    report = await getCandidateReport(params.candidateId);
   } catch (error: any) {
     return (
       <>
@@ -34,7 +34,7 @@ export default async function CandidateReportPage({
               Access Denied
             </h1>
             <p className="text-grey-medium dark:text-gray-400 mb-6">
-              {error.message || 'You do not have access to this report.'}
+              {error.message || "You do not have access to this report."}
             </p>
             <a
               href={`/employer/search?candidateId=${params.candidateId}`}
@@ -47,7 +47,7 @@ export default async function CandidateReportPage({
           </div>
         </main>
       </>
-    )
+    );
   }
 
   return (
@@ -57,5 +57,5 @@ export default async function CandidateReportPage({
         <CandidateReportView report={report} />
       </main>
     </>
-  )
+  );
 }

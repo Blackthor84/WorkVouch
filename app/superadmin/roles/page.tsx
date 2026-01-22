@@ -1,13 +1,13 @@
-import { redirect } from 'next/navigation'
-import { isSuperAdmin } from '@/lib/auth'
-import { NavbarServer } from '@/components/navbar-server'
-import { RoleManager } from '@/components/superadmin/role-manager'
+import { redirect } from "next/navigation";
+import { isSuperAdmin } from "@/lib/auth";
+import { NavbarServer } from "@/components/navbar-server";
+import { RoleManager } from "@/components/superadmin/role-manager";
 
 export default async function RoleManagerPage() {
-  const superAdmin = await isSuperAdmin()
+  const superAdmin = await isSuperAdmin();
 
   if (!superAdmin) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
   return (
@@ -26,5 +26,5 @@ export default async function RoleManagerPage() {
         <RoleManager />
       </div>
     </>
-  )
+  );
 }

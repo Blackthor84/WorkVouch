@@ -1,6 +1,6 @@
-import { NavbarServer } from '@/components/navbar-server'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { NavbarServer } from "@/components/navbar-server";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function ContactPage() {
   return (
@@ -23,9 +23,13 @@ export default function ContactPage() {
                 General Support
               </h2>
               <p className="text-grey-medium dark:text-gray-400 mb-4">
-                For questions about your account, features, or how to use WorkVouch.
+                For questions about your account, features, or how to use
+                WorkVouch.
               </p>
-              <a href="mailto:support@workvouch.com" className="text-primary hover:underline font-semibold">
+              <a
+                href="mailto:support@workvouch.com"
+                className="text-primary hover:underline font-semibold"
+              >
                 support@workvouch.com
               </a>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-2">
@@ -38,9 +42,13 @@ export default function ContactPage() {
                 Privacy & Legal
               </h2>
               <p className="text-grey-medium dark:text-gray-400 mb-4">
-                For privacy requests, legal questions, or data deletion requests.
+                For privacy requests, legal questions, or data deletion
+                requests.
               </p>
-              <a href="mailto:privacy@workvouch.com" className="text-primary hover:underline font-semibold">
+              <a
+                href="mailto:privacy@workvouch.com"
+                className="text-primary hover:underline font-semibold"
+              >
                 privacy@workvouch.com
               </a>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-2">
@@ -55,7 +63,10 @@ export default function ContactPage() {
               <p className="text-grey-medium dark:text-gray-400 mb-4">
                 To report security vulnerabilities or security concerns.
               </p>
-              <a href="mailto:security@workvouch.com" className="text-primary hover:underline font-semibold">
+              <a
+                href="mailto:security@workvouch.com"
+                className="text-primary hover:underline font-semibold"
+              >
                 security@workvouch.com
               </a>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-2">
@@ -70,7 +81,10 @@ export default function ContactPage() {
               <p className="text-grey-medium dark:text-gray-400 mb-4">
                 For employers interested in using WorkVouch for hiring.
               </p>
-              <a href="mailto:employers@workvouch.com" className="text-primary hover:underline font-semibold">
+              <a
+                href="mailto:employers@workvouch.com"
+                className="text-primary hover:underline font-semibold"
+              >
                 employers@workvouch.com
               </a>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-2">
@@ -84,7 +98,8 @@ export default function ContactPage() {
               Help Center
             </h2>
             <p className="text-grey-medium dark:text-gray-400 mb-6">
-              Before contacting us, check out our Help Center for answers to common questions.
+              Before contacting us, check out our Help Center for answers to
+              common questions.
             </p>
             <Button href="/help" variant="primary">
               Visit Help Center
@@ -93,5 +108,5 @@ export default function ContactPage() {
         </div>
       </main>
     </>
-  )
+  );
 }

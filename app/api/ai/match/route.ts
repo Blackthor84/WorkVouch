@@ -3,16 +3,24 @@
  * POST /api/ai/match
  */
 
-import { NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
-import { findTopMatches, calculateMatchScore } from '@/lib/ai/matching'
+import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
+import { findTopMatches, calculateMatchScore } from "@/lib/ai/matching";
 
 export async function POST(req: Request) {
   try {
-    const user = await requireAuth()
-    const body = await req.json()
+    const user = await requireAuth();
+    const body = await req.json();
 
-    const { jobId, jobTitle, description, requirements, industry, location, candidateId } = body
+    const {
+      jobId,
+      jobTitle,
+      description,
+      requirements,
+      industry,
+      location,
+      candidateId,
+    } = body;
 
     // If candidateId is provided, calculate match for that specific candidate
     if (candidateId) {
@@ -23,9 +31,9 @@ export async function POST(req: Request) {
         requirements,
         industry,
         location,
-      })
+      });
 
-      return NextResponse.json({ match })
+      return NextResponse.json({ match });
     }
 
     // Otherwise, find top matches
@@ -38,15 +46,15 @@ export async function POST(req: Request) {
         industry,
         location,
       },
-      20
-    )
+      20,
+    );
 
-    return NextResponse.json({ matches })
+    return NextResponse.json({ matches });
   } catch (error: any) {
-    console.error('AI matching error:', error)
+    console.error("AI matching error:", error);
     return NextResponse.json(
-      { error: error.message || 'Failed to calculate matches' },
-      { status: 500 }
-    )
+      { error: error.message || "Failed to calculate matches" },
+      { status: 500 },
+    );
   }
 }

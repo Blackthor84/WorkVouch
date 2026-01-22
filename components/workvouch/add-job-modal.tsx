@@ -1,67 +1,72 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { useRouter } from 'next/navigation'
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { useRouter } from "next/navigation";
 
 interface AddJobModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export function AddJobModal({ isOpen, onClose }: AddJobModalProps) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    employerName: '',
-    jobTitle: '',
-    startDate: '',
-    endDate: '',
+    employerName: "",
+    jobTitle: "",
+    startDate: "",
+    endDate: "",
     isVisibleToEmployer: false,
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/user/add-job', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/user/add-job", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
           endDate: formData.endDate || null,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to add job')
+        throw new Error(data.error || "Failed to add job");
       }
 
       // Success - refresh and close
-      router.refresh()
-      onClose()
+      router.refresh();
+      onClose();
       setFormData({
-        employerName: '',
-        jobTitle: '',
-        startDate: '',
-        endDate: '',
+        employerName: "",
+        jobTitle: "",
+        startDate: "",
+        endDate: "",
         isVisibleToEmployer: false,
-      })
+      });
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -82,7 +87,9 @@ export function AddJobModal({ isOpen, onClose }: AddJobModalProps) {
             <Input
               id="employerName"
               value={formData.employerName}
-              onChange={(e) => setFormData({ ...formData, employerName: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, employerName: e.target.value })
+              }
               required
               placeholder="ABC Security"
             />
@@ -93,7 +100,9 @@ export function AddJobModal({ isOpen, onClose }: AddJobModalProps) {
             <Input
               id="jobTitle"
               value={formData.jobTitle}
-              onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, jobTitle: e.target.value })
+              }
               required
               placeholder="Security Guard"
             />
@@ -106,7 +115,9 @@ export function AddJobModal({ isOpen, onClose }: AddJobModalProps) {
                 id="startDate"
                 type="date"
                 value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, startDate: e.target.value })
+                }
                 required
               />
             </div>
@@ -116,7 +127,9 @@ export function AddJobModal({ isOpen, onClose }: AddJobModalProps) {
                 id="endDate"
                 type="date"
                 value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, endDate: e.target.value })
+                }
               />
             </div>
           </div>
@@ -140,15 +153,20 @@ export function AddJobModal({ isOpen, onClose }: AddJobModalProps) {
           </div>
 
           <div className="flex gap-3 justify-end">
-            <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onClose}
+              disabled={loading}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Adding...' : 'Add Job'}
+              {loading ? "Adding..." : "Add Job"}
             </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

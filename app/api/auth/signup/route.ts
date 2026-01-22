@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * Legacy signup route - not used
@@ -7,10 +7,12 @@ import { NextRequest, NextResponse } from 'next/server'
  */
 export async function POST(req: NextRequest) {
   return NextResponse.json(
-    { 
-      error: 'This signup endpoint is not implemented. Please use Supabase Auth signup via the signup form.',
-      message: 'Use the signup form at /auth/signup which uses Supabase Auth directly.'
+    {
+      error:
+        "This signup endpoint is not implemented. Please use Supabase Auth signup via the signup form.",
+      message:
+        "Use the signup form at /auth/signup which uses Supabase Auth directly.",
     },
-    { status: 501 } // 501 Not Implemented
-  )
+    { status: 501 }, // 501 Not Implemented
+  );
 }

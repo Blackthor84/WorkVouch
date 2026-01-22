@@ -1,21 +1,21 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser, hasRole } from '@/lib/auth'
-import { EmployerHeader } from '@/components/employer/employer-header'
-import { EmployerSidebar } from '@/components/employer/employer-sidebar'
-import { CandidateSearch } from '@/components/employer/candidate-search'
-import { Button } from '@/components/ui/button'
+import { redirect } from "next/navigation";
+import { getCurrentUser, hasRole } from "@/lib/auth";
+import { EmployerHeader } from "@/components/employer/employer-header";
+import { EmployerSidebar } from "@/components/employer/employer-sidebar";
+import { CandidateSearch } from "@/components/employer/candidate-search";
+import { Button } from "@/components/ui/button";
 
 export default async function EmployerCandidatesPage() {
-  const user = await getCurrentUser()
-  
+  const user = await getCurrentUser();
+
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
-  const isEmployer = await hasRole('employer')
-  
+  const isEmployer = await hasRole("employer");
+
   if (!isEmployer) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
   return (
@@ -32,7 +32,8 @@ export default async function EmployerCandidatesPage() {
                   Candidate Search
                 </h1>
                 <p className="text-grey-medium dark:text-gray-400 mt-1">
-                  Find qualified professionals in law enforcement, security, hospitality, retail, and warehousing
+                  Find qualified professionals in law enforcement, security,
+                  hospitality, retail, and warehousing
                 </p>
               </div>
               <Button href="/employer/search-users" variant="secondary">
@@ -47,5 +48,5 @@ export default async function EmployerCandidatesPage() {
         </main>
       </div>
     </div>
-  )
+  );
 }

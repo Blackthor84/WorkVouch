@@ -1,33 +1,36 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { getUserSubscription, getUserSubscriptionTier } from '@/lib/actions/subscriptions'
-import { Card } from './ui/card'
-import { Button } from './ui/button'
-import Link from 'next/link'
+import { useEffect, useState } from "react";
+import {
+  getUserSubscription,
+  getUserSubscriptionTier,
+} from "@/lib/actions/subscriptions";
+import { Card } from "./ui/card";
+import { Button } from "./ui/button";
+import Link from "next/link";
 
 function ManageSubscriptionButton() {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
 
   const openPortal = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const res = await fetch('/api/stripe/portal', { method: 'POST' })
-      
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+
       if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || 'Failed to open billing portal')
+        const error = await res.json();
+        throw new Error(error.error || "Failed to open billing portal");
       }
 
-      const { url } = await res.json()
+      const { url } = await res.json();
       if (url) {
-        window.location.href = url
+        window.location.href = url;
       }
     } catch (error: any) {
-      alert(error.message || 'Failed to open billing portal')
-      setLoading(false)
+      alert(error.message || "Failed to open billing portal");
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Button
@@ -36,15 +39,15 @@ function ManageSubscriptionButton() {
       disabled={loading}
       className="flex-1"
     >
-      {loading ? 'Loading...' : 'Manage Subscription'}
+      {loading ? "Loading..." : "Manage Subscription"}
     </Button>
-  )
+  );
 }
 
 export function SubscriptionStatus() {
-  const [subscription, setSubscription] = useState<any>(null)
-  const [tier, setTier] = useState<string>('starter')
-  const [loading, setLoading] = useState(true)
+  const [subscription, setSubscription] = useState<any>(null);
+  const [tier, setTier] = useState<string>("starter");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSubscription = async () => {
@@ -52,28 +55,30 @@ export function SubscriptionStatus() {
         const [sub, currentTier] = await Promise.all([
           getUserSubscription(),
           getUserSubscriptionTier(),
-        ])
-        setSubscription(sub)
-        setTier(currentTier)
+        ]);
+        setSubscription(sub);
+        setTier(currentTier);
       } catch (error) {
-        console.error('Failed to fetch subscription:', error)
+        console.error("Failed to fetch subscription:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchSubscription()
-  }, [])
+    fetchSubscription();
+  }, []);
 
   if (loading) {
     return (
       <Card className="p-6">
-        <p className="text-grey-medium dark:text-gray-400">Loading subscription...</p>
+        <p className="text-grey-medium dark:text-gray-400">
+          Loading subscription...
+        </p>
       </Card>
-    )
+    );
   }
 
-  if (!subscription || tier === 'starter') {
+  if (!subscription || tier === "starter") {
     return (
       <Card className="p-6">
         <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-2">
@@ -84,23 +89,26 @@ export function SubscriptionStatus() {
         </p>
         <Button href="/pricing">View Plans</Button>
       </Card>
-    )
+    );
   }
 
   const formatDate = (date: string | null) => {
-    if (!date) return 'N/A'
-    return new Date(date).toLocaleDateString()
-  }
+    if (!date) return "N/A";
+    return new Date(date).toLocaleDateString();
+  };
 
   return (
     <Card className="p-6">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-1">
-            Current Plan: {subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1)}
+            Current Plan:{" "}
+            {subscription.tier.charAt(0).toUpperCase() +
+              subscription.tier.slice(1)}
           </h3>
           <p className="text-sm text-grey-medium dark:text-gray-400">
-            Status: <span className="font-semibold text-green-600 dark:text-green-400 capitalize">
+            Status:{" "}
+            <span className="font-semibold text-green-600 dark:text-green-400 capitalize">
               {subscription.status}
             </span>
           </p>
@@ -111,12 +119,15 @@ export function SubscriptionStatus() {
           </span>
         )}
       </div>
-      
+
       <div className="space-y-2 text-sm mb-4">
         <div className="flex justify-between">
-          <span className="text-grey-medium dark:text-gray-400">Current Period:</span>
+          <span className="text-grey-medium dark:text-gray-400">
+            Current Period:
+          </span>
           <span className="text-grey-dark dark:text-gray-200 font-medium">
-            {formatDate(subscription.current_period_start)} - {formatDate(subscription.current_period_end)}
+            {formatDate(subscription.current_period_start)} -{" "}
+            {formatDate(subscription.current_period_end)}
           </span>
         </div>
       </div>
@@ -128,5 +139,5 @@ export function SubscriptionStatus() {
         <ManageSubscriptionButton />
       </div>
     </Card>
-  )
+  );
 }

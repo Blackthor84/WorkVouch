@@ -1,13 +1,13 @@
-import { getCurrentUser, getCurrentUserRoles } from '@/lib/auth'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline'
-import Link from 'next/link'
+import { getCurrentUser, getCurrentUserRoles } from "@/lib/auth";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import Link from "next/link";
 
 export default async function EmployerAccessPage() {
-  const user = await getCurrentUser()
-  const roles = await getCurrentUserRoles()
-  const hasEmployerRole = roles.includes('employer')
+  const user = await getCurrentUser();
+  const roles = await getCurrentUserRoles();
+  const hasEmployerRole = roles.includes("employer");
 
   return (
     <div className="min-h-screen bg-background dark:bg-[#0D1117] py-12 px-4 sm:px-6 lg:px-8">
@@ -16,7 +16,7 @@ export default async function EmployerAccessPage() {
           <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-4">
             Employer Dashboard Access
           </h1>
-          
+
           <div className="space-y-6">
             {/* Status */}
             <div className="p-4 rounded-lg bg-grey-background dark:bg-[#1A1F2B]">
@@ -43,7 +43,7 @@ export default async function EmployerAccessPage() {
                 </p>
               )}
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-1">
-                Current roles: {roles.length > 0 ? roles.join(', ') : 'none'}
+                Current roles: {roles.length > 0 ? roles.join(", ") : "none"}
               </p>
             </div>
 
@@ -55,7 +55,11 @@ export default async function EmployerAccessPage() {
                 </h2>
                 <div className="space-y-3 text-grey-medium dark:text-gray-400">
                   <p>
-                    To access the employer dashboard, you need to have the <code className="px-2 py-1 bg-grey-background dark:bg-[#1A1F2B] rounded">employer</code> role assigned to your account.
+                    To access the employer dashboard, you need to have the{" "}
+                    <code className="px-2 py-1 bg-grey-background dark:bg-[#1A1F2B] rounded">
+                      employer
+                    </code>{" "}
+                    role assigned to your account.
                   </p>
                   <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">
@@ -64,8 +68,23 @@ export default async function EmployerAccessPage() {
                     <ol className="list-decimal list-inside space-y-1 text-sm">
                       <li>Go to your Supabase project dashboard</li>
                       <li>Open the SQL Editor</li>
-                      <li>Copy and paste the SQL from <code className="px-1 py-0.5 bg-white dark:bg-[#1A1F2B] rounded">ASSIGN_EMPLOYER_ROLE.sql</code> or <code className="px-1 py-0.5 bg-white dark:bg-[#1A1F2B] rounded">FIX_MY_EMPLOYER_ROLE.sql</code></li>
-                      <li>Replace <code className="px-1 py-0.5 bg-white dark:bg-[#1A1F2B] rounded">YOUR_EMAIL@example.com</code> with your actual email</li>
+                      <li>
+                        Copy and paste the SQL from{" "}
+                        <code className="px-1 py-0.5 bg-white dark:bg-[#1A1F2B] rounded">
+                          ASSIGN_EMPLOYER_ROLE.sql
+                        </code>{" "}
+                        or{" "}
+                        <code className="px-1 py-0.5 bg-white dark:bg-[#1A1F2B] rounded">
+                          FIX_MY_EMPLOYER_ROLE.sql
+                        </code>
+                      </li>
+                      <li>
+                        Replace{" "}
+                        <code className="px-1 py-0.5 bg-white dark:bg-[#1A1F2B] rounded">
+                          YOUR_EMAIL@example.com
+                        </code>{" "}
+                        with your actual email
+                      </li>
                       <li>Run the SQL query</li>
                       <li>Refresh this page</li>
                     </ol>
@@ -83,21 +102,22 @@ export default async function EmployerAccessPage() {
                   </Link>
                 </Button>
               ) : (
-                <Button asChild variant="secondary" size="lg" className="flex-1">
-                  <Link href="/dashboard">
-                    Back to Dashboard
-                  </Link>
+                <Button
+                  asChild
+                  variant="secondary"
+                  size="lg"
+                  className="flex-1"
+                >
+                  <Link href="/dashboard">Back to Dashboard</Link>
                 </Button>
               )}
               <Button asChild variant="ghost" size="lg">
-                <Link href="/">
-                  Home
-                </Link>
+                <Link href="/">Home</Link>
               </Button>
             </div>
           </div>
         </Card>
       </div>
     </div>
-  )
+  );
 }

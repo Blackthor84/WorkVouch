@@ -1,59 +1,77 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { searchCandidates, getCandidateProfileForEmployer, type CandidateSearchResult } from '@/lib/actions/employer/candidate-search'
-import { saveCandidate, isCandidateSaved } from '@/lib/actions/employer/saved-candidates'
-import { Card } from '../ui/card'
-import { Button } from '../ui/button'
-import { MagnifyingGlassIcon, StarIcon, BookmarkIcon, BookmarkSlashIcon } from '@heroicons/react/24/outline'
-import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid'
-import Link from 'next/link'
+import { useState, useEffect } from "react";
+import {
+  searchCandidates,
+  getCandidateProfileForEmployer,
+  type CandidateSearchResult,
+} from "@/lib/actions/employer/candidate-search";
+import {
+  saveCandidate,
+  isCandidateSaved,
+} from "@/lib/actions/employer/saved-candidates";
+import { Card } from "../ui/card";
+import { Button } from "../ui/button";
+import {
+  MagnifyingGlassIcon,
+  StarIcon,
+  BookmarkIcon,
+  BookmarkSlashIcon,
+} from "@heroicons/react/24/outline";
+import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
+import Link from "next/link";
 
 export function CandidateSearch() {
-  const [loading, setLoading] = useState(false)
-  const [results, setResults] = useState<CandidateSearchResult[]>([])
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<CandidateSearchResult[]>([]);
   const [filters, setFilters] = useState({
-    industry: '',
-    job_title: '',
-    location: '',
-    min_trust_score: '',
-  })
-  const [savedCandidates, setSavedCandidates] = useState<Set<string>>(new Set())
+    industry: "",
+    job_title: "",
+    location: "",
+    min_trust_score: "",
+  });
+  const [savedCandidates, setSavedCandidates] = useState<Set<string>>(
+    new Set(),
+  );
 
   const handleSearch = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       const searchFilters = {
         industry: filters.industry || undefined,
         job_title: filters.job_title || undefined,
         location: filters.location || undefined,
-        min_trust_score: filters.min_trust_score ? parseInt(filters.min_trust_score) : undefined,
-      }
-      const data = await searchCandidates(searchFilters)
-      setResults(data)
-      
+        min_trust_score: filters.min_trust_score
+          ? parseInt(filters.min_trust_score)
+          : undefined,
+      };
+      const data = await searchCandidates(searchFilters);
+      setResults(data);
+
       // Check which candidates are saved
-      const saved = new Set<string>()
+      const saved = new Set<string>();
       for (const candidate of data) {
-        const savedStatus = await isCandidateSaved(candidate.id)
-        if (savedStatus) saved.add(candidate.id)
+        const savedStatus = await isCandidateSaved(candidate.id);
+        if (savedStatus) saved.add(candidate.id);
       }
-      setSavedCandidates(saved)
+      setSavedCandidates(saved);
     } catch (error: any) {
-      alert(error.message || 'Failed to search candidates')
+      alert(error.message || "Failed to search candidates");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSaveCandidate = async (candidateId: string) => {
     try {
-      await saveCandidate(candidateId)
-      setSavedCandidates(new Set(Array.from(savedCandidates).concat(candidateId)))
+      await saveCandidate(candidateId);
+      setSavedCandidates(
+        new Set(Array.from(savedCandidates).concat(candidateId)),
+      );
     } catch (error: any) {
-      alert(error.message || 'Failed to save candidate')
+      alert(error.message || "Failed to save candidate");
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -69,7 +87,9 @@ export function CandidateSearch() {
             </label>
             <select
               value={filters.industry}
-              onChange={(e) => setFilters({ ...filters, industry: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, industry: e.target.value })
+              }
               className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
             >
               <option value="">All Industries</option>
@@ -87,7 +107,9 @@ export function CandidateSearch() {
             <input
               type="text"
               value={filters.job_title}
-              onChange={(e) => setFilters({ ...filters, job_title: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, job_title: e.target.value })
+              }
               placeholder="e.g., Security Guard"
               className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
             />
@@ -99,7 +121,9 @@ export function CandidateSearch() {
             <input
               type="text"
               value={filters.location}
-              onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, location: e.target.value })
+              }
               placeholder="City or State"
               className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
             />
@@ -111,7 +135,9 @@ export function CandidateSearch() {
             <input
               type="number"
               value={filters.min_trust_score}
-              onChange={(e) => setFilters({ ...filters, min_trust_score: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, min_trust_score: e.target.value })
+              }
               placeholder="0-1000"
               min="0"
               max="1000"
@@ -119,13 +145,9 @@ export function CandidateSearch() {
             />
           </div>
         </div>
-        <Button
-          onClick={handleSearch}
-          disabled={loading}
-          className="mt-4"
-        >
+        <Button onClick={handleSearch} disabled={loading} className="mt-4">
           <MagnifyingGlassIcon className="h-5 w-5 mr-2" />
-          {loading ? 'Searching...' : 'Search Candidates'}
+          {loading ? "Searching..." : "Search Candidates"}
         </Button>
       </Card>
 
@@ -133,7 +155,7 @@ export function CandidateSearch() {
       {results.length > 0 && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200">
-            {results.length} candidate{results.length !== 1 ? 's' : ''} found
+            {results.length} candidate{results.length !== 1 ? "s" : ""} found
           </h3>
           {results.map((candidate) => (
             <Card key={candidate.id} className="p-6">
@@ -160,7 +182,7 @@ export function CandidateSearch() {
                       <p className="text-sm text-grey-medium dark:text-gray-400">
                         {candidate.city && candidate.state
                           ? `${candidate.city}, ${candidate.state}`
-                          : 'Location not specified'}
+                          : "Location not specified"}
                       </p>
                       {candidate.trust_score !== null && (
                         <div className="flex items-center gap-1 mt-1">
@@ -182,7 +204,10 @@ export function CandidateSearch() {
                       </p>
                       <div className="space-y-1">
                         {candidate.jobs.slice(0, 3).map((job, idx) => (
-                          <p key={idx} className="text-sm text-grey-medium dark:text-gray-400">
+                          <p
+                            key={idx}
+                            className="text-sm text-grey-medium dark:text-gray-400"
+                          >
                             {job.job_title} at {job.company_name}
                           </p>
                         ))}
@@ -201,16 +226,23 @@ export function CandidateSearch() {
                             key={i}
                             className={`h-4 w-4 ${
                               i < Math.round(candidate.references[0].rating)
-                                ? 'text-yellow-400'
-                                : 'text-gray-300 dark:text-gray-600'
+                                ? "text-yellow-400"
+                                : "text-gray-300 dark:text-gray-600"
                             }`}
                           />
                         ))}
                       </div>
                       {candidate.references[0].written_feedback && (
                         <p className="text-sm text-grey-medium dark:text-gray-400 italic">
-                          "{candidate.references[0].written_feedback.substring(0, 100)}
-                          {candidate.references[0].written_feedback.length > 100 ? '...' : ''}"
+                          "
+                          {candidate.references[0].written_feedback.substring(
+                            0,
+                            100,
+                          )}
+                          {candidate.references[0].written_feedback.length > 100
+                            ? "..."
+                            : ""}
+                          "
                         </p>
                       )}
                     </div>
@@ -256,5 +288,5 @@ export function CandidateSearch() {
         </Card>
       )}
     </div>
-  )
+  );
 }

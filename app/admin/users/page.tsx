@@ -1,14 +1,14 @@
-import { redirect } from 'next/navigation'
-import { isAdmin, isSuperAdmin } from '@/lib/auth'
-import { NavbarServer } from '@/components/navbar-server'
-import { AdminUsersList } from '@/components/admin/users-list'
+import { redirect } from "next/navigation";
+import { isAdmin, isSuperAdmin } from "@/lib/auth";
+import { NavbarServer } from "@/components/navbar-server";
+import { AdminUsersList } from "@/components/admin/users-list";
 
 export default async function AdminUsers() {
-  const admin = await isAdmin()
-  const superAdmin = await isSuperAdmin()
+  const admin = await isAdmin();
+  const superAdmin = await isSuperAdmin();
 
   if (!admin && !superAdmin) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
   return (
@@ -27,5 +27,5 @@ export default async function AdminUsers() {
         <AdminUsersList />
       </div>
     </>
-  )
+  );
 }

@@ -1,19 +1,22 @@
-import React from 'react'
+import React from "react";
 
 interface LayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
   return (
     <div className="flex flex-col min-h-screen">
       <header className="w-full">
-        <nav className="px-4" style={{ paddingTop: '0.5in', paddingBottom: '0.5in' }}>
+        <nav
+          className="px-4"
+          style={{ paddingTop: "0.5in", paddingBottom: "0.5in" }}
+        >
           {/* Navbar content */}
         </nav>
       </header>
 
-      <main className="flex-1 flex flex-col" style={{ gap: '2in' }}>
+      <main className="flex-1 flex flex-col" style={{ gap: "2in" }}>
         {children}
       </main>
 
@@ -21,5 +24,5 @@ export default function Layout({ children }: LayoutProps) {
         © 2026 WorkVouch. All rights reserved.
       </footer>
     </div>
-  )
+  );
 }

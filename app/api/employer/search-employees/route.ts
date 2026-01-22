@@ -1,54 +1,61 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { supabaseTyped } from '@/lib/supabase-fixed'
-import { getCurrentUser, hasRole } from '@/lib/auth'
-import { canViewEmployees } from '@/lib/middleware/plan-enforcement-supabase'
-import { Database } from '@/types/database'
+import { NextRequest, NextResponse } from "next/server";
+import { supabaseTyped } from "@/lib/supabase-fixed";
+import { getCurrentUser, hasRole } from "@/lib/auth";
+import { canViewEmployees } from "@/lib/middleware/plan-enforcement-supabase";
+import { Database } from "@/types/database";
 
 export async function GET(req: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const user = await getCurrentUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const isEmployer = await hasRole('employer')
+    const isEmployer = await hasRole("employer");
     if (!isEmployer) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Check plan tier
-    const hasAccess = await canViewEmployees(user.id)
+    const hasAccess = await canViewEmployees(user.id);
     if (!hasAccess) {
       return NextResponse.json(
-        { error: 'This feature requires a paid plan. Please upgrade to Basic or Pro.' },
-        { status: 403 }
-      )
+        {
+          error:
+            "This feature requires a paid plan. Please upgrade to Basic or Pro.",
+        },
+        { status: 403 },
+      );
     }
 
-    const supabase = await supabaseTyped()
+    const supabase = await supabaseTyped();
 
     // Type definition for employer_accounts (not in Database types yet)
-    type EmployerAccountRow = { company_name: string }
+    type EmployerAccountRow = { company_name: string };
 
     // Get employer's company name
-    const supabaseAny = supabase as any
+    const supabaseAny = supabase as any;
     const { data: employerAccount } = await supabaseAny
-      .from('employer_accounts')
-      .select('company_name')
-      .eq('user_id', user.id)
-      .single()
+      .from("employer_accounts")
+      .select("company_name")
+      .eq("user_id", user.id)
+      .single();
 
-    const { searchParams } = new URL(req.url)
-    const name = searchParams.get('name')
-    const companyName = searchParams.get('companyName') || employerAccount?.company_name
+    const { searchParams } = new URL(req.url);
+    const name = searchParams.get("name");
+    const companyName =
+      searchParams.get("companyName") || employerAccount?.company_name;
 
     if (!name || name.length < 2) {
-      return NextResponse.json({ employees: [] })
+      return NextResponse.json({ employees: [] });
     }
 
     if (!companyName) {
-      return NextResponse.json({ error: 'Company name not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: "Company name not found" },
+        { status: 404 },
+      );
     }
 
     // Search for employees who:
@@ -57,8 +64,9 @@ export async function GET(req: NextRequest) {
     // 3. Match the name search
 
     const { data: jobs, error: jobsError } = await supabase
-      .from('jobs')
-      .select(`
+      .from("jobs")
+      .select(
+        `
         id,
         user_id,
         job_title,
@@ -73,30 +81,32 @@ export async function GET(req: NextRequest) {
           email,
           industry
         )
-      `)
-      .ilike('company_name', companyName)
-      .ilike('profiles.full_name', `%${name}%`)
-      .order('start_date', { ascending: false })
+      `,
+      )
+      .ilike("company_name", companyName)
+      .ilike("profiles.full_name", `%${name}%`)
+      .order("start_date", { ascending: false });
 
     if (jobsError) {
-      console.error('Search employees error:', jobsError)
+      console.error("Search employees error:", jobsError);
       return NextResponse.json(
-        { error: 'Failed to search employees' },
-        { status: 500 }
-      )
+        { error: "Failed to search employees" },
+        { status: 500 },
+      );
     }
 
     // Filter for visible jobs or allow if searching (paid feature)
-    const visibleJobs = (jobs || []).filter((job: any) => 
-      job.is_visible_to_employer || true // Paid employers can see all when searching
-    )
+    const visibleJobs = (jobs || []).filter(
+      (job: any) => job.is_visible_to_employer || true, // Paid employers can see all when searching
+    );
 
     // Get references for each job
     const employeesWithReferences = await Promise.all(
       visibleJobs.map(async (job: any) => {
         const { data: references } = await supabase
-          .from('references')
-          .select(`
+          .from("references")
+          .select(
+            `
             id,
             rating,
             written_feedback,
@@ -104,9 +114,10 @@ export async function GET(req: NextRequest) {
             profiles!references_from_user_id_fkey (
               full_name
             )
-          `)
-          .eq('job_id', job.id)
-          .eq('to_user_id', job.user_id)
+          `,
+          )
+          .eq("job_id", job.id)
+          .eq("to_user_id", job.user_id);
 
         return {
           userId: job.user_id,
@@ -125,16 +136,16 @@ export async function GET(req: NextRequest) {
             rating: ref.rating,
             message: ref.written_feedback,
           })),
-        }
-      })
-    )
+        };
+      }),
+    );
 
-    return NextResponse.json({ employees: employeesWithReferences })
+    return NextResponse.json({ employees: employeesWithReferences });
   } catch (error) {
-    console.error('Search employees error:', error)
+    console.error("Search employees error:", error);
     return NextResponse.json(
-      { error: 'Failed to search employees' },
-      { status: 500 }
-    )
+      { error: "Failed to search employees" },
+      { status: 500 },
+    );
   }
 }

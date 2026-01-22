@@ -1,35 +1,31 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth'
-import { NavbarServer } from '@/components/navbar-server'
-import { UserMessages } from '@/components/messages/user-messages'
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
+import { UserMessages } from "@/components/messages/user-messages";
 
 export default async function MessagesPage() {
-  const user = await getCurrentUser()
-  
+  const user = await getCurrentUser();
+
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
   return (
-    <>
-      <NavbarServer />
-      <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-background dark:bg-[#0D1117]">
-        <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
-          {/* Page Header */}
-          <div>
-            <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
-              Messages
-            </h1>
-            <p className="text-grey-medium dark:text-gray-400 mt-1">
-              Your conversations and notifications
-            </p>
-          </div>
-          {/* Messages Content */}
-          <div>
-            <UserMessages />
-          </div>
+    <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-background dark:bg-[#0D1117]">
+      <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
+        {/* Page Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
+            Messages
+          </h1>
+          <p className="text-grey-medium dark:text-gray-400 mt-1">
+            Your conversations and notifications
+          </p>
         </div>
-      </main>
-    </>
-  )
+        {/* Messages Content */}
+        <div>
+          <UserMessages />
+        </div>
+      </div>
+    </main>
+  );
 }

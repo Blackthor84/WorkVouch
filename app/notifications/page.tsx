@@ -1,24 +1,24 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth'
-import { getUserNotifications } from '@/lib/actions/notifications'
-import { NavbarServer } from '@/components/navbar-server'
-import { Card } from '@/components/ui/card'
-import { NotificationsList } from '@/components/notifications-list'
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
+import { getUserNotifications } from "@/lib/actions/notifications";
+import { NavbarServer } from "@/components/navbar-server";
+import { Card } from "@/components/ui/card";
+import { NotificationsList } from "@/components/notifications-list";
 
 export default async function NotificationsPage() {
-  const user = await getCurrentUser()
-  
+  const user = await getCurrentUser();
+
   if (!user) {
-    redirect('/auth/signin')
+    redirect("/auth/signin");
   }
 
-  let notifications: any[] = []
+  let notifications: any[] = [];
   try {
-    notifications = await getUserNotifications()
+    notifications = await getUserNotifications();
   } catch (error: any) {
     // If notifications table doesn't exist, return empty array
-    console.warn('Notifications table not found:', error.message)
-    notifications = []
+    console.warn("Notifications table not found:", error.message);
+    notifications = [];
   }
 
   return (
@@ -36,5 +36,5 @@ export default async function NotificationsPage() {
         <NotificationsList notifications={notifications} />
       </main>
     </>
-  )
+  );
 }

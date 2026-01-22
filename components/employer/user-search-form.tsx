@@ -1,79 +1,89 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 interface SearchResult {
-  id: string
-  name: string
-  email: string
-  skills: string[]
+  id: string;
+  name: string;
+  email: string;
+  skills: string[];
   workHistory: Array<{
-    title: string
-    company: string
-    date: string
-  }>
-  summary: string | null
+    title: string;
+    company: string;
+    date: string;
+  }>;
+  summary: string | null;
 }
 
 export function UserSearchForm() {
-  const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [isSearching, setIsSearching] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [hasSearched, setHasSearched] = useState(false)
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!searchQuery.trim() || searchQuery.trim().length < 2) {
-      setError('Please enter at least 2 characters to search')
-      return
+      setError("Please enter at least 2 characters to search");
+      return;
     }
 
-    setIsSearching(true)
-    setError(null)
-    setHasSearched(true)
+    setIsSearching(true);
+    setError(null);
+    setHasSearched(true);
 
     try {
-      const response = await fetch(`/api/employer/search-users?query=${encodeURIComponent(searchQuery.trim())}`)
+      const response = await fetch(
+        `/api/employer/search-users?query=${encodeURIComponent(searchQuery.trim())}`,
+      );
 
       if (!response.ok) {
         if (response.status === 403) {
-          router.push('/dashboard')
-          return
+          router.push("/dashboard");
+          return;
         }
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Search failed')
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Search failed");
       }
 
-      const data = await response.json()
-      setResults(data.users || [])
+      const data = await response.json();
+      setResults(data.users || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during search')
-      setResults([])
+      setError(
+        err instanceof Error ? err.message : "An error occurred during search",
+      );
+      setResults([]);
     } finally {
-      setIsSearching(false)
+      setIsSearching(false);
     }
-  }
+  };
 
   const highlightMatch = (text: string, query: string) => {
-    if (!query) return text
-    
-    const terms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0)
-    let highlighted = text
-    
-    terms.forEach(term => {
-      const regex = new RegExp(`(${term})`, 'gi')
-      highlighted = highlighted.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-900/50">$1</mark>')
-    })
-    
-    return highlighted
-  }
+    if (!query) return text;
+
+    const terms = query
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((term) => term.length > 0);
+    let highlighted = text;
+
+    terms.forEach((term) => {
+      const regex = new RegExp(`(${term})`, "gi");
+      highlighted = highlighted.replace(
+        regex,
+        '<mark class="bg-yellow-200 dark:bg-yellow-900/50">$1</mark>',
+      );
+    });
+
+    return highlighted;
+  };
 
   return (
     <>
@@ -96,7 +106,7 @@ export function UserSearchForm() {
             disabled={isSearching || searchQuery.trim().length < 2}
             size="lg"
           >
-            {isSearching ? 'Searching...' : 'Search'}
+            {isSearching ? "Searching..." : "Search"}
           </Button>
         </form>
         {error && (
@@ -110,11 +120,15 @@ export function UserSearchForm() {
           {isSearching ? (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
-              <p className="mt-4 text-grey-medium dark:text-gray-400">Searching...</p>
+              <p className="mt-4 text-grey-medium dark:text-gray-400">
+                Searching...
+              </p>
             </div>
           ) : results.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-grey-medium dark:text-gray-400">No results found</p>
+              <p className="text-grey-medium dark:text-gray-400">
+                No results found
+              </p>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-2">
                 Try a different search term
               </p>
@@ -123,7 +137,8 @@ export function UserSearchForm() {
             <>
               <div className="mb-4">
                 <p className="text-sm text-grey-medium dark:text-gray-400">
-                  Found {results.length} {results.length === 1 ? 'result' : 'results'}
+                  Found {results.length}{" "}
+                  {results.length === 1 ? "result" : "results"}
                 </p>
               </div>
               <div className="overflow-x-auto">
@@ -203,7 +218,7 @@ export function UserSearchForm() {
                                   <span className="font-medium text-grey-dark dark:text-gray-200">
                                     {job.title}
                                   </span>
-                                  {' at '}
+                                  {" at "}
                                   <span className="text-grey-medium dark:text-gray-400">
                                     {job.company}
                                   </span>
@@ -240,5 +255,5 @@ export function UserSearchForm() {
         </Card>
       )}
     </>
-  )
+  );
 }
