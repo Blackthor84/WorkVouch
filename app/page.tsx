@@ -16,7 +16,7 @@ export default function HomePage() {
           <Link href="/" className="flex items-center m-0 p-0">
             <div className="relative h-40 w-auto max-w-[560px] m-0 p-0">
               <Image
-                src="/logo.png?v=4"
+                src="/logo.png?v=5"
                 alt="WorkVouch Logo"
                 width={560}
                 height={160}

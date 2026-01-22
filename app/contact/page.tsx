@@ -6,9 +6,9 @@ export default function ContactPage() {
   return (
     <>
       <NavbarServer />
-      <main className="min-h-screen bg-background dark:bg-[#0D1117]">
-        <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+      <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-background dark:bg-[#0D1117]">
+        <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20 max-w-4xl mx-auto">
+          <div className="text-center">
             <h1 className="text-4xl font-bold text-grey-dark dark:text-gray-200 mb-4">
               Contact Us
             </h1>
@@ -17,7 +17,7 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card className="p-8">
               <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
                 General Support

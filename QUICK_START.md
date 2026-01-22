@@ -105,9 +105,7 @@ npm run dev -- -p 3001
 npm run dev
 
 # Build for production
-npm run build
-
-# Start production server
+npm run build# Start production server
 npm start# Run linter
 npm run lint
 ```

@@ -8,7 +8,7 @@ export default function HeroSection() {
       <div className="flex justify-center m-0 p-0">
         <div className="relative h-[1152px] w-auto max-w-[16128px] m-0 p-0">
           <Image
-            src="/logo.png?v=4"
+            src="/logo.png?v=5"
             alt="WorkVouch Logo"
             width={16128}
             height={4608}
