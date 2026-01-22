@@ -14,9 +14,9 @@ export function Logo({ className = '', showText = false, size = 'xl' }: LogoProp
     sm: 'h-8 w-8',
     md: 'h-10 w-10',
     lg: 'h-12 w-12',
-    xl: 'h-60 w-auto max-w-[840px]', // Navbar size - 3x bigger
+    xl: 'h-40 w-auto max-w-[560px]', // Navbar size - 1/3 smaller than before
     '2xl': 'h-32 w-auto max-w-[400px]', // Large size
-    hero: 'h-96 w-auto max-w-[2400px] sm:h-[480px] sm:max-w-[3000px]', // Hero/landing page - 3x bigger, transparent
+    hero: 'h-48 w-auto max-w-[672px]', // Hero/landing page - slightly bigger than navbar
   }
 
   const textSizes = {
@@ -28,9 +28,9 @@ export function Logo({ className = '', showText = false, size = 'xl' }: LogoProp
   // For larger sizes (xl, 2xl, hero), use width/height to maintain aspect ratio
   if (size === 'xl' || size === '2xl' || size === 'hero') {
     const dimensions = {
-      xl: { width: 840, height: 240 }, // Navbar - 3x bigger
+      xl: { width: 560, height: 160 }, // Navbar - 1/3 smaller
       '2xl': { width: 400, height: 120 },
-      hero: { width: 3000, height: 900 }, // Landing page - 3x bigger
+      hero: { width: 672, height: 192 }, // Hero - slightly bigger than navbar
     }
     
     const dims = dimensions[size]
