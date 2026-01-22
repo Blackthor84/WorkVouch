@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRightIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import HeroSection from '@/components/HeroSection'
 
 // Ensure this page is statically generated and doesn't require env vars
 export const dynamic = 'force-static'
@@ -70,37 +71,8 @@ export default function HomePage() {
           {/* Spacer between navbar and hero logo - EXACT 2 inches */}
           <div style={{ height: '2in' }}></div>
           
-          {/* Hero Logo - 8x bigger, transparent background, no padding */}
-          <div className="flex justify-center m-0 p-0">
-            <div className="relative h-[1152px] w-auto max-w-[16128px] m-0 p-0">
-              <Image
-                src="/logo.png?v=3"
-                alt="WorkVouch Logo"
-                width={16128}
-                height={4608}
-                className="h-full w-auto object-contain m-0 p-0"
-                style={{ backgroundColor: 'transparent', margin: 0, padding: 0 }}
-                priority
-                unoptimized
-              />
-            </div>
-          </div>
-          
-          {/* Spacer between hero logo and text - EXACT 1 inch */}
-          <div style={{ height: '1in' }}></div>
-          
-          {/* Main Heading */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent animate-gradient relative z-10">
-            Verify Your Work History
-            <br />
-            Build Trust with Employers
-          </h1>
-
-          {/* Subheading */}
-          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Connect with coworkers, get verified references, and showcase your professional
-            credibility. Trusted by job seekers and employers worldwide.
-          </p>
+          {/* Hero Section Component with 1in gap between logo and text */}
+          <HeroSection />
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
