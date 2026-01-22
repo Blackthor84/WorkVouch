@@ -1,31 +1,17 @@
-﻿/**
- * Server-only Supabase client creation
- * ✅ Only import this file in server components or API routes
- * ✅ Declare supabase once per function and reuse for all queries
- * ✅ Uses centralized env validation
- * ✅ No top-level await - all async logic wrapped in functions
- */
+﻿// lib/supabase/server.ts
 import { cookies } from "next/headers";
-import { createServerClient as createSupabaseServerClientSSR } from "@supabase/ssr";
-import { Database } from "@/types/database";
+import { createServerClient as createSupabaseSSRClient } from "@supabase/ssr";
 import { env } from "@/lib/env";
+import type { Database } from "@/types/database";
 
+// Wrap everything in a function - no top-level await
 export const createSupabaseServerClient = async () => {
+  // In Next.js 16, cookies() is async and must be awaited
   const cookieStore = await cookies();
 
-  // Use centralized env - these are validated at runtime when actually used
-  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      "Missing required Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set in Vercel Project Settings → Environment Variables."
-    );
-  }
-
-  return createSupabaseServerClientSSR<Database>(
-    supabaseUrl,
-    supabaseAnonKey,
+  return createSupabaseSSRClient<Database>(
+    env.NEXT_PUBLIC_SUPABASE_URL!,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
