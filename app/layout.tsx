@@ -22,8 +22,8 @@ export default async function RootLayout({
   const roles = await getCurrentUserRoles();
 
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="bg-background dark:bg-[#0D1117] antialiased transition-colors">
+    <html lang="en" suppressHydrationWarning={true}>
+      <body className="bg-background dark:bg-[#0D1117] flex flex-col min-h-screen antialiased transition-colors">
         <LayoutWrapper user={user} roles={roles}>
           {children}
         </LayoutWrapper>

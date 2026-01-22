@@ -10,10 +10,10 @@ export const revalidate = false;
 export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-4 py-8 md:py-12 lg:py-16">
-        <div className="max-w-4xl mx-auto text-center relative w-full flex flex-col items-center space-y-12 md:space-y-16 lg:space-y-20">
-          {/* Hero Logo */}
-          <div className="flex justify-center">
+      <div className="container mx-auto px-4">
+        <div className="max-w-4xl mx-auto text-center relative w-full flex flex-col items-center">
+          {/* Hero Logo - 1 inch from navbar (py-4 = 1rem = ~1 inch) */}
+          <div className="flex justify-center py-4">
             <Image
               src="/logo.png"
               alt="WorkVouch Logo"
@@ -29,7 +29,7 @@ export default function HomePage() {
           <HeroSection />
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
             <Link
               href="/auth/signup"
               className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2"
@@ -46,7 +46,7 @@ export default function HomePage() {
           </div>
 
           {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 mt-12">
             <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow border border-gray-100">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
                 <CheckCircleIcon className="w-6 h-6 text-blue-600" />
@@ -84,7 +84,7 @@ export default function HomePage() {
           </div>
 
           {/* Secondary CTA */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 md:p-12 text-white">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 md:p-12 text-white mt-12">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">
               Ready to Get Started?
             </h2>
@@ -101,7 +101,7 @@ export default function HomePage() {
           </div>
 
           {/* Quick Links */}
-          <div className="flex flex-wrap justify-center gap-6 text-gray-600">
+          <div className="flex flex-wrap justify-center gap-6 text-gray-600 mt-12">
             <Link
               href="/dashboard"
               className="hover:text-blue-600 transition-colors font-medium"
