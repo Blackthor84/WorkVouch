@@ -379,3 +379,5 @@ PS C:\Users\ajaye\.cursor>
 ✓ Starting...
 ✓ Ready in 967ms
  GET / 200 in 496ms (compile: 152ms, proxy.ts: 143ms, render: 202ms)
+  Reload env: .env.local
+ GET / 200 in 311ms (compile: 235ms, proxy.ts: 27ms, render: 49ms)
