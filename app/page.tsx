@@ -8,9 +8,9 @@ export const revalidate = false
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Navigation Bar */}
-      <nav className="container mx-auto px-4 py-2 flex justify-between items-center">
+      <nav className="container mx-auto px-4 py-4 md:py-6 lg:py-8 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <Link href="/" className="flex items-center">
             <div className="relative h-40 w-auto max-w-[560px]">
@@ -63,10 +63,13 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <main className="container mx-auto px-4 pt-[192px] pb-0">
-        <div className="max-w-4xl mx-auto text-center relative">
-          {/* Hero Logo - 8x bigger, 2 inches below navbar, 1 inch above text */}
-          <div className="flex justify-center mb-[96px]">
+      <main className="flex-1 flex flex-col justify-between container mx-auto px-4 py-8 md:py-12 lg:py-16">
+        <div className="max-w-4xl mx-auto text-center relative w-full space-y-8 md:space-y-12 lg:space-y-16">
+          {/* Spacer between navbar and hero logo - 2 inches = 192px */}
+          <div className="h-[192px]"></div>
+          
+          {/* Hero Logo - 8x bigger */}
+          <div className="flex justify-center">
             <div className="relative h-[1152px] w-auto max-w-[16128px]">
               <Image
                 src="/logo.png"
@@ -79,21 +82,24 @@ export default function HomePage() {
             </div>
           </div>
           
-          {/* Main Heading - 1 inch below hero logo */}
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent animate-gradient relative z-10">
+          {/* Spacer between hero logo and text */}
+          <div className="h-8"></div>
+          
+          {/* Main Heading */}
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent animate-gradient relative z-10">
             Verify Your Work History
             <br />
             Build Trust with Employers
           </h1>
 
           {/* Subheading */}
-          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Connect with coworkers, get verified references, and showcase your professional
             credibility. Trusted by job seekers and employers worldwide.
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               href="/auth/signup"
               className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2"
@@ -109,8 +115,11 @@ export default function HomePage() {
             </Link>
           </div>
 
+          {/* Spacer */}
+          <div className="h-8"></div>
+
           {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-6 mb-16">
+          <div className="grid md:grid-cols-3 gap-8 md:gap-12 lg:gap-16">
             <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow border border-gray-100">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
                 <CheckCircleIcon className="w-6 h-6 text-blue-600" />
@@ -144,10 +153,10 @@ export default function HomePage() {
 
           {/* Secondary CTA */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 md:p-12 text-white">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">
               Ready to Get Started?
             </h2>
-            <p className="text-xl mb-6 opacity-90">
+            <p className="text-lg mb-6 opacity-90">
               Join thousands of professionals building verified career profiles.
             </p>
             <Link
@@ -160,7 +169,7 @@ export default function HomePage() {
           </div>
 
           {/* Quick Links */}
-          <div className="mt-16 flex flex-wrap justify-center gap-6 text-gray-600">
+          <div className="flex flex-wrap justify-center gap-6 text-gray-600">
             <Link
               href="/dashboard"
               className="hover:text-blue-600 transition-colors font-medium"
@@ -193,8 +202,8 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white mt-24">
-        <div className="container mx-auto px-4 py-8">
+      <footer className="border-t border-gray-200 bg-white w-full">
+        <div className="container mx-auto px-4 py-6 md:py-8 lg:py-12">
           <div className="text-center text-gray-600">
             <p className="mb-2">
               © {new Date().getFullYear()} WorkVouch. All rights reserved.

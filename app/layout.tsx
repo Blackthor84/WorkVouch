@@ -17,7 +17,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-background dark:bg-[#0D1117] antialiased transition-colors">{children}</body>
+      <body className="bg-background dark:bg-[#0D1117] antialiased transition-colors">
+        <div className="flex flex-col min-h-screen">
+          {children}
+        </div>
+      </body>
     </html>
   )
 }
