@@ -381,3 +381,4 @@ PS C:\Users\ajaye\.cursor>
  GET / 200 in 496ms (compile: 152ms, proxy.ts: 143ms, render: 202ms)
   Reload env: .env.local
  GET / 200 in 311ms (compile: 235ms, proxy.ts: 27ms, render: 49ms)
+ GET /auth/signup 200 in 1521ms (compile: 1349ms, proxy.ts: 15ms, render: 157ms)
