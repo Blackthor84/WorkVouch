@@ -3,7 +3,7 @@ import Image from 'next/image'
 
 export default function HeroSection() {
   return (
-    <section className="flex flex-col items-center" style={{ gap: '1in' }}>
+    <section className="flex flex-col items-center gap-[1in]">
       {/* Hero Logo */}
       <div className="flex justify-center m-0 p-0">
         <div className="relative h-[1152px] w-auto max-w-[16128px] m-0 p-0">
