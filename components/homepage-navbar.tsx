@@ -14,8 +14,13 @@ export function HomepageNavbar() {
               alt="WorkVouch Logo"
               width={560}
               height={160}
-              className="h-full w-auto object-contain m-0 p-0"
-              style={{ backgroundColor: "transparent", margin: 0, padding: 0 }}
+              className="h-full w-auto object-contain m-0 p-0 mix-blend-multiply dark:mix-blend-screen"
+              style={{
+                backgroundColor: "transparent",
+                margin: 0,
+                padding: 0,
+                filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))",
+              }}
               priority
               unoptimized
             />

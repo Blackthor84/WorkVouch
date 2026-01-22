@@ -31,10 +31,13 @@ export function Logo({
           alt="WorkVouch Logo"
           width={size === "hero" ? 16128 : size === "xl" ? 560 : 400}
           height={size === "hero" ? 4608 : size === "xl" ? 160 : 120}
-          className="h-full w-auto object-contain"
+          className="h-full w-auto object-contain mix-blend-multiply dark:mix-blend-screen"
           priority
           unoptimized
-          style={{ backgroundColor: "transparent" }}
+          style={{
+            backgroundColor: "transparent",
+            filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))",
+          }}
         />
       </div>
       {showText && (

@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function HeroSection() {
   return (
-    <section className="flex flex-col items-center gap-[1in]">
+    <section className="flex flex-col items-center">
       {/* Hero Logo */}
       <div className="flex justify-center m-0 p-0">
         <div className="relative h-[1152px] w-auto max-w-[16128px] m-0 p-0">
@@ -12,13 +12,21 @@ export default function HeroSection() {
             alt="WorkVouch Logo"
             width={16128}
             height={4608}
-            className="h-full w-auto object-contain m-0 p-0"
-            style={{ backgroundColor: "transparent", margin: 0, padding: 0 }}
+            className="h-full w-auto object-contain m-0 p-0 mix-blend-multiply dark:mix-blend-screen"
+            style={{
+              backgroundColor: "transparent",
+              margin: 0,
+              padding: 0,
+              filter: "drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))",
+            }}
             priority
             unoptimized
           />
         </div>
       </div>
+
+      {/* Spacer between hero logo and text - EXACT 1 inch */}
+      <div className="mt-[1in]"></div>
 
       {/* Hero Text */}
       <div className="text-center">
