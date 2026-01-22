@@ -41,3 +41,6 @@ next-env.d.ts
 /mobile/.expo
 /mobile/.expo-shared
 /mobile/dist
+# Terminal logs and project files
+projects/
+*.txt
