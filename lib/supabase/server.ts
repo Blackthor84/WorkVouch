@@ -1,17 +1,14 @@
-﻿// lib/supabase/server.ts
+﻿import { createServerClient as createSupabaseSSRClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { createServerClient as createSupabaseSSRClient } from "@supabase/ssr";
-import { env } from "@/lib/env";
-import type { Database } from "@/types/database";
+import type { Database } from "./types";
 
-// Wrap everything in a function - no top-level await
+// In Next.js 16, cookies() is async and must be awaited
 export const createSupabaseServerClient = async () => {
-  // In Next.js 16, cookies() is async and must be awaited
   const cookieStore = await cookies();
 
   return createSupabaseSSRClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL!,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
