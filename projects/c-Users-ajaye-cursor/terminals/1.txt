@@ -2,9 +2,9 @@
 pid: 6488
 cwd: |
   C:\Users\ajaye\.cursor
-active_command: ./push.ps1
-last_command: ./push.ps1
-last_exit_code: 0
+active_command: npm run dev
+last_command: npm run dev
+last_exit_code: 1
 ---
 PS C:\Users\ajaye\.cursor>    npm run dev
 
@@ -228,4 +228,140 @@ remote: This repository moved. Please use the new location:
 remote:   https://github.com/Blackthor84/WorkVouch.git
 To https://github.com/Blackthor84/workvouch.git
    36b9a3c..88d12e0  main -> main
-PS C:\Users\ajaye\.cursor> ./push.ps1
+PS C:\Users\ajaye\.cursor> ./push.ps1    
+warning: in the working copy of 'projects/c-Users-ajaye-cursor/terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+[main 2c9e7a8] auto push from cursor
+ 2 files changed, 231 insertions(+)
+Enumerating objects: 15, done.
+Counting objects: 100% (15/15), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (8/8), 3.06 KiB | 3.06 MiB/s, done.
+Total 8 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/Blackthor84/WorkVouch.git
+To https://github.com/Blackthor84/workvouch.git
+   88d12e0..2c9e7a8  main -> main
+PS C:\Users\ajaye\.cursor>    npm run dev
+
+> workvouch@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.138:3000
+- Environments: .env.local
+
+✓ Starting...
+⚠ Duplicate page detected. app\api\resume-upload\route.js and app\api\resume-upload\route.ts resolve to /api/resume-upload
+⚠ Duplicate page detected. app\api\resume-upload\route.js and app\api\resume-upload\route.ts resolve to /api/resume-upload
+✓ Ready in 940ms
+⨯ Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at <unknown> (https://supabase.com/dashboard/project/_/settings/api)
+    at createSupabaseServerClient (lib\supabase\server.ts:13:30)
+    at async getCurrentUser (lib\auth.ts:27:20)
+    at async NavbarServer (components\navbar-server.tsx:5:16)
+  11 |   const cookieStore = await cookies()
+  12 |
+> 13 |   return createSupabaseClient<Database>(
+     |                              ^
+  14 |     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  15 |     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  16 |     { {
+  digest: '3772553213'
+}
+ GET / 500 in 986ms (compile: 268ms, proxy.ts: 136ms, render: 582ms)
+⨯ Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at <unknown> (https://supabase.com/dashboard/project/_/settings/api)
+    at createSupabaseServerClient (lib\supabase\server.ts:13:30)
+    at async getCurrentUser (lib\auth.ts:27:20)
+    at async NavbarServer (components\navbar-server.tsx:5:16)
+  11 |   const cookieStore = await cookies()
+  12 |
+> 13 |   return createSupabaseClient<Database>(
+     |                              ^
+  14 |     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  15 |     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  16 |     { {
+  digest: '3772553213'
+}
+ GET / 500 in 460ms (compile: 11ms, proxy.ts: 14ms, render: 435ms)
+ GET / 200 in 616ms (compile: 236ms, proxy.ts: 31ms, render: 348ms)
+ GET / 200 in 251ms (compile: 34ms, proxy.ts: 76ms, render: 141ms)
+ GET / 200 in 108ms (compile: 44ms, proxy.ts: 6ms, render: 59ms)
+PS C:\Users\ajaye\.cursor> 
+                              npm run dev
+
+> workvouch@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.138:3000
+- Environments: .env.local
+
+✓ Starting...
+⚠ Duplicate page detected. app\api\resume-upload\route.js and app\api\resume-upload\route.ts resolve to /api/resume-upload
+⚠ Duplicate page detected. app\api\resume-upload\route.js and app\api\resume-upload\route.ts resolve to /api/resume-upload
+✓ Ready in 909ms
+ GET / 200 in 600ms (compile: 149ms, proxy.ts: 139ms, render: 311ms)
+✓ Compiled in 1424ms
+PS C:\Users\ajaye\.cursor> 
+                              npm run dev
+
+> workvouch@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.138:3000
+- Environments: .env.local
+
+✓ Starting...
+⚠ Duplicate page detected. app\api\resume-upload\route.js and app\api\resume-upload\route.ts resolve to /api/resume-upload
+⚠ Duplicate page detected. app\api\resume-upload\route.js and app\api\resume-upload\route.ts resolve to /api/resume-upload
+✓ Ready in 965ms
+ GET / 200 in 524ms (compile: 158ms, proxy.ts: 143ms, render: 223ms)
+  Reload env: .env.local
+ GET / 200 in 126ms (compile: 65ms, proxy.ts: 32ms, render: 30ms)
+PS C:\Users\ajaye\.cursor>
+                           npm run dev
+
+> workvouch@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.138:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 938ms
+ GET / 200 in 555ms (compile: 178ms, proxy.ts: 126ms, render: 250ms)
+  Reload env: .env.local
+ GET / 200 in 146ms (compile: 46ms, proxy.ts: 38ms, render: 62ms)
+  Reload env: .env.local
+ GET / 200 in 98ms (compile: 39ms, proxy.ts: 25ms, render: 34ms)
+PS C:\Users\ajaye\.cursor> 
+                           npm run dev
+
+> workvouch@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.138:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 870ms
+ GET / 200 in 550ms (compile: 168ms, proxy.ts: 124ms, render: 257ms)
