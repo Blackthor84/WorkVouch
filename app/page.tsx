@@ -63,10 +63,10 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <main className="container mx-auto px-4 pt-12 pb-0">
+      <main className="container mx-auto px-4 pt-[192px] pb-0">
         <div className="max-w-4xl mx-auto text-center relative">
-          {/* Hero Logo - 8x bigger, sits directly above text with no space */}
-          <div className="flex justify-center mb-0">
+          {/* Hero Logo - 8x bigger, 2 inches below navbar, 1 inch above text */}
+          <div className="flex justify-center mb-[96px]">
             <div className="relative h-[1152px] w-auto max-w-[16128px]">
               <Image
                 src="/logo.png"
@@ -79,8 +79,8 @@ export default function HomePage() {
             </div>
           </div>
           
-          {/* Main Heading - pulled up to sit directly below logo with no gap */}
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent animate-gradient relative z-10" style={{ marginTop: '-100px' }}>
+          {/* Main Heading - 1 inch below hero logo */}
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent animate-gradient relative z-10">
             Verify Your Work History
             <br />
             Build Trust with Employers
