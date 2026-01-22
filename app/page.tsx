@@ -2,6 +2,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRightIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 
+// Ensure this page is statically generated and doesn't require env vars
+export const dynamic = 'force-static'
+export const revalidate = false
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
