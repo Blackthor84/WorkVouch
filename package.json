@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "restart-dev": "powershell -ExecutionPolicy Bypass -File ./scripts/restart-dev.ps1"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
