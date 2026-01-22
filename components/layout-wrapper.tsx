@@ -19,7 +19,7 @@ export function LayoutWrapper({
 
   return (
     <div className="flex flex-col min-h-screen justify-evenly">
-      <nav className="py-8">
+      <nav>
         {isHomepage ? (
           <HomepageNavbar />
         ) : (
@@ -27,9 +27,13 @@ export function LayoutWrapper({
         )}
       </nav>
 
-      <main className="flex-1">{children}</main>
+      {isHomepage ? (
+        <header>{children}</header>
+      ) : (
+        <main>{children}</main>
+      )}
 
-      <footer className="mt-8">{isHomepage ? <HomepageFooter /> : null}</footer>
+      <footer>{isHomepage ? <HomepageFooter /> : null}</footer>
     </div>
   );
 }
