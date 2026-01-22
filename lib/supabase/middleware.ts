@@ -1,12 +1,17 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { Database } from '@/types/database'
+import { env, validateEnv } from '@/lib/env'
 
 /**
  * Supabase client for middleware
  * Used for authentication checks in middleware
+ * ✅ Uses centralized env validation
  */
 export const createMiddlewareClient = (request: NextRequest) => {
+  // Validate env vars at runtime (not build time)
+  validateEnv()
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -14,8 +19,8 @@ export const createMiddlewareClient = (request: NextRequest) => {
   })
 
   const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         get(name: string) {

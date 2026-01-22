@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { supabaseServer } from "@/lib/supabase/admin";
+import { env } from "@/lib/env";
 
 export async function POST(req: Request) {
   try {
-    const openaiApiKey = process.env.OPENAI_API_KEY;
-
-    if (!openaiApiKey) throw new Error("OPENAI_API_KEY is required");
+    if (!env.OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY is required. Please set it in Vercel Project Settings → Environment Variables.");
+    }
 
     const supabase = supabaseServer;
-    const openai = new OpenAI({ apiKey: openaiApiKey });
+    const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
     const formData = await req.formData();
     const file = formData.get("file");
