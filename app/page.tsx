@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRightIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import HeroSection from "@/components/HeroSection";
+import Image from "next/image";
 
 // Ensure this page is statically generated and doesn't require env vars
 export const dynamic = "force-static";
@@ -8,9 +9,22 @@ export const revalidate = false;
 
 export default function HomePage() {
   return (
-    <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-4 py-8 md:py-12 lg:py-16">
         <div className="max-w-4xl mx-auto text-center relative w-full flex flex-col items-center space-y-12 md:space-y-16 lg:space-y-20">
+          {/* Hero Logo */}
+          <div className="flex justify-center">
+            <Image
+              src="/logo.png"
+              alt="WorkVouch Logo"
+              width={672}
+              height={192}
+              className="h-48 w-auto object-contain mix-blend-multiply dark:mix-blend-screen drop-shadow-md"
+              priority
+              unoptimized
+            />
+          </div>
+
           {/* Hero Section Component */}
           <HeroSection />
 
