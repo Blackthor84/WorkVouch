@@ -18,16 +18,16 @@ export function LayoutWrapper({
   const isHomepage = pathname === "/";
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <header>
+    <div className="flex flex-col min-h-screen justify-between">
+      <header className="mb-8">
         {isHomepage ? (
           <HomepageNavbar />
         ) : (
           <NavbarClient user={user} roles={roles} />
         )}
       </header>
-      <main className="flex-1 flex flex-col space-y-[1.5in]">{children}</main>
-      <footer>{isHomepage ? <HomepageFooter /> : null}</footer>
+      <main className="flex-1 flex flex-col justify-center space-y-8">{children}</main>
+      <footer className="mt-8">{isHomepage ? <HomepageFooter /> : null}</footer>
     </div>
   );
 }

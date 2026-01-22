@@ -3,6 +3,7 @@
  * Safe to use in browser/React components
  * Uses anon key - safe to expose to frontend
  * ✅ Uses centralized env validation
+ * ✅ Lazy-loaded to avoid build-time errors
  */
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/types/database";

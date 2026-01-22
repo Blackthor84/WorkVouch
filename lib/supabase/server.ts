@@ -3,6 +3,7 @@
  * ✅ Only import this file in server components or API routes
  * ✅ Declare supabase once per function and reuse for all queries
  * ✅ Uses centralized env validation
+ * ✅ No top-level await - all async logic wrapped in functions
  */
 import { cookies } from "next/headers";
 import { createServerClient as createSupabaseServerClientSSR } from "@supabase/ssr";

@@ -33,7 +33,8 @@ export default function SignInPage() {
         setMessage("Signed in successfully! Redirecting...");
         // Wait a moment for session to be set, then redirect
         setTimeout(() => {
-          window.location.href = "/dashboard";
+          router.push("/dashboard");
+          router.refresh();
         }, 300);
       } else {
         setMessage("Error: No session created. Please try again.");
