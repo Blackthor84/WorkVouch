@@ -91,12 +91,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch jobs for all users (limit to most recent 3 per user for summary)
-    const { data: jobsData, error: jobsError } = await supabase
+    const { data: jobsData, error: jobsError } = await (supabaseAny
       .from("jobs")
       .select("user_id, job_title, company_name, start_date, is_current")
       .in("user_id", userIds)
       .eq("is_private", false) // Only show public jobs
-      .order("start_date", { ascending: false });
+      .order("start_date", { ascending: false }));
 
     if (jobsError) {
       console.error("Jobs query error:", jobsError);

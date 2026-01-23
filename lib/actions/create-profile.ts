@@ -14,9 +14,10 @@ export async function createProfileIfMissing() {
   }
 
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
   // Check if profile exists
-  const { data: existingProfile } = await supabase
+  const { data: existingProfile } = await supabaseAny
     .from('profiles')
     .select('id')
     .eq('id', user.id)
@@ -31,7 +32,6 @@ export async function createProfileIfMissing() {
   const fullName = authUser?.user?.user_metadata?.full_name || 'User'
 
   // Create profile (using service role would bypass RLS, but we'll try with current user)
-  const supabaseAny = supabase as any
   const { data: profile, error: profileError } = await supabaseAny
     .from('profiles')
     .insert([{
@@ -48,7 +48,7 @@ export async function createProfileIfMissing() {
   }
 
   // Check if role exists
-  const { data: existingRole } = await supabase
+  const { data: existingRole } = await supabaseAny
     .from('user_roles')
     .select('id')
     .eq('user_id', user.id)

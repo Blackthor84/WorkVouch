@@ -15,8 +15,9 @@ export async function searchUsers(query: {
 }) {
   await requireRole('employer')
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  let queryBuilder = supabase
+  let queryBuilder = supabaseAny
     .from('profiles')
     .select('*')
     .eq('visibility', 'public')
@@ -49,9 +50,10 @@ export async function searchUsers(query: {
 export async function getPublicProfile(userId: string) {
   await requireRole('employer')
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
   // Get profile
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile, error: profileError } = await supabaseAny
     .from('profiles')
     .select('*')
     .eq('id', userId)
@@ -63,7 +65,7 @@ export async function getPublicProfile(userId: string) {
   }
 
   // Get public jobs
-  const { data: jobs, error: jobsError } = await supabase
+  const { data: jobs, error: jobsError } = await supabaseAny
     .from('jobs')
     .select('*')
     .eq('user_id', userId)
@@ -75,7 +77,7 @@ export async function getPublicProfile(userId: string) {
   }
 
   // Get public references (for public jobs)
-  const { data: references, error: refsError } = await supabase
+  const { data: references, error: refsError } = await supabaseAny
     .from('references')
     .select(`
       *,
@@ -103,7 +105,7 @@ export async function getPublicProfile(userId: string) {
     (references as ReferenceWithJob[] | null)?.filter((ref: ReferenceWithJob) => ref.job && !ref.job.is_private) || []
 
   // Get trust score
-  const { data: trustScore } = await supabase
+  const { data: trustScore } = await supabaseAny
     .from('trust_scores')
     .select('*')
     .eq('user_id', userId)
@@ -138,11 +140,19 @@ export async function getPublicProfile(userId: string) {
     } : null,
   }))
 
+  // Normalize trust score
+  const safeTrustScore = trustScore ? {
+    score: Number(trustScore.score) || 0,
+    job_count: Number(trustScore.job_count) || 0,
+    reference_count: Number(trustScore.reference_count) || 0,
+    average_rating: trustScore.average_rating ? Number(trustScore.average_rating) : null,
+  } : null
+
   return {
     profile: safeProfile,
     jobs: safeJobs,
     references: safeReferences,
-    trust_score: trustScore,
+    trust_score: safeTrustScore,
   }
 }
 

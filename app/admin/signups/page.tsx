@@ -38,9 +38,9 @@ export default async function AdminSignupsPage() {
   // For superadmin, RLS should allow access to all profiles
 
   // Get all profiles and combine with roles
-  const signups = ((profiles || []) as Profile[]).map((profile: Profile) => {
+  const signups = ((profiles || []) as unknown as Profile[]).map((profile: Profile) => {
     const roles =
-      ((userRoles || []) as UserRole[])
+      ((userRoles || []) as unknown as UserRole[])
         .filter((ur: UserRole) => ur.user_id === profile.id)
         .map((ur: UserRole) => ur.role) || [];
 

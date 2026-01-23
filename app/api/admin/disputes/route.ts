@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     const supabase = await createServerClient();
 
-    let query = supabase
+    let query: any = supabase
       .from("employer_disputes")
       .select(
         `

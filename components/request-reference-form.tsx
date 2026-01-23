@@ -45,7 +45,7 @@ export function RequestReferenceForm({
       setLoadingJobs(true);
       getJobsForUser(formData.to_user_id)
         .then((jobs) => {
-          setSelectedUserJobs(jobs || []);
+          setSelectedUserJobs((jobs || []) as unknown as Job[]);
           setFormData((prev) => ({ ...prev, job_id: "" })); // Reset job selection
         })
         .catch((error) => {

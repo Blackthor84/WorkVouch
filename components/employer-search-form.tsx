@@ -35,7 +35,7 @@ export function EmployerSearchForm() {
 
     try {
       const users = await searchUsers(searchQuery);
-      setResults(users as Profile[]);
+      setResults(users as unknown as Profile[]);
 
       // Check purchase status for all results
       const statuses: Record<string, boolean> = {};
