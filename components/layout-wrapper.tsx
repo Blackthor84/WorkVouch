@@ -1,6 +1,6 @@
 "use client";
 
-import Navbar from "./navbar";
+import Layout from "./Layout";
 
 export function LayoutWrapper({
   children,
@@ -11,10 +11,5 @@ export function LayoutWrapper({
   user: any;
   roles: string[];
 }) {
-  return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar /> {/* single navbar for all pages */}
-      <main>{children}</main>
-    </div>
-  );
+  return <Layout>{children}</Layout>;
 }

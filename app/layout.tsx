@@ -23,9 +23,6 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <head>
-        <link rel="preload" href="/logo.png" as="image" />
-      </head>
       <body className="bg-background dark:bg-[#0D1117] flex flex-col min-h-screen antialiased transition-colors">
         <LayoutWrapper user={user} roles={roles}>
           {children}
