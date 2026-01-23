@@ -1,13 +1,13 @@
-import Image, { ImageLoaderProps } from "next/image";
+import Image, { ImageProps } from "next/image";
 import type { HTMLAttributes } from "react";
 
-// Add `unoptimized` and `className` to the type
+// Define props for your FixedImage component
 interface FixedImageProps extends HTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
   width?: number;
   height?: number;
-  loader?: (props: ImageLoaderProps) => string;
+  loader?: (props: { src: string; width: number }) => string; // updated type
   unoptimized?: boolean;
 }
 
