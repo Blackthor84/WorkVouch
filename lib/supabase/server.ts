@@ -1,6 +1,6 @@
-﻿import { createServerClient as createSupabaseSSRClient } from '@supabase/ssr';
+﻿import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
-import { Database } from './types';
+import type { Database } from './types';
 
 // Function to create Supabase client per request - runtime only, no top-level await
 export async function createServerSupabaseClient() {
@@ -12,33 +12,26 @@ export async function createServerSupabaseClient() {
   const supabaseKey = process.env.supabaseKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    throw new Error(
-      'Supabase URL or Key not found. Please set process.env.supabaseUrl and process.env.supabaseKey (or NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY)'
-    );
+    throw new Error('Missing supabaseUrl or supabaseKey in environment variables.');
   }
 
-  return createSupabaseSSRClient<Database>(
-    supabaseUrl,
-    supabaseKey,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
+  return createClient<Database>(supabaseUrl, supabaseKey, {
+    auth: {
+      storageKey: 'sb-session',
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+      storage: {
+        getItem: (key) => cookieStore.get(key)?.value ?? null,
+        setItem: (key, value) => {
+          cookieStore.set(key, value);
         },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
+        removeItem: (key) => {
+          cookieStore.delete(key);
         },
       },
-    }
-  );
+    },
+  });
 }
 
 // Export as getSupabaseClient for backward compatibility
