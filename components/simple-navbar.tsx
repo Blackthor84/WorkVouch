@@ -1,25 +1,22 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-md">
-      {/* Logo */}
+    <nav className="flex items-center justify-between p-4 bg-white shadow">
       <Link href="/" className="flex items-center">
         <Image
           src="/logo.png"
           alt="WorkVouch Logo"
-          width={150}
-          height={50}
-          priority={true} // ensures preload
+          width={120}
+          height={40}
+          priority
         />
       </Link>
-
-      {/* Nav Links */}
-      <div className="flex space-x-6">
+      <div className="flex space-x-4">
         <Link href="/pricing">Pricing</Link>
-        <Link href="/about">About</Link>
-        <Link href="/contact">Contact</Link>
+        <Link href="/auth/signup">Sign Up</Link>
+        <Link href="/auth/signin">Login</Link>
       </div>
     </nav>
   );
