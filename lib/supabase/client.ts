@@ -1,12 +1,13 @@
-/**
- * Client-side Supabase client
- * Safe to use in browser/React components
- * Uses anon key - safe to expose to frontend
- * ✅ Only used in React pages or components (client-side)
- * 
- * This file re-exports the centralized client from lib/supabaseClient.ts
- * for backward compatibility with existing imports.
- */
-export { supabase } from "@/lib/supabaseClient";
-export { supabase as getSupabaseClient } from "@/lib/supabaseClient";
-export { supabase as supabaseClient } from "@/lib/supabaseClient";
+import { createClient } from "@supabase/supabase-js";
+import { env } from "@/env.mjs";
+import type { Database } from "@/types/database";
+
+export const supabaseBrowserClient = createClient<Database>(
+  env.NEXT_PUBLIC_SUPABASE_URL,
+  env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
+
+// Export as supabase for backward compatibility
+export const supabase = supabaseBrowserClient;
+export const supabaseClient = supabaseBrowserClient;
+export const getSupabaseClient = () => supabaseBrowserClient;
