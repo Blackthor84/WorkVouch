@@ -34,9 +34,10 @@ export async function calculateMatchScore(
   jobInput: JobMatchInput
 ): Promise<MatchScore> {
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
   // Get candidate data
-  const { data: profile } = await supabase
+  const { data: profile } = await supabaseAny
     .from('profiles')
     .select('*, trust_scores(score)')
     .eq('id', candidateId)
@@ -47,7 +48,7 @@ export async function calculateMatchScore(
   }
 
   // Get candidate jobs
-  const { data: jobs } = await supabase
+  const { data: jobs } = await supabaseAny
     .from('jobs')
     .select('job_title, company_name, description, start_date, end_date')
     .eq('user_id', candidateId)
@@ -55,14 +56,14 @@ export async function calculateMatchScore(
     .order('start_date', { ascending: false })
 
   // Get references
-  const { data: references } = await supabase
+  const { data: references } = await supabaseAny
     .from('references')
     .select('rating')
     .eq('to_user_id', candidateId)
     .eq('is_deleted', false)
 
   // Get industry fields (skills/certifications)
-  const { data: industryFields } = await supabase
+  const { data: industryFields } = await supabaseAny
     .from('industry_profile_fields')
     .select('field_type, field_value')
     .eq('user_id', candidateId)
@@ -260,9 +261,10 @@ export async function findTopMatches(
   limit: number = 20
 ): Promise<MatchScore[]> {
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
   // Get all public profiles (or filter by industry if specified)
-  let query = supabase
+  let query: any = supabaseAny
     .from('profiles')
     .select('id, industry, city, state, trust_scores(score)')
     .eq('visibility', 'public')

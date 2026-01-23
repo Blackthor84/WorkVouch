@@ -47,7 +47,8 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   }
 
   const supabase = await createServerClient()
-  const { data: profile, error } = await supabase
+  const supabaseAny = supabase as any
+  const { data: profile, error } = await supabaseAny
     .from('profiles')
     .select('*')
     .eq('id', user.id)
@@ -70,7 +71,8 @@ export async function getCurrentUserRoles(): Promise<string[]> {
   }
 
   const supabase = await createServerClient()
-  const { data: roles } = await supabase
+  const supabaseAny = supabase as any
+  const { data: roles } = await supabaseAny
     .from('user_roles')
     .select('role')
     .eq('user_id', user.id)
