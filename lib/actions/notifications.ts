@@ -10,8 +10,9 @@ import { revalidatePath } from 'next/cache'
 export async function getUserNotifications(limit: number = 50) {
   const user = await requireAuth()
   const supabase = await createServerSupabaseClient()
+  const supabaseAny = supabase as any
 
-  const { data: notifications, error } = await supabase
+  const { data: notifications, error } = await supabaseAny
     .from('notifications')
     .select('*')
     .eq('user_id', user.id)
@@ -35,8 +36,9 @@ export async function getUserNotifications(limit: number = 50) {
  */
 export async function getNotifications(userId: string) {
   const supabase = await createServerSupabaseClient();
+  const supabaseAny = supabase as any
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAny
     .from('notifications')
     .select('*')
     .eq('user_id', userId)
@@ -103,8 +105,9 @@ export async function markAllNotificationsRead() {
 export async function getUnreadNotificationCount() {
   const user = await requireAuth()
   const supabase = await createServerSupabaseClient()
+  const supabaseAny = supabase as any
 
-  const { count, error } = await supabase
+  const { count, error } = await supabaseAny
     .from('notifications')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
