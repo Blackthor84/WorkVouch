@@ -1,14 +1,18 @@
 // components/FixedImage.tsx
-import Image from "next/image";
-import type { ComponentProps } from "react";
+import Image, { ImageProps } from "next/image";
 
-// FixedImageProps — accept all Image props except src
-export interface FixedImageProps extends Omit<ComponentProps<typeof Image>, "src"> {
-  src: string; // make src required
-  unoptimized?: boolean;
-  loading?: "lazy" | "eager";
+// Extend all ImageProps except src
+export interface FixedImageProps extends Omit<ImageProps, "src"> {
+  src: string;           // make src required
+  unoptimized?: boolean; // default true
+  loading?: "lazy" | "eager"; // default eager
 }
 
-export default function FixedImage({ src, unoptimized = true, loading = "eager", ...props }: FixedImageProps) {
+export default function FixedImage({
+  src,
+  unoptimized = true,
+  loading = "eager",
+  ...props
+}: FixedImageProps) {
   return <Image src={src} unoptimized={unoptimized} loading={loading} {...props} />;
 }
