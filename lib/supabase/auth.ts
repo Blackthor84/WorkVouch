@@ -1,17 +1,9 @@
-/**
- * Auth Functions for Supabase
- * Client-side authentication helpers
- */
-import { supabaseClient } from "./client";
+import { createServerSupabaseClient } from './server';
 
-export const signUpUser = async (email: string, password: string) => {
-  const { data, error } = await supabaseClient.auth.signUp({ email, password });
-  if (error) throw error;
-  return data;
-};
-
-export const loginUser = async (email: string, password: string) => {
-  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-  if (error) throw error;
-  return data;
-};
+export async function getServerSession() {
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  return session;
+}

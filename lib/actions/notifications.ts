@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 
@@ -9,7 +9,7 @@ import { revalidatePath } from 'next/cache'
  */
 export async function getUserNotifications(limit: number = 50) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabaseClient()
 
   const { data: notifications, error } = await supabase
     .from('notifications')
@@ -31,11 +31,27 @@ export async function getUserNotifications(limit: number = 50) {
 }
 
 /**
+ * Get notifications (simplified version for compatibility)
+ */
+export async function getNotifications(userId: string) {
+  const supabase = await createServerSupabaseClient();
+
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
+/**
  * Mark notification as read
  */
 export async function markNotificationRead(notificationId: string) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   const { data, error } = await supabaseAny
@@ -62,7 +78,7 @@ export async function markNotificationRead(notificationId: string) {
  */
 export async function markAllNotificationsRead() {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   const { error } = await supabaseAny
@@ -86,7 +102,7 @@ export async function markAllNotificationsRead() {
  */
 export async function getUnreadNotificationCount() {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabaseClient()
 
   const { count, error } = await supabase
     .from('notifications')
