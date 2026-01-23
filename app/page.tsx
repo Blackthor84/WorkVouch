@@ -81,11 +81,6 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-
-      {/* Footer Section */}
-      <footer className="bg-gray-200 text-gray-700 py-6 mt-12 text-center">
-        <p>© {new Date().getFullYear()} WorkVouch. All rights reserved.</p>
-      </footer>
     </div>
   );
 }
