@@ -106,7 +106,7 @@ const employerPricing = [
       "Access to verified employee reviews",
       "Basic support",
     ],
-    priceId: "price_1ABC123Basic", // Replace with actual Stripe Price ID
+    priceId: "price_1ABC123Basic",
   },
   {
     tier: "Pro",
@@ -117,7 +117,7 @@ const employerPricing = [
       "Advanced analytics dashboard",
       "Priority support",
     ],
-    priceId: "price_1ABC123Pro", // Replace with actual Stripe Price ID
+    priceId: "price_1ABC123Pro",
   },
   {
     tier: "Enterprise",
@@ -128,7 +128,7 @@ const employerPricing = [
       "Custom integrations",
       "Full support & SLA",
     ],
-    priceId: "price_1ABC123Enterprise", // Replace with actual Stripe Price ID
+    priceId: "price_1ABC123Enterprise",
   },
 ];
 
@@ -142,28 +142,21 @@ const employeePricing = [
       "Receive and display peer references",
       "Access to limited job listings",
     ],
-    priceId: "", // Free tier - no Stripe checkout
+    priceId: "",
   },
   {
     tier: "Standard",
     price: "$9.99/mo",
     color: "bg-orange-100 text-orange-900",
-    benefits: [
-      "Access to verified reviews",
-      "Apply to jobs directly",
-    ],
-    priceId: "price_1ABC123EmpStd", // Replace with actual Stripe Price ID
+    benefits: ["Access to verified reviews", "Apply to jobs directly"],
+    priceId: "price_1ABC123EmpStd",
   },
   {
     tier: "Premium",
     price: "$19.99/mo",
     color: "bg-orange-200 text-orange-900",
-    benefits: [
-      "All Standard benefits",
-      "Priority notifications",
-      "Advanced profile insights",
-    ],
-    priceId: "price_1ABC123EmpPremium", // Replace with actual Stripe Price ID
+    benefits: ["All Standard benefits", "Priority notifications", "Advanced profile insights"],
+    priceId: "price_1ABC123EmpPremium",
   },
 ];
 
@@ -186,6 +179,7 @@ export default function CareerPage({ params }: CareerPageProps) {
   return (
     <div className="max-w-5xl mx-auto p-6">
       <h1 className="text-4xl font-bold mb-6 text-blue-700">{career.name}</h1>
+
       <FixedImage
         src={career.image}
         alt={career.name}
@@ -201,9 +195,7 @@ export default function CareerPage({ params }: CareerPageProps) {
         </h2>
         <ul className="list-disc list-inside space-y-2 text-lg mb-6">
           {career.employers?.length ? (
-            career.employers.map((item: string, idx: number) => (
-              <li key={idx}>{item}</li>
-            ))
+            career.employers.map((item, idx) => <li key={idx}>{item}</li>)
           ) : (
             <li>No employer benefits listed yet.</li>
           )}
@@ -211,25 +203,18 @@ export default function CareerPage({ params }: CareerPageProps) {
       </section>
 
       <section className="mb-10">
-        <h2 className="text-2xl font-semibold mb-4 text-green-700">
-          Benefits for Employees
-        </h2>
+        <h2 className="text-2xl font-semibold mb-4 text-green-700">Benefits for Employees</h2>
         <ul className="list-disc list-inside space-y-2 text-lg mb-6">
           {career.employees?.length ? (
-            career.employees.map((item: string, idx: number) => (
-              <li key={idx}>{item}</li>
-            ))
+            career.employees.map((item, idx) => <li key={idx}>{item}</li>)
           ) : (
             <li>No employee benefits listed yet.</li>
           )}
         </ul>
       </section>
 
-      {/* Employer Pricing */}
       <section className="mb-10">
-        <h2 className="text-2xl font-semibold mt-8 mb-4 text-purple-700">
-          Employer Pricing
-        </h2>
+        <h2 className="text-2xl font-semibold mt-8 mb-4 text-purple-700">Employer Pricing</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {employerPricing.map((tier, idx) => (
             <div
@@ -249,11 +234,8 @@ export default function CareerPage({ params }: CareerPageProps) {
         </div>
       </section>
 
-      {/* Employee Pricing */}
       <section className="mb-10">
-        <h2 className="text-2xl font-semibold mt-8 mb-4 text-orange-700">
-          Employee Pricing
-        </h2>
+        <h2 className="text-2xl font-semibold mt-8 mb-4 text-orange-700">Employee Pricing</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {employeePricing.map((tier, idx) => (
             <div
