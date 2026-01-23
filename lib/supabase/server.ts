@@ -1,45 +1,37 @@
-﻿import { createServerClient as createSupabaseSSRClient } from "@supabase/ssr";
+﻿import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { env } from "@/env.mjs";
-import type { Database } from "@/types/database";
+import type { Database } from "@/lib/supabase/types";
 
-export const createSupabaseServerClient = async () => {
-  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+export async function getServerSupabaseClient() {
   const cookieStore = await cookies();
 
-  return createSupabaseSSRClient<Database>(supabaseUrl, supabaseKey, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value;
-      },
-      set(name: string, value: string, options?: any) {
-        try {
-          cookieStore.set(name, value, options);
-        } catch (error) {
-          // The `set` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
-        }
-      },
-      remove(name: string, options?: any) {
-        try {
-          cookieStore.set(name, "", { ...options, maxAge: 0 });
-        } catch (error) {
-          // The `delete` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
-        }
+  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Supabase URL or Key is missing in env variables");
+  }
+
+  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: { 
+      persistSession: false, 
+      detectSessionInUrl: false, 
+      storage: {
+        getItem: (key: string) => cookieStore.get(key)?.value ?? null,
+        setItem: (key: string, value: string) => {
+          cookieStore.set(key, value);
+        },
+        removeItem: (key: string) => {
+          cookieStore.delete(key);
+        },
       },
     },
   });
-};
+}
 
-// Export as getSupabaseClient for backward compatibility
-export const getSupabaseClient = createSupabaseServerClient;
-
-// Export as createServerClient for backward compatibility  
-export const createServerClient = createSupabaseServerClient;
-
-// Export with old name for backward compatibility (many files use this)
-export const createServerSupabaseClient = createSupabaseServerClient;
+// Export with old names for backward compatibility
+export const createSupabaseServerClient = getServerSupabaseClient;
+export const createServerSupabaseClient = getServerSupabaseClient;
+export const getSupabaseClient = getServerSupabaseClient;
+export const createServerClient = getServerSupabaseClient;
