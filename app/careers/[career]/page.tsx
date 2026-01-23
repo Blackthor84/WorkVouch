@@ -183,12 +183,11 @@ export default function CareerPage({ params }: CareerPageProps) {
       <h1 className="text-4xl font-bold mb-6 text-blue-700">{career.name}</h1>
 
       <FixedImage
-        src={career.image}
+        src={career.image || "/placeholder.png"} // <-- fallback here
         alt={career.name}
         width={800}
         height={400}
         className="rounded-lg mb-6 shadow-lg object-cover w-full"
-        fallbackSrc="/placeholder.png"
       />
 
       <section className="mb-10">
