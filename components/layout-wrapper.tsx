@@ -1,6 +1,6 @@
 "use client";
 
-import Navbar from "@/components/simple-navbar";
+import Navbar from "./navbar";
 
 export function LayoutWrapper({
   children,
