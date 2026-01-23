@@ -1,6 +1,6 @@
 "use client";
 
-import { getSupabaseClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 
@@ -8,7 +8,7 @@ export function SignOutButton() {
   const router = useRouter();
 
   const handleSignOut = async () => {
-    const supabase = getSupabaseClient();
+    // Using single supabase instance
     await supabase.auth.signOut();
     router.push("/");
     router.refresh();

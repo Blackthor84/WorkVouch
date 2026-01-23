@@ -1,151 +1,72 @@
-import React from "react";
-import Link from "next/link";
-import { NavbarServer } from "@/components/navbar-server";
-import { CheckIcon } from "@heroicons/react/24/solid";
+"use client";
+import { useState } from "react";
 
-// Mark as dynamic to prevent build-time prerendering
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
+export default function Pricing() {
+  const [tab, setTab] = useState("employee");
 
-export default function PricingPage() {
   return (
-    <>
-      <NavbarServer />
-      <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-gray-50 dark:bg-[#0D1117]">
-        <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20 max-w-6xl mx-auto text-center">
-          {/* Page Header */}
-          <div>
-            <h1 className="text-4xl font-bold text-grey-dark dark:text-gray-200">
-              WorkVouch Employer Plans
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400 mt-4">
-              Choose a plan that fits your hiring needs
-            </p>
-          </div>
+    <div className="bg-gray-50 min-h-screen py-16 px-6">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-bold text-center text-blue-700 mb-10">
+          WorkVouch Pricing
+        </h1>
 
-          {/* Pricing Cards */}
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Basic Plan */}
-            <div className="bg-white dark:bg-[#1A1F2B] rounded-2xl shadow p-8 flex flex-col border border-grey-background dark:border-[#374151]">
-              <h2 className="text-2xl font-semibold mb-4 text-grey-dark dark:text-gray-200">
-                Basic Employer
-              </h2>
-              <p className="text-4xl font-bold mb-4 text-grey-dark dark:text-gray-200">
-                Free
-              </p>
-              <ul className="text-left text-gray-700 dark:text-gray-300 space-y-3 flex-1 mb-6">
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <span>Search workers by name</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <span>View public profiles</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <span>Submit basic verifications</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <span>10 verifications/month</span>
-                </li>
-              </ul>
-              <Link
-                href="/dashboard"
-                className="mt-6 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-black dark:text-white py-3 rounded-xl font-semibold transition-colors text-center block"
-              >
-                Continue
-              </Link>
-            </div>
+        <div className="flex justify-center mb-10">
+          <button
+            onClick={() => setTab("employee")}
+            className={`px-6 py-2 rounded-l-md border ${
+              tab === "employee"
+                ? "bg-blue-700 text-white"
+                : "bg-white text-blue-700"
+            }`}
+          >
+            Employees
+          </button>
 
-            {/* Professional Plan */}
-            <div className="bg-white dark:bg-[#1A1F2B] rounded-2xl shadow-lg border-4 border-blue-500 dark:border-blue-400 p-8 flex flex-col scale-105 relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 dark:bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                Popular
-              </div>
-              <h2 className="text-2xl font-semibold mb-4 text-grey-dark dark:text-gray-200">
-                Professional Employer
-              </h2>
-              <p className="text-4xl font-bold mb-4 text-grey-dark dark:text-gray-200">
-                $49
-                <span className="text-lg text-gray-600 dark:text-gray-400">
-                  /mo
-                </span>
-              </p>
-              <ul className="text-left text-gray-700 dark:text-gray-300 space-y-3 flex-1 mb-6">
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <span>Unlimited verifications</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <span>Rehire status unlock</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <span>Trust score visibility</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <span>Worker analytics</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <span>Company badge</span>
-                </li>
-              </ul>
-              <Link
-                href="/upgrade?plan=pro"
-                className="mt-6 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 text-white py-3 rounded-xl font-semibold transition-colors text-center block"
-              >
-                Upgrade
-              </Link>
-            </div>
-
-            {/* Enterprise Plan */}
-            <div className="bg-white dark:bg-[#1A1F2B] rounded-2xl shadow p-8 flex flex-col border border-grey-background dark:border-[#374151]">
-              <h2 className="text-2xl font-semibold mb-4 text-grey-dark dark:text-gray-200">
-                Enterprise
-              </h2>
-              <p className="text-4xl font-bold mb-4 text-grey-dark dark:text-gray-200">
-                $199
-                <span className="text-lg text-gray-600 dark:text-gray-400">
-                  /mo
-                </span>
-              </p>
-              <ul className="text-left text-gray-700 dark:text-gray-300 space-y-3 flex-1 mb-6">
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <span>Everything in Pro</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <span>Bulk verification tools</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <span>Admin dashboard</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <span>Exportable trust reports</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                  <span>API access + priority support</span>
-                </li>
-              </ul>
-              <Link
-                href="/upgrade?plan=enterprise"
-                className="mt-6 bg-black hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white py-3 rounded-xl font-semibold transition-colors text-center block"
-              >
-                Contact Sales
-              </Link>
-            </div>
-          </div>
+          <button
+            onClick={() => setTab("employer")}
+            className={`px-6 py-2 rounded-r-md border ${
+              tab === "employer"
+                ? "bg-blue-700 text-white"
+                : "bg-white text-blue-700"
+            }`}
+          >
+            Employers
+          </button>
         </div>
-      </main>
-    </>
+
+        {tab === "employee" && (
+          <div className="bg-white shadow-md p-8 rounded-xl">
+            <h2 className="text-3xl font-semibold text-blue-700 mb-4">
+              Employees
+            </h2>
+            <p className="text-gray-700 mb-6">
+              Build a verified work history.
+            </p>
+            <ul className="space-y-3 text-gray-700">
+              <li>✔ Verified employment records</li>
+              <li>✔ Performance notes</li>
+              <li>✔ Better job opportunities</li>
+            </ul>
+          </div>
+        )}
+
+        {tab === "employer" && (
+          <div className="bg-white shadow-md p-8 rounded-xl">
+            <h2 className="text-3xl font-semibold text-blue-700 mb-4">
+              Employers
+            </h2>
+            <p className="text-gray-700 mb-6">
+              Hire faster with verified employee history.
+            </p>
+            <ul className="space-y-3 text-gray-700">
+              <li>✔ Unlimited employee lookups</li>
+              <li>✔ Conduct & performance tracking</li>
+              <li>✔ HR management tools</li>
+            </ul>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

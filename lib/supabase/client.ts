@@ -7,15 +7,8 @@
  * This file re-exports the centralized client from lib/supabaseClient.ts
  * for backward compatibility with existing imports.
  */
-import { supabase } from "@/lib/supabaseClient";
-import type { SupabaseClient } from "@supabase/supabase-js";
-
-export const getSupabaseClient = (): SupabaseClient => {
-  return supabase;
-};
-
-// Export supabase directly for convenience
-export { supabase };
+export { supabase } from "@/lib/supabaseClient";
+export { supabase as getSupabaseClient } from "@/lib/supabaseClient";
 
 // Export as supabaseClient for backward compatibility (deprecated - use getSupabaseClient())
 export const supabaseClient = new Proxy({} as SupabaseClient, {

@@ -4,64 +4,46 @@ import Link from "next/link";
 export const dynamic = "force-static";
 export const revalidate = false;
 
-/* ---------------------------------------------------------
-   HOME PAGE CAREER GRID
---------------------------------------------------------- */
 const careers = [
-  {
-    id: "healthcare",
-    title: "Healthcare",
-    img: "/images/careers/healthcare.jpg",
-  },
-  {
-    id: "law-enforcement",
-    title: "Law Enforcement",
-    img: "/images/careers/law.jpg",
-  },
-  {
-    id: "security",
-    title: "Security",
-    img: "/images/careers/security.jpg",
-  },
-  {
-    id: "warehouse",
-    title: "Warehouse & Logistics",
-    img: "/images/careers/warehouse.jpg",
-  },
-  {
-    id: "hospitality",
-    title: "Hospitality",
-    img: "/images/careers/hospitality.jpg",
-  },
-  {
-    id: "retail",
-    title: "Retail",
-    img: "/images/careers/retail.jpg",
-  },
+  { id: "healthcare", title: "Healthcare", img: "/images/careers/healthcare.jpg" },
+  { id: "law-enforcement", title: "Law Enforcement", img: "/images/careers/law.jpg" },
+  { id: "security", title: "Security", img: "/images/careers/security.jpg" },
+  { id: "warehouse", title: "Warehouse & Logistics", img: "/images/careers/warehouse.jpg" },
+  { id: "hospitality", title: "Hospitality", img: "/images/careers/hospitality.jpg" },
+  { id: "retail", title: "Retail", img: "/images/careers/retail.jpg" },
 ];
 
 export default function Home() {
   return (
     <div className="bg-gray-50 text-gray-900">
-      {/* Welcome Section */}
-      <div className="text-center py-20 px-4 max-w-4xl mx-auto">
-        <h1 className="text-5xl font-bold text-blue-800 mb-6">
-          Welcome to WorkVouch
+      {/* HERO SECTION */}
+      <section className="text-center py-24 bg-gradient-to-b from-blue-700 to-blue-500 text-white">
+        <h1 className="text-5xl font-extrabold mb-6">
+          WorkVouch — Verified Work History for Real Careers
         </h1>
-        <p className="text-gray-700 text-lg mb-8">
-          WorkVouch is your trusted platform to verify work history, connect with employers, and build a credible reputation online.
+        <p className="text-xl max-w-2xl mx-auto opacity-90 mb-8">
+          Build trust. Get hired faster. Protect your reputation.  
+          WorkVouch brings accountability and transparency to the workforce.
         </p>
-        <div className="space-x-4">
-          <Link href="/auth/signup" className="bg-blue-700 text-white px-6 py-3 rounded hover:bg-blue-800">
+
+        <div className="flex justify-center gap-4">
+          <Link
+            href="/auth/signup"
+            className="px-8 py-3 bg-white text-blue-700 font-semibold rounded-lg shadow hover:scale-105 transition"
+          >
             Get Started
           </Link>
-          <Link href="/about" className="bg-gray-200 text-gray-800 px-6 py-3 rounded hover:bg-gray-300">
-            Learn More
+
+          <Link
+            href="/pricing"
+            className="px-8 py-3 border border-white font-semibold rounded-lg hover:bg-white hover:text-blue-700 transition"
+          >
+            View Pricing
           </Link>
         </div>
-      </div>
+      </section>
 
-      {/* Career Grid */}
+      {/* CAREER GRID */}
       <section className="max-w-6xl mx-auto py-20 px-6">
         <h2 className="text-3xl font-bold text-center text-blue-700 mb-8">
           Explore Careers With WorkVouch
