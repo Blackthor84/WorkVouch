@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   webpack: (config, { isServer }) => {
+    // Module alias for FixedImage wrapper
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'next/image': require.resolve('./components/FixedImage.tsx'),
+    }
+
     // Suppress Supabase getSession warnings
     if (isServer) {
       const originalWarn = console.warn
