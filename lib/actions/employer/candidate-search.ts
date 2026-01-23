@@ -41,9 +41,10 @@ export interface CandidateSearchResult {
 export async function searchCandidates(filters: CandidateSearchFilters = {}) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
   // Verify user is an employer
-  const { data: roles } = await supabase
+  const { data: roles } = await supabaseAny
     .from('user_roles')
     .select('role')
     .eq('user_id', user.id)
@@ -55,7 +56,7 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
   }
 
   // Build query - get all profiles first, then filter
-  let query = supabase
+  let query: any = supabaseAny
     .from('profiles')
     .select(`
       id,
@@ -93,7 +94,7 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
   for (const profile of profiles) {
     const profileAny = profile as any
     // Get jobs
-    const { data: jobs } = await supabase
+    const { data: jobs } = await supabaseAny
       .from('jobs')
       .select('id, company_name, job_title, start_date, end_date')
       .eq('user_id', profileAny.id)
@@ -108,14 +109,14 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
     }
 
     // Get references
-    const { data: references } = await supabase
+    const { data: references } = await supabaseAny
       .from('references')
       .select('id, rating, written_feedback')
       .eq('to_user_id', profileAny.id)
       .eq('is_deleted', false)
 
     // Get trust score
-    const { data: trustScoreData } = await supabase
+    const { data: trustScoreData } = await supabaseAny
       .from('trust_scores')
       .select('score')
       .eq('user_id', profileAny.id)
@@ -132,7 +133,7 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
 
     // Apply certification filter (would need to check industry_profile_fields)
     if (filters.certifications && filters.certifications.length > 0) {
-      const { data: fields } = await supabase
+      const { data: fields } = await supabaseAny
         .from('industry_profile_fields')
         .select('field_value')
         .eq('user_id', profileAny.id)
@@ -170,9 +171,10 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
 export async function getCandidateProfileForEmployer(candidateId: string) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
   // Verify user is an employer
-  const { data: roles } = await supabase
+  const { data: roles } = await supabaseAny
     .from('user_roles')
     .select('role')
     .eq('user_id', user.id)
@@ -184,7 +186,7 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
   }
 
   // Get profile
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile, error: profileError } = await supabaseAny
     .from('profiles')
     .select('*')
     .eq('id', candidateId)
@@ -195,7 +197,7 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
   }
 
   // Get jobs with coworker matches
-  const { data: jobs } = await supabase
+  const { data: jobs } = await supabaseAny
     .from('jobs')
     .select(`
       *,
@@ -209,7 +211,7 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
     .order('start_date', { ascending: false })
 
   // Get references
-  const { data: references } = await supabase
+  const { data: references } = await supabaseAny
     .from('references')
     .select(`
       *,
@@ -220,7 +222,7 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
     .order('created_at', { ascending: false })
 
   // Get trust score
-  const { data: trustScore } = await supabase
+  const { data: trustScore } = await supabaseAny
     .from('trust_scores')
     .select('score')
     .eq('user_id', candidateId)
@@ -229,7 +231,7 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
     .single()
 
   // Get industry fields
-  const { data: industryFields } = await supabase
+  const { data: industryFields } = await supabaseAny
     .from('industry_profile_fields')
     .select('*')
     .eq('user_id', candidateId)
