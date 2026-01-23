@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getSupabaseClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabaseClient";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ const HEALTHCARE_SETTINGS = [
 
 export function EmployerOnboardingClient() {
   const router = useRouter();
-  const supabase = getSupabaseClient();
+  // Using single supabase instance
   const [companyName, setCompanyName] = useState("");
   const [workSetting, setWorkSetting] = useState("");
   const [location, setLocation] = useState("");

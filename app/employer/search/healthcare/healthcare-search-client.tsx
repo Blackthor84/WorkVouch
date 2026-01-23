@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getSupabaseClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabaseClient";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +38,7 @@ export function HealthcareSearchClient() {
     certification: "",
     minExperience: "",
   });
-  const supabase = getSupabaseClient();
+  // Using single supabase instance
 
   const searchCandidates = async () => {
     setLoading(true);

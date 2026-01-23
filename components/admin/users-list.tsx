@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSupabaseClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabaseClient";
 import { Card } from "@/components/ui/card";
 
 interface User {
@@ -15,7 +15,7 @@ interface User {
 export function AdminUsersList() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const supabase = getSupabaseClient();
+  // Using single supabase instance
 
   useEffect(() => {
     async function fetchUsers() {

@@ -9,15 +9,4 @@
  */
 export { supabase } from "@/lib/supabaseClient";
 export { supabase as getSupabaseClient } from "@/lib/supabaseClient";
-
-// Export as supabaseClient for backward compatibility (deprecated - use getSupabaseClient())
-export const supabaseClient = new Proxy({} as SupabaseClient, {
-  get(_target, prop) {
-    const client = getSupabaseClient();
-    const value = client[prop as keyof typeof client];
-    if (typeof value === "function") {
-      return value.bind(client);
-    }
-    return value;
-  },
-});
+export { supabase as supabaseClient } from "@/lib/supabaseClient";

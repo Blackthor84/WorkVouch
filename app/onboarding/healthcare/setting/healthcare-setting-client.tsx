@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getSupabaseClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabaseClient";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -20,7 +20,7 @@ const HEALTHCARE_SETTINGS = [
 
 export function HealthcareSettingClient() {
   const router = useRouter();
-  const supabase = getSupabaseClient();
+  // Using single supabase instance
   const [setting, setSetting] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);

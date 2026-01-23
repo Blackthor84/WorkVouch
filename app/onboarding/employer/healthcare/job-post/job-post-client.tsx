@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getSupabaseClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabaseClient";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ const HEALTHCARE_ROLES = [
 
 export function JobPostClient() {
   const router = useRouter();
-  const supabase = getSupabaseClient();
+  // Using single supabase instance
   const [jobTitle, setJobTitle] = useState("");
   const [workSetting, setWorkSetting] = useState("");
   const [location, setLocation] = useState("");
