@@ -6,7 +6,8 @@ import { createSupabaseServerClient } from "./server";
 
 export const getUserProfile = async (userId: string) => {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
+  const supabaseAny = supabase as any
+  const { data, error } = await supabaseAny
     .from("profiles")
     .select("*")
     .eq("id", userId)

@@ -2,12 +2,17 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 
-const supabaseUrl = process.env.supabaseUrl!;
-const supabaseKey = process.env.supabaseKey!;
-
 export async function createServerSupabaseClient() {
   // In Next.js 16, cookies() is async and must be awaited
   const cookieStore = await cookies();
+
+  // Get environment variables at runtime (not build time)
+  const supabaseUrl = process.env.supabaseUrl || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.supabaseKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing supabaseUrl or supabaseKey in environment variables.');
+  }
 
   return createClient<Database>(supabaseUrl, supabaseKey, {
     auth: {
@@ -17,8 +22,12 @@ export async function createServerSupabaseClient() {
       detectSessionInUrl: false,
       storage: {
         getItem: (key) => cookieStore.get(key)?.value ?? null,
-        setItem: (key, value) => cookieStore.set(key, value),
-        removeItem: (key) => cookieStore.delete(key),
+        setItem: (key, value) => {
+          cookieStore.set(key, value);
+        },
+        removeItem: (key) => {
+          cookieStore.delete(key);
+        },
       },
     },
   });
