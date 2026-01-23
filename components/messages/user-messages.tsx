@@ -6,7 +6,7 @@ import {
   sendMessage,
   markMessageAsRead,
 } from "@/lib/actions/messages";
-import { supabaseClient } from "@/lib/supabase/client";
+import { getSupabaseClient } from "@/lib/supabase/client";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
@@ -25,7 +25,7 @@ export function UserMessages() {
 
   const loadCurrentUser = async () => {
     try {
-      const supabase = supabaseClient;
+      const supabase = getSupabaseClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();

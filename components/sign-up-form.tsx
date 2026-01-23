@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabaseClient } from "@/lib/supabase/client";
+import { getSupabaseClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 
@@ -49,7 +49,8 @@ export function SignUpForm() {
         }
       }
 
-      const { data, error: signUpError } = await supabaseClient.auth.signUp({
+      const supabase = getSupabaseClient();
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -97,7 +98,7 @@ export function SignUpForm() {
           // Email confirmation might be required, but try to sign in anyway
           console.log("No session, attempting to sign in...");
           const { data: signInData, error: signInError } =
-            await supabaseClient.auth.signInWithPassword({
+            await supabase.auth.signInWithPassword({
               email,
               password,
             });

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabaseClient } from "@/lib/supabase/client";
+import { getSupabaseClient } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 
 export function HealthcareJobClient() {
   const router = useRouter();
-  const supabase = supabaseClient;
+  const supabase = getSupabaseClient();
   const [jobTitle, setJobTitle] = useState("");
   const [employer, setEmployer] = useState("");
   const [startDate, setStartDate] = useState("");

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabaseClient } from "@/lib/supabase/client";
+import { getSupabaseClient } from "@/lib/supabase/client";
 
 export default function TestPage() {
   const [status, setStatus] = useState("Loading...");
@@ -9,7 +9,7 @@ export default function TestPage() {
 
   useEffect(() => {
     const check = async () => {
-      const supabase = supabaseClient;
+      const supabase = getSupabaseClient();
 
       // Check 1: Get user
       const {
