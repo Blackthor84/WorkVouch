@@ -106,7 +106,7 @@ const employerPricing = [
       "Access to verified employee reviews",
       "Basic support",
     ],
-    priceId: "price_1ABC123Basic", // Replace with actual Stripe Price ID
+    priceId: "price_1ABC123Basic",
   },
   {
     tier: "Pro",
@@ -117,7 +117,7 @@ const employerPricing = [
       "Advanced analytics dashboard",
       "Priority support",
     ],
-    priceId: "price_1ABC123Pro", // Replace with actual Stripe Price ID
+    priceId: "price_1ABC123Pro",
   },
   {
     tier: "Enterprise",
@@ -128,7 +128,7 @@ const employerPricing = [
       "Custom integrations",
       "Full support & SLA",
     ],
-    priceId: "price_1ABC123Enterprise", // Replace with actual Stripe Price ID
+    priceId: "price_1ABC123Enterprise",
   },
 ];
 
@@ -142,7 +142,7 @@ const employeePricing = [
       "Receive and display peer references",
       "Access to limited job listings",
     ],
-    priceId: "", // Free tier - no Stripe checkout
+    priceId: "",
   },
   {
     tier: "Standard",
@@ -152,7 +152,7 @@ const employeePricing = [
       "Access to verified reviews",
       "Apply to jobs directly",
     ],
-    priceId: "price_1ABC123EmpStd", // Replace with actual Stripe Price ID
+    priceId: "price_1ABC123EmpStd",
   },
   {
     tier: "Premium",
@@ -163,7 +163,7 @@ const employeePricing = [
       "Priority notifications",
       "Advanced profile insights",
     ],
-    priceId: "price_1ABC123EmpPremium", // Replace with actual Stripe Price ID
+    priceId: "price_1ABC123EmpPremium",
   },
 ];
 
@@ -186,15 +186,13 @@ export default function CareerPage({ params }: CareerPageProps) {
   return (
     <div className="max-w-5xl mx-auto p-6">
       <h1 className="text-4xl font-bold mb-6 text-blue-700">{career.name}</h1>
-      
       <Image
         src={career.image}
         alt={career.name}
         width={800}
         height={400}
         className="rounded-lg mb-6 shadow-lg object-cover w-full"
-        unoptimized
-        loading="eager"
+        priority
       />
 
       <section className="mb-10">
