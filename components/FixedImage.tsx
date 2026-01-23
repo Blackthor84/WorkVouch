@@ -1,14 +1,14 @@
-import Image, { ImageProps } from "next/image";
+import Image from "next/image";
 import type { HTMLAttributes } from "react";
 
-// Define props for your FixedImage component
+// Props for FixedImage
 interface FixedImageProps extends HTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
   width?: number;
   height?: number;
-  loader?: (props: { src: string; width: number }) => string; // updated type
   unoptimized?: boolean;
+  loader?: (params: { src: string; width: number }) => string;
 }
 
 export default function FixedImage(props: FixedImageProps) {
