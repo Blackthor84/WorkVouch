@@ -1,16 +1,15 @@
-import Image from "next/image";
-import type { HTMLAttributes } from "react";
+import Image, { ImageLoaderProps } from "next/image";
+import type { ComponentProps } from "react";
 
-// Props for FixedImage
-interface FixedImageProps extends HTMLAttributes<HTMLImageElement> {
-  src: string;
-  alt: string;
-  width?: number;
-  height?: number;
+export type FixedImageProps = Omit<ComponentProps<typeof Image>, "loading"> & {
   unoptimized?: boolean;
-  loader?: (params: { src: string; width: number }) => string;
-}
+  loading?: "lazy" | "eager" | undefined; // explicitly add loading
+};
 
-export default function FixedImage(props: FixedImageProps) {
-  return <Image {...props} loading="eager" />;
+export default function FixedImage({
+  loading = "eager",
+  unoptimized = false,
+  ...rest
+}: FixedImageProps) {
+  return <Image {...rest} loading={loading} unoptimized={unoptimized} />;
 }
