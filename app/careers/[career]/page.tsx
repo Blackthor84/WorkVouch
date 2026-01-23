@@ -1,5 +1,5 @@
 import React from "react";
-import FixedImage from "@/components/FixedImage";
+import Image from "next/image";
 import { PricingModal } from "@/components/PricingModal";
 
 interface CareerData {
@@ -9,6 +9,7 @@ interface CareerData {
   employees?: string[];
 }
 
+// Career definitions
 const careers: Record<string, CareerData> = {
   healthcare: {
     name: "Healthcare",
@@ -96,6 +97,7 @@ const careers: Record<string, CareerData> = {
   },
 };
 
+// Pricing definitions
 const employerPricing = [
   {
     tier: "Basic",
@@ -171,6 +173,7 @@ type CareerPageProps = {
   params: { career: string };
 };
 
+// Career Page
 export default function CareerPage({ params }: CareerPageProps) {
   const careerKey = params.career as keyof typeof careers;
   const career = careers[careerKey];
@@ -186,7 +189,7 @@ export default function CareerPage({ params }: CareerPageProps) {
   return (
     <div className="max-w-5xl mx-auto p-6">
       <h1 className="text-4xl font-bold mb-6 text-blue-700">{career.name}</h1>
-      <FixedImage
+      <Image
         src={career.image}
         alt={career.name}
         width={800}
@@ -195,29 +198,27 @@ export default function CareerPage({ params }: CareerPageProps) {
         unoptimized
       />
 
+      {/* Employer Benefits */}
       <section className="mb-10">
         <h2 className="text-2xl font-semibold mb-4 text-blue-700">
           Why Employers Choose WorkVouch
         </h2>
         <ul className="list-disc list-inside space-y-2 text-lg mb-6">
-          {career.employers?.length ? (
-            career.employers.map((item, idx) => <li key={idx}>{item}</li>)
-          ) : (
-            <li>No employer benefits listed yet.</li>
-          )}
+          {career.employers?.map((item, idx) => (
+            <li key={idx}>{item}</li>
+          ))}
         </ul>
       </section>
 
+      {/* Employee Benefits */}
       <section className="mb-10">
         <h2 className="text-2xl font-semibold mb-4 text-green-700">
           Benefits for Employees
         </h2>
         <ul className="list-disc list-inside space-y-2 text-lg mb-6">
-          {career.employees?.length ? (
-            career.employees.map((item, idx) => <li key={idx}>{item}</li>)
-          ) : (
-            <li>No employee benefits listed yet.</li>
-          )}
+          {career.employees?.map((item, idx) => (
+            <li key={idx}>{item}</li>
+          ))}
         </ul>
       </section>
 
