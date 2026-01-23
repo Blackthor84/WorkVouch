@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseTyped } from "@/lib/supabase-fixed";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isEmployer } from "@/lib/auth";
 import { Database } from "@/types/database";
 
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = await supabaseTyped();
+    const supabase = await createServerSupabaseClient();
 
     // Search profiles by full_name (case-insensitive)
     // Split the query to search for first name, last name, or full name

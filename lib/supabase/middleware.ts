@@ -9,13 +9,12 @@ import { Database } from '@/types/database'
  */
 export const createMiddlewareClient = (request: NextRequest) => {
   // Validate env vars at runtime (not build time)
-  // Support both naming conventions
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.supabaseUrl;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.supabaseKey;
+  const supabaseUrl = process.env.supabaseUrl;
+  const supabaseKey = process.env.supabaseKey;
 
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
-      'Missing required Supabase environment variables: supabaseUrl (or NEXT_PUBLIC_SUPABASE_URL) and supabaseKey (or NEXT_PUBLIC_SUPABASE_ANON_KEY) must be set in Vercel Project Settings → Environment Variables.'
+      'Missing required Supabase environment variables: supabaseUrl and supabaseKey must be set in Vercel Project Settings → Environment Variables.'
     )
   }
 

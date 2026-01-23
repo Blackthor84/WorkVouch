@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseTyped } from "@/lib/supabase-fixed";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { Database } from "@/types/database";
 
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const supabase = await supabaseTyped();
+    const supabase = await createServerSupabaseClient();
     const supabaseAny = supabase as any;
     const {
       data: { user },

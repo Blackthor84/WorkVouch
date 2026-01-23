@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseTyped } from "@/lib/supabase-fixed";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { canViewEmployees } from "@/lib/middleware/plan-enforcement-supabase";
 import { Database } from "@/types/database";
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = await supabaseTyped();
+    const supabase = await createServerSupabaseClient();
 
     // Type definition for employer_accounts (not in Database types yet)
     type EmployerAccountRow = { company_name: string };

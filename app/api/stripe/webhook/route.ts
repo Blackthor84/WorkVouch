@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/config";
-import { supabaseTyped } from "@/lib/supabase-fixed";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
           const planTier = session.metadata?.planTier || session.metadata?.plan;
 
           if (employerId && planTier) {
-            const supabase = await supabaseTyped();
+            const supabase = await createServerSupabaseClient();
             const supabaseAny = supabase as any;
 
             // Map plan names to plan_tier values
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
               .eq("id", employerId);
           } else if (session.customer_email) {
             // Fallback: find employer by email if metadata not available
-            const supabase = await supabaseTyped();
+            const supabase = await createServerSupabaseClient();
             const supabaseAny = supabase as any;
 
             type ProfileRow = { id: string };
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
 
-        const supabase = await supabaseTyped();
+        const supabase = await createServerSupabaseClient();
         const supabaseAny = supabase as any;
         type EmployerAccountRow = { id: string };
         const { data: employer } = await supabaseAny
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
 
-        const supabase = await supabaseTyped();
+        const supabase = await createServerSupabaseClient();
         const supabaseAny = supabase as any;
         type EmployerAccountRow = { id: string };
         const { data: employer } = await supabaseAny

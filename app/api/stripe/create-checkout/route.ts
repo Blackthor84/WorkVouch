@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseTyped } from "@/lib/supabase-fixed";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import {
   stripe,
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = await supabaseTyped();
+    const supabase = await createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     // Get employer account

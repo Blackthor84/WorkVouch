@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseTyped } from "@/lib/supabase-fixed";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { canFileDispute } from "@/lib/middleware/plan-enforcement-supabase";
 import { Database } from "@/types/database";
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = fileDisputeSchema.parse(body);
 
-    const supabase = await supabaseTyped();
+    const supabase = await createServerSupabaseClient();
 
     // Type definitions for tables not in Database types yet
     type EmployerAccountRow = {
