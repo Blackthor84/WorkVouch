@@ -7,9 +7,19 @@ import type { Database } from './types'
 export const getSupabaseClient = async () => {
   const cookieStore = await cookies()
 
+  // Support both naming conventions for flexibility
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.supabaseUrl;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.supabaseKey;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error(
+      "Missing required Supabase environment variables: supabaseUrl (or NEXT_PUBLIC_SUPABASE_URL) and supabaseKey (or NEXT_PUBLIC_SUPABASE_ANON_KEY) must be set in Vercel Project Settings → Environment Variables."
+    );
+  }
+
   return createSupabaseSSRClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         getAll() {

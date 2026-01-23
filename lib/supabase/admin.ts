@@ -8,7 +8,6 @@
  */
 import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/types/database'
-import { env, validateServerEnv } from '@/lib/env'
 
 let _supabaseServer: ReturnType<typeof createClient<Database>> | null = null
 
@@ -23,11 +22,19 @@ export function getSupabaseServer() {
   }
 
   // Validate env vars at runtime (when actually used, not at module load)
-  validateServerEnv()
+  // Support both naming conventions
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.supabaseUrl;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.supabaseServiceKey;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error(
+      'Missing required server environment variables: supabaseUrl (or NEXT_PUBLIC_SUPABASE_URL) and supabaseServiceKey (or SUPABASE_SERVICE_ROLE_KEY) must be set in Vercel Project Settings → Environment Variables.'
+    )
+  }
 
   _supabaseServer = createClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.SUPABASE_SERVICE_ROLE_KEY,
+    supabaseUrl,
+    supabaseServiceKey,
     {
       auth: {
         autoRefreshToken: false,

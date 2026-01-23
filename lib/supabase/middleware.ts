@@ -1,16 +1,23 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { Database } from '@/types/database'
-import { env, validateEnv } from '@/lib/env'
 
 /**
  * Supabase client for middleware
  * Used for authentication checks in middleware
- * ✅ Uses centralized env validation
+ * ✅ Uses runtime environment variables
  */
 export const createMiddlewareClient = (request: NextRequest) => {
   // Validate env vars at runtime (not build time)
-  validateEnv()
+  // Support both naming conventions
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.supabaseUrl;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.supabaseKey;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error(
+      'Missing required Supabase environment variables: supabaseUrl (or NEXT_PUBLIC_SUPABASE_URL) and supabaseKey (or NEXT_PUBLIC_SUPABASE_ANON_KEY) must be set in Vercel Project Settings → Environment Variables.'
+    )
+  }
 
   let response = NextResponse.next({
     request: {
@@ -19,8 +26,8 @@ export const createMiddlewareClient = (request: NextRequest) => {
   })
 
   const supabase = createServerClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         get(name: string) {
@@ -66,4 +73,3 @@ export const createMiddlewareClient = (request: NextRequest) => {
 
   return { supabase, response }
 }
-
