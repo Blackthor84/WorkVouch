@@ -68,8 +68,9 @@ export async function sendMessage(
 export async function getMessages() {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAny
     .from('messages')
     .select(`
       *,
@@ -93,8 +94,9 @@ export async function getMessages() {
 export async function getMessageThread(otherUserId: string) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAny
     .from('messages')
     .select(`
       *,
@@ -139,8 +141,9 @@ export async function markMessageAsRead(messageId: string) {
 export async function getUnreadMessageCount() {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { count, error } = await supabase
+  const { count, error } = await supabaseAny
     .from('messages')
     .select('*', { count: 'exact', head: true })
     .eq('recipient_id', user.id)
