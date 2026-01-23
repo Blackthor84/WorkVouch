@@ -39,9 +39,10 @@ export interface CreateJobPostingInput {
 export async function createJobPosting(input: CreateJobPostingInput) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
   // Verify user is an employer
-  const { data: roles } = await supabase
+  const { data: roles } = await supabaseAny
     .from('user_roles')
     .select('role')
     .eq('user_id', user.id)
@@ -52,7 +53,6 @@ export async function createJobPosting(input: CreateJobPostingInput) {
     throw new Error('Only employers can create job postings')
   }
 
-  const supabaseAny = supabase as any
   const { data, error } = await supabaseAny
     .from('job_postings')
     .insert([{
@@ -157,8 +157,9 @@ export async function boostJobPosting(id: string, days: number = 30) {
 export async function getEmployerJobPostings() {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAny
     .from('job_postings')
     .select('*')
     .eq('employer_id', user.id)
@@ -176,8 +177,9 @@ export async function getEmployerJobPostings() {
  */
 export async function getPublishedJobPostings(industry?: string) {
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  let query = supabase
+  let query: any = supabaseAny
     .from('job_postings')
     .select('*, profiles:employer_id(full_name, email)')
     .eq('is_published', true)
@@ -202,8 +204,9 @@ export async function getPublishedJobPostings(industry?: string) {
  */
 export async function getJobPosting(id: string) {
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAny
     .from('job_postings')
     .select('*, profiles:employer_id(full_name, email)')
     .eq('id', id)
@@ -222,9 +225,10 @@ export async function getJobPosting(id: string) {
 export async function getJobApplications(jobPostingId: string) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
   // Verify ownership
-  const { data: posting } = await supabase
+  const { data: posting } = await supabaseAny
     .from('job_postings')
     .select('employer_id')
     .eq('id', jobPostingId)
@@ -234,7 +238,7 @@ export async function getJobApplications(jobPostingId: string) {
     throw new Error('Unauthorized')
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAny
     .from('job_applications')
     .select('*, profiles:candidate_id(full_name, email, profile_photo_url)')
     .eq('job_posting_id', jobPostingId)
