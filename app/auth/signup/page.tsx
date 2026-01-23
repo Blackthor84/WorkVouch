@@ -1,15 +1,45 @@
-"use client"; // ensures this page runs on the client only
+"use client";
 
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import { employeePricing, employerPricing } from "@/lib/cursor-bundle";
+import Link from "next/link";
+import supabase from "@/lib/supabaseClient";
+
+type Role = "employee" | "employer";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const prefillPlan = searchParams.get("plan") || "";
+
+  const [role, setRole] = useState<Role>("employee");
+  const [selectedPlan, setSelectedPlan] = useState(prefillPlan);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Sync prefill plan when URL changes
+  useEffect(() => {
+    if (prefillPlan) {
+      setSelectedPlan(prefillPlan);
+      // Determine role based on plan
+      const isEmployerPlan = employerPricing.some(p => p.tier === prefillPlan);
+      const isEmployeePlan = employeePricing.some(p => p.tier === prefillPlan);
+      if (isEmployerPlan) setRole("employer");
+      if (isEmployeePlan) setRole("employee");
+    }
+  }, [prefillPlan]);
+
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setRole(e.target.value as Role);
+    setSelectedPlan(""); // reset plan on role change
+  };
+
+  const plans = role === "employee" ? employeePricing : employerPricing;
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,12 +47,16 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      // Using single supabase instance
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            full_name: fullName,
+            role: role,
+            plan: selectedPlan,
+          },
         },
       });
 
@@ -33,16 +67,13 @@ export default function SignUpPage() {
       }
 
       if (data.user) {
-        // Check if email confirmation is required
         if (data.session) {
-          // User is immediately signed in (email confirmation disabled)
           setMessage("Account created successfully! Redirecting...");
           setTimeout(() => {
             router.push("/dashboard");
             router.refresh();
           }, 500);
         } else {
-          // Email confirmation required
           setMessage("Check your email to confirm your account!");
           setLoading(false);
         }
@@ -58,81 +89,116 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 md:py-12 lg:py-16">
-      <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20 max-w-sm">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
-            Sign Up
-          </h1>
-          <p className="text-grey-medium dark:text-gray-400 mt-2">
-            Create your WorkVouch account to get started
-          </p>
-        </div>
-        <form onSubmit={handleSignUp} className="flex flex-col gap-4 w-full">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-semibold text-grey-dark dark:text-gray-200 mb-2"
+    <div className="max-w-3xl mx-auto px-6 py-12 space-y-8">
+      <h1 className="text-4xl font-bold mb-6">Sign Up for WorkVouch</h1>
+
+      {/* Role Selector */}
+      <div className="space-y-2">
+        <label className="block font-semibold">I am a:</label>
+        <select
+          value={role}
+          onChange={handleRoleChange}
+          className="border rounded p-2 w-full"
+          disabled={loading}
+        >
+          <option value="employee">Employee</option>
+          <option value="employer">Employer</option>
+        </select>
+      </div>
+
+      {/* Plan Selection */}
+      <div>
+        <h2 className="text-2xl font-semibold mb-4">Select a Plan</h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          {plans.map((p) => (
+            <div
+              key={p.tier}
+              className={`border rounded-xl p-4 cursor-pointer hover:shadow-lg transition ${
+                selectedPlan === p.tier ? "border-blue-600 bg-blue-50" : "bg-white"
+              }`}
+              onClick={() => !loading && setSelectedPlan(p.tier)}
             >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-              className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all disabled:opacity-50"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-semibold text-grey-dark dark:text-gray-200 mb-2"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              placeholder="Enter a password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-              className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all disabled:opacity-50"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green-600 text-white rounded-xl px-4 py-3 font-semibold hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? "Creating account..." : "Sign Up"}
-          </button>
-        </form>
-        {message && (
-          <div
-            className={`text-center p-4 rounded-xl ${
-              message.includes("Error")
-                ? "bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800"
-                : "bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800"
-            }`}
-          >
-            {message}
-          </div>
-        )}
-        <div className="text-center">
-          <a
-            href="/auth/signin"
-            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-          >
-            Already have an account? Sign in
-          </a>
+              <h3 className="text-xl font-bold">{p.tier}</h3>
+              <p className="text-lg font-semibold text-blue-700">{p.price}</p>
+              <ul className="list-disc list-inside mt-2 space-y-1 text-sm text-gray-700">
+                {p.benefits.map((b, i) => (
+                  <li key={i}>{b}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </div>
+
+      {/* Signup Form */}
+      <form onSubmit={handleSignUp} className="space-y-4">
+        <div>
+          <label className="block font-semibold mb-2">Full Name</label>
+          <input
+            type="text"
+            placeholder="John Doe"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="border rounded p-2 w-full"
+            required
+            disabled={loading}
+          />
+        </div>
+        <div>
+          <label className="block font-semibold mb-2">Email</label>
+          <input
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="border rounded p-2 w-full"
+            required
+            disabled={loading}
+          />
+        </div>
+        <div>
+          <label className="block font-semibold mb-2">Password</label>
+          <input
+            type="password"
+            placeholder="Enter a password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="border rounded p-2 w-full"
+            required
+            disabled={loading}
+          />
+        </div>
+
+        {/* Hidden field for selected plan */}
+        <input type="hidden" name="plan" value={selectedPlan} />
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? "Creating account..." : "Sign Up"}
+        </button>
+      </form>
+
+      {message && (
+        <div
+          className={`text-center p-4 rounded-xl ${
+            message.includes("Error")
+              ? "bg-red-50 text-red-800 border border-red-200"
+              : "bg-green-50 text-green-800 border border-green-200"
+          }`}
+        >
+          {message}
+        </div>
+      )}
+
+      <p className="text-sm mt-4 text-center">
+        Already have an account?{" "}
+        <Link href="/auth/signin" className="text-blue-600 underline">
+          Log in
+        </Link>
+      </p>
     </div>
   );
 }

@@ -1,4 +1,6 @@
 import React from 'react';
+import PricingCard from '@/components/PricingCard';
+import { employerPricing, employeePricing } from '@/lib/cursor-bundle';
 
 const careerData: Record<string, any> = {
   "healthcare": {
@@ -124,21 +126,31 @@ export default function CareerPage({ params }: CareerPageProps) {
       {/* Employers Section */}
       <section className="max-w-5xl mx-auto p-6">
         <h2 className="text-2xl font-semibold mb-4 text-blue-700">Why Employers Choose WorkVouch</h2>
-        <ul className="list-disc list-inside space-y-2 text-lg">
+        <ul className="list-disc list-inside space-y-2 text-lg mb-6">
           {career.employers.map((item, idx) => (
             <li key={idx}>{item}</li>
           ))}
         </ul>
+        <div className="grid md:grid-cols-3 gap-6 mt-6">
+          {employerPricing.map((p) => (
+            <PricingCard key={p.tier} {...p} />
+          ))}
+        </div>
       </section>
 
       {/* Employees Section */}
       <section className="max-w-5xl mx-auto p-6">
         <h2 className="text-2xl font-semibold mb-4 text-blue-700">Why Employees Choose WorkVouch</h2>
-        <ul className="list-disc list-inside space-y-2 text-lg">
+        <ul className="list-disc list-inside space-y-2 text-lg mb-6">
           {career.employees.map((item, idx) => (
             <li key={idx}>{item}</li>
           ))}
         </ul>
+        <div className="grid md:grid-cols-2 gap-6 mt-6">
+          {employeePricing.map((p) => (
+            <PricingCard key={p.tier} {...p} />
+          ))}
+        </div>
       </section>
     </div>
   );
