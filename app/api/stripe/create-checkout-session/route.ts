@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { priceId, email } = await req.json();
+    const { priceId, email, userId, userType } = await req.json();
 
     if (!priceId) {
       return NextResponse.json(
@@ -30,6 +30,19 @@ export async function POST(req: NextRequest) {
       process.env.NEXT_PUBLIC_APP_URL ||
       req.nextUrl.origin;
 
+    // Build metadata
+    const metadata: Record<string, string> = {
+      priceId: priceId,
+    };
+    
+    if (userId) {
+      metadata.userId = userId;
+    }
+    
+    if (userType) {
+      metadata.userType = userType;
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "subscription",
@@ -37,12 +50,14 @@ export async function POST(req: NextRequest) {
       customer_email: email,
       success_url: `${baseUrl}/employer/upgrade/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/pricing`,
-      metadata: {
-        priceId: priceId,
-      },
+      metadata,
     });
 
-    return NextResponse.json({ url: session.url });
+    // Return both URL and session ID for Stripe.js redirectToCheckout
+    return NextResponse.json({ 
+      url: session.url,
+      id: session.id,
+    });
   } catch (error: any) {
     console.error("Stripe checkout error:", error);
     return NextResponse.json(
