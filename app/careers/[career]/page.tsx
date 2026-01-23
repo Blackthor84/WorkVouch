@@ -1,101 +1,98 @@
-import React from 'react';
-import PricingCard from '@/components/PricingCard';
-import { employerPricing, employeePricing } from '@/lib/cursor-bundle';
+import React from "react";
+import Image from "next/image";
 
-const careerData: Record<string, any> = {
-  "healthcare": {
-    title: "Healthcare Careers With WorkVouch",
+interface CareerData {
+  name: string;
+  image: string;
+  employers: string[];
+  employees: string[];
+}
+
+const careers: Record<string, CareerData> = {
+  healthcare: {
+    name: "Healthcare",
     image: "/careers/healthcare.jpg",
-    summary: "WorkVouch connects healthcare professionals with verified employers and builds trust in your work history.",
     employers: [
-      "Verify CNAs, RNs, LPNs, techs, and aides instantly.",
-      "Reduce onboarding time with verified work history.",
-      "Prevent falsified credentials and unreliable applicants.",
-      "Build a more dependable clinical team quickly."
+      "Verify skilled staff quickly and efficiently.",
+      "Reduce hiring risk with peer-reviewed references.",
+      "Streamline onboarding with trusted employee history.",
     ],
     employees: [
-      "Prove your patient-care experience instantly.",
-      "Show verified supervisors from past facilities.",
-      "Stand out in competitive healthcare markets.",
-      "Unlock faster hiring and shift approvals."
-    ]
+      "Showcase your verified experience to top employers.",
+      "Gain recognition for your healthcare skills.",
+      "Increase opportunities with credible references.",
+    ],
   },
-  "law-enforcement": {
-    title: "Law Enforcement Careers With WorkVouch",
+  law_enforcement: {
+    name: "Law Enforcement",
     image: "/careers/law.jpg",
-    summary: "Create trust in your law enforcement career history and improve hiring transparency.",
     employers: [
-      "Quickly verify dispatchers, corrections, and officers.",
-      "Reduce background check delays.",
-      "Improve department hiring transparency.",
-      "Ensure applicants have reliable prior service."
+      "Ensure officers meet verified credentials and background checks.",
+      "Save time on reference verification.",
+      "Hire candidates with trustworthy peer recommendations.",
     ],
     employees: [
-      "Show verified discipline, training, and agencies worked.",
-      "Improve lateral hiring speed.",
-      "Build a trustworthy record of service."
-    ]
+      "Demonstrate your law enforcement experience instantly.",
+      "Build trust with potential departments.",
+      "Stand out with verified endorsements from past colleagues.",
+    ],
   },
-  "security": {
-    title: "Security Careers With WorkVouch",
+  security: {
+    name: "Security",
     image: "/careers/security.jpg",
-    summary: "Secure your work history or hire trusted security professionals with confidence.",
     employers: [
-      "Confirm guard experience and reliability instantly.",
-      "Reduce no-show rates with verified past performance.",
-      "Build high-trust teams faster."
+      "Quickly verify guards and staff for contracts.",
+      "Minimize hiring risks with verified work history.",
+      "Hire trusted employees with peer-validated references.",
     ],
     employees: [
-      "Prove your past sites, posts, and reliability.",
-      "More job opportunities with verified references.",
-      "Stand out over unverified applicants."
-    ]
+      "Prove your reliability with verified work records.",
+      "Highlight skills to multiple security firms.",
+      "Increase employability with trusted peer reviews.",
+    ],
   },
-  "warehouse-logistics": {
-    title: "Warehouse & Logistics Careers With WorkVouch",
+  warehouse: {
+    name: "Warehouse & Logistics",
     image: "/careers/warehouse.jpg",
-    summary: "Build reliable teams in logistics or show verified work experience to get hired faster.",
     employers: [
-      "Verify forklift operators, pickers, packers, drivers.",
-      "Reduce turnover by screening real work history.",
-      "Improve shift reliability and safety."
+      "Hire reliable warehouse staff fast.",
+      "Check previous work history and reliability instantly.",
+      "Reduce turnover with verified employees.",
     ],
     employees: [
-      "Show verified experience operating equipment.",
-      "Build resume credibility with validated employers.",
-      "Get hired faster for higher-paying roles."
-    ]
+      "Showcase experience in logistics and warehouse operations.",
+      "Gain credibility with verified employer endorsements.",
+      "Open opportunities at top logistics companies.",
+    ],
   },
-  "hospitality": {
-    title: "Hospitality Careers With WorkVouch",
+  hospitality: {
+    name: "Hospitality",
     image: "/careers/hospitality.jpg",
-    summary: "From hotels to catering, showcase or hire verified hospitality talent easily.",
     employers: [
-      "Verify experience in hotels, food service, catering.",
-      "Reduce false experience claims.",
-      "Improve customer-facing reliability."
+      "Hire staff with verified customer service experience.",
+      "Ensure quality with peer-reviewed references.",
+      "Reduce turnover and onboarding time.",
     ],
     employees: [
-      "Show your customer service strengths.",
-      "Get better roles based on verified history.",
-      "Stand out in competitive hospitality markets."
-    ]
+      "Highlight your hospitality and service experience.",
+      "Get recognized by top hotels and restaurants.",
+      "Prove your reliability with verified references.",
+    ],
   },
-  "retail": {
-    title: "Retail Careers With WorkVouch",
+  retail: {
+    name: "Retail",
     image: "/careers/retail.jpg",
-    summary: "Create verified retail work histories or hire dependable retail staff efficiently.",
     employers: [
-      "Confirm past retail and customer service roles.",
-      "Reduce turnover by hiring reliable workers.",
-      "Streamline manager-to-manager reference checks."
+      "Quickly hire trusted retail staff.",
+      "Verify sales experience and reliability.",
+      "Minimize hiring risk with peer-verified references.",
     ],
     employees: [
-      "Show verified customer-service experience.",
-      "Build a stronger hiring profile.",
-      "Gain priority for better-paying positions."
-    ]
-  }
+      "Showcase your retail and customer service experience.",
+      "Build credibility with previous employers.",
+      "Stand out in a competitive retail job market.",
+    ],
+  },
 };
 
 type CareerPageProps = {
@@ -103,54 +100,49 @@ type CareerPageProps = {
 };
 
 export default function CareerPage({ params }: CareerPageProps) {
-  const career = careerData[params.career];
-  if (!career) return <div>Career not found</div>;
+  const careerKey = params.career as keyof typeof careers;
+  const career = careers[careerKey];
+
+  if (!career) {
+    return (
+      <div className="max-w-5xl mx-auto p-6">
+        <p className="text-red-600">Career not found.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      {/* Hero Section */}
-      <div className="relative w-full h-64 md:h-96">
-        <img src={career.image} alt={career.title} className="object-cover w-full h-full" />
-        <div className="absolute inset-0 bg-blue-700 bg-opacity-50 flex items-center justify-center">
-          <h1 className="text-3xl md:text-5xl font-bold text-white text-center px-4">
-            {career.title}
-          </h1>
-        </div>
-      </div>
+    <div className="max-w-5xl mx-auto p-6">
+      <h1 className="text-4xl font-bold mb-6 text-blue-700">{career.name}</h1>
+      <Image
+        src={career.image}
+        alt={career.name}
+        width={800}
+        height={400}
+        className="rounded-lg mb-6 shadow-lg object-cover w-full"
+        unoptimized
+      />
 
-      {/* Summary */}
-      <section className="max-w-5xl mx-auto p-6 text-center">
-        <p className="text-lg md:text-xl">{career.summary}</p>
-      </section>
-
-      {/* Employers Section */}
-      <section className="max-w-5xl mx-auto p-6">
-        <h2 className="text-2xl font-semibold mb-4 text-blue-700">Why Employers Choose WorkVouch</h2>
+      <section className="mb-10">
+        <h2 className="text-2xl font-semibold mb-4 text-blue-700">
+          Why Employers Choose WorkVouch
+        </h2>
         <ul className="list-disc list-inside space-y-2 text-lg mb-6">
-          {career.employers.map((item, idx) => (
+          {career.employers.map((item: string, idx: number) => (
             <li key={idx}>{item}</li>
           ))}
         </ul>
-        <div className="grid md:grid-cols-3 gap-6 mt-6">
-          {employerPricing.map((p) => (
-            <PricingCard key={p.tier} {...p} />
-          ))}
-        </div>
       </section>
 
-      {/* Employees Section */}
-      <section className="max-w-5xl mx-auto p-6">
-        <h2 className="text-2xl font-semibold mb-4 text-blue-700">Why Employees Choose WorkVouch</h2>
+      <section>
+        <h2 className="text-2xl font-semibold mb-4 text-blue-700">
+          Why Employees Choose WorkVouch
+        </h2>
         <ul className="list-disc list-inside space-y-2 text-lg mb-6">
-          {career.employees.map((item, idx) => (
+          {career.employees.map((item: string, idx: number) => (
             <li key={idx}>{item}</li>
           ))}
         </ul>
-        <div className="grid md:grid-cols-2 gap-6 mt-6">
-          {employeePricing.map((p) => (
-            <PricingCard key={p.tier} {...p} />
-          ))}
-        </div>
       </section>
     </div>
   );
