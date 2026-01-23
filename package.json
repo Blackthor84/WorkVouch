@@ -26,9 +26,7 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@next/swc-darwin-arm64": "^16.1.4",
     "@next/swc-linux-x64-gnu": "^16.1.4",
-    "@next/swc-win32-x64-msvc": "^16.1.4",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^25.0.9",
     "@types/react": "^19.2.9",
