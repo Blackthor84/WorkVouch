@@ -1,12 +1,12 @@
 import Link from "next/link";
 
 const careers = [
-  { id: "healthcare", title: "Healthcare", img: "/images/careers/healthcare.jpg" },
-  { id: "law", title: "Law Enforcement", img: "/images/careers/law.jpg" },
-  { id: "security", title: "Security", img: "/images/careers/security.jpg" },
-  { id: "warehouse", title: "Warehouse & Logistics", img: "/images/careers/warehouse.jpg" },
-  { id: "hospitality", title: "Hospitality", img: "/images/careers/hospitality.jpg" },
-  { id: "retail", title: "Retail", img: "/images/careers/retail.jpg" },
+  { id: "security", title: "Security", img: "/careers/security.jpg" },
+  { id: "healthcare", title: "Healthcare", img: "/careers/healthcare.jpg" },
+  { id: "warehouse", title: "Warehouse", img: "/careers/warehouse.jpg" },
+  { id: "hospitality", title: "Hospitality", img: "/careers/hospitality.jpg" },
+  { id: "law", title: "Law Enforcement", img: "/careers/law.jpg" },
+  { id: "retail", title: "Retail", img: "/careers/retail.jpg" },
 ];
 
 export default function Home() {
