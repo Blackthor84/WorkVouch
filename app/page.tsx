@@ -1,68 +1,91 @@
-import Image from "next/image";
-import Link from "next/link";
+import React from 'react';
+import Link from 'next/link';
 
 const careers = [
-  { name: "Healthcare", slug: "healthcare", image: "/careers/healthcare.jpg" },
-  { name: "Law Enforcement", slug: "law-enforcement", image: "/careers/law.jpg" },
-  { name: "Security", slug: "security", image: "/careers/security.jpg" },
-  { name: "Warehouse & Logistics", slug: "warehouse-logistics", image: "/careers/warehouse.jpg" },
-  { name: "Hospitality", slug: "hospitality", image: "/careers/hospitality.jpg" },
-  { name: "Retail", slug: "retail", image: "/careers/retail.jpg" },
+  {
+    slug: 'healthcare',
+    name: 'Healthcare',
+    image: '/careers/healthcare.jpg',
+  },
+  {
+    slug: 'law-enforcement',
+    name: 'Law Enforcement',
+    image: '/careers/law.jpg',
+  },
+  {
+    slug: 'security',
+    name: 'Security',
+    image: '/careers/security.jpg',
+  },
+  {
+    slug: 'warehouse-logistics',
+    name: 'Warehouse & Logistics',
+    image: '/careers/warehouse.jpg',
+  },
+  {
+    slug: 'hospitality',
+    name: 'Hospitality',
+    image: '/careers/hospitality.jpg',
+  },
+  {
+    slug: 'retail',
+    name: 'Retail',
+    image: '/careers/retail.jpg',
+  },
 ];
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gray-50 text-gray-900 min-h-screen">
       {/* Hero Section */}
-      <section className="text-center py-24 bg-gradient-to-b from-blue-700 to-blue-500 text-white">
-        <div className="max-w-4xl mx-auto px-6">
-          <h1 className="text-5xl font-extrabold mb-6">WorkVouch</h1>
-          <p className="text-xl max-w-2xl mx-auto opacity-90 mb-8">
-            Verified Work History for Real Careers. Build trust, verify experience, and hire with confidence.
-          </p>
-          <div className="flex justify-center gap-4">
-            <Link 
-              href="/auth/signup" 
-              className="px-8 py-3 bg-white text-blue-700 font-semibold rounded-lg shadow hover:scale-105 transition"
-            >
-              Get Started
-            </Link>
-            <Link 
-              href="/pricing" 
-              className="px-8 py-3 border border-white font-semibold rounded-lg hover:bg-white hover:text-blue-700 transition"
-            >
-              View Pricing
-            </Link>
-          </div>
+      <header className="relative w-full h-96 bg-blue-700 flex items-center justify-center text-white">
+        <h1 className="text-4xl md:text-6xl font-bold text-center px-4">
+          Welcome to WorkVouch
+        </h1>
+      </header>
+
+      {/* Main Info Section */}
+      <section className="max-w-5xl mx-auto p-6 text-center">
+        <p className="text-lg md:text-xl mb-4">
+          WorkVouch helps employees prove their work experience and helps employers verify candidates quickly and reliably.
+        </p>
+        <div className="flex flex-wrap justify-center gap-4 mt-4">
+          <Link href="/auth/signup" className="px-6 py-3 bg-blue-700 text-white font-semibold rounded-lg hover:bg-blue-800 transition">
+            Sign Up
+          </Link>
+          <Link href="/auth/signin" className="px-6 py-3 border border-blue-700 text-blue-700 font-semibold rounded-lg hover:bg-blue-100 transition">
+            Sign In
+          </Link>
         </div>
       </section>
 
-      {/* Career Grid Section */}
-      <section className="max-w-6xl mx-auto py-20 px-6">
-        <h2 className="text-3xl font-bold text-center text-blue-700 mb-8">Explore Careers</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+      {/* Careers Section */}
+      <section className="max-w-6xl mx-auto p-6">
+        <h2 className="text-3xl font-bold text-blue-700 mb-6 text-center">Explore Careers</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {careers.map((career) => (
-            <Link 
-              key={career.slug} 
-              href={`/careers/${career.slug}`} 
-              className="group shadow-md rounded-xl overflow-hidden bg-white hover:shadow-xl transition"
+            <Link
+              key={career.slug}
+              href={`/careers/${career.slug}`}
+              className="relative group overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition"
             >
-              <div className="relative w-full h-48 overflow-hidden">
-                <Image 
-                  src={career.image} 
-                  alt={career.name} 
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  unoptimized
-                />
-              </div>
-              <div className="p-4 text-center font-semibold text-lg text-blue-800">
-                {career.name}
+              <img
+                src={career.image}
+                alt={career.name}
+                className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-blue-700 bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="text-white font-bold text-lg">{career.name}</span>
               </div>
             </Link>
           ))}
         </div>
       </section>
+
+      {/* Footer Section */}
+      <footer className="bg-gray-200 text-gray-700 py-6 mt-12 text-center">
+        <p>© {new Date().getFullYear()} WorkVouch. All rights reserved.</p>
+      </footer>
     </div>
   );
 }
