@@ -18,7 +18,7 @@ interface CoworkersFormClientProps {
 
 export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = supabaseClient;
   const [coworkers, setCoworkers] = useState<
     Array<{ id?: number; coworker_name: string }>
   >([]);

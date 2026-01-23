@@ -18,7 +18,7 @@ interface JobFormClientProps {
 
 export function JobFormClient({ industry }: JobFormClientProps) {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = supabaseClient;
   const [jobTitle, setJobTitle] = useState("");
   const [employer, setEmployer] = useState("");
   const [startDate, setStartDate] = useState("");

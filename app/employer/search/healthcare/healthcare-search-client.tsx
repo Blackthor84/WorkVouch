@@ -8,7 +8,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
-interface HealthcareCandidate {
+type Job = {
+  id: number;
+  job_title: string;
+  company_name: string;
+  start_date: string;
+  end_date: string | null;
+  current: boolean;
+  certifications: string[] | null;
+};
+
+type HealthcareCandidate = {
   id: string;
   full_name: string;
   email: string;
@@ -16,16 +26,8 @@ interface HealthcareCandidate {
     role: string;
     work_setting: string;
   } | null;
-  jobs: Array<{
-    id: number;
-    job_title: string;
-    company_name: string;
-    start_date: string;
-    end_date: string | null;
-    current: boolean;
-    certifications: string[] | null;
-  }>;
-}
+  jobs: Job[];
+};
 
 export function HealthcareSearchClient() {
   const [candidates, setCandidates] = useState<HealthcareCandidate[]>([]);
@@ -113,7 +115,12 @@ export function HealthcareSearchClient() {
         });
       }
 
-      setCandidates(filtered as HealthcareCandidate[]);
+      setCandidates(
+        filtered.map(candidate => ({
+          ...candidate,
+          healthcare_profile: candidate.healthcare_profiles[0] || null
+        })) as HealthcareCandidate[]
+      );
     } catch (error) {
       console.error("Error searching candidates:", error);
       alert("Error searching candidates. Please try again.");
