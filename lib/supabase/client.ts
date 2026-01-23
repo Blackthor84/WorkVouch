@@ -16,18 +16,18 @@ function getSupabaseClient() {
   }
 
   // Validate env vars at runtime (not build time) to work with Vercel
-  const supabaseUrl = process.env.supabaseUrl;
-  const supabaseKey = process.env.supabaseKey;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
-      "Missing required Supabase environment variables: supabaseUrl and supabaseKey must be set."
+      "Missing required Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set."
     );
   }
 
   _supabaseClient = createSupabaseClient<Database>(
     supabaseUrl,
-    supabaseKey
+    supabaseAnonKey
   );
 
   return _supabaseClient;

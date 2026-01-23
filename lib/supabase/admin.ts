@@ -22,18 +22,18 @@ export function getSupabaseServer() {
   }
 
   // Validate env vars at runtime (when actually used, not at module load)
-  const supabaseUrl = process.env.supabaseUrl;
-  const supabaseServiceKey = process.env.supabaseServiceKey;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
     throw new Error(
-      'Missing required server environment variables: supabaseUrl and supabaseServiceKey must be set in Vercel Project Settings → Environment Variables.'
+      'Missing required server environment variables: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in Vercel Project Settings → Environment Variables.'
     )
   }
 
   _supabaseServer = createClient<Database>(
     supabaseUrl,
-    supabaseServiceKey,
+    supabaseServiceRoleKey,
     {
       auth: {
         autoRefreshToken: false,

@@ -9,12 +9,12 @@ import { Database } from '@/types/database'
  */
 export const createMiddlewareClient = (request: NextRequest) => {
   // Validate env vars at runtime (not build time)
-  const supabaseUrl = process.env.supabaseUrl;
-  const supabaseKey = process.env.supabaseKey;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
-      'Missing required Supabase environment variables: supabaseUrl and supabaseKey must be set in Vercel Project Settings → Environment Variables.'
+      'Missing required Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set in Vercel Project Settings → Environment Variables.'
     )
   }
 
@@ -26,7 +26,7 @@ export const createMiddlewareClient = (request: NextRequest) => {
 
   const supabase = createServerClient<Database>(
     supabaseUrl,
-    supabaseKey,
+    supabaseAnonKey,
     {
       cookies: {
         get(name: string) {

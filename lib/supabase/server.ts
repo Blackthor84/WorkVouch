@@ -7,14 +7,14 @@ export async function createServerSupabaseClient() {
   const cookieStore = await cookies();
 
   // Get environment variables at runtime (not build time)
-  const supabaseUrl = process.env.supabaseUrl || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.supabaseKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing supabaseUrl or supabaseKey in environment variables.');
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY in environment variables.');
   }
 
-  return createClient<Database>(supabaseUrl, supabaseKey, {
+  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       storageKey: "sb-session",
       autoRefreshToken: true,
