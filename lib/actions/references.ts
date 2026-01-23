@@ -20,9 +20,10 @@ export interface CreateReferenceInput {
 export async function createReference(input: CreateReferenceInput) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
   // Verify connection exists
-  const { data: connection } = await supabase
+  const { data: connection } = await supabaseAny
     .from('connections')
     .select('*')
     .or(
@@ -37,7 +38,6 @@ export async function createReference(input: CreateReferenceInput) {
   }
 
   // Verify job belongs to the target user
-  const supabaseAny = supabase as any
   const { data: job } = await supabaseAny
     .from('jobs')
     .select('user_id')
@@ -90,10 +90,11 @@ export async function createReference(input: CreateReferenceInput) {
 export async function getUserReferences(userId: string) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
   // Users can see references they gave or received
   // Employers can see public references for public jobs
-  const { data: references, error } = await supabase
+  const { data: references, error } = await supabaseAny
     .from('references')
     .select(`
       *,
