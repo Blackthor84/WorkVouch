@@ -5,8 +5,8 @@ import { PricingModal } from "@/components/PricingModal";
 interface CareerData {
   name: string;
   image: string;
-  employers: string[];
-  employees: string[];
+  employers?: string[];
+  employees?: string[];
 }
 
 const careers: Record<string, CareerData> = {
@@ -200,9 +200,13 @@ export default function CareerPage({ params }: CareerPageProps) {
           Why Employers Choose WorkVouch
         </h2>
         <ul className="list-disc list-inside space-y-2 text-lg mb-6">
-          {career.employers.map((item: string, idx: number) => (
-            <li key={idx}>{item}</li>
-          ))}
+          {career.employers?.length ? (
+            career.employers.map((item: string, idx: number) => (
+              <li key={idx}>{item}</li>
+            ))
+          ) : (
+            <li>No employer benefits listed yet.</li>
+          )}
         </ul>
       </section>
 
@@ -211,9 +215,13 @@ export default function CareerPage({ params }: CareerPageProps) {
           Benefits for Employees
         </h2>
         <ul className="list-disc list-inside space-y-2 text-lg mb-6">
-          {career.employees.map((item: string, idx: number) => (
-            <li key={idx}>{item}</li>
-          ))}
+          {career.employees?.length ? (
+            career.employees.map((item: string, idx: number) => (
+              <li key={idx}>{item}</li>
+            ))
+          ) : (
+            <li>No employee benefits listed yet.</li>
+          )}
         </ul>
       </section>
 

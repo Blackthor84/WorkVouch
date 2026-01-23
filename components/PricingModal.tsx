@@ -25,10 +25,9 @@ export const PricingModal: FC<ModalProps & { autoOpen?: boolean }> = ({
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "processing" | "success" | "cancel">("idle");
 
-  // Initialize Stripe
-  const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-    ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-    : null;
+  // Initialize Stripe - support both NEXT_PUBLIC_STRIPE_PK and NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PK || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
   const handleCheckout = async () => {
     if (!priceId) {
