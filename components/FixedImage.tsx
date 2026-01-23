@@ -1,9 +1,15 @@
-import Image from "next/image";
-import type { ComponentProps } from "react";
+import Image, { ImageLoaderProps } from "next/image";
+import type { HTMLAttributes } from "react";
 
-// Use ComponentProps<typeof Image> to get the props type
-type NextImageProps = ComponentProps<typeof Image>;
+// Minimal type for FixedImage props
+interface FixedImageProps extends HTMLAttributes<HTMLImageElement> {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  loader?: (props: ImageLoaderProps) => string;
+}
 
-export default function FixedImage(props: NextImageProps) {
+export default function FixedImage(props: FixedImageProps) {
   return <Image {...props} loading="eager" />;
 }
