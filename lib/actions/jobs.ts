@@ -125,8 +125,9 @@ export async function getUserJobs(userId?: string) {
   const user = await requireAuth()
   const targetUserId = userId || user.id
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { data: jobs, error } = await supabase
+  const { data: jobs, error } = await supabaseAny
     .from('jobs')
     .select('*')
     .eq('user_id', targetUserId)
@@ -146,8 +147,9 @@ export async function getUserJobs(userId?: string) {
 export async function getJobsForUser(targetUserId: string) {
   await requireAuth() // User must be authenticated
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { data: jobs, error } = await supabase
+  const { data: jobs, error } = await supabaseAny
     .from('jobs')
     .select('*')
     .eq('user_id', targetUserId)

@@ -10,9 +10,10 @@ import { revalidatePath } from 'next/cache'
 export async function saveCandidate(candidateId: string, notes?: string) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
   // Verify user is an employer
-  const { data: roles } = await supabase
+  const { data: roles } = await supabaseAny
     .from('user_roles')
     .select('role')
     .eq('user_id', user.id)
@@ -23,7 +24,6 @@ export async function saveCandidate(candidateId: string, notes?: string) {
     throw new Error('Only employers can save candidates')
   }
 
-  const supabaseAny = supabase as any
   const { data, error } = await supabaseAny
     .from('saved_candidates')
     .upsert({
@@ -50,8 +50,9 @@ export async function saveCandidate(candidateId: string, notes?: string) {
 export async function unsaveCandidate(candidateId: string) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { error } = await supabase
+  const { error } = await supabaseAny
     .from('saved_candidates')
     .delete()
     .eq('employer_id', user.id)
@@ -70,8 +71,9 @@ export async function unsaveCandidate(candidateId: string) {
 export async function getSavedCandidates() {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAny
     .from('saved_candidates')
     .select(`
       *,
@@ -102,8 +104,9 @@ export async function getSavedCandidates() {
 export async function isCandidateSaved(candidateId: string) {
   const user = await requireAuth()
   const supabase = await createServerClient()
+  const supabaseAny = supabase as any
 
-  const { data } = await supabase
+  const { data } = await supabaseAny
     .from('saved_candidates')
     .select('id')
     .eq('employer_id', user.id)
