@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { supabaseClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 
 export function SignInForm() {
   const router = useRouter();
-  const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -21,7 +20,7 @@ export function SignInForm() {
     try {
       console.log("Attempting sign in...");
       const { data, error: signInError } =
-        await supabase.auth.signInWithPassword({
+        await supabaseClient.auth.signInWithPassword({
           email,
           password,
         });

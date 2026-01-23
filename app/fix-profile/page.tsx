@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { supabaseClient } from "@/lib/supabase/client";
 
 export default function FixProfilePage() {
   const [loading, setLoading] = useState(false);
@@ -14,7 +14,7 @@ export default function FixProfilePage() {
     setMessage("");
 
     try {
-      const supabase = createClient();
+      const supabase = supabaseClient;
 
       // Get current user
       const {

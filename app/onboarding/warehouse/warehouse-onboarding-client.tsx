@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { supabaseClient } from "@/lib/supabase/client";
 import { WarehouseOnboarding } from "@/components/warehouse-onboarding";
 import { Card } from "@/components/ui/card";
 

@@ -9,7 +9,7 @@ export default function TestPage() {
 
   useEffect(() => {
     const check = async () => {
-      const supabase = createClient();
+      const supabase = supabaseClient;
 
       // Check 1: Get user
       const {

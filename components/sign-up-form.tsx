@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { supabaseClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 
 export function SignUpForm() {
   const router = useRouter();
-  const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -50,7 +49,7 @@ export function SignUpForm() {
         }
       }
 
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabaseClient.auth.signUp({
         email,
         password,
         options: {
@@ -98,7 +97,7 @@ export function SignUpForm() {
           // Email confirmation might be required, but try to sign in anyway
           console.log("No session, attempting to sign in...");
           const { data: signInData, error: signInError } =
-            await supabase.auth.signInWithPassword({
+            await supabaseClient.auth.signInWithPassword({
               email,
               password,
             });

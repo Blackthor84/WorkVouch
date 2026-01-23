@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { supabaseClient } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
 
 interface User {
@@ -15,7 +15,7 @@ interface User {
 export function AdminUsersList() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const supabase = supabaseClient;
 
   useEffect(() => {
     async function fetchUsers() {

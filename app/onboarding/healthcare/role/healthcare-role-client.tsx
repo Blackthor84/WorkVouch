@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { supabaseClient } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -23,7 +23,7 @@ const HEALTHCARE_ROLES = [
 
 export function HealthcareRoleClient() {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = supabaseClient;
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
