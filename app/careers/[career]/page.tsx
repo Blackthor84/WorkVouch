@@ -4,7 +4,7 @@ import { PricingModal } from "@/components/PricingModal";
 
 interface CareerData {
   name: string;
-  image: string;
+  image?: string; // optional
   employers?: string[];
   employees?: string[];
 }
@@ -96,6 +96,7 @@ const careers: Record<string, CareerData> = {
   },
 };
 
+// Employer Pricing
 const employerPricing = [
   {
     tier: "Basic",
@@ -132,6 +133,7 @@ const employerPricing = [
   },
 ];
 
+// Employee Pricing
 const employeePricing = [
   {
     tier: "Free",
@@ -148,21 +150,14 @@ const employeePricing = [
     tier: "Standard",
     price: "$9.99/mo",
     color: "bg-orange-100 text-orange-900",
-    benefits: [
-      "Access to verified reviews",
-      "Apply to jobs directly",
-    ],
+    benefits: ["Access to verified reviews", "Apply to jobs directly"],
     priceId: "price_1ABC123EmpStd",
   },
   {
     tier: "Premium",
     price: "$19.99/mo",
     color: "bg-orange-200 text-orange-900",
-    benefits: [
-      "All Standard benefits",
-      "Priority notifications",
-      "Advanced profile insights",
-    ],
+    benefits: ["All Standard benefits", "Priority notifications", "Advanced profile insights"],
     priceId: "price_1ABC123EmpPremium",
   },
 ];
@@ -186,64 +181,46 @@ export default function CareerPage({ params }: CareerPageProps) {
   return (
     <div className="max-w-5xl mx-auto p-6">
       <h1 className="text-4xl font-bold mb-6 text-blue-700">{career.name}</h1>
+
       <FixedImage
         src={career.image}
         alt={career.name}
         width={800}
         height={400}
         className="rounded-lg mb-6 shadow-lg object-cover w-full"
+        fallbackSrc="/placeholder.png"
       />
 
       <section className="mb-10">
-        <h2 className="text-2xl font-semibold mb-4 text-blue-700">
-          Why Employers Choose WorkVouch
-        </h2>
+        <h2 className="text-2xl font-semibold mb-4 text-blue-700">Why Employers Choose WorkVouch</h2>
         <ul className="list-disc list-inside space-y-2 text-lg mb-6">
-          {career.employers?.length ? (
-            career.employers.map((item, idx) => <li key={idx}>{item}</li>)
-          ) : (
-            <li>No employer benefits listed yet.</li>
-          )}
+          {career.employers?.length
+            ? career.employers.map((item, idx) => <li key={idx}>{item}</li>)
+            : <li>No employer benefits listed yet.</li>}
         </ul>
       </section>
 
       <section className="mb-10">
-        <h2 className="text-2xl font-semibold mb-4 text-green-700">
-          Benefits for Employees
-        </h2>
+        <h2 className="text-2xl font-semibold mb-4 text-green-700">Benefits for Employees</h2>
         <ul className="list-disc list-inside space-y-2 text-lg mb-6">
-          {career.employees?.length ? (
-            career.employees.map((item, idx) => <li key={idx}>{item}</li>)
-          ) : (
-            <li>No employee benefits listed yet.</li>
-          )}
+          {career.employees?.length
+            ? career.employees.map((item, idx) => <li key={idx}>{item}</li>)
+            : <li>No employee benefits listed yet.</li>}
         </ul>
       </section>
 
       {/* Employer Pricing */}
       <section className="mb-10">
-        <h2 className="text-2xl font-semibold mt-8 mb-4 text-purple-700">
-          Employer Pricing
-        </h2>
+        <h2 className="text-2xl font-semibold mt-8 mb-4 text-purple-700">Employer Pricing</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {employerPricing.map((tier, idx) => (
-            <div
-              key={idx}
-              className={`p-6 rounded-xl shadow-lg transform transition-transform hover:scale-105 hover:shadow-2xl ${tier.color}`}
-            >
+            <div key={idx} className={`p-6 rounded-xl shadow-lg transform transition-transform hover:scale-105 hover:shadow-2xl ${tier.color}`}>
               <h3 className="text-xl font-bold mb-2">{tier.tier}</h3>
               <p className="text-lg font-semibold mb-4">{tier.price}</p>
               <ul className="list-disc list-inside space-y-1">
-                {tier.benefits.map((b, i) => (
-                  <li key={i}>{b}</li>
-                ))}
+                {tier.benefits.map((b, i) => <li key={i}>{b}</li>)}
               </ul>
-              <PricingModal
-                tier={tier.tier}
-                price={tier.price}
-                benefits={tier.benefits}
-                priceId={tier.priceId}
-              />
+              <PricingModal tier={tier.tier} price={tier.price} benefits={tier.benefits} priceId={tier.priceId} />
             </div>
           ))}
         </div>
@@ -251,28 +228,16 @@ export default function CareerPage({ params }: CareerPageProps) {
 
       {/* Employee Pricing */}
       <section className="mb-10">
-        <h2 className="text-2xl font-semibold mt-8 mb-4 text-orange-700">
-          Employee Pricing
-        </h2>
+        <h2 className="text-2xl font-semibold mt-8 mb-4 text-orange-700">Employee Pricing</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {employeePricing.map((tier, idx) => (
-            <div
-              key={idx}
-              className={`p-6 rounded-xl shadow-lg transform transition-transform hover:scale-105 hover:shadow-2xl ${tier.color}`}
-            >
+            <div key={idx} className={`p-6 rounded-xl shadow-lg transform transition-transform hover:scale-105 hover:shadow-2xl ${tier.color}`}>
               <h3 className="text-xl font-bold mb-2">{tier.tier}</h3>
               <p className="text-lg font-semibold mb-4">{tier.price}</p>
               <ul className="list-disc list-inside space-y-1">
-                {tier.benefits.map((b, i) => (
-                  <li key={i}>{b}</li>
-                ))}
+                {tier.benefits.map((b, i) => <li key={i}>{b}</li>)}
               </ul>
-              <PricingModal
-                tier={tier.tier}
-                price={tier.price}
-                benefits={tier.benefits}
-                priceId={tier.priceId}
-              />
+              <PricingModal tier={tier.tier} price={tier.price} benefits={tier.benefits} priceId={tier.priceId} />
             </div>
           ))}
         </div>
