@@ -16,19 +16,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { plan, email } = await req.json();
-
-    // Map plan names to price IDs (you'll need to set these in your .env)
-    const priceIdMap: Record<string, string> = {
-      pro: process.env.STRIPE_PRICE_PRO || "",
-      enterprise: process.env.STRIPE_PRICE_ENTERPRISE || "",
-    };
-
-    const priceId = priceIdMap[plan as string];
+    const { priceId, email } = await req.json();
 
     if (!priceId) {
       return NextResponse.json(
-        { error: `Invalid plan: ${plan}. Valid plans: pro, enterprise` },
+        { error: "priceId is required" },
         { status: 400 },
       );
     }
@@ -46,7 +38,7 @@ export async function POST(req: NextRequest) {
       success_url: `${baseUrl}/employer/upgrade/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/pricing`,
       metadata: {
-        plan: plan as string,
+        priceId: priceId,
       },
     });
 

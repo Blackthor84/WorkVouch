@@ -4,12 +4,43 @@ import { FC, useState } from "react";
 
 interface ModalProps {
   tier: string;
-  price: string;
+  price: string; // display only
   benefits: string[];
+  priceId?: string; // Stripe Price ID (optional for free tiers)
 }
 
-export const PricingModal: FC<ModalProps> = ({ tier, price, benefits }) => {
+export const PricingModal: FC<ModalProps> = ({ tier, price, benefits, priceId }) => {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleCheckout = async () => {
+    if (!priceId) {
+      // Free tier - redirect to signup
+      window.location.href = "/auth/signup";
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId }),
+      });
+
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Error starting checkout: " + (data.error || "Unknown error"));
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      alert("Error starting checkout");
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -37,10 +68,11 @@ export const PricingModal: FC<ModalProps> = ({ tier, price, benefits }) => {
               ))}
             </ul>
             <button
-              onClick={() => alert(`Redirect to payment for ${tier}`)}
-              className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition"
+              onClick={handleCheckout}
+              disabled={loading}
+              className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Proceed to Payment
+              {loading ? "Processing..." : priceId ? "Proceed to Payment" : "Get Started Free"}
             </button>
           </div>
         </div>

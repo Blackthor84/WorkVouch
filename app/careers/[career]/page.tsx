@@ -98,36 +98,37 @@ const careers: Record<string, CareerData> = {
 
 const employerPricing = [
   {
-    tier: "Starter",
-    price: "$49/month",
-    color: "bg-blue-100 text-blue-900",
+    tier: "Basic",
+    price: "$49/mo",
+    color: "bg-purple-100 text-purple-900",
     benefits: [
-      "Post up to 10 jobs per month",
-      "Access to basic candidate pool",
-      "Email support",
+      "Post up to 10 jobs/month",
+      "Access to verified employee reviews",
+      "Basic support",
     ],
+    priceId: "price_1ABC123Basic", // Replace with actual Stripe Price ID
   },
   {
     tier: "Pro",
-    price: "$99/month",
-    color: "bg-green-100 text-green-900",
+    price: "$99/mo",
+    color: "bg-purple-200 text-purple-900",
     benefits: [
       "Unlimited job postings",
-      "Access to full candidate pool",
+      "Advanced analytics dashboard",
       "Priority support",
-      "Analytics dashboard",
     ],
+    priceId: "price_1ABC123Pro", // Replace with actual Stripe Price ID
   },
   {
     tier: "Enterprise",
-    price: "Custom pricing",
-    color: "bg-purple-100 text-purple-900",
+    price: "$199/mo",
+    color: "bg-purple-300 text-purple-900",
     benefits: [
       "Dedicated account manager",
       "Custom integrations",
-      "Advanced analytics",
-      "Team collaboration tools",
+      "Full support & SLA",
     ],
+    priceId: "price_1ABC123Enterprise", // Replace with actual Stripe Price ID
   },
 ];
 
@@ -141,17 +142,28 @@ const employeePricing = [
       "Receive and display peer references",
       "Access to limited job listings",
     ],
+    priceId: "", // Free tier - no Stripe checkout
   },
   {
-    tier: "Pro",
-    price: "$9.99/month",
+    tier: "Standard",
+    price: "$9.99/mo",
     color: "bg-orange-100 text-orange-900",
     benefits: [
-      "Highlight top references",
-      "Priority job alerts",
-      "Profile analytics",
-      "Badge for verified experience",
+      "Access to verified reviews",
+      "Apply to jobs directly",
     ],
+    priceId: "price_1ABC123EmpStd", // Replace with actual Stripe Price ID
+  },
+  {
+    tier: "Premium",
+    price: "$19.99/mo",
+    color: "bg-orange-200 text-orange-900",
+    benefits: [
+      "All Standard benefits",
+      "Priority notifications",
+      "Advanced profile insights",
+    ],
+    priceId: "price_1ABC123EmpPremium", // Replace with actual Stripe Price ID
   },
 ];
 
@@ -223,7 +235,7 @@ export default function CareerPage({ params }: CareerPageProps) {
                   <li key={i}>{b}</li>
                 ))}
               </ul>
-              <PricingModal tier={tier.tier} price={tier.price} benefits={tier.benefits} />
+              <PricingModal tier={tier.tier} price={tier.price} benefits={tier.benefits} priceId={tier.priceId} />
             </div>
           ))}
         </div>
@@ -247,7 +259,7 @@ export default function CareerPage({ params }: CareerPageProps) {
                   <li key={i}>{b}</li>
                 ))}
               </ul>
-              <PricingModal tier={tier.tier} price={tier.price} benefits={tier.benefits} />
+              <PricingModal tier={tier.tier} price={tier.price} benefits={tier.benefits} priceId={tier.priceId} />
             </div>
           ))}
         </div>
