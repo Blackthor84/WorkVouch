@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabaseClient } from "@/lib/supabase/client";
+import { getSupabaseClient } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ interface CoworkersFormClientProps {
 
 export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
   const router = useRouter();
-  const supabase = supabaseClient;
+  const supabase = getSupabaseClient();
   const [coworkers, setCoworkers] = useState<
     Array<{ id?: number; coworker_name: string }>
   >([]);
