@@ -1,12 +1,13 @@
-// components/FixedImage.tsx
-import Image, { ImageProps } from "next/image";
+import Image from "next/image";
+import type { ComponentProps } from "react";
 
-// Extend all ImageProps except src
-export interface FixedImageProps extends Omit<ImageProps, "src"> {
-  src: string;           // make src required
-  unoptimized?: boolean; // default true
-  loading?: "lazy" | "eager"; // default eager
-}
+// Use ComponentProps<typeof Image> instead of ImageProps
+// This ensures we get all Image props including alt, width, height, etc.
+export type FixedImageProps = Omit<ComponentProps<typeof Image>, "src"> & {
+  src: string;           // required
+  unoptimized?: boolean; // optional, default true
+  loading?: "lazy" | "eager"; // optional, default eager
+};
 
 export default function FixedImage({
   src,
