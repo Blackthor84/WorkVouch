@@ -1,4 +1,4 @@
-import CareersGrid from '../components/CareersGrid';
+import CareersGrid from '../../components/CareersGrid';
 
 export default function CareersPage() {
   return (

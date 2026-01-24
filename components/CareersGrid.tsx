@@ -1,22 +1,11 @@
 'use client';
-
 import Link from 'next/link';
-import { careers } from '../app/data/careers';
-
-function shuffleArray(array: any[]) {
-  return array.sort(() => Math.random() - 0.5);
-}
+import { careers } from '../data/careers';
 
 export default function CareersGrid() {
-  // Keep Healthcare first, shuffle the rest
-  const [first, ...rest] = careers;
-  const shuffled = shuffleArray(rest);
-
-  const displayCareers = [first, ...shuffled];
-
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 px-4">
-      {displayCareers.map((career) => (
+      {careers.map((career) => (
         <Link
           key={career.id}
           href={`/careers/${career.id}`}
