@@ -1,5 +1,3 @@
-// app/careers/[career]/page.tsx
-import Image from "next/image";
 import { careers } from "@/data/careers";
 
 interface CareerPageProps {
@@ -11,51 +9,36 @@ export default function CareerPage({ params }: CareerPageProps) {
 
   if (!career) {
     return (
-      <div className="max-w-4xl mx-auto py-20 px-6">
-        <h1 className="text-3xl font-bold">Career Not Found</h1>
+      <div className="p-6 text-center">
+        <h1 className="text-2xl font-bold">Career Not Found</h1>
+        <p>The career page you are looking for does not exist.</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto py-20 px-6">
-      <h1 className="text-4xl font-bold mb-6">{career.name}</h1>
+    <div className="p-6 max-w-3xl mx-auto">
+      <h1 className="text-3xl font-bold mb-4">{career.name}</h1>
 
-      <Image
-        src={career.image}
-        alt={career.name}
-        width={800}
-        height={500}
-        className="rounded-xl mb-8 object-cover"
-      />
+      {/* Employees */}
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold mb-2">Why Employees Should Use WorkVouch</h2>
+        <ul className="list-disc pl-6 space-y-1">
+          {career.reasons.employees.map((reason, i) => (
+            <li key={i}>{reason}</li>
+          ))}
+        </ul>
+      </section>
 
-      <p className="text-lg mb-10">{career.description}</p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
-        
-        <div>
-          <h2 className="text-2xl font-semibold mb-3 text-blue-600">
-            Why Employers Choose WorkVouch
-          </h2>
-          <ul className="list-disc ml-6 space-y-2 text-gray-700">
-            {career.employerBenefits.map((benefit, i) => (
-              <li key={i}>{benefit}</li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <h2 className="text-2xl font-semibold mb-3 text-green-600">
-            Why Employees Choose WorkVouch
-          </h2>
-          <ul className="list-disc ml-6 space-y-2 text-gray-700">
-            {career.employeeBenefits.map((benefit, i) => (
-              <li key={i}>{benefit}</li>
-            ))}
-          </ul>
-        </div>
-
-      </div>
+      {/* Employers */}
+      <section>
+        <h2 className="text-2xl font-semibold mb-2">Why Employers Should Use WorkVouch</h2>
+        <ul className="list-disc pl-6 space-y-1">
+          {career.reasons.employers.map((reason, i) => (
+            <li key={i}>{reason}</li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }
