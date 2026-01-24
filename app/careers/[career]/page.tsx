@@ -1,5 +1,5 @@
 import { careers } from '../../../data/careers';
-import Link from 'next/link';
+import Image from 'next/image';
 
 interface Params {
   params: { career: string };
@@ -9,16 +9,22 @@ export default function CareerPage({ params }: Params) {
   const career = careers.find((c) => c.id === params.career);
 
   if (!career) {
-    return <p className="text-center mt-10">Career not found.</p>;
+    return <p className="text-center mt-10 text-red-500">Career not found.</p>;
   }
 
   return (
     <div className="max-w-4xl mx-auto py-10 px-4">
-      <Link href="/careers" className="text-blue-500 underline mb-6 inline-block">
-        ← Back to Careers
-      </Link>
-
       <h1 className="text-3xl font-bold mb-6">{career.name}</h1>
+
+      {career.image && (
+        <Image
+          src={career.image}
+          alt={career.name}
+          width={800}
+          height={400}
+          className="rounded-lg mb-6 shadow-lg object-cover w-full h-64"
+        />
+      )}
 
       <section className="mb-6">
         <h2 className="text-2xl font-semibold mb-2">Why Employees Should Use WorkVouch</h2>

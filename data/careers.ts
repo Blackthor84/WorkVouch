@@ -2,6 +2,7 @@ export const careers = [
   {
     id: 'healthcare',
     name: 'Healthcare',
+    image: '/careers/healthcare.png',
     whyForEmployees: [
       'Verify your nursing or medical experience quickly.',
       'Boost your chances of landing higher-paying roles.',
@@ -14,6 +15,7 @@ export const careers = [
   {
     id: 'law-enforcement',
     name: 'Law Enforcement',
+    image: '/careers/law-enforcement.png',
     whyForEmployees: [
       'Show verified patrol, investigative, or leadership experience.',
       'Stand out for promotions or special assignments.',
@@ -26,6 +28,7 @@ export const careers = [
   {
     id: 'security',
     name: 'Security',
+    image: '/careers/security.png',
     whyForEmployees: [
       'Prove your training, certifications, and past deployments.',
       'Access premium security roles faster.',
@@ -38,6 +41,7 @@ export const careers = [
   {
     id: 'hospitality',
     name: 'Hospitality',
+    image: '/careers/hospitality.png',
     whyForEmployees: [
       'Show proven experience in hotels, restaurants, or events.',
       'Get better opportunities and tips by building trust.',
@@ -50,6 +54,7 @@ export const careers = [
   {
     id: 'retail',
     name: 'Retail',
+    image: '/careers/retail.png',
     whyForEmployees: [
       'Demonstrate your sales and customer service skills.',
       'Stand out to top retail brands.',
@@ -62,6 +67,7 @@ export const careers = [
   {
     id: 'warehouse-logistics',
     name: 'Warehouse & Logistics',
+    image: '/careers/warehouse-logistics.png',
     whyForEmployees: [
       'Verify forklift, inventory, and logistics experience.',
       'Access higher-paying warehouse roles with trust.',

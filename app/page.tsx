@@ -1,13 +1,16 @@
 import CareersGrid from '../components/CareersGrid';
 
-export default function HomePage() {
+export default function Home() {
   return (
-    <div className="max-w-6xl mx-auto py-10">
-      <h1 className="text-4xl font-bold text-center mb-8">
+    <div className="max-w-7xl mx-auto py-10 px-4">
+      <h1 className="text-4xl font-bold text-center mb-10">
         Verified Work History for Real Careers
       </h1>
-      
-      {/* Career Boxes */}
+      <p className="text-center mb-10">
+        Build trust, verify experience, and hire with confidence.
+      </p>
+
+      {/* Career section */}
       <CareersGrid />
 
       {/* Placeholder for ads (invisible for visitors) */}
