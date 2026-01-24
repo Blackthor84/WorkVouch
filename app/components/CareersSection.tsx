@@ -9,7 +9,7 @@ import CareerModal, { CareerData } from "@/components/CareerModal";
 const careers: CareerData[] = [
   {
     name: "Healthcare",
-    image: "/healthcare.jpg",
+    image: "/images/healthcare.png",
     employerBenefits: [
       "Quickly verify past employee performance",
       "Reduce hiring risks and turnover",
@@ -23,7 +23,7 @@ const careers: CareerData[] = [
   },
   {
     name: "Law Enforcement",
-    image: "/law.jpg",
+    image: "/images/law-enforcement.png",
     employerBenefits: [
       "Hire officers with verified records",
       "Streamline background checks",
@@ -37,7 +37,7 @@ const careers: CareerData[] = [
   },
   {
     name: "Security",
-    image: "/security.jpg",
+    image: "/images/security.png",
     employerBenefits: [
       "Hire guards with confirmed credentials",
       "Reduce incidents of unverified hires",
@@ -51,7 +51,7 @@ const careers: CareerData[] = [
   },
   {
     name: "Warehouse & Logistics",
-    image: "/warehouse.jpg",
+    image: "/images/warehouse.png",
     employerBenefits: [
       "Find workers with proven reliability",
       "Minimize costly turnover",
@@ -65,7 +65,7 @@ const careers: CareerData[] = [
   },
   {
     name: "Hospitality",
-    image: "/hospitality.jpg",
+    image: "/images/hospitality.png",
     employerBenefits: [
       "Hire staff with confirmed hospitality experience",
       "Ensure smooth customer service operations",
@@ -79,7 +79,7 @@ const careers: CareerData[] = [
   },
   {
     name: "Retail",
-    image: "/retail.jpg",
+    image: "/images/retail.png",
     employerBenefits: [
       "Hire dependable retail staff",
       "Reduce training costs",
@@ -109,7 +109,7 @@ export default function CareersSection() {
       <h2 className="text-3xl font-bold text-center mb-8 text-blue-800">
         Careers on WorkVouch
       </h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-4">
         {careers.map((career) => (
           <div
             key={career.name}
