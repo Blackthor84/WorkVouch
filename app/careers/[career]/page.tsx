@@ -8,7 +8,7 @@ export default function CareerPage({ params }: Params) {
   const career = careers.find((c) => c.id === params.career);
 
   if (!career) {
-    return <p className="text-center mt-10 text-red-500">Career not found.</p>;
+    return <p className="text-center mt-10">Career not found.</p>;
   }
 
   return (
