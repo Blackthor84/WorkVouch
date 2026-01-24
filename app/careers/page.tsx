@@ -1,42 +1,21 @@
-import Link from "next/link";
+import Link from 'next/link';
+import { careers } from '../../data/careers';
 
-export const careers = [
-  {
-    id: 'developer',
-    name: 'Software Developer',
-    image: '/images/developer.png',
-    description: 'Build software, write clean code, and solve problems.'
-  },
-  {
-    id: 'designer',
-    name: 'Designer',
-    image: '/images/designer.png',
-    description: 'Create beautiful interfaces and amazing user experiences.'
-  },
-  {
-    id: 'healthcare',
-    name: 'Healthcare Professional',
-    image: '/images/healthcare.png',
-    description: 'Care for patients and improve their lives.'
-  },
-];
-
-export default function CareersList() {
+export default function CareersPage() {
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-4xl font-bold mb-8">Careers</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {careers.map((career) => (
-          <Link key={career.id} href={`/careers/${career.id}`}>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+      {careers.map((career) => (
+        <Link key={career.id} href={`/careers/${career.id}`}>
+          <div className="cursor-pointer border rounded-lg shadow hover:shadow-lg p-4">
             <img
-              src={career.image || "/images/placeholder.png"}
+              src={career.image}
               alt={career.name}
-              className="rounded-lg shadow-lg object-cover w-full h-64 cursor-pointer hover:scale-105 transition-transform"
+              className="rounded-lg object-cover w-full h-48"
             />
-            <h2 className="text-xl font-semibold mt-2 text-center">{career.name}</h2>
-          </Link>
-        ))}
-      </div>
+            <h2 className="mt-2 font-bold text-lg">{career.name}</h2>
+          </div>
+        </Link>
+      ))}
     </div>
   );
 }
