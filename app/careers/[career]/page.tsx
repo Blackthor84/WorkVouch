@@ -1,5 +1,4 @@
 import { careers } from '../../../data/careers';
-import Image from 'next/image';
 
 interface Params {
   params: { career: string };
@@ -16,15 +15,11 @@ export default function CareerPage({ params }: Params) {
     <div className="max-w-4xl mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold mb-6">{career.name}</h1>
 
-      {career.image && (
-        <Image
-          src={career.image}
-          alt={career.name}
-          width={800}
-          height={400}
-          className="rounded-lg mb-6 shadow-lg object-cover w-full h-64"
-        />
-      )}
+      <img
+        src={career.image}
+        alt={career.name}
+        className="rounded-lg mb-6 shadow-lg object-cover w-full"
+      />
 
       <section className="mb-6">
         <h2 className="text-2xl font-semibold mb-2">Why Employees Should Use WorkVouch</h2>
