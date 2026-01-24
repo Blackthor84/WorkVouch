@@ -1,6 +1,7 @@
 import { careers } from '../../../data/careers';
 import { Ad } from '../../../types/ad';
 import AdBanner from '../../../components/AdBanner';
+import AdminAdPlaceholder from '../../../components/AdminAdPlaceholder';
 
 interface Params {
   params: { career: string };
@@ -62,6 +63,9 @@ export default async function CareerPage({ params }: Params) {
           ))}
         </ul>
       </section>
+
+      {/* Admin-only ad placeholder */}
+      <AdminAdPlaceholder location="career-page" />
 
       {/* Targeted Ads */}
       {targetedAds.length > 0 && (

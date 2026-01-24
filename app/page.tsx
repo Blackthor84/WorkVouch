@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
-import CareersSection from "./components/CareersSection";
+import CareersGrid from "../components/CareersGrid";
+import AdminAdPlaceholder from "../components/AdminAdPlaceholder";
 
 export default function HomePage() {
   return (
@@ -56,8 +57,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Careers Section with Modal */}
-      <CareersSection />
+      {/* Careers Section with Clickable Boxes */}
+      <section className="py-20 max-w-6xl mx-auto px-4">
+        <h2 className="text-3xl font-bold text-center mb-8 text-blue-800">
+          Explore Careers on WorkVouch
+        </h2>
+        <CareersGrid />
+        
+        {/* Admin-only ad placeholder */}
+        <AdminAdPlaceholder location="homepage" />
+      </section>
     </div>
   );
 }
