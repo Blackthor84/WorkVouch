@@ -1,24 +1,24 @@
-import { notFound } from "next/navigation";
-import { careers } from "../../../data/careers";
+// app/careers/[career]/page.tsx
+import { careers } from '../../../data/careers';
 
-export async function generateStaticParams() {
-  return careers.map((career) => ({ career: career.id }));
+interface Props {
+  params: { career: string };
 }
 
-export default function CareerPage({ params }: { params: { career: string } }) {
+export default function CareerDetailPage({ params }: Props) {
   const career = careers.find((c) => c.id === params.career);
 
-  if (!career) return notFound();
+  if (!career) return <div className="p-6">Career not found.</div>;
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4">{career.name}</h1>
+    <div className="p-6 max-w-3xl mx-auto">
       <img
-        src={career.image || "/images/placeholder.png"}
+        src={career.image}
         alt={career.name}
-        className="rounded-lg mb-6 shadow-lg object-cover w-full h-64"
+        className="w-full h-64 object-cover rounded-lg mb-4"
       />
-      <p className="text-lg">{career.description}</p>
+      <h1 className="text-2xl font-bold mb-2">{career.name}</h1>
+      <p className="text-gray-700">{career.description}</p>
     </div>
   );
 }
