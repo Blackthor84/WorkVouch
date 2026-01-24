@@ -1,40 +1,33 @@
-import { careers } from "@/data/careers";
+import { careers } from '../../../data/careers';
 
-interface CareerPageProps {
+interface Params {
   params: { career: string };
 }
 
-export default function CareerPage({ params }: CareerPageProps) {
+export default function CareerPage({ params }: Params) {
   const career = careers.find((c) => c.id === params.career);
 
   if (!career) {
-    return (
-      <div className="p-6 text-center">
-        <h1 className="text-2xl font-bold">Career Not Found</h1>
-        <p>The career page you are looking for does not exist.</p>
-      </div>
-    );
+    return <p className="text-center mt-10">Career not found.</p>;
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4">{career.name}</h1>
+    <div className="max-w-4xl mx-auto py-10 px-4">
+      <h1 className="text-3xl font-bold mb-6">{career.name}</h1>
 
-      {/* Employees */}
-      <section className="mb-8">
+      <section className="mb-6">
         <h2 className="text-2xl font-semibold mb-2">Why Employees Should Use WorkVouch</h2>
-        <ul className="list-disc pl-6 space-y-1">
-          {career.reasons.employees.map((reason, i) => (
+        <ul className="list-disc pl-6">
+          {career.whyForEmployees.map((reason, i) => (
             <li key={i}>{reason}</li>
           ))}
         </ul>
       </section>
 
-      {/* Employers */}
       <section>
         <h2 className="text-2xl font-semibold mb-2">Why Employers Should Use WorkVouch</h2>
-        <ul className="list-disc pl-6 space-y-1">
-          {career.reasons.employers.map((reason, i) => (
+        <ul className="list-disc pl-6">
+          {career.whyForEmployers.map((reason, i) => (
             <li key={i}>{reason}</li>
           ))}
         </ul>
