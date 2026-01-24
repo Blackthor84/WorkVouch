@@ -4,13 +4,8 @@ interface Params {
   params: { career: string };
 }
 
-// Pre-generate pages for all careers at build time
-export async function generateStaticParams() {
-  return careers.map(career => ({ career: career.id }));
-}
-
 export default function CareerPage({ params }: Params) {
-  const career = careers.find(c => c.id === params.career);
+  const career = careers.find((c) => c.id === params.career);
 
   if (!career) {
     return <p className="text-center mt-10">Career not found.</p>;
@@ -21,7 +16,9 @@ export default function CareerPage({ params }: Params) {
       <h1 className="text-3xl font-bold mb-6">{career.name}</h1>
 
       <section className="mb-6">
-        <h2 className="text-2xl font-semibold mb-2">Why Employees Should Use WorkVouch</h2>
+        <h2 className="text-2xl font-semibold mb-2">
+          Why Employees Should Use WorkVouch
+        </h2>
         <ul className="list-disc pl-6">
           {career.whyForEmployees.map((reason, i) => (
             <li key={i}>{reason}</li>
@@ -30,7 +27,9 @@ export default function CareerPage({ params }: Params) {
       </section>
 
       <section>
-        <h2 className="text-2xl font-semibold mb-2">Why Employers Should Use WorkVouch</h2>
+        <h2 className="text-2xl font-semibold mb-2">
+          Why Employers Should Use WorkVouch
+        </h2>
         <ul className="list-disc pl-6">
           {career.whyForEmployers.map((reason, i) => (
             <li key={i}>{reason}</li>
