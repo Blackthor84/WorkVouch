@@ -9,10 +9,16 @@ export default function CareersGrid() {
         <Link
           key={career.id}
           href={`/careers/${career.id}`}
-          className="border rounded-lg p-6 text-center hover:bg-blue-100 transition flex flex-col items-center"
+          className="border rounded-lg overflow-hidden shadow hover:shadow-lg hover:-translate-y-1 transition"
         >
-          <img src={career.image} alt={career.name} className="w-32 h-32 object-cover mb-4 rounded-lg" />
-          <h2 className="text-xl font-semibold">{career.name}</h2>
+          <img
+            src={career.image}
+            alt={career.name}
+            className="w-full h-40 object-cover"
+          />
+          <div className="p-4 text-center">
+            <h2 className="text-xl font-semibold">{career.name}</h2>
+          </div>
         </Link>
       ))}
     </div>
