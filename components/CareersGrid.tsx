@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { careers } from '../data/careers';
+import { careers } from '../app/data/careers';
 
 function shuffleArray(array: any[]) {
   return array.sort(() => Math.random() - 0.5);

@@ -1,19 +1,23 @@
-import { careers } from '../../data/careers';
-import AdminAdPlaceholder from '../../../components/AdminAdPlaceholder';
+import { careers } from '../../../data/careers';
+import Link from 'next/link';
 
 interface Params {
   params: { career: string };
 }
 
 export default function CareerPage({ params }: Params) {
-  const career = careers.find(c => c.id === params.career);
+  const career = careers.find((c) => c.id === params.career);
 
   if (!career) {
-    return <p className="text-center mt-10 text-red-500">Career not found.</p>;
+    return <p className="text-center mt-10">Career not found.</p>;
   }
 
   return (
     <div className="max-w-4xl mx-auto py-10 px-4">
+      <Link href="/careers" className="text-blue-500 underline mb-6 inline-block">
+        ← Back to Careers
+      </Link>
+
       <h1 className="text-3xl font-bold mb-6">{career.name}</h1>
 
       <section className="mb-6">
@@ -32,11 +36,6 @@ export default function CareerPage({ params }: Params) {
             <li key={i}>{reason}</li>
           ))}
         </ul>
-      </section>
-
-      {/* Admin-only ad placeholder */}
-      <section className="mt-6">
-        <AdminAdPlaceholder location="career-page" />
       </section>
     </div>
   );
