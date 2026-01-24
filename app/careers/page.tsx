@@ -1,16 +1,10 @@
-import Link from "next/link";
-import { careers } from "@/data/careers";
+import CareersGrid from '@/components/CareersGrid';
 
 export default function CareersPage() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-6">
-      {careers.map((career) => (
-        <Link key={career.id} href={`/careers/${career.id}`}>
-          <div className="flex items-center justify-center h-40 bg-blue-100 hover:bg-blue-200 rounded-lg shadow-lg text-lg font-bold text-center transition-all cursor-pointer">
-            {career.name}
-          </div>
-        </Link>
-      ))}
+    <div>
+      <h1 className="text-3xl font-bold text-center my-6">Careers at WorkVouch</h1>
+      <CareersGrid />
     </div>
   );
 }
