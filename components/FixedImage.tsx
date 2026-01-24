@@ -1,23 +1,17 @@
-'use client';
+// components/FixedImage.tsx
+import Image, { ImageProps } from "next/image";
 
-import Image, { ImageProps } from 'next/image';
-
-// We omit "src" because we want it required in our props
-export interface FixedImageProps extends Omit<ImageProps, 'src'> {
-  src: string; // make src required
-  alt: string; // make alt required
+interface FixedImageProps extends ImageProps {
+  fallbackSrc?: string;
 }
 
-export default function FixedImage({ src, alt, ...props }: FixedImageProps) {
+export default function FixedImage({ fallbackSrc, ...props }: FixedImageProps) {
   return (
     <Image
-      src={src}
-      alt={alt}
       {...props}
-      // optional defaults for performance
-      placeholder="blur"
-      blurDataURL="/placeholder.png"
-      loading="lazy"
+      onError={(e: any) => {
+        if (fallbackSrc) e.currentTarget.src = fallbackSrc;
+      }}
     />
   );
 }
