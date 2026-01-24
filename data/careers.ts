@@ -3,18 +3,28 @@ export const careers = [
     id: 'developer',
     name: 'Software Developer',
     image: '/images/developer.png',
-    description: 'Build software, write clean code, and solve problems.'
+    description:
+      'Build software, write clean code, and solve problems for businesses and users.'
   },
   {
     id: 'designer',
     name: 'Designer',
     image: '/images/designer.png',
-    description: 'Create beautiful interfaces and amazing user experiences.'
+    description:
+      'Create beautiful interfaces, user experiences, and brand designs.'
   },
   {
     id: 'healthcare',
     name: 'Healthcare Professional',
     image: '/images/healthcare.png',
-    description: 'Care for patients and improve their lives.'
+    description:
+      'Provide compassionate care and improve patients\' quality of life.'
   },
+  {
+    id: 'teacher',
+    name: 'Teacher',
+    image: '/images/teacher.png',
+    description:
+      'Educate and inspire students, shaping the future one lesson at a time.'
+  }
 ];
