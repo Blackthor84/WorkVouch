@@ -1,225 +1,145 @@
 'use client';
+import { useState, useEffect } from 'react';
 
-import { useEffect, useState } from 'react';
-import { Ad } from '../../../types/ad';
-import AdBanner from '../../../components/AdBanner';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+interface Ad {
+  id: number;
+  title: string;
+  type: 'banner' | 'text' | 'link';
+  content: string; // image URL or text
+  link?: string; // optional link for banner or text
+  visible: boolean; // show/hide to users
+}
 
-const careersList = [
-  { id: 'healthcare', name: 'Healthcare' },
-  { id: 'security', name: 'Security' },
-  { id: 'law-enforcement', name: 'Law Enforcement' },
-  { id: 'retail', name: 'Retail' },
-  { id: 'hospitality', name: 'Hospitality' },
-  { id: 'warehouse-logistics', name: 'Warehouse & Logistics' },
-];
-
-export default function AdsAdminPage() {
+export default function AdminAdsPage() {
   const [ads, setAds] = useState<Ad[]>([]);
-  const [editingAd, setEditingAd] = useState<Ad | null>(null);
-  const [form, setForm] = useState<any>({ 
-    title: '', 
-    type: 'banner', 
-    content: '', 
-    linkUrl: '', 
-    imageUrl: '',
-    isActive: false,
-    careers: []
-  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/admin/ads')
-      .then((res) => res.json())
-      .then(setAds);
+    fetchAds();
   }, []);
 
-  const handleSave = async () => {
-    const method = editingAd ? 'PUT' : 'POST';
-    const body = editingAd ? { ...editingAd, ...form } : { ...form };
-    const res = await fetch('/api/admin/ads', { 
-      method, 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify(body) 
-    });
-    const data = await res.json();
-    setAds((prev) => {
-      if (editingAd) return prev.map((ad) => (ad.id === data.id ? data : ad));
-      return [...prev, data];
-    });
-    setForm({ title: '', type: 'banner', content: '', linkUrl: '', imageUrl: '', isActive: false, careers: [] });
-    setEditingAd(null);
+  const fetchAds = async () => {
+    try {
+      const res = await fetch('/api/ads');
+      const data = await res.json();
+      setAds(data);
+    } catch (error) {
+      console.error('Error fetching ads:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this ad?')) return;
-    await fetch(`/api/admin/ads?id=${id}`, { method: 'DELETE' });
-    setAds((prev) => prev.filter((ad) => ad.id !== id));
+  const toggleVisibility = async (id: number) => {
+    try {
+      const res = await fetch('/api/ads', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action: 'toggle' }),
+      });
+      if (res.ok) {
+        fetchAds(); // Refresh list
+      }
+    } catch (error) {
+      console.error('Error toggling visibility:', error);
+    }
   };
+
+  const addAd = async () => {
+    try {
+      const res = await fetch('/api/ads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'New Ad',
+          type: 'text',
+          content: 'New Ad Text',
+          visible: false,
+        }),
+      });
+      if (res.ok) {
+        fetchAds(); // Refresh list
+      }
+    } catch (error) {
+      console.error('Error adding ad:', error);
+    }
+  };
+
+  const removeAd = async (id: number) => {
+    if (!confirm('Are you sure you want to remove this ad?')) return;
+    try {
+      const res = await fetch(`/api/ads?id=${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        fetchAds(); // Refresh list
+      }
+    } catch (error) {
+      console.error('Error removing ad:', error);
+    }
+  };
+
+  const updateAd = async (id: number, updates: Partial<Ad>) => {
+    try {
+      const res = await fetch('/api/ads', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      if (res.ok) {
+        fetchAds(); // Refresh list
+      }
+    } catch (error) {
+      console.error('Error updating ad:', error);
+    }
+  };
+
+  if (loading) {
+    return <div className="max-w-4xl mx-auto py-10 px-4">Loading...</div>;
+  }
 
   return (
-    <div className="max-w-5xl mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold mb-6">Admin Ads Manager</h1>
-
-      {/* Form */}
-      <Card className="p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">
-          {editingAd ? 'Edit Ad' : 'Create New Ad'}
-        </h2>
-        
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              placeholder="Ad Title"
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="type">Type</Label>
-            <select
-              id="type"
-              className="w-full border rounded p-2"
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value })}
-            >
-              <option value="banner">Banner</option>
-              <option value="native">Native</option>
-              <option value="sidebar">Sidebar</option>
-            </select>
-          </div>
-
-          <div>
-            <Label htmlFor="linkUrl">Link URL</Label>
-            <Input
-              id="linkUrl"
-              placeholder="https://example.com"
-              value={form.linkUrl}
-              onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="imageUrl">Image URL (optional)</Label>
-            <Input
-              id="imageUrl"
-              placeholder="https://example.com/image.jpg"
-              value={form.imageUrl}
-              onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="content">Content (HTML)</Label>
-            <textarea
-              id="content"
-              className="w-full border rounded p-2 min-h-[100px]"
-              placeholder="HTML content for the ad"
-              value={form.content}
-              onChange={(e) => setForm({ ...form, content: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <Label className="font-semibold mb-2 block">Target Careers (optional)</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {careersList.map((career) => (
-                <label key={career.id} className="flex items-center space-x-2 border p-2 rounded cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="checkbox"
-                    checked={form.careers?.includes(career.id)}
-                    onChange={(e) => {
-                      const newCareers = e.target.checked
-                        ? [...(form.careers || []), career.id]
-                        : (form.careers || []).filter((c: string) => c !== career.id);
-                      setForm({ ...form, careers: newCareers });
-                    }}
-                  />
-                  <span>{career.name}</span>
-                </label>
-              ))}
+    <div className="max-w-4xl mx-auto py-10 px-4">
+      <h1 className="text-3xl font-bold mb-6">Admin Ad Panel</h1>
+      <button
+        onClick={addAd}
+        className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Add Ad
+      </button>
+      <div className="space-y-4">
+        {ads.map(ad => (
+          <div key={ad.id} className="border p-4 rounded flex justify-between items-center">
+            <div className="flex-1">
+              <h2 className="font-semibold">{ad.title} ({ad.type})</h2>
+              {ad.type === 'banner' && (
+                <img src={ad.content} alt={ad.title} className="mt-2 max-h-24" />
+              )}
+              {ad.type === 'text' && <p className="mt-2">{ad.content}</p>}
+              {ad.link && (
+                <p className="text-blue-600 underline mt-1 text-sm">{ad.link}</p>
+              )}
+            </div>
+            <div className="space-y-2 ml-4">
+              <button
+                onClick={() => toggleVisibility(ad.id)}
+                className={`px-4 py-1 rounded text-sm ${
+                  ad.visible ? 'bg-green-500 text-white' : 'bg-gray-300'
+                }`}
+              >
+                {ad.visible ? 'Visible' : 'Hidden'}
+              </button>
+              <button
+                onClick={() => removeAd(ad.id)}
+                className="px-4 py-1 rounded bg-red-500 text-white hover:bg-red-600 text-sm block w-full"
+              >
+                Remove
+              </button>
             </div>
           </div>
-
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={form.isActive}
-              onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-            />
-            <Label htmlFor="isActive" className="cursor-pointer">Active</Label>
-          </div>
-
-          <div className="flex gap-2">
-            <Button onClick={handleSave}>
-              {editingAd ? 'Update Ad' : 'Create Ad'}
-            </Button>
-            {editingAd && (
-              <Button variant="secondary" onClick={() => {
-                setEditingAd(null);
-                setForm({ title: '', type: 'banner', content: '', linkUrl: '', imageUrl: '', isActive: false, careers: [] });
-              }}>
-                Cancel
-              </Button>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      {/* Ads List */}
-      <div className="space-y-4">
-        <h2 className="text-2xl font-semibold mb-4">All Ads ({ads.length})</h2>
-        {ads.length === 0 ? (
-          <Card className="p-6 text-center text-gray-500">
-            No ads created yet. Create your first ad above.
-          </Card>
-        ) : (
-          ads.map((ad) => (
-            <Card key={ad.id} className="p-4">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h2 className="font-bold text-lg">{ad.title}</h2>
-                  <p className="text-sm text-gray-600">
-                    Type: {ad.type} | Active: {ad.isActive ? 'Yes' : 'No'}
-                    {ad.careers && ad.careers.length > 0 && (
-                      <span className="ml-2">| Careers: {ad.careers.join(', ')}</span>
-                    )}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      setEditingAd(ad);
-                      setForm(ad);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => handleDelete(ad.id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </div>
-              <div className="mt-4 border-t pt-4">
-                <strong className="text-sm text-gray-600">Preview (Admins Only)</strong>
-                <div className="mt-2">
-                  <AdBanner ad={ad} />
-                </div>
-              </div>
-            </Card>
-          ))
+        ))}
+        {ads.length === 0 && (
+          <p className="text-gray-500 text-center py-8">No ads yet. Click "Add Ad" to create one.</p>
         )}
       </div>
     </div>
