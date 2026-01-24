@@ -1,57 +1,61 @@
-import { careers, Career } from '../../../data/careers';
-import FixedImage from '../../../components/FixedImage';
+// app/careers/[career]/page.tsx
+import Image from "next/image";
+import { careers } from "@/data/careers";
 
-interface Props {
+interface CareerPageProps {
   params: { career: string };
 }
 
-export function generateStaticParams() {
-  return careers.map((career) => ({ career: career.id }));
-}
-
-export default function CareerDetailPage({ params }: Props) {
-  const career: Career | undefined = careers.find((c) => c.id === params.career);
+export default function CareerPage({ params }: CareerPageProps) {
+  const career = careers.find((c) => c.id === params.career);
 
   if (!career) {
     return (
-      <div className="p-6 text-center">
-        <h1 className="text-2xl font-bold mb-2">Career Not Found</h1>
-        <p className="text-gray-600">The career you are looking for does not exist.</p>
+      <div className="max-w-4xl mx-auto py-20 px-6">
+        <h1 className="text-3xl font-bold">Career Not Found</h1>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <FixedImage
-        src={career.image || '/placeholder.png'}
+    <div className="max-w-5xl mx-auto py-20 px-6">
+      <h1 className="text-4xl font-bold mb-6">{career.name}</h1>
+
+      <Image
+        src={career.image}
         alt={career.name}
         width={800}
-        height={400}
-        className="w-full h-64 object-cover rounded-lg mb-6"
+        height={500}
+        className="rounded-xl mb-8 object-cover"
       />
-      <h1 className="text-3xl font-bold mb-4">{career.name}</h1>
-      <p className="text-gray-700 text-lg mb-8">{career.description}</p>
 
-      {/* Employer Benefits Section */}
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4 text-blue-700">Why Employers Choose WorkVouch</h2>
-        <ul className="list-disc list-inside space-y-2 text-gray-700">
-          {career.employerBenefits.map((benefit, idx) => (
-            <li key={idx}>{benefit}</li>
-          ))}
-        </ul>
-      </section>
+      <p className="text-lg mb-10">{career.description}</p>
 
-      {/* Employee Benefits Section */}
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4 text-green-700">Benefits for Employees</h2>
-        <ul className="list-disc list-inside space-y-2 text-gray-700">
-          {career.employeeBenefits.map((benefit, idx) => (
-            <li key={idx}>{benefit}</li>
-          ))}
-        </ul>
-      </section>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
+        
+        <div>
+          <h2 className="text-2xl font-semibold mb-3 text-blue-600">
+            Why Employers Choose WorkVouch
+          </h2>
+          <ul className="list-disc ml-6 space-y-2 text-gray-700">
+            {career.employerBenefits.map((benefit, i) => (
+              <li key={i}>{benefit}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-semibold mb-3 text-green-600">
+            Why Employees Choose WorkVouch
+          </h2>
+          <ul className="list-disc ml-6 space-y-2 text-gray-700">
+            {career.employeeBenefits.map((benefit, i) => (
+              <li key={i}>{benefit}</li>
+            ))}
+          </ul>
+        </div>
+
+      </div>
     </div>
   );
 }
