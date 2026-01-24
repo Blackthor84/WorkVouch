@@ -20,10 +20,9 @@ export interface CreateReferenceInput {
 export async function createReference(input: CreateReferenceInput) {
   const user = await requireAuth()
   const supabase = await createServerClient()
-  const supabaseAny = supabase as any
 
   // Verify connection exists
-  const { data: connection } = await supabaseAny
+  const { data: connection } = await supabase
     .from('connections')
     .select('*')
     .or(
@@ -38,7 +37,7 @@ export async function createReference(input: CreateReferenceInput) {
   }
 
   // Verify job belongs to the target user
-  const { data: job } = await supabaseAny
+  const { data: job } = await supabase
     .from('jobs')
     .select('user_id')
     .eq('id', input.job_id)
@@ -49,7 +48,7 @@ export async function createReference(input: CreateReferenceInput) {
   }
 
   // Check if reference already exists for this job
-  const { data: existing } = await supabaseAny
+  const { data: existing } = await supabase
     .from('references')
     .select('id')
     .eq('from_user_id', user.id)
@@ -67,12 +66,12 @@ export async function createReference(input: CreateReferenceInput) {
   }
 
   // Create reference
-  const { data: reference, error } = await supabaseAny
+  const { data: reference, error } = await supabase
     .from('references')
-    .insert([{
+    .insert({
       ...input,
       from_user_id: user.id,
-    }])
+    } as any)
     .select()
     .single()
 
@@ -90,11 +89,10 @@ export async function createReference(input: CreateReferenceInput) {
 export async function getUserReferences(userId: string) {
   const user = await requireAuth()
   const supabase = await createServerClient()
-  const supabaseAny = supabase as any
 
   // Users can see references they gave or received
   // Employers can see public references for public jobs
-  const { data: references, error } = await supabaseAny
+  const { data: references, error } = await supabase
     .from('references')
     .select(`
       *,
@@ -119,7 +117,7 @@ export async function getUserReferences(userId: string) {
   }
 
   // Filter based on visibility rules
-  const filtered = (references as any[])?.filter((ref: any) => {
+  const filtered = references?.filter((ref: any) => {
     // User can always see references they gave or received
     if (ref.from_user_id === user.id || ref.to_user_id === user.id) {
       return true

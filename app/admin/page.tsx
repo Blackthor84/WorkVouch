@@ -95,6 +95,17 @@ export default async function AdminPanel() {
             </Link>
           </Card>
 
+          <Card className="p-6 hover:shadow-lg transition-shadow">
+            <Link href="/admin/ads" className="block">
+              <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+                Ads Manager
+              </h2>
+              <p className="text-sm text-grey-medium dark:text-gray-400">
+                Create and manage career-targeted advertisements
+              </p>
+            </Link>
+          </Card>
+
           {superAdmin && (
             <>
               <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-red-500">
