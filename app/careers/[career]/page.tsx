@@ -31,7 +31,27 @@ export default function CareerDetailPage({ params }: Props) {
         className="w-full h-64 object-cover rounded-lg mb-6"
       />
       <h1 className="text-3xl font-bold mb-4">{career.name}</h1>
-      <p className="text-gray-700 text-lg">{career.description}</p>
+      <p className="text-gray-700 text-lg mb-8">{career.description}</p>
+
+      {/* Employer Benefits Section */}
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold mb-4 text-blue-700">Why Employers Choose WorkVouch</h2>
+        <ul className="list-disc list-inside space-y-2 text-gray-700">
+          {career.employerBenefits.map((benefit, idx) => (
+            <li key={idx}>{benefit}</li>
+          ))}
+        </ul>
+      </section>
+
+      {/* Employee Benefits Section */}
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold mb-4 text-green-700">Benefits for Employees</h2>
+        <ul className="list-disc list-inside space-y-2 text-gray-700">
+          {career.employeeBenefits.map((benefit, idx) => (
+            <li key={idx}>{benefit}</li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }
