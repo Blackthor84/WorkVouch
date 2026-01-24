@@ -1,5 +1,4 @@
 import React from "react";
-import FixedImage from "@/components/FixedImage";
 import { PricingModal } from "@/components/PricingModal";
 
 interface CareerData {
@@ -182,9 +181,9 @@ export default function CareerPage({ params }: CareerPageProps) {
     <div className="max-w-5xl mx-auto p-6">
       <h1 className="text-4xl font-bold mb-6 text-blue-700">{career.name}</h1>
 
-      <FixedImage
-        src={career.image || "/placeholder.png"} // <-- fallback here
-        alt={career.name}
+      <img
+        src={career.image || "/placeholder.png"} // fallback image
+        alt={career.name || "Career image"}     // always provide alt
         width={800}
         height={400}
         className="rounded-lg mb-6 shadow-lg object-cover w-full"
