@@ -1,33 +1,32 @@
 import { notFound } from "next/navigation";
 
-// Replace this with your actual database or API call
-const careers = [
+export const careers = [
   {
-    slug: "developer",
-    name: "Developer",
-    image: "/images/developer.png",
-    description: "Build software and applications."
+    id: 'developer',
+    name: 'Software Developer',
+    image: '/images/developer.png',
+    description: 'Build software, write clean code, and solve problems.'
   },
   {
-    slug: "designer",
-    name: "Designer",
-    image: "/images/designer.png",
-    description: "Create beautiful user experiences."
+    id: 'designer',
+    name: 'Designer',
+    image: '/images/designer.png',
+    description: 'Create beautiful interfaces and amazing user experiences.'
   },
   {
-    slug: "healthcare",
-    name: "Healthcare",
-    image: "/images/healthcare.png",
-    description: "Provide care and support to patients."
+    id: 'healthcare',
+    name: 'Healthcare Professional',
+    image: '/images/healthcare.png',
+    description: 'Care for patients and improve their lives.'
   },
 ];
 
 export async function generateStaticParams() {
-  return careers.map((career) => ({ career: career.slug }));
+  return careers.map((career) => ({ career: career.id }));
 }
 
 export default function CareerPage({ params }: { params: { career: string } }) {
-  const career = careers.find((c) => c.slug === params.career);
+  const career = careers.find((c) => c.id === params.career);
 
   if (!career) return notFound();
 

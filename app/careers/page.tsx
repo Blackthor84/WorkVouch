@@ -1,23 +1,23 @@
 import Link from "next/link";
 
-const careers = [
+export const careers = [
   {
-    slug: "developer",
-    name: "Developer",
-    image: "/images/developer.png",
-    description: "Build software and applications."
+    id: 'developer',
+    name: 'Software Developer',
+    image: '/images/developer.png',
+    description: 'Build software, write clean code, and solve problems.'
   },
   {
-    slug: "designer",
-    name: "Designer",
-    image: "/images/designer.png",
-    description: "Create beautiful user experiences."
+    id: 'designer',
+    name: 'Designer',
+    image: '/images/designer.png',
+    description: 'Create beautiful interfaces and amazing user experiences.'
   },
   {
-    slug: "healthcare",
-    name: "Healthcare",
-    image: "/images/healthcare.png",
-    description: "Provide care and support to patients."
+    id: 'healthcare',
+    name: 'Healthcare Professional',
+    image: '/images/healthcare.png',
+    description: 'Care for patients and improve their lives.'
   },
 ];
 
@@ -27,7 +27,7 @@ export default function CareersList() {
       <h1 className="text-4xl font-bold mb-8">Careers</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {careers.map((career) => (
-          <Link key={career.slug} href={`/careers/${career.slug}`}>
+          <Link key={career.id} href={`/careers/${career.id}`}>
             <img
               src={career.image || "/images/placeholder.png"}
               alt={career.name}
