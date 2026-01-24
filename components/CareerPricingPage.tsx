@@ -172,6 +172,7 @@ export default function CareerPricingPage({
               priceId={selectedTier || undefined}
               userId={userId}
               userType={userType}
+              autoOpen={true}
             />
           </div>
         </div>
