@@ -1,4 +1,11 @@
-export const careers = [
+export interface Career {
+  id: string;
+  name: string;
+  image: string;
+  description: string;
+}
+
+export const careers: Career[] = [
   {
     id: 'developer',
     name: 'Software Developer',

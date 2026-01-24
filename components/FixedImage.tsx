@@ -1,19 +1,23 @@
-import Image from "next/image";
-import type { ComponentProps } from "react";
+'use client';
 
-// Use ComponentProps<typeof Image> instead of ImageProps
-// This ensures we get all Image props including alt, width, height, etc.
-export type FixedImageProps = Omit<ComponentProps<typeof Image>, "src"> & {
-  src: string;           // required
-  unoptimized?: boolean; // optional, default true
-  loading?: "lazy" | "eager"; // optional, default eager
-};
+import Image, { ImageProps } from 'next/image';
 
-export default function FixedImage({
-  src,
-  unoptimized = true,
-  loading = "eager",
-  ...props
-}: FixedImageProps) {
-  return <Image src={src} unoptimized={unoptimized} loading={loading} {...props} />;
+// We omit "src" because we want it required in our props
+export interface FixedImageProps extends Omit<ImageProps, 'src'> {
+  src: string; // make src required
+  alt: string; // make alt required
+}
+
+export default function FixedImage({ src, alt, ...props }: FixedImageProps) {
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      {...props}
+      // optional defaults for performance
+      placeholder="blur"
+      blurDataURL="/placeholder.png"
+      loading="lazy"
+    />
+  );
 }
