@@ -1,45 +1,9 @@
-import CareerCard from "@/components/CareerCard";
+import Link from "next/link";
+import { getCareers } from "@/lib/careers";
 
-const careers = [
-  { 
-    id: "security",
-    title: "Security", 
-    image: "/careers/security.jpg",
-    description: "Verified work history for security professionals"
-  },
-  { 
-    id: "healthcare",
-    title: "Healthcare", 
-    image: "/careers/healthcare.jpg",
-    description: "Trusted profiles for healthcare workers"
-  },
-  { 
-    id: "warehouse",
-    title: "Warehouse", 
-    image: "/careers/warehouse.jpg",
-    description: "Verified employment for warehouse & logistics"
-  },
-  { 
-    id: "hospitality",
-    title: "Hospitality", 
-    image: "/careers/hospitality.jpg",
-    description: "Build credibility in hospitality careers"
-  },
-  { 
-    id: "law",
-    title: "Law Enforcement", 
-    image: "/careers/law.jpg",
-    description: "Verified work history for law enforcement"
-  },
-  { 
-    id: "retail",
-    title: "Retail", 
-    image: "/careers/retail.jpg",
-    description: "Trusted profiles for retail professionals"
-  }
-];
+export default async function CareersList() {
+  const careers = await getCareers();
 
-export default function CareersPage() {
   return (
     <div className="bg-gray-50 min-h-screen py-16 px-6">
       <div className="max-w-6xl mx-auto">
@@ -49,13 +13,21 @@ export default function CareersPage() {
         
         <div className="grid md:grid-cols-3 gap-8">
           {careers.map((career) => (
-            <CareerCard
-              key={career.id}
-              title={career.title}
-              image={career.image}
-              description={career.description}
-              href={`/careers/${career.id}`}
-            />
+            <Link key={career.slug} href={`/careers/${career.slug}`}>
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-2xl transition transform hover:scale-105 cursor-pointer">
+                <img
+                  src={career.image || "/placeholder.png"}
+                  alt={career.name}
+                  className="rounded-t-lg shadow-lg object-cover w-full h-64"
+                />
+                <div className="p-6">
+                  <h2 className="text-2xl font-bold text-blue-700 mb-2">{career.name}</h2>
+                  {career.description && (
+                    <p className="text-gray-600">{career.description}</p>
+                  )}
+                </div>
+              </div>
+            </Link>
           ))}
         </div>
       </div>
