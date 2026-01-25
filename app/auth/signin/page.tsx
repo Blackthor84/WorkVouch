@@ -1,22 +1,46 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import supabase from "@/lib/supabaseClient";
 
 export default function SignIn() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) { 
-      setErrorMsg(error.message); 
-      return; 
-    }
     setErrorMsg("");
-    window.location.href = "/dashboard";
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email: email.trim(), 
+        password 
+      });
+      
+      if (error) { 
+        setErrorMsg(error.message); 
+        setLoading(false);
+        return; 
+      }
+
+      if (data.session) {
+        // Successful login
+        router.push("/dashboard");
+        router.refresh();
+      } else {
+        setErrorMsg("Login failed. Please try again.");
+        setLoading(false);
+      }
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setErrorMsg(err.message || "An unexpected error occurred");
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,9 +66,10 @@ export default function SignIn() {
         />
         <button 
           type="submit" 
-          className="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700 transition"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Sign In
+          {loading ? "Signing in..." : "Sign In"}
         </button>
       </form>
     </div>

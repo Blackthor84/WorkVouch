@@ -1,6 +1,25 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { careers } from '../data/careers';
+
+// Map career IDs to actual image filenames
+// Handles naming differences (e.g., 'law-enforcement' -> 'law', 'warehouse-logistics' -> 'warehouse')
+// Note: Files are currently .jpg, but can be renamed to .png if desired
+const getImagePath = (careerId: string): string => {
+  const imageMap: Record<string, string> = {
+    'healthcare': 'healthcare',
+    'warehouse-logistics': 'warehouse',
+    'security': 'security',
+    'retail': 'retail',
+    'law-enforcement': 'law',
+    'hospitality': 'hospitality',
+  };
+  
+  const baseName = imageMap[careerId] || careerId;
+  // Using .jpg for now (actual files), change to .png if files are renamed
+  return `/images/careers/${baseName}.jpg`;
+};
 
 export default function CareersGrid() {
   return (
@@ -9,14 +28,17 @@ export default function CareersGrid() {
         <Link
           key={career.id}
           href={`/careers/${career.id}`}
-          className="border rounded-lg p-4 text-center hover:bg-blue-50 transition shadow-md"
+          className="border rounded-lg overflow-hidden hover:shadow-lg transition"
         >
-          <img
-            src={career.image}
+          <Image
+            src={getImagePath(career.id)}
             alt={career.name}
-            className="w-full h-40 object-cover rounded-md mb-2"
+            width={400}
+            height={300}
+            className="w-full h-auto object-contain"
+            unoptimized
           />
-          <h2 className="text-xl font-semibold">{career.name}</h2>
+          <h2 className="text-xl font-semibold text-center mt-2 mb-4">{career.name}</h2>
         </Link>
       ))}
     </div>
