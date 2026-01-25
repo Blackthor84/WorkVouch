@@ -14,7 +14,7 @@ export default function CareersGrid() {
           <img
             src={career.image}
             alt={career.name}
-            className="w-full h-40 object-cover"
+            className="w-full h-32 sm:h-40 object-contain rounded-lg shadow-sm bg-gray-50"
           />
           <div className="p-4 text-center">
             <h2 className="text-xl font-semibold">{career.name}</h2>
