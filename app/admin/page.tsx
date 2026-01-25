@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { isAdmin, isSuperAdmin } from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth-config";
 import { NavbarServer } from "@/components/navbar-server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
@@ -12,10 +13,16 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function AdminPanel() {
-  const admin = await isAdmin();
-  const superAdmin = await isSuperAdmin();
+  const session = await getServerSession(authOptions);
 
-  if (!admin && !superAdmin) {
+  // Check if user is admin or superadmin
+  if (!session) {
+    redirect("/auth/signin");
+  }
+
+  const isAdmin = session.user.role === "admin" || session.user.roles?.includes("admin") || session.user.roles?.includes("superadmin");
+  
+  if (!isAdmin) {
     redirect("/auth/signin");
   }
 
@@ -34,6 +41,8 @@ export default async function AdminPanel() {
   const { data: userRoles } = await supabaseAny
     .from("user_roles")
     .select("user_id, role");
+
+  const isSuperAdmin = session.user.roles?.includes("superadmin") || false;
 
   // Create a map of user_id -> roles
   const rolesMap = new Map<string, string[]>();
@@ -106,7 +115,7 @@ export default async function AdminPanel() {
             </Link>
           </Card>
 
-          {superAdmin && (
+          {isSuperAdmin && (
             <>
               <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-red-500">
                 <Link href="/admin/superadmin" className="block">

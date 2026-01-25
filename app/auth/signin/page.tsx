@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import supabase from "@/lib/supabaseClient";
 
 export default function SignIn() {
   const router = useRouter();
@@ -17,47 +17,33 @@ export default function SignIn() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email: email.trim(), 
-        password 
+      const result = await signIn("credentials", {
+        email: email.trim(),
+        password: password,
+        redirect: false,
       });
-      
-      if (error) { 
-        setErrorMsg(error.message); 
+
+      if (result?.error) {
+        setErrorMsg("Invalid email or password");
         setLoading(false);
-        return; 
+        return;
       }
 
-      if (data.session && data.user) {
-        // Fetch user roles to determine redirect
-        const { data: rolesData, error: rolesError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', data.user.id);
+      if (result?.ok) {
+        // Fetch session to get user role for redirect
+        const sessionResponse = await fetch("/api/auth/session");
+        const session = await sessionResponse.json();
 
-        let userRoles: string[] = [];
-        if (!rolesError && rolesData) {
-          userRoles = rolesData.map((r: any) => r.role);
-        }
-
-        // Check user roles for redirect
-        const isAdmin = userRoles.includes('admin') || userRoles.includes('superadmin');
-        const isEmployer = userRoles.includes('employer');
-        
-        // Redirect based on role:
-        // 1. Admins → /admin
-        // 2. Employers → /employer/dashboard
-        // 3. Employees → /dashboard
-        if (isAdmin) {
+        // Redirect based on role
+        if (session?.user?.role === "admin") {
           router.push("/admin");
-        } else if (isEmployer) {
+        } else if (session?.user?.roles?.includes("employer")) {
           router.push("/employer/dashboard");
         } else {
-          // Regular employees go to employee dashboard
-          router.push("/dashboard");
+          // Regular users go to homepage
+          router.push("/");
         }
         
-        // Force page refresh to ensure session is loaded
         router.refresh();
       } else {
         setErrorMsg("Login failed. Please try again.");

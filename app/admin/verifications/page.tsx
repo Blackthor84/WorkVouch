@@ -1,17 +1,13 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser, isAdmin } from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth-config";
 import { NavbarServer } from "@/components/navbar-server";
 import { VerificationsList } from "@/components/workvouch/verifications-list";
 
 export default async function AdminVerificationsPage() {
-  const user = await getCurrentUser();
+  const session = await getServerSession(authOptions);
 
-  if (!user) {
-    redirect("/auth/signin");
-  }
-
-  const admin = await isAdmin();
-  if (!admin) {
+  if (!session || session.user.role !== "admin") {
     redirect("/auth/signin");
   }
 

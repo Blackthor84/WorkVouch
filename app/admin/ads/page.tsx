@@ -1,11 +1,12 @@
 import { redirect } from 'next/navigation';
-import { isAdmin } from '@/lib/auth';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth-config';
 import AdsManager from '@/components/AdsManager';
 
 export default async function AdminAdsPage() {
-  const admin = await isAdmin();
+  const session = await getServerSession(authOptions);
   
-  if (!admin) {
+  if (!session || session.user.role !== 'admin') {
     redirect('/auth/signin');
   }
   

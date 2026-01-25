@@ -1,13 +1,19 @@
 import { redirect } from "next/navigation";
-import { isAdmin, isSuperAdmin } from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth-config";
 import { NavbarServer } from "@/components/navbar-server";
 import { AdminUsersList } from "@/components/admin/users-list";
 
 export default async function AdminUsers() {
-  const admin = await isAdmin();
-  const superAdmin = await isSuperAdmin();
+  const session = await getServerSession(authOptions);
 
-  if (!admin && !superAdmin) {
+  if (!session) {
+    redirect("/auth/signin");
+  }
+
+  const isAdmin = session.user.role === "admin" || session.user.roles?.includes("admin") || session.user.roles?.includes("superadmin");
+  
+  if (!isAdmin) {
     redirect("/auth/signin");
   }
 

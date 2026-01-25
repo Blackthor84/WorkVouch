@@ -1,4 +1,2 @@
-// This file is not used - Supabase handles authentication
-// Keeping for reference but not importing anywhere
-
-// DO NOT IMPORT THIS FILE - Use Supabase auth instead
+// Export authOptions for use in server components
+export { authOptions } from "@/app/api/auth/[...nextauth]/route";
