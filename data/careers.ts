@@ -1,80 +1,126 @@
 export const careers = [
   {
-    id: "healthcare",
-    name: "Healthcare",
-    image: "/images/careers/healthcare.jpg",
+    id: 'healthcare',
+    name: 'Healthcare',
+    image: '/images/healthcare-placeholder.png',
+    heroText: 'Verified healthcare experience at your fingertips. Build trust, prove your skills, and open doors to higher-paying opportunities.',
     whyForEmployees: [
-      "Verify medical experience instantly.",
-      "Increase hiring trust for hospitals and clinics."
+      'Instantly verify your nursing, medical, or administrative experience to stand out.',
+      'Showcase certifications, specialties, and continuing education to boost credibility.',
+      'Improve your chances for promotions or higher-paying positions.',
+      'Build a trusted digital resume recognized across hospitals and clinics.',
+      'Access premium healthcare job listings exclusive to verified professionals.',
+      'Gain peace of mind knowing your experience is secure, verified, and portable.',
     ],
     whyForEmployers: [
-      "Hire qualified staff faster.",
-      "Reduce turnover by validating past experience."
-    ]
+      'Quickly identify qualified staff with verified experience and certifications.',
+      'Reduce onboarding errors and avoid hiring risks with trusted verification.',
+      'Ensure patient care quality by hiring employees with a proven track record.',
+      'Lower turnover costs by selecting staff with verified reliability.',
+      'Streamline temporary staffing and permanent placement decisions.',
+      'Strengthen your facility\'s reputation by hiring trusted professionals.',
+    ],
   },
   {
-    id: "law-enforcement",
-    name: "Law Enforcement",
-    image: "/images/careers/law.jpg",
+    id: 'warehouse-logistics',
+    name: 'Warehouse & Logistics',
+    image: '/images/warehouse-placeholder.png',
+    heroText: 'Hire and get hired with confidence in warehouse and logistics roles. Verify skills, reduce risk, and streamline operations.',
     whyForEmployees: [
-      "Show proven patrol and training experience.",
-      "Stand out for specialized positions."
+      'Verify your forklift operation, inventory, and logistics experience instantly.',
+      'Demonstrate efficiency, safety, and reliability to prospective employers.',
+      'Stand out for higher-paying warehouse roles with verified credentials.',
+      'Build a trusted profile that increases chances for promotions.',
+      'Access premium job listings that prioritize verified workers.',
     ],
     whyForEmployers: [
-      "Reliable screening for sensitive roles.",
-      "Verify real field experience."
-    ]
+      'Hire reliable warehouse and logistics staff with verified experience.',
+      'Reduce workplace accidents and inefficiencies by confirming employee skills.',
+      'Streamline hiring decisions for critical supply chain roles.',
+      'Decrease turnover by selecting pre-verified, dependable staff.',
+      'Optimize operations and reduce training costs by hiring experienced personnel.',
+      'Ensure compliance and safety standards are consistently met.',
+    ],
   },
   {
-    id: "security",
-    name: "Security",
-    image: "/images/careers/security.jpg",
+    id: 'security',
+    name: 'Security',
+    image: '/images/security-placeholder.png',
+    heroText: 'Build trust in security roles. Prove your certifications, training, and past deployments to unlock premium opportunities.',
     whyForEmployees: [
-      "Prove certifications and deployments.",
-      "Qualify for higher-end contracts."
+      'Showcase verified training, certifications, and prior deployments.',
+      'Gain access to premium security positions faster.',
+      'Demonstrate reliability for leadership or high-stakes assignments.',
+      'Build a trusted professional profile recognized by top security firms.',
+      'Boost chances for promotions or special assignment consideration.',
     ],
     whyForEmployers: [
-      "Streamline your hiring verification.",
-      "Reduce risk of false credentials."
-    ]
+      'Hire verified security professionals for sensitive assignments.',
+      'Reduce fraud risk from unverifiable experience.',
+      'Quickly screen candidates with proven track records and certifications.',
+      'Improve operational safety and reduce liability exposure.',
+      'Ensure your team consists of dependable and trusted personnel.',
+      'Streamline staffing for temporary or long-term contracts.',
+    ],
   },
   {
-    id: "hospitality",
-    name: "Hospitality",
-    image: "/images/careers/hospitality.jpg",
+    id: 'retail',
+    name: 'Retail',
+    image: '/images/retail-placeholder.png',
+    heroText: 'Stand out in retail or hire trusted, skilled employees. WorkVouch proves experience, builds trust, and drives results.',
     whyForEmployees: [
-      "Display verified service experience.",
-      "Increase chances of reputable offers."
+      'Demonstrate verified sales, customer service, and managerial experience.',
+      'Stand out to top retail brands for higher-paying or specialized roles.',
+      'Showcase achievements like sales targets, team leadership, or awards.',
+      'Build a professional reputation recognized across the retail industry.',
+      'Access opportunities for promotions or regional store leadership roles.',
     ],
     whyForEmployers: [
-      "Hire staff with proven skill.",
-      "Improve customer satisfaction."
-    ]
+      'Hire staff with proven retail experience and measurable performance.',
+      'Reduce training costs by selecting employees with verified skills.',
+      'Ensure customer satisfaction by staffing experienced, trusted employees.',
+      'Quickly identify candidates ready for management or specialized roles.',
+      'Build a reliable, high-performing retail team faster.',
+    ],
   },
   {
-    id: "warehouse-logistics",
-    name: "Warehouse & Logistics",
-    image: "/images/careers/warehouse.jpg",
+    id: 'law-enforcement',
+    name: 'Law Enforcement',
+    image: '/images/law-enforcement-placeholder.png',
+    heroText: 'Verify and highlight your law enforcement experience, or hire trusted officers quickly and confidently.',
     whyForEmployees: [
-      "Show verified forklift and logistics skills.",
-      "Access better-paying roles."
+      'Showcase verified patrol, investigative, or leadership experience.',
+      'Stand out for promotions, specialized assignments, or interdepartment transfers.',
+      'Build a trusted professional profile recognized by agencies.',
+      'Demonstrate training certifications, de-escalation skills, and leadership roles.',
+      'Access exclusive opportunities for advanced positions and federal assignments.',
     ],
     whyForEmployers: [
-      "Hire reliable logistics workers.",
-      "Reduce safety incidents."
-    ]
+      'Trust verified officers for sensitive or high-stakes positions.',
+      'Streamline hiring and background checks.',
+      'Reduce risk by confirming credentials, training, and work history.',
+      'Quickly fill specialized roles with pre-verified candidates.',
+      'Build a capable, reliable force with trusted personnel.',
+    ],
   },
   {
-    id: "retail",
-    name: "Retail",
-    image: "/images/careers/retail.jpg",
+    id: 'hospitality',
+    name: 'Hospitality',
+    image: '/images/hospitality-placeholder.png',
+    heroText: 'Deliver exceptional guest experiences. Prove your hospitality skills or hire trusted staff with WorkVouch.',
     whyForEmployees: [
-      "Verify sales and customer service experience.",
-      "Stand out to big retail chains."
+      'Show proven experience in hotels, restaurants, or event management.',
+      'Highlight achievements such as awards, certifications, or customer satisfaction metrics.',
+      'Stand out to top hospitality brands and luxury venues.',
+      'Build a trusted profile recognized across hotels, resorts, and restaurants.',
+      'Access premium opportunities for higher-paying or leadership roles.',
     ],
     whyForEmployers: [
-      "Hire real skilled workers.",
-      "Reduce training costs."
-    ]
-  }
+      'Hire staff with verified hospitality experience and proven skill sets.',
+      'Improve guest satisfaction by staffing trusted and competent personnel.',
+      'Reduce hiring risks and streamline training costs.',
+      'Quickly identify top candidates for leadership or specialized roles.',
+      'Build a reliable team that enhances brand reputation.',
+    ],
+  },
 ];
