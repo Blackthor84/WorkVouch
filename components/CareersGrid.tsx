@@ -30,15 +30,17 @@ export default function CareersGrid() {
           href={`/careers/${career.id}`}
           className="border rounded-lg overflow-hidden hover:shadow-lg transition"
         >
-          <Image
-            src={getImagePath(career.id)}
-            alt={career.name}
-            width={400}
-            height={300}
-            className="w-full h-auto object-contain"
-            unoptimized
-          />
-          <h2 className="text-xl font-semibold text-center mt-2 mb-4">{career.name}</h2>
+          <div className="w-full h-48 sm:h-56 md:h-64 bg-gray-50 flex items-center justify-center">
+            <Image
+              src={getImagePath(career.id)}
+              alt={career.name}
+              width={400}
+              height={300}
+              className="w-full h-full object-contain p-2"
+              unoptimized
+            />
+          </div>
+          <h2 className="text-xl font-semibold text-center mt-2 mb-4 px-2">{career.name}</h2>
         </Link>
       ))}
     </div>

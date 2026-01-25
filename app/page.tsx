@@ -9,7 +9,7 @@ export default function Home() {
         Build trust, verify experience, and hire with confidence. WorkVouch connects employers with reliable staff and helps employees showcase their verified career experience.
       </p>
 
-      {/* Only show active ads */}
+      {/* Only show active ads (no career targeting on homepage) */}
       <ActiveAds />
 
       <CareersGrid />
