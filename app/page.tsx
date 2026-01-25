@@ -1,4 +1,5 @@
 import CareersGrid from '../components/CareersGrid';
+import ActiveAds from '../components/ActiveAds';
 
 export default function Home() {
   return (
@@ -8,12 +9,10 @@ export default function Home() {
         Build trust, verify experience, and hire with confidence. WorkVouch connects employers with reliable staff and helps employees showcase their verified career experience.
       </p>
 
-      <CareersGrid />
+      {/* Only show active ads */}
+      <ActiveAds />
 
-      {/* Placeholder for ads (invisible for visitors) */}
-      <div className="hidden" id="admin-ads-panel">
-        <p>Admin Ad System Goes Here</p>
-      </div>
+      <CareersGrid />
     </div>
   );
 }
