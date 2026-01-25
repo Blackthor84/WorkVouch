@@ -120,10 +120,63 @@ export default function ClientComponent() {
 }
 ```
 
+## 🔐 Password Hashing with bcrypt
+
+The NextAuth config supports **three authentication methods**:
+
+1. **Supabase Auth** (Primary) - Works with existing users in Supabase
+2. **Dummy Users Array** (Fallback) - For testing with bcrypt-hashed passwords
+3. **Custom Database Table** (Optional) - Use `auth_users` table with bcrypt
+
+### To Hash Passwords for Dummy Users:
+
+```bash
+# Method 1: Using the provided script
+npx tsx scripts/hash-password.ts "your-password-here"
+
+# Method 2: Using Node.js directly
+node -e "const bcrypt = require('bcryptjs'); console.log(bcrypt.hashSync('your-password', 10));"
+```
+
+### Example: Adding a Test Admin User
+
+1. Hash the password:
+   ```bash
+   npx tsx scripts/hash-password.ts "admin123"
+   ```
+
+2. Copy the hash and update `app/api/auth/[...nextauth]/route.ts`:
+   ```typescript
+   const dummyUsers = [
+     {
+       id: "1",
+       email: "admin@example.com",
+       password: "$2a$10$YOUR_HASHED_PASSWORD_HERE", // Paste hash here
+       role: "admin",
+     },
+   ];
+   ```
+
+### Using a Custom Database Table
+
+To use bcrypt with a custom Supabase table, uncomment the "Method 3" section in the authorize function and create an `auth_users` table:
+
+```sql
+CREATE TABLE public.auth_users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  role TEXT DEFAULT 'user',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
 ## ⚠️ Important Notes
 
-- NextAuth authenticates against **Supabase Auth** (existing credentials work)
-- User roles are fetched from **Supabase `user_roles` table**
+- NextAuth authenticates against **Supabase Auth** first (existing credentials work)
+- Falls back to **bcrypt verification** for dummy users or custom tables
+- User roles are fetched from **Supabase `user_roles` table** (for Supabase Auth users)
 - Sessions are managed by **NextAuth** (not Supabase sessions)
 - All existing Supabase users can log in with NextAuth
 - Admin role is determined by `admin` or `superadmin` in `user_roles` table
+- **Dummy users are for testing only** - use Supabase Auth or a database table in production

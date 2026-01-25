@@ -1,10 +1,28 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { createClient } from "@supabase/supabase-js";
+import bcrypt from "bcryptjs";
 
 // Supabase client for authentication
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+// Dummy users with bcrypt hashed passwords (for testing/fallback)
+// In production, store these in your database
+const dummyUsers = [
+  {
+    id: "1",
+    email: "nicoleanneaglin@gmail.com",
+    password: "$2a$10$XXXXXXXXXXXXXXXXXXXXXXXXXXXX", // Replace with actual bcrypt hash
+    role: "admin",
+  },
+  {
+    id: "2",
+    email: "user@example.com",
+    password: "$2a$10$YYYYYYYYYYYYYYYYYYYYYYYYYYYY", // Replace with actual bcrypt hash
+    role: "user",
+  },
+];
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -19,44 +37,84 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        const email = credentials.email.trim();
+
         try {
-          // Use Supabase Auth to verify credentials
+          // Method 1: Try Supabase Auth first (for existing users)
           const supabase = createClient(supabaseUrl, supabaseAnonKey);
           
           const { data, error } = await supabase.auth.signInWithPassword({
-            email: credentials.email.trim(),
+            email: email,
             password: credentials.password,
           });
 
-          if (error || !data.user) {
-            console.error("Auth error:", error);
-            return null;
+          if (!error && data.user) {
+            // Supabase Auth successful - fetch roles
+            const supabaseAny = supabase as any;
+            const { data: rolesData } = await supabaseAny
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", data.user.id);
+
+            let userRoles: string[] = [];
+            if (rolesData) {
+              userRoles = rolesData.map((r: any) => r.role);
+            }
+
+            const isAdmin = userRoles.includes("admin") || userRoles.includes("superadmin");
+            const role = isAdmin ? "admin" : "user";
+
+            return {
+              id: data.user.id,
+              email: data.user.email!,
+              name: data.user.user_metadata?.full_name || data.user.email,
+              role: role,
+              roles: userRoles,
+            };
           }
 
-          // Fetch user roles from Supabase
+          // Method 2: Fallback to bcrypt verification (for dummy users or custom table)
+          // Check dummy users array
+          const dummyUser = dummyUsers.find((u) => u.email === email);
+          if (dummyUser) {
+            // Verify password with bcrypt
+            const isValid = await bcrypt.compare(credentials.password, dummyUser.password);
+            if (isValid) {
+              return {
+                id: dummyUser.id,
+                email: dummyUser.email,
+                name: dummyUser.email,
+                role: dummyUser.role,
+                roles: [dummyUser.role],
+              };
+            }
+          }
+
+          // Method 3: Check custom auth_users table in Supabase (if you create one)
+          // Uncomment and customize if you want to use a custom table with bcrypt
+          /*
           const supabaseAny = supabase as any;
-          const { data: rolesData } = await supabaseAny
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", data.user.id);
+          const { data: customUser } = await supabaseAny
+            .from("auth_users")
+            .select("id, email, password_hash, role")
+            .eq("email", email)
+            .single();
 
-          let userRoles: string[] = [];
-          if (rolesData) {
-            userRoles = rolesData.map((r: any) => r.role);
+          if (customUser) {
+            const isValid = await bcrypt.compare(credentials.password, customUser.password_hash);
+            if (isValid) {
+              return {
+                id: customUser.id,
+                email: customUser.email,
+                name: customUser.email,
+                role: customUser.role || "user",
+                roles: [customUser.role || "user"],
+              };
+            }
           }
+          */
 
-          // Determine role (admin or user)
-          const isAdmin = userRoles.includes("admin") || userRoles.includes("superadmin");
-          const role = isAdmin ? "admin" : "user";
-
-          // Return user object for NextAuth session
-          return {
-            id: data.user.id,
-            email: data.user.email!,
-            name: data.user.user_metadata?.full_name || data.user.email,
-            role: role,
-            roles: userRoles, // Store all roles for reference
-          };
+          return null;
         } catch (error) {
           console.error("Authorization error:", error);
           return null;
