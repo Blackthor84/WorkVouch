@@ -16,7 +16,7 @@ export default async function AdminPanel() {
   const superAdmin = await isSuperAdmin();
 
   if (!admin && !superAdmin) {
-    redirect("/dashboard");
+    redirect("/auth/signin");
   }
 
   // Get all users with their roles

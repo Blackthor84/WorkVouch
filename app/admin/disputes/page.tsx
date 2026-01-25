@@ -12,7 +12,7 @@ export default async function AdminDisputesPage() {
 
   const admin = await isAdmin();
   if (!admin) {
-    redirect("/dashboard");
+    redirect("/auth/signin");
   }
 
   return (

@@ -6,7 +6,7 @@ export default async function AdminAdsPage() {
   const admin = await isAdmin();
   
   if (!admin) {
-    redirect('/dashboard');
+    redirect('/auth/signin');
   }
   
   return (

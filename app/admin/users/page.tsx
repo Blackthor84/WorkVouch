@@ -8,7 +8,7 @@ export default async function AdminUsers() {
   const superAdmin = await isSuperAdmin();
 
   if (!admin && !superAdmin) {
-    redirect("/dashboard");
+    redirect("/auth/signin");
   }
 
   return (

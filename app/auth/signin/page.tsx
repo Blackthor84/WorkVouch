@@ -28,9 +28,36 @@ export default function SignIn() {
         return; 
       }
 
-      if (data.session) {
-        // Successful login
-        router.push("/dashboard");
+      if (data.session && data.user) {
+        // Fetch user roles to determine redirect
+        const { data: rolesData, error: rolesError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id);
+
+        let userRoles: string[] = [];
+        if (!rolesError && rolesData) {
+          userRoles = rolesData.map((r: any) => r.role);
+        }
+
+        // Check user roles for redirect
+        const isAdmin = userRoles.includes('admin') || userRoles.includes('superadmin');
+        const isEmployer = userRoles.includes('employer');
+        
+        // Redirect based on role:
+        // 1. Admins → /admin
+        // 2. Employers → /employer/dashboard
+        // 3. Employees → /dashboard
+        if (isAdmin) {
+          router.push("/admin");
+        } else if (isEmployer) {
+          router.push("/employer/dashboard");
+        } else {
+          // Regular employees go to employee dashboard
+          router.push("/dashboard");
+        }
+        
+        // Force page refresh to ensure session is loaded
         router.refresh();
       } else {
         setErrorMsg("Login failed. Please try again.");
