@@ -45,8 +45,7 @@ export function EmployerBilling() {
     );
   }
 
-  const isPro =
-    subscription?.tier === "emp_pro" || subscription?.tier === "emp_enterprise";
+  const isPro = subscription?.tier === "emp_pro";
   const isActive =
     subscription?.status === "active" || subscription?.status === "trialing";
 

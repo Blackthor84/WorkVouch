@@ -351,12 +351,6 @@ function getEmployerFeaturesForTier(tier: string): string[] {
       "ATS integrations",
       "Team management tools",
     ],
-    emp_enterprise: [
-      "Unlimited lookups",
-      "Custom API access",
-      "Turnover insights",
-      "Dedicated account support",
-    ],
   };
   return features[tier] || [];
 }

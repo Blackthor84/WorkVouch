@@ -66,13 +66,10 @@ export async function GET(req: NextRequest) {
 
     const employerAccountTyped = employerAccount as EmployerAccountRow;
 
-    // Check if user has Pro or Enterprise plan
-    if (
-      employerAccountTyped.plan_tier !== "pro" &&
-      employerAccountTyped.plan_tier !== "enterprise"
-    ) {
+    // Check if user has Pro plan
+    if (employerAccountTyped.plan_tier !== "pro") {
       return NextResponse.json(
-        { error: "This feature requires Pro or Enterprise plan" },
+        { error: "This feature requires Pro plan" },
         { status: 403 },
       );
     }

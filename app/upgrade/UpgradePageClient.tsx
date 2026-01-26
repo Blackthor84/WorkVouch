@@ -56,7 +56,7 @@ export default function UpgradePageClient() {
     }
   };
 
-  if (!plan || !["pro", "enterprise"].includes(plan)) {
+  if (!plan || plan !== "pro") {
     return (
       <div className="min-h-screen bg-background dark:bg-[#0D1117] flex items-center justify-center">
         <div className="text-center">
@@ -81,7 +81,7 @@ export default function UpgradePageClient() {
     <div className="min-h-screen bg-background dark:bg-[#0D1117] flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white dark:bg-[#1A1F2B] rounded-2xl shadow-lg p-8">
         <h1 className="text-2xl font-bold mb-4 text-grey-dark dark:text-gray-200">
-          Upgrade to {plan === "pro" ? "Professional" : "Enterprise"}
+          Upgrade to Professional
         </h1>
         <p className="text-grey-medium dark:text-gray-400 mb-6">
           Enter your email to continue with the upgrade process.

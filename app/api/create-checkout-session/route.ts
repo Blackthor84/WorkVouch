@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /**
- * Alternative API route that accepts tier names (Basic, Pro, Enterprise)
+ * Alternative API route that accepts tier names (Basic, Pro)
  * and maps them to Stripe Price IDs.
  * 
  * This route is compatible with the simpler PricingModal implementation.
@@ -35,14 +35,16 @@ export async function POST(req: NextRequest) {
     const priceMap: Record<string, string> = {
       Basic: process.env.STRIPE_PRICE_BASIC || "price_basic_id",
       Pro: process.env.STRIPE_PRICE_PRO || "price_pro_id",
-      Enterprise: process.env.STRIPE_PRICE_ENTERPRISE || "price_enterprise_id",
+      Starter: process.env.STRIPE_PRICE_STARTER || "price_starter_id",
+      Team: process.env.STRIPE_PRICE_TEAM || "price_team_id",
+      "Security Bundle": process.env.STRIPE_PRICE_SECURITY_BUNDLE || "price_security_bundle_id",
     };
 
     const priceId = priceMap[tier as string];
 
     if (!priceId || priceId.startsWith("price_") === false) {
       return NextResponse.json(
-        { error: `Invalid tier: ${tier}. Valid tiers: Basic, Pro, Enterprise` },
+        { error: `Invalid tier: ${tier}. Valid tiers: Basic, Pro, Starter, Team, Security Bundle` },
         { status: 400 },
       );
     }

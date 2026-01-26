@@ -117,58 +117,6 @@ export default function SubscriptionPage() {
               </Button>
             </Card>
 
-            {/* Enterprise Plan */}
-            <Card className="p-8 relative border-2 border-blue-500 dark:border-blue-400">
-              {currentPlan === "enterprise" && (
-                <Badge variant="success" className="absolute top-4 right-4">
-                  Current Plan
-                </Badge>
-              )}
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                <Badge variant="info" className="px-3 py-1">
-                  Popular
-                </Badge>
-              </div>
-              <h2 className="text-2xl font-semibold mb-4 text-grey-dark dark:text-gray-200">
-                Enterprise
-              </h2>
-              <p className="text-4xl font-bold mb-4 text-grey-dark dark:text-gray-200">
-                $199
-                <span className="text-lg text-grey-medium dark:text-gray-400">
-                  /mo
-                </span>
-              </p>
-              <ul className="space-y-3 mb-6">
-                {[
-                  "Everything in Pro",
-                  "Bulk verification tools",
-                  "Admin dashboard",
-                  "Exportable trust reports",
-                  "API access + priority support",
-                ].map((feature) => (
-                  <li key={feature} className="flex items-start gap-2">
-                    <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-grey-dark dark:text-gray-300">
-                      {feature}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <Button
-                onClick={() => handleUpgrade("enterprise")}
-                disabled={
-                  loading === "enterprise" || currentPlan === "enterprise"
-                }
-                className="w-full"
-                variant={currentPlan === "enterprise" ? "secondary" : "primary"}
-              >
-                {loading === "enterprise"
-                  ? "Processing..."
-                  : currentPlan === "enterprise"
-                    ? "Current Plan"
-                    : "Upgrade to Enterprise"}
-              </Button>
-            </Card>
           </div>
         )}
 
