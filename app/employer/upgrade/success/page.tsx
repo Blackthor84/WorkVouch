@@ -9,11 +9,10 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export default function UpgradeSuccessPage({
-  searchParams,
-}: {
-  searchParams: { session_id?: string };
-}) {
+export default async function UpgradeSuccessPage(props: any) {
+  const searchParams = await props.searchParams;
+  const session_id = searchParams?.session_id;
+
   return (
     <>
       <NavbarServer />
@@ -29,9 +28,9 @@ export default function UpgradeSuccessPage({
             Your account has been upgraded. You now have access to all
             Professional or Enterprise features.
           </p>
-          {searchParams.session_id && (
+          {session_id && (
             <p className="text-xs text-grey-medium dark:text-gray-500 mb-6">
-              Session ID: {searchParams.session_id}
+              Session ID: {session_id}
             </p>
           )}
           <div className="space-y-3">
