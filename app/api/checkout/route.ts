@@ -35,10 +35,8 @@ import { NextRequest, NextResponse } from "next/server";
  * }
  */
 // Initialize Stripe client
-// Note: Use a stable API version. "2025-12-15.clover" may not exist yet.
-// Using the latest stable version instead.
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-04-10", // Stable API version
+  apiVersion: "2025-12-15.clover",
 });
 
 export async function POST(req: NextRequest) {
