@@ -7,19 +7,21 @@ import Link from "next/link";
 import CareersGrid from "@/components/CareersGrid";
 
 export default function PreviewOnlyPage() {
-  const { data: session, status } = useSession();
+  const session = useSession();
   const router = useRouter();
+  const status = session?.status || "loading";
+  const user = session?.data?.user || null;
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/signin");
-    } else if (status === "authenticated" && session?.user) {
-      const isBeta = session.user.role === "beta" || session.user.roles?.includes("beta");
+    } else if (status === "authenticated" && user) {
+      const isBeta = user.role === "beta" || user.roles?.includes("beta");
       if (!isBeta) {
         router.push("/dashboard");
       }
     }
-  }, [session, status, router]);
+  }, [user, status, router]);
 
   if (status === "loading") {
     return (
@@ -29,7 +31,7 @@ export default function PreviewOnlyPage() {
     );
   }
 
-  const isBeta = session?.user?.role === "beta" || session?.user?.roles?.includes("beta");
+  const isBeta = user?.role === "beta" || user?.roles?.includes("beta");
 
   if (!isBeta) {
     return null; // Will redirect

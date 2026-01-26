@@ -10,10 +10,10 @@ export function HomepageNavbar() {
         <Link href="/" className="flex items-center m-0 p-0">
           <div className="relative h-40 w-auto max-w-[560px] m-0 p-0">
             <Image
-              src="/images/workvouch-logo.png"
+              src="/images/workvouch.png"
               alt="WorkVouch Logo"
-              width={560}
-              height={160}
+              width={200}
+              height={50}
               className="h-full w-auto object-contain m-0 p-0 mix-blend-multiply dark:mix-blend-screen"
               style={{
                 backgroundColor: "transparent",
@@ -22,7 +22,6 @@ export function HomepageNavbar() {
                 filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))",
               }}
               priority
-              unoptimized
             />
           </div>
         </Link>

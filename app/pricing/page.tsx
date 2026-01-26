@@ -169,13 +169,14 @@ const faqItems = [
 ];
 
 export default function PricingPage() {
-  const { data: session } = useSession();
+  const session = useSession();
   const [activeTab, setActiveTab] = useState<"employee" | "employer">("employee");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // Check if user is beta
-  const isBeta = session?.user?.role === "beta" || 
-                 (Array.isArray(session?.user?.roles) && session?.user?.roles.includes("beta"));
+  const user = session?.data?.user || null;
+  const isBeta = user?.role === "beta" || 
+                 (Array.isArray(user?.roles) && user?.roles.includes("beta"));
 
   const handleSubscribe = async (tier: PricingTier) => {
     try {

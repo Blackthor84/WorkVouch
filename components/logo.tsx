@@ -27,13 +27,12 @@ export function Logo({
     <Link href="/" className={`flex items-center ${className}`}>
       <div className={`relative ${sizeClasses[size]} flex-shrink-0`}>
         <Image
-          src="/images/workvouch-logo.png"
+          src="/images/workvouch.png"
           alt="WorkVouch Logo"
-          width={size === "hero" ? 16128 : size === "xl" ? 560 : 400}
-          height={size === "hero" ? 4608 : size === "xl" ? 160 : 120}
+          width={200}
+          height={50}
           className="h-full w-auto object-contain mix-blend-multiply dark:mix-blend-screen"
           priority
-          unoptimized
           style={{
             backgroundColor: "transparent",
             filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))",

@@ -1,6 +1,7 @@
 "use client";
 
 import Layout from "./Layout";
+import { Providers } from "./providers";
 
 export function LayoutWrapper({
   children,
@@ -11,5 +12,9 @@ export function LayoutWrapper({
   user: any;
   roles: string[];
 }) {
-  return <Layout>{children}</Layout>;
+  return (
+    <Providers>
+      <Layout>{children}</Layout>
+    </Providers>
+  );
 }

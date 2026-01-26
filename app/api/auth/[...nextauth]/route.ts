@@ -142,12 +142,14 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
+      // Ensure session and user exist before accessing
+      if (session?.user && token?.sub) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.roles = token.roles as string[];
         session.user.email = token.email as string;
       }
+      // Always return session (required for NextAuth)
       return session;
     },
     async redirect({ url, baseUrl }) {
