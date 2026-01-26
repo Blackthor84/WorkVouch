@@ -6,14 +6,8 @@ import { type Industry } from "@/lib/constants/industries";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-interface PageProps {
-  params: {
-    industry: Industry;
-  };
-}
-
-export default function IndustrySettingStep({ params }: PageProps) {
-  const industry = params.industry;
+export default async function IndustrySettingStep(props: any) {
+  const { industry } = await props.params;
 
   return (
     <>

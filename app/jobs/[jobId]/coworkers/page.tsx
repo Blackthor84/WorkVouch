@@ -7,17 +7,14 @@ import {
 import { NavbarServer } from "@/components/navbar-server";
 import { CoworkerList } from "@/components/coworker-list";
 
-export default async function CoworkersPage({
-  params,
-}: {
-  params: { jobId: string };
-}) {
+export default async function CoworkersPage(props: any) {
+  const { jobId } = await props.params;
   const user = await getCurrentUser();
   if (!user) {
     redirect("/auth/signin");
   }
 
-  const potentialCoworkers = await findPotentialCoworkers(params.jobId);
+  const potentialCoworkers = await findPotentialCoworkers(jobId);
 
   return (
     <>

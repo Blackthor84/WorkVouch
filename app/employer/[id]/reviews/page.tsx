@@ -8,14 +8,8 @@
 import { ReviewForm, ReviewList } from "@/components/reviews";
 import { createServerSupabase } from "@/lib/supabase/server";
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default async function EmployerReviewsPage({ params }: PageProps) {
-  const employerId = params.id;
+export default async function EmployerReviewsPage(props: any) {
+  const { id: employerId } = await props.params;
   const supabase = createServerSupabase();
   const supabaseAny = supabase as any;
 

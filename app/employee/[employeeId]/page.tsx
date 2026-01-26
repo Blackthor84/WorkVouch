@@ -2,14 +2,9 @@ import { createServerSupabase } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 
-interface EmployeePageProps {
-  params: Promise<{ employeeId: string }>;
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
-}
-
-export default async function EmployeePage({ params, searchParams }: EmployeePageProps) {
-  const { employeeId } = await params;
-  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+export default async function EmployeePage(props: any) {
+  const { employeeId } = await props.params;
+  const resolvedSearchParams = props.searchParams ? await props.searchParams : undefined;
 
   try {
     const supabase = createServerSupabase();

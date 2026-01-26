@@ -4,11 +4,8 @@ import { getCandidateProfileForEmployer } from "@/lib/actions/employer/candidate
 import { NavbarServer } from "@/components/navbar-server";
 import { CandidateProfileViewer } from "@/components/employer/candidate-profile-viewer";
 
-export default async function CandidateProfilePage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function CandidateProfilePage(props: any) {
+  const { id } = await props.params;
   const user = await getCurrentUser();
 
   if (!user) {
@@ -23,7 +20,7 @@ export default async function CandidateProfilePage({
 
   let candidateData;
   try {
-    candidateData = await getCandidateProfileForEmployer(params.id);
+    candidateData = await getCandidateProfileForEmployer(id);
   } catch (error: any) {
     return (
       <>

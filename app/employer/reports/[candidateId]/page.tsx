@@ -4,11 +4,8 @@ import { NavbarServer } from "@/components/navbar-server";
 import { getCandidateReport } from "@/lib/actions/employer-purchases";
 import { CandidateReportView } from "@/components/candidate-report-view";
 
-export default async function CandidateReportPage({
-  params,
-}: {
-  params: { candidateId: string };
-}) {
+export default async function CandidateReportPage(props: any) {
+  const { candidateId } = await props.params;
   const user = await getCurrentUser();
 
   if (!user) {
@@ -23,7 +20,7 @@ export default async function CandidateReportPage({
 
   let report;
   try {
-    report = await getCandidateReport(params.candidateId);
+    report = await getCandidateReport(candidateId);
   } catch (error: any) {
     return (
       <>

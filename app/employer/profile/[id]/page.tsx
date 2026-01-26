@@ -7,11 +7,8 @@ import { EmployerSidebar } from "@/components/employer/employer-sidebar";
 import { CandidateProfileViewer } from "@/components/employer/candidate-profile-viewer";
 import { PublicProfileView } from "@/components/public-profile-view";
 
-export default async function EmployerCandidateProfilePage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function EmployerCandidateProfilePage(props: any) {
+  const { id } = await props.params;
   const user = await getCurrentUser();
 
   if (!user) {
@@ -27,7 +24,7 @@ export default async function EmployerCandidateProfilePage({
   // Try to get candidate profile first (full employer view)
   let candidateData;
   try {
-    candidateData = await getCandidateProfileForEmployer(params.id);
+    candidateData = await getCandidateProfileForEmployer(id);
 
     return (
       <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
@@ -45,7 +42,7 @@ export default async function EmployerCandidateProfilePage({
   } catch (error: any) {
     // Fallback to public profile view
     try {
-      const profileData = await getPublicProfile(params.id);
+      const profileData = await getPublicProfile(id);
 
       return (
         <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">

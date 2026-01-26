@@ -1,15 +1,12 @@
-// ✅ Import the auto-generated type EXACTLY how Vercel expects
-import type { PageProps } from '../../../../../.next/types/app/careers/[career]/page'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
-export default async function CareerPage(props: PageProps) {
-  // ❗ params is a Promise — MUST await it
+export default async function CareerPage(props: any) {
   const { career } = await props.params
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const { data, error } = await supabase
     .from('careers')
@@ -17,13 +14,11 @@ export default async function CareerPage(props: PageProps) {
     .eq('slug', career)
     .single()
 
-  if (error) {
-    return <div>Error loading career: {error.message}</div>
-  }
+  if (error) return <div>Error loading career: {error.message}</div>
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1>{data?.title || career}</h1>
+      <h1>{data?.title}</h1>
       <p>{data?.description}</p>
     </div>
   )

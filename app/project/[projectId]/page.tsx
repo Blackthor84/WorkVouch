@@ -1,10 +1,5 @@
-interface ProjectPageProps {
-  params: { projectId: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
-
-export default async function ProjectPage({ params, searchParams }: ProjectPageProps) {
-  const { projectId } = params;
+export default async function ProjectPage(props: any) {
+  const { projectId } = await props.params;
 
   const data = await fetch(`https://api.workvouch.com/projects/${projectId}`)
     .then(res => res.json())
@@ -14,7 +9,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
     <div>
       <h1>{data.title}</h1>
       <p>{data.description}</p>
-      {searchParams && <pre>{JSON.stringify(searchParams, null, 2)}</pre>}
+      {props.searchParams && <pre>{JSON.stringify(props.searchParams, null, 2)}</pre>}
     </div>
   );
 }
