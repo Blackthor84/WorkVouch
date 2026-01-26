@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/config";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 import Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
           const planTier = session.metadata?.planTier || session.metadata?.plan;
 
           if (employerId && planTier) {
-            const supabase = await createServerSupabaseClient();
+            const supabase = createServerSupabase();
             const supabaseAny = supabase as any;
 
             // Map tier IDs to plan_tier values (removed enterprise)
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
               .eq("id", employerId);
           } else if (session.customer_email) {
             // Fallback: find employer by email if metadata not available
-            const supabase = await createServerSupabaseClient();
+            const supabase = createServerSupabase();
             const supabaseAny = supabase as any;
 
             type ProfileRow = { id: string };
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
 
-        const supabase = await createServerSupabaseClient();
+        const supabase = createServerSupabase();
         const supabaseAny = supabase as any;
         type EmployerAccountRow = { id: string };
         const { data: employer } = await supabaseAny
@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
 
-        const supabase = await createServerSupabaseClient();
+        const supabase = createServerSupabase();
         const supabaseAny = supabase as any;
         type EmployerAccountRow = { id: string };
         const { data: employer } = await supabaseAny
@@ -177,7 +177,7 @@ export async function POST(req: NextRequest) {
             invoice.subscription as string
           );
           
-          const supabase = await createServerSupabaseClient();
+          const supabase = createServerSupabase();
           const supabaseAny = supabase as any;
           
           const { data: employer } = await supabaseAny

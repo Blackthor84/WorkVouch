@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-config";
 
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User ID and email are required" }, { status: 400 });
     }
 
-    const supabase = await createSupabaseServerClient();
+    const supabase = createServerSupabase();
     const supabaseAny = supabase as any;
 
     // Verify user has beta role

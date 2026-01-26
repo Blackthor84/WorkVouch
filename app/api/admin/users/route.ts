@@ -1,9 +1,9 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const supabase = await createServerClient();
+    const supabase = createServerSupabase();
     const {
       data: { user },
     } = await supabase.auth.getUser();

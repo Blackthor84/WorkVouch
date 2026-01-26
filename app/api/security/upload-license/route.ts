@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
  * POST /api/security/upload-license
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if user has Security Bundle plan
-    const supabase = await createSupabaseServerClient();
+    const supabase = createServerSupabase();
     const supabaseAny = supabase as any;
 
     const { data: employerAccount } = await supabaseAny

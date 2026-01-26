@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import { calculateTrustScore, getTrustScoreTier } from "@/lib/trust-score";
 import Link from "next/link";
 
@@ -16,8 +16,9 @@ import Link from "next/link";
  * - Trust score display
  */
 export default function WorkerDashboard() {
-  const session = useSession();
-  const user = session?.data?.user || null;
+  const sessionObj = useSession();
+  const session = sessionObj?.data ?? null;
+  const user = session?.user ?? null;
   const [profile, setProfile] = useState<any>(null);
   const [jobs, setJobs] = useState<any[]>([]);
   const [trustScore, setTrustScore] = useState<any>(null);

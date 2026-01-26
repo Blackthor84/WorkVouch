@@ -3,7 +3,7 @@ import { getCurrentUser, hasRole, getCurrentUserRoles } from "@/lib/auth";
 import { EmployerHeader } from "@/components/employer/employer-header";
 import { EmployerSidebar } from "@/components/employer/employer-sidebar";
 import { EmployerDashboardClient } from "@/components/employer/EmployerDashboardClient";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 
 // Mark as dynamic
 export const dynamic = "force-dynamic";
@@ -25,7 +25,7 @@ export default async function EmployerDashboardPage() {
   }
 
   // Get employer plan tier and account ID
-  const supabase = await createSupabaseServerClient();
+  const supabase = createServerSupabase();
   const supabaseAny = supabase as any;
   type EmployerAccountRow = { id: string; plan_tier: string };
   const { data: employerAccount } = await supabaseAny

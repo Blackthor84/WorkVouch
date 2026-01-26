@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
 import { z } from "zod";
 
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = requestVerificationSchema.parse(body);
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = createServerSupabase();
     const supabaseAny = supabase as any;
 
     // Verify ownership

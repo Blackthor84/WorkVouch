@@ -20,7 +20,7 @@ export default async function AdminSignupsPage() {
     redirect("/admin");
   }
 
-  const supabase = await createServerClient();
+  const supabase = createServerSupabase();
 
   // Get all profiles (which includes user IDs)
   const { data: profiles, error: profilesError } = await supabase

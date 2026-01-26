@@ -7,10 +7,11 @@ import Link from "next/link";
 import CareersGrid from "@/components/CareersGrid";
 
 export default function PreviewOnlyPage() {
-  const session = useSession();
+  const sessionObj = useSession();
+  const session = sessionObj?.data ?? null;
   const router = useRouter();
-  const status = session?.status || "loading";
-  const user = session?.data?.user || null;
+  const status = sessionObj?.status ?? "loading";
+  const user = session?.user ?? null;
 
   useEffect(() => {
     if (status === "unauthenticated") {

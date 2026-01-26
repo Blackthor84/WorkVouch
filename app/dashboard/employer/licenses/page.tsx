@@ -9,8 +9,9 @@ import { useSession } from "next-auth/react";
  * Allows security agencies to upload and verify guard licenses
  */
 export default function LicenseManagement() {
-  const session = useSession();
-  const user = session?.data?.user || null;
+  const sessionObj = useSession();
+  const session = sessionObj?.data ?? null;
+  const user = session?.user ?? null;
   const [licenses, setLicenses] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);
 

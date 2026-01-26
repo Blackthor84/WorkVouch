@@ -27,12 +27,12 @@ export default function CareerPricingPage({
 
     const fetchUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabaseBrowser.auth.getUser();
         if (user) {
           setUserId(user.id);
           
           // Try to determine user type from profile
-          const { data: profile } = await supabase
+          const { data: profile } = await supabaseBrowser
             .from("profiles")
             .select("role")
             .eq("id", user.id)

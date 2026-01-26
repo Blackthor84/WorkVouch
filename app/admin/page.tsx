@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-config";
 import { NavbarServer } from "@/components/navbar-server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -27,7 +27,7 @@ export default async function AdminPanel() {
   }
 
   // Get all users with their roles
-  const supabase = await createSupabaseServerClient();
+  const supabase = createServerSupabase();
   const supabaseAny = supabase as any;
 
   // Get all profiles

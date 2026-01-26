@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
  * GET /api/reviews/:id
@@ -24,7 +24,7 @@ export async function GET(
       );
     }
 
-    const supabase = await createSupabaseServerClient();
+    const supabase = createServerSupabase();
     const supabaseAny = supabase as any;
 
     const { data, error } = await supabaseAny
@@ -100,7 +100,7 @@ export async function DELETE(
       );
     }
 
-    const supabase = await createSupabaseServerClient();
+    const supabase = createServerSupabase();
     const supabaseAny = supabase as any;
 
     const { error } = await supabaseAny

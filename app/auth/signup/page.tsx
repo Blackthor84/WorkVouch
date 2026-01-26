@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { employeePricing, employerPricing } from "@/lib/cursor-bundle";
 import Link from "next/link";
-import supabase from "@/lib/supabaseClient";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 type Role = "employee" | "employer";
 
@@ -60,7 +60,7 @@ export default function SignUpPage() {
         return;
       }
 
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await supabaseBrowser.auth.signUp({
         email,
         password,
         options: {
@@ -81,7 +81,7 @@ export default function SignUpPage() {
 
       if (data.user) {
         // Create profile with role and plan
-        const { error: profileError } = await supabase
+        const { error: profileError } = await supabaseBrowser
           .from("profiles")
           .insert({
             id: data.user.id,
@@ -96,7 +96,7 @@ export default function SignUpPage() {
 
         // If employer, create employer_account with selected plan
         if (role === "employer" && selectedPlan) {
-          const { error: employerError } = await supabase
+          const { error: employerError } = await supabaseBrowser
             .from("employer_accounts")
             .insert({
               user_id: data.user.id,

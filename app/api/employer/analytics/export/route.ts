@@ -4,7 +4,7 @@ import {
   getTrustScoresForEmployer,
 } from "@/lib/actions/employer/analytics";
 import { getCurrentUser, hasRole } from "@/lib/auth";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 
 // Mark route as dynamic
 export const dynamic = "force-dynamic";
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Get employer account ID
-    const supabase = await createSupabaseServerClient();
+    const supabase = createServerSupabase();
     const supabaseAny = supabase as any;
     type EmployerAccountRow = { id: string; plan_tier: string };
     const { data: employerAccount } = await supabaseAny

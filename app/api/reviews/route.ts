@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
  * POST /api/reviews
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = await createSupabaseServerClient();
+    const supabase = createServerSupabase();
     const supabaseAny = supabase as any;
 
     // Build review data object
@@ -144,7 +144,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = await createSupabaseServerClient();
+    const supabase = createServerSupabase();
     const supabaseAny = supabase as any;
 
     // Build query

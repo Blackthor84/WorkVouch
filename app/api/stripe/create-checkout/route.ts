@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = createServerSupabase();
     const supabaseAny = supabase as any;
 
     // Get employer account

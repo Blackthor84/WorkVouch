@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 import { NavbarServer } from "@/components/navbar-server";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ export default async function MyJobsPage() {
     redirect("/auth/signin");
   }
 
-  const supabase = await createServerClient();
+  const supabase = createServerSupabase();
 
   const supabaseAny = supabase as any;
   const { data: jobs, error } = await supabaseAny

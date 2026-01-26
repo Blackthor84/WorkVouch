@@ -25,9 +25,12 @@ export async function checkPaywall(
   userEmail?: string | null,
   userRole?: string | string[]
 ): Promise<PaywallCheck> {
-  // Workers are never gated
+  // Employees are always free - no paywall checks
   if (userType === "employee") {
-    return { allowed: true };
+    return {
+      allowed: true,
+      reason: "WorkVouch is always free for employees",
+    };
   }
 
   // Beta testers bypass paywall

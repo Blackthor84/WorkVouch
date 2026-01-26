@@ -6,7 +6,7 @@
  */
 
 import { ReviewForm, ReviewList } from "@/components/reviews";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 
 interface PageProps {
   params: {
@@ -16,7 +16,7 @@ interface PageProps {
 
 export default async function EmployerReviewsPage({ params }: PageProps) {
   const employerId = params.id;
-  const supabase = await createSupabaseServerClient();
+  const supabase = createServerSupabase();
   const supabaseAny = supabase as any;
 
   // Fetch employer info (optional, for display)

@@ -1,4 +1,4 @@
-import { createServerClient } from './supabase/server'
+import { createServerSupabase } from './supabase/server'
 
 export interface User {
   id: string
@@ -24,7 +24,7 @@ export interface UserProfile {
  * Uses Supabase auth.getUser() for security
  */
 export async function getCurrentUser(): Promise<User | null> {
-  const supabase = await createServerClient()
+  const supabase = createServerSupabase()
   const { data: { user }, error } = await supabase.auth.getUser()
   
   if (error || !user) {
@@ -46,7 +46,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
     return null
   }
 
-  const supabase = await createServerClient()
+  const supabase = createServerSupabase()
   const supabaseAny = supabase as any
   const { data: profile, error } = await supabaseAny
     .from('profiles')
@@ -70,7 +70,7 @@ export async function getCurrentUserRoles(): Promise<string[]> {
     return []
   }
 
-  const supabase = await createServerClient()
+  const supabase = createServerSupabase()
   const supabaseAny = supabase as any
   const { data: roles } = await supabaseAny
     .from('user_roles')
