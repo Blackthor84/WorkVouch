@@ -12,10 +12,10 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
  */
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
 
     if (!id) {
       return NextResponse.json(
@@ -88,10 +88,10 @@ export async function GET(
  */
 export async function DELETE(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
 
     if (!id) {
       return NextResponse.json(
