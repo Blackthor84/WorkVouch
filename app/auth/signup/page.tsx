@@ -47,6 +47,19 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
+      // Auto-assign free plan for workers
+      const finalPlan = role === "employee" ? "free" : selectedPlan;
+
+      // If employer didn't select a plan, redirect to pricing
+      if (role === "employer" && !selectedPlan) {
+        setMessage("Please select a plan to continue.");
+        setLoading(false);
+        setTimeout(() => {
+          router.push("/pricing?userType=employer");
+        }, 1500);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -55,7 +68,7 @@ export default function SignUpPage() {
           data: {
             full_name: fullName,
             role: role,
-            plan: selectedPlan,
+            plan: finalPlan,
           },
         },
       });
@@ -67,10 +80,44 @@ export default function SignUpPage() {
       }
 
       if (data.user) {
+        // Create profile with role and plan
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .insert({
+            id: data.user.id,
+            email: email,
+            full_name: fullName,
+            role: role,
+          });
+
+        if (profileError) {
+          console.error("Profile creation error:", profileError);
+        }
+
+        // If employer, create employer_account with selected plan
+        if (role === "employer" && selectedPlan) {
+          const { error: employerError } = await supabase
+            .from("employer_accounts")
+            .insert({
+              user_id: data.user.id,
+              company_name: fullName, // Temporary, can be updated later
+              plan_tier: selectedPlan,
+            });
+
+          if (employerError) {
+            console.error("Employer account creation error:", employerError);
+          }
+        }
+
         if (data.session) {
           setMessage("Account created successfully! Redirecting...");
           setTimeout(() => {
-            router.push("/dashboard");
+            // Redirect based on role
+            if (role === "employer") {
+              router.push("/dashboard/employer");
+            } else {
+              router.push("/dashboard/worker");
+            }
             router.refresh();
           }, 500);
         } else {
@@ -107,28 +154,55 @@ export default function SignUpPage() {
       </div>
 
       {/* Plan Selection */}
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">Select a Plan</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          {plans.map((p) => (
-            <div
-              key={p.tier}
-              className={`border rounded-xl p-4 cursor-pointer hover:shadow-lg transition ${
-                selectedPlan === p.tier ? "border-blue-600 bg-blue-50" : "bg-white"
-              }`}
-              onClick={() => !loading && setSelectedPlan(p.tier)}
-            >
-              <h3 className="text-xl font-bold">{p.tier}</h3>
-              <p className="text-lg font-semibold text-blue-700">{p.price}</p>
-              <ul className="list-disc list-inside mt-2 space-y-1 text-sm text-gray-700">
-                {p.benefits.map((b, i) => (
-                  <li key={i}>{b}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
+      {role === "employee" ? (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+          <h2 className="text-2xl font-semibold mb-2 text-green-800">
+            WorkVouch is Always Free for Workers!
+          </h2>
+          <p className="text-green-700 mb-4">
+            You'll automatically get the free plan with full access to all worker features.
+          </p>
+          <ul className="list-disc list-inside space-y-2 text-green-700">
+            <li>Create your profile</li>
+            <li>Add unlimited job history</li>
+            <li>Match with coworkers</li>
+            <li>Receive peer references</li>
+            <li>Build your verified profile</li>
+            <li>View your trust score</li>
+          </ul>
         </div>
-      </div>
+      ) : (
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">Select a Plan</h2>
+          <p className="text-gray-600 mb-4">
+            Choose the plan that fits your hiring needs. You can upgrade or downgrade anytime.
+          </p>
+          <div className="grid md:grid-cols-3 gap-6">
+            {plans.map((p) => (
+              <div
+                key={p.tier}
+                className={`border rounded-xl p-4 cursor-pointer hover:shadow-lg transition ${
+                  selectedPlan === p.tier ? "border-blue-600 bg-blue-50" : "bg-white"
+                }`}
+                onClick={() => !loading && setSelectedPlan(p.tier)}
+              >
+                <h3 className="text-xl font-bold">{p.tier}</h3>
+                <p className="text-lg font-semibold text-blue-700">{p.price}</p>
+                <ul className="list-disc list-inside mt-2 space-y-1 text-sm text-gray-700">
+                  {p.benefits.map((b, i) => (
+                    <li key={i}>{b}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          {!selectedPlan && (
+            <p className="text-red-600 text-sm mt-2">
+              Please select a plan to continue
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Signup Form */}
       <form onSubmit={handleSignUp} className="space-y-4">

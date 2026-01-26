@@ -79,16 +79,6 @@ export default function CareerPricingPage({
         "Priority support",
       ],
     },
-    {
-      id: "price_1ABC123Enterprise",
-      name: "Enterprise",
-      price: "$199/mo",
-      benefits: [
-        "Dedicated account manager",
-        "Custom integrations",
-        "Full support & SLA",
-      ],
-    },
   ];
 
   const employeeTiers = [

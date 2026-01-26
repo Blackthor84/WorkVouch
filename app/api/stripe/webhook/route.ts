@@ -168,6 +168,60 @@ export async function POST(req: NextRequest) {
         break;
       }
 
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object as Stripe.Invoice;
+        
+        // Update subscription status on successful payment
+        if (invoice.subscription) {
+          const subscription = await stripe.subscriptions.retrieve(
+            invoice.subscription as string
+          );
+          
+          const supabase = await createServerSupabaseClient();
+          const supabaseAny = supabase as any;
+          
+          const { data: employer } = await supabaseAny
+            .from("employer_accounts")
+            .select("id")
+            .eq("stripe_customer_id", invoice.customer as string)
+            .single();
+
+          if (employer) {
+            const tierId = subscription.metadata?.tierId || "free";
+            const planTierMap: Record<string, string> = {
+              starter: "starter",
+              team: "team",
+              pro: "pro",
+              "security-bundle": "security-bundle",
+              free: "free",
+            };
+            const planTier = planTierMap[tierId.toLowerCase()] || "free";
+
+            await supabaseAny
+              .from("employer_accounts")
+              .update({ plan_tier: planTier })
+              .eq("id", employer.id);
+          }
+        }
+        break;
+      }
+
+      case "product.created":
+      case "product.updated": {
+        // Log product changes for reference
+        const product = event.data.object as Stripe.Product;
+        console.log(`Product ${event.type}:`, product.name, product.id);
+        break;
+      }
+
+      case "price.created":
+      case "price.updated": {
+        // Log price changes for reference
+        const price = event.data.object as Stripe.Price;
+        console.log(`Price ${event.type}:`, price.id, price.unit_amount);
+        break;
+      }
+
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }

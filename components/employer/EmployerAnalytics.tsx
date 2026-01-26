@@ -31,10 +31,12 @@ export default function EmployerAnalytics({
 }: EmployerAnalyticsProps) {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  // Check if user has access (Pro or Enterprise plan)
+  // Check if user has access (Pro plan or higher)
   const isBasicPlan =
     planTier === "free" ||
     planTier === "basic" ||
+    planTier === "starter" ||
+    planTier === "team" ||
     !planTier ||
     userRole === "employer_basic";
 
@@ -46,7 +48,7 @@ export default function EmployerAnalytics({
             Rehire Status & Trust Analytics
           </h2>
           <p className="text-grey-medium dark:text-gray-400 mb-6">
-            Upgrade to Professional or Enterprise to access Rehire Status and
+            Upgrade to Professional to access Rehire Status and
             Trust Analytics.
           </p>
           <button

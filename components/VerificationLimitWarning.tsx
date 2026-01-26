@@ -37,8 +37,8 @@ export default function VerificationLimitWarning({
           </p>
           <p className="text-sm mb-3">
             {isAtLimit
-              ? "Upgrade to Professional or Enterprise to unlock unlimited verifications and access Pro features."
-              : "Upgrade to Professional or Enterprise for unlimited verifications."}
+              ? "Upgrade to Professional to unlock unlimited verifications and access Pro features."
+              : "Upgrade to Professional for unlimited verifications."}
           </p>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
             <div

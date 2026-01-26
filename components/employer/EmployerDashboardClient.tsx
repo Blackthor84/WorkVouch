@@ -48,8 +48,8 @@ export function EmployerDashboardClient({
         });
     }
 
-    // Fetch additional data if user has pro/enterprise plan
-    if (planTier === "pro" || planTier === "enterprise") {
+    // Fetch additional data if user has pro plan
+    if (planTier === "pro") {
       // Fetch analytics data
       if (employerId) {
         setLoadingAnalytics(true);
@@ -126,22 +126,28 @@ export function EmployerDashboardClient({
           {planTier && (
             <Badge
               variant={
-                planTier === "pro" || planTier === "enterprise"
+                planTier === "pro"
                   ? "success"
+                  : planTier === "team"
+                  ? "info"
                   : "default"
               }
               className="mt-2"
             >
               {planTier === "pro"
                 ? "Professional Plan"
-                : planTier === "enterprise"
-                  ? "Enterprise Plan"
-                  : "Basic Plan"}
+                : planTier === "team"
+                ? "Team Plan"
+                : planTier === "starter"
+                ? "Starter Plan"
+                : planTier === "security-bundle"
+                ? "Security Bundle"
+                : "Free Plan"}
             </Badge>
           )}
         </div>
 
-        {/* Pro Features (only visible for Pro/Enterprise) */}
+        {/* Pro Features (only visible for Pro) */}
         {!isBasicPlan && (
           <div className="grid gap-6 md:grid-cols-2">
             <Card className="p-6">
@@ -272,8 +278,8 @@ export function EmployerDashboardClient({
                 userRole={userRole}
                 planTier={planTier}
               />
-              {/* Export button for Pro/Enterprise */}
-              {(planTier === "pro" || planTier === "enterprise") && (
+              {/* Export button for Pro */}
+              {planTier === "pro" && (
                 <div className="mt-6 flex gap-4">
                   <ExportDataButton
                     endpoint="/api/employer/analytics/export?type=rehire"

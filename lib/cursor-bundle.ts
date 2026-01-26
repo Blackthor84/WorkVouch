@@ -26,55 +26,75 @@ export interface PricingTier {
 
 export const employerPricing: PricingTier[] = [
   {
-    tier: "Starter",
-    price: "$19/mo",
-    benefits: [
-      "Post up to 5 jobs per month",
-      "Access to verified candidates",
-      "Basic candidate analytics",
-    ],
-  },
-  {
-    tier: "Growth",
+    tier: "starter",
     price: "$49/mo",
     benefits: [
-      "Post up to 20 jobs per month",
-      "Advanced candidate analytics",
-      "Priority support",
-      "Team collaboration features",
+      "15 worker profile searches/month",
+      "10 verification reports/month",
+      "Contact verified coworkers",
+      "Basic trust scores",
+      "Export verification PDF",
     ],
   },
   {
-    tier: "Pro",
-    price: "$99/mo",
+    tier: "team",
+    price: "$149/mo",
     benefits: [
-      "Unlimited job postings",
-      "Full access to candidate database",
-      "Dedicated account manager",
-      "Custom integrations",
-      "Advanced performance metrics",
+      "50 searches/month",
+      "40 verification reports",
+      "Unlimited coworker messaging",
+      "Advanced trust analytics",
+      "New hire tracking dashboard",
+      "Priority chat support",
+    ],
+  },
+  {
+    tier: "pro",
+    price: "$299/mo",
+    benefits: [
+      "150 searches/month",
+      "120 verification reports",
+      "Department subaccounts",
+      "Bulk worker import & auto-verification",
+      "Role-based permissions",
+      "Applicant comparison tools",
+    ],
+  },
+  {
+    tier: "security-bundle",
+    price: "$199/mo",
+    benefits: [
+      "80 verification reports/month",
+      "Unlimited worker searches",
+      "Unlimited coworker messaging",
+      "Upload guard licenses & certificates",
+      "Auto-flag inconsistent claims",
+      "Guard availability tools",
+    ],
+  },
+  {
+    tier: "pay-per-use",
+    price: "$14.99/report",
+    benefits: [
+      "One-time report purchase",
+      "After purchase → instantly unlock PDF",
     ],
   },
 ];
 
 export const employeePricing: PricingTier[] = [
   {
-    tier: "Free",
-    price: "$0",
+    tier: "free",
+    price: "Always Free",
     benefits: [
-      "Build your WorkVouch profile",
-      "Receive peer endorsements",
-      "Apply to public jobs",
-    ],
-  },
-  {
-    tier: "Premium",
-    price: "$9.99/mo",
-    benefits: [
-      "Highlight top skills",
-      "Priority job application visibility",
-      "Advanced analytics on your profile",
-      "Exclusive premium job postings",
+      "Create a profile",
+      "Upload experience",
+      "Add job history",
+      "Match with coworkers",
+      "Give/receive peer references",
+      "Generate worker public profile",
+      "View trust score",
+      "Request coworker verifications",
     ],
   },
 ];
