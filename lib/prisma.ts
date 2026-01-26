@@ -1,4 +1,14 @@
-// This file is not used - Supabase handles database
-// Keeping for reference but not importing anywhere
+import { PrismaClient } from '@prisma/client';
 
-// DO NOT IMPORT THIS FILE - Use Supabase client instead
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    datasourceUrl: process.env.DATABASE_URL,
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  });
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
