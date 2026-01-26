@@ -95,30 +95,17 @@ export default function CareerPricingPage({
     {
       id: "",
       name: "Free",
-      price: "$0",
+      price: "Always Free",
       benefits: [
-        "Create basic WorkVouch profile",
-        "Receive and display peer references",
-        "Access to limited job listings",
-      ],
-    },
-    {
-      id: "price_1ABC123EmpStd",
-      name: "Standard",
-      price: "$9.99/mo",
-      benefits: [
-        "Access to verified reviews",
-        "Apply to jobs directly",
-      ],
-    },
-    {
-      id: "price_1ABC123EmpPremium",
-      name: "Premium",
-      price: "$19.99/mo",
-      benefits: [
-        "All Standard benefits",
-        "Priority notifications",
-        "Advanced profile insights",
+        "WorkVouch is always free for workers",
+        "Add unlimited past job history",
+        "Match with former coworkers",
+        "Receive unlimited peer references",
+        "Build your verified work profile",
+        "Get discovered by employers",
+        "Access all WorkVouch features",
+        "No credit card required",
+        "No subscriptions, ever",
       ],
     },
   ];

@@ -21,46 +21,19 @@ export interface StripePlan {
   };
 }
 
-// Employee Plans
+// Employee Plans - WorkVouch is always free for employees
 export const employeePlans: StripePlan[] = [
   {
     id: "free",
     name: "Free",
-    description: "Perfect for getting started with verified work history",
+    description: "WorkVouch is always free for workers. Build your verified profile, boost your career, and connect with employers — no hidden fees, no subscriptions, forever free.",
     price: 0,
     currency: "usd",
     interval: "month",
     metadata: {
       tier: "free",
       category: "employee",
-      features: "unlimited_jobs,3_references,basic_trust_score,discoverable",
-    },
-  },
-  {
-    id: "pro_worker",
-    name: "Pro Worker",
-    description: "Unlock your full professional potential",
-    price: 4.99,
-    currency: "usd",
-    interval: "month",
-    metadata: {
-      tier: "pro",
-      category: "employee",
-      features:
-        "unlimited_jobs,unlimited_references,verified_badge,priority_ranking,resume_pdf,full_analytics,fast_response",
-    },
-  },
-  {
-    id: "trust_boost",
-    name: "One-Time Trust Boost",
-    description: "Instant credibility boost for your profile",
-    price: 9.99,
-    currency: "usd",
-    interval: "one_time",
-    metadata: {
-      tier: "boost",
-      category: "employee",
-      features: "instant_badge,full_report_visible,trust_boost_score",
+      features: "unlimited_jobs,unlimited_references,verified_profile,discoverable,all_features",
     },
   },
 ];

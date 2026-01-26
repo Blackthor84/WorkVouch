@@ -28,11 +28,17 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Block any employee paid tiers (WorkVouch is free for employees)
+    if (userType === "employee" && tierId !== "free") {
+      return NextResponse.json(
+        { error: "WorkVouch is always free for employees. No paid tiers available." },
+        { status: 400 }
+      );
+    }
+
     // Map tier IDs to Stripe price IDs if tierId is provided
     const tierPriceMap: Record<string, string> = {
-      // Employee tiers
-      "pro-worker": process.env.STRIPE_PRICE_PRO_WORKER || "",
-      "trust-boost": process.env.STRIPE_PRICE_TRUST_BOOST || "",
+      // Employee tiers - only free is allowed
       // Employer tiers
       "starter": process.env.STRIPE_PRICE_STARTER || process.env.STRIPE_PRICE_BASIC || "",
       "team": process.env.STRIPE_PRICE_TEAM || process.env.STRIPE_PRICE_PRO || "",
@@ -56,7 +62,7 @@ export async function POST(req: NextRequest) {
       req.nextUrl.origin;
 
     // Determine if it's a subscription or one-time payment
-    const isSubscription = tierId !== "trust-boost" && tierId !== "pay-per-use";
+    const isSubscription = tierId !== "pay-per-use";
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],

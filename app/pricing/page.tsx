@@ -21,54 +21,22 @@ const employeeTiers: PricingTier[] = [
   {
     id: "free",
     name: "Free",
-    price: "$0",
-    priceNote: "/month",
-    description: "Perfect for getting started with verified work history",
-    color: "blue",
-    features: [
-      "Add unlimited past job history",
-      "Match with former coworkers",
-      "Receive up to 3 peer references",
-      'Basic "Peer Verified %" trust score',
-      "Discoverable by employers",
-    ],
-    cta: "Get Started Free",
-  },
-  {
-    id: "pro-worker",
-    name: "Pro Worker",
-    price: "$4.99",
-    priceNote: "/month",
-    description: "Unlock your full professional potential",
+    price: "Always Free",
+    priceNote: "",
+    description: "WorkVouch is always free for workers. Build your verified profile, boost your career, and connect with employers — no hidden fees, no subscriptions, forever free.",
     color: "blue",
     recommended: true,
     features: [
-      "Everything in Free",
-      "Unlimited coworker matches",
-      "Unlimited peer references",
-      '"Verified Worker" badge',
-      "Priority ranking in employer search results",
-      'Downloadable "WorkVouch Resume" PDF',
-      "Full trust score analytics",
-      "Faster coworker request response",
+      "Add unlimited past job history",
+      "Match with former coworkers",
+      "Receive unlimited peer references",
+      "Build your verified work profile",
+      "Get discovered by employers",
+      "Access all WorkVouch features",
+      "No credit card required",
+      "No subscriptions, ever",
     ],
-    cta: "Subscribe Now",
-    stripePriceId: "price_pro_worker",
-  },
-  {
-    id: "trust-boost",
-    name: "One-Time Trust Boost",
-    price: "$9.99",
-    priceNote: "one-time",
-    description: "Instant credibility boost for your profile",
-    color: "blue",
-    features: [
-      "Instant trust badge",
-      "Full WorkVouch report visible to employers",
-      "Trust Boost score increase",
-    ],
-    cta: "Boost My Trust",
-    stripePriceId: "price_trust_boost",
+    cta: "Get Started Free",
   },
 ];
 
@@ -179,14 +147,14 @@ const faqItems = [
       "When you add a job to your profile, WorkVouch matches you with coworkers who worked at the same company during the same time period. These verified coworkers can confirm your employment and write references. This creates a trusted, verified work history that employers can rely on.",
   },
   {
-    question: "What's the difference between Free and Pro Worker?",
+    question: "Is WorkVouch really free for workers?",
     answer:
-      "Free gives you 3 peer references and basic trust scoring. Pro Worker unlocks unlimited references, priority in search results, a verified badge, downloadable resume PDFs, and full analytics. Pro Worker is perfect for serious job seekers who want maximum visibility.",
+      "Yes! WorkVouch is completely free for workers, forever. There are no subscriptions, no hidden fees, and no credit card required. You can add unlimited job history, receive unlimited peer references, and build your verified profile at no cost. We believe verified work history should be accessible to everyone.",
   },
   {
-    question: "Can I switch plans later?",
+    question: "Do I need to pay to upgrade my account later?",
     answer:
-      "Yes! You can upgrade, downgrade, or cancel your subscription at any time. Changes take effect immediately, and we'll prorate any charges. Your verified work history and references remain intact regardless of your plan.",
+      "No! WorkVouch is always free for workers. There are no paid tiers or upgrades. All features are available to you at no cost. Your verified work history and references remain intact and accessible forever.",
   },
   {
     question: "What happens if I exceed my monthly limits?",
@@ -293,9 +261,18 @@ export default function PricingPage() {
           <h1 className="text-5xl font-extrabold text-gray-900 mb-4">
             WorkVouch Pricing
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Build credibility. Hire with confidence. Choose the plan that fits your needs.
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-4">
+            {activeTab === "employee" 
+              ? "WorkVouch is always free for workers. Build your verified profile, boost your career, and connect with employers — no hidden fees, no subscriptions, forever free."
+              : "Build credibility. Hire with confidence. Choose the plan that fits your needs."}
           </p>
+          {activeTab === "employee" && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 max-w-2xl mx-auto mb-4">
+              <p className="text-green-800 font-semibold text-center">
+                ✓ Always Free for Workers • ✓ No Credit Card Required • ✓ No Subscriptions Ever
+              </p>
+            </div>
+          )}
 
           {/* Tab Switcher */}
           <div className="flex justify-center mb-8">
@@ -325,7 +302,11 @@ export default function PricingPage() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <div className={`grid gap-8 mb-16 ${
+          activeTab === "employee" 
+            ? "grid-cols-1 max-w-2xl mx-auto" 
+            : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+        }`}>
           {currentTiers.map((tier) => {
             const colors = getColorClasses(tier.color, tier.recommended);
             return (
@@ -367,11 +348,21 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                {isBeta ? (
+                {activeTab === "employee" ? (
+                  // Employee tier - always free, just redirect to signup
+                  <button
+                    onClick={() => (window.location.href = "/auth/signup")}
+                    className={`w-full ${colors.button} text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-md hover:shadow-lg border-2 border-transparent hover:border-white`}
+                  >
+                    {tier.cta}
+                  </button>
+                ) : isBeta ? (
+                  // Employer tier but user is beta
                   <div className="w-full bg-gray-300 text-gray-600 font-semibold py-3 px-6 rounded-lg text-center cursor-not-allowed">
                     Preview Mode - Subscription Disabled
                   </div>
                 ) : (
+                  // Employer tier - normal checkout
                   <button
                     onClick={() => handleSubscribe(tier)}
                     className={`w-full ${colors.button} text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-md hover:shadow-lg border-2 border-transparent hover:border-white`}
