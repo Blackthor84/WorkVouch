@@ -62,7 +62,9 @@ export const authOptions: NextAuthOptions = {
             }
 
             const isAdmin = userRoles.includes("admin") || userRoles.includes("superadmin");
-            const role = isAdmin ? "admin" : "user";
+            const isBeta = userRoles.includes("beta");
+            // Determine primary role: beta takes precedence for access control
+            const role = isBeta ? "beta" : (isAdmin ? "admin" : "user");
 
             return {
               id: data.user.id,

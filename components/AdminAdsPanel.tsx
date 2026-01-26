@@ -14,6 +14,8 @@ interface Ad {
   careers: string[]; // Career IDs for targeting
   startDate: string;
   endDate: string;
+  price: number; // Ad price in USD
+  duration: number; // Duration in days
   status: AdStatus;
   createdBy: string;
   createdAt: string;
@@ -55,6 +57,8 @@ export default function AdminAdsPanel() {
       careers: [],
       startDate: new Date().toISOString().split('T')[0],
       endDate: '',
+      price: 0,
+      duration: 30,
       status: 'pending',
       createdBy: 'admin',
       createdAt: new Date().toISOString(),
@@ -302,6 +306,31 @@ export default function AdminAdsPanel() {
                   onChange={e => updateAd(selectedAd.id, 'link', e.target.value)}
                   className="border p-2 w-full rounded"
                   placeholder="https://example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1">Price (USD)</label>
+                <input
+                  type="number"
+                  value={selectedAd.price}
+                  onChange={e => updateAd(selectedAd.id, 'price', parseFloat(e.target.value) || 0)}
+                  className="border p-2 w-full rounded"
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1">Duration (days)</label>
+                <input
+                  type="number"
+                  value={selectedAd.duration}
+                  onChange={e => updateAd(selectedAd.id, 'duration', parseInt(e.target.value) || 0)}
+                  className="border p-2 w-full rounded"
+                  placeholder="30"
+                  min="1"
                 />
               </div>
             </div>

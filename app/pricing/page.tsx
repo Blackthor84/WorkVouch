@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 interface PricingTier {
@@ -127,24 +128,6 @@ const employerTiers: PricingTier[] = [
     stripePriceId: "price_pro",
   },
   {
-    id: "enterprise",
-    name: "Enterprise",
-    price: "$499",
-    priceNote: "/month",
-    description: "Complete solution for large organizations",
-    color: "orange",
-    features: [
-      "Unlimited searches",
-      "Unlimited verification reports",
-      "Full API access",
-      "Custom integration support",
-      "Dedicated account manager",
-      "Onboarding & live training sessions",
-    ],
-    cta: "Contact Sales",
-    stripePriceId: "price_enterprise",
-  },
-  {
     id: "pay-per-use",
     name: "Pay-Per-Use",
     price: "$14.99",
@@ -218,18 +201,44 @@ const faqItems = [
 ];
 
 export default function PricingPage() {
+  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<"employee" | "employer">("employee");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const handleSubscribe = (tier: PricingTier) => {
-    // Stripe integration placeholder
-    if (tier.stripePriceId) {
-      // TODO: Integrate with Stripe Checkout
-      console.log(`Redirecting to Stripe for ${tier.name} - ${tier.stripePriceId}`);
-      // window.location.href = `/api/stripe/checkout?priceId=${tier.stripePriceId}`;
-    } else {
-      // Free tier - redirect to signup
-      window.location.href = "/auth/signup";
+  // Check if user is beta
+  const isBeta = session?.user?.role === "beta" || 
+                 (Array.isArray(session?.user?.roles) && session?.user?.roles.includes("beta"));
+
+  const handleSubscribe = async (tier: PricingTier) => {
+    try {
+      const userType = activeTab === "employee" ? "employee" : "employer";
+      
+      const response = await fetch("/api/pricing/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tierId: tier.id,
+          priceId: tier.stripePriceId,
+          userType,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create checkout session");
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (error: any) {
+      console.error("Checkout error:", error);
+      alert(`Failed to start checkout: ${error.message}`);
     }
   };
 
@@ -358,12 +367,18 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                <button
-                  onClick={() => handleSubscribe(tier)}
-                  className={`w-full ${colors.button} text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-md`}
-                >
-                  {tier.cta}
-                </button>
+                {isBeta ? (
+                  <div className="w-full bg-gray-300 text-gray-600 font-semibold py-3 px-6 rounded-lg text-center cursor-not-allowed">
+                    Preview Mode - Subscription Disabled
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleSubscribe(tier)}
+                    className={`w-full ${colors.button} text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-md hover:shadow-lg border-2 border-transparent hover:border-white`}
+                  >
+                    {tier.cta}
+                  </button>
+                )}
               </div>
             );
           })}

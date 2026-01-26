@@ -126,6 +126,17 @@ export default async function AdminPanel() {
             </Link>
           </Card>
 
+          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-blue-500">
+            <Link href="/admin/beta" className="block">
+              <h2 className="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-2">
+                Beta Access Manager
+              </h2>
+              <p className="text-sm text-grey-medium dark:text-gray-400">
+                Create temporary preview access with one-click login
+              </p>
+            </Link>
+          </Card>
+
           {isSuperAdmin && (
             <>
               <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-red-500">

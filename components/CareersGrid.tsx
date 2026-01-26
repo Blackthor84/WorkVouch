@@ -30,7 +30,7 @@ export default function CareersGrid() {
           href={`/careers/${career.id}`}
           className="border rounded-lg overflow-hidden hover:shadow-lg transition"
         >
-          <div className="w-full h-48 sm:h-56 md:h-64 bg-gray-50 flex items-center justify-center">
+          <div className="w-full h-40 sm:h-48 md:h-56 bg-gray-50 flex items-center justify-center">
             <Image
               src={getImagePath(career.id)}
               alt={career.name}

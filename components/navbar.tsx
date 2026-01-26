@@ -8,11 +8,11 @@ export default function Navbar() {
 
   return (
     <nav className="bg-blue-700 text-white shadow-md py-4 px-4 md:px-8">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-6 flex-shrink-0">
-          <Link href="/" className="flex items-center">
+      <div className="flex justify-between items-center max-w-7xl mx-auto">
+        <div className="flex items-center space-x-6 flex-shrink-0 min-w-0">
+          <Link href="/" className="flex items-center flex-shrink-0">
             <Image 
-              src="/logo.png" 
+              src="/images/workvouch-logo.png" 
               alt="WorkVouch Logo" 
               width={120} 
               height={40} 
@@ -20,7 +20,7 @@ export default function Navbar() {
               unoptimized
             />
           </Link>
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-4 flex-shrink-0">
             <Link href="/" className="hover:text-gray-300 transition">Home</Link>
             <Link href="/about" className="hover:text-gray-300 transition">About</Link>
             <Link href="/pricing" className="hover:text-gray-300 transition">Pricing</Link>
