@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       // Employer tiers
       "starter": process.env.STRIPE_PRICE_STARTER || process.env.STRIPE_PRICE_BASIC || "",
       "team": process.env.STRIPE_PRICE_TEAM || process.env.STRIPE_PRICE_PRO || "",
-      "pro": process.env.STRIPE_PRICE_PRO || process.env.STRIPE_PRICE_ENTERPRISE || "",
+      "pro": process.env.STRIPE_PRICE_PRO || "",
       "pay-per-use": process.env.STRIPE_PRICE_PAY_PER_USE || "",
       "security-bundle": process.env.STRIPE_PRICE_SECURITY_BUNDLE || "",
     };

@@ -13,7 +13,6 @@ import { NextRequest, NextResponse } from "next/server";
  * - EMPLOYER_STARTER_PRICE_ID: Stripe price ID for Starter plan
  * - EMPLOYER_TEAM_PRICE_ID: Stripe price ID for Team plan
  * - EMPLOYER_PRO_PRICE_ID: Stripe price ID for Pro plan
- * - EMPLOYER_ENTERPRISE_PRICE_ID: Stripe price ID for Enterprise plan
  * - EMPLOYER_PAY_PER_USE_PRICE_ID: Stripe price ID for Pay-Per-Use plan
  * - EMPLOYER_SECURITY_BUNDLE_PRICE_ID: Stripe price ID for Security Bundle plan
  * 
