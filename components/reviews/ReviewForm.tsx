@@ -58,11 +58,11 @@ export default function ReviewForm({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          employee_id: reviewerId || "", // Required field - use empty string if anonymous
           employer_id: employerId,
-          reviewer_id: reviewerId, // null for anonymous, user ID for verified
           rating,
-          review_text: reviewText.trim(),
-          is_verified: !!reviewerId, // Verified if user is logged in
+          comment: reviewText.trim(),
+          anonymous: !reviewerId, // Anonymous if no user logged in
         }),
       });
 
@@ -147,13 +147,13 @@ export default function ReviewForm({
         {/* Review Text Input */}
         <div>
           <label
-            htmlFor="review-text"
+            htmlFor="review-comment"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
             Your Review <span className="text-red-500">*</span>
           </label>
           <textarea
-            id="review-text"
+            id="review-comment"
             value={reviewText}
             onChange={(e) => setReviewText(e.target.value)}
             rows={5}

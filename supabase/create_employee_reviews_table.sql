@@ -10,14 +10,13 @@
 
 -- Create employee_reviews table
 CREATE TABLE IF NOT EXISTS public.employee_reviews (
-  id BIGSERIAL PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  employee_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   employer_id UUID NOT NULL,
-  reviewer_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   rating SMALLINT NOT NULL CHECK (rating >= 1 AND rating <= 5),
-  review_text TEXT NOT NULL,
-  is_verified BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  comment TEXT,
+  anonymous BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
 -- Add foreign key constraint (choose one based on your schema):
@@ -39,8 +38,8 @@ CREATE TABLE IF NOT EXISTS public.employee_reviews (
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS employee_reviews_employer_id_idx 
   ON public.employee_reviews(employer_id);
-CREATE INDEX IF NOT EXISTS employee_reviews_reviewer_id_idx 
-  ON public.employee_reviews(reviewer_id) WHERE reviewer_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS employee_reviews_employee_id_idx 
+  ON public.employee_reviews(employee_id);
 CREATE INDEX IF NOT EXISTS employee_reviews_created_at_idx 
   ON public.employee_reviews(created_at DESC);
 CREATE INDEX IF NOT EXISTS employee_reviews_rating_idx 
@@ -59,19 +58,13 @@ CREATE POLICY "Anyone can view reviews" ON public.employee_reviews
 CREATE POLICY "Anyone can create reviews" ON public.employee_reviews
   FOR INSERT WITH CHECK (true);
 
--- Reviewers can update their own reviews (if reviewer_id is set)
-CREATE POLICY "Reviewers can update own reviews" ON public.employee_reviews
-  FOR UPDATE USING (
-    reviewer_id IS NOT NULL 
-    AND reviewer_id = auth.uid()
-  );
+-- Employees can update their own reviews
+CREATE POLICY "Employees can update own reviews" ON public.employee_reviews
+  FOR UPDATE USING (employee_id = auth.uid());
 
--- Reviewers can delete their own reviews (if reviewer_id is set)
-CREATE POLICY "Reviewers can delete own reviews" ON public.employee_reviews
-  FOR DELETE USING (
-    reviewer_id IS NOT NULL 
-    AND reviewer_id = auth.uid()
-  );
+-- Employees can delete their own reviews
+CREATE POLICY "Employees can delete own reviews" ON public.employee_reviews
+  FOR DELETE USING (employee_id = auth.uid());
 
 -- Admins can delete any review
 CREATE POLICY "Admins can delete any review" ON public.employee_reviews
@@ -82,21 +75,6 @@ CREATE POLICY "Admins can delete any review" ON public.employee_reviews
       AND role IN ('admin', 'superadmin')
     )
   );
-
--- Function to update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_employee_reviews_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Trigger to automatically update updated_at
-CREATE TRIGGER employee_reviews_updated_at_trigger
-  BEFORE UPDATE ON public.employee_reviews
-  FOR EACH ROW
-  EXECUTE FUNCTION update_employee_reviews_updated_at();
 
 -- Function to calculate average rating for an employer
 CREATE OR REPLACE FUNCTION get_employer_avg_rating(p_employer_id UUID)

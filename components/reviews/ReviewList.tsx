@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 
 interface Review {
-  id: number;
+  id: string;
+  employee_id: string;
+  employer_id: string;
   rating: number;
-  review_text: string;
-  is_verified: boolean;
+  comment: string | null;
+  anonymous: boolean;
   created_at: string;
 }
 
@@ -54,8 +56,29 @@ export default function ReviewList({
         throw new Error(data.error || "Failed to fetch reviews");
       }
 
-      setReviews(data.reviews || []);
-      setStatistics(data.statistics || null);
+      // API returns array directly
+      const reviewsData = Array.isArray(data) ? data : data.reviews || [];
+      setReviews(reviewsData);
+
+      // Calculate statistics from reviews
+      if (reviewsData.length > 0) {
+        const totalReviews = reviewsData.length;
+        const avgRating = reviewsData.reduce((sum: number, r: Review) => sum + r.rating, 0) / totalReviews;
+        const ratingDistribution = {
+          5: reviewsData.filter((r: Review) => r.rating === 5).length,
+          4: reviewsData.filter((r: Review) => r.rating === 4).length,
+          3: reviewsData.filter((r: Review) => r.rating === 3).length,
+          2: reviewsData.filter((r: Review) => r.rating === 2).length,
+          1: reviewsData.filter((r: Review) => r.rating === 1).length,
+        };
+        setStatistics({
+          total_reviews: totalReviews,
+          average_rating: Math.round(avgRating * 10) / 10,
+          rating_distribution: ratingDistribution,
+        });
+      } else {
+        setStatistics(null);
+      }
     } catch (err: any) {
       setError(err.message || "Failed to load reviews");
     } finally {
@@ -234,12 +257,12 @@ export default function ReviewList({
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
                       {renderStars(review.rating)}
-                      {review.is_verified && (
+                      {!review.anonymous && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                           ✓ Verified Employee
                         </span>
                       )}
-                      {!review.is_verified && (
+                      {review.anonymous && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                           Anonymous
                         </span>
@@ -250,9 +273,11 @@ export default function ReviewList({
                     </p>
                   </div>
                 </div>
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                  {review.review_text}
-                </p>
+                {review.comment && (
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    {review.comment}
+                  </p>
+                )}
               </div>
             ))}
           </div>
