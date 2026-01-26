@@ -1,41 +1,42 @@
-import { createClient } from "@supabase/supabase-js"
-import React from "react"
+import { createClient } from '@supabase/supabase-js'
 
-// Supabase client
+// 1️⃣ Initialize Supabase client (server-side)
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_URL!,   // your Supabase URL from project settings
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // your secret service key
 )
 
-// Page props type
+// 2️⃣ Define PageProps type for dynamic route
 interface PageProps {
-  params: {
-    career: string
-  }
+  params: { career: string }
 }
 
-// Async page component
+// 3️⃣ Async page component
 const CareerPage = async ({ params }: PageProps) => {
   const { career } = params
 
-  const { data: employees, error } = await supabase
-    .from("employees")
-    .select("*")
-    .eq("career", career)
+  // 4️⃣ Fetch career data from Supabase
+  const { data, error } = await supabase
+    .from('careers')          // replace with your table name
+    .select('*')
+    .eq('slug', career)       // assumes you have a 'slug' column matching the URL
+    .single()
 
-  if (error) return <div>Error fetching employees: {error.message}</div>
+  if (error) {
+    return <div>Error loading career: {error.message}</div>
+  }
 
   return (
-    <div style={{ padding: "2rem" }}>
+    <div style={{ padding: '2rem' }}>
       <h1>Career: {career}</h1>
-      {employees && employees.length ? (
-        <ul>
-          {employees.map(emp => (
-            <li key={emp.id}>{emp.name} — {emp.role}</li>
-          ))}
-        </ul>
+      {data ? (
+        <div>
+          <p><strong>Title:</strong> {data.title}</p>
+          <p><strong>Description:</strong> {data.description}</p>
+          {/* add more fields as needed */}
+        </div>
       ) : (
-        <p>No employees found.</p>
+        <p>No data found for this career.</p>
       )}
     </div>
   )
