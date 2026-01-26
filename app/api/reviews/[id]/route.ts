@@ -4,13 +4,18 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 /**
  * GET /api/reviews/:id
  * Get a single review by ID
+ * 
+ * Path parameters:
+ * - id: string (review UUID)
+ * 
+ * Response: Review object (employee_id hidden if anonymous)
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = context.params;
 
     if (!id) {
       return NextResponse.json(
@@ -31,60 +36,33 @@ export async function GET(
     if (error) {
       return NextResponse.json(
         { error: error.message || "Review not found" },
-        { status: 400 }
+        { status: 404 }
       );
     }
 
-    return NextResponse.json(data);
-  } catch (error: any) {
-    console.error("Review fetch error:", error);
-    return NextResponse.json(
-      { error: "Internal server error", details: error.message },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * GET /api/reviews/[id]?employee_id=xxx
- * Get all reviews for a specific employee
- * Alternative endpoint: GET /api/reviews?employee_id=xxx
- */
-export async function GET_EMPLOYEE_REVIEWS(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const { id } = params;
-    const searchParams = req.nextUrl.searchParams;
-    const filterBy = searchParams.get("filter"); // "employee" or "employer"
-
-    const supabase = await createSupabaseServerClient();
-    const supabaseAny = supabase as any;
-
-    let query = supabaseAny
-      .from("employee_reviews")
-      .select("*");
-
-    if (filterBy === "employee") {
-      query = query.eq("employee_id", id);
-    } else {
-      // Default: filter by employer_id
-      query = query.eq("employer_id", id);
-    }
-
-    query = query.order("created_at", { ascending: false });
-
-    const { data, error } = await query;
-
-    if (error) {
+    if (!data) {
       return NextResponse.json(
-        { error: error.message || "Failed to fetch reviews" },
-        { status: 400 }
+        { error: "Review not found" },
+        { status: 404 }
       );
     }
 
-    return NextResponse.json(data || []);
+    // Sanitize response: hide employee_id if anonymous
+    const sanitized: any = {
+      id: data.id,
+      employer_id: data.employer_id,
+      rating: data.rating,
+      comment: data.comment,
+      anonymous: data.anonymous,
+      created_at: data.created_at,
+    };
+
+    // Only include employee_id if review is not anonymous
+    if (!data.anonymous && data.employee_id) {
+      sanitized.employee_id = data.employee_id;
+    }
+
+    return NextResponse.json(sanitized, { status: 200 });
   } catch (error: any) {
     console.error("Review fetch error:", error);
     return NextResponse.json(
@@ -93,17 +71,27 @@ export async function GET_EMPLOYEE_REVIEWS(
     );
   }
 }
+
 
 /**
  * DELETE /api/reviews/:id
- * Delete a review (admin or employee who created it)
+ * Delete a review by ID
+ * 
+ * Path parameters:
+ * - id: string (review UUID)
+ * 
+ * Authorization: RLS policies handle authorization
+ * - Employees can delete their own reviews
+ * - Admins can delete any review
+ * 
+ * Response: Success message
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = context.params;
 
     if (!id) {
       return NextResponse.json(
@@ -121,16 +109,20 @@ export async function DELETE(
       .eq("id", id);
 
     if (error) {
+      console.error("Error deleting review:", error);
       return NextResponse.json(
         { error: error.message || "Failed to delete review" },
         { status: 400 }
       );
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: "Review deleted" 
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Review deleted successfully",
+      },
+      { status: 200 }
+    );
   } catch (error: any) {
     console.error("Review deletion error:", error);
     return NextResponse.json(
