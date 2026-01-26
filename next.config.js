@@ -35,7 +35,8 @@ const nextConfig = {
       },
     ],
   },
-  turbopack: {}, // ensures Next.js knows Turbopack is explicitly disabled
+  // Turbopack is enabled by default in Next.js 16+ when using --turbo flag
+  // Path aliases are resolved via tsconfig.json
 }
 
 module.exports = nextConfig
