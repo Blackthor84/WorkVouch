@@ -1,0 +1,162 @@
+import { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import { createClient } from "@supabase/supabase-js";
+import bcrypt from "bcryptjs";
+
+// Supabase client for authentication
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+// Dummy users with bcrypt hashed passwords (for testing/fallback)
+// In production, store these in your database
+const dummyUsers = [
+  {
+    id: "1",
+    email: "nicoleanneaglin@gmail.com",
+    password: "$2a$10$XXXXXXXXXXXXXXXXXXXXXXXXXXXX", // Replace with actual bcrypt hash
+    role: "admin",
+  },
+  {
+    id: "2",
+    email: "user@example.com",
+    password: "$2a$10$YYYYYYYYYYYYYYYYYYYYYYYYYYYY", // Replace with actual bcrypt hash
+    role: "user",
+  },
+];
+
+export const authOptions: NextAuthOptions = {
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    }),
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        const email = credentials.email.trim();
+
+        try {
+          // Method 1: Try Supabase Auth first (for existing users)
+          const supabase = createClient(supabaseUrl, supabaseAnonKey);
+          
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: credentials.password,
+          });
+
+          if (!error && data.user) {
+            // Supabase Auth successful - fetch roles
+            const supabaseAny = supabase as any;
+            const { data: rolesData } = await supabaseAny
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", data.user.id);
+
+            let userRoles: string[] = [];
+            if (rolesData) {
+              userRoles = rolesData.map((r: any) => r.role);
+            }
+
+            const isAdmin = userRoles.includes("admin") || userRoles.includes("superadmin");
+            const isBeta = userRoles.includes("beta");
+            // Determine primary role: beta takes precedence for access control
+            const role = isBeta ? "beta" : (isAdmin ? "admin" : "user");
+
+            return {
+              id: data.user.id,
+              email: data.user.email!,
+              name: data.user.user_metadata?.full_name || data.user.email,
+              role: role,
+              roles: userRoles,
+            };
+          }
+
+          // Method 2: Fallback to bcrypt verification (for dummy users or custom table)
+          // Check dummy users array
+          const dummyUser = dummyUsers.find((u) => u.email === email);
+          if (dummyUser) {
+            // Verify password with bcrypt
+            const isValid = await bcrypt.compare(credentials.password, dummyUser.password);
+            if (isValid) {
+              return {
+                id: dummyUser.id,
+                email: dummyUser.email,
+                name: dummyUser.email,
+                role: dummyUser.role,
+                roles: [dummyUser.role],
+              };
+            }
+          }
+
+          return null;
+        } catch (error) {
+          console.error("Authorization error:", error);
+          return null;
+        }
+      },
+    }),
+  ],
+
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+
+  callbacks: {
+    async jwt({ token, user }) {
+      // Initial sign in
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+        token.roles = user.roles;
+        token.email = user.email;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      // Ensure session and user exist before accessing
+      if (session?.user && token?.sub) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+        session.user.roles = token.roles as string[];
+        session.user.email = token.email as string;
+      }
+      // Always return session (required for NextAuth)
+      return session;
+    },
+    async redirect({ url, baseUrl }) {
+      // Handle redirects based on role
+      // This will be handled in the signin page, but we can set defaults here
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
+    },
+  },
+
+  pages: {
+    signIn: "/auth/signin",
+  },
+
+  cookies: {
+    sessionToken: {
+      name: `__Secure-next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
+
+  secret: process.env.NEXTAUTH_SECRET,
+};

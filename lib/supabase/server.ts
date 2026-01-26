@@ -2,7 +2,22 @@
 import { cookies } from 'next/headers';
 
 /**
- * Create a server-side Supabase client
+ * Simple server-side Supabase client
+ * Uses SUPABASE_URL and SUPABASE_KEY environment variables
+ */
+export const createSupabaseServerClient = () => {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
+    throw new Error('Missing SUPABASE_URL or SUPABASE_KEY');
+  }
+
+  return createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_KEY
+  );
+};
+
+/**
+ * Create a server-side Supabase client with cookie forwarding
  * Supports both SUPABASE_URL/SUPABASE_KEY and NEXT_PUBLIC_SUPABASE_URL/NEXT_PUBLIC_SUPABASE_ANON_KEY
  * Forwards cookies for authenticated requests
  */
