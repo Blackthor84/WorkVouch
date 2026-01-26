@@ -1,5 +1,5 @@
-// ✅ MUST import the generated PageProps so your types match Vercel's build output
-import type { PageProps } from '../../../../.next/types/app/career/[career]/page'
+// ✅ Import the auto-generated type EXACTLY how Vercel expects
+import type { PageProps } from '../../../../../.next/types/app/careers/[career]/page'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -7,8 +7,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// Next.js gives you params as a Promise, so you MUST await it.
 export default async function CareerPage(props: PageProps) {
+  // ❗ params is a Promise — MUST await it
   const { career } = await props.params
 
   const { data, error } = await supabase
