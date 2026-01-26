@@ -12,7 +12,7 @@ export default function Navbar() {
         <div className="flex items-center space-x-6 flex-shrink-0 min-w-0">
           <Link href="/" className="flex items-center flex-shrink-0">
             <Image 
-              src="/images/workvouch.png" 
+              src="/workvouch-logo.png" 
               alt="WorkVouch Logo" 
               width={200} 
               height={50} 

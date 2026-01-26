@@ -1,37 +1,74 @@
-import { NextRequest, NextResponse } from 'next/server'
-
 /**
- * Check if user has Pro/Enterprise access
- * Redirects to upgrade page if access is denied
+ * Payment Gating Middleware
+ * 
+ * Checks if employer has sufficient subscription tier for a feature.
+ * Workers are never gated.
  */
-export function checkProAccess(req: NextRequest, feature: string): NextResponse | null {
-  const role = req.cookies.get('user_role')?.value || req.headers.get('x-user-role') || ''
 
-  // Basic plan users need to upgrade
-  if (!role || role === 'employer_basic' || role === 'free') {
-    const upgradeUrl = new URL('/pricing', req.url)
-    upgradeUrl.searchParams.set('feature', feature)
-    upgradeUrl.searchParams.set('redirect', req.nextUrl.pathname)
-    return NextResponse.redirect(upgradeUrl)
-  }
+import { getPlanFeatures } from "@/lib/stripePlans";
+import { shouldBypassPaywall } from "@/lib/beta-tester";
 
-  // Pro and Enterprise have access
-  return null
+export interface PaywallCheck {
+  allowed: boolean;
+  reason?: string;
+  requiredTier?: string;
+  currentTier?: string;
 }
 
 /**
- * Check if user has Enterprise access
+ * Check if employer can access a feature
  */
-export function checkEnterpriseAccess(req: NextRequest, feature: string): NextResponse | null {
-  const role = req.cookies.get('user_role')?.value || req.headers.get('x-user-role') || ''
-
-  if (role !== 'employer_enterprise' && role !== 'enterprise') {
-    const upgradeUrl = new URL('/pricing', req.url)
-    upgradeUrl.searchParams.set('feature', feature)
-    upgradeUrl.searchParams.set('plan', 'enterprise')
-    upgradeUrl.searchParams.set('redirect', req.nextUrl.pathname)
-    return NextResponse.redirect(upgradeUrl)
+export async function checkPaywall(
+  userType: "employee" | "employer",
+  subscriptionTier: string | null,
+  requiredFeature: string,
+  userEmail?: string | null,
+  userRole?: string | string[]
+): Promise<PaywallCheck> {
+  // Workers are never gated
+  if (userType === "employee") {
+    return { allowed: true };
   }
 
-  return null
+  // Beta testers bypass paywall
+  if (shouldBypassPaywall(userEmail, userRole)) {
+    return { allowed: true };
+  }
+
+  // No subscription = not allowed (except for free tier features)
+  if (!subscriptionTier || subscriptionTier === "free") {
+    return {
+      allowed: false,
+      reason: "Subscription required",
+      requiredTier: "starter",
+      currentTier: subscriptionTier || "none",
+    };
+  }
+
+  // Check feature requirements
+  const planFeatures = getPlanFeatures(subscriptionTier);
+  
+  // Map features to tier requirements
+  const featureTierMap: Record<string, string[]> = {
+    "basic_search": ["starter", "team", "pro", "security-bundle"],
+    "advanced_analytics": ["team", "pro", "security-bundle"],
+    "unlimited_messaging": ["team", "pro", "security-bundle"],
+    "bulk_import": ["pro"],
+    "department_subaccounts": ["pro"],
+    "security_features": ["security-bundle"],
+  };
+
+  const allowedTiers = featureTierMap[requiredFeature] || [];
+  const isAllowed = allowedTiers.includes(subscriptionTier);
+
+  if (!isAllowed) {
+    return {
+      allowed: false,
+      reason: `Feature requires ${allowedTiers[0]} tier or higher`,
+      requiredTier: allowedTiers[0],
+      currentTier: subscriptionTier,
+    };
+  }
+
+  return { allowed: true };
 }

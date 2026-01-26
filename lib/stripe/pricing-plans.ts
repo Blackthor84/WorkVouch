@@ -88,22 +88,6 @@ export const employerPlans: StripePlan[] = [
     },
   },
   {
-    id: "enterprise",
-    name: "Enterprise",
-    description: "Complete solution for large organizations",
-    price: 499,
-    currency: "usd",
-    interval: "month",
-    metadata: {
-      tier: "enterprise",
-      category: "employer",
-      features:
-        "api_access,custom_integration,dedicated_manager,onboarding_training",
-      searchesPerMonth: -1, // Unlimited
-      reportsPerMonth: -1, // Unlimited
-    },
-  },
-  {
     id: "pay_per_use",
     name: "Pay-Per-Use",
     description: "Pay only for what you need, when you need it",

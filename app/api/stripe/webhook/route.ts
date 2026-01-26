@@ -54,19 +54,22 @@ export async function POST(req: NextRequest) {
             const supabase = await createServerSupabaseClient();
             const supabaseAny = supabase as any;
 
-            // Map plan names to plan_tier values
+            // Map tier IDs to plan_tier values (removed enterprise)
             const planTierMap: Record<string, string> = {
+              starter: "starter",
+              team: "team",
               pro: "pro",
-              enterprise: "enterprise",
-              basic: "basic",
+              "security-bundle": "security-bundle",
+              "pay-per-use": "pay-per-use",
+              free: "free",
             };
 
-            const mappedTier = planTierMap[planTier.toLowerCase()] || planTier;
+            const mappedTier = planTierMap[planTier.toLowerCase()] || planTier || "free";
 
             await supabaseAny
               .from("employer_accounts")
               .update({
-                plan_tier: mappedTier as "basic" | "pro" | "enterprise",
+                plan_tier: mappedTier,
                 stripe_customer_id: subscription.customer as string,
               })
               .eq("id", employerId);
@@ -84,18 +87,21 @@ export async function POST(req: NextRequest) {
 
             if (profile) {
               const profileTyped = profile as ProfileRow;
-              const planTier = session.metadata?.plan || "pro";
+              const planTier = session.metadata?.tierId || session.metadata?.plan || "free";
               const planTierMap: Record<string, string> = {
+                starter: "starter",
+                team: "team",
                 pro: "pro",
-                enterprise: "enterprise",
-                basic: "basic",
+                "security-bundle": "security-bundle",
+                "pay-per-use": "pay-per-use",
+                free: "free",
               };
-              const mappedTier = planTierMap[planTier.toLowerCase()] || "pro";
+              const mappedTier = planTierMap[planTier.toLowerCase()] || "free";
 
               await supabaseAny
                 .from("employer_accounts")
                 .update({
-                  plan_tier: mappedTier as "basic" | "pro" | "enterprise",
+                  plan_tier: mappedTier,
                   stripe_customer_id: subscription.customer as string,
                 })
                 .eq("user_id", profileTyped.id);
@@ -119,9 +125,18 @@ export async function POST(req: NextRequest) {
 
         if (employer) {
           const employerTyped = employer as EmployerAccountRow;
-          // Determine plan tier from subscription
-          // You may need to map price IDs to plan tiers
-          const planTier = subscription.status === "active" ? "basic" : "free";
+          // Determine plan tier from subscription metadata or price ID
+          const tierId = subscription.metadata?.tierId || "free";
+          const planTierMap: Record<string, string> = {
+            starter: "starter",
+            team: "team",
+            pro: "pro",
+            "security-bundle": "security-bundle",
+            free: "free",
+          };
+          const planTier = subscription.status === "active" 
+            ? (planTierMap[tierId.toLowerCase()] || "free")
+            : "free";
 
           await supabaseAny
             .from("employer_accounts")

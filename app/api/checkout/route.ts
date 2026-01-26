@@ -64,14 +64,16 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Map tier IDs to Stripe price IDs (for employer tiers only)
+    // Map tier IDs to Stripe price IDs using stripePlans config
+    const { stripePlans } = await import("@/lib/stripePlans");
+    
     const tierPriceMap: Record<string, string> = {
-      starter: process.env.EMPLOYER_STARTER_PRICE_ID || "",
-      team: process.env.EMPLOYER_TEAM_PRICE_ID || "",
-      pro: process.env.EMPLOYER_PRO_PRICE_ID || "",
-      enterprise: process.env.EMPLOYER_ENTERPRISE_PRICE_ID || "",
-      "pay-per-use": process.env.EMPLOYER_PAY_PER_USE_PRICE_ID || "",
-      "security-bundle": process.env.EMPLOYER_SECURITY_BUNDLE_PRICE_ID || "",
+      starter: stripePlans.starter,
+      team: stripePlans.team,
+      pro: stripePlans.pro,
+      "pay-per-use": stripePlans.payPerUse,
+      "security-bundle": stripePlans.securityBundle,
+      free: stripePlans.workerFree,
     };
 
     // Determine the final price ID

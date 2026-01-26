@@ -182,15 +182,32 @@ export default function PricingPage() {
     try {
       const userType = activeTab === "employee" ? "employee" : "employer";
       
-      const response = await fetch("/api/pricing/checkout", {
+      // Import stripePlans to get actual price IDs
+      const { stripePlans } = await import("@/lib/stripePlans");
+      
+      // Map tier ID to actual Stripe price ID
+      const priceIdMap: Record<string, string> = {
+        starter: stripePlans.starter,
+        team: stripePlans.team,
+        pro: stripePlans.pro,
+        "pay-per-use": stripePlans.payPerUse,
+        "security-bundle": stripePlans.securityBundle,
+        free: stripePlans.workerFree,
+      };
+      
+      const actualPriceId = priceIdMap[tier.id] || tier.stripePriceId;
+      
+      const response = await fetch("/api/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           tierId: tier.id,
-          priceId: tier.stripePriceId,
+          priceId: actualPriceId,
           userType,
+          successUrl: `${window.location.origin}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}/pricing?canceled=true`,
         }),
       });
 
@@ -310,10 +327,22 @@ export default function PricingPage() {
         }`}>
           {currentTiers.map((tier) => {
             const colors = getColorClasses(tier.color, tier.recommended);
+            // Make entire card clickable
+            const handleCardClick = () => {
+              if (activeTab === "employee") {
+                window.location.href = "/auth/signup";
+              } else if (!isBeta) {
+                handleSubscribe(tier);
+              }
+            };
+            
             return (
               <div
                 key={tier.id}
-                className={`relative rounded-2xl p-8 ${colors.card} transition-all hover:shadow-2xl`}
+                onClick={handleCardClick}
+                className={`relative rounded-2xl p-8 ${colors.card} transition-all hover:shadow-2xl cursor-pointer ${
+                  isBeta && activeTab === "employer" ? "cursor-not-allowed opacity-75" : ""
+                }`}
               >
                 {tier.recommended && (
                   <div
@@ -350,26 +379,20 @@ export default function PricingPage() {
                 </ul>
 
                 {activeTab === "employee" ? (
-                  // Employee tier - always free, just redirect to signup
-                  <button
-                    onClick={() => (window.location.href = "/auth/signup")}
-                    className={`w-full ${colors.button} text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-md hover:shadow-lg border-2 border-transparent hover:border-white`}
-                  >
+                  // Employee tier - always free
+                  <div className={`w-full ${colors.button} text-white font-semibold py-3 px-6 rounded-lg text-center transition-all transform hover:scale-105 shadow-md hover:shadow-lg`}>
                     {tier.cta}
-                  </button>
+                  </div>
                 ) : isBeta ? (
                   // Employer tier but user is beta
-                  <div className="w-full bg-gray-300 text-gray-600 font-semibold py-3 px-6 rounded-lg text-center cursor-not-allowed">
+                  <div className="w-full bg-gray-300 text-gray-600 font-semibold py-3 px-6 rounded-lg text-center">
                     Preview Mode - Subscription Disabled
                   </div>
                 ) : (
                   // Employer tier - normal checkout
-                  <button
-                    onClick={() => handleSubscribe(tier)}
-                    className={`w-full ${colors.button} text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-md hover:shadow-lg border-2 border-transparent hover:border-white`}
-                  >
+                  <div className={`w-full ${colors.button} text-white font-semibold py-3 px-6 rounded-lg text-center transition-all transform hover:scale-105 shadow-md hover:shadow-lg`}>
                     {tier.cta}
-                  </button>
+                  </div>
                 )}
               </div>
             );
