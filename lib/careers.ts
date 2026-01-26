@@ -17,48 +17,48 @@ const careersData: CareerData[] = [
     slug: "healthcare",
     name: "Healthcare",
     image: "/careers/healthcare.jpg",
-    description: "Verified work history for healthcare professionals",
+    description: "Verified employment for healthcare professionals",
     employers: [
-      "Verify skilled staff quickly and efficiently.",
-      "Reduce hiring risk with peer-reviewed references.",
-      "Streamline onboarding with trusted employee history.",
+      "Hire qualified healthcare staff quickly.",
+      "Verify credentials and work history instantly.",
+      "Reduce hiring risk with peer-verified references.",
     ],
     employees: [
-      "Showcase your verified experience to top employers.",
-      "Gain recognition for your healthcare skills.",
-      "Increase opportunities with credible references.",
-    ],
-  },
-  {
-    slug: "law_enforcement",
-    name: "Law Enforcement",
-    image: "/careers/law.jpg",
-    description: "Trusted profiles for law enforcement professionals",
-    employers: [
-      "Ensure officers meet verified credentials and background checks.",
-      "Save time on reference verification.",
-      "Hire candidates with trustworthy peer recommendations.",
-    ],
-    employees: [
-      "Demonstrate your law enforcement experience instantly.",
-      "Build trust with potential departments.",
-      "Stand out with verified endorsements from past colleagues.",
+      "Showcase your healthcare experience and credentials.",
+      "Gain credibility with verified employer endorsements.",
+      "Open opportunities at top healthcare facilities.",
     ],
   },
   {
     slug: "security",
     name: "Security",
     image: "/careers/security.jpg",
-    description: "Verified work history for security professionals",
+    description: "Trusted profiles for security professionals",
     employers: [
-      "Quickly verify guards and staff for contracts.",
-      "Minimize hiring risks with verified work history.",
-      "Hire trusted employees with peer-validated references.",
+      "Hire reliable security personnel with verified backgrounds.",
+      "Check previous security experience and certifications.",
+      "Ensure trust with peer-reviewed references.",
     ],
     employees: [
-      "Prove your reliability with verified work records.",
-      "Highlight skills to multiple security firms.",
-      "Increase employability with trusted peer reviews.",
+      "Highlight your security training and experience.",
+      "Build credibility with verified work history.",
+      "Access premium security roles with trusted profiles.",
+    ],
+  },
+  {
+    slug: "law-enforcement",
+    name: "Law Enforcement",
+    image: "/careers/law.jpg",
+    description: "Verified employment for law enforcement",
+    employers: [
+      "Hire officers with verified service records.",
+      "Check background and experience instantly.",
+      "Ensure reliability with peer-verified references.",
+    ],
+    employees: [
+      "Showcase your law enforcement experience.",
+      "Gain credibility with verified service records.",
+      "Open opportunities with trusted profiles.",
     ],
   },
   {
@@ -116,7 +116,6 @@ const careersData: CareerData[] = [
  * Replace with database query when ready
  */
 export async function getCareers(): Promise<CareerData[]> {
-  // Simulate async operation (replace with actual DB query)
   return Promise.resolve(careersData);
 }
 
@@ -127,4 +126,37 @@ export async function getCareers(): Promise<CareerData[]> {
 export async function getCareerBySlug(slug: string): Promise<CareerData | null> {
   const career = careersData.find((c) => c.slug === slug);
   return Promise.resolve(career || null);
+}
+
+/**
+ * Fetch career data by slug (can use database or static data)
+ */
+export async function fetchCareerData(slug: string): Promise<CareerData | null> {
+  // Try Supabase first, fallback to static data
+  try {
+    const { createSupabaseServerClient } = await import('@/lib/supabase/server');
+    const supabase = createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from('careers')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+
+    if (!error && data) {
+      return {
+        slug: data.slug || slug,
+        name: data.name,
+        description: data.description,
+        image: data.image,
+        employers: data.employers,
+        employees: data.employees,
+      };
+    }
+  } catch (error) {
+    // Fallback to static data if Supabase fails
+    console.error('Error fetching from Supabase, using static data:', error);
+  }
+
+  // Fallback to static data
+  return getCareerBySlug(slug);
 }

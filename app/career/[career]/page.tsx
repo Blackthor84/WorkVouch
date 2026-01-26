@@ -1,26 +1,31 @@
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { fetchCareerData } from '@/lib/careers';
 
-interface CareerPageProps {
+type CareerPageProps = {
   params: { career: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
+};
 
-export default async function CareerPage({ params }: CareerPageProps) {
+const CareerPage = async ({ params }: CareerPageProps) => {
   const { career } = params;
 
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from('careers')
-    .select('*')
-    .eq('slug', career)
-    .single();
+  // fetch data if needed
+  const data = await fetchCareerData(career);
 
-  if (error || !data) return <p>Career not found</p>;
+  if (!data) {
+    return (
+      <div>
+        <h1>Career not found</h1>
+        <p>The career "{career}" could not be found.</p>
+      </div>
+    );
+  }
 
   return (
     <div>
       <h1>{data.name}</h1>
-      <p>{data.description}</p>
+      {data.description && <p>{data.description}</p>}
+      {/* render your data */}
     </div>
   );
-}
+};
+
+export default CareerPage;
