@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
   webpack: (config, { isServer }) => {
     // Suppress Supabase getSession warnings
     if (isServer) {
@@ -35,8 +36,8 @@ const nextConfig = {
       },
     ],
   },
-  // Turbopack is enabled by default in Next.js 16+ when using --turbo flag
-  // Path aliases are resolved via tsconfig.json
+  // Add an empty turbopack object to silence Turbopack warnings
+  turbopack: {},
 }
 
 module.exports = nextConfig
