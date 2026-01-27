@@ -1,27 +1,24 @@
-import { stripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
+import { stripe } from "@/lib/stripe";
 
 export async function GET() {
   try {
-    if (!stripe) {
-      return NextResponse.json(
-        { success: false, error: "Stripe is not configured" },
-        { status: 500 }
-      );
-    }
+    // Fetch all active prices (set limit high enough to include all)
+    const prices = await stripe.prices.list({ active: true, limit: 20 });
 
-    const prices = await stripe.prices.list({ 
-      active: true, 
-      limit: 100,
-      expand: ["data.product"] 
-    });
-    
-    return NextResponse.json({ success: true, prices: prices.data });
-  } catch (err: any) {
-    console.error("Failed to fetch Stripe prices:", err);
-    return NextResponse.json(
-      { success: false, error: err.message || "Failed to fetch prices" },
-      { status: 500 }
+    // Optional: fetch product info for display
+    const pricesWithProducts = await Promise.all(
+      prices.data.map(async (price) => {
+        const product = await stripe.products.retrieve(price.product.toString());
+        return { ...price, productName: product.name };
+      })
     );
+
+    console.log("Fetched Stripe prices:", pricesWithProducts.map(p => p.id));
+
+    return NextResponse.json({ success: true, prices: pricesWithProducts });
+  } catch (err: any) {
+    console.error("Error fetching prices:", err);
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
