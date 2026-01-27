@@ -3,39 +3,60 @@
 
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { createClient } from "@supabase/supabase-js";
 
 export default async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   
   // ============================================
-  // Beta User Access Control (from middleware.ts)
+  // Dashboard Protection with Supabase Auth
+  // ============================================
+  if (url.pathname.startsWith("/dashboard")) {
+    // Check for Supabase session token in cookies
+    // Supabase stores session in multiple cookie formats
+    const hasSession = 
+      request.cookies.get("sb-access-token")?.value ||
+      request.cookies.get("sb-refresh-token")?.value ||
+      request.cookies.get(`sb-${process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0]}-auth-token`)?.value;
+    
+    if (!hasSession) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+  }
+  
+  // ============================================
+  // Beta User Access Control
   // ============================================
   try {
-    // Get the session token for beta user checks
-    const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
+    // Create Supabase client for auth checks
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
 
-    // Check if user has beta role
-    const isBeta = token?.role === "beta" || 
-                  (Array.isArray(token?.roles) && token?.roles.includes("beta"));
+    // Get session from Supabase (if available)
+    const token = request.cookies.get("sb-access-token")?.value;
+    if (token) {
+      const { data: { session } } = await supabase.auth.getSession();
 
-    if (isBeta) {
-      // Redirect beta users away from pricing and checkout pages
-      if (
-        url.pathname.startsWith("/pricing") ||
-        url.pathname.startsWith("/api/pricing/checkout") ||
-        url.pathname.startsWith("/api/stripe")
-      ) {
-        return NextResponse.redirect(new URL("/preview-only", request.url));
+      // Check if user has beta role (from user metadata or profile)
+      const isBeta = session?.user?.user_metadata?.role === "beta";
+
+      if (isBeta) {
+        // Redirect beta users away from pricing and checkout pages
+        if (
+          url.pathname.startsWith("/pricing") ||
+          url.pathname.startsWith("/api/pricing/checkout") ||
+          url.pathname.startsWith("/api/stripe")
+        ) {
+          return NextResponse.redirect(new URL("/preview-only", request.url));
+        }
       }
     }
   } catch (error) {
     // If token check fails, continue with request (don't block)
     // This allows unauthenticated users to access public pages
-    console.error("Token check error in proxy:", error);
+    console.error("Auth check error in proxy:", error);
   }
 
   // ============================================
