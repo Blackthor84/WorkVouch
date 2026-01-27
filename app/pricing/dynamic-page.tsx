@@ -1,63 +1,51 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import PriceButton from "@/components/PriceButton";
-
-interface StripePrice {
-  id: string;
-  unit_amount: number | null;
-  currency: string;
-  nickname: string | null;
-  type: "one_time" | "recurring";
-}
+import { employerPlans, payPerUse } from "@/data/pricing";
 
 export default function DynamicPricingPage() {
-  const [prices, setPrices] = useState<StripePrice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const startCheckout = async (stripePriceId: string | undefined) => {
+    if (!stripePriceId) {
+      alert("Price ID not configured. Please contact support.");
+      return;
+    }
 
-  useEffect(() => {
-    const fetchPrices = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch("/api/prices");
-        const data = await res.json();
-
-        if (!res.ok || !data.success) throw new Error(data.error || "Failed to fetch prices");
-
-        const formattedPrices = data.prices.map((p: any) => ({
-          id: p.unit_amount === 0 ? "free" : p.id,
-          unit_amount: p.unit_amount,
-          currency: p.currency,
-          nickname: p.nickname || p.id,
-          type: p.type,
-        }));
-
-        setPrices(formattedPrices);
-      } catch (err: any) {
-        console.error("Error fetching prices:", err);
-        setError(err.message || "Failed to load prices");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPrices();
-  }, []);
-
-  if (loading) return <p>Loading pricing plans...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId: stripePriceId }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else alert("Checkout failed: " + (data.error || "Unknown error"));
+    } catch (err: any) {
+      alert("Checkout error: " + err.message);
+    }
+  };
 
   return (
     <div>
       <h1>Choose Your Plan</h1>
-      {prices.map((p) => (
-        <PriceButton
-          key={p.id}
-          priceId={p.id}
-          label={p.unit_amount === 0 ? `Free ($0)` : `${p.nickname} ($${((p.unit_amount || 0) / 100).toFixed(2)})`}
-        />
+      {employerPlans.map((plan) => (
+        <div key={plan.id}>
+          <h3>{plan.name}</h3>
+          <p>${plan.price}/{plan.period}</p>
+          <button onClick={() => startCheckout(plan.stripePriceId)}>
+            {plan.id === "starter" && "Start Hiring"}
+            {plan.id === "team" && "Upgrade to Team"}
+            {plan.id === "pro" && "Go Pro"}
+            {plan.id === "security" && "Get Security Bundle"}
+            {!["starter", "team", "pro", "security"].includes(plan.id) && "Choose Plan"}
+          </button>
+        </div>
       ))}
+      <div>
+        <h3>{payPerUse.name}</h3>
+        <p>${payPerUse.price}/{payPerUse.period}</p>
+        <button onClick={() => startCheckout(payPerUse.stripePriceId)}>
+          Buy Report
+        </button>
+      </div>
     </div>
   );
 }

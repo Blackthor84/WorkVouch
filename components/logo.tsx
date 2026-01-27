@@ -27,7 +27,7 @@ export function Logo({
     <Link href="/" className={`flex items-center ${className}`}>
       <div className={`relative ${sizeClasses[size]} flex-shrink-0`}>
         <Image
-          src="/images/workvouch-logo.png.png"
+          src="/logo/workvouch.png"
           alt="WorkVouch Logo"
           width={300}
           height={100}
@@ -35,6 +35,8 @@ export function Logo({
           priority
           style={{
             objectFit: "contain",
+            width: "auto",
+            height: "40px",
             backgroundColor: "transparent",
             filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))",
           }}

@@ -10,13 +10,15 @@ export function HomepageNavbar() {
         <Link href="/" className="flex items-center m-0 p-0">
           <div className="relative h-40 w-auto max-w-[560px] m-0 p-0">
             <Image
-              src="/images/workvouch-logo.png.png"
+              src="/logo/workvouch.png"
               alt="WorkVouch Logo"
               width={300}
               height={100}
               className="h-full w-auto m-0 p-0 mix-blend-multiply dark:mix-blend-screen"
               style={{
                 objectFit: "contain",
+                width: "auto",
+                height: "40px",
                 backgroundColor: "transparent",
                 margin: 0,
                 padding: 0,

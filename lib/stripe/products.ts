@@ -91,19 +91,6 @@ export const STRIPE_PRODUCTS: StripeProduct[] = [
     ],
   },
   {
-    name: 'Employer Enterprise',
-    description: 'Unlimited lookups, custom API access, turnover insights, and dedicated account support.',
-    id: 'emp-enterprise',
-    prices: [
-      {
-        nickname: 'Monthly',
-        currency: 'usd',
-        unit_amount: 49900, // $499.00
-        recurring: { interval: 'month' },
-      },
-    ],
-  },
-  {
     name: 'Pay-Per-Lookup',
     description: 'Simple pay-as-you-go access to one verified candidate profile.',
     id: 'lookup',
@@ -140,7 +127,6 @@ export function productIdToTier(productId: string): string {
     'peer-elite': 'elite',
     'emp-lite': 'emp_lite',
     'emp-pro': 'emp_pro',
-    'emp-enterprise': 'emp_enterprise',
   }
   return mapping[productId] || 'starter'
 }
@@ -153,7 +139,6 @@ export function tierToProductId(tier: string): string {
     elite: 'peer-elite',
     emp_lite: 'emp-lite',
     emp_pro: 'emp-pro',
-    emp_enterprise: 'emp-enterprise',
   }
   return mapping[tier] || 'peer-starter-000'
 }

@@ -234,7 +234,7 @@ export async function getEmployerLookupUsage() {
     .select('id, tier, current_period_start, current_period_end')
     .eq('user_id', user.id)
     .in('status', ['active', 'trialing'])
-    .in('tier', ['emp_lite', 'emp_pro', 'emp_enterprise'])
+    .in('tier', ['emp_lite', 'emp_pro'])
     .order('created_at', { ascending: false })
     .limit(1)
     .single()
@@ -252,9 +252,6 @@ export async function getEmployerLookupUsage() {
   // Get quota based on tier
   let limit = 0
   switch (subscriptionTyped.tier) {
-    case 'emp_enterprise':
-      limit = 999999 // Unlimited
-      break
     case 'emp_pro':
       limit = 100
       break

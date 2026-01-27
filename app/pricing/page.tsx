@@ -1,69 +1,94 @@
 "use client";
-import { useEffect, useState } from "react";
 
-interface Price {
-  id: string;
-  unit_amount: number;
-  currency: string;
-  productName: string;
-  type: string;
-}
+import { useState } from "react";
+import { employerPlans, payPerUse } from "@/data/pricing";
+import Link from "next/link";
 
 export default function PricingPage() {
-  const [prices, setPrices] = useState<Price[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch("/api/prices")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          // Order the prices exactly
-          const orderedIds = [
-            "price_1SthM2KCZX6GjNTDUS2xAfaL",
-            "price_1StgIcKCZX6GjNTDTTt2QQ6V",
-            "price_1StgdKKCZX6GjNTDiDmCHXnJ",
-            "price_1SthDEKCZX6GjNTDeTvMRQ6Q",
-            "price_1StgiTKCZX6GjNTDA9fGuzgc",
-            "price_1Sth9IKCZX6GjNTDO6Ls4UBb",
-          ];
-          const sortedPrices = orderedIds
-            .map((id) => data.prices.find((p: Price) => p.id === id))
-            .filter(Boolean);
-          setPrices(sortedPrices);
-        }
-      })
-      .catch((err) => console.error("Failed to load prices:", err))
-      .finally(() => setLoading(false));
-  }, []);
+  const handleCheckout = async (stripePriceId: string | undefined) => {
+    if (!stripePriceId) {
+      alert("Price ID not configured. Please contact support.");
+      return;
+    }
 
-  const startCheckout = async (priceId: string) => {
+    setLoadingPlan(stripePriceId);
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ priceId: stripePriceId }),
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else alert("Checkout failed: " + data.error);
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Checkout failed: " + (data.error || "Unknown error"));
+        setLoadingPlan(null);
+      }
     } catch (err: any) {
-      alert("Checkout error: " + err.message);
+      console.error(err);
+      alert("Checkout failed. Please try again.");
+      setLoadingPlan(null);
     }
   };
 
-  if (loading) return <p>Loading pricing...</p>;
-  if (!prices.length) return <p>Unable to load pricing. Please try again later.</p>;
+  const allPlans = [...employerPlans, payPerUse];
 
   return (
-    <div className="pricing-grid">
-      {prices.map((p) => (
-        <div key={p.id} className="plan-card">
-          <h3>{p.productName}</h3>
-          <p>${(p.unit_amount / 100).toFixed(2)}</p>
-          <button onClick={() => startCheckout(p.id)}>Choose Plan</button>
-        </div>
-      ))}
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold mb-4">WorkVouch Pricing for Employers</h1>
+        <p className="text-lg text-gray-600 dark:text-gray-400">
+          Choose the plan that fits your hiring needs
+        </p>
+      </div>
+      <div className="grid md:grid-cols-3 gap-6">
+        {allPlans.map((plan) => (
+          <div
+            key={plan.id}
+            className="border rounded-lg p-6 shadow hover:shadow-lg transition bg-white dark:bg-gray-800"
+          >
+            <h2 className="text-2xl font-semibold mb-2">{plan.name}</h2>
+            <p className="text-xl font-bold mb-4">
+              ${plan.price} / {plan.period}
+            </p>
+            <ul className="mb-6 list-disc ml-6 space-y-2 text-sm text-gray-700 dark:text-gray-300">
+              {plan.features.map((feature, idx) => (
+                <li key={idx}>{feature}</li>
+              ))}
+            </ul>
+            <button
+              onClick={() => handleCheckout(plan.stripePriceId)}
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50 w-full transition-colors font-semibold"
+              disabled={loadingPlan === plan.stripePriceId}
+            >
+              {loadingPlan === plan.stripePriceId
+                ? "Redirecting..."
+                : plan.id === "pay_per_use"
+                ? "Buy Report"
+                : plan.id === "starter"
+                ? "Start Hiring"
+                : plan.id === "team"
+                ? "Upgrade to Team"
+                : plan.id === "pro"
+                ? "Go Pro"
+                : plan.id === "security"
+                ? "Get Security Bundle"
+                : "Subscribe"}
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="mt-12 text-center">
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          Looking for employee features?{" "}
+          <Link href="/subscribe/employee" className="text-blue-600 hover:underline">
+            WorkVouch is always free for workers
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

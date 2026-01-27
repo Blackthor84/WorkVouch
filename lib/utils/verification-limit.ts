@@ -15,7 +15,7 @@ export interface VerificationLimitResult {
 /**
  * Check if employer can perform a verification
  * Basic plan: 10 verifications/month
- * Pro/Enterprise: Unlimited
+ * Pro: Unlimited
  */
 export async function checkVerificationLimit(
   employerId: string
@@ -42,8 +42,8 @@ export async function checkVerificationLimit(
 
   const planTier = (employerAccount as EmployerAccountRow).plan_tier
 
-  // Pro and Enterprise have unlimited verifications
-  if (planTier === 'pro' || planTier === 'enterprise') {
+  // Pro has unlimited verifications
+  if (planTier === 'pro') {
     return {
       canVerify: true,
       currentCount: 0,

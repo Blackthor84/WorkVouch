@@ -6,12 +6,12 @@ export default function Navbar() {
     <nav className="flex items-center justify-between p-4 bg-white shadow">
       <Link href="/" className="flex items-center">
         <Image
-          src="/images/workvouch-logo.png.png"
+          src="/logo/workvouch.png"
           alt="WorkVouch Logo"
           width={300}
           height={100}
           priority
-          style={{ objectFit: "contain", width: "auto", height: "60px" }}
+          style={{ objectFit: "contain", width: "auto", height: "40px" }}
         />
       </Link>
       <div className="flex space-x-4">

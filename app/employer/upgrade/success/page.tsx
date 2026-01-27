@@ -26,7 +26,7 @@ export default async function UpgradeSuccessPage(props: any) {
           </h1>
           <p className="text-grey-medium dark:text-gray-400 mb-6">
             Your account has been upgraded. You now have access to all
-            Professional or Enterprise features.
+            Professional features.
           </p>
           {session_id && (
             <p className="text-xs text-grey-medium dark:text-gray-500 mb-6">
