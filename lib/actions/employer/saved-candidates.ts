@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerSupabase } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 
@@ -9,7 +9,7 @@ import { revalidatePath } from 'next/cache'
  */
 export async function saveCandidate(candidateId: string, notes?: string) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   // Verify user is an employer
@@ -49,7 +49,7 @@ export async function saveCandidate(candidateId: string, notes?: string) {
  */
 export async function unsaveCandidate(candidateId: string) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   const { error } = await supabaseAny
@@ -70,7 +70,7 @@ export async function unsaveCandidate(candidateId: string) {
  */
 export async function getSavedCandidates() {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   const { data, error } = await supabaseAny
@@ -103,7 +103,7 @@ export async function getSavedCandidates() {
  */
 export async function isCandidateSaved(candidateId: string) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   const { data } = await supabaseAny

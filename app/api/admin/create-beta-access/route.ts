@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
     }
 
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
 
     // Generate unique login token

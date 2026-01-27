@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     if (!employerId) {
       // Get employer account ID from user
-      const supabase = createServerSupabase();
+      const supabase = await createServerSupabase();
       const supabaseAny = supabase as any;
       type EmployerAccountRow = { id: string };
       const { data: employerAccount } = await supabaseAny

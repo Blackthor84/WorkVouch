@@ -134,8 +134,8 @@ export async function getCareerBySlug(slug: string): Promise<CareerData | null> 
 export async function fetchCareerData(slug: string): Promise<CareerData | null> {
   // Try Supabase first, fallback to static data
   try {
-    const { createSupabaseServerClient } = await import('@/lib/supabase/server');
-    const supabase = createSupabaseServerClient();
+    const { createServerSupabase } = await import('@/lib/supabase/server');
+    const supabase = await createServerSupabase();
     const { data, error } = await supabase
       .from('careers')
       .select('*')

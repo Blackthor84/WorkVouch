@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
 
     // Get employer account

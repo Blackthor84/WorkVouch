@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Token is required" }, { status: 400 });
     }
 
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
 
     // Find user by login token

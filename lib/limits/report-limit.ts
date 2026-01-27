@@ -6,7 +6,7 @@
  */
 
 import { createServerSupabase } from "@/lib/supabase/server";
-import { getPlanFeatures } from "@/lib/stripePlans";
+import { getPlanFeatures, hasUnlimitedReports } from "@/lib/stripePlans";
 
 export interface ReportUsage {
   employerId: string;
@@ -20,12 +20,12 @@ export interface ReportUsage {
  * Get current report usage for an employer
  */
 export async function getReportUsage(employerId: string, tierId: string): Promise<ReportUsage> {
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const supabaseAny = supabase as any;
 
   // Get plan features to determine limit
   const planFeatures = getPlanFeatures(tierId);
-  const limit = planFeatures.reportsPerMonth === -1 ? Infinity : planFeatures.reportsPerMonth;
+  const limit = hasUnlimitedReports(tierId) ? Infinity : planFeatures.reportsPerMonth;
 
   // Get current month's usage
   const now = new Date();
@@ -74,7 +74,7 @@ export async function canGenerateReport(employerId: string, tierId: string): Pro
  * Record a report generation (increment usage)
  */
 export async function recordReport(employerId: string, workerId: string, reportType: string): Promise<void> {
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const supabaseAny = supabase as any;
 
   const { error } = await supabaseAny

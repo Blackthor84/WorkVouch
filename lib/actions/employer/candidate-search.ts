@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerSupabase } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 
 export interface CandidateSearchFilters {
@@ -40,7 +40,7 @@ export interface CandidateSearchResult {
  */
 export async function searchCandidates(filters: CandidateSearchFilters = {}) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   // Verify user is an employer
@@ -170,7 +170,7 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
  */
 export async function getCandidateProfileForEmployer(candidateId: string) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   // Verify user is an employer

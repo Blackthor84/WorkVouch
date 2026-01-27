@@ -1,10 +1,10 @@
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerSupabase } from '@/lib/supabase/server'
 
 /**
  * Check if employer can view employees (Basic or Pro plan)
  */
 export async function canViewEmployees(userId: string): Promise<boolean> {
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
   
   const { data: employerAccount } = await supabaseAny
@@ -25,7 +25,7 @@ export async function canViewEmployees(userId: string): Promise<boolean> {
  * Check if employer can file disputes (Pro plan only)
  */
 export async function canFileDispute(userId: string): Promise<boolean> {
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
   
   const { data: employerAccount } = await supabaseAny

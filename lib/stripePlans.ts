@@ -30,7 +30,13 @@ export const stripePlans = {
 /**
  * Plan metadata for feature gating
  */
-export const planFeatures = {
+export const planFeatures: Record<string, {
+  name: string;
+  price: number;
+  searchesPerMonth: number;
+  reportsPerMonth: number;
+  features: string[];
+}> = {
   starter: {
     name: "Starter (Employer)",
     price: 49,

@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
 
     // Type definition for employer_accounts (not in Database types yet)
     type EmployerAccountRow = { company_name: string };

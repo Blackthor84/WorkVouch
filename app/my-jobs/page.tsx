@@ -20,7 +20,7 @@ export default async function MyJobsPage() {
     redirect("/auth/signin");
   }
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
 
   const supabaseAny = supabase as any;
   const { data: jobs, error } = await supabaseAny

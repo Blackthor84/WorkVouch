@@ -5,7 +5,7 @@ import { Database } from "@/types/database";
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
     const {
       data: { user },

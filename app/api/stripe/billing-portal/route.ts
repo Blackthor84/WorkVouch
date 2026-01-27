@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
 
     type EmployerAccountRow = { stripe_customer_id: string | null };

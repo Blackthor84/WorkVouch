@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if user has Security Bundle plan
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
 
     const { data: employerAccount } = await supabaseAny

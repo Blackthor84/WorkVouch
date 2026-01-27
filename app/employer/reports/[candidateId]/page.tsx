@@ -34,7 +34,7 @@ export default async function CandidateReportPage(props: any) {
               {error.message || "You do not have access to this report."}
             </p>
             <a
-              href={`/employer/search?candidateId=${params.candidateId}`}
+              href={`/employer/search?candidateId=${candidateId}`}
               className="inline-block"
             >
               <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold shadow-md hover:shadow-lg transition-all">

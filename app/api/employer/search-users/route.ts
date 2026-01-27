@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
 
     // Search profiles by full_name (case-insensitive)
     // Split the query to search for first name, last name, or full name

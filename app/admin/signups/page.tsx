@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { isSuperAdmin } from "@/lib/auth";
 import { NavbarServer } from "@/components/navbar-server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createServerSupabase } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDateLong } from "@/lib/utils/date";
@@ -20,7 +20,7 @@ export default async function AdminSignupsPage() {
     redirect("/admin");
   }
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
 
   // Get all profiles (which includes user IDs)
   const { data: profiles, error: profilesError } = await supabase

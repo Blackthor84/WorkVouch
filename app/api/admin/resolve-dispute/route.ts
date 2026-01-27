@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = resolveDisputeSchema.parse(body);
 
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
 
     // Type definitions for employer_disputes (not in Database types yet)
     type EmployerDisputeRow = { id: string; job_id: string; status: string };

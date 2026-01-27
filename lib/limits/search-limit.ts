@@ -20,7 +20,7 @@ export interface SearchUsage {
  * Get current search usage for an employer
  */
 export async function getSearchUsage(employerId: string, tierId: string): Promise<SearchUsage> {
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const supabaseAny = supabase as any;
 
   // Get plan features to determine limit
@@ -74,7 +74,7 @@ export async function canPerformSearch(employerId: string, tierId: string): Prom
  * Record a search (increment usage)
  */
 export async function recordSearch(employerId: string, workerId: string): Promise<void> {
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const supabaseAny = supabase as any;
 
   const { error } = await supabaseAny
@@ -95,7 +95,7 @@ export async function recordSearch(employerId: string, workerId: string): Promis
  * Reset monthly usage (called by cron job)
  */
 export async function resetMonthlyUsage(): Promise<void> {
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const supabaseAny = supabase as any;
 
   // This would typically be done via a database function or cron job

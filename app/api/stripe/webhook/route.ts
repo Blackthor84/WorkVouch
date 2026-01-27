@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
           const planTier = session.metadata?.planTier || session.metadata?.plan;
 
           if (employerId && planTier) {
-            const supabase = createServerSupabase();
+            const supabase = await createServerSupabase();
             const supabaseAny = supabase as any;
 
             // Map tier IDs to plan_tier values (removed enterprise)
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
               .eq("id", employerId);
           } else if (session.customer_email) {
             // Fallback: find employer by email if metadata not available
-            const supabase = createServerSupabase();
+            const supabase = await createServerSupabase();
             const supabaseAny = supabase as any;
 
             type ProfileRow = { id: string };
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
 
-        const supabase = createServerSupabase();
+        const supabase = await createServerSupabase();
         const supabaseAny = supabase as any;
         type EmployerAccountRow = { id: string };
         const { data: employer } = await supabaseAny
@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
 
-        const supabase = createServerSupabase();
+        const supabase = await createServerSupabase();
         const supabaseAny = supabase as any;
         type EmployerAccountRow = { id: string };
         const { data: employer } = await supabaseAny
@@ -172,12 +172,19 @@ export async function POST(req: NextRequest) {
         const invoice = event.data.object as Stripe.Invoice;
         
         // Update subscription status on successful payment
-        if (invoice.subscription) {
+        // Invoice.subscription can be a string (subscription ID) or a Subscription object
+        // Type assertion needed as Stripe types may not include this property
+        const invoiceAny = invoice as any;
+        const subscriptionId = typeof invoiceAny.subscription === 'string' 
+          ? invoiceAny.subscription 
+          : invoiceAny.subscription?.id;
+        
+        if (subscriptionId) {
           const subscription = await stripe.subscriptions.retrieve(
-            invoice.subscription as string
+            subscriptionId
           );
           
-          const supabase = createServerSupabase();
+          const supabase = await createServerSupabase();
           const supabaseAny = supabase as any;
           
           const { data: employer } = await supabaseAny

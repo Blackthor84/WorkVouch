@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerSupabase } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/auth'
 
 /**
@@ -8,7 +8,7 @@ import { requireRole } from '@/lib/auth'
  */
 export async function getAllUsers() {
   await requireRole('admin')
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
 
   const { data: users, error } = await supabase
     .from('profiles')
@@ -38,7 +38,7 @@ export async function getAllUsers() {
  */
 export async function getAllJobs() {
   await requireRole('admin')
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
 
   const { data: jobs, error } = await supabase
     .from('jobs')
@@ -64,7 +64,7 @@ export async function getAllJobs() {
  */
 export async function getAllReferences() {
   await requireRole('admin')
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
 
   const { data: references, error } = await supabase
     .from('references')
@@ -100,7 +100,7 @@ export async function getAllReferences() {
  */
 export async function softDeleteReference(referenceId: string) {
   await requireRole('admin')
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   const { data: reference, error } = await supabaseAny
@@ -123,7 +123,7 @@ export async function softDeleteReference(referenceId: string) {
  */
 export async function suspendUser(userId: string) {
   await requireRole('admin')
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
 
   // TODO: Implement actual suspension logic
   // This could involve:

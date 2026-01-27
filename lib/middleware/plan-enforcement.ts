@@ -2,7 +2,7 @@
 // Keeping for backward compatibility but redirecting to Supabase version
 
 import { canFileDispute as canFileDisputeSupabase } from './plan-enforcement-supabase'
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerSupabase } from '@/lib/supabase/server'
 
 export type PlanTier = 'free' | 'basic' | 'pro'
 
@@ -11,7 +11,7 @@ export async function checkEmployerPlan(employerId: string): Promise<{
   planTier: PlanTier
   message?: string
 }> {
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
   
   const { data: employerAccount } = await supabaseAny

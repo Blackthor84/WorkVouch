@@ -27,7 +27,7 @@ export default async function AdminPanel() {
   }
 
   // Get all users with their roles
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const supabaseAny = supabase as any;
 
   // Get all profiles

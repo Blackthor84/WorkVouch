@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
 
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
 
     let query: any = supabase
       .from("employer_disputes")

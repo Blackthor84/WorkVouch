@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerSupabase } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 
@@ -10,7 +10,7 @@ import { revalidatePath } from 'next/cache'
  */
 export async function findPotentialCoworkers(jobId: string) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
 
   // Get the job details
   const supabaseAny = supabase as any
@@ -103,7 +103,7 @@ export async function initiateConnection(
   jobId?: string
 ) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   // Prevent self-connection
@@ -151,7 +151,7 @@ export async function initiateConnection(
  */
 export async function confirmConnection(connectionId: string) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   // Verify the connection is for this user
@@ -196,7 +196,7 @@ export async function confirmConnection(connectionId: string) {
  */
 export async function getUserConnections() {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   const { data: connections, error } = await supabaseAny

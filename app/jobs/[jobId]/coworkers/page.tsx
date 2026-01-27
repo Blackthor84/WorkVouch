@@ -25,7 +25,7 @@ export default async function CoworkersPage(props: any) {
         </h1>
         <CoworkerList
           potentialCoworkers={potentialCoworkers}
-          jobId={params.jobId}
+          jobId={jobId}
         />
       </main>
     </>

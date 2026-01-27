@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = requestVerificationSchema.parse(body);
 
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
 
     // Type definitions for tables not in Database types yet
     type EmployerAccountRow = {

@@ -3,7 +3,7 @@
  * Uses semantic similarity to match candidates with job postings
  */
 
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerSupabase } from '@/lib/supabase/server'
 import { generateJobEmbedding, generateCandidateEmbedding, cosineSimilarity } from './embeddings'
 
 export interface MatchScore {
@@ -33,7 +33,7 @@ export async function calculateMatchScore(
   candidateId: string,
   jobInput: JobMatchInput
 ): Promise<MatchScore> {
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   // Get candidate data
@@ -260,7 +260,7 @@ export async function findTopMatches(
   jobInput: JobMatchInput,
   limit: number = 20
 ): Promise<MatchScore[]> {
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   // Get all public profiles (or filter by industry if specified)

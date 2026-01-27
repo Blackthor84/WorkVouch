@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerSupabase } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 
@@ -38,7 +38,7 @@ export interface CreateJobPostingInput {
  */
 export async function createJobPosting(input: CreateJobPostingInput) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   // Verify user is an employer
@@ -75,7 +75,7 @@ export async function createJobPosting(input: CreateJobPostingInput) {
  */
 export async function updateJobPosting(id: string, input: Partial<CreateJobPostingInput>) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
 
   // Verify ownership
   const supabaseAny = supabase as any
@@ -116,7 +116,7 @@ export async function toggleJobPostingPublish(id: string, isPublished: boolean) 
  */
 export async function boostJobPosting(id: string, days: number = 30) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
 
   // Verify ownership
   const supabaseAny = supabase as any
@@ -156,7 +156,7 @@ export async function boostJobPosting(id: string, days: number = 30) {
  */
 export async function getEmployerJobPostings() {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   const { data, error } = await supabaseAny
@@ -176,7 +176,7 @@ export async function getEmployerJobPostings() {
  * Get published job postings (public)
  */
 export async function getPublishedJobPostings(industry?: string) {
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   let query: any = supabaseAny
@@ -203,7 +203,7 @@ export async function getPublishedJobPostings(industry?: string) {
  * Get job posting by ID
  */
 export async function getJobPosting(id: string) {
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   const { data, error } = await supabaseAny
@@ -224,7 +224,7 @@ export async function getJobPosting(id: string) {
  */
 export async function getJobApplications(jobPostingId: string) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   // Verify ownership
@@ -256,7 +256,7 @@ export async function getJobApplications(jobPostingId: string) {
  */
 export async function applyToJob(jobPostingId: string, coverLetter?: string) {
   const user = await requireAuth()
-  const supabase = await createServerClient()
+  const supabase = await createServerSupabase()
 
   const supabaseAny = supabase as any
   const { data, error } = await supabaseAny

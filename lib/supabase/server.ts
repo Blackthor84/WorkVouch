@@ -1,73 +1,45 @@
-﻿import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
+﻿import { createServerClient as createSupabaseSSRClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
 /**
- * Simple server-side Supabase client
- * Uses SUPABASE_URL and SUPABASE_KEY environment variables
+ * Official Next.js App Router Supabase server client
+ * Use this in server components, server actions, and API routes
+ * 
+ * This uses the official @supabase/ssr pattern for Next.js App Router
+ * Note: In Next.js 15+, cookies() may be async, so this function is async
  */
-export const createSupabaseServerClient = () => {
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
-    throw new Error('Missing SUPABASE_URL or SUPABASE_KEY');
-  }
-
-  return createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_KEY
-  );
-};
-
-/**
- * Create a server-side Supabase client with cookie forwarding
- * Supports both SUPABASE_URL/SUPABASE_KEY and NEXT_PUBLIC_SUPABASE_URL/NEXT_PUBLIC_SUPABASE_ANON_KEY
- * Forwards cookies for authenticated requests
- */
-export const createServerClient = async () => {
-  // Support both env var patterns for compatibility
-  const supabaseUrl = 
-    process.env.SUPABASE_URL || 
-    process.env.NEXT_PUBLIC_SUPABASE_URL;
+export async function createServerSupabase() {
+  const cookieStore = await cookies()
   
-  const supabaseKey = 
-    process.env.SUPABASE_KEY || 
-    process.env.SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing SUPABASE_URL or SUPABASE_KEY environment variables. Please set SUPABASE_URL and SUPABASE_KEY (or NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY).');
-  }
-
-  return createClient(
-    supabaseUrl,
-    supabaseKey,
+  return createSupabaseSSRClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      headers: { cookie: cookies().toString() },
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set(name: string, value: string, options: any) {
+          try {
+            cookieStore.set(name, value, options)
+          } catch (error) {
+            // Cookies can only be set in Server Actions or Route Handlers
+            // This is expected in some contexts (e.g., during rendering)
+          }
+        },
+        remove(name: string, options: any) {
+          try {
+            cookieStore.set(name, '', { ...options, maxAge: 0 })
+          } catch (error) {
+            // Cookies can only be removed in Server Actions or Route Handlers
+            // This is expected in some contexts (e.g., during rendering)
+          }
+        },
+      },
     }
-  );
-};
-
-/**
- * Synchronous version for backward compatibility
- * @deprecated Use createServerClient() instead
- */
-export function createServerSupabase() {
-  const supabaseUrl = 
-    process.env.SUPABASE_URL || 
-    process.env.NEXT_PUBLIC_SUPABASE_URL;
-  
-  const supabaseKey = 
-    process.env.SUPABASE_KEY || 
-    process.env.SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing SUPABASE_URL or SUPABASE_KEY environment variables');
-  }
-
-  return createClient(
-    supabaseUrl,
-    supabaseKey,
-    {
-      headers: { cookie: cookies().toString() },
-    }
-  );
+  )
 }
+
+// Export aliases for backward compatibility (deprecated - use createServerSupabase)
+export const createServerClient = createServerSupabase
+export const createSupabaseServerClient = createServerSupabase

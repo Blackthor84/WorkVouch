@@ -3,7 +3,7 @@
  * Handles checking and tracking verification limits for Basic employers
  */
 
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { createServerSupabase } from '@/lib/supabase/server'
 
 export interface VerificationLimitResult {
   canVerify: boolean
@@ -20,7 +20,7 @@ export interface VerificationLimitResult {
 export async function checkVerificationLimit(
   employerId: string
 ): Promise<VerificationLimitResult> {
-  const supabase = await createSupabaseServerClient()
+  const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
   // Get employer account to check plan tier
