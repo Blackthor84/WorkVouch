@@ -9,35 +9,23 @@ export async function GET() {
       expand: ["data.product"],
     });
 
-    const formatted = prices.data.map((price) => {
-      let productName = "Unknown Product";
-
-      if (
-        typeof price.product === "object" &&
-        price.product !== null &&
-        "name" in price.product
-      ) {
-        productName = price.product.name;
-      }
-
-      return {
-        id: price.id,
-        unit_amount: price.unit_amount,
-        currency: price.currency,
-        productName,
-        type: price.type,
-      };
-    });
+    const formatted = prices.data.map((p) => ({
+      id: p.id,
+      unit_amount: p.unit_amount,
+      currency: p.currency,
+      productName:
+        typeof p.product === "object" && p.product && "name" in p.product
+          ? p.product.name
+          : "Unknown Product",
+      type: p.type,
+    }));
 
     return NextResponse.json({ success: true, prices: formatted });
   } catch (err: any) {
-    // Return success:false instead of throwing 500 error
+    console.error("STRIPE PRICE ERROR:", err);
     return NextResponse.json(
-      {
-        success: false,
-        error: err.message || "Unable to fetch prices from Stripe",
-      },
-      { status: 200 } // Return 200 with success:false to prevent page crash
+      { success: false, error: err.message },
+      { status: 500 }
     );
   }
 }
