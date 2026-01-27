@@ -12,10 +12,11 @@ export function HomepageNavbar() {
             <Image
               src="/images/workvouch-logo.png.png"
               alt="WorkVouch Logo"
-              width={200}
-              height={50}
-              className="h-full w-auto object-contain m-0 p-0 mix-blend-multiply dark:mix-blend-screen"
+              width={300}
+              height={100}
+              className="h-full w-auto m-0 p-0 mix-blend-multiply dark:mix-blend-screen"
               style={{
+                objectFit: "contain",
                 backgroundColor: "transparent",
                 margin: 0,
                 padding: 0,

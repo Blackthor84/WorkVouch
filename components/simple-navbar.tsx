@@ -8,9 +8,10 @@ export default function Navbar() {
         <Image
           src="/images/workvouch-logo.png.png"
           alt="WorkVouch Logo"
-          width={200}
-          height={50}
+          width={300}
+          height={100}
           priority
+          style={{ objectFit: "contain", width: "auto", height: "60px" }}
         />
       </Link>
       <div className="flex space-x-4">

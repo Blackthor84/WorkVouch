@@ -14,10 +14,11 @@ export default function Navbar() {
             <Image 
               src="/images/workvouch-logo.png.png" 
               alt="WorkVouch Logo" 
-              width={200} 
-              height={50} 
+              width={300} 
+              height={100} 
               className="h-10 w-auto flex-shrink-0 max-w-[120px]"
               priority
+              style={{ objectFit: "contain" }}
             />
           </Link>
           <div className="hidden md:flex items-center space-x-4 flex-shrink-0">

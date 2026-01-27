@@ -29,11 +29,12 @@ export function Logo({
         <Image
           src="/images/workvouch-logo.png.png"
           alt="WorkVouch Logo"
-          width={200}
-          height={50}
-          className="h-full w-auto object-contain mix-blend-multiply dark:mix-blend-screen"
+          width={300}
+          height={100}
+          className="h-full w-auto mix-blend-multiply dark:mix-blend-screen"
           priority
           style={{
+            objectFit: "contain",
             backgroundColor: "transparent",
             filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))",
           }}
