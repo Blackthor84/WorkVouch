@@ -15,7 +15,7 @@ export async function GET() {
       currency: p.currency,
       productName:
         typeof p.product === "object" && p.product && "name" in p.product
-          ? p.product.name
+          ? (p.product as any).name
           : "Unknown Product",
       type: p.type,
     }));
