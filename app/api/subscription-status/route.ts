@@ -1,18 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { z } from "zod";
 
 // Mark route as dynamic
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+const subscriptionStatusSchema = z.object({
+  userId: z.string().uuid("userId must be a valid UUID"),
+});
 
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const userId = searchParams.get("userId");
 
-    if (!userId) {
+    const validationResult = subscriptionStatusSchema.safeParse({ userId });
+
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: "userId is required" },
+        { success: false, error: "Invalid userId", details: validationResult.error.issues },
         { status: 400 },
       );
     }
@@ -55,6 +62,7 @@ export async function GET(req: NextRequest) {
 
         if (subByCustomer) {
           return NextResponse.json({ 
+            success: true,
             active: true,
             status: (subByCustomer as any).status,
             subscriptionId: (subByCustomer as any).stripe_subscription_id,
@@ -67,6 +75,7 @@ export async function GET(req: NextRequest) {
       ((subscription as any).status === "active" || (subscription as any).status === "trialing");
 
     return NextResponse.json({ 
+      success: true,
       active: !!isActive,
       status: subscription ? (subscription as any).status : null,
       subscriptionId: subscription ? (subscription as any).stripe_subscription_id : null,
@@ -74,7 +83,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Subscription status error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to check subscription status" },
+      { success: false, error: error.message || "Failed to check subscription status" },
       { status: 500 },
     );
   }

@@ -24,7 +24,7 @@ export async function GET(
       );
     }
 
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
 
     const { data, error } = await supabaseAny
@@ -100,7 +100,7 @@ export async function DELETE(
       );
     }
 
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
 
     const { error } = await supabaseAny

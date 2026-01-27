@@ -27,7 +27,7 @@ export function Logo({
     <Link href="/" className={`flex items-center ${className}`}>
       <div className={`relative ${sizeClasses[size]} flex-shrink-0`}>
         <Image
-          src="/workvouch-logo.png"
+          src="/images/workvouch-logo.png.png"
           alt="WorkVouch Logo"
           width={200}
           height={50}

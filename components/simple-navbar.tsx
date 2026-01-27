@@ -6,7 +6,7 @@ export default function Navbar() {
     <nav className="flex items-center justify-between p-4 bg-white shadow">
       <Link href="/" className="flex items-center">
         <Image
-          src="/workvouch-logo.png"
+          src="/images/workvouch-logo.png.png"
           alt="WorkVouch Logo"
           width={200}
           height={50}

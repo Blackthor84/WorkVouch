@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getCurrentUser, getCurrentUserRoles } from "@/lib/auth";
 import { checkPaywall } from "@/lib/middleware/paywall";
+import { z } from "zod";
+
+const sendMessageSchema = z.object({
+  recipientId: z.string().uuid("recipientId must be a valid UUID"),
+  message: z.string().min(1, "Message cannot be empty").max(5000, "Message too long"),
+  subject: z.string().min(1, "Subject is required").max(200, "Subject too long").optional(),
+});
 
 /**
  * POST /api/messages
@@ -14,18 +21,20 @@ export async function POST(req: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
-    const { recipientId, message, subject } = body;
+    const validationResult = sendMessageSchema.safeParse(body);
 
-    if (!recipientId || !message) {
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: "recipientId and message are required" },
+        { success: false, error: "Invalid input", details: validationResult.error.issues },
         { status: 400 }
       );
     }
+
+    const { recipientId, message, subject } = validationResult.data;
 
     // Get user's subscription tier
     const supabase = await createServerSupabase();

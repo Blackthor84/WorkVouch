@@ -18,7 +18,8 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
 
-    const supabaseAny = createServerSupabase() as any;
+    const supabase = await createServerSupabase();
+    const supabaseAny = supabase as any;
 
     let query = supabaseAny
       .from("verification_requests")
