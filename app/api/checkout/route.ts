@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     // Get base URL from environment variables
     const origin = process.env.NEXT_PUBLIC_APP_URL || 
                    process.env.NEXT_PUBLIC_URL || 
-                   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+                   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
                    "http://localhost:3000";
 
     // Create Stripe Checkout session

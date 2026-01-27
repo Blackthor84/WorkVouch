@@ -21,7 +21,7 @@ Fixed all Stripe checkout issues to ensure pricing buttons work correctly and cr
 import Stripe from "stripe";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15.clover",
+  apiVersion: "2023-10-16",
 });
 ```
 

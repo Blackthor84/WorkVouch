@@ -12,7 +12,7 @@ import Stripe from "stripe";
 import { allPlans } from "../lib/stripe/pricing-plans";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15.clover",
+  apiVersion: "2023-10-16" as any,
 });
 
 async function createStripePlans() {
