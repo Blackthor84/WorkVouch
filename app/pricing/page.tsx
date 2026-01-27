@@ -181,6 +181,13 @@ export default function PricingPage() {
 
   const handleSubscribe = async (tier: PricingTier) => {
     try {
+      // Free tier - redirect to signup
+      if (tier.id === "free") {
+        window.location.href = "/auth/signup";
+        return;
+      }
+
+      // Get actual Stripe price ID from stripePlans config
       const { stripePlans } = await import("@/lib/stripePlans");
       
       const priceIdMap: Record<string, string> = {
@@ -189,39 +196,34 @@ export default function PricingPage() {
         pro: stripePlans.pro,
         "pay-per-use": stripePlans.payPerUse,
         "security-bundle": stripePlans.securityBundle,
-        free: stripePlans.workerFree,
       };
       
-      const actualPriceId = priceIdMap[tier.id] || tier.stripePriceId;
-      
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          tierId: tier.id,
-          priceId: actualPriceId,
-          userType: "employer",
-          successUrl: `${window.location.origin}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${window.location.origin}/pricing?canceled=true`,
-        }),
-      });
+      const priceId = priceIdMap[tier.id] || tier.stripePriceId;
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create checkout session");
+      if (!priceId) {
+        throw new Error(`No price ID configured for tier: ${tier.id}`);
       }
 
-      if (data.url) {
-        window.location.href = data.url;
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId }),
+      });
+
+      const { url, error } = await res.json();
+      
+      if (error) {
+        throw new Error(error);
+      }
+
+      if (url) {
+        window.location.href = url;
       } else {
         throw new Error("No checkout URL returned");
       }
-    } catch (error: any) {
-      console.error("Checkout error:", error);
-      alert(`Failed to start checkout: ${error.message}`);
+    } catch (err: any) {
+      console.error("Checkout error:", err);
+      alert("Failed to start checkout: " + err.message);
     }
   };
 
