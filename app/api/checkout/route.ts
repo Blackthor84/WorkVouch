@@ -1,3 +1,4 @@
+// app/api/checkout/route.ts
 import { stripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
@@ -7,43 +8,37 @@ export async function POST(req: Request) {
     if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
 
     const { priceId } = body;
-    if (!priceId || typeof priceId !== "string") {
-      return NextResponse.json({ error: "priceId is required" }, { status: 400 });
+    if (!priceId || !priceId.startsWith("price_")) {
+      return NextResponse.json({ error: "Invalid or missing priceId" }, { status: 400 });
     }
 
-    console.log("Checkout request priceId:", priceId);
-    console.log("Stripe key last 8 chars:", process.env.STRIPE_SECRET_KEY?.slice(-8));
+    if (!stripe) {
+      return NextResponse.json({ error: "Stripe not initialized" }, { status: 500 });
+    }
 
-    if (!stripe) return NextResponse.json({ error: "Stripe not configured" }, { status: 500 });
+    const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-    // Determine mode automatically
-    const price = await stripe.prices.retrieve(priceId);
-    const mode = price.type === "recurring" ? "subscription" : "payment";
-
-    const origin =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.NEXT_PUBLIC_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
-      "http://localhost:3000";
-
+    // Determine mode
+    const isOneTime = priceId.includes("pay_per_use") || priceId.includes("one_time");
     const session = await stripe.checkout.sessions.create({
-      mode,
+      mode: isOneTime ? "payment" : "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing?canceled=true`,
       allow_promotion_codes: true,
     });
 
-    console.log("Checkout session created:", session.id);
-
-    if (!session.url) {
-      console.error("Session URL missing", session);
+    if (!session?.url) {
       return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 });
     }
 
+    console.log("Checkout session created:", session.id);
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
-    console.error("Stripe Checkout error:", err);
-    return NextResponse.json({ error: err.message || "Unknown error" }, { status: 500 });
+    console.error("Stripe Checkout Error:", err);
+    return NextResponse.json(
+      { error: err.message || "An unexpected error occurred" },
+      { status: 500 }
+    );
   }
 }
