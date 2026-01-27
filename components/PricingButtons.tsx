@@ -23,8 +23,7 @@ export default function PricingButtons({ prices }: Props) {
       setError(null);
       setLoadingId(priceId);
 
-      // Debug log: show which priceId is being used
-      console.log("Starting checkout for priceId:", priceId);
+      console.log("Checkout clicked for priceId:", priceId);
 
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -41,13 +40,11 @@ export default function PricingButtons({ prices }: Props) {
         return;
       }
 
-      // Debug log: show session URL
-      console.log("Checkout session URL:", data.url);
+      console.log("Redirecting to Stripe session URL:", data.url);
 
-      // Redirect to Stripe checkout
       window.location.href = data.url;
     } catch (err: any) {
-      console.error("Unexpected error during checkout:", err);
+      console.error("Unexpected checkout error:", err);
       setError(err.message || "Unexpected error");
     } finally {
       setLoadingId(null);
@@ -55,23 +52,28 @@ export default function PricingButtons({ prices }: Props) {
   };
 
   return (
-    <div>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", marginTop: "2rem" }}>
       {prices.map((price) => (
         <button
           key={price.id}
           onClick={() => handleCheckout(price.id)}
           disabled={loadingId === price.id}
-          style={{ margin: "8px", padding: "12px 24px" }}
+          style={{
+            padding: "1rem 2rem",
+            fontSize: "1rem",
+            cursor: "pointer",
+            borderRadius: "8px",
+            border: "1px solid #333",
+            minWidth: "200px",
+          }}
         >
-          {loadingId === price.id ? "Loading..." : `Buy ${price.productName} ($${(price.unit_amount ?? 0) / 100})`}
+          {loadingId === price.id
+            ? "Loading..."
+            : `${price.productName} ($${(price.unit_amount ?? 0) / 100})`}
         </button>
       ))}
 
-      {error && (
-        <div style={{ color: "red", marginTop: "12px" }}>
-          {error}
-        </div>
-      )}
+      {error && <p style={{ color: "red", marginTop: "1rem" }}>{error}</p>}
     </div>
   );
 }
