@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15.clover",
-});
+import { stripe } from "@/lib/stripe";
 
 export async function POST(req: NextRequest) {
   try {
+    // Validate Stripe is configured
+    if (!stripe) {
+      return NextResponse.json(
+        { error: "Stripe is not configured. Please set STRIPE_SECRET_KEY." },
+        { status: 500 }
+      );
+    }
+
     const { priceId, tierId, userType, email } = await req.json();
 
     if (!priceId && !tierId) {
@@ -57,6 +61,7 @@ export async function POST(req: NextRequest) {
     }
 
     const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
       process.env.NEXT_PUBLIC_URL ||
       process.env.NEXTAUTH_URL ||
       req.nextUrl.origin;

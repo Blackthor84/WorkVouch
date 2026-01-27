@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/admin";
-import Stripe from "stripe";
-
-// Stripe secret key from environment variable
-const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2025-12-15.clover",
-    })
-  : null;
+import { stripe } from "@/lib/stripe";
 
 export async function POST(req: NextRequest) {
   try {

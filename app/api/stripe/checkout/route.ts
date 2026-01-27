@@ -1,24 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/admin";
-import Stripe from "stripe";
+import { stripe } from "@/lib/stripe";
 
 // Mark route as dynamic to prevent build-time evaluation
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-// Initialize Stripe lazily to avoid build-time errors
-function getStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error("STRIPE_SECRET_KEY is required");
-  }
-  return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: "2025-12-15.clover",
-  });
-}
-
 export async function POST(req: NextRequest) {
   try {
-    const stripe = getStripe();
+    if (!stripe) {
+      return NextResponse.json(
+        { error: "Stripe is not configured" },
+        { status: 500 }
+      );
+    }
     const supabase = supabaseServer;
 
     const body = await req.json();

@@ -1,15 +1,18 @@
-import Stripe from "stripe";
 import { AD_PRICING } from "@/lib/ads/pricing";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-config";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15.clover",
-});
+import { stripe } from "@/lib/stripe";
 
 export async function POST(req: Request) {
   try {
+    if (!stripe) {
+      return NextResponse.json(
+        { error: "Stripe is not configured" },
+        { status: 500 }
+      );
+    }
+
     // Check admin access
     const session = await getServerSession(authOptions);
     const isAdmin = session?.user?.role === 'admin' || session?.user?.roles?.includes('admin') || session?.user?.roles?.includes('superadmin');

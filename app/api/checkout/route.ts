@@ -1,5 +1,5 @@
-import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
+import { stripe } from "@/lib/stripe";
 
 /**
  * POST /api/checkout
@@ -10,11 +10,12 @@ import { NextRequest, NextResponse } from "next/server";
  * 
  * Environment variables required:
  * - STRIPE_SECRET_KEY: Your Stripe secret key
- * - EMPLOYER_STARTER_PRICE_ID: Stripe price ID for Starter plan
- * - EMPLOYER_TEAM_PRICE_ID: Stripe price ID for Team plan
- * - EMPLOYER_PRO_PRICE_ID: Stripe price ID for Pro plan
- * - EMPLOYER_PAY_PER_USE_PRICE_ID: Stripe price ID for Pay-Per-Use plan
- * - EMPLOYER_SECURITY_BUNDLE_PRICE_ID: Stripe price ID for Security Bundle plan
+ * - STRIPE_PRICE_STARTER: Stripe price ID for Starter plan
+ * - STRIPE_PRICE_TEAM: Stripe price ID for Team plan
+ * - STRIPE_PRICE_PRO: Stripe price ID for Pro plan
+ * - STRIPE_PRICE_PAY_PER_USE: Stripe price ID for Pay-Per-Use plan
+ * - STRIPE_PRICE_SECURITY_BUNDLE: Stripe price ID for Security Bundle plan
+ * - NEXT_PUBLIC_APP_URL: Your application URL (for redirects)
  * 
  * Request body:
  * {
@@ -33,10 +34,6 @@ import { NextRequest, NextResponse } from "next/server";
  *   isFree?: boolean (true if redirected to free signup)
  * }
  */
-// Initialize Stripe client
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15.clover",
-});
 
 export async function POST(req: NextRequest) {
   try {
