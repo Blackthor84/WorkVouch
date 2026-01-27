@@ -12,9 +12,8 @@ export async function GET() {
       );
     }
 
-    // Test: List prices from your Stripe account (default limit: 10)
-    const limit = 10;
-    const prices = await stripe.prices.list({ limit });
+    // Test: List all active prices from your Stripe account
+    const prices = await stripe.prices.list({ active: true });
 
     if (!prices || !prices.data) {
       console.error("Stripe returned no prices", prices);
@@ -24,7 +23,7 @@ export async function GET() {
       );
     }
 
-    console.log(`Stripe test successful. Prices fetched: ${prices.data.length} (limit: ${limit})`);
+    console.log(`Stripe test successful. Active prices fetched: ${prices.data.length}`);
     return NextResponse.json({ success: true, prices: prices.data });
   } catch (err: any) {
     console.error("Stripe Test Error:", err);
