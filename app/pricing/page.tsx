@@ -57,7 +57,7 @@ const employerTiers: PricingTier[] = [
       "Export verification PDF",
     ],
     cta: "Start Hiring",
-    stripePriceId: "price_starter",
+    stripePriceId: "price_1StgIcKCZX6GjNTDTTt2QQ6V",
   },
   {
     id: "team",
@@ -76,7 +76,7 @@ const employerTiers: PricingTier[] = [
       "Priority chat support",
     ],
     cta: "Upgrade to Team",
-    stripePriceId: "price_team",
+    stripePriceId: "price_1StgdKKCZX6GjNTDiDmCHXnJ",
   },
   {
     id: "pro",
@@ -94,7 +94,7 @@ const employerTiers: PricingTier[] = [
       "Applicant comparison tools",
     ],
     cta: "Go Pro",
-    stripePriceId: "price_pro",
+    stripePriceId: "price_1StgiTKCZX6GjNTDA9fGuzgc",
   },
   {
     id: "pay-per-use",
@@ -112,7 +112,7 @@ const employerTiers: PricingTier[] = [
       "Contact peers",
     ],
     cta: "Buy Report",
-    stripePriceId: "price_pay_per_use",
+    stripePriceId: "price_1Sth9IKCZX6GjNTDO6Ls4UBb",
   },
   {
     id: "security-bundle",
@@ -132,7 +132,7 @@ const employerTiers: PricingTier[] = [
       "Guard availability & shift preference tools",
     ],
     cta: "Get Security Bundle",
-    stripePriceId: "price_security_bundle",
+    stripePriceId: "price_1SthDEKCZX6GjNTDeTvMRQ6Q",
   },
 ];
 
@@ -187,22 +187,14 @@ export default function PricingPage() {
         return;
       }
 
-      // Get actual Stripe price ID from stripePlans config
-      const { stripePlans } = await import("@/lib/stripePlans");
-      
-      const priceIdMap: Record<string, string> = {
-        starter: stripePlans.starter,
-        team: stripePlans.team,
-        pro: stripePlans.pro,
-        "pay-per-use": stripePlans.payPerUse,
-        "security-bundle": stripePlans.securityBundle,
-      };
-      
-      const priceId = priceIdMap[tier.id] || tier.stripePriceId;
+      // Use the stripePriceId directly from the tier configuration
+      const priceId = tier.stripePriceId;
 
       if (!priceId) {
         throw new Error(`No price ID configured for tier: ${tier.id}`);
       }
+
+      console.log("Starting checkout for priceId:", priceId);
 
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -210,14 +202,15 @@ export default function PricingPage() {
         body: JSON.stringify({ priceId }),
       });
 
-      const { url, error } = await res.json();
-      
-      if (error) {
-        throw new Error(error);
+      const data = await res.json();
+      console.log("Checkout response:", data);
+
+      if (data.error) {
+        throw new Error(data.error);
       }
 
-      if (url) {
-        window.location.href = url;
+      if (data.url) {
+        window.location.href = data.url;
       } else {
         throw new Error("No checkout URL returned");
       }
