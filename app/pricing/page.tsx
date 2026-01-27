@@ -2,92 +2,105 @@
 
 import { useEffect, useState } from "react";
 
-interface Price {
-  id: string;
-  unit_amount: number | null;
-  currency: string;
-  productName: string;
-  type: "recurring" | "one_time";
-}
-
 export default function PricingPage() {
-  const [prices, setPrices] = useState<Price[]>([]);
+  const [prices, setPrices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/prices")
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) setPrices(data.prices);
-        else setError(data.error || "Unable to load prices.");
-      })
-      .catch(() => setError("Unable to load prices."))
-      .finally(() => setLoading(false));
+    async function loadPrices() {
+      try {
+        const res = await fetch("/api/prices");
+
+        if (!res.ok) {
+          throw new Error("Failed to load prices");
+        }
+
+        const data = await res.json();
+        console.log("Loaded prices:", data);
+
+        if (!data.success) {
+          throw new Error("API returned success=false");
+        }
+
+        setPrices(data.prices);
+      } catch (err: any) {
+        console.error("Failed to fetch prices:", err);
+        setError("Unable to load pricing. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadPrices();
   }, []);
 
-  const handleCheckout = async (priceId: string) => {
+  async function startCheckout(priceId: string) {
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ priceId }),
       });
+
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else alert(`Failed to start checkout: ${data.error}`);
+      console.log("Checkout response:", data);
+
+      if (!data.url) {
+        alert("Failed to start checkout: " + (data.error || "Unknown error"));
+        return;
+      }
+
+      window.location.href = data.url; // redirect to Stripe checkout
     } catch (err) {
-      alert(`Checkout error: ${(err as Error).message}`);
+      console.error("Checkout failed:", err);
+      alert("Checkout error. Please try again.");
     }
-  };
-
-  if (loading)
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-lg">Loading pricing...</p>
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-lg text-red-600">{error}</p>
-      </div>
-    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16 px-4">
-      <h1 className="text-4xl font-bold text-center mb-12">
+    <div className="max-w-5xl mx-auto py-16 px-4">
+      <h1 className="text-4xl font-bold text-center mb-8">
         WorkVouch Pricing
       </h1>
-      <div className="max-w-6xl mx-auto grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {prices.map(p => (
-          <div
-            key={p.id}
-            className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-8 flex flex-col justify-between"
-          >
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">{p.productName}</h2>
-              <p className="text-3xl font-bold mb-4">
-                {p.unit_amount != null ? `$${(p.unit_amount / 100).toFixed(2)}` : "Free"}
-                {p.type === "recurring" ? "/mo" : ""}
-              </p>
-              {p.type === "recurring" && (
-                <p className="text-gray-500 mb-6">Recurring monthly subscription</p>
-              )}
-              {p.type === "one_time" && (
-                <p className="text-gray-500 mb-6">One-time payment</p>
-              )}
-            </div>
-            <button
-              onClick={() => handleCheckout(p.id)}
-              className="mt-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300"
+
+      {loading && <p className="text-center">Loading...</p>}
+
+      {error && (
+        <p className="text-center text-red-500 font-semibold mb-8">{error}</p>
+      )}
+
+      {!loading && !error && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {prices.map((price) => (
+            <div
+              key={price.id}
+              className="border rounded-lg p-6 shadow bg-white text-center"
             >
-              {p.unit_amount === 0 ? "Get Started" : "Subscribe"}
-            </button>
-          </div>
-        ))}
-      </div>
+              <h2 className="text-2xl font-bold mb-2">
+                {price.productName}
+              </h2>
+
+              <p className="text-gray-500 text-lg mb-4 capitalize">
+                {price.type === "recurring" ? "Subscription" : "One-time payment"}
+              </p>
+
+              <p className="text-4xl font-bold mb-4">
+                {price.unit_amount === 0
+                  ? "Free"
+                  : `$${(price.unit_amount / 100).toFixed(2)}`}
+              </p>
+
+              <button
+                onClick={() => startCheckout(price.id)}
+                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+              >
+                {price.unit_amount === 0 ? "Get Started" : "Subscribe"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

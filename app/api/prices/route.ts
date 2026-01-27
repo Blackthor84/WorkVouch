@@ -1,50 +1,54 @@
-// app/api/prices/route.ts
 import { stripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    // Debug: check Stripe key
-    console.log("STRIPE_SECRET_KEY last 8:", process.env.STRIPE_SECRET_KEY?.slice(-8));
+    console.log(
+      "Stripe Key Loaded (last 8):",
+      process.env.STRIPE_SECRET_KEY?.slice(-8)
+    );
 
     if (!stripe) {
-      throw new Error("Stripe client not initialized. Check STRIPE_SECRET_KEY.");
+      throw new Error("Stripe client failed to initialize.");
     }
 
-    // Fetch all active prices
     const prices = await stripe.prices.list({
-      limit: 10,       // fetch all prices
       active: true,
-      expand: ["data.product"]
+      limit: 20,
+      expand: ["data.product"],
     });
 
-    // Format prices for frontend
-    const formatted = prices.data.map(p => {
-      let productName: string;
-      if (typeof p.product === "object" && p.product !== null && "name" in p.product) {
-        productName = p.product.name;
-      } else if (typeof p.product === "string") {
-        productName = p.product;
-      } else {
-        productName = "Unknown Product";
+    const formatted = prices.data.map((price) => {
+      let productName = "Unknown Product";
+
+      if (
+        typeof price.product === "object" &&
+        price.product !== null &&
+        "name" in price.product
+      ) {
+        productName = price.product.name;
       }
 
       return {
-        id: p.id,
-        unit_amount: p.unit_amount,
-        currency: p.currency,
+        id: price.id,
+        unit_amount: price.unit_amount,
+        currency: price.currency,
         productName,
-        type: p.type, // recurring or one_time
+        type: price.type,
       };
     });
 
-    console.log("Formatted prices:", formatted);
+    console.log("Formatted prices sent to frontend:", formatted);
 
     return NextResponse.json({ success: true, prices: formatted });
   } catch (err: any) {
-    console.error("Error fetching prices:", err);
+    console.error("🔥 Stripe /api/prices ERROR:", err.message, err);
+
     return NextResponse.json(
-      { success: false, error: err.message || "Unable to fetch prices from Stripe" },
+      {
+        success: false,
+        error: "Unable to fetch prices from Stripe. See server logs.",
+      },
       { status: 500 }
     );
   }
