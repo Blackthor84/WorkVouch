@@ -1,71 +1,98 @@
 import { stripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
+/**
+ * Stripe Checkout API Route
+ * Handles all pricing tiers including Free ($0)
+ */
 export async function POST(req: Request) {
   try {
-    // 1️⃣ Parse request body
+    // Parse request body
     let body;
     try {
       body = await req.json();
-    } catch (parseError) {
-      console.error("Invalid JSON:", parseError);
-      return NextResponse.json({ error: "Invalid JSON in request body" }, { status: 400 });
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON in request body" },
+        { status: 400 }
+      );
     }
 
     const { priceId } = body;
 
-    // 2️⃣ Validate priceId
+    // Validate priceId
     if (!priceId || typeof priceId !== "string") {
-      console.error("Missing or invalid priceId:", priceId);
-      return NextResponse.json({ error: "priceId is required and must be a string" }, { status: 400 });
+      return NextResponse.json(
+        { error: "priceId is required and must be a string" },
+        { status: 400 }
+      );
     }
 
-    // 3️⃣ Ensure Stripe is initialized
+    // Handle Free Tier ($0) without Stripe
+    if (priceId === "free") {
+      // Here, you would upgrade the user in your database directly
+      console.log("Free tier selected. No Stripe checkout required.");
+      return NextResponse.json({ url: "/pricing/success?free=true" });
+    }
+
+    // Ensure Stripe client exists
     if (!stripe) {
-      console.error("Stripe client not initialized. Check STRIPE_SECRET_KEY");
-      return NextResponse.json({ error: "Stripe is not configured" }, { status: 500 });
+      console.error("Stripe client is not initialized");
+      return NextResponse.json(
+        { error: "Stripe is not configured. Check STRIPE_SECRET_KEY." },
+        { status: 500 }
+      );
     }
 
-    // 4️⃣ Fetch the price from Stripe to verify it exists
-    let price;
-    try {
-      price = await stripe.prices.retrieve(priceId);
-    } catch (err) {
-      console.error("Failed to retrieve price from Stripe:", err);
-      return NextResponse.json({ error: "Price not found in Stripe" }, { status: 400 });
+    // Verify the price exists in Stripe
+    const stripePrice = await stripe.prices.retrieve(priceId).catch(() => null);
+    if (!stripePrice || !stripePrice.active) {
+      console.error("Price not found or inactive in Stripe:", priceId);
+      return NextResponse.json(
+        { error: "Price not found in Stripe" },
+        { status: 404 }
+      );
     }
 
-    if (!price.active) {
-      console.error("Price is inactive:", price);
-      return NextResponse.json({ error: "This price is inactive" }, { status: 400 });
-    }
+    // Determine checkout mode (subscription vs one-time)
+    const mode = stripePrice.type === "recurring" ? "subscription" : "payment";
 
-    // 5️⃣ Detect mode automatically
-    const mode = price.type === "recurring" ? "subscription" : "payment";
-
-    // 6️⃣ Build URLs
+    // Determine origin for redirect URLs
     const origin =
       process.env.NEXT_PUBLIC_APP_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+      process.env.NEXT_PUBLIC_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+      "http://localhost:3000";
 
-    // 7️⃣ Create Stripe Checkout session
+    // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
       mode,
-      line_items: [{ price: price.id, quantity: 1 }],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
       success_url: `${origin}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing?canceled=true`,
       allow_promotion_codes: true,
     });
 
-    if (!session.url) {
+    // Ensure session was created
+    if (!session || !session.url) {
       console.error("Stripe session created but no URL returned", session);
-      return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to create checkout session" },
+        { status: 500 }
+      );
     }
 
-    console.log("Stripe checkout session created:", session.id);
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
     console.error("Stripe Checkout Error:", err);
-    return NextResponse.json({ error: err.message || "Unexpected error" }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message || "An unexpected error occurred" },
+      { status: 500 }
+    );
   }
 }
