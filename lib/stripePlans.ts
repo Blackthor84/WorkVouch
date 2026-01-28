@@ -12,19 +12,12 @@
  */
 
 export const stripePlans = {
-  // Employer Plans
-  starter: process.env.STRIPE_PRICE_STARTER || "price_starter_monthly",
-  team: process.env.STRIPE_PRICE_TEAM || "price_team_monthly",
-  pro: process.env.STRIPE_PRICE_PRO || "price_pro_monthly",
-  
-  // One-time Payment
-  payPerUse: process.env.STRIPE_PRICE_PAY_PER_USE || "price_pay_per_use_report",
-  
-  // Security Bundle
-  securityBundle: process.env.STRIPE_PRICE_SECURITY_BUNDLE || "price_security_bundle",
-  
-  // Worker Free Plan (always free)
-  workerFree: process.env.STRIPE_PRICE_WORKER_FREE || "price_worker_free",
+  // Employer Plans - canonical names only
+  starter: process.env.STRIPE_PRICE_STARTER || "",
+  team: process.env.STRIPE_PRICE_TEAM || "",
+  pro: process.env.STRIPE_PRICE_PRO || "",
+  security: process.env.STRIPE_PRICE_SECURITY || "",
+  one_time: process.env.STRIPE_PRICE_ONE_TIME || "",
 } as const;
 
 /**
@@ -78,8 +71,8 @@ export const planFeatures: Record<string, {
       "Applicant comparison tools",
     ],
   },
-  payPerUse: {
-    name: "Pay-Per-Use Report",
+  one_time: {
+    name: "One-Time Report",
     price: 14.99,
     searchesPerMonth: 0,
     reportsPerMonth: 1, // One-time report
@@ -88,7 +81,7 @@ export const planFeatures: Record<string, {
       "After purchase → instantly unlock PDF",
     ],
   },
-  securityBundle: {
+  security: {
     name: "Security Agency Bundle",
     price: 199,
     searchesPerMonth: -1, // Unlimited

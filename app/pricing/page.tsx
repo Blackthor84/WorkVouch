@@ -8,21 +8,12 @@ export default function PricingPage() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const handleCheckout = async (plan: typeof employerPlans[0] | typeof payPerUse) => {
-    if (!plan.stripePriceId) {
-      alert("Price ID not configured. Please contact support.");
-      return;
-    }
-
-    setLoadingPlan(plan.stripePriceId);
+    setLoadingPlan(plan.id);
     try {
-      const res = await fetch("/api/pricing/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          priceId: plan.stripePriceId,
-          tierId: plan.id,
-          userType: "employer"
-        }),
+      // Use GET request with plan query parameter
+      const planSlug = plan.id === "one_time" ? "one_time" : plan.id;
+      const res = await fetch(`/api/pricing/checkout?plan=${planSlug}`, {
+        method: "GET",
       });
       const data = await res.json();
       if (data.url) {
@@ -68,9 +59,9 @@ export default function PricingPage() {
               className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50 w-full transition-colors font-semibold"
               disabled={loadingPlan === plan.stripePriceId}
             >
-              {loadingPlan === plan.stripePriceId
+              {loadingPlan === plan.id
                 ? "Redirecting..."
-                : plan.id === "pay_per_use"
+                : plan.id === "one_time"
                 ? "Buy Report"
                 : plan.id === "starter"
                 ? "Start Hiring"

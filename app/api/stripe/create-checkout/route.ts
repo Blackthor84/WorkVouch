@@ -3,7 +3,8 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import {
   stripe,
-  STRIPE_PRICE_BASIC,
+  STRIPE_PRICE_STARTER,
+  STRIPE_PRICE_TEAM,
   STRIPE_PRICE_PRO,
 } from "@/lib/stripe/config";
 import { Database } from "@/types/database";
@@ -29,14 +30,19 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { planTier } = body; // 'basic' or 'pro'
+    const { planTier } = body; // 'starter', 'team', or 'pro'
 
-    if (!["basic", "pro"].includes(planTier)) {
+    const priceMap: Record<string, string> = {
+      starter: STRIPE_PRICE_STARTER,
+      team: STRIPE_PRICE_TEAM,
+      pro: STRIPE_PRICE_PRO,
+    };
+
+    const priceId = priceMap[planTier];
+
+    if (!priceId || !["starter", "team", "pro"].includes(planTier)) {
       return NextResponse.json({ error: "Invalid plan tier" }, { status: 400 });
     }
-
-    const priceId =
-      planTier === "basic" ? STRIPE_PRICE_BASIC : STRIPE_PRICE_PRO;
 
     if (!priceId) {
       return NextResponse.json(

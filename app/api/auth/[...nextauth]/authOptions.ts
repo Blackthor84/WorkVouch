@@ -145,11 +145,11 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // Handle redirects based on role
-      // This will be handled in the signin page, but we can set defaults here
+      // Always redirect to dashboard after successful login
+      // Invalid logins will not trigger this callback (authorize returns null)
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       if (new URL(url).origin === baseUrl) return url;
-      return baseUrl;
+      return `${baseUrl}/dashboard`;
     },
   },
 

@@ -57,13 +57,13 @@ export const employerPlans = [
       "Auto-flag inconsistent claims",
       "Guard availability & shift preference tools"
     ],
-    stripePriceId: process.env.STRIPE_PRICE_SECURITY_BUNDLE || process.env.STRIPE_PRICE_SECURITY
+    stripePriceId: process.env.STRIPE_PRICE_SECURITY
   }
 ];
 
 export const payPerUse = {
-  id: "pay_per_use",
-  name: "Pay-Per-Use",
+  id: "one_time",
+  name: "One-Time Report",
   price: 14.99,
   period: "report",
   features: [
@@ -74,5 +74,5 @@ export const payPerUse = {
     "Exportable PDF",
     "Contact peers"
   ],
-  stripePriceId: process.env.STRIPE_PRICE_PAY_PER_USE
+  stripePriceId: process.env.STRIPE_PRICE_ONE_TIME
 };

@@ -21,15 +21,15 @@ export async function POST(req: Request) {
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
       (req.headers.get("origin") || "http://localhost:3000");
 
-    // Determine mode based on priceId (pay-per-use is payment, others are subscription)
-    const isPayPerUse =
-      priceId === process.env.STRIPE_PRICE_PAY_PER_USE ||
-      priceId.includes("pay_per_use") ||
-      priceId.includes("pay-per-use");
+    // Determine mode based on priceId (one_time is payment, others are subscription)
+    const isOneTime =
+      priceId === process.env.STRIPE_PRICE_ONE_TIME ||
+      priceId.includes("one_time") ||
+      priceId.includes("one-time");
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      mode: isPayPerUse ? "payment" : "subscription",
+      mode: isOneTime ? "payment" : "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing/cancel`,

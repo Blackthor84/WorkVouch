@@ -40,8 +40,8 @@ export default function SignIn() {
         } else if (session?.user?.roles?.includes("employer")) {
           router.push("/employer/dashboard");
         } else {
-          // Regular users go to homepage
-          router.push("/");
+          // All users go to dashboard after login
+          router.push("/dashboard");
         }
         
         router.refresh();

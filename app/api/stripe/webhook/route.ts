@@ -54,13 +54,13 @@ export async function POST(req: NextRequest) {
             const supabase = await createServerSupabase();
             const supabaseAny = supabase as any;
 
-            // Map tier IDs to plan_tier values (removed enterprise)
+            // Map tier IDs to plan_tier values - canonical names only
             const planTierMap: Record<string, string> = {
               starter: "starter",
               team: "team",
               pro: "pro",
-              "security-bundle": "security-bundle",
-              "pay-per-use": "pay-per-use",
+              security: "security",
+              one_time: "one_time",
               free: "free",
             };
 
@@ -92,8 +92,8 @@ export async function POST(req: NextRequest) {
                 starter: "starter",
                 team: "team",
                 pro: "pro",
-                "security-bundle": "security-bundle",
-                "pay-per-use": "pay-per-use",
+                security: "security",
+                one_time: "one_time",
                 free: "free",
               };
               const mappedTier = planTierMap[planTier.toLowerCase()] || "free";

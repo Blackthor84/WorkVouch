@@ -6,5 +6,9 @@ export const isStripeConfigured = !!(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 )
 
-export const STRIPE_PRICE_BASIC = process.env.STRIPE_PRICE_BASIC || ''
+// Standardized Stripe Price IDs - use canonical names
+export const STRIPE_PRICE_STARTER = process.env.STRIPE_PRICE_STARTER || ''
+export const STRIPE_PRICE_TEAM = process.env.STRIPE_PRICE_TEAM || ''
 export const STRIPE_PRICE_PRO = process.env.STRIPE_PRICE_PRO || ''
+export const STRIPE_PRICE_SECURITY = process.env.STRIPE_PRICE_SECURITY || ''
+export const STRIPE_PRICE_ONE_TIME = process.env.STRIPE_PRICE_ONE_TIME || ''
