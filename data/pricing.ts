@@ -57,7 +57,7 @@ export const employerPlans = [
       "Auto-flag inconsistent claims",
       "Guard availability & shift preference tools"
     ],
-    stripePriceId: process.env.STRIPE_PRICE_SECURITY
+    stripePriceId: process.env.STRIPE_PRICE_SECURITY_BUNDLE || process.env.STRIPE_PRICE_SECURITY
   }
 ];
 

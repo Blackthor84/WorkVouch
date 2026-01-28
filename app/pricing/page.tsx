@@ -7,18 +7,22 @@ import Link from "next/link";
 export default function PricingPage() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
-  const handleCheckout = async (stripePriceId: string | undefined) => {
-    if (!stripePriceId) {
+  const handleCheckout = async (plan: typeof employerPlans[0] | typeof payPerUse) => {
+    if (!plan.stripePriceId) {
       alert("Price ID not configured. Please contact support.");
       return;
     }
 
-    setLoadingPlan(stripePriceId);
+    setLoadingPlan(plan.stripePriceId);
     try {
-      const res = await fetch("/api/checkout", {
+      const res = await fetch("/api/pricing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId: stripePriceId }),
+        body: JSON.stringify({ 
+          priceId: plan.stripePriceId,
+          tierId: plan.id,
+          userType: "employer"
+        }),
       });
       const data = await res.json();
       if (data.url) {
@@ -44,7 +48,7 @@ export default function PricingPage() {
           Choose the plan that fits your hiring needs
         </p>
       </div>
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {allPlans.map((plan) => (
           <div
             key={plan.id}
@@ -60,7 +64,7 @@ export default function PricingPage() {
               ))}
             </ul>
             <button
-              onClick={() => handleCheckout(plan.stripePriceId)}
+              onClick={() => handleCheckout(plan)}
               className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50 w-full transition-colors font-semibold"
               disabled={loadingPlan === plan.stripePriceId}
             >

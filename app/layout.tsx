@@ -8,8 +8,8 @@ export const metadata: Metadata = {
   description:
     "Build your professional reputation through verified peer references. Trusted by security, law enforcement & professionals.",
   icons: {
-    icon: "/logo/workvouch.png",
-    apple: "/logo/workvouch.png",
+    icon: "/workvouch-logo.png",
+    apple: "/workvouch-logo.png",
   },
 };
 

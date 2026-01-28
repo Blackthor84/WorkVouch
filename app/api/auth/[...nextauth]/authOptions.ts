@@ -2,28 +2,38 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { createClient } from "@supabase/supabase-js";
-import bcrypt from "bcryptjs";
+
+// Note: Dummy test users have been removed. All authentication now goes through Supabase Auth.
+// If you need test users, create them in Supabase Dashboard with proper passwords.
 
 // Supabase client for authentication
+// Using service role key for server-side operations to bypass RLS when fetching roles
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-// Dummy users with bcrypt hashed passwords (for testing/fallback)
-// In production, store these in your database
-const dummyUsers = [
-  {
-    id: "1",
-    email: "nicoleanneaglin@gmail.com",
-    password: "$2a$10$XXXXXXXXXXXXXXXXXXXXXXXXXXXX", // Replace with actual bcrypt hash
-    role: "admin",
-  },
-  {
-    id: "2",
-    email: "user@example.com",
-    password: "$2a$10$YYYYYYYYYYYYYYYYYYYYYYYYYYYY", // Replace with actual bcrypt hash
-    role: "user",
-  },
-];
+// Create Supabase client with service role key for admin operations
+// This allows us to fetch user roles without RLS restrictions
+const getSupabaseAdmin = () => {
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    throw new Error("Missing Supabase configuration. NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set.");
+  }
+  return createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+};
+
+// For password authentication, we still need to use anon key
+// Service role key cannot be used for signInWithPassword
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const getSupabaseAuth = () => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Missing Supabase configuration. NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set.");
+  }
+  return createClient(supabaseUrl, supabaseAnonKey);
+};
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -45,59 +55,60 @@ export const authOptions: NextAuthOptions = {
         const email = credentials.email.trim();
 
         try {
-          // Method 1: Try Supabase Auth first (for existing users)
-          const supabase = createClient(supabaseUrl, supabaseAnonKey);
-          
-          const { data, error } = await supabase.auth.signInWithPassword({
+          // Step 1: Authenticate user with Supabase Auth (requires anon key)
+          const supabaseAuth = getSupabaseAuth();
+          const { data, error } = await supabaseAuth.auth.signInWithPassword({
             email: email,
             password: credentials.password,
           });
 
-          if (!error && data.user) {
-            // Supabase Auth successful - fetch roles
-            const supabaseAny = supabase as any;
-            const { data: rolesData } = await supabaseAny
-              .from("user_roles")
-              .select("role")
-              .eq("user_id", data.user.id);
-
-            let userRoles: string[] = [];
-            if (rolesData) {
-              userRoles = rolesData.map((r: any) => r.role);
-            }
-
-            const isAdmin = userRoles.includes("admin") || userRoles.includes("superadmin");
-            const isBeta = userRoles.includes("beta");
-            // Determine primary role: beta takes precedence for access control
-            const role = isBeta ? "beta" : (isAdmin ? "admin" : "user");
-
-            return {
-              id: data.user.id,
-              email: data.user.email!,
-              name: data.user.user_metadata?.full_name || data.user.email,
-              role: role,
-              roles: userRoles,
-            };
+          if (error || !data.user) {
+            return null;
           }
 
-          // Method 2: Fallback to bcrypt verification (for dummy users or custom table)
-          // Check dummy users array
-          const dummyUser = dummyUsers.find((u) => u.email === email);
-          if (dummyUser) {
-            // Verify password with bcrypt
-            const isValid = await bcrypt.compare(credentials.password, dummyUser.password);
-            if (isValid) {
-              return {
-                id: dummyUser.id,
-                email: dummyUser.email,
-                name: dummyUser.email,
-                role: dummyUser.role,
-                roles: [dummyUser.role],
-              };
-            }
+          // Step 2: Fetch roles using service role key (bypasses RLS)
+          const supabaseAdmin = getSupabaseAdmin();
+          const { data: rolesData, error: rolesError } = await supabaseAdmin
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", data.user.id);
+
+          let userRoles: string[] = [];
+          if (rolesData && !rolesError) {
+            userRoles = rolesData.map((r: any) => r.role);
           }
 
-          return null;
+          // Also check if user has employer role from employer_accounts
+          const { data: employerAccount } = await supabaseAdmin
+            .from("employer_accounts")
+            .select("id")
+            .eq("user_id", data.user.id)
+            .single();
+
+          if (employerAccount && !userRoles.includes("employer")) {
+            userRoles.push("employer");
+          }
+
+          // Determine primary role: beta > admin > employer > user
+          const isAdmin = userRoles.includes("admin") || userRoles.includes("superadmin");
+          const isBeta = userRoles.includes("beta");
+          const isEmployer = userRoles.includes("employer");
+          
+          const role = isBeta 
+            ? "beta" 
+            : isAdmin 
+            ? "admin" 
+            : isEmployer 
+            ? "employer" 
+            : "user";
+
+          return {
+            id: data.user.id,
+            email: data.user.email!,
+            name: data.user.user_metadata?.full_name || data.user.email,
+            role: role,
+            roles: userRoles,
+          };
         } catch (error) {
           console.error("Authorization error:", error);
           return null;

@@ -41,14 +41,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Map tier IDs to Stripe price IDs if tierId is provided
+    // CRITICAL: Each tier must map to its own Price ID - no incorrect fallbacks
     const tierPriceMap: Record<string, string> = {
       // Employee tiers - only free is allowed
-      // Employer tiers
+      // Employer tiers - each must have its own Price ID
       "starter": process.env.STRIPE_PRICE_STARTER || process.env.STRIPE_PRICE_BASIC || "",
-      "team": process.env.STRIPE_PRICE_TEAM || process.env.STRIPE_PRICE_PRO || "",
+      "team": process.env.STRIPE_PRICE_TEAM || "", // FIXED: Removed incorrect Pro fallback
       "pro": process.env.STRIPE_PRICE_PRO || "",
       "pay-per-use": process.env.STRIPE_PRICE_PAY_PER_USE || "",
-      "security-bundle": process.env.STRIPE_PRICE_SECURITY_BUNDLE || "",
+      "security-bundle": process.env.STRIPE_PRICE_SECURITY_BUNDLE || process.env.STRIPE_PRICE_SECURITY || "",
     };
 
     const finalPriceId = priceId || tierPriceMap[tierId];
