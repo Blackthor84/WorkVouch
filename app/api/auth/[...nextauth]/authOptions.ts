@@ -28,6 +28,15 @@ const getSupabaseAdmin = () => {
 // For password authentication, we still need to use anon key
 // Service role key cannot be used for signInWithPassword
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+if (!process.env.NEXTAUTH_SECRET) {
+  console.log("⚠️ NEXTAUTH_SECRET is missing");
+}
+
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.log("⚠️ SUPABASE_SERVICE_ROLE_KEY is missing");
+}
+
 const getSupabaseAuth = () => {
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error("Missing Supabase configuration. NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set.");
@@ -54,6 +63,12 @@ export const authOptions: NextAuthOptions = {
 
         const email = credentials.email.trim();
 
+        console.log("=== AUTH ATTEMPT START ===");
+        console.log("Email:", email);
+        console.log("Supabase URL exists:", !!supabaseUrl);
+        console.log("Anon Key exists:", !!supabaseAnonKey);
+        console.log("Service Role exists:", !!supabaseServiceRoleKey);
+
         try {
           // Step 1: Authenticate user with Supabase Auth (requires anon key)
           const supabaseAuth = getSupabaseAuth();
@@ -62,6 +77,12 @@ export const authOptions: NextAuthOptions = {
             password: credentials.password,
           });
 
+          if (error) {
+            console.log("Supabase auth error:", error.message);
+          }
+          if (data?.user) {
+            console.log("Supabase auth success:", data.user.id);
+          }
           if (error || !data.user) {
             return null;
           }
@@ -89,6 +110,8 @@ export const authOptions: NextAuthOptions = {
             userRoles.push("employer");
           }
 
+          console.log("Roles fetched:", userRoles);
+
           // Determine primary role: beta > admin > employer > user
           const isAdmin = userRoles.includes("admin") || userRoles.includes("superadmin");
           const isBeta = userRoles.includes("beta");
@@ -102,6 +125,8 @@ export const authOptions: NextAuthOptions = {
             ? "employer" 
             : "user";
 
+          console.log("=== AUTH SUCCESS ===");
+
           return {
             id: data.user.id,
             email: data.user.email!,
@@ -110,7 +135,8 @@ export const authOptions: NextAuthOptions = {
             roles: userRoles,
           };
         } catch (error) {
-          console.error("Authorization error:", error);
+          console.log("=== AUTH EXCEPTION ===");
+          console.log(error);
           return null;
         }
       },
