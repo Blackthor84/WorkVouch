@@ -11,11 +11,11 @@ export default function Navbar() {
       <div className="flex justify-between items-center max-w-7xl mx-auto">
         <div className="flex items-center space-x-6 flex-shrink-0 min-w-0">
           <Link href="/" className="flex items-center flex-shrink-0">
-            <Image 
-              src="/workvouch-logo.png" 
-              alt="WorkVouch Logo" 
-              width={300} 
-              height={100} 
+            <Image
+              src="/images/workvouch-logo.png.png"
+              alt="WorkVouch Logo"
+              width={300}
+              height={100}
               className="h-10 w-auto flex-shrink-0 max-w-[120px]"
               priority
               style={{ objectFit: "contain", width: "auto", height: "40px" }}

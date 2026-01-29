@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripe, isStripeConfigured } from "@/lib/stripe/config";
+import { stripe, isStripeConfigured, STRIPE_PRICE_MAP, logMissingStripePriceIds, getCheckoutBaseUrl } from "@/lib/stripe/config";
 
-// Mark route as dynamic
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/**
- * Alternative API route that accepts tier names (Basic, Pro)
- * and maps them to Stripe Price IDs.
- * 
- * This route is compatible with the simpler PricingModal implementation.
- * The existing /api/stripe/create-checkout-session route accepts priceId directly.
- */
+/** Maps tier display names to canonical tier keys for STRIPE_PRICE_MAP */
+const tierKeyMap: Record<string, string> = {
+  Basic: "starter",
+  Pro: "pro",
+  Starter: "starter",
+  Team: "team",
+  "Security Bundle": "security",
+};
+
 export async function POST(req: NextRequest) {
   try {
     if (!isStripeConfigured || !stripe) {
@@ -23,54 +24,40 @@ export async function POST(req: NextRequest) {
 
     const { tier } = await req.json();
 
-    if (!tier) {
+    if (!tier || typeof tier !== "string") {
       return NextResponse.json(
         { error: "tier is required" },
         { status: 400 },
       );
     }
 
-    // Map tier names to Stripe Price IDs
-    // Replace these with your actual Stripe Price IDs from your Stripe dashboard
-    const priceMap: Record<string, string> = {
-      Basic: process.env.STRIPE_PRICE_BASIC || "price_basic_id",
-      Pro: process.env.STRIPE_PRICE_PRO || "price_pro_id",
-      Starter: process.env.STRIPE_PRICE_STARTER || "price_starter_id",
-      Team: process.env.STRIPE_PRICE_TEAM || "price_team_id",
-      "Security Bundle": process.env.STRIPE_PRICE_SECURITY_BUNDLE || "price_security_bundle_id",
-    };
+    const tierKey = tierKeyMap[tier] ?? tier.toLowerCase();
+    const priceId = STRIPE_PRICE_MAP[tierKey];
 
-    const priceId = priceMap[tier as string];
-
-    if (!priceId || priceId.startsWith("price_") === false) {
+    if (!priceId) {
+      logMissingStripePriceIds();
       return NextResponse.json(
-        { error: `Invalid tier: ${tier}. Valid tiers: Basic, Pro, Starter, Team, Security Bundle` },
+        { error: `Price ID not configured for tier "${tier}". Set STRIPE_PRICE_* in environment.` },
         { status: 400 },
       );
     }
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_URL ||
-      process.env.NEXT_PUBLIC_APP_URL ||
-      req.nextUrl.origin;
+    const baseUrl = getCheckoutBaseUrl(req.nextUrl?.origin);
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/cancel`,
-      metadata: {
-        tier: tier as string,
-      },
+      success_url: `${baseUrl}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/pricing?canceled=true`,
+      metadata: { tier: tierKey },
     });
 
-    // Return session ID for Stripe.js redirectToCheckout
-    return NextResponse.json({ id: session.id });
+    return NextResponse.json({ id: session.id, url: session.url });
   } catch (error: any) {
-    console.error("Stripe checkout error:", error);
+    console.error("[Stripe create-checkout-session]", error?.message ?? error);
     return NextResponse.json(
-      { error: error.message || "Failed to create checkout session" },
+      { error: error?.message ?? "Failed to create checkout session" },
       { status: 500 },
     );
   }

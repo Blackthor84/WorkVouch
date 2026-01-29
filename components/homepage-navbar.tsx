@@ -10,7 +10,7 @@ export function HomepageNavbar() {
         <Link href="/" className="flex items-center m-0 p-0">
           <div className="relative h-40 w-auto max-w-[560px] m-0 p-0">
             <Image
-              src="/workvouch-logo.png"
+              src="/images/workvouch-logo.png.png"
               alt="WorkVouch Logo"
               width={300}
               height={100}

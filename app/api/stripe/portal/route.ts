@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { stripe, isStripeConfigured } from "@/lib/stripe/config";
+import { stripe, isStripeConfigured, getCheckoutBaseUrl } from "@/lib/stripe/config";
 import { supabaseServer } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -54,9 +54,10 @@ export async function POST() {
       );
     }
 
+    const baseUrl = getCheckoutBaseUrl();
     const portal = await stripe.billingPortal.sessions.create({
       customer: profileTyped.stripe_customer_id,
-      return_url: `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/dashboard`,
+      return_url: `${baseUrl}/dashboard`,
     });
 
     return NextResponse.json({ url: portal.url });

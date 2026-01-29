@@ -3,11 +3,10 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import {
   stripe,
-  STRIPE_PRICE_STARTER,
-  STRIPE_PRICE_TEAM,
-  STRIPE_PRICE_PRO,
+  STRIPE_PRICE_MAP,
+  logMissingStripePriceIds,
+  getCheckoutBaseUrl,
 } from "@/lib/stripe/config";
-import { Database } from "@/types/database";
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,21 +31,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { planTier } = body; // 'starter', 'team', or 'pro'
 
-    const priceMap: Record<string, string> = {
-      starter: STRIPE_PRICE_STARTER,
-      team: STRIPE_PRICE_TEAM,
-      pro: STRIPE_PRICE_PRO,
-    };
-
-    const priceId = priceMap[planTier];
-
-    if (!priceId || !["starter", "team", "pro"].includes(planTier)) {
+    if (!planTier || !["starter", "team", "pro"].includes(planTier)) {
       return NextResponse.json({ error: "Invalid plan tier" }, { status: 400 });
     }
 
+    const priceId = STRIPE_PRICE_MAP[planTier];
     if (!priceId) {
+      logMissingStripePriceIds();
       return NextResponse.json(
-        { error: "Stripe price ID not configured" },
+        { error: "Stripe price ID not configured for this plan. Set STRIPE_PRICE_* in environment." },
         { status: 500 },
       );
     }
@@ -105,19 +98,15 @@ export async function POST(req: NextRequest) {
         .eq("id", employerAccountTyped.id);
     }
 
-    // Create checkout session
+    const baseUrl = getCheckoutBaseUrl(req.nextUrl?.origin);
+
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
       payment_method_types: ["card"],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL}/employer/dashboard?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL}/employer/dashboard?canceled=true`,
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${baseUrl}/employer/dashboard?success=true`,
+      cancel_url: `${baseUrl}/employer/dashboard?canceled=true`,
       metadata: {
         employerId: employerAccountTyped.id,
         userId: user.id,
@@ -127,9 +116,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error: any) {
-    console.error("Create checkout error:", error);
+    console.error("[Stripe create-checkout]", error?.message ?? error);
     return NextResponse.json(
-      { error: "Failed to create checkout session" },
+      { error: error?.message ?? "Failed to create checkout session" },
       { status: 500 },
     );
   }

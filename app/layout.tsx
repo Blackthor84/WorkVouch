@@ -8,8 +8,8 @@ export const metadata: Metadata = {
   description:
     "Build your professional reputation through verified peer references. Trusted by security, law enforcement & professionals.",
   icons: {
-    icon: "/workvouch-logo.png",
-    apple: "/workvouch-logo.png",
+    icon: "/images/workvouch-logo.png.png",
+    apple: "/images/workvouch-logo.png.png",
   },
 };
 
@@ -21,17 +21,14 @@ export default async function RootLayout({
   const user = await getCurrentUser();
   const roles = await getCurrentUserRoles();
 
-  // Environment variable debug logging (server-side only)
-  if (process.env.NODE_ENV === "development") {
-    console.log("=== WorkVouch Environment Variables Debug ===");
-    console.log("NEXTAUTH_URL:", process.env.NEXTAUTH_URL || "❌ MISSING");
-    console.log("STRIPE_SECRET_KEY:", process.env.STRIPE_SECRET_KEY ? "✅ SET" : "❌ MISSING");
-    console.log("STRIPE_PRICE_STARTER:", process.env.STRIPE_PRICE_STARTER || "❌ MISSING");
-    console.log("STRIPE_PRICE_TEAM:", process.env.STRIPE_PRICE_TEAM || "❌ MISSING");
-    console.log("STRIPE_PRICE_PRO:", process.env.STRIPE_PRICE_PRO || "❌ MISSING");
-    console.log("STRIPE_PRICE_SECURITY:", process.env.STRIPE_PRICE_SECURITY || "❌ MISSING");
-    console.log("STRIPE_PRICE_ONE_TIME:", process.env.STRIPE_PRICE_ONE_TIME || "❌ MISSING");
-    console.log("=============================================");
+  // Development-only: log missing Stripe price IDs (no keys logged)
+  if (process.env.NODE_ENV === "development" && process.env.STRIPE_SECRET_KEY) {
+    try {
+      const { logMissingStripePriceIds } = await import("@/lib/stripe/config");
+      logMissingStripePriceIds();
+    } catch (_) {
+      // Ignore if stripe config fails
+    }
   }
 
   return (

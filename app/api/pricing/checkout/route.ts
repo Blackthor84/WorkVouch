@@ -1,18 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
-
-// Map tier IDs to Stripe price IDs - canonical names only, no fallbacks
-const priceMap: Record<string, string> = {
-  starter: process.env.STRIPE_PRICE_STARTER || "",
-  team: process.env.STRIPE_PRICE_TEAM || "",
-  pro: process.env.STRIPE_PRICE_PRO || "",
-  security: process.env.STRIPE_PRICE_SECURITY || "",
-  one_time: process.env.STRIPE_PRICE_ONE_TIME || "",
-};
+import { stripe, STRIPE_PRICE_MAP, logMissingStripePriceIds, getCheckoutBaseUrl } from "@/lib/stripe/config";
 
 export async function GET(req: NextRequest) {
   try {
-    // Validate Stripe is configured
     if (!stripe) {
       return NextResponse.json(
         { error: "Stripe is not configured. Please set STRIPE_SECRET_KEY." },
@@ -30,22 +20,16 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const finalPriceId = priceMap[plan];
-
+    const finalPriceId = STRIPE_PRICE_MAP[plan];
     if (!finalPriceId) {
+      logMissingStripePriceIds();
       return NextResponse.json(
-        { error: "Price ID not configured" },
+        { error: `Price ID not configured for plan "${plan}". Set STRIPE_PRICE_* in environment.` },
         { status: 400 }
       );
     }
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.NEXT_PUBLIC_URL ||
-      process.env.NEXTAUTH_URL ||
-      req.nextUrl.origin;
-
-    // Determine if it's a subscription or one-time payment
+    const baseUrl = getCheckoutBaseUrl(req.nextUrl?.origin);
     const isSubscription = plan !== "one_time";
 
     const session = await stripe.checkout.sessions.create({
@@ -54,17 +38,14 @@ export async function GET(req: NextRequest) {
       line_items: [{ price: finalPriceId, quantity: 1 }],
       success_url: `${baseUrl}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/pricing?canceled=true`,
-      metadata: {
-        tierId: plan,
-        priceId: finalPriceId,
-      },
+      metadata: { tierId: plan, priceId: finalPriceId },
     });
 
     return NextResponse.json({ url: session.url, sessionId: session.id });
   } catch (error: any) {
-    console.error("Pricing checkout error:", error);
+    console.error("[Stripe pricing/checkout GET]", error?.message ?? error);
     return NextResponse.json(
-      { error: error.message || "Failed to create checkout session" },
+      { error: error?.message ?? "Failed to create checkout session" },
       { status: 500 }
     );
   }
@@ -72,7 +53,6 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    // Validate Stripe is configured
     if (!stripe) {
       return NextResponse.json(
         { error: "Stripe is not configured. Please set STRIPE_SECRET_KEY." },
@@ -89,19 +69,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Free plan should redirect to signup, not create a checkout session
     if (tierId === "free") {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_URL ||
-        process.env.NEXTAUTH_URL ||
-        req.nextUrl.origin;
+      const baseUrl = getCheckoutBaseUrl(req.nextUrl?.origin);
       return NextResponse.json({
         url: `${baseUrl}/auth/signup?plan=free`,
         isFree: true,
       });
     }
 
-    // Block any employee paid tiers (WorkVouch is free for employees)
     if (userType === "employee" && tierId !== "free") {
       return NextResponse.json(
         { error: "WorkVouch is always free for employees. No paid tiers available." },
@@ -109,22 +84,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const finalPriceId = priceId || priceMap[tierId];
-
+    const finalPriceId = priceId || STRIPE_PRICE_MAP[tierId];
     if (!finalPriceId) {
+      logMissingStripePriceIds();
       return NextResponse.json(
-        { error: "Price ID not configured" },
+        { error: `Price ID not configured for tier "${tierId}". Set STRIPE_PRICE_* in environment.` },
         { status: 400 }
       );
     }
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.NEXT_PUBLIC_URL ||
-      process.env.NEXTAUTH_URL ||
-      req.nextUrl.origin;
-
-    // Determine if it's a subscription or one-time payment
+    const baseUrl = getCheckoutBaseUrl(req.nextUrl?.origin);
     const isSubscription = tierId !== "one_time";
 
     const session = await stripe.checkout.sessions.create({
@@ -134,18 +103,14 @@ export async function POST(req: NextRequest) {
       customer_email: email,
       success_url: `${baseUrl}/pricing/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/pricing?canceled=true`,
-      metadata: {
-        tierId: tierId || "",
-        userType: userType || "",
-        priceId: finalPriceId,
-      },
+      metadata: { tierId: tierId || "", userType: userType || "", priceId: finalPriceId },
     });
 
     return NextResponse.json({ url: session.url, sessionId: session.id });
   } catch (error: any) {
-    console.error("Pricing checkout error:", error);
+    console.error("[Stripe pricing/checkout POST]", error?.message ?? error);
     return NextResponse.json(
-      { error: error.message || "Failed to create checkout session" },
+      { error: error?.message ?? "Failed to create checkout session" },
       { status: 500 }
     );
   }
