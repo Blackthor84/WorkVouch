@@ -1,21 +1,20 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth-config";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { AdminUsersList } from "@/components/admin/users-list";
 
 export default async function AdminUsers() {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
-    console.log("REDIRECT TRIGGERED IN: app/admin/users/page.tsx");
+  if (!session?.user) {
     redirect("/auth/signin");
   }
 
-  const isAdmin = session.user.role === "admin" || session.user.roles?.includes("admin") || session.user.roles?.includes("superadmin");
-  
+  const roles = session.user.roles || [];
+  const isAdmin = roles.includes("admin") || roles.includes("superadmin");
+
   if (!isAdmin) {
-    console.log("REDIRECT TRIGGERED IN: app/admin/users/page.tsx (isAdmin check)");
-    redirect("/auth/signin");
+    redirect("/dashboard");
   }
 
   return (

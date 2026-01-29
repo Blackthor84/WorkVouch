@@ -1,20 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import { SignOutButton } from "./sign-out-button";
+import { useSession, signOut } from "next-auth/react";
 import { Button } from "./ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { NotificationsBell } from "./notifications-bell";
-import { DashboardNavButton } from "./dashboard-nav-button";
 import { Logo } from "./logo";
-import { User } from "@/lib/auth";
 
-interface NavbarClientProps {
-  user: User | null;
-  roles: string[];
-}
+export function NavbarClient() {
+  const { data: session, status } = useSession();
+  const user = session?.user;
+  const roles = user?.roles ?? [];
 
-export function NavbarClient({ user, roles }: NavbarClientProps) {
   return (
     <nav className="sticky top-0 z-50 border-b border-grey-background dark:border-[#374151] bg-white dark:bg-[#0D1117] shadow-sm py-2">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -22,58 +18,75 @@ export function NavbarClient({ user, roles }: NavbarClientProps) {
           <div className="flex items-center">
             <Logo size="xl" showText={false} />
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 justify-end">
             <ThemeToggle />
 
-            {user ? (
+            {status === "loading" ? (
+              <span className="text-sm text-grey-medium dark:text-gray-400">Loading...</span>
+            ) : user ? (
               <div className="flex items-center gap-3">
-                <DashboardNavButton />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  href="/dashboard"
+                  className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
+                >
+                  Dashboard
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  href="/profile"
+                  className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
+                >
+                  Profile
+                </Button>
                 <NotificationsBell />
-
-                <Button variant="ghost" size="sm" href="/pricing">
+                <Button variant="ghost" size="sm" href="/pricing" className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]">
                   Pricing
                 </Button>
-
-                {(roles?.includes("admin") ||
-                  roles?.includes("superadmin")) && (
+                {(roles.includes("admin") || roles.includes("superadmin")) && (
                   <Button
                     variant="ghost"
                     size="sm"
                     href="/admin"
-                    className="font-semibold text-primary dark:text-blue-400"
+                    className="font-semibold text-primary dark:text-blue-400 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
                   >
-                    Admin
+                    Admin Panel
                   </Button>
                 )}
-
-                {(roles?.includes("employer") ||
-                  roles?.includes("superadmin")) && (
+                {(roles.includes("employer") || roles.includes("superadmin")) && (
                   <Button
                     variant="ghost"
                     size="sm"
                     href="/employer/dashboard"
-                    className="font-semibold"
+                    className="font-semibold hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
                   >
                     Employer Panel
                   </Button>
                 )}
-
-                <span className="hidden sm:inline text-sm font-semibold text-grey-dark dark:text-gray-300">
+                <span className="hidden sm:inline text-sm text-grey-dark dark:text-gray-300">
                   {user.email}
                 </span>
-
-                <SignOutButton />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
+                >
+                  Logout
+                </Button>
               </div>
             ) : (
               <>
-                <Button variant="ghost" size="sm" href="/pricing">
+                <Button variant="ghost" size="sm" href="/pricing" className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]">
                   Pricing
                 </Button>
-                <Button variant="ghost" size="sm" href="/auth/signin">
+                <Button variant="ghost" size="sm" href="/auth/signin" className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]">
                   Sign In
                 </Button>
                 <Button size="sm" href="/auth/signup">
-                  Get Started
+                  Sign Up
                 </Button>
               </>
             )}

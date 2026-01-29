@@ -1,22 +1,14 @@
 import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-config';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/authOptions';
 import Link from 'next/link';
 
 export default async function AdCancelPage() {
   const session = await getServerSession(authOptions);
-  
-  if (!session) {
-    console.log("REDIRECT TRIGGERED IN: app/admin/ads/cancel/page.tsx");
-    redirect('/auth/signin');
-  }
 
-  const isAdmin = session.user.role === 'admin' || session.user.roles?.includes('admin') || session.user.roles?.includes('superadmin');
-  
-  if (!isAdmin) {
-    console.log("REDIRECT TRIGGERED IN: app/admin/ads/cancel/page.tsx (isAdmin check)");
-    redirect('/auth/signin');
-  }
+  if (!session?.user) redirect('/auth/signin');
+  const roles = session.user.roles || [];
+  if (!roles.includes('admin') && !roles.includes('superadmin')) redirect('/dashboard');
 
   return (
     <div className="max-w-2xl mx-auto p-8">

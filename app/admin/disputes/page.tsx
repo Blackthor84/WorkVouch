@@ -1,15 +1,14 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth-config";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { DisputesList } from "@/components/workvouch/disputes-list";
 
 export default async function AdminDisputesPage() {
   const session = await getServerSession(authOptions);
 
-  if (!session || session.user.role !== "admin") {
-    console.log("REDIRECT TRIGGERED IN: app/admin/disputes/page.tsx");
-    redirect("/auth/signin");
-  }
+  if (!session?.user) redirect("/auth/signin");
+  const roles = session.user.roles || [];
+  if (!roles.includes("admin") && !roles.includes("superadmin")) redirect("/dashboard");
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">

@@ -1,41 +1,74 @@
-import { createServerSupabase } from "@/lib/supabase/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const supabase = await createServerSupabase();
-    console.log("Supabase auth check triggered in: app/api/admin/users/route.ts");
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if user is admin or superadmin
-    const userRole = user.user_metadata?.role || "user";
-    if (!["admin", "superadmin"].includes(userRole)) {
+    const roles = session.user.roles || [];
+    const isAdmin = roles.includes("admin") || roles.includes("superadmin");
+    if (!isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Fetch all users
-    const { data, error } = await supabase
+    const supabase = getSupabaseServer();
+
+    const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("id, email, full_name, role, created_at")
+      .select("id, email, full_name, created_at")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching users:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (profilesError) {
+      console.error("Error fetching profiles:", profilesError);
+      return NextResponse.json(
+        { error: profilesError.message },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json(data);
-  } catch (error: any) {
+    const { data: rolesData, error: rolesError } = await supabase
+      .from("user_roles")
+      .select("user_id, role");
+
+    if (rolesError) {
+      console.error("Error fetching user_roles:", rolesError);
+      return NextResponse.json(
+        { error: rolesError.message },
+        { status: 500 }
+      );
+    }
+
+    const rolesByUserId = (rolesData || []).reduce<Record<string, string[]>>(
+      (acc, row) => {
+        if (!acc[row.user_id]) acc[row.user_id] = [];
+        acc[row.user_id].push(row.role);
+        return acc;
+      },
+      {}
+    );
+
+    const users = (profiles || []).map((p) => ({
+      id: p.id,
+      email: p.email ?? "",
+      full_name: p.full_name ?? "",
+      roles: rolesByUserId[p.id] ?? [],
+      created_at: p.created_at,
+    }));
+
+    return NextResponse.json(users);
+  } catch (error: unknown) {
     console.error("API error:", error);
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: 500 },
+      {
+        error:
+          error instanceof Error ? error.message : "Internal server error",
+      },
+      { status: 500 }
     );
   }
 }

@@ -11,8 +11,15 @@ export default async function AdminLayout({
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    console.log("REDIRECT TRIGGERED IN: app/admin/layout.tsx");
     redirect("/auth/signin");
+  }
+
+  const roles = session.user.roles || [];
+  const isAdmin =
+    roles.includes("admin") || roles.includes("superadmin");
+
+  if (!isAdmin) {
+    redirect("/dashboard");
   }
 
   return (

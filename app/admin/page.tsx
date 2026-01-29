@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth-config";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseServer } from "@/lib/supabase/admin";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -14,36 +14,29 @@ export const runtime = "nodejs";
 export default async function AdminPanel() {
   const session = await getServerSession(authOptions);
 
-  // Check if user is admin or superadmin
-  if (!session) {
-    console.log("REDIRECT TRIGGERED IN: app/admin/page.tsx");
+  if (!session?.user) {
     redirect("/auth/signin");
   }
 
-  const isAdmin = session.user.role === "admin" || session.user.roles?.includes("admin") || session.user.roles?.includes("superadmin");
-  
+  const roles = session.user.roles || [];
+  const isAdmin = roles.includes("admin") || roles.includes("superadmin");
   if (!isAdmin) {
-    console.log("REDIRECT TRIGGERED IN: app/admin/page.tsx (isAdmin check)");
-    redirect("/auth/signin");
+    redirect("/dashboard");
   }
 
-  // Get all users with their roles
-  const supabase = await createServerSupabase();
-  const supabaseAny = supabase as any;
+  const supabase = getSupabaseServer();
 
-  // Get all profiles
-  const { data: profiles } = await supabaseAny
+  const { data: profiles } = await supabase
     .from("profiles")
     .select("id, email, full_name, created_at")
     .order("created_at", { ascending: false })
-    .limit(100); // Limit to recent 100 users for performance
+    .limit(100);
 
-  // Get all user roles
-  const { data: userRoles } = await supabaseAny
+  const { data: userRoles } = await supabase
     .from("user_roles")
     .select("user_id, role");
 
-  const isSuperAdmin = session.user.roles?.includes("superadmin") || false;
+  const isSuperAdmin = roles.includes("superadmin");
 
   // Create a map of user_id -> roles
   const rolesMap = new Map<string, string[]>();
