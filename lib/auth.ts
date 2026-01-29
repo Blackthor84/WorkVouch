@@ -124,7 +124,9 @@ export async function hasRoleOrSuperadmin(role: string): Promise<boolean> {
 }
 
 /**
- * Require authentication - throws if not authenticated
+ * Require authentication - throws if not authenticated.
+ * Only checks that a session exists. Role-based checks must be done via requireRole().
+ * Do not redirect authenticated users just because roles array is empty.
  */
 export async function requireAuth(): Promise<User> {
   const user = await getCurrentUser()

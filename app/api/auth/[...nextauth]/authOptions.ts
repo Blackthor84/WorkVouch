@@ -110,6 +110,12 @@ export const authOptions: NextAuthOptions = {
             userRoles.push("employer");
           }
 
+          // Assign default role on first login so every authenticated user has at least one role
+          if (userRoles.length === 0) {
+            await supabaseAdmin.from("user_roles").insert({ user_id: data.user.id, role: "user" });
+            userRoles.push("user");
+          }
+
           console.log("Roles fetched:", userRoles);
 
           // Determine primary role: beta > admin > employer > user
