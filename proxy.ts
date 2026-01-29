@@ -1,34 +1,45 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import { Database } from "@/types/database";
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+import { getToken } from "next-auth/jwt"
+
+export async function proxy(req: NextRequest) {
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  })
+
+  const { pathname } = req.nextUrl
+
+  // Public routes
+  const publicRoutes = [
+    "/",
+    "/about",
+    "/pricing",
+    "/faq",
+    "/contact",
+    "/privacy",
+    "/terms",
+    "/auth/signin",
+    "/auth/signup",
+    "/api/auth",
+  ]
+
+  const isPublic = publicRoutes.some((route) =>
+    pathname.startsWith(route)
+  )
+
+  if (!token && !isPublic) {
+    return NextResponse.redirect(new URL("/auth/signin", req.url))
+  }
+
+  return NextResponse.next()
+}
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|logo).*)",
+    "/dashboard/:path*",
+    "/admin/:path*",
+    "/employer/:path*",
+    "/employee/:path*",
   ],
-};
-
-export default async function proxy(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnon) return NextResponse.next();
-
-  let response = NextResponse.next({ request: { headers: request.headers } });
-
-  createServerClient<Database>(supabaseUrl, supabaseAnon, {
-    cookies: {
-      get(name: string) {
-        return request.cookies.get(name)?.value;
-      },
-      set(name: string, value: string, options: any) {
-        response.cookies.set({ name, value, ...options });
-      },
-      remove(name: string, options: any) {
-        response.cookies.set({ name, value: "", ...options });
-      },
-    },
-  });
-
-  return response;
 }
