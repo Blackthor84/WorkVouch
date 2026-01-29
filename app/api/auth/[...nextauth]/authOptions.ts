@@ -94,6 +94,11 @@ export const authOptions: NextAuthOptions = {
             .select("role")
             .eq("user_id", data.user.id);
 
+          console.log("PRODUCTION ROLE QUERY RESULT:");
+          console.log("User ID:", data.user.id);
+          console.log("Roles Data:", rolesData);
+          console.log("Roles Error:", rolesError);
+
           let userRoles: string[] = [];
           if (rolesData && !rolesError) {
             userRoles = rolesData.map((r: any) => r.role);
