@@ -43,14 +43,20 @@ export async function GET() {
       );
     }
 
-    const rolesByUserId = (rolesData || []).reduce<Record<string, string[]>>(
-      (acc, row) => {
-        if (!acc[row.user_id]) acc[row.user_id] = [];
-        acc[row.user_id].push(row.role);
-        return acc;
-      },
-      {}
-    );
+    type RoleRow = {
+      user_id: string;
+      role: string;
+    };
+
+    const rolesByUserId = ((rolesData || []) as RoleRow[]).reduce<
+      Record<string, string[]>
+    >((acc, row) => {
+      if (!acc[row.user_id]) {
+        acc[row.user_id] = [];
+      }
+      acc[row.user_id].push(row.role);
+      return acc;
+    }, {});
 
     const users = (profiles || []).map((p) => ({
       id: p.id,
