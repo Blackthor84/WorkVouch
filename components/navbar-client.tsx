@@ -5,11 +5,17 @@ import { Button } from "./ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { NotificationsBell } from "./notifications-bell";
 import { Logo } from "./logo";
+import { User } from "@/lib/auth";
 
-export function NavbarClient() {
+interface NavbarClientProps {
+  user?: User | null;
+  roles?: string[];
+}
+
+export function NavbarClient({ user: userProp, roles: rolesProp }: NavbarClientProps = {}) {
   const { data: session, status } = useSession();
-  const user = session?.user;
-  const roles = user?.roles ?? [];
+  const user = userProp ?? session?.user;
+  const roles = rolesProp ?? session?.user?.roles ?? [];
 
   return (
     <nav className="sticky top-0 z-50 border-b border-grey-background dark:border-[#374151] bg-white dark:bg-[#0D1117] shadow-sm py-2">
