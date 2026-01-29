@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { LayoutWrapper } from "@/components/layout-wrapper";
-import { getCurrentUser, getCurrentUserRoles } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "WorkVouch - Trust-Based Professional Profiles",
@@ -18,9 +17,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCurrentUser();
-  const roles = await getCurrentUserRoles();
-
   // Development-only: log missing Stripe price IDs (no keys logged)
   if (process.env.NODE_ENV === "development" && process.env.STRIPE_SECRET_KEY) {
     try {
@@ -34,7 +30,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body className="bg-background dark:bg-[#0D1117] flex flex-col min-h-screen antialiased transition-colors">
-        <LayoutWrapper user={user} roles={roles}>
+        <LayoutWrapper user={null} roles={[]}>
           {children}
         </LayoutWrapper>
       </body>

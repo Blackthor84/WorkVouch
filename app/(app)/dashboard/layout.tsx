@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { NavbarServer } from "@/components/navbar-server";
 
-export default async function AdminLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -16,12 +15,5 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  return (
-    <>
-      <NavbarServer />
-      <main className="flex-1 bg-background dark:bg-[#0D1117] min-h-screen">
-        {children}
-      </main>
-    </>
-  );
+  return <>{children}</>;
 }
