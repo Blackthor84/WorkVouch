@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { NavbarServer } from "@/components/navbar-server";
 
 export default async function AdminLayout({
@@ -7,13 +8,10 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getServerSession(authOptions);
 
-  if (!user) {
-    redirect("/login");
+  if (!session?.user) {
+    redirect("/auth/signin");
   }
 
   return (

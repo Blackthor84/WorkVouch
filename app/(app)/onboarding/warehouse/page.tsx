@@ -1,27 +1,29 @@
 import { WarehouseOnboardingWrapper } from "./warehouse-onboarding-wrapper";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
 // Mark as dynamic to prevent build-time prerendering
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function WarehouseOnboardingPage() {
-  const supabase = await createServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getServerSession(authOptions);
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/auth/signin");
   }
 
+  const userId = session.user.id;
+
   // Check if user's industry is warehousing
+  const supabase = await createServerSupabase();
   const supabaseAny = supabase as any;
   const { data: profile, error } = await supabaseAny
     .from("profiles")
     .select("industry")
-    .eq("id", user.id)
+    .eq("id", userId)
     .single();
 
   if (error) {
@@ -38,7 +40,7 @@ export default async function WarehouseOnboardingPage() {
   return (
     <main className="min-h-screen bg-background dark:bg-[#0D1117]">
       <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-        <WarehouseOnboardingWrapper userId={user.id} />
+        <WarehouseOnboardingWrapper userId={userId} />
       </div>
     </main>
   );
