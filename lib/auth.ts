@@ -1,3 +1,5 @@
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions"
 import { createServerSupabase } from './supabase/server'
 
 export interface User {
@@ -20,20 +22,15 @@ export interface UserProfile {
 }
 
 /**
- * Get current authenticated user
- * Uses Supabase auth.getUser() for security
+ * Get current authenticated user from NextAuth session.
+ * Supabase is used only for database queries, not session validation.
  */
 export async function getCurrentUser(): Promise<User | null> {
-  const supabase = await createServerSupabase()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  
-  if (error || !user) {
-    return null
-  }
-  
+  const session = await getServerSession(authOptions)
+  if (!session?.user) return null
   return {
-    id: user.id,
-    email: user.email,
+    id: session.user.id,
+    email: session.user.email ?? undefined,
   }
 }
 
