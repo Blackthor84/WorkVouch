@@ -87,22 +87,40 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          // Step 2: Fetch roles using service role key (bypasses RLS)
+          // Step 2: Fetch roles using service role key (bypasses RLS) — STRICT: fail loudly, no fallback
+          console.log("=== ROLE QUERY START ===");
+          console.log("User ID:", data.user.id);
+
           const supabaseAdmin = getSupabaseAdmin();
+
           const { data: rolesData, error: rolesError } = await supabaseAdmin
             .from("user_roles")
-            .select("role")
+            .select("*")
             .eq("user_id", data.user.id);
 
-          console.log("PRODUCTION ROLE QUERY RESULT:");
-          console.log("User ID:", data.user.id);
-          console.log("Roles Data:", rolesData);
-          console.log("Roles Error:", rolesError);
+          console.log("Raw rolesData:", rolesData);
+          console.log("rolesError:", rolesError);
 
-          let userRoles: string[] = [];
-          if (rolesData && !rolesError) {
-            userRoles = rolesData.map((r: any) => r.role);
+          if (rolesError) {
+            console.log("❌ ROLE QUERY ERROR — DO NOT FALL BACK");
+            throw new Error("Failed to fetch user roles in production");
           }
+
+          if (!rolesData) {
+            console.log("❌ rolesData is null — DO NOT FALL BACK");
+            throw new Error("rolesData returned null");
+          }
+
+          let userRoles: string[] = rolesData.map((r: any) => r.role);
+
+          console.log("Mapped userRoles:", userRoles);
+
+          if (userRoles.length === 0) {
+            console.log("⚠️ No roles found for user in DB");
+            throw new Error("No roles found for user in DB — add role row in user_roles");
+          }
+
+          console.log("=== ROLE QUERY END ===");
 
           // Also check if user has employer role from employer_accounts
           const { data: employerAccount } = await supabaseAdmin
@@ -114,14 +132,6 @@ export const authOptions: NextAuthOptions = {
           if (employerAccount && !userRoles.includes("employer")) {
             userRoles.push("employer");
           }
-
-          // Assign default role on first login so every authenticated user has at least one role
-          if (userRoles.length === 0) {
-            await supabaseAdmin.from("user_roles").insert({ user_id: data.user.id, role: "user" });
-            userRoles.push("user");
-          }
-
-          console.log("Roles fetched:", userRoles);
 
           // Determine primary role: beta > admin > employer > user
           const isAdmin = userRoles.includes("admin") || userRoles.includes("superadmin");
