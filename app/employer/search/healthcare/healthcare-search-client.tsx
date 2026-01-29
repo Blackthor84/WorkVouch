@@ -29,6 +29,11 @@ type HealthcareCandidate = {
   jobs: Job[];
 };
 
+/** Raw row from Supabase (has healthcare_profiles array) */
+type HealthcareCandidateRow = Omit<HealthcareCandidate, "healthcare_profile"> & {
+  healthcare_profiles?: { role: string; work_setting: string }[] | null;
+};
+
 export function HealthcareSearchClient() {
   const [candidates, setCandidates] = useState<HealthcareCandidate[]>([]);
   const [loading, setLoading] = useState(false);
@@ -116,10 +121,10 @@ export function HealthcareSearchClient() {
       }
 
       setCandidates(
-        filtered.map(candidate => ({
+        (filtered as HealthcareCandidateRow[]).map((candidate: HealthcareCandidateRow) => ({
           ...candidate,
-          healthcare_profile: candidate.healthcare_profiles[0] || null
-        })) as HealthcareCandidate[]
+          healthcare_profile: candidate.healthcare_profiles?.[0] ?? null,
+        }))
       );
     } catch (error) {
       console.error("Error searching candidates:", error);
