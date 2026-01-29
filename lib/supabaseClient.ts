@@ -1,6 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
-
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+/**
+ * Browser Supabase client - re-export singleton from lib/supabase/client.
+ * Use this or import { supabaseBrowser } from "@/lib/supabase/client" so only one GoTrueClient exists.
+ */
+export { supabaseBrowser as supabase } from "@/lib/supabase/client";

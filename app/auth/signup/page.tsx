@@ -58,12 +58,22 @@ export default function SignUpPage() {
         return;
       }
 
+      if (password.length < 8) {
+        setMessage("Password must be at least 8 characters.");
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabaseBrowser.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: { full_name: fullName, role, plan: finalPlan },
+          data: {
+            full_name: fullName,
+            role: role === "employer" ? "employer" : "user",
+            plan: finalPlan,
+          },
         },
       });
 
@@ -74,19 +84,44 @@ export default function SignUpPage() {
       }
 
       if (data.user) {
-        await supabaseBrowser.from("profiles").insert({
-          id: data.user.id,
-          email: email.trim().toLowerCase(),
-          full_name: fullName,
-          role,
-        });
+        const profileRole = role === "employer" ? "employer" : "user";
+        const { error: profileError } = await (supabaseBrowser as any)
+          .from("profiles")
+          .insert({
+            id: data.user.id,
+            email: email.trim().toLowerCase(),
+            full_name: fullName || " ",
+            role: profileRole,
+          });
+
+        if (profileError) {
+          console.error("Profile insert error:", profileError);
+          setMessage(profileError.message || "Could not create profile. Please try again.");
+          setLoading(false);
+          return;
+        }
 
         if (role === "employer" && selectedPlan) {
-          await supabaseBrowser.from("employer_accounts").insert({
-            user_id: data.user.id,
-            company_name: fullName,
-            plan_tier: selectedPlan,
-          });
+          const planTierForDb =
+            selectedPlan === "security-bundle"
+              ? "security"
+              : selectedPlan === "pay-per-use"
+                ? "free"
+                : selectedPlan;
+          const { error: employerError } = await (supabaseBrowser as any)
+            .from("employer_accounts")
+            .insert({
+              user_id: data.user.id,
+              company_name: fullName?.trim() || "Company",
+              plan_tier: planTierForDb,
+            });
+
+          if (employerError) {
+            console.error("Employer account insert error:", employerError);
+            setMessage(employerError.message || "Could not create employer account. Please try again.");
+            setLoading(false);
+            return;
+          }
         }
 
         if (data.session) {
@@ -265,12 +300,12 @@ export default function SignUpPage() {
                 </label>
                 <input
                   type="password"
-                  placeholder="At least 6 characters"
+                  placeholder="At least 8 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
                   required
-                  minLength={6}
+                  minLength={8}
                   disabled={loading}
                   autoComplete="new-password"
                 />

@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
 export async function TrustScoreCard({ userId }: { userId: string }) {
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const supabaseAny = supabase as any;
   const { data: trustScore } = await supabaseAny
     .from("trust_scores")

@@ -7,7 +7,7 @@ export default async function EmployeePage(props: any) {
   const resolvedSearchParams = props.searchParams ? await props.searchParams : undefined;
 
   try {
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
 
     // Fetch employee profile

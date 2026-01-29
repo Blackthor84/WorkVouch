@@ -1,12 +1,9 @@
-import { createClient } from '@supabase/supabase-js'
+import { createServerSupabase } from "@/lib/supabase/server";
 
 export default async function CareerPage(props: any) {
-  const { career } = await props.params
+  const { career } = await props.params;
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabase = await createServerSupabase();
 
   const { data, error } = await supabase
     .from('careers')
