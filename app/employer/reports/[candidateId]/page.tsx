@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, hasRole } from "@/lib/auth";
-import { NavbarServer } from "@/components/navbar-server";
 import { getCandidateReport } from "@/lib/actions/employer-purchases";
 import { CandidateReportView } from "@/components/candidate-report-view";
 
@@ -23,9 +22,7 @@ export default async function CandidateReportPage(props: any) {
     report = await getCandidateReport(candidateId);
   } catch (error: any) {
     return (
-      <>
-        <NavbarServer />
-        <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
+      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
           <div className="rounded-2xl bg-white dark:bg-[#1A1F2B] p-8 shadow-md">
             <h1 className="text-2xl font-bold text-grey-dark dark:text-gray-200 mb-4">
               Access Denied
@@ -42,17 +39,13 @@ export default async function CandidateReportPage(props: any) {
               </button>
             </a>
           </div>
-        </main>
-      </>
+      </main>
     );
   }
 
   return (
-    <>
-      <NavbarServer />
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
-        <CandidateReportView report={report} />
-      </main>
-    </>
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
+      <CandidateReportView report={report} />
+    </main>
   );
 }

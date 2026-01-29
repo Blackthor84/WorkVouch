@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, isEmployer } from "@/lib/auth";
-import { NavbarServer } from "@/components/navbar-server";
 import { EmployerHeader } from "@/components/employer/employer-header";
 import { UserSearchForm } from "@/components/employer/user-search-form";
 
@@ -18,7 +17,6 @@ export default async function SearchUsersPage() {
 
   return (
     <>
-      <NavbarServer />
       <EmployerHeader />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
         <div className="mb-8">

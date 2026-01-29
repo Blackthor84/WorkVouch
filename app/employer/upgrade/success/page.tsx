@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { NavbarServer } from "@/components/navbar-server";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
@@ -14,9 +12,7 @@ export default async function UpgradeSuccessPage(props: any) {
   const session_id = searchParams?.session_id;
 
   return (
-    <>
-      <NavbarServer />
-      <div className="min-h-screen bg-background dark:bg-[#0D1117] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background dark:bg-[#0D1117] flex items-center justify-center px-4">
         <Card className="max-w-md w-full p-8 text-center">
           <div className="mb-6">
             <CheckCircleIcon className="h-16 w-16 text-green-600 dark:text-green-400 mx-auto" />
@@ -44,7 +40,6 @@ export default async function UpgradeSuccessPage(props: any) {
             </Link>
           </div>
         </Card>
-      </div>
-    </>
+    </div>
   );
 }
