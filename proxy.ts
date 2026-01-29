@@ -5,35 +5,28 @@ import { getToken } from "next-auth/jwt"
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
+  // Only protect authenticated app sections
+  const protectedRoutes = [
+    "/dashboard",
+    "/admin",
+    "/employer",
+    "/employee",
+  ]
+
+  const isProtected = protectedRoutes.some((route) =>
+    pathname.startsWith(route)
+  )
+
+  if (!isProtected) {
+    return NextResponse.next()
+  }
+
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
   })
 
-  console.log("=== PROXY DEBUG ===")
-  console.log("Path:", pathname)
-  console.log("Token exists:", !!token)
-  console.log("Token:", token)
-
-  const publicRoutes = [
-    "/",
-    "/about",
-    "/pricing",
-    "/faq",
-    "/contact",
-    "/privacy",
-    "/terms",
-    "/auth/signin",
-    "/auth/signup",
-    "/api/auth",
-  ]
-
-  const isPublic = publicRoutes.some((route) =>
-    pathname.startsWith(route)
-  )
-
-  if (!token && !isPublic) {
-    console.log("Redirecting to /auth/signin from proxy")
+  if (!token) {
     return NextResponse.redirect(new URL("/auth/signin", req.url))
   }
 
