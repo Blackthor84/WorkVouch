@@ -58,7 +58,14 @@ export async function GET() {
       return acc;
     }, {});
 
-    const users = (profiles || []).map((p) => ({
+    type ProfileRow = {
+      id: string;
+      email: string | null;
+      full_name: string | null;
+      created_at: string;
+    };
+
+    const users = ((profiles || []) as ProfileRow[]).map((p) => ({
       id: p.id,
       email: p.email ?? "",
       full_name: p.full_name ?? "",
