@@ -102,18 +102,22 @@ export default function SignUpPage() {
         }
 
         if (role === "employer" && selectedPlan) {
-          const planTierForDb =
-            selectedPlan === "security-bundle"
-              ? "security"
-              : selectedPlan === "pay-per-use"
-                ? "free"
-                : selectedPlan;
+          const planTierMap: Record<string, "free" | "basic" | "pro"> = {
+            starter: "basic",
+            team: "pro",
+            pro: "pro",
+            security: "pro",
+            "security-bundle": "pro",
+            "pay-per-use": "free",
+          };
+          const dbPlanTier = planTierMap[selectedPlan] ?? "free";
+
           const { error: employerError } = await (supabaseBrowser as any)
             .from("employer_accounts")
             .insert({
               user_id: data.user.id,
               company_name: fullName?.trim() || "Company",
-              plan_tier: planTierForDb,
+              plan_tier: dbPlanTier,
             });
 
           if (employerError) {
