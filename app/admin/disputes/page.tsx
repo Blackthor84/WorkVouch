@@ -7,6 +7,7 @@ export default async function AdminDisputesPage() {
   const session = await getServerSession(authOptions);
 
   if (!session || session.user.role !== "admin") {
+    console.log("REDIRECT TRIGGERED IN: app/admin/disputes/page.tsx");
     redirect("/auth/signin");
   }
 

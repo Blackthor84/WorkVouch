@@ -11,6 +11,7 @@ export default async function EmployerLayout({
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
+    console.log("REDIRECT TRIGGERED IN: app/employer/layout.tsx");
     redirect("/auth/signin");
   }
 

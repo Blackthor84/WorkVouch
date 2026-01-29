@@ -12,6 +12,7 @@ export default async function SettingsPage() {
   const user = await getCurrentUser();
 
   if (!user) {
+    console.log("REDIRECT TRIGGERED IN: app/(app)/settings/page.tsx");
     redirect("/auth/signin");
   }
 

@@ -13,6 +13,7 @@ export default async function EmployerDashboardPage() {
   const user = await getCurrentUser();
 
   if (!user) {
+    console.log("REDIRECT TRIGGERED IN: app/employer/dashboard/page.tsx");
     redirect("/auth/signin");
   }
 

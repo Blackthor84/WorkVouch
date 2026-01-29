@@ -8,6 +8,7 @@ export default async function EmployerBillingPage() {
   const user = await getCurrentUser();
 
   if (!user) {
+    console.log("REDIRECT TRIGGERED IN: app/employer/billing/page.tsx");
     redirect("/auth/signin");
   }
 

@@ -31,6 +31,7 @@ export function JobFormClient({ industry }: JobFormClientProps) {
 
   useEffect(() => {
     async function checkUser() {
+      console.log("Supabase auth check triggered in: app/(app)/onboarding/[industry]/job/job-form-client.tsx");
       const {
         data: { user: currentUser },
       } = await supabase.auth.getUser();

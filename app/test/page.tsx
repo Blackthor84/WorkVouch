@@ -12,6 +12,7 @@ export default function TestPage() {
       // Using single supabase instance
 
       // Check 1: Get user
+      console.log("Supabase auth check triggered in: app/test/page.tsx");
       const {
         data: { user },
         error: userError,

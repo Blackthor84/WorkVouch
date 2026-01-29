@@ -20,6 +20,7 @@ export function HealthcareCoworkersClient() {
 
   useEffect(() => {
     async function checkUser() {
+      console.log("Supabase auth check triggered in: app/(app)/onboarding/healthcare/coworkers/healthcare-coworkers-client.tsx");
       const {
         data: { user: currentUser },
       } = await supabase.auth.getUser();

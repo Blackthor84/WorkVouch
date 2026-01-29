@@ -14,6 +14,7 @@ export default async function SimpleDashboardPage() {
   const user = await getCurrentUser();
 
   if (!user) {
+    console.log("REDIRECT TRIGGERED IN: app/(app)/dashboard/simple/page.tsx");
     redirect("/auth/signin");
   }
 

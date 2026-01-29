@@ -8,6 +8,7 @@ export default async function NotificationsPage() {
   const user = await getCurrentUser();
 
   if (!user) {
+    console.log("REDIRECT TRIGGERED IN: app/(app)/notifications/page.tsx");
     redirect("/auth/signin");
   }
 

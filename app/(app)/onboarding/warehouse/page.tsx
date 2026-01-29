@@ -12,6 +12,7 @@ export default async function WarehouseOnboardingPage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
+    console.log("REDIRECT TRIGGERED IN: app/(app)/onboarding/warehouse/page.tsx");
     redirect("/auth/signin");
   }
 

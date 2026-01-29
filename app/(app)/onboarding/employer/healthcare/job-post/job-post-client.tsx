@@ -36,6 +36,7 @@ export function JobPostClient() {
 
   useEffect(() => {
     async function checkUser() {
+      console.log("Supabase auth check triggered in: app/(app)/onboarding/employer/healthcare/job-post/job-post-client.tsx");
       const {
         data: { user: currentUser },
       } = await supabase.auth.getUser();

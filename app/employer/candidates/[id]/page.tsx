@@ -8,6 +8,7 @@ export default async function CandidateProfilePage(props: any) {
   const user = await getCurrentUser();
 
   if (!user) {
+    console.log("REDIRECT TRIGGERED IN: app/employer/candidates/[id]/page.tsx");
     redirect("/auth/signin");
   }
 

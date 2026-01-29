@@ -7,6 +7,7 @@ export default async function UploadResumePage() {
   const user = await getCurrentUser();
 
   if (!user) {
+    console.log("REDIRECT TRIGGERED IN: app/(app)/upload-resume/page.tsx");
     redirect("/auth/signin");
   }
 

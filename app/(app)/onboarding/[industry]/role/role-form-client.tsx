@@ -25,6 +25,7 @@ export function RoleFormClient({ industry }: RoleFormClientProps) {
 
   useEffect(() => {
     async function checkUser() {
+      console.log("Supabase auth check triggered in: app/(app)/onboarding/[industry]/role/role-form-client.tsx");
       const {
         data: { user: currentUser },
       } = await supabase.auth.getUser();

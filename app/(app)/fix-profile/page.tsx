@@ -17,6 +17,7 @@ export default function FixProfilePage() {
       // Using single supabase instance
 
       // Get current user
+      console.log("Supabase auth check triggered in: app/(app)/fix-profile/page.tsx");
       const {
         data: { user },
         error: userError,

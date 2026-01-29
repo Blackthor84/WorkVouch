@@ -27,6 +27,7 @@ export function HealthcareSettingClient() {
 
   useEffect(() => {
     async function checkUser() {
+      console.log("Supabase auth check triggered in: app/(app)/onboarding/healthcare/setting/healthcare-setting-client.tsx");
       const {
         data: { user: currentUser },
       } = await supabase.auth.getUser();

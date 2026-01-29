@@ -8,6 +8,7 @@ export default async function EmployerJobPostsPage() {
   const user = await getCurrentUser();
 
   if (!user) {
+    console.log("REDIRECT TRIGGERED IN: app/employer/job-posts/page.tsx");
     redirect("/auth/signin");
   }
 

@@ -3,14 +3,18 @@ import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 
 export async function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl
+
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
   })
 
-  const { pathname } = req.nextUrl
+  console.log("=== PROXY DEBUG ===")
+  console.log("Path:", pathname)
+  console.log("Token exists:", !!token)
+  console.log("Token:", token)
 
-  // Public routes
   const publicRoutes = [
     "/",
     "/about",
@@ -29,6 +33,7 @@ export async function proxy(req: NextRequest) {
   )
 
   if (!token && !isPublic) {
+    console.log("Redirecting to /auth/signin from proxy")
     return NextResponse.redirect(new URL("/auth/signin", req.url))
   }
 

@@ -8,6 +8,7 @@ export default async function EmployerMessagesPage() {
   const user = await getCurrentUser();
 
   if (!user) {
+    console.log("REDIRECT TRIGGERED IN: app/employer/messages/page.tsx");
     redirect("/auth/signin");
   }
 

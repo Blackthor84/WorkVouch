@@ -24,6 +24,7 @@ export function SettingFormClient({ industry }: SettingFormClientProps) {
 
   useEffect(() => {
     async function checkUser() {
+      console.log("Supabase auth check triggered in: app/(app)/onboarding/[industry]/setting/setting-form-client.tsx");
       const {
         data: { user: currentUser },
       } = await supabase.auth.getUser();

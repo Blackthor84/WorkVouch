@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     const supabase = await createServerSupabase();
+    console.log("Supabase auth check triggered in: app/api/admin/users/route.ts");
     const {
       data: { user },
     } = await supabase.auth.getUser();

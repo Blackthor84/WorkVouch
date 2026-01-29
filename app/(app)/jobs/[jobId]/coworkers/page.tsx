@@ -10,6 +10,7 @@ export default async function CoworkersPage(props: any) {
   const { jobId } = await props.params;
   const user = await getCurrentUser();
   if (!user) {
+    console.log("REDIRECT TRIGGERED IN: app/(app)/jobs/[jobId]/coworkers/page.tsx");
     redirect("/auth/signin");
   }
 

@@ -10,6 +10,7 @@ export default async function CoworkerMatchesPage() {
   const user = await getCurrentUser();
 
   if (!user) {
+    console.log("REDIRECT TRIGGERED IN: app/(app)/coworker-matches/page.tsx");
     redirect("/auth/signin");
   }
 

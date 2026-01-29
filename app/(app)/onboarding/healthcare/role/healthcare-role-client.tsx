@@ -30,6 +30,7 @@ export function HealthcareRoleClient() {
 
   useEffect(() => {
     async function checkUser() {
+      console.log("Supabase auth check triggered in: app/(app)/onboarding/healthcare/role/healthcare-role-client.tsx");
       const {
         data: { user: currentUser },
       } = await supabase.auth.getUser();

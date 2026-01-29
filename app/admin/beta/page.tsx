@@ -7,6 +7,7 @@ export default async function AdminBetaPage() {
   const session = await getServerSession(authOptions);
 
   if (!session) {
+    console.log("REDIRECT TRIGGERED IN: app/admin/beta/page.tsx");
     redirect("/auth/signin");
   }
 
@@ -15,6 +16,7 @@ export default async function AdminBetaPage() {
                  session.user.roles?.includes("superadmin");
 
   if (!isAdmin) {
+    console.log("REDIRECT TRIGGERED IN: app/admin/beta/page.tsx (isAdmin check)");
     redirect("/auth/signin");
   }
 

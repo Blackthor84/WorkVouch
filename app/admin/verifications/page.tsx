@@ -7,6 +7,7 @@ export default async function AdminVerificationsPage() {
   const session = await getServerSession(authOptions);
 
   if (!session || session.user.role !== "admin") {
+    console.log("REDIRECT TRIGGERED IN: app/admin/verifications/page.tsx");
     redirect("/auth/signin");
   }
 

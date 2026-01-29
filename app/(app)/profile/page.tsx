@@ -18,6 +18,7 @@ export default async function ProfilePage() {
   const user = await getCurrentUser();
 
   if (!user) {
+    console.log("REDIRECT TRIGGERED IN: app/(app)/profile/page.tsx");
     redirect("/auth/signin");
   }
 

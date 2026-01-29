@@ -10,6 +10,7 @@ export default async function MessagesPage() {
   const user = await getCurrentUser();
 
   if (!user) {
+    console.log("REDIRECT TRIGGERED IN: app/(app)/messages/page.tsx");
     redirect("/auth/signin");
   }
 

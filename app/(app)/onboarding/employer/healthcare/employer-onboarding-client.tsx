@@ -30,6 +30,7 @@ export function EmployerOnboardingClient() {
 
   useEffect(() => {
     async function checkUser() {
+      console.log("Supabase auth check triggered in: app/(app)/onboarding/employer/healthcare/employer-onboarding-client.tsx");
       const {
         data: { user: currentUser },
       } = await supabase.auth.getUser();

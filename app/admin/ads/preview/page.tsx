@@ -7,12 +7,14 @@ export default async function AdPreviewPage() {
   const session = await getServerSession(authOptions);
   
   if (!session) {
+    console.log("REDIRECT TRIGGERED IN: app/admin/ads/preview/page.tsx");
     redirect('/auth/signin');
   }
 
   const isAdmin = session.user.role === 'admin' || session.user.roles?.includes('admin') || session.user.roles?.includes('superadmin');
   
   if (!isAdmin) {
+    console.log("REDIRECT TRIGGERED IN: app/admin/ads/preview/page.tsx (isAdmin check)");
     redirect('/auth/signin');
   }
 

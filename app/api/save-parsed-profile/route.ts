@@ -7,6 +7,7 @@ export async function POST(request: NextRequest) {
     // Check authentication
     const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
+    console.log("Supabase auth check triggered in: app/api/save-parsed-profile/route.ts");
     const {
       data: { user },
       error: authError,
