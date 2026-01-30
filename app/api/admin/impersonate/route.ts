@@ -3,6 +3,11 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
+type Profile = {
+  id: string;
+  email: string | null;
+};
+
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -27,17 +32,14 @@ export async function POST(request: Request) {
 
     const supabase = getSupabaseServer();
 
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error } = await supabase
       .from("profiles")
       .select("id, email")
       .eq("id", userId)
-      .single();
+      .single<Profile>();
 
-    if (profileError || !profile) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+    if (error || !profile) {
+      return new Response("Profile not found", { status: 404 });
     }
 
     const { data: rolesData, error: rolesError } = await supabase
