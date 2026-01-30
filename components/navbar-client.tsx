@@ -7,6 +7,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { NotificationsBell } from "./notifications-bell";
 import { Logo } from "./logo";
 import { User } from "@/lib/auth";
+import { usePreview } from "@/lib/preview-context";
 
 interface NavbarClientProps {
   user?: User | null;
@@ -16,18 +17,25 @@ interface NavbarClientProps {
 export function NavbarClient({ user: userProp, roles: rolesProp }: NavbarClientProps = {}) {
   const { data: session, status, update } = useSession();
   const router = useRouter();
+  const { preview } = usePreview();
   const user = userProp ?? session?.user;
   const roles = rolesProp ?? session?.user?.roles ?? [];
   const impersonating = Boolean(
     (session as { impersonating?: boolean })?.impersonating
   );
+  const eliteDemo = Boolean(preview?.demoActive);
 
   return (
     <nav className="sticky top-0 z-50 border-b border-grey-background dark:border-[#374151] bg-white dark:bg-[#0D1117] shadow-sm py-2">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-24 items-center justify-between">
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <Logo size="xl" showText={false} />
+            {eliteDemo && (
+              <span className="rounded bg-violet-600/90 px-2 py-0.5 text-xs font-medium text-white">
+                Elite Demo
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-3 justify-end">
             {impersonating && (

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { LayoutWrapper } from "@/components/layout-wrapper";
+import { PreviewProvider } from "@/lib/preview-context";
+import SimulationBanner from "@/components/SimulationBanner";
 
 export const metadata: Metadata = {
   title: "WorkVouch - Trust-Based Professional Profiles",
@@ -30,9 +32,12 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body className="bg-background dark:bg-[#0D1117] flex flex-col min-h-screen antialiased transition-colors">
-        <LayoutWrapper user={null} roles={[]}>
-          {children}
-        </LayoutWrapper>
+        <PreviewProvider>
+          <SimulationBanner />
+          <LayoutWrapper user={null} roles={[]}>
+            {children}
+          </LayoutWrapper>
+        </PreviewProvider>
       </body>
     </html>
   );

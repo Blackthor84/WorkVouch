@@ -6,10 +6,15 @@ import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { openBillingPortal } from "@/lib/utils/stripe-helpers";
 import { CreditCardIcon } from "@heroicons/react/24/outline";
+import { usePreview } from "@/lib/preview-context";
 
 export function EmployerBilling() {
+  const { preview } = usePreview();
   const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const simulateExpired = Boolean(preview?.simulateExpired);
+  const demoStatus = preview?.subscriptionStatus;
+  const trialEndsAt = preview?.trialEndsAt;
 
   useEffect(() => {
     loadSubscription();
@@ -46,11 +51,26 @@ export function EmployerBilling() {
   }
 
   const isPro = subscription?.tier === "emp_pro";
-  const isActive =
+  const realActive =
     subscription?.status === "active" || subscription?.status === "trialing";
+  const isActive = simulateExpired ? false : realActive;
+  const statusLabel = simulateExpired ? "expired (demo)" : (subscription?.status || "inactive");
+  const trialEndMs = trialEndsAt ? new Date(trialEndsAt).getTime() : 0;
+  const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+  const trialUrgency = demoStatus === "trialing" && trialEndMs > 0 && trialEndMs - Date.now() < threeDaysMs && trialEndMs > Date.now();
 
   return (
     <div className="space-y-6">
+      {simulateExpired && (
+        <div className="rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20 p-4 text-red-800 dark:text-red-200 text-sm">
+          <strong>Demo:</strong> Simulating expired subscription. Display only — no API changes.
+        </div>
+      )}
+      {trialUrgency && !simulateExpired && (
+        <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4 text-amber-800 dark:text-amber-200 text-sm">
+          <strong>Trial ending soon</strong> — Your trial ends in less than 3 days. (Demo)
+        </div>
+      )}
       <div>
         <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200">
           Billing & Subscription
@@ -78,7 +98,7 @@ export function EmployerBilling() {
                     : "text-red-600 dark:text-red-400"
                 }`}
               >
-                {subscription?.status || "inactive"}
+                {statusLabel}
               </span>
             </p>
           </div>

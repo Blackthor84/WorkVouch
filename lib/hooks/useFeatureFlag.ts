@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePreview } from "@/lib/preview-context";
 
 const CACHE_TTL_MS = 60 * 1000;
 const cache = new Map<string | undefined, { enabled: boolean; ts: number }>();
@@ -30,8 +31,10 @@ export function useFeatureFlag(featureKey: string): {
   enabled: boolean;
   loading: boolean;
 } {
+  const { preview } = usePreview();
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
+  const previewEnabled = Boolean(preview?.featureFlags?.includes(featureKey));
 
   useEffect(() => {
     const key = typeof featureKey === "string" ? featureKey.trim() : "";
@@ -74,7 +77,10 @@ export function useFeatureFlag(featureKey: string): {
     };
   }, [featureKey]);
 
-  return { enabled: loading ? false : enabled, loading };
+  return {
+    enabled: previewEnabled || (loading ? false : enabled),
+    loading: previewEnabled ? false : loading,
+  };
 }
 
 /**
@@ -85,8 +91,14 @@ export function useFeatureFlagWithLoading(featureKey: string): {
   enabled: boolean;
   loading: boolean;
 } {
+  const { preview } = usePreview();
+  const previewEnabled = Boolean(preview?.featureFlags?.includes(featureKey));
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  if (previewEnabled) {
+    return { enabled: true, loading: false };
+  }
 
   useEffect(() => {
     const key = typeof featureKey === "string" ? featureKey.trim() : "";
@@ -127,5 +139,9 @@ export function useFeatureFlagWithLoading(featureKey: string): {
     };
   }, [featureKey]);
 
-  return { enabled, loading };
+  return {
+    enabled: previewEnabled || enabled,
+    loading: previewEnabled ? false : loading,
+  };
 }
+

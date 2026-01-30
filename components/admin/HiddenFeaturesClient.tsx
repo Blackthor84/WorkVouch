@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { usePreview, defaultEliteState, type PreviewState } from "@/lib/preview-context";
 
 type FeatureFlag = {
   id: string;
@@ -33,6 +35,7 @@ type FeatureFlag = {
 
 /** Core flags shown at top of list (order preserved). */
 const CORE_FLAG_KEYS_ORDER = [
+  "elite_simulation",
   "ads_system",
   "beta_access",
   "advanced_analytics",
@@ -65,6 +68,8 @@ export default function HiddenFeaturesClient({
 }: {
   isSuperAdmin: boolean;
 }) {
+  const router = useRouter();
+  const { setPreview } = usePreview();
   const [flags, setFlags] = useState<FeatureFlag[]>([]);
   const [users, setUsers] = useState<UserOption[]>([]);
   const [employers, setEmployers] = useState<EmployerOption[]>([]);
@@ -280,6 +285,12 @@ export default function HiddenFeaturesClient({
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString(undefined, { dateStyle: "short" });
 
+  const activateElite = (overrides: Partial<PreviewState>, target: string) => {
+    const base = { ...defaultEliteState(), demoActive: true, featureFlags: ["elite_simulation", "ads_system", "advanced_analytics"] } as PreviewState;
+    setPreview({ ...base, ...overrides });
+    router.push(target);
+  };
+
   if (loading) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-8">
@@ -312,6 +323,27 @@ export default function HiddenFeaturesClient({
           <Button variant="secondary">Back to Admin</Button>
         </Link>
       </div>
+
+      <Card className="mb-6 p-4">
+        <CardHeader>
+          <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200">Elite Demo previews</h2>
+          <p className="text-sm text-grey-medium dark:text-gray-400">Activate demo mode and open the target dashboard. Display only — no backend changes.</p>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={() => activateElite({ role: "employer", subscription: "pro", simulateExpired: false }, "/employer/dashboard")}>
+            Preview as Employer
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => activateElite({ simulateExpired: true, subscriptionStatus: "canceled" }, "/employer/billing")}>
+            Preview as Expired
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => activateElite({ seatsUsed: 10, seatsLimit: 10, reportsUsed: 20, reportLimit: 20 }, "/admin/simulate")}>
+            Preview Overflow
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => activateElite({}, "/admin/demo/ads")}>
+            Preview Ads Mode
+          </Button>
+        </CardContent>
+      </Card>
 
       {isSuperAdmin && (
         <Card className="mb-8 p-6">

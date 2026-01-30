@@ -2,6 +2,7 @@
 
 import Layout from "./Layout";
 import { Providers } from "./providers";
+import { DemoModeActivator } from "./DemoModeActivator";
 
 export function LayoutWrapper({
   children,
@@ -14,6 +15,7 @@ export function LayoutWrapper({
 }) {
   return (
     <Providers>
+      <DemoModeActivator />
       <Layout>{children}</Layout>
     </Providers>
   );
