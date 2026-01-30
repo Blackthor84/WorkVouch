@@ -1,19 +1,21 @@
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/authOptions';
-import AdminAdsPanel from '@/components/AdminAdsPanel';
-import { AD_PRICING } from '@/lib/ads/pricing';
-import Link from 'next/link';
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import AdminAdsPanel from "@/components/AdminAdsPanel";
+import { AdminAdsGate } from "@/components/AdminAdsGate";
+import { AD_PRICING } from "@/lib/ads/pricing";
+import Link from "next/link";
 
 export default async function AdminAdsPage() {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user) redirect('/auth/signin');
+  if (!session?.user) redirect("/auth/signin");
   const roles = session.user.roles || [];
-  const isAdmin = roles.includes('admin') || roles.includes('superadmin');
-  if (!isAdmin) redirect('/dashboard');
-  
+  const isAdmin = roles.includes("admin") || roles.includes("superadmin");
+  if (!isAdmin) redirect("/dashboard");
+
   return (
+    <AdminAdsGate>
     <div className="max-w-7xl mx-auto py-10 px-4">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Advertising Dashboard (Admin Only)</h1>
@@ -60,5 +62,6 @@ export default async function AdminAdsPage() {
         <AdminAdsPanel />
       </div>
     </div>
+    </AdminAdsGate>
   );
 }

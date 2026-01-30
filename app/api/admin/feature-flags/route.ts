@@ -11,9 +11,17 @@ function isSuperAdmin(roles: string[]): boolean {
   return roles.includes("superadmin");
 }
 
+/** Core feature flags that must always exist. Insert if missing (by key). visibility_type uses "both" (DB allows ui|api|both). */
+const CORE_FEATURE_FLAGS = [
+  { name: "Ads System", key: "ads_system", description: "Controls visibility of advertising system", visibility_type: "both" as const, is_globally_enabled: false },
+  { name: "Beta Access", key: "beta_access", description: "Controls beta feature visibility", visibility_type: "both" as const, is_globally_enabled: false },
+  { name: "Advanced Analytics", key: "advanced_analytics", description: "Controls advanced employer analytics", visibility_type: "both" as const, is_globally_enabled: false },
+];
+
 /**
  * GET /api/admin/feature-flags
  * List all feature flags (Admin + SuperAdmin). Includes key, required_subscription_tier, assignments count.
+ * Auto-seeds core flags (ads_system, beta_access, advanced_analytics) if they do not exist.
  */
 export async function GET() {
   try {
@@ -27,7 +35,7 @@ export async function GET() {
     }
 
     const supabase = getSupabaseServer();
-    const { data: flags, error } = await (supabase as any)
+    let { data: flags, error } = await (supabase as any)
       .from("feature_flags")
       .select("*")
       .order("name");
@@ -35,6 +43,33 @@ export async function GET() {
     if (error) {
       console.error("Feature flags fetch error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    const existingKeys = new Set((flags || []).map((f: { key?: string }) => f.key));
+    for (const core of CORE_FEATURE_FLAGS) {
+      if (!existingKeys.has(core.key)) {
+        const { error: insertErr } = await (supabase as any)
+          .from("feature_flags")
+          .insert({
+            name: core.name,
+            key: core.key,
+            description: core.description,
+            visibility_type: core.visibility_type,
+            is_globally_enabled: core.is_globally_enabled,
+          });
+        if (insertErr) {
+          if (insertErr.code !== "23505") {
+            console.error("Core flag insert error:", insertErr);
+          }
+        } else {
+          existingKeys.add(core.key);
+        }
+      }
+    }
+
+    if (existingKeys.size > (flags?.length ?? 0)) {
+      const refetch = await (supabase as any).from("feature_flags").select("*").order("name");
+      if (!refetch.error) flags = refetch.data;
     }
 
     const { data: assignments } = await (supabase as any)
@@ -105,6 +140,17 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Feature name or key already exists" }, { status: 409 });
       }
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    try {
+      await (getSupabaseServer() as any).from("admin_actions").insert({
+        admin_id: session.user.id,
+        impersonated_user_id: "",
+        action_type: "feature_flag_updated",
+        details: JSON.stringify({ flag_key: finalKey, action: "create" }),
+      });
+    } catch {
+      // Logging must not crash the request
     }
 
     return NextResponse.json(data);

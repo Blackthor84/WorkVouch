@@ -30,6 +30,20 @@ type FeatureFlag = {
   assignmentsCount?: number;
 };
 
+/** Core flags shown at top of list (order preserved). */
+const CORE_FLAG_KEYS_ORDER = ["ads_system", "beta_access", "advanced_analytics"];
+
+function sortFlagsWithCoreFirst(flags: FeatureFlag[]): FeatureFlag[] {
+  return [...flags].sort((a, b) => {
+    const aIdx = CORE_FLAG_KEYS_ORDER.indexOf(a.key);
+    const bIdx = CORE_FLAG_KEYS_ORDER.indexOf(b.key);
+    if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+    if (aIdx !== -1) return -1;
+    if (bIdx !== -1) return 1;
+    return (a.name || "").localeCompare(b.name || "");
+  });
+}
+
 type UserOption = { id: string; email: string; full_name: string; roles: string[] };
 type EmployerOption = { id: string; company_name: string; user_id: string };
 
@@ -61,7 +75,8 @@ export default function HiddenFeaturesClient({
       const res = await fetch("/api/admin/feature-flags", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to load feature flags");
       const data = await res.json();
-      setFlags(Array.isArray(data) ? data : []);
+      const raw = Array.isArray(data) ? data : [];
+      setFlags(sortFlagsWithCoreFirst(raw));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to load");
     }
@@ -78,7 +93,8 @@ export default function HiddenFeaturesClient({
     ])
       .then(([flagsData, usersData, employersData]) => {
         if (cancelled) return;
-        setFlags(Array.isArray(flagsData) ? flagsData : []);
+        const raw = Array.isArray(flagsData) ? flagsData : [];
+        setFlags(sortFlagsWithCoreFirst(raw));
         setUsers(Array.isArray(usersData) ? usersData : []);
         setEmployers(Array.isArray(employersData) ? employersData : []);
       })

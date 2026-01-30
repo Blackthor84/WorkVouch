@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 const CACHE_TTL_MS = 60 * 1000;
 const cache = new Map<string | undefined, { enabled: boolean; ts: number }>();
@@ -22,32 +22,34 @@ function setCached(key: string | undefined, enabled: boolean): void {
 
 /**
  * useFeatureFlag(featureKey)
- * Calls secure API that wraps checkFeatureAccess. Returns boolean. Caches result (1 min TTL).
- * Usage: const canUseRehire = useFeatureFlag("rehire_indicator"); if (canUseRehire) { render feature }
+ * Calls /api/feature-flags/check?key=... and returns { enabled, loading }.
+ * Respects global flag, user assignment, and employer assignment (server-side).
+ * Usage: const { enabled, loading } = useFeatureFlag("ads_system"); if (!enabled) return null;
  */
-export function useFeatureFlag(featureKey: string): boolean {
+export function useFeatureFlag(featureKey: string): {
+  enabled: boolean;
+  loading: boolean;
+} {
   const [enabled, setEnabled] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const keyRef = useRef(featureKey);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const key = typeof featureKey === "string" ? featureKey.trim() : "";
-    keyRef.current = key;
     if (!key) {
       setEnabled(false);
-      setLoaded(true);
+      setLoading(false);
       return;
     }
 
     const cached = getCached(key);
     if (cached !== null) {
       setEnabled(cached);
-      setLoaded(true);
+      setLoading(false);
       return;
     }
 
     let cancelled = false;
-    setLoaded(false);
+    setLoading(true);
     fetch(`/api/feature-flags/check?key=${encodeURIComponent(key)}`, {
       credentials: "include",
     })
@@ -56,14 +58,15 @@ export function useFeatureFlag(featureKey: string): boolean {
         if (cancelled) return;
         const value = Boolean(data?.enabled);
         setEnabled(value);
-        setLoaded(true);
         setCached(key, value);
       })
       .catch(() => {
         if (!cancelled) {
           setEnabled(false);
-          setLoaded(true);
         }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
 
     return () => {
@@ -71,7 +74,7 @@ export function useFeatureFlag(featureKey: string): boolean {
     };
   }, [featureKey]);
 
-  return loaded ? enabled : false;
+  return { enabled: loading ? false : enabled, loading };
 }
 
 /**

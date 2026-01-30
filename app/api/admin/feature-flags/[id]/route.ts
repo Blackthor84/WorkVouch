@@ -51,6 +51,18 @@ export async function PATCH(
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+    try {
+      const flagKey = (data as { key?: string }).key ?? "";
+      await (getSupabaseServer() as any).from("admin_actions").insert({
+        admin_id: session.user.id,
+        impersonated_user_id: "",
+        action_type: "feature_flag_updated",
+        details: JSON.stringify({ flag_key: flagKey, action: "update" }),
+      });
+    } catch {
+      // Logging must not crash the request
+    }
+
     return NextResponse.json(data);
   } catch (err) {
     console.error("Admin feature flag PATCH error:", err);
@@ -78,9 +90,23 @@ export async function DELETE(
 
     const { id } = await params;
     const supabase = getSupabaseServer();
+    const { data: flag } = await (supabase as any).from("feature_flags").select("key").eq("id", id).single();
+    const flagKey = (flag as { key?: string } | null)?.key ?? "";
     const { error } = await (supabase as any).from("feature_flags").delete().eq("id", id);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    try {
+      await (supabase as any).from("admin_actions").insert({
+        admin_id: session.user.id,
+        impersonated_user_id: "",
+        action_type: "feature_flag_updated",
+        details: JSON.stringify({ flag_key: flagKey, action: "delete" }),
+      });
+    } catch {
+      // Logging must not crash the request
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("Admin feature flag DELETE error:", err);

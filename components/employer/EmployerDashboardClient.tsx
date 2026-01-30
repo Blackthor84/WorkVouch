@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import UpgradeModal from "@/components/UpgradeModal";
 import EmployerAnalytics from "./EmployerAnalytics";
+import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
 import VerificationLimitWarning from "@/components/VerificationLimitWarning";
 import ExportDataButton from "@/components/ExportDataButton";
+import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
 import {
   PlusIcon,
   MagnifyingGlassIcon,
@@ -25,6 +27,7 @@ export function EmployerDashboardClient({
   planTier,
   employerId,
 }: EmployerDashboardClientProps) {
+  const { enabled: analyticsEnabled } = useFeatureFlag("advanced_analytics");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [trustScore, setTrustScore] = useState<number | null>(null);
   const [rehireCount, setRehireCount] = useState<number | null>(null);
@@ -260,6 +263,13 @@ export function EmployerDashboardClient({
             limit={verificationLimit}
             used={verificationCount}
           />
+        )}
+
+        {/* Advanced Analytics (feature-flagged) */}
+        {analyticsEnabled && (
+          <div className="mt-6">
+            <AdvancedAnalytics />
+          </div>
         )}
 
         {/* Analytics Section */}
