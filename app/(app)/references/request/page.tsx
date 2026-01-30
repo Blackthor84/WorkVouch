@@ -3,6 +3,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { getUserConnections } from "@/lib/actions/connections";
 import { RequestReferenceForm } from "@/components/request-reference-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function RequestReferencePage() {
   const user = await getCurrentUser();
   if (!user) {

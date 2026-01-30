@@ -1,7 +1,9 @@
 import Link from "next/link";
 
-export default async function PricingSuccess(props: any) {
-  const searchParams = await props.searchParams;
+export const dynamic = "force-dynamic";
+
+export default async function PricingSuccess(props: { searchParams?: Promise<{ session_id?: string }> }) {
+  const searchParams = props.searchParams ? await props.searchParams : undefined;
   const session_id = searchParams?.session_id;
 
   return (

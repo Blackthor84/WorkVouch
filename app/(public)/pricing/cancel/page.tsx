@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default function PricingCancel() {
   return (
     <div className="max-w-4xl mx-auto p-6 text-center">

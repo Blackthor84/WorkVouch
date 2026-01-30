@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { AdminUsersList } from "@/components/admin/users-list";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminUsers() {
   const session = await getServerSession(authOptions);
 

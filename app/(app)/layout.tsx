@@ -1,6 +1,8 @@
 import { NavbarServer } from "@/components/navbar-server";
 import { ImpersonationBanner } from "@/components/impersonation-banner";
 
+export const dynamic = "force-dynamic";
+
 export default function AppLayout({
   children,
 }: {

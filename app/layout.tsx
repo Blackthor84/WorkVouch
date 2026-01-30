@@ -4,6 +4,8 @@ import { LayoutWrapper } from "@/components/layout-wrapper";
 import { PreviewProvider } from "@/lib/preview-context";
 import SimulationBanner from "@/components/SimulationBanner";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "WorkVouch - Trust-Based Professional Profiles",
   description:

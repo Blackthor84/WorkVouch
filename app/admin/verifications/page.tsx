@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { VerificationsList } from "@/components/workvouch/verifications-list";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminVerificationsPage() {
   const session = await getServerSession(authOptions);
 

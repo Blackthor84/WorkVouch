@@ -10,6 +10,8 @@ import {
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 
+export const dynamic = "force-dynamic";
+
 export default async function SimpleDashboardPage() {
   const user = await getCurrentUser();
 
