@@ -8,6 +8,13 @@ type Profile = {
   email: string | null;
 };
 
+type AdminAction = {
+  admin_id: string;
+  impersonated_user_id: string;
+  action_type: string;
+  created_at?: string;
+};
+
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -83,11 +90,12 @@ export async function POST(request: Request) {
 
     // Optional: log impersonation if admin_actions table exists
     try {
-      await supabase.from("admin_actions").insert({
-        admin_id: session.user.id,
-        impersonated_user_id: userId,
+      const adminAction: AdminAction = {
+        admin_id: session.user.id as string,
+        impersonated_user_id: userId as string,
         action_type: "impersonate",
-      });
+      };
+      await supabase.from("admin_actions").insert(adminAction as any);
     } catch {
       // Table may not exist; ignore
     }
