@@ -420,7 +420,7 @@ export default function HiddenFeaturesClient({
                   <li key={a.id} className="flex items-center justify-between gap-2 text-sm bg-grey-background/50 dark:bg-[#1A1F2B] rounded-lg px-3 py-2">
                     <span>
                       {a.user_id ? users.find((u) => u.id === a.user_id)?.email ?? a.user_id : employers.find((e) => e.id === a.employer_id)?.company_name ?? a.employer_id}
-                      {a.user_id ? <Badge variant="secondary" className="ml-2">User</Badge> : <Badge variant="outline" className="ml-2">Employer</Badge>}
+                      {a.user_id ? <Badge variant="secondary" className="ml-2">User</Badge> : <Badge variant="info" className="ml-2">Employer</Badge>}
                     </span>
                     <div className="flex items-center gap-2">
                       <Switch checked={a.enabled} onCheckedChange={(c) => handleToggleAssignment(a.id, c)} />
