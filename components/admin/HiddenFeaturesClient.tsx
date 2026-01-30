@@ -31,7 +31,14 @@ type FeatureFlag = {
 };
 
 /** Core flags shown at top of list (order preserved). */
-const CORE_FLAG_KEYS_ORDER = ["ads_system", "beta_access", "advanced_analytics"];
+const CORE_FLAG_KEYS_ORDER = [
+  "ads_system",
+  "beta_access",
+  "advanced_analytics",
+  "reference_consistency",
+  "stability_index",
+  "environment_fit_indicator",
+];
 
 function sortFlagsWithCoreFirst(flags: FeatureFlag[]): FeatureFlag[] {
   return [...flags].sort((a, b) => {

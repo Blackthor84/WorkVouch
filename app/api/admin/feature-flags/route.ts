@@ -11,11 +11,14 @@ function isSuperAdmin(roles: string[]): boolean {
   return roles.includes("superadmin");
 }
 
-/** Core feature flags that must always exist. Insert if missing (by key). visibility_type uses "both" (DB allows ui|api|both). */
+/** Core feature flags that must always exist. Insert if missing (by key). visibility_type uses "both" or "ui" (DB allows ui|api|both). */
 const CORE_FEATURE_FLAGS = [
   { name: "Ads System", key: "ads_system", description: "Controls visibility of advertising system", visibility_type: "both" as const, is_globally_enabled: false },
   { name: "Beta Access", key: "beta_access", description: "Controls beta feature visibility", visibility_type: "both" as const, is_globally_enabled: false },
   { name: "Advanced Analytics", key: "advanced_analytics", description: "Controls advanced employer analytics", visibility_type: "both" as const, is_globally_enabled: false },
+  { name: "Reference Consistency Index", key: "reference_consistency", description: "Reference Alignment Score from peer feedback consistency", visibility_type: "ui" as const, is_globally_enabled: false, required_subscription_tier: "emp_pro" },
+  { name: "Workforce Stability Indicator", key: "stability_index", description: "Employment stability from tenure and peer confirmation", visibility_type: "ui" as const, is_globally_enabled: false, required_subscription_tier: "emp_lite" },
+  { name: "Environment Fit Indicator", key: "environment_fit_indicator", description: "Environment fit from peer feedback and patterns", visibility_type: "ui" as const, is_globally_enabled: false, required_subscription_tier: "emp_pro" },
 ];
 
 /**
@@ -56,6 +59,7 @@ export async function GET() {
             description: core.description,
             visibility_type: core.visibility_type,
             is_globally_enabled: core.is_globally_enabled,
+            ...("required_subscription_tier" in core && core.required_subscription_tier != null && { required_subscription_tier: core.required_subscription_tier }),
           });
         if (insertErr) {
           if (insertErr.code !== "23505") {

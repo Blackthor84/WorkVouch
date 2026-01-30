@@ -18,6 +18,7 @@ import {
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { WorkHistoryViewer } from "./work-history-viewer";
 import { ReferenceViewer } from "./reference-viewer";
+import { WorkVouchInsightsSection } from "./workvouch-insights-section";
 
 interface CandidateProfileViewerProps {
   candidateData: any;
@@ -152,6 +153,9 @@ export function CandidateProfileViewer({
           </Button>
         </div>
       </div>
+
+      {/* WorkVouch Insights (employer-only, feature-flagged) */}
+      <WorkVouchInsightsSection candidateId={safeProfile.id} />
 
       {/* Trust Score */}
       <Card className="p-6">
