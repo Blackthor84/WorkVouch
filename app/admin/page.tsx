@@ -97,6 +97,17 @@ export default async function AdminPanel() {
           </Card>
 
           <Card className="p-6 hover:shadow-lg transition-shadow">
+            <Link href="/admin/employer-usage" className="block">
+              <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+                Employer Usage
+              </h2>
+              <p className="text-sm text-grey-medium dark:text-gray-400">
+                Plan, Stripe IDs, usage this cycle, overages, manual override
+              </p>
+            </Link>
+          </Card>
+
+          <Card className="p-6 hover:shadow-lg transition-shadow">
             <Link href="/admin/ads" className="block">
               <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
                 Ads Manager

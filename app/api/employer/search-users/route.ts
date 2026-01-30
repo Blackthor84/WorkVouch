@@ -1,17 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { isEmployer } from "@/lib/auth";
-import { Database } from "@/types/database";
+import { getCurrentUser, isEmployer } from "@/lib/auth";
+import { enforceLimit } from "@/lib/enforceLimit";
+import { incrementUsage } from "@/lib/usage";
 
 const MAX_RESULTS = 50;
 
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication and employer role
+    const user = await getCurrentUser();
     const userIsEmployer = await isEmployer();
-    if (!userIsEmployer) {
+    if (!user || !userIsEmployer) {
       return NextResponse.json(
         { error: "Forbidden: Employer access required" },
+        { status: 403 },
+      );
+    }
+
+    const supabase = await createServerSupabase();
+    const supabaseAny = supabase as any;
+    const { data: employerAccount } = await supabaseAny
+      .from("employer_accounts")
+      .select("id, plan_tier, reports_used, searches_used, seats_used, stripe_report_overage_item_id, stripe_search_overage_item_id, stripe_seat_overage_item_id")
+      .eq("user_id", user.id)
+      .single();
+    if (!employerAccount) {
+      return NextResponse.json(
+        { error: "Employer account not found" },
+        { status: 404 },
+      );
+    }
+    const result = await enforceLimit(employerAccount as any, "searches");
+    if (!result.allowed) {
+      return NextResponse.json(
+        { error: result.error || "Plan limit reached", limitReached: true },
         { status: 403 },
       );
     }
@@ -27,17 +49,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Sanitize query - remove special characters that could cause SQL injection
     const sanitizedQuery = query.replace(/[%_]/g, "");
-
     if (sanitizedQuery.length < 2) {
       return NextResponse.json(
         { error: "Search query must be at least 2 characters" },
         { status: 400 },
       );
     }
-
-    const supabase = await createServerSupabase();
 
     // Search profiles by full_name (case-insensitive)
     // Split the query to search for first name, last name, or full name
@@ -73,13 +91,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ users: [] });
     }
 
+    await incrementUsage(employerAccount.id, "search", 1);
+
     // Get user IDs
     const userIds = (profiles as any[]).map((p: any) => p.id);
 
     // Fetch skills for all users
     // Note: skills table may not be in Database types yet
     type SkillRow = { user_id: string; skill_name: string };
-    const supabaseAny = supabase as any;
     const { data: skillsData, error: skillsError } = await supabaseAny
       .from("skills")
       .select("user_id, skill_name")

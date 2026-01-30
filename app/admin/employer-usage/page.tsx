@@ -1,0 +1,45 @@
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { EmployerUsageClient } from "@/components/admin/EmployerUsageClient";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+export default async function AdminEmployerUsagePage() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    redirect("/auth/signin");
+  }
+
+  const roles = (session.user as { roles?: string[] }).roles || [];
+  const isAdmin = roles.includes("admin") || roles.includes("superadmin");
+  if (!isAdmin) {
+    redirect("/dashboard");
+  }
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
+      <div className="mb-6 flex items-center gap-4">
+        <Link href="/admin">
+          <Button variant="ghost" size="sm">← Back to Admin</Button>
+        </Link>
+      </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">
+          Employer Usage
+        </h1>
+        <p className="text-grey-medium dark:text-gray-400">
+          Current plan, Stripe IDs, usage this cycle, overages. Manual override available.
+        </p>
+      </div>
+      <Card className="p-6">
+        <EmployerUsageClient />
+      </Card>
+    </div>
+  );
+}

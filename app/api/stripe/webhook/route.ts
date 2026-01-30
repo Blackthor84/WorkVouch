@@ -1,7 +1,106 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { getSupabaseServer } from "@/lib/supabase/admin";
+import { getTierFromSubscription, getMeteredSubscriptionItemIds } from "@/lib/stripe/config";
 import Stripe from "stripe";
+
+/** Update employer plan_tier and optional subscription/item IDs by stripe_customer_id. Uses service role. Never throws. */
+async function updateEmployerFromSubscription(
+  stripeCustomerId: string,
+  subscription: Stripe.Subscription,
+  payload?: { employerId?: string }
+): Promise<void> {
+  try {
+    const tier = getTierFromSubscription(subscription);
+    const ids = getMeteredSubscriptionItemIds(subscription);
+    const adminSupabase = getSupabaseServer() as any;
+    const update: Record<string, unknown> = {
+      plan_tier: tier,
+      stripe_subscription_id: subscription.id,
+      stripe_report_overage_item_id: ids.reportOverageItemId ?? null,
+      stripe_search_overage_item_id: ids.searchOverageItemId ?? null,
+      stripe_seat_overage_item_id: ids.seatOverageItemId ?? null,
+    };
+    if (payload?.employerId) {
+      const { error } = await adminSupabase
+        .from("employer_accounts")
+        .update(update)
+        .eq("id", payload.employerId);
+      if (error) console.error("[Stripe Webhook] updateEmployerFromSubscription by id:", error.message);
+    } else {
+      const { error } = await adminSupabase
+        .from("employer_accounts")
+        .update(update)
+        .eq("stripe_customer_id", stripeCustomerId);
+      if (error) console.error("[Stripe Webhook] updateEmployerFromSubscription:", error.message);
+    }
+  } catch (e) {
+    console.error("[Stripe Webhook] updateEmployerFromSubscription error:", e);
+  }
+}
+
+/** Update employer plan_tier only (e.g. on subscription deleted). */
+async function updateEmployerPlanTier(stripeCustomerId: string, tier: string): Promise<void> {
+  try {
+    const adminSupabase = getSupabaseServer() as any;
+    const { error } = await adminSupabase
+      .from("employer_accounts")
+      .update({ plan_tier: tier })
+      .eq("stripe_customer_id", stripeCustomerId);
+    if (error) console.error("[Stripe Webhook] updateEmployerPlanTier:", error.message);
+  } catch (e) {
+    console.error("[Stripe Webhook] updateEmployerPlanTier error:", e);
+  }
+}
+
+/** Reset usage and billing cycle for employer on invoice.paid. Never throws. */
+async function resetUsageForCustomer(stripeCustomerId: string, periodEnd: Date): Promise<void> {
+  try {
+    const periodStart = new Date(periodEnd);
+    periodStart.setMonth(periodStart.getMonth() - 1);
+    const adminSupabase = getSupabaseServer() as any;
+    const { error } = await adminSupabase
+      .from("employer_accounts")
+      .update({
+        reports_used: 0,
+        searches_used: 0,
+        billing_cycle_start: periodStart.toISOString(),
+        billing_cycle_end: periodEnd.toISOString(),
+      })
+      .eq("stripe_customer_id", stripeCustomerId);
+    if (error) console.error("[Stripe Webhook] resetUsageForCustomer:", error.message);
+  } catch (e) {
+    console.error("[Stripe Webhook] resetUsageForCustomer error:", e);
+  }
+}
+
+/** Log webhook event for idempotency. Returns true if already processed. */
+async function logStripeEvent(
+  eventId: string,
+  type: string,
+  status: "processed" | "error",
+  errorMessage?: string | null
+): Promise<boolean> {
+  try {
+    const adminSupabase = getSupabaseServer() as any;
+    const { data: existing } = await adminSupabase
+      .from("stripe_events")
+      .select("event_id")
+      .eq("event_id", eventId)
+      .maybeSingle();
+    if (existing) return true;
+    await adminSupabase.from("stripe_events").insert({
+      event_id: eventId,
+      type,
+      status,
+      error_message: errorMessage ?? null,
+    });
+  } catch {
+    // Table may not exist; skip
+  }
+  return false;
+}
 
 export async function POST(req: NextRequest) {
   if (!stripe) {
@@ -29,185 +128,91 @@ export async function POST(req: NextRequest) {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET,
     );
-  } catch (err: any) {
-    console.error("Webhook signature verification failed:", err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("Webhook signature verification failed:", message);
     return NextResponse.json(
-      { error: `Webhook Error: ${err.message}` },
+      { error: `Webhook Error: ${message}` },
       { status: 400 },
     );
+  }
+
+  try {
+    const alreadyProcessed = await logStripeEvent(event.id, event.type, "processed");
+    if (alreadyProcessed) {
+      return NextResponse.json({ received: true });
+    }
+  } catch {
+    // Continue even if logging fails
   }
 
   try {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-
         if (session.mode === "subscription" && session.subscription) {
-          const subscription = await stripe.subscriptions.retrieve(
-            session.subscription as string,
-          );
-
-          const employerId = session.metadata?.employerId;
-          const planTier = session.metadata?.planTier || session.metadata?.plan;
-
-          if (employerId && planTier) {
-            const supabase = await createServerSupabase();
-            const supabaseAny = supabase as any;
-
-            // Map tier IDs to plan_tier values - canonical names only
-            const planTierMap: Record<string, string> = {
-              starter: "starter",
-              team: "team",
-              pro: "pro",
-              security: "security",
-              one_time: "one_time",
-              free: "free",
-            };
-
-            const mappedTier = planTierMap[planTier.toLowerCase()] || planTier || "free";
-
-            await supabaseAny
-              .from("employer_accounts")
-              .update({
-                plan_tier: mappedTier,
-                stripe_customer_id: subscription.customer as string,
-              })
-              .eq("id", employerId);
-          } else if (session.customer_email) {
-            // Fallback: find employer by email if metadata not available
-            const supabase = await createServerSupabase();
-            const supabaseAny = supabase as any;
-
-            type ProfileRow = { id: string };
-            const { data: profile } = await supabaseAny
-              .from("profiles")
-              .select("id")
-              .eq("email", session.customer_email)
-              .single();
-
-            if (profile) {
-              const profileTyped = profile as ProfileRow;
-              const planTier = session.metadata?.tierId || session.metadata?.plan || "free";
-              const planTierMap: Record<string, string> = {
-                starter: "starter",
-                team: "team",
-                pro: "pro",
-                security: "security",
-                one_time: "one_time",
-                free: "free",
-              };
-              const mappedTier = planTierMap[planTier.toLowerCase()] || "free";
-
-              await supabaseAny
+          try {
+            const subscription = await stripe.subscriptions.retrieve(
+              session.subscription as string,
+            );
+            const customerId = subscription.customer as string;
+            const employerId = session.metadata?.employerId as string | undefined;
+            await updateEmployerFromSubscription(customerId, subscription, { employerId });
+            if (employerId) {
+              const adminSupabase = getSupabaseServer() as any;
+              await adminSupabase
                 .from("employer_accounts")
-                .update({
-                  plan_tier: mappedTier,
-                  stripe_customer_id: subscription.customer as string,
-                })
-                .eq("user_id", profileTyped.id);
+                .update({ stripe_customer_id: customerId })
+                .eq("id", employerId);
             }
+          } catch (e) {
+            console.error("[Stripe Webhook] checkout.session.completed:", e);
           }
         }
         break;
       }
 
+      case "customer.subscription.created":
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-
-        const supabase = await createServerSupabase();
-        const supabaseAny = supabase as any;
-        type EmployerAccountRow = { id: string };
-        const { data: employer } = await supabaseAny
-          .from("employer_accounts")
-          .select("id")
-          .eq("stripe_customer_id", subscription.customer as string)
-          .single();
-
-        if (employer) {
-          const employerTyped = employer as EmployerAccountRow;
-          // Determine plan tier from subscription metadata or price ID
-          const tierId = subscription.metadata?.tierId || "free";
-          const planTierMap: Record<string, string> = {
-            starter: "starter",
-            team: "team",
-            pro: "pro",
-            "security-bundle": "security-bundle",
-            free: "free",
-          };
-          const planTier = subscription.status === "active" 
-            ? (planTierMap[tierId.toLowerCase()] || "free")
-            : "free";
-
-          await supabaseAny
-            .from("employer_accounts")
-            .update({ plan_tier: planTier })
-            .eq("id", employerTyped.id);
+        try {
+          const customerId = subscription.customer as string;
+          await updateEmployerFromSubscription(customerId, subscription);
+        } catch (e) {
+          console.error(`[Stripe Webhook] ${event.type}:`, e);
         }
         break;
       }
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-
-        const supabase = await createServerSupabase();
-        const supabaseAny = supabase as any;
-        type EmployerAccountRow = { id: string };
-        const { data: employer } = await supabaseAny
-          .from("employer_accounts")
-          .select("id")
-          .eq("stripe_customer_id", subscription.customer as string)
-          .single();
-
-        if (employer) {
-          const employerTyped = employer as EmployerAccountRow;
-          await supabaseAny
-            .from("employer_accounts")
-            .update({ plan_tier: "free" })
-            .eq("id", employerTyped.id);
+        try {
+          const customerId = subscription.customer as string;
+          await updateEmployerPlanTier(customerId, "starter");
+        } catch (e) {
+          console.error("[Stripe Webhook] customer.subscription.deleted:", e);
         }
         break;
       }
 
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
-        
-        // Update subscription status on successful payment
-        // Invoice.subscription can be a string (subscription ID) or a Subscription object
-        // Type assertion needed as Stripe types may not include this property
-        const invoiceAny = invoice as any;
-        const subscriptionId = typeof invoiceAny.subscription === 'string' 
-          ? invoiceAny.subscription 
-          : invoiceAny.subscription?.id;
-        
+        const invoiceAny = invoice as { subscription?: string };
+        const subscriptionId =
+          typeof invoiceAny.subscription === "string"
+            ? invoiceAny.subscription
+            : (invoiceAny.subscription as unknown as { id?: string } | undefined)?.id;
         if (subscriptionId) {
-          const subscription = await stripe.subscriptions.retrieve(
-            subscriptionId
-          );
-          
-          const supabase = await createServerSupabase();
-          const supabaseAny = supabase as any;
-          
-          const { data: employer } = await supabaseAny
-            .from("employer_accounts")
-            .select("id")
-            .eq("stripe_customer_id", invoice.customer as string)
-            .single();
-
-          if (employer) {
-            const tierId = subscription.metadata?.tierId || "free";
-            const planTierMap: Record<string, string> = {
-              starter: "starter",
-              team: "team",
-              pro: "pro",
-              "security-bundle": "security-bundle",
-              free: "free",
-            };
-            const planTier = planTierMap[tierId.toLowerCase()] || "free";
-
-            await supabaseAny
-              .from("employer_accounts")
-              .update({ plan_tier: planTier })
-              .eq("id", employer.id);
+          try {
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+            const tier = getTierFromSubscription(subscription);
+            await updateEmployerPlanTier(invoice.customer as string, tier);
+            const customerId = invoice.customer as string;
+            const sub = subscription as { current_period_end?: number };
+            const periodEndSec = sub.current_period_end ?? Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+            await resetUsageForCustomer(customerId, new Date(periodEndSec * 1000));
+          } catch (e) {
+            console.error("[Stripe Webhook] invoice.payment_succeeded:", e);
           }
         }
         break;
@@ -215,30 +220,35 @@ export async function POST(req: NextRequest) {
 
       case "product.created":
       case "product.updated": {
-        // Log product changes for reference
         const product = event.data.object as Stripe.Product;
-        console.log(`Product ${event.type}:`, product.name, product.id);
+        console.log(`[Stripe] ${event.type}:`, product.name, product.id);
         break;
       }
 
       case "price.created":
       case "price.updated": {
-        // Log price changes for reference
         const price = event.data.object as Stripe.Price;
-        console.log(`Price ${event.type}:`, price.id, price.unit_amount);
+        console.log(`[Stripe] ${event.type}:`, price.id, price.unit_amount);
         break;
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        console.log(`[Stripe] Unhandled event type: ${event.type}`);
     }
 
     return NextResponse.json({ received: true });
-  } catch (error: any) {
-    console.error("Webhook handler error:", error);
-    return NextResponse.json(
-      { error: "Webhook handler failed" },
-      { status: 500 },
-    );
+  } catch (error) {
+    console.error("[Stripe Webhook] handler error:", error);
+    try {
+      await logStripeEvent(
+        event.id,
+        event.type,
+        "error",
+        error instanceof Error ? error.message : String(error),
+      );
+    } catch {
+      // ignore
+    }
+    return NextResponse.json({ received: true });
   }
 }

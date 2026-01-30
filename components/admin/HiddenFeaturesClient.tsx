@@ -26,6 +26,7 @@ type FeatureFlag = {
     user_id: string | null;
     employer_id: string | null;
     enabled: boolean;
+    expires_at?: string | null;
   }>;
   assignmentsCount?: number;
 };
@@ -38,6 +39,8 @@ const CORE_FLAG_KEYS_ORDER = [
   "reference_consistency",
   "stability_index",
   "environment_fit_indicator",
+  "rehire_probability_index",
+  "workforce_risk_indicator",
 ];
 
 function sortFlagsWithCoreFirst(flags: FeatureFlag[]): FeatureFlag[] {
@@ -73,6 +76,7 @@ export default function HiddenFeaturesClient({
   const [assignFlagId, setAssignFlagId] = useState<string | null>(null);
   const [assignUserId, setAssignUserId] = useState("");
   const [assignEmployerId, setAssignEmployerId] = useState("");
+  const [assignExpiresAt, setAssignExpiresAt] = useState("");
   const [assigning, setAssigning] = useState(false);
   const [detailFlagId, setDetailFlagId] = useState<string | null>(null);
   const [editFlag, setEditFlag] = useState<FeatureFlag | null>(null);
@@ -227,6 +231,7 @@ export default function HiddenFeaturesClient({
           user_id: hasUser ? assignUserId : null,
           employer_id: hasEmployer ? assignEmployerId : null,
           enabled: true,
+          expires_at: assignExpiresAt.trim() ? new Date(assignExpiresAt).toISOString() : null,
         }),
       });
       const data = await res.json();
@@ -234,6 +239,7 @@ export default function HiddenFeaturesClient({
       setAssignFlagId(null);
       setAssignUserId("");
       setAssignEmployerId("");
+      setAssignExpiresAt("");
       await fetchFlags();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Assign failed");
@@ -419,6 +425,7 @@ export default function HiddenFeaturesClient({
                             setAssignFlagId(flag.id);
                             setAssignUserId("");
                             setAssignEmployerId("");
+                            setAssignExpiresAt("");
                           }}
                         >
                           Assign
@@ -478,6 +485,15 @@ export default function HiddenFeaturesClient({
           <div className="mt-6 pt-6 border-t border-grey-background dark:border-[#374151]">
             <h4 className="text-sm font-medium text-grey-dark dark:text-gray-200 mb-2">Add assignment</h4>
             <div className="flex flex-wrap items-end gap-2">
+              <div className="min-w-[200px]">
+                <Label className="text-xs">Expiration (optional, ISO date)</Label>
+                <Input
+                  type="datetime-local"
+                  value={assignExpiresAt}
+                  onChange={(e) => setAssignExpiresAt(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
               <div className="min-w-[200px]">
                 <Label className="text-xs">User</Label>
                 <select

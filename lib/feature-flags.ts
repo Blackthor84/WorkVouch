@@ -44,10 +44,27 @@ export interface CheckFeatureAccessOptions {
 const PLAN_TIER_ORDER = ["free", "basic", "pro"] as const;
 const SUBSCRIPTION_TIER_ORDER = ["starter", "pro", "elite", "emp_lite", "emp_pro", "emp_enterprise"] as const;
 
+/** Tier rank for subscription gates: starter < team < pro < security_bundle. Deny if employer rank < required rank. */
+const TIER_RANK: Record<string, number> = {
+  starter: 1,
+  team: 2,
+  pro: 3,
+  security_bundle: 4,
+  free: 0,
+  basic: 1,
+  emp_lite: 1,
+  emp_pro: 2,
+  emp_enterprise: 4,
+  elite: 3,
+};
+
 function tierMeetsRequired(userTier: string | null, requiredTier: string): boolean {
   if (!userTier) return false;
-  const r = requiredTier.toLowerCase();
-  const u = userTier.toLowerCase();
+  const r = requiredTier.toLowerCase().replace(/-/g, "_");
+  const u = userTier.toLowerCase().replace(/-/g, "_");
+  const userRank = TIER_RANK[u] ?? -1;
+  const requiredRank = TIER_RANK[r] ?? -1;
+  if (requiredRank >= 0 && userRank >= 0) return userRank >= requiredRank;
   const planIdx = PLAN_TIER_ORDER.indexOf(u as any);
   const subIdx = SUBSCRIPTION_TIER_ORDER.indexOf(u as any);
   const requiredPlanIdx = PLAN_TIER_ORDER.indexOf(r as any);
@@ -164,13 +181,16 @@ export async function checkFeatureAccess(
 
   const { data: assignments } = await supabase
     .from("feature_flag_assignments")
-    .select("id, enabled")
+    .select("id, enabled, expires_at")
     .eq("feature_flag_id", flag.id)
     .eq("enabled", true)
-    .or(orConditions.join(","))
-    .limit(1);
+    .or(orConditions.join(","));
 
-  if (!Array.isArray(assignments) || assignments.length === 0) {
+  const now = new Date().toISOString();
+  const validAssignments = Array.isArray(assignments)
+    ? assignments.filter((a: { expires_at?: string | null }) => !a.expires_at || a.expires_at > now)
+    : [];
+  if (validAssignments.length === 0) {
     setCached(featureKey, userId, employerId, false);
     return false;
   }
@@ -194,4 +214,44 @@ export async function isFeatureEnabled(
   options: CheckFeatureAccessOptions = { userId: null }
 ): Promise<boolean> {
   return checkFeatureAccess(featureNameOrKey, options);
+}
+
+/**
+ * Grant beta access to a user for a number of days. Creates a feature_flag_assignment with expires_at.
+ * Use feature key "beta_access" by default. Requires service role (admin client).
+ */
+export async function grantBetaAccess(
+  userId: string,
+  days: number,
+  options: { featureKey?: string; employerId?: string | null } = {}
+): Promise<{ ok: boolean; error?: string }> {
+  const { featureKey = "beta_access", employerId = null } = options;
+  const expiresAt = new Date(Date.now() + days * 86400000).toISOString();
+  const supabase = getSupabaseServer() as any;
+  const { data: flag } = await supabase
+    .from("feature_flags")
+    .select("id")
+    .eq("key", featureKey)
+    .single();
+  if (!flag) return { ok: false, error: `Feature ${featureKey} not found` };
+  const row = {
+    feature_flag_id: flag.id,
+    enabled: true,
+    expires_at: expiresAt,
+    ...(employerId ? { employer_id: employerId, user_id: null } : { user_id: userId, employer_id: null }),
+  };
+  const { error } = await supabase.from("feature_flag_assignments").insert(row);
+  if (error) {
+    if (error.code === "23505") {
+      const { error: updateErr } = await supabase
+        .from("feature_flag_assignments")
+        .update({ enabled: true, expires_at: expiresAt })
+        .eq("feature_flag_id", flag.id)
+        .eq(employerId ? "employer_id" : "user_id", employerId ?? userId);
+      if (updateErr) return { ok: false, error: updateErr.message };
+      return { ok: true };
+    }
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
 }

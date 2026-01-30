@@ -19,6 +19,8 @@ const CORE_FEATURE_FLAGS = [
   { name: "Reference Consistency Index", key: "reference_consistency", description: "Reference Alignment Score from peer feedback consistency", visibility_type: "ui" as const, is_globally_enabled: false, required_subscription_tier: "emp_pro" },
   { name: "Workforce Stability Indicator", key: "stability_index", description: "Employment stability from tenure and peer confirmation", visibility_type: "ui" as const, is_globally_enabled: false, required_subscription_tier: "emp_lite" },
   { name: "Environment Fit Indicator", key: "environment_fit_indicator", description: "Environment fit from peer feedback and patterns", visibility_type: "ui" as const, is_globally_enabled: false, required_subscription_tier: "emp_pro" },
+  { name: "Rehire Probability Index", key: "rehire_probability_index", description: "Rehire probability widget on employer dashboard", visibility_type: "both" as const, is_globally_enabled: false },
+  { name: "Workforce Risk Indicator", key: "workforce_risk_indicator", description: "Workforce risk indicator on employer dashboard", visibility_type: "both" as const, is_globally_enabled: false },
 ];
 
 /**
@@ -78,7 +80,7 @@ export async function GET() {
 
     const { data: assignments } = await (supabase as any)
       .from("feature_flag_assignments")
-      .select("id, feature_flag_id, user_id, employer_id, enabled");
+      .select("id, feature_flag_id, user_id, employer_id, enabled, expires_at");
 
     const assignmentsByFlag = (assignments || []).reduce((acc: Record<string, any[]>, a: any) => {
       if (!acc[a.feature_flag_id]) acc[a.feature_flag_id] = [];

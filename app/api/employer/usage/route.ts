@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { getSearchUsage } from "@/lib/limits/search-limit";
-import { getReportUsage } from "@/lib/limits/report-limit";
+import { getUsageForEmployer } from "@/lib/usage";
 
 /**
  * GET /api/employer/usage
- * Get search and report usage for the current employer
+ * Get plan and usage (reports, searches, seats) for the current employer.
  */
 export async function GET(req: NextRequest) {
   try {
@@ -17,11 +16,9 @@ export async function GET(req: NextRequest) {
 
     const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
-
-    // Get employer account
     const { data: employerAccount } = await supabaseAny
       .from("employer_accounts")
-      .select("id, plan_tier")
+      .select("id")
       .eq("user_id", user.id)
       .single();
 
@@ -32,19 +29,25 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const planTier = employerAccount.plan_tier || "free";
-
-    // Get usage data
-    const [searchUsage, reportUsage] = await Promise.all([
-      getSearchUsage(employerAccount.id, planTier),
-      getReportUsage(employerAccount.id, planTier),
-    ]);
+    const usage = await getUsageForEmployer(employerAccount.id);
+    if (!usage) {
+      return NextResponse.json(
+        { error: "Failed to load usage" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
-      searchUsage,
-      reportUsage,
+      planTier: usage.planTier,
+      limits: usage.limits,
+      reportsUsed: usage.reportsUsed,
+      searchesUsed: usage.searchesUsed,
+      seatsUsed: usage.seatsUsed,
+      seatsAllowed: usage.seatsAllowed,
+      billingCycleStart: usage.billingCycleStart,
+      billingCycleEnd: usage.billingCycleEnd,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching usage:", error);
     return NextResponse.json(
       { error: "Failed to fetch usage" },

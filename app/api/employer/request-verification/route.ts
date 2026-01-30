@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { canRequestVerification } from "@/lib/middleware/plan-enforcement-supabase";
-import { Database } from "@/types/database";
+import { enforceLimit } from "@/lib/enforceLimit";
+import { incrementUsage } from "@/lib/usage";
 import { z } from "zod";
 
 const requestVerificationSchema = z.object({
@@ -39,11 +40,16 @@ export async function POST(req: NextRequest) {
 
     const supabase = await createServerSupabase();
 
-    // Type definitions for tables not in Database types yet
     type EmployerAccountRow = {
       id: string;
       company_name: string;
       plan_tier: string;
+      reports_used?: number | null;
+      searches_used?: number | null;
+      seats_used?: number | null;
+      stripe_report_overage_item_id?: string | null;
+      stripe_search_overage_item_id?: string | null;
+      stripe_seat_overage_item_id?: string | null;
     };
     type VerificationRequestInsert = {
       job_id: string;
@@ -56,7 +62,7 @@ export async function POST(req: NextRequest) {
     const supabaseAny = supabase as any;
     const { data: employerAccount, error: employerError } = await supabaseAny
       .from("employer_accounts")
-      .select("id, company_name, plan_tier")
+      .select("id, company_name, plan_tier, reports_used, searches_used, seats_used, stripe_report_overage_item_id, stripe_search_overage_item_id, stripe_seat_overage_item_id")
       .eq("user_id", user.id)
       .single();
 
@@ -67,8 +73,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check verification limit for Basic plan
     const employerAccountTyped = employerAccount as EmployerAccountRow;
+    const result = await enforceLimit(employerAccountTyped, "reports");
+    if (!result.allowed) {
+      return NextResponse.json(
+        { error: result.error || "Plan limit reached", limitReached: true },
+        { status: 403 },
+      );
+    }
     if (
       employerAccountTyped.plan_tier === "free" ||
       employerAccountTyped.plan_tier === "basic"
@@ -137,6 +149,8 @@ export async function POST(req: NextRequest) {
         { status: 500 },
       );
     }
+
+    await incrementUsage(employerAccountTyped.id, "report", 1);
 
     // Update job history to make it visible and set status to pending
     await (supabase as any)

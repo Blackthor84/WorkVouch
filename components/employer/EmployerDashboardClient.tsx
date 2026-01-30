@@ -7,8 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import UpgradeModal from "@/components/UpgradeModal";
 import EmployerAnalytics from "./EmployerAnalytics";
 import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
+import { RehireProbabilityWidget } from "@/components/employer/RehireProbabilityWidget";
+import { WorkforceRiskIndicator } from "@/components/employer/WorkforceRiskIndicator";
 import VerificationLimitWarning from "@/components/VerificationLimitWarning";
 import ExportDataButton from "@/components/ExportDataButton";
+import { UsagePanel } from "@/components/employer/UsagePanel";
 import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
 import {
   PlusIcon,
@@ -28,6 +31,8 @@ export function EmployerDashboardClient({
   employerId,
 }: EmployerDashboardClientProps) {
   const { enabled: analyticsEnabled } = useFeatureFlag("advanced_analytics");
+  const { enabled: rehireWidgetEnabled } = useFeatureFlag("rehire_probability_index");
+  const { enabled: workforceRiskEnabled } = useFeatureFlag("workforce_risk_indicator");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [trustScore, setTrustScore] = useState<number | null>(null);
   const [rehireCount, setRehireCount] = useState<number | null>(null);
@@ -127,26 +132,35 @@ export function EmployerDashboardClient({
             candidates.
           </p>
           {planTier && (
-            <Badge
-              variant={
-                planTier === "pro"
-                  ? "success"
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-sm font-medium text-grey-medium dark:text-gray-400">
+                Current Plan:
+              </span>
+              <Badge
+                variant="default"
+                className={
+                  planTier === "security_bundle" || planTier === "security-bundle"
+                    ? "bg-amber-500 text-white border-amber-600 dark:bg-amber-600 dark:border-amber-700"
+                    : planTier === "pro"
+                    ? "bg-purple-600 text-white border-purple-700 dark:bg-purple-700 dark:border-purple-800"
+                    : planTier === "team"
+                    ? "bg-blue-600 text-white border-blue-700 dark:bg-blue-700 dark:border-blue-800"
+                    : planTier === "starter"
+                    ? "bg-gray-500 text-white border-gray-600 dark:bg-gray-600 dark:border-gray-700"
+                    : "bg-gray-400 text-white border-gray-500 dark:bg-gray-500 dark:border-gray-600"
+                }
+              >
+                {planTier === "pro"
+                  ? "PRO"
                   : planTier === "team"
-                  ? "info"
-                  : "default"
-              }
-              className="mt-2"
-            >
-              {planTier === "pro"
-                ? "Professional Plan"
-                : planTier === "team"
-                ? "Team Plan"
-                : planTier === "starter"
-                ? "Starter Plan"
-                : planTier === "security-bundle"
-                ? "Security Bundle"
-                : "Free Plan"}
-            </Badge>
+                  ? "TEAM"
+                  : planTier === "starter"
+                  ? "STARTER"
+                  : planTier === "security_bundle" || planTier === "security-bundle"
+                  ? "SECURITY BUNDLE"
+                  : "FREE"}
+              </Badge>
+            </div>
           )}
         </div>
 
@@ -171,6 +185,9 @@ export function EmployerDashboardClient({
             </Card>
           </div>
         )}
+
+        {/* Usage Panel */}
+        <UsagePanel />
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -269,6 +286,20 @@ export function EmployerDashboardClient({
         {analyticsEnabled && (
           <div className="mt-6">
             <AdvancedAnalytics />
+          </div>
+        )}
+
+        {/* Rehire Probability Widget (feature-flagged) */}
+        {rehireWidgetEnabled && (
+          <div className="mt-6">
+            <RehireProbabilityWidget />
+          </div>
+        )}
+
+        {/* Workforce Risk Indicator (feature-flagged) */}
+        {workforceRiskEnabled && (
+          <div className="mt-6">
+            <WorkforceRiskIndicator />
           </div>
         )}
 

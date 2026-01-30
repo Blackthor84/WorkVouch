@@ -61,14 +61,16 @@ export async function POST(request: Request) {
       );
     }
 
+    const insertRow: Record<string, unknown> = {
+      feature_flag_id,
+      user_id: hasUser ? user_id : null,
+      employer_id: hasEmployer ? employer_id : null,
+      enabled,
+    };
+    if (expires_at) insertRow.expires_at = expires_at;
     const { data, error } = await (supabase as any)
       .from("feature_flag_assignments")
-      .insert({
-        feature_flag_id,
-        user_id: hasUser ? user_id : null,
-        employer_id: hasEmployer ? employer_id : null,
-        enabled,
-      })
+      .insert(insertRow)
       .select()
       .single();
 

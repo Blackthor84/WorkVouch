@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import {
   stripe,
@@ -42,6 +43,22 @@ export async function POST(req: NextRequest) {
         { error: "Stripe price ID not configured for this plan. Set STRIPE_PRICE_* in environment." },
         { status: 500 },
       );
+    }
+
+    // Feature gate: ensure plan-linked features exist (e.g. pro -> advanced_analytics)
+    const adminSupabase = getSupabaseServer() as any;
+    if (planTier === "pro") {
+      const { data: flag } = await adminSupabase
+        .from("feature_flags")
+        .select("id")
+        .eq("key", "advanced_analytics")
+        .maybeSingle();
+      if (!flag) {
+        return NextResponse.json(
+          { error: "Feature advanced_analytics is not configured. Contact support." },
+          { status: 503 },
+        );
+      }
     }
 
     const supabase = await createServerSupabase();
