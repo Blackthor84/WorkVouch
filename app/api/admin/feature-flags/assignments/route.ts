@@ -26,11 +26,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const body = await request.json();
-    const feature_flag_id = body.feature_flag_id;
-    const user_id = body.user_id ?? null;
-    const employer_id = body.employer_id ?? null;
-    const enabled = typeof body.enabled === "boolean" ? body.enabled : true;
+    const {
+      feature_flag_id,
+      user_id,
+      employer_id,
+      enabled: enabledRaw,
+      expires_at,
+    } = await request.json();
+    const enabled = typeof enabledRaw === "boolean" ? enabledRaw : true;
 
     if (!feature_flag_id) {
       return NextResponse.json({ error: "feature_flag_id required" }, { status: 400 });
@@ -61,13 +64,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const insertRow: Record<string, unknown> = {
+    const insertRow: any = {
       feature_flag_id,
-      user_id: hasUser ? user_id : null,
-      employer_id: hasEmployer ? employer_id : null,
+      user_id: user_id ?? null,
+      employer_id: employer_id ?? null,
       enabled,
     };
-    if (expires_at) insertRow.expires_at = expires_at;
+    if (expires_at) {
+      insertRow.expires_at = expires_at;
+    }
     const { data, error } = await (supabase as any)
       .from("feature_flag_assignments")
       .insert(insertRow)
