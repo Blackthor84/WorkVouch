@@ -389,7 +389,17 @@ export default function HiddenFeaturesClient({
                             <Button variant="ghost" size="sm" className="text-red-600" onClick={() => handleDelete(flag)}>Delete</Button>
                           </>
                         )}
-                        <Button variant="outline" size="sm" onClick={() => { setAssignFlagId(flag.id); setAssignUserId(""); setAssignEmployerId(""); }}>Assign</Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            setAssignFlagId(flag.id);
+                            setAssignUserId("");
+                            setAssignEmployerId("");
+                          }}
+                        >
+                          Assign
+                        </Button>
                       </div>
                     </td>
                   </tr>
