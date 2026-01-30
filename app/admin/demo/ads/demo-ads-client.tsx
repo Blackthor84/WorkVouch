@@ -25,6 +25,7 @@ export default function DemoAdsClient() {
   });
 
   const setNum = <K extends keyof AdsDemoState>(key: K, value: number) => {
+    console.log("[Demo Ads] setNum", key, value);
     setDemoState((prev) => ({
       ...prev,
       [key]: value,
@@ -58,8 +59,8 @@ export default function DemoAdsClient() {
           <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">Advertiser ROI Demo</h1>
           <p className="text-grey-medium dark:text-gray-400 mt-1">CTR = clicks / impressions · ROI = (Revenue − Spend) / Spend</p>
         </div>
-        <Link href="/admin">
-          <Button variant="secondary">Back to Admin</Button>
+        <Link href="/admin" onClick={() => console.log("[Demo Ads] Back to Admin clicked")}>
+          <Button type="button" variant="secondary">Back to Admin</Button>
         </Link>
       </div>
 

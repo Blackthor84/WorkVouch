@@ -23,6 +23,7 @@ export default function DemoRevenueClient() {
   });
 
   const setNum = <K extends keyof RevenueDemoState>(key: K, value: number) => {
+    console.log("[Demo Revenue] setNum", key, value);
     setDemoState((prev) => ({
       ...prev,
       [key]: value,
@@ -36,8 +37,8 @@ export default function DemoRevenueClient() {
         <p className="text-grey-medium dark:text-gray-400 mb-6">
           Enable Elite Demo Mode to view this page. Use <code className="bg-black/10 dark:bg-white/10 px-1 rounded">?demo=elite</code> or activate from Hidden Features.
         </p>
-        <Link href="/admin">
-          <Button variant="secondary">Back to Admin</Button>
+        <Link href="/admin" onClick={() => console.log("[Demo Revenue] Back to Admin (placeholder) clicked")}>
+          <Button type="button" variant="secondary">Back to Admin</Button>
         </Link>
       </div>
     );
@@ -53,8 +54,8 @@ export default function DemoRevenueClient() {
           <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">Fake Revenue Dashboard</h1>
           <p className="text-grey-medium dark:text-gray-400 mt-1">Elite Demo — display only, no backend</p>
         </div>
-        <Link href="/admin">
-          <Button variant="secondary">Back to Admin</Button>
+        <Link href="/admin" onClick={() => console.log("[Demo Revenue] Back to Admin clicked")}>
+          <Button type="button" variant="secondary">Back to Admin</Button>
         </Link>
       </div>
 

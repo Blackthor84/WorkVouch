@@ -46,24 +46,28 @@ export default function SimulationClient() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Button
+          type="button"
           variant="secondary"
           className="h-auto py-3"
-          onClick={() =>
+          onClick={() => {
+            console.log("[Elite Demo] Starter Employer View clicked");
             setPreview({
               role: "employer",
               subscription: "starter",
               featureFlags: [],
               fakeUserName: "Test Employer",
               fakeCompanyName: "Demo Company",
-            })
-          }
+            });
+          }}
         >
           Starter Employer View
         </Button>
         <Button
+          type="button"
           variant="secondary"
           className="h-auto py-3"
-          onClick={() =>
+          onClick={() => {
+            console.log("[Elite Demo] Pro Enterprise View clicked");
             setPreview({
               role: "employer",
               subscription: "pro",
@@ -71,8 +75,8 @@ export default function SimulationClient() {
               fakeUserName: "Elite Employer",
               fakeCompanyName: "Enterprise Security Corp",
               simulateAds: true,
-            })
-          }
+            });
+          }}
         >
           Pro Enterprise View
         </Button>
@@ -154,7 +158,7 @@ export default function SimulationClient() {
             <span className="text-xs text-grey-medium dark:text-gray-400">Limit</span>
           </div>
           {anyOverflow && (
-            <Button variant="danger" onClick={() => setShowUpgradeModal(true)}>
+            <Button type="button" variant="danger" onClick={() => { console.log("[Elite Demo] Upgrade Required clicked"); setShowUpgradeModal(true); }}>
               Simulate: Upgrade Required
             </Button>
           )}
@@ -176,14 +180,14 @@ export default function SimulationClient() {
           <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200">Quick Elite presets</h2>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          <Button variant="secondary" size="sm" onClick={() => activateElite({ simulateExpired: false, subscriptionStatus: "active" })}>
+          <Button type="button" variant="secondary" size="sm" onClick={() => { console.log("[Elite Demo] Activate Elite Demo clicked"); activateElite({ simulateExpired: false, subscriptionStatus: "active" }); }}>
             Activate Elite Demo
           </Button>
-          <Link href="/admin/demo/revenue">
-            <Button variant="secondary" size="sm">Revenue Simulator</Button>
+          <Link href="/admin/demo/revenue" onClick={() => console.log("[Elite Demo] Revenue Simulator clicked")} className="inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 px-3 py-2 text-sm bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 dark:bg-[#111827] dark:text-gray-300 dark:border-[#374151] dark:hover:bg-[#1A1F2B]">
+            Revenue Simulator
           </Link>
-          <Link href="/admin/demo/ads">
-            <Button variant="secondary" size="sm">Ads ROI Simulator</Button>
+          <Link href="/admin/demo/ads" onClick={() => console.log("[Elite Demo] Ads ROI Simulator clicked")} className="inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 px-3 py-2 text-sm bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 dark:bg-[#111827] dark:text-gray-300 dark:border-[#374151] dark:hover:bg-[#1A1F2B]">
+            Ads ROI Simulator
           </Link>
         </CardContent>
       </Card>

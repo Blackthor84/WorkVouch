@@ -286,9 +286,15 @@ export default function HiddenFeaturesClient({
   const formatDate = (d: string) => new Date(d).toLocaleDateString(undefined, { dateStyle: "short" });
 
   const activateElite = (overrides: Partial<PreviewState>, target: string) => {
+    console.log("[Elite Demo] activateElite", { overrides, target });
     const base = { ...defaultEliteState(), demoActive: true, featureFlags: ["elite_simulation", "ads_system", "advanced_analytics"] } as PreviewState;
-    setPreview({ ...base, ...overrides });
-    router.push(target);
+    const next = { ...base, ...overrides };
+    setPreview(next);
+    // Defer navigation so preview state commits before the new page reads it
+    setTimeout(() => {
+      console.log("[Elite Demo] navigating to", target);
+      router.push(target);
+    }, 0);
   };
 
   if (loading) {
@@ -330,16 +336,16 @@ export default function HiddenFeaturesClient({
           <p className="text-sm text-grey-medium dark:text-gray-400">Activate demo mode and open the target dashboard. Display only — no backend changes.</p>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          <Button variant="secondary" size="sm" onClick={() => activateElite({ role: "employer", subscription: "pro", simulateExpired: false }, "/employer/dashboard")}>
+          <Button type="button" variant="secondary" size="sm" onClick={() => { console.log("[Elite Demo] Preview as Employer clicked"); activateElite({ role: "employer", subscription: "pro", simulateExpired: false }, "/employer/dashboard"); }}>
             Preview as Employer
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => activateElite({ simulateExpired: true, subscriptionStatus: "canceled" }, "/employer/billing")}>
+          <Button type="button" variant="secondary" size="sm" onClick={() => { console.log("[Elite Demo] Preview as Expired clicked"); activateElite({ simulateExpired: true, subscriptionStatus: "canceled" }, "/employer/billing"); }}>
             Preview as Expired
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => activateElite({ seatsUsed: 10, seatsLimit: 10, reportsUsed: 20, reportLimit: 20 }, "/admin/simulate")}>
+          <Button type="button" variant="secondary" size="sm" onClick={() => { console.log("[Elite Demo] Preview Overflow clicked"); activateElite({ seatsUsed: 10, seatsLimit: 10, reportsUsed: 20, reportLimit: 20 }, "/admin/simulate"); }}>
             Preview Overflow
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => activateElite({}, "/admin/demo/ads")}>
+          <Button type="button" variant="secondary" size="sm" onClick={() => { console.log("[Elite Demo] Preview Ads Mode clicked"); activateElite({}, "/admin/demo/ads"); }}>
             Preview Ads Mode
           </Button>
         </CardContent>
