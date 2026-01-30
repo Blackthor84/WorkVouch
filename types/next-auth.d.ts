@@ -10,6 +10,8 @@ declare module "next-auth" {
       role: string;
       roles?: string[];
     };
+    impersonating?: boolean;
+    originalAdminId?: string;
   }
 
   interface User {
@@ -27,5 +29,8 @@ declare module "next-auth/jwt" {
     role: string;
     roles?: string[];
     email: string;
+    impersonating?: boolean;
+    originalAdminId?: string;
+    originalAdminRoles?: string[];
   }
 }

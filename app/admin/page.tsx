@@ -129,6 +129,17 @@ export default async function AdminPanel() {
             </Link>
           </Card>
 
+          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-amber-500">
+            <Link href="/admin/hidden-features" className="block">
+              <h2 className="text-xl font-semibold text-amber-600 dark:text-amber-400 mb-2">
+                Hidden Features
+              </h2>
+              <p className="text-sm text-grey-medium dark:text-gray-400">
+                Manage feature flags. Enable globally or assign to users/employers. Admin and SuperAdmin only.
+              </p>
+            </Link>
+          </Card>
+
           {isSuperAdmin && (
             <>
               <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-red-500">

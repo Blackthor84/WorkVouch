@@ -36,9 +36,78 @@ export type ProfileVisibility = 'public' | 'private'
 
 export type ConnectionStatus = 'pending' | 'confirmed' | 'rejected'
 
+export type FeatureVisibility = 'ui' | 'api' | 'both'
+
 export interface Database {
   public: {
     Tables: {
+      feature_flags: {
+        Row: {
+          id: string
+          name: string
+          key: string
+          description: string | null
+          is_globally_enabled: boolean
+          visibility_type: FeatureVisibility
+          required_subscription_tier: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          key: string
+          description?: string | null
+          is_globally_enabled?: boolean
+          visibility_type?: FeatureVisibility
+          required_subscription_tier?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          key?: string
+          description?: string | null
+          is_globally_enabled?: boolean
+          visibility_type?: FeatureVisibility
+          required_subscription_tier?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      feature_flag_assignments: {
+        Row: {
+          id: string
+          feature_flag_id: string
+          user_id: string | null
+          employer_id: string | null
+          enabled: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          feature_flag_id: string
+          user_id?: string | null
+          employer_id?: string | null
+          enabled?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          feature_flag_id?: string
+          user_id?: string | null
+          employer_id?: string | null
+          enabled?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
       profiles: {
         Row: {
           id: string
@@ -267,6 +336,7 @@ export interface Database {
       relationship_type: RelationshipType
       profile_visibility: ProfileVisibility
       connection_status: ConnectionStatus
+      feature_visibility: FeatureVisibility
     }
   }
 }

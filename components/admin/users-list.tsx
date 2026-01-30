@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 interface AdminUser {
@@ -14,6 +16,8 @@ interface AdminUser {
 export function AdminUsersList() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const { update: updateSession } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchUsers() {
@@ -86,8 +90,27 @@ export function AdminUsersList() {
                   variant="ghost"
                   size="sm"
                   className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
-                  onClick={() => {
-                    // Placeholder: future "View as User" / impersonation
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("/api/admin/impersonate", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ userId: user.id }),
+                      });
+                      if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        alert(err?.error ?? "Impersonation failed");
+                        return;
+                      }
+                      const data = await res.json();
+                      if (data.impersonateUser) {
+                        await updateSession({ impersonateUser: data.impersonateUser });
+                        router.push("/dashboard");
+                      }
+                    } catch (e) {
+                      console.error("Impersonate error:", e);
+                      alert("Impersonation failed");
+                    }
                   }}
                 >
                   View as User

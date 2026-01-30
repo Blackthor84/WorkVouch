@@ -1,4 +1,5 @@
 import { NavbarServer } from "@/components/navbar-server";
+import { ImpersonationBanner } from "@/components/impersonation-banner";
 
 export default function AppLayout({
   children,
@@ -7,6 +8,7 @@ export default function AppLayout({
 }) {
   return (
     <>
+      <ImpersonationBanner />
       <NavbarServer />
       <main className="flex-1 bg-background dark:bg-[#0D1117] min-h-screen">
         {children}

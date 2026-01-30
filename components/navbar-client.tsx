@@ -25,6 +25,19 @@ export function NavbarClient({ user: userProp, roles: rolesProp }: NavbarClientP
             <Logo size="xl" showText={false} />
           </div>
           <div className="flex items-center gap-3 justify-end">
+            {impersonating && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={async () => {
+                  await updateSession({ stopImpersonation: true });
+                  router.push("/admin");
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white dark:bg-red-600 dark:hover:bg-red-700"
+              >
+                Exit Impersonation
+              </Button>
+            )}
             <ThemeToggle />
 
             {status === "loading" ? (

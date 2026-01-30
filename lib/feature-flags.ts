@@ -1,0 +1,197 @@
+/**
+ * Server-side feature flag checks for WorkVouch.
+ * Role authority from user_roles via NextAuth session.
+ * All checks enforced server-side; never trust client-only.
+ * Optional in-memory cache to avoid repeated DB calls per request (scalable).
+ */
+
+import { getSupabaseServer } from "@/lib/supabase/admin";
+
+const SERVER_CACHE_TTL_MS = 30 * 1000;
+const serverCache = new Map<string, { result: boolean; ts: number }>();
+
+function cacheKey(key: string, userId: string | null, employerId: string | null): string {
+  return `${key}:${userId ?? ""}:${employerId ?? ""}`;
+}
+
+function getCached(key: string, userId: string | null, employerId: string | null): boolean | null {
+  const k = cacheKey(key, userId, employerId);
+  const entry = serverCache.get(k);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > SERVER_CACHE_TTL_MS) {
+    serverCache.delete(k);
+    return null;
+  }
+  return entry.result;
+}
+
+function setCached(key: string, userId: string | null, employerId: string | null, result: boolean): void {
+  serverCache.set(cacheKey(key, userId, employerId), { result, ts: Date.now() });
+}
+
+export type FeatureVisibility = "ui" | "api" | "both";
+
+export interface CheckFeatureAccessOptions {
+  /** Current user ID (profiles.id) */
+  userId: string | null;
+  /** Current employer account ID (employer_accounts.id) - resolved from userId if not provided */
+  employerId?: string | null;
+  /** If true, only return true when visibility allows UI. Use for UI rendering. */
+  uiOnly?: boolean;
+}
+
+/** Tier order for comparison (lower index = lower tier). */
+const PLAN_TIER_ORDER = ["free", "basic", "pro"] as const;
+const SUBSCRIPTION_TIER_ORDER = ["starter", "pro", "elite", "emp_lite", "emp_pro", "emp_enterprise"] as const;
+
+function tierMeetsRequired(userTier: string | null, requiredTier: string): boolean {
+  if (!userTier) return false;
+  const r = requiredTier.toLowerCase();
+  const u = userTier.toLowerCase();
+  const planIdx = PLAN_TIER_ORDER.indexOf(u as any);
+  const subIdx = SUBSCRIPTION_TIER_ORDER.indexOf(u as any);
+  const requiredPlanIdx = PLAN_TIER_ORDER.indexOf(r as any);
+  const requiredSubIdx = SUBSCRIPTION_TIER_ORDER.indexOf(r as any);
+  if (requiredPlanIdx >= 0) return planIdx >= 0 && planIdx >= requiredPlanIdx;
+  if (requiredSubIdx >= 0) return subIdx >= 0 && subIdx >= requiredSubIdx;
+  return u === r;
+}
+
+/**
+ * Check if the user/employer meets the feature's required_subscription_tier.
+ * Validates against employer_accounts.plan_tier OR user_subscriptions.tier.
+ */
+async function checkTierRequirement(
+  supabase: any,
+  userId: string | null,
+  employerId: string | null,
+  requiredTier: string | null
+): Promise<boolean> {
+  if (!requiredTier || requiredTier.trim() === "") return true;
+
+  if (employerId) {
+    const { data: emp } = await supabase
+      .from("employer_accounts")
+      .select("plan_tier")
+      .eq("id", employerId)
+      .maybeSingle();
+    if (emp?.plan_tier && tierMeetsRequired(emp.plan_tier, requiredTier)) return true;
+  }
+
+  if (userId) {
+    const { data: sub } = await supabase
+      .from("user_subscriptions")
+      .select("tier")
+      .eq("user_id", userId)
+      .or("status.eq.active,status.eq.trialing")
+      .order("current_period_end", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (sub?.tier && tierMeetsRequired(sub.tier, requiredTier)) return true;
+  }
+
+  return false;
+}
+
+/**
+ * checkFeatureAccess(featureKey, userId)
+ * Used in API routes, server components, and critical data-fetching logic.
+ *
+ * Logic:
+ * 1. Fetch feature by key. If not found → false.
+ * 2. If is_globally_enabled: check required_subscription_tier; if passes → true.
+ * 3. Else: check assignment by user_id or employer_id; if assignment.enabled and tier passes → true.
+ * 4. Otherwise → false.
+ */
+export async function checkFeatureAccess(
+  featureKey: string,
+  options: CheckFeatureAccessOptions
+): Promise<boolean> {
+  const { userId, employerId: employerIdOpt, uiOnly = false } = options;
+  let employerId = employerIdOpt ?? null;
+  if (userId && employerId == null) {
+    const supabaseResolve = getSupabaseServer() as any;
+    const { data: emp } = await supabaseResolve
+      .from("employer_accounts")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (emp?.id) employerId = emp.id;
+  }
+  const cached = getCached(featureKey, userId, employerId);
+  if (cached !== null) return cached;
+
+  const supabase = getSupabaseServer() as any;
+
+  const { data: flag, error: flagError } = await supabase
+    .from("feature_flags")
+    .select("id, is_globally_enabled, visibility_type, required_subscription_tier")
+    .eq("key", featureKey)
+    .single();
+
+  if (flagError || !flag) {
+    setCached(featureKey, userId, employerId, false);
+    return false;
+  }
+
+  const visibilityOk =
+    !uiOnly ||
+    flag.visibility_type === "ui" ||
+    flag.visibility_type === "both";
+  if (!visibilityOk) {
+    setCached(featureKey, userId, employerId, false);
+    return false;
+  }
+
+  if (flag.is_globally_enabled) {
+    const tierOk = await checkTierRequirement(
+      supabase,
+      userId,
+      employerId,
+      flag.required_subscription_tier
+    );
+    setCached(featureKey, userId, employerId, tierOk);
+    return tierOk;
+  }
+
+  const orConditions: string[] = [];
+  if (userId) orConditions.push(`user_id.eq.${userId}`);
+  if (employerId) orConditions.push(`employer_id.eq.${employerId}`);
+  if (orConditions.length === 0) {
+    setCached(featureKey, userId, employerId, false);
+    return false;
+  }
+
+  const { data: assignments } = await supabase
+    .from("feature_flag_assignments")
+    .select("id, enabled")
+    .eq("feature_flag_id", flag.id)
+    .eq("enabled", true)
+    .or(orConditions.join(","))
+    .limit(1);
+
+  if (!Array.isArray(assignments) || assignments.length === 0) {
+    setCached(featureKey, userId, employerId, false);
+    return false;
+  }
+
+  const tierOk = await checkTierRequirement(
+    supabase,
+    userId,
+    employerId,
+    flag.required_subscription_tier
+  );
+  setCached(featureKey, userId, employerId, tierOk);
+  return tierOk;
+}
+
+/**
+ * Legacy: check by name (maps to key for backwards compatibility).
+ * Prefer checkFeatureAccess(featureKey, options).
+ */
+export async function isFeatureEnabled(
+  featureNameOrKey: string,
+  options: CheckFeatureAccessOptions = { userId: null }
+): Promise<boolean> {
+  return checkFeatureAccess(featureNameOrKey, options);
+}

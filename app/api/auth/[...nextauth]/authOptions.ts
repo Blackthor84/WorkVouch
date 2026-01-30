@@ -170,13 +170,33 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       // Initial sign in
       if (user) {
         token.id = user.id;
         token.role = user.role;
         token.roles = user.roles;
         token.email = user.email;
+      }
+      // Session update: impersonation
+      if (trigger === "update" && session) {
+        if ((session as { impersonateUser?: { id: string; email: string; role: string; roles: string[] } }).impersonateUser) {
+          const impersonateUser = (session as { impersonateUser: { id: string; email: string; role: string; roles: string[] } }).impersonateUser;
+          token.impersonating = true;
+          token.originalAdminId = token.id as string;
+          token.originalAdminRoles = token.roles as string[] | undefined;
+          token.id = impersonateUser.id;
+          token.email = impersonateUser.email;
+          token.role = impersonateUser.role;
+          token.roles = impersonateUser.roles;
+        }
+        if ((session as { stopImpersonation?: boolean }).stopImpersonation) {
+          token.id = token.originalAdminId as string;
+          token.roles = token.originalAdminRoles;
+          token.impersonating = false;
+          delete token.originalAdminId;
+          delete token.originalAdminRoles;
+        }
       }
       return token;
     },
@@ -188,7 +208,8 @@ export const authOptions: NextAuthOptions = {
         session.user.roles = token.roles as string[];
         session.user.email = token.email as string;
       }
-      // Always return session (required for NextAuth)
+      session.impersonating = token.impersonating ?? false;
+      if (token.originalAdminId) session.originalAdminId = token.originalAdminId as string;
       return session;
     },
     async redirect({ url, baseUrl }) {
