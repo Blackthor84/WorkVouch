@@ -330,16 +330,16 @@ export default function HiddenFeaturesClient({
           <p className="text-sm text-grey-medium dark:text-gray-400">Activate demo mode and open the target dashboard. Display only — no backend changes.</p>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => activateElite({ role: "employer", subscription: "pro", simulateExpired: false }, "/employer/dashboard")}>
+          <Button variant="secondary" size="sm" onClick={() => activateElite({ role: "employer", subscription: "pro", simulateExpired: false }, "/employer/dashboard")}>
             Preview as Employer
           </Button>
-          <Button variant="outline" size="sm" onClick={() => activateElite({ simulateExpired: true, subscriptionStatus: "canceled" }, "/employer/billing")}>
+          <Button variant="secondary" size="sm" onClick={() => activateElite({ simulateExpired: true, subscriptionStatus: "canceled" }, "/employer/billing")}>
             Preview as Expired
           </Button>
-          <Button variant="outline" size="sm" onClick={() => activateElite({ seatsUsed: 10, seatsLimit: 10, reportsUsed: 20, reportLimit: 20 }, "/admin/simulate")}>
+          <Button variant="secondary" size="sm" onClick={() => activateElite({ seatsUsed: 10, seatsLimit: 10, reportsUsed: 20, reportLimit: 20 }, "/admin/simulate")}>
             Preview Overflow
           </Button>
-          <Button variant="outline" size="sm" onClick={() => activateElite({}, "/admin/demo/ads")}>
+          <Button variant="secondary" size="sm" onClick={() => activateElite({}, "/admin/demo/ads")}>
             Preview Ads Mode
           </Button>
         </CardContent>

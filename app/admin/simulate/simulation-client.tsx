@@ -46,7 +46,7 @@ export default function SimulationClient() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Button
-          variant="outline"
+          variant="secondary"
           className="h-auto py-3"
           onClick={() =>
             setPreview({
@@ -61,7 +61,7 @@ export default function SimulationClient() {
           Starter Employer View
         </Button>
         <Button
-          variant="outline"
+          variant="secondary"
           className="h-auto py-3"
           onClick={() =>
             setPreview({
@@ -154,7 +154,7 @@ export default function SimulationClient() {
             <span className="text-xs text-grey-medium dark:text-gray-400">Limit</span>
           </div>
           {anyOverflow && (
-            <Button variant="destructive" onClick={() => setShowUpgradeModal(true)}>
+            <Button variant="danger" onClick={() => setShowUpgradeModal(true)}>
               Simulate: Upgrade Required
             </Button>
           )}
@@ -176,14 +176,14 @@ export default function SimulationClient() {
           <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200">Quick Elite presets</h2>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => activateElite({ simulateExpired: false, subscriptionStatus: "active" })}>
+          <Button variant="secondary" size="sm" onClick={() => activateElite({ simulateExpired: false, subscriptionStatus: "active" })}>
             Activate Elite Demo
           </Button>
           <Link href="/admin/demo/revenue">
-            <Button variant="outline" size="sm">Revenue Simulator</Button>
+            <Button variant="secondary" size="sm">Revenue Simulator</Button>
           </Link>
           <Link href="/admin/demo/ads">
-            <Button variant="outline" size="sm">Ads ROI Simulator</Button>
+            <Button variant="secondary" size="sm">Ads ROI Simulator</Button>
           </Link>
         </CardContent>
       </Card>

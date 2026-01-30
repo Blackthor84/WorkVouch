@@ -1,13 +1,35 @@
 "use client";
 
+import { useState } from "react";
 import { usePreview } from "@/lib/preview-context";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
+interface AdsDemoState {
+  advertiserImpressions: number;
+  advertiserClicks: number;
+  advertiserBudget: number;
+  advertiserCPC: number;
+}
+
 export default function DemoAdsClient() {
-  const { preview, setPreview } = usePreview();
+  const { preview } = usePreview();
   const demoActive = Boolean(preview?.demoActive);
+
+  const [demoState, setDemoState] = useState<AdsDemoState>({
+    advertiserImpressions: 10000,
+    advertiserClicks: 250,
+    advertiserBudget: 500,
+    advertiserCPC: 2,
+  });
+
+  const setNum = <K extends keyof AdsDemoState>(key: K, value: number) => {
+    setDemoState((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
   if (!demoActive) {
     return (
@@ -23,17 +45,11 @@ export default function DemoAdsClient() {
     );
   }
 
-  const impressions = preview?.advertiserImpressions ?? 50000;
-  const clicks = preview?.advertiserClicks ?? 1200;
-  const spend = preview?.advertiserSpend ?? 800;
+  const { advertiserImpressions: impressions, advertiserClicks: clicks, advertiserBudget: spend, advertiserCPC: cpc } = demoState;
   const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-  const revenue = clicks * 2.5; // fake $ per click
+  const revenue = clicks * cpc;
   const roi = spend > 0 ? ((revenue - spend) / spend) * 100 : 0;
   const conversionLift = 12; // fake %
-
-  const setNum = (key: keyof typeof preview, value: number) => {
-    setPreview((p) => (p ? { ...p, [key]: value } : null));
-  };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 bg-background dark:bg-[#0D1117] min-h-screen">
@@ -93,7 +109,7 @@ export default function DemoAdsClient() {
               max={5000}
               step={50}
               value={spend}
-              onChange={(e) => setNum("advertiserSpend", Number(e.target.value))}
+              onChange={(e) => setNum("advertiserBudget", Number(e.target.value))}
               className="w-full"
             />
             <p className="text-xl font-bold text-violet-600 dark:text-violet-400">${spend}</p>

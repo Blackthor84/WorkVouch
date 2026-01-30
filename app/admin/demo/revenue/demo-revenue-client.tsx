@@ -1,13 +1,33 @@
 "use client";
 
+import { useState } from "react";
 import { usePreview } from "@/lib/preview-context";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
+interface RevenueDemoState {
+  fakeMRR: number;
+  fakeRevenue: number;
+  fakeChurnRate: number;
+}
+
 export default function DemoRevenueClient() {
-  const { preview, setPreview } = usePreview();
+  const { preview } = usePreview();
   const demoActive = Boolean(preview?.demoActive);
+
+  const [demoState, setDemoState] = useState<RevenueDemoState>({
+    fakeMRR: 2400,
+    fakeRevenue: 28800,
+    fakeChurnRate: 2.5,
+  });
+
+  const setNum = <K extends keyof RevenueDemoState>(key: K, value: number) => {
+    setDemoState((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
   if (!demoActive) {
     return (
@@ -23,14 +43,8 @@ export default function DemoRevenueClient() {
     );
   }
 
-  const mrr = preview?.fakeMRR ?? 2400;
-  const revenue = preview?.fakeRevenue ?? 28800;
-  const churn = preview?.fakeChurnRate ?? 2.5;
+  const { fakeMRR: mrr, fakeRevenue: revenue, fakeChurnRate: churn } = demoState;
   const employers = Math.round((revenue / 12) / (mrr / 10)) || 10;
-
-  const setNum = (key: keyof typeof preview, value: number) => {
-    setPreview((p) => (p ? { ...p, [key]: value } : null));
-  };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 bg-background dark:bg-[#0D1117] min-h-screen">
