@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { NotificationsBell } from "./notifications-bell";
@@ -13,9 +14,13 @@ interface NavbarClientProps {
 }
 
 export function NavbarClient({ user: userProp, roles: rolesProp }: NavbarClientProps = {}) {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
+  const router = useRouter();
   const user = userProp ?? session?.user;
   const roles = rolesProp ?? session?.user?.roles ?? [];
+  const impersonating = Boolean(
+    (session as { impersonating?: boolean })?.impersonating
+  );
 
   return (
     <nav className="sticky top-0 z-50 border-b border-grey-background dark:border-[#374151] bg-white dark:bg-[#0D1117] shadow-sm py-2">
@@ -30,7 +35,7 @@ export function NavbarClient({ user: userProp, roles: rolesProp }: NavbarClientP
                 variant="secondary"
                 size="sm"
                 onClick={async () => {
-                  await updateSession({ stopImpersonation: true });
+                  await update({ stopImpersonation: true });
                   router.push("/admin");
                 }}
                 className="bg-red-600 hover:bg-red-700 text-white dark:bg-red-600 dark:hover:bg-red-700"
