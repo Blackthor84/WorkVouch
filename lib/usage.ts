@@ -73,7 +73,6 @@ export async function enforcePlanLimit(
   if (limit === -1) return { allowed: true };
   if (used < limit) return { allowed: true, limit, used };
   // At or over limit: hard block if plan does not allow overage (Starter); overage billing is in enforceLimit()
-  const limits = getPlanLimits(row.plan_tier);
   if (!limits.allowOverage) {
     return { allowed: false, reason: "Plan limit reached. Upgrade to continue.", limit, used };
   }
@@ -105,7 +104,6 @@ export async function incrementUsage(
   }
 
   const acc = account as EmployerAccountRow;
-  const limits = getPlanLimits(acc.plan_tier);
 
   const actionType: UsageActionType =
     type === "report"
