@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
-import { Database } from "@/types/database";
+import { calculateUserScore } from "@/lib/scoring/engine";
 import { z } from "zod";
 
 const resolveDisputeSchema = z.object({
@@ -76,6 +76,20 @@ export async function POST(req: NextRequest) {
         { error: "Failed to update job verification status" },
         { status: 500 },
       );
+    }
+
+    try {
+      const { data: job } = await supabaseAny
+        .from("jobs")
+        .select("user_id")
+        .eq("id", dispute.job_id)
+        .single();
+      const userId = (job as { user_id?: string } | null)?.user_id;
+      if (userId) {
+        await calculateUserScore(userId, "rehire");
+      }
+    } catch (err) {
+      console.error("Scoring engine (rehire) failed:", err);
     }
 
     return NextResponse.json({ success: true, dispute: updatedDispute });

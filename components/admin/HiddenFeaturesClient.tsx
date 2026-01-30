@@ -41,6 +41,9 @@ const CORE_FLAG_KEYS_ORDER = [
   "environment_fit_indicator",
   "rehire_probability_index",
   "workforce_risk_indicator",
+  "team_compatibility_scoring",
+  "integrity_index",
+  "ai_reference_summaries",
 ];
 
 function sortFlagsWithCoreFirst(flags: FeatureFlag[]): FeatureFlag[] {

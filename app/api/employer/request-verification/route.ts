@@ -3,6 +3,8 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { canRequestVerification } from "@/lib/middleware/plan-enforcement-supabase";
 import { incrementUsage } from "@/lib/usage";
+import { calculateEnterpriseMetrics } from "@/lib/enterpriseEngine";
+import { getSupabaseServer } from "@/lib/supabase/admin";
 import { z } from "zod";
 
 const requestVerificationSchema = z.object({
@@ -96,7 +98,7 @@ export async function POST(req: NextRequest) {
     // Verify job history exists and is for this employer
     const { data: jobHistory, error: jobError } = await supabaseAny
       .from("jobs")
-      .select("id, company_name")
+      .select("id, company_name, user_id")
       .eq("id", data.jobHistoryId)
       .single();
 
@@ -107,7 +109,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    type JobHistoryRow = { id: string; company_name: string };
+    type JobHistoryRow = { id: string; company_name: string; user_id?: string };
     const jobHistoryTyped = jobHistory as JobHistoryRow;
 
     if (
@@ -143,6 +145,26 @@ export async function POST(req: NextRequest) {
     }
 
     await incrementUsage(employerAccountTyped.id, "report", 1);
+
+    try {
+      const jobUserId = jobHistoryTyped.user_id;
+      if (jobUserId) {
+        const metrics = await calculateEnterpriseMetrics(jobUserId, employerAccountTyped.id);
+        if (metrics) {
+          const adminSupabase = getSupabaseServer() as any;
+          await adminSupabase.from("enterprise_metrics").insert({
+            user_id: jobUserId,
+            employer_id: employerAccountTyped.id,
+            rehire_probability: metrics.rehire_probability,
+            compatibility_score: metrics.compatibility_score,
+            workforce_risk_score: metrics.workforce_risk_score,
+            integrity_index: metrics.integrity_index,
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Silent enterprise calculation failed:", err);
+    }
 
     // Update job history to make it visible and set status to pending
     await (supabase as any)

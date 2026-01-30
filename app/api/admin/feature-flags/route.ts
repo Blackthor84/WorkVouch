@@ -21,6 +21,9 @@ const CORE_FEATURE_FLAGS = [
   { name: "Environment Fit Indicator", key: "environment_fit_indicator", description: "Environment fit from peer feedback and patterns", visibility_type: "ui" as const, is_globally_enabled: false, required_subscription_tier: "emp_pro" },
   { name: "Rehire Probability Index", key: "rehire_probability_index", description: "Rehire probability widget on employer dashboard", visibility_type: "both" as const, is_globally_enabled: false },
   { name: "Workforce Risk Indicator", key: "workforce_risk_indicator", description: "Workforce risk indicator on employer dashboard", visibility_type: "both" as const, is_globally_enabled: false },
+  { name: "Team Compatibility Scoring", key: "team_compatibility_scoring", description: "Team compatibility scoring", visibility_type: "both" as const, is_globally_enabled: false },
+  { name: "Integrity Index", key: "integrity_index", description: "Integrity index scoring", visibility_type: "both" as const, is_globally_enabled: false },
+  { name: "AI Reference Summaries", key: "ai_reference_summaries", description: "AI-generated reference summaries", visibility_type: "both" as const, is_globally_enabled: false },
 ];
 
 /**
