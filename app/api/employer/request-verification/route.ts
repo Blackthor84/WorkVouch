@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { canRequestVerification } from "@/lib/middleware/plan-enforcement-supabase";
-import { enforceLimit } from "@/lib/enforceLimit";
 import { incrementUsage } from "@/lib/usage";
 import { z } from "zod";
 
@@ -74,13 +73,6 @@ export async function POST(req: NextRequest) {
     }
 
     const employerAccountTyped = employerAccount as EmployerAccountRow;
-    const result = await enforceLimit(employerAccountTyped, "reports");
-    if (!result.allowed) {
-      return NextResponse.json(
-        { error: result.error || "Plan limit reached", limitReached: true },
-        { status: 403 },
-      );
-    }
     if (
       employerAccountTyped.plan_tier === "free" ||
       employerAccountTyped.plan_tier === "basic"
