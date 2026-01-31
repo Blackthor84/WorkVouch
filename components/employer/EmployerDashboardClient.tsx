@@ -9,7 +9,9 @@ import EmployerAnalytics from "./EmployerAnalytics";
 import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
 import { RehireProbabilityWidget } from "@/components/employer/RehireProbabilityWidget";
 import { WorkforceRiskIndicator } from "@/components/employer/WorkforceRiskIndicator";
+import { WorkforceRiskDashboard } from "@/components/employer/WorkforceRiskDashboard";
 import { RehireRegistrySection, type RehireEntry } from "@/components/employer/RehireRegistrySection";
+import { SecurityDashboard } from "@/components/employer/SecurityDashboard";
 import VerificationLimitWarning from "@/components/VerificationLimitWarning";
 import ExportDataButton from "@/components/ExportDataButton";
 import { UsagePanel } from "@/components/employer/UsagePanel";
@@ -39,6 +41,7 @@ export function EmployerDashboardClient({
   const { enabled: riskSnapshotEnabled } = useFeatureFlag("risk_snapshot");
   const { enabled: workforceDashboardEnabled } = useFeatureFlag("workforce_dashboard");
   const { enabled: rehireSystemEnabled } = useFeatureFlag("rehire_system");
+  const { enabled: riskDashboardEnabled } = useFeatureFlag("workforce_risk_dashboard");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [riskOverview, setRiskOverview] = useState<{
     workforceRiskAverage: number | null;
@@ -250,8 +253,29 @@ export function EmployerDashboardClient({
           </div>
         )}
 
+        {/* Security Agency Dashboard variant */}
+        {(planTier === "security_agency" || planTier === "security_bundle" || planTier === "security-bundle") && (
+          <div className="mt-6">
+            <SecurityDashboard employerId={employerId ?? null} />
+          </div>
+        )}
+
+        {/* Universal credentials overview (non–Security Agency) */}
+        {!(planTier === "security_agency" || planTier === "security_bundle" || planTier === "security-bundle") && (
+          <div className="mt-6">
+            <CredentialsOverview showComplianceAlerts={false} />
+          </div>
+        )}
+
         {/* Usage Panel */}
         <UsagePanel />
+
+        {/* Workforce Risk Dashboard (feature-gated) */}
+        {riskDashboardEnabled && (
+          <div className="mt-6">
+            <WorkforceRiskDashboard />
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

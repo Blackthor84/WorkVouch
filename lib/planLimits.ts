@@ -3,7 +3,7 @@
  * Used by lib/usage.ts and dashboard. -1 = unlimited.
  */
 
-export type PlanTierKey = "starter" | "team" | "pro" | "security_bundle";
+export type PlanTierKey = "starter" | "team" | "pro" | "security_bundle" | "security_agency";
 
 export interface PlanLimitConfig {
   reports: number;
@@ -34,8 +34,14 @@ export const PLAN_LIMITS: Record<PlanTierKey, PlanLimitConfig> = {
   },
   security_bundle: {
     reports: 80,
-    searches: -1, // unlimited
-    seats: 10,
+    searches: -1,
+    seats: 20,
+    allowOverage: true,
+  },
+  security_agency: {
+    reports: 80,
+    searches: -1,
+    seats: 20,
     allowOverage: true,
   },
 };
@@ -44,7 +50,7 @@ export const PLAN_LIMITS: Record<PlanTierKey, PlanLimitConfig> = {
 export function normalizeTier(tier: string | null | undefined): PlanTierKey {
   if (!tier) return "starter";
   const t = tier.toLowerCase().replace(/-/g, "_");
-  if (t === "security_bundle" || t === "security") return "security_bundle";
+  if (t === "security_agency" || t === "security_bundle" || t === "security") return "security_agency";
   if (t === "starter" || t === "team" || t === "pro") return t as PlanTierKey;
   if (t === "free" || t === "basic") return "starter";
   return "starter";

@@ -25,13 +25,17 @@ export const STRIPE_PRICE_MAP: Record<string, string> = {
   one_time: STRIPE_PRICE_ONE_TIME,
 }
 
+/** Security Bundle price ID (alias). Maps to plan_tier = "security_agency". */
+export const STRIPE_PRICE_SECURITY_BUNDLE = process.env.STRIPE_PRICE_SECURITY_BUNDLE || process.env.STRIPE_PRICE_SECURITY || "";
+
 /** Map Stripe price ID → plan_tier for webhooks. Used to set employer_accounts.plan_tier. */
 export function getPriceToTierMap(): Record<string, string> {
   const map: Record<string, string> = {};
   if (STRIPE_PRICE_STARTER) map[STRIPE_PRICE_STARTER] = "starter";
   if (STRIPE_PRICE_TEAM) map[STRIPE_PRICE_TEAM] = "team";
   if (STRIPE_PRICE_PRO) map[STRIPE_PRICE_PRO] = "pro";
-  if (STRIPE_PRICE_SECURITY) map[STRIPE_PRICE_SECURITY] = "security_bundle";
+  if (STRIPE_PRICE_SECURITY) map[STRIPE_PRICE_SECURITY] = "security_agency";
+  if (STRIPE_PRICE_SECURITY_BUNDLE && !map[STRIPE_PRICE_SECURITY_BUNDLE]) map[STRIPE_PRICE_SECURITY_BUNDLE] = "security_agency";
   return map;
 }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { calculateUserScore } from "@/lib/scoring/engine";
 import { z } from "zod";
@@ -89,6 +90,13 @@ export async function POST(req: NextRequest) {
         await calculateUserScore(userId, "rehire");
         const { calculateAndStoreRisk } = await import("@/lib/risk/calculateAndPersist");
         await calculateAndStoreRisk(userId).catch(() => {});
+        const { calculateCredentialScore } = await import("@/lib/security/credentialScore");
+        await calculateCredentialScore(userId).catch(() => {});
+        const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
+        triggerProfileIntelligence(userId).catch(() => {});
+        const adminSupabase = getSupabaseServer() as any;
+        const score = data.resolution === "resolved" ? 100 : 0;
+        (getSupabaseServer() as any).from("employer_disputes").update({ dispute_resolution_score: score }).eq("id", data.disputeId).then(() => {}).catch(() => {});
       }
     } catch (err) {
       console.error("Scoring engine (rehire) failed:", err);

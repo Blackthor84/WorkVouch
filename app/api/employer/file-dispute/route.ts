@@ -121,6 +121,14 @@ export async function POST(req: NextRequest) {
       .update({ verification_status: "disputed" })
       .eq("id", data.jobHistoryId);
 
+    // Refresh guard credential score (Security Agency) for the candidate
+    const { data: job } = await supabaseAny.from("jobs").select("user_id").eq("id", data.jobHistoryId).single();
+    const userId = (job as { user_id?: string } | null)?.user_id;
+    if (userId) {
+      const { calculateCredentialScore } = await import("@/lib/security/credentialScore");
+      await calculateCredentialScore(userId).catch(() => {});
+    }
+
     return NextResponse.json({ success: true, dispute });
   } catch (error: any) {
     if (error instanceof z.ZodError) {

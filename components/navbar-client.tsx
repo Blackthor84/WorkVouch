@@ -1,7 +1,8 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { NotificationsBell } from "./notifications-bell";
@@ -24,6 +25,20 @@ export function NavbarClient({ user: userProp, roles: rolesProp }: NavbarClientP
     (session as { impersonating?: boolean })?.impersonating
   );
   const eliteDemo = Boolean(preview?.demoActive);
+  const pathname = usePathname();
+  const isEmployerArea = pathname?.startsWith("/employer");
+  const [complianceCount, setComplianceCount] = useState(0);
+
+  useEffect(() => {
+    if (!isEmployerArea || !user || !roles?.includes("employer")) {
+      setComplianceCount(0);
+      return;
+    }
+    fetch("/api/employer/compliance-badge")
+      .then((r) => r.json())
+      .then((data: { count?: number }) => setComplianceCount(data?.count ?? 0))
+      .catch(() => setComplianceCount(0));
+  }, [isEmployerArea, user?.id, roles]);
 
   return (
     <nav className="sticky top-0 z-50 border-b border-grey-background dark:border-[#374151] bg-white dark:bg-[#0D1117] shadow-sm py-2">
@@ -110,9 +125,14 @@ export function NavbarClient({ user: userProp, roles: rolesProp }: NavbarClientP
                     variant="ghost"
                     size="sm"
                     href="/employer/dashboard"
-                    className="font-semibold hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
+                    className="font-semibold hover:bg-grey-background dark:hover:bg-[#1A1F2B] relative"
                   >
                     Employer Panel
+                    {isEmployerArea && complianceCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-medium text-white">
+                        {complianceCount > 99 ? "99+" : complianceCount}
+                      </span>
+                    )}
                   </Button>
                 )}
                 <span className="hidden sm:inline text-sm text-grey-dark dark:text-gray-300">

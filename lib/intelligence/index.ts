@@ -22,3 +22,16 @@ export {
   type NetworkInput,
   type ReferenceEdge,
 } from "./networkMetrics";
+
+export {
+  calculateTrustScore,
+  calculateCareerStability,
+  calculateNetworkDensityScore,
+  calculateRehireProbability,
+  calculateRiskSnapshotForProfile,
+  calculateEmployerWorkforceRisk,
+  triggerProfileIntelligence,
+  triggerEmployerIntelligence,
+} from "./engines";
+
+export { getIndustryBaseline, safeRatio, type IndustryBaseline } from "./baselines";

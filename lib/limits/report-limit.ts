@@ -90,4 +90,14 @@ export async function recordReport(employerId: string, workerId: string, reportT
     console.error("Error recording report:", error);
     throw new Error("Failed to record report");
   }
+
+  try {
+    const { triggerProfileIntelligence, triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
+    triggerProfileIntelligence(workerId).catch(() => {});
+    triggerEmployerIntelligence(employerId).catch(() => {});
+    const { updateRiskForVerificationReport } = await import("@/lib/risk-engine");
+    updateRiskForVerificationReport(employerId, workerId).catch(() => {});
+  } catch {
+    // silent
+  }
 }

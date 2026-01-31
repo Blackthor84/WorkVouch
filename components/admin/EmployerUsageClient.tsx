@@ -16,6 +16,9 @@ type Row = {
   seatsAllowed: number;
   limits: { reports: number; searches: number; seats: number } | null;
   overagesTriggered: boolean;
+  licenseCount?: number;
+  complianceAlertCount?: number;
+  avgCredentialScore?: number | null;
 };
 
 export function EmployerUsageClient() {
@@ -85,6 +88,9 @@ export function EmployerUsageClient() {
               <th className="py-2 pr-4 text-grey-medium dark:text-gray-400 font-medium">Reports</th>
               <th className="py-2 pr-4 text-grey-medium dark:text-gray-400 font-medium">Searches</th>
               <th className="py-2 pr-4 text-grey-medium dark:text-gray-400 font-medium">Seats</th>
+              <th className="py-2 pr-4 text-grey-medium dark:text-gray-400 font-medium">Licenses</th>
+              <th className="py-2 pr-4 text-grey-medium dark:text-gray-400 font-medium">Compliance</th>
+              <th className="py-2 pr-4 text-grey-medium dark:text-gray-400 font-medium">Avg Score</th>
               <th className="py-2 pr-4 text-grey-medium dark:text-gray-400 font-medium">Overages</th>
               <th className="py-2 text-grey-medium dark:text-gray-400 font-medium">Actions</th>
             </tr>
@@ -94,7 +100,11 @@ export function EmployerUsageClient() {
               <tr key={row.employerId} className="border-b border-grey-background dark:border-[#1A1F2B]">
                 <td className="py-2 pr-4 font-medium text-grey-dark dark:text-gray-200">{row.companyName}</td>
                 <td className="py-2 pr-4">
-                  <Badge variant="secondary">{row.planTier}</Badge>
+                  {(row.planTier === "security_agency" || row.planTier === "security_bundle") ? (
+                    <Badge variant="secondary" className="bg-amber-500/20 text-amber-700 dark:text-amber-300">Security Agency</Badge>
+                  ) : (
+                    <Badge variant="secondary">{row.planTier}</Badge>
+                  )}
                 </td>
                 <td className="py-2 pr-4 text-grey-medium dark:text-gray-400 font-mono text-xs truncate max-w-[140px]" title={row.stripeCustomerId ?? ""}>
                   {row.stripeCustomerId ?? "—"}
@@ -111,6 +121,17 @@ export function EmployerUsageClient() {
                   {row.limits && row.limits.searches !== -1 && ` / ${row.limits.searches}`}
                 </td>
                 <td className="py-2 pr-4 text-grey-dark dark:text-gray-200">{row.seatsUsed} / {row.seatsAllowed}</td>
+                <td className="py-2 pr-4 text-grey-dark dark:text-gray-200">{row.licenseCount ?? "—"}</td>
+                <td className="py-2 pr-4">
+                  {(row.complianceAlertCount ?? 0) > 0 ? (
+                    <Badge variant="destructive">{row.complianceAlertCount}</Badge>
+                  ) : (
+                    <span className="text-grey-medium dark:text-gray-400">0</span>
+                  )}
+                </td>
+                <td className="py-2 pr-4 text-grey-dark dark:text-gray-200">
+                  {row.avgCredentialScore != null ? row.avgCredentialScore.toFixed(1) : "—"}
+                </td>
                 <td className="py-2 pr-4">
                   {row.overagesTriggered ? (
                     <Badge variant="destructive">Yes</Badge>

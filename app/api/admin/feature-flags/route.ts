@@ -29,6 +29,11 @@ const CORE_FEATURE_FLAGS = [
   { name: "Workforce Risk Dashboard", key: "workforce_risk_dashboard", description: "Admin workforce risk dashboard (demo)", visibility_type: "ui" as const, is_globally_enabled: false },
   { name: "Workforce Dashboard", key: "workforce_dashboard", description: "Employer workforce risk overview UI", visibility_type: "ui" as const, is_globally_enabled: false },
   { name: "Rehire System", key: "rehire_system", description: "Rehire registry UI and API", visibility_type: "both" as const, is_globally_enabled: false },
+  { name: "Smart Risk Snapshot", key: "smart_risk_snapshot", description: "Enterprise risk snapshot (backend only; UI gated)", visibility_type: "ui" as const, is_globally_enabled: false },
+  { name: "Team Fit Engine", key: "team_fit_engine", description: "Team fit scoring (backend only; UI gated)", visibility_type: "ui" as const, is_globally_enabled: false },
+  { name: "Rehire Probability Engine", key: "rehire_probability_engine", description: "Rehire probability scoring (backend only; UI gated)", visibility_type: "ui" as const, is_globally_enabled: false },
+  { name: "Industry Normalized Scoring", key: "industry_normalized_scoring", description: "Industry-normalized trust, stability, workforce metrics (backend computes; UI gated)", visibility_type: "ui" as const, is_globally_enabled: false },
+  { name: "Risk Model Visible", key: "risk_model_visible", description: "When enabled, UI may read risk_score on verification reports (future)", visibility_type: "ui" as const, is_globally_enabled: false },
 ];
 
 /**

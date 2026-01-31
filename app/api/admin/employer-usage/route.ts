@@ -49,6 +49,48 @@ export async function GET(req: NextRequest) {
     }
 
     const list = (accounts as { id: string; company_name: string }[]) || [];
+    let licenseCounts: Record<string, number> = {};
+    let complianceCounts: Record<string, number> = {};
+    let avgScores: Record<string, number | null> = {};
+    try {
+      const { data: gl } = await supabase.from("guard_licenses").select("employer_id, user_id");
+      const glList = (gl ?? []) as { employer_id: string; user_id: string }[];
+      for (const r of glList) {
+        licenseCounts[r.employer_id] = (licenseCounts[r.employer_id] ?? 0) + 1;
+      }
+    } catch {
+      // guard_licenses may not exist
+    }
+    try {
+      const { data: alerts } = await supabase.from("compliance_alerts").select("employer_id").eq("resolved", false);
+      const alertList = (alerts ?? []) as { employer_id: string }[];
+      for (const a of alertList) {
+        complianceCounts[a.employer_id] = (complianceCounts[a.employer_id] ?? 0) + 1;
+      }
+    } catch {
+      // compliance_alerts may not exist
+    }
+    try {
+      const { data: gl } = await supabase.from("guard_licenses").select("employer_id, user_id");
+      const glList = (gl ?? []) as { employer_id: string; user_id: string }[];
+      const userIdsByEmployer: Record<string, string[]> = {};
+      for (const r of glList) {
+        if (!userIdsByEmployer[r.employer_id]) userIdsByEmployer[r.employer_id] = [];
+        if (r.user_id) userIdsByEmployer[r.employer_id].push(r.user_id);
+      }
+      for (const eid of Object.keys(userIdsByEmployer)) {
+        const uids = [...new Set(userIdsByEmployer[eid])];
+        if (uids.length === 0) {
+          avgScores[eid] = null;
+          continue;
+        }
+        const { data: prof } = await supabase.from("profiles").select("guard_credential_score").in("id", uids);
+        const scores = (prof ?? []).map((p: { guard_credential_score?: number | null }) => p.guard_credential_score).filter((s): s is number => typeof s === "number");
+        avgScores[eid] = scores.length ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10 : null;
+      }
+    } catch {
+      // profiles.guard_credential_score may not exist
+    }
     const withUsage = await Promise.all(
       list.map(async (acc) => {
         const usage = await getUsageForEmployer(acc.id);
@@ -69,6 +111,9 @@ export async function GET(req: NextRequest) {
           seatsAllowed: usage?.seatsAllowed ?? 1,
           limits: usage?.limits ?? null,
           overagesTriggered: reportsOver || searchesOver,
+          licenseCount: licenseCounts[acc.id] ?? 0,
+          complianceAlertCount: complianceCounts[acc.id] ?? 0,
+          avgCredentialScore: avgScores[acc.id] ?? null,
         };
       })
     );

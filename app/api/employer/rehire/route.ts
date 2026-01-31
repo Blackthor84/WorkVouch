@@ -6,6 +6,7 @@ import { getCurrentUser, hasRole } from "@/lib/auth";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { calculateAndStoreRisk } from "@/lib/risk/calculateAndPersist";
 import { calculateEmployerWorkforceRisk } from "@/lib/risk/workforce";
+import { logAuditAction } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +71,14 @@ export async function POST(req: NextRequest) {
     if (error) {
       console.error("Rehire POST error:", error);
       return NextResponse.json({ error: String(error) }, { status: 500 });
+    }
+
+    if (internalNotes && internalNotes.trim()) {
+      await logAuditAction("internal_note_created", {
+        employer_id: employerAccountId,
+        profile_id: profileId,
+        details: JSON.stringify({ rehire_registry: true }),
+      });
     }
 
     await calculateAndStoreRisk(profileId).catch(() => {});

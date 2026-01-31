@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     const supabaseAny = supabase as any;
     const { data: verificationRequest, error: fetchError } = await supabaseAny
       .from("verification_requests")
-      .select("id, job_id")
+      .select("id, job_id, requested_by_id")
       .eq("id", data.verificationRequestId)
       .single();
 
@@ -91,6 +91,12 @@ export async function POST(req: NextRequest) {
         await calculateUserScore(userId, "rehire");
         const { calculateAndStoreRisk } = await import("@/lib/risk/calculateAndPersist");
         await calculateAndStoreRisk(userId).catch(() => {});
+        const { calculateCredentialScore } = await import("@/lib/security/credentialScore");
+        await calculateCredentialScore(userId).catch(() => {});
+        const { triggerProfileIntelligence, triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
+        triggerProfileIntelligence(userId).catch(() => {});
+        const vr = verificationRequest as { requested_by_id?: string };
+        if (vr?.requested_by_id) triggerEmployerIntelligence(vr.requested_by_id).catch(() => {});
       }
     } catch (err) {
       console.error("Scoring engine (rehire) failed:", err);

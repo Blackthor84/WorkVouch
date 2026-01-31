@@ -143,5 +143,13 @@ export async function calculateAndStoreRisk(profileId: string): Promise<{ error?
     return { error: String(updateError) };
   }
 
+  if (components.overall < 50) {
+    const { logAuditAction } = await import("@/lib/audit");
+    await logAuditAction("risk_flagged", {
+      profile_id: profileId,
+      details: JSON.stringify({ overall: components.overall, version: components.version }),
+    });
+  }
+
   return {};
 }

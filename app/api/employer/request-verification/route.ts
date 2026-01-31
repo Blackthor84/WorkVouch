@@ -4,6 +4,7 @@ import { getCurrentUser, hasRole } from "@/lib/auth";
 import { canRequestVerification } from "@/lib/middleware/plan-enforcement-supabase";
 import { incrementUsage } from "@/lib/usage";
 import { calculateEnterpriseMetrics } from "@/lib/enterpriseEngine";
+import { logAuditAction } from "@/lib/audit";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { z } from "zod";
 
@@ -161,6 +162,9 @@ export async function POST(req: NextRequest) {
             integrity_index: metrics.integrity_index,
           });
         }
+        const { triggerProfileIntelligence, triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
+        triggerProfileIntelligence(jobUserId).catch(() => {});
+        triggerEmployerIntelligence(employerAccountTyped.id).catch(() => {});
       }
     } catch (err) {
       console.error("Silent enterprise calculation failed:", err);
@@ -174,6 +178,13 @@ export async function POST(req: NextRequest) {
         verification_status: "pending",
       })
       .eq("id", data.jobHistoryId);
+
+    await logAuditAction("verification_requested", {
+      admin_id: user.id,
+      employer_id: employerAccountTyped.id,
+      profile_id: jobHistoryTyped.user_id ?? undefined,
+      details: JSON.stringify({ job_id: data.jobHistoryId }),
+    });
 
     return NextResponse.json({ success: true, verificationRequest });
   } catch (error: any) {

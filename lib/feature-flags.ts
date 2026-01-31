@@ -58,6 +58,17 @@ const TIER_RANK: Record<string, number> = {
   elite: 3,
 };
 
+/** When employer plan_tier is security_agency (or security_bundle), these features are auto-enabled server-side. */
+const SECURITY_AGENCY_AUTO_FEATURES = new Set([
+  "risk_snapshot",
+  "workforce_dashboard",
+  "rehire_system",
+  "license_upload",
+  "internal_employer_notes",
+  "structured_hiring_dashboard",
+  "inconsistency_detection",
+]);
+
 function tierMeetsRequired(userTier: string | null, requiredTier: string): boolean {
   if (!userTier) return false;
   const r = requiredTier.toLowerCase().replace(/-/g, "_");
@@ -139,6 +150,20 @@ export async function checkFeatureAccess(
   if (cached !== null) return cached;
 
   const supabase = getSupabaseServer() as any;
+
+  if (employerId && SECURITY_AGENCY_AUTO_FEATURES.has(featureKey)) {
+    const { data: emp } = await supabase
+      .from("employer_accounts")
+      .select("plan_tier")
+      .eq("id", employerId)
+      .maybeSingle();
+    const planTier = (emp as { plan_tier?: string } | null)?.plan_tier ?? "";
+    const normalized = planTier.toLowerCase().replace(/-/g, "_");
+    if (normalized === "security_agency" || normalized === "security_bundle") {
+      setCached(featureKey, userId, employerId, true);
+      return true;
+    }
+  }
 
   const { data: flag, error: flagError } = await supabase
     .from("feature_flags")

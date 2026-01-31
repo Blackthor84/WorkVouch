@@ -24,3 +24,23 @@ WHERE NOT EXISTS (SELECT 1 FROM public.feature_flags WHERE key = 'rehire_interna
 INSERT INTO public.feature_flags (name, key, description, visibility_type, is_globally_enabled)
 SELECT 'Workforce Risk Dashboard', 'workforce_risk_dashboard', 'Admin workforce risk dashboard (demo)', 'ui', false
 WHERE NOT EXISTS (SELECT 1 FROM public.feature_flags WHERE key = 'workforce_risk_dashboard');
+
+INSERT INTO public.feature_flags (name, key, description, visibility_type, is_globally_enabled)
+SELECT 'Smart Risk Snapshot', 'smart_risk_snapshot', 'Enterprise risk snapshot (backend only)', 'ui', false
+WHERE NOT EXISTS (SELECT 1 FROM public.feature_flags WHERE key = 'smart_risk_snapshot');
+
+INSERT INTO public.feature_flags (name, key, description, visibility_type, is_globally_enabled)
+SELECT 'Team Fit Engine', 'team_fit_engine', 'Team fit scoring (backend only)', 'ui', false
+WHERE NOT EXISTS (SELECT 1 FROM public.feature_flags WHERE key = 'team_fit_engine');
+
+INSERT INTO public.feature_flags (name, key, description, visibility_type, is_globally_enabled)
+SELECT 'Rehire Probability Engine', 'rehire_probability_engine', 'Rehire probability scoring (backend only)', 'ui', false
+WHERE NOT EXISTS (SELECT 1 FROM public.feature_flags WHERE key = 'rehire_probability_engine');
+
+INSERT INTO public.feature_flags (name, key, description, visibility_type, is_globally_enabled)
+SELECT 'Industry Normalized Scoring', 'industry_normalized_scoring', 'Industry-normalized trust, stability, workforce (backend only)', 'ui', false
+WHERE NOT EXISTS (SELECT 1 FROM public.feature_flags WHERE key = 'industry_normalized_scoring');
+
+INSERT INTO public.feature_flags (name, key, description, visibility_type, is_globally_enabled)
+SELECT 'Risk Model Visible', 'risk_model_visible', 'When enabled, UI may read risk_score (future)', 'ui', false
+WHERE NOT EXISTS (SELECT 1 FROM public.feature_flags WHERE key = 'risk_model_visible');
