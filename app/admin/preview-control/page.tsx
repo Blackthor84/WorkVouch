@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { usePreview, type PreviewRole, type PreviewState } from "@/lib/preview-context";
+import { usePreview, type PreviewState } from "@/lib/preview-context";
 
 type FeatureFlagRow = { id: string; key: string; name: string; description: string | null };
+type PreviewRole = "user" | "employer" | "admin";
 
 const PLAN_TIERS = ["starter", "pro", "team", "enterprise", "security_bundle"] as const;
 const ROLES: { value: PreviewRole; label: string }[] = [
