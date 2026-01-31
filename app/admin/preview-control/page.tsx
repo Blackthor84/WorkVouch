@@ -80,15 +80,17 @@ export default function PreviewControlPage() {
   };
 
   const setSeatUsage = (v: string) => {
-    const n = v === "" ? null : parseInt(v, 10);
-    setPreviewValue("previewSeatUsage", Number.isFinite(n) ? n : null);
-    setPreviewValue("seatsUsed", Number.isFinite(n) ? n : undefined);
+    const parsed = parseInt(v, 10);
+    const value = Number.isFinite(parsed) ? parsed : undefined;
+    setPreviewValue("previewSeatUsage", value);
+    setPreviewValue("seatsUsed", value);
   };
 
   const setReportsUsed = (v: string) => {
-    const n = v === "" ? null : parseInt(v, 10);
-    setPreviewValue("previewReportsUsed", Number.isFinite(n) ? n : null);
-    setPreviewValue("reportsUsed", Number.isFinite(n) ? n : undefined);
+    const parsed = parseInt(v, 10);
+    const value = Number.isFinite(parsed) ? parsed : undefined;
+    setPreviewValue("previewReportsUsed", value);
+    setPreviewValue("reportsUsed", value);
   };
 
   const setRiskOverride = (v: string) => {
@@ -115,9 +117,9 @@ export default function PreviewControlPage() {
       simulateExpired: preview?.previewExpired ?? preview?.simulateExpired ?? false,
       previewExpired: preview?.previewExpired ?? false,
       seatsUsed: preview?.previewSeatUsage ?? preview?.seatsUsed ?? 3,
-      previewSeatUsage: preview?.previewSeatUsage ?? null,
+      previewSeatUsage: preview?.previewSeatUsage ?? undefined,
       reportsUsed: preview?.previewReportsUsed ?? preview?.reportsUsed ?? 5,
-      previewReportsUsed: preview?.previewReportsUsed ?? null,
+      previewReportsUsed: preview?.previewReportsUsed ?? undefined,
       previewSimulationData: preview?.previewSimulationData ?? {},
     };
     setPreview(state as PreviewState);
