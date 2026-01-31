@@ -159,7 +159,7 @@ export default function PreviewControlPage() {
           {SALES_MODES.map((mode) => (
             <Button
               key={mode.id}
-              variant="outline"
+              variant="ghost"
               onClick={() => applySalesMode(mode)}
               className="border-grey-background dark:border-[#374151]"
             >
