@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 interface AdvertiserDemoProps {
   impressions: number;
-  setImpressions: (v: number) => void;
+  setImpressions: Dispatch<SetStateAction<number>>;
   simulationMode: boolean;
 }
 
