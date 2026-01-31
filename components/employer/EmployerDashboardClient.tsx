@@ -15,6 +15,7 @@ import { SecurityDashboard } from "@/components/employer/SecurityDashboard";
 import VerificationLimitWarning from "@/components/VerificationLimitWarning";
 import ExportDataButton from "@/components/ExportDataButton";
 import { UsagePanel } from "@/components/employer/UsagePanel";
+import CredentialsOverview from "@/components/employer/CredentialsOverview";
 import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
 import { runSimulation } from "@/lib/simulation/engine";
 import type { PlanTier, SimulationOutput } from "@/lib/simulation/types";

@@ -1,97 +1,126 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface CredentialsSummary {
-  activeCertifications: number;
-  expiringCertifications: number;
-  expiredCount: number;
-  renewalsNeeded: number;
-  complianceAlertCount: number;
-  complianceDashboardEnabled: boolean;
-}
+import { useEffect, useState } from "react";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 interface CredentialsOverviewProps {
-  /** When true, hide compliance section (plan does not allow). */
   showComplianceAlerts?: boolean;
 }
 
-export function CredentialsOverview({ showComplianceAlerts = false }: CredentialsOverviewProps) {
-  const [summary, setSummary] = useState<CredentialsSummary | null>(null);
-  const [loading, setLoading] = useState(true);
+interface CredentialRow {
+  id: string;
+  profile_id: string;
+  type: string;
+  expiration_date: string | null;
+  verified: boolean;
+}
+
+export default function CredentialsOverview({
+  showComplianceAlerts = true,
+}: CredentialsOverviewProps) {
+  const [active, setActive] = useState(0);
+  const [expiringSoon, setExpiringSoon] = useState(0);
+  const [expired, setExpired] = useState(0);
+  const [avgScore, setAvgScore] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch("/api/employer/credentials-summary", { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.error) setSummary(null);
-        else setSummary(data);
-      })
-      .catch(() => setSummary(null))
-      .finally(() => setLoading(false));
+    async function loadData() {
+      const today = new Date();
+      const soon = new Date();
+      soon.setDate(today.getDate() + 30);
+
+      const { data: creds } = await supabaseBrowser
+        .from("employee_credentials")
+        .select("*");
+
+      if (creds) {
+        const credentialRows = creds as CredentialRow[];
+
+        let activeCount = 0;
+        let soonCount = 0;
+        let expiredCount = 0;
+
+        credentialRows.forEach((c) => {
+          if (!c.expiration_date) {
+            activeCount++;
+            return;
+          }
+
+          const expDate = new Date(c.expiration_date);
+
+          if (expDate < today) {
+            expiredCount++;
+          } else if (expDate <= soon) {
+            soonCount++;
+            activeCount++;
+          } else {
+            activeCount++;
+          }
+        });
+
+        setActive(activeCount);
+        setExpiringSoon(soonCount);
+        setExpired(expiredCount);
+      }
+
+      const { data: profiles } = await supabaseBrowser
+        .from("profiles")
+        .select("guard_credential_score");
+
+      if (profiles && profiles.length > 0) {
+        const scores = profiles
+          .map((p: { guard_credential_score?: number | null }) => p.guard_credential_score)
+          .filter((s: number | null | undefined): s is number => typeof s === "number");
+
+        if (scores.length > 0) {
+          const avg =
+            Math.round(
+              (scores.reduce((a: number, b: number) => a + b, 0) /
+                scores.length) *
+                10
+            ) / 10;
+
+          setAvgScore(avg);
+        }
+      }
+    }
+
+    loadData();
   }, []);
 
-  if (loading) {
-    return (
-      <Card className="p-6">
-        <p className="text-sm text-grey-medium dark:text-gray-400">Loading credentials…</p>
-      </Card>
-    );
-  }
-
-  const s = summary ?? {
-    activeCertifications: 0,
-    expiringCertifications: 0,
-    expiredCount: 0,
-    renewalsNeeded: 0,
-    complianceAlertCount: 0,
-    complianceDashboardEnabled: false,
-  };
-
-  const hasAny = s.activeCertifications > 0 || s.expiringCertifications > 0 || s.renewalsNeeded > 0 || s.expiredCount > 0;
-
   return (
-    <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200">Credentials & Compliance</h2>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base text-grey-dark dark:text-gray-200">Certifications & Training</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-4">
-            <div>
-              <p className="text-xs text-grey-medium dark:text-gray-400">Active Certifications</p>
-              <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{s.activeCertifications}</p>
-            </div>
-            <div>
-              <p className="text-xs text-grey-medium dark:text-gray-400">Expiring Certifications</p>
-              <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{s.expiringCertifications}</p>
-            </div>
-            <div>
-              <p className="text-xs text-grey-medium dark:text-gray-400">Training Renewals Needed</p>
-              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{s.renewalsNeeded}</p>
-            </div>
-            <div>
-              <p className="text-xs text-grey-medium dark:text-gray-400">Expired</p>
-              <p className="text-2xl font-bold text-red-600 dark:text-red-400">{s.expiredCount}</p>
-            </div>
-          </div>
-          {!hasAny && (
-            <p className="mt-3 text-sm text-grey-medium dark:text-gray-400">
-              Upload professional credentials to track certifications and renewals.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow p-6 border border-gray-200 dark:border-gray-800">
+      <h3 className="text-lg font-semibold mb-4">
+        Workforce Credentials Overview
+      </h3>
 
-      {showComplianceAlerts && s.complianceDashboardEnabled && (s.complianceAlertCount ?? 0) > 0 && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-700 dark:bg-amber-900/20">
-          <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-            {s.complianceAlertCount} compliance alert(s) require attention.
-          </p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
+        <Stat label="Active Certifications" value={active} />
+        <Stat label="Expiring Soon (30d)" value={expiringSoon} />
+        <Stat label="Expired" value={expired} />
+        <Stat label="Avg Credential Score" value={avgScore ?? "—"} />
+      </div>
+
+      {showComplianceAlerts && expired > 0 && (
+        <div className="mt-6 text-sm text-red-600">
+          {expired} credentials expired. Immediate compliance action required.
         </div>
       )}
+    </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+}: {
+  label: string;
+  value: number | string;
+}) {
+  return (
+    <div>
+      <p className="text-gray-500">{label}</p>
+      <p className="text-xl font-bold">{value}</p>
     </div>
   );
 }
