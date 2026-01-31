@@ -1,5 +1,6 @@
 import CareersGrid from "@/components/CareersGrid";
 import ActiveAds from "@/components/ActiveAds";
+import HomepageInteractiveDemo from "@/components/demo/HomepageInteractiveDemo";
 import Link from "next/link";
 
 export default function Home() {
@@ -16,6 +17,8 @@ export default function Home() {
       >
         Try Interactive Demo
       </Link>
+
+      <HomepageExperience />
 
       {/* Only show active ads (no career targeting on homepage) */}
       <ActiveAds />
