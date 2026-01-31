@@ -7,6 +7,8 @@ export const ELITE_DEMO_STORAGE_KEY = "workvouch_elite_demo_state";
 
 export type SubscriptionStatus = "active" | "past_due" | "canceled" | "trialing";
 
+export type PreviewRole = "user" | "employer" | "admin";
+
 export type PreviewState = {
   role?: string;
   subscription?: string;
@@ -33,6 +35,14 @@ export type PreviewState = {
   advertiserCTR?: number;
   advertiserROI?: number;
   trialEndsAt?: string; // ISO date for trialing urgency
+  // Universal preview (admin-only effects)
+  previewRole?: PreviewRole;
+  previewPlanTier?: string | null;
+  previewFeatures?: Record<string, boolean>;
+  previewExpired?: boolean;
+  previewSeatUsage?: number | null;
+  previewReportsUsed?: number | null;
+  previewSimulationData?: Record<string, unknown>;
 };
 
 export function defaultEliteState(): Partial<PreviewState> {
@@ -83,12 +93,24 @@ export function saveEliteStateToStorage(state: Partial<PreviewState> | null) {
   }
 }
 
-const PreviewContext = createContext<{
+export type PreviewContextType = {
   preview: PreviewState | null;
-  setPreview: (state: PreviewState | null | ((prev: PreviewState | null) => PreviewState | null)) => void;
-}>({
+  setPreview: (
+    state:
+      | PreviewState
+      | null
+      | ((prev: PreviewState | null) => PreviewState | null)
+  ) => void;
+  setPreviewValue: <K extends keyof PreviewState>(
+    key: K,
+    value: PreviewState[K]
+  ) => void;
+};
+
+const PreviewContext = createContext<PreviewContextType>({
   preview: null,
   setPreview: () => {},
+  setPreviewValue: () => {},
 });
 
 export function PreviewProvider({ children }: { children: React.ReactNode }) {
@@ -102,6 +124,42 @@ export function PreviewProvider({ children }: { children: React.ReactNode }) {
       return next;
     });
   }, []);
+
+  const setPreviewValue = useCallback(<K extends keyof PreviewState>(
+    key: K,
+    value: PreviewState[K]
+  ) => {
+    setPreviewState((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, [key]: value };
+      saveEliteStateToStorage(next);
+      return next;
+    });
+  }, []);
+
+  // URL-based preview: ?preview=true&plan=pro&feature=ads_system (admin-only effects applied in hooks)
+  useEffect(() => {
+    const previewParam = searchParams.get("preview");
+    if (previewParam === "true") {
+      const plan = searchParams.get("plan");
+      const feature = searchParams.get("feature");
+      setPreviewState((prev) => {
+        const base = prev ?? ({} as PreviewState);
+        const next: PreviewState = {
+          ...base,
+          demoActive: true,
+          previewPlanTier: plan ?? base.previewPlanTier ?? null,
+          featureFlags: feature
+            ? [...(base.featureFlags ?? []).filter((f) => f !== feature), feature]
+            : base.featureFlags,
+          previewFeatures:
+            feature != null ? { ...base.previewFeatures, [feature]: true } : base.previewFeatures,
+        };
+        saveEliteStateToStorage(next);
+        return next;
+      });
+    }
+  }, [searchParams]);
 
   // Existing simulate= pro_employer / investor
   useEffect(() => {
@@ -145,7 +203,7 @@ export function PreviewProvider({ children }: { children: React.ReactNode }) {
   // Elite demo activation is handled by DemoModeActivator (inside SessionProvider) so we have access to session.
 
   return (
-    <PreviewContext.Provider value={{ preview, setPreview }}>
+    <PreviewContext.Provider value={{ preview, setPreview, setPreviewValue }}>
       {children}
     </PreviewContext.Provider>
   );
