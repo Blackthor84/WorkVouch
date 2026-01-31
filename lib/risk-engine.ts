@@ -126,14 +126,22 @@ export function calculateRiskScore(input: RiskScoreInput): RiskScoreResult {
     gap: safeNum(config.gap_weight, 1),
     fraud: safeNum(config.fraud_weight, 1),
   };
-  const sumW = w.tenure + w.reference + w.rehire + w.dispute + w.gap + w.fraud;
-
   const tenure = clamp(tenureScore);
   const references = clamp(referenceRate * 100);
   const rehire = clamp(rehireLikelihood * 100);
   const disputes = clamp(disputeScore);
   const gaps = clamp(gapScore);
   const fraud = clamp(fraudScore);
+
+  // Normalize weights to sum to 1
+  const totalWeight =
+    w.tenure +
+    w.reference +
+    w.rehire +
+    w.dispute +
+    w.gap +
+    w.fraud;
+  const scale = totalWeight > 0 ? 1 / totalWeight : 1;
 
   const weighted =
     tenure * w.tenure * scale +
@@ -143,7 +151,8 @@ export function calculateRiskScore(input: RiskScoreInput): RiskScoreResult {
     gaps * w.gap * scale +
     fraud * w.fraud * scale;
 
-  const riskScore = clamp(weighted * (6 / Math.max(0.01, sumW)));
+  // Convert to 0–100 score
+  const riskScore = clamp(weighted);
 
   return {
     riskScore,
