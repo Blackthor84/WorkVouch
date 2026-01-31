@@ -14,7 +14,7 @@ import ExportDataButton from "@/components/ExportDataButton";
 import { UsagePanel } from "@/components/employer/UsagePanel";
 import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
 import { runSimulation } from "@/lib/simulation/engine";
-import type { PlanTier } from "@/lib/simulation/types";
+import type { PlanTier, SimulationOutput } from "@/lib/simulation/types";
 import {
   PlusIcon,
   MagnifyingGlassIcon,
@@ -84,6 +84,17 @@ export function EmployerDashboardClient({
   }, [planTier, employerId]);
 
   const isBasicPlan = planTier === "free" || planTier === "basic" || !planTier;
+
+  const simulationOutput: SimulationOutput = {
+    allowedReports: 40,
+    allowedSearches: 50,
+    seatsAllowed: 10,
+    overLimit: false,
+    subscriptionExpired: false,
+    rehireProbability: 87,
+    teamCompatibilityScore: 91,
+    workforceRiskScore: 12,
+  };
 
   // Mock data
   const recentActivity = [
