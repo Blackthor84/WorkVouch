@@ -89,6 +89,8 @@ export async function POST(req: NextRequest) {
       const userId = (job as { user_id?: string } | null)?.user_id;
       if (userId) {
         await calculateUserScore(userId, "rehire");
+        const { calculateAndStoreRisk } = await import("@/lib/risk/calculateAndPersist");
+        await calculateAndStoreRisk(userId).catch(() => {});
       }
     } catch (err) {
       console.error("Scoring engine (rehire) failed:", err);

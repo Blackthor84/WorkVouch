@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import EmployerAnalytics from "./EmployerAnalytics";
 import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
 import { RehireProbabilityWidget } from "@/components/employer/RehireProbabilityWidget";
 import { WorkforceRiskIndicator } from "@/components/employer/WorkforceRiskIndicator";
+import { RehireRegistrySection, type RehireEntry } from "@/components/employer/RehireRegistrySection";
 import VerificationLimitWarning from "@/components/VerificationLimitWarning";
 import ExportDataButton from "@/components/ExportDataButton";
 import { UsagePanel } from "@/components/employer/UsagePanel";
@@ -35,7 +36,29 @@ export function EmployerDashboardClient({
   const { enabled: analyticsEnabled } = useFeatureFlag("advanced_analytics");
   const { enabled: rehireWidgetEnabled } = useFeatureFlag("rehire_probability_index");
   const { enabled: workforceRiskEnabled } = useFeatureFlag("workforce_risk_indicator");
+  const { enabled: riskSnapshotEnabled } = useFeatureFlag("risk_snapshot");
+  const { enabled: workforceDashboardEnabled } = useFeatureFlag("workforce_dashboard");
+  const { enabled: rehireSystemEnabled } = useFeatureFlag("rehire_system");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [riskOverview, setRiskOverview] = useState<{
+    workforceRiskAverage: number | null;
+    workforceHighRiskCount: number;
+    workforceRiskConfidence: number | null;
+    workforceLastCalculated: string | null;
+    riskSnapshotSample: {
+      tenure?: number;
+      references?: number;
+      disputes?: number;
+      gaps?: number;
+      rehire?: number;
+      overall?: number;
+      confidence?: number;
+      version?: string;
+    } | null;
+  } | null>(null);
+  const [rehireList, setRehireList] = useState<RehireEntry[]>([]);
+  const [riskOverviewLoading, setRiskOverviewLoading] = useState(false);
+  const [rehireListLoading, setRehireListLoading] = useState(false);
   const [trustScore, setTrustScore] = useState<number | null>(null);
   const [rehireCount, setRehireCount] = useState<number | null>(null);
   const [rehireData, setRehireData] = useState<any[]>([]);
@@ -82,6 +105,34 @@ export function EmployerDashboardClient({
       }
     }
   }, [planTier, employerId]);
+
+  useEffect(() => {
+    if (!riskSnapshotEnabled && !workforceDashboardEnabled) return;
+    setRiskOverviewLoading(true);
+    fetch("/api/employer/risk-overview", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error == null) setRiskOverview(data);
+      })
+      .catch(() => {})
+      .finally(() => setRiskOverviewLoading(false));
+  }, [riskSnapshotEnabled, workforceDashboardEnabled]);
+
+  const fetchRehireList = useCallback(() => {
+    setRehireListLoading(true);
+    fetch("/api/employer/rehire", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data?.data)) setRehireList(data.data);
+      })
+      .catch(() => {})
+      .finally(() => setRehireListLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (!rehireSystemEnabled) return;
+    fetchRehireList();
+  }, [rehireSystemEnabled, fetchRehireList]);
 
   const isBasicPlan = planTier === "free" || planTier === "basic" || !planTier;
 
@@ -340,6 +391,122 @@ export function EmployerDashboardClient({
         {workforceRiskEnabled && (
           <div className="mt-6">
             <WorkforceRiskIndicator />
+          </div>
+        )}
+
+        {/* Risk Intelligence v1 — Candidate Risk Snapshot (feature-flagged) */}
+        {riskSnapshotEnabled && (
+          <div className="mt-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4 text-grey-dark dark:text-gray-200">
+                Candidate Risk Snapshot
+              </h3>
+              {riskOverviewLoading ? (
+                <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
+              ) : riskOverview?.riskSnapshotSample ? (
+                <div className="space-y-4">
+                  <div className="flex items-baseline gap-4 flex-wrap">
+                    <span className="text-4xl font-bold text-grey-dark dark:text-gray-200">
+                      {Math.round(riskOverview.riskSnapshotSample.overall ?? 0)}
+                    </span>
+                    <span className="text-sm text-grey-medium dark:text-gray-400">
+                      Overall score (0–100)
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-sm text-grey-medium dark:text-gray-400">Confidence </span>
+                    <span className="font-semibold text-grey-dark dark:text-gray-200">
+                      {Math.round(riskOverview.riskSnapshotSample.confidence ?? 0)}%
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {[
+                      { label: "Tenure", value: riskOverview.riskSnapshotSample.tenure ?? 0 },
+                      { label: "References", value: riskOverview.riskSnapshotSample.references ?? 0 },
+                      { label: "Disputes", value: riskOverview.riskSnapshotSample.disputes ?? 0 },
+                      { label: "Gaps", value: riskOverview.riskSnapshotSample.gaps ?? 0 },
+                      { label: "Rehire", value: riskOverview.riskSnapshotSample.rehire ?? 0 },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex items-center gap-2">
+                        <span className="text-sm text-grey-medium dark:text-gray-400 w-24">{label}</span>
+                        <div className="flex-1 h-2 rounded-full bg-grey-background dark:bg-[#374151] overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-blue-600 dark:bg-blue-400"
+                            style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-grey-dark dark:text-gray-200 w-8">
+                          {Math.round(value)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-grey-medium dark:text-gray-400">
+                  No sample risk data yet. Risk is computed when you have verified employees in the rehire registry.
+                </p>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {/* Risk Intelligence v1 — Workforce Risk Overview (feature-flagged) */}
+        {workforceDashboardEnabled && (
+          <div className="mt-6">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4 text-grey-dark dark:text-gray-200">
+                Workforce Risk Overview
+              </h3>
+              {riskOverviewLoading ? (
+                <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-grey-medium dark:text-gray-400">Average Risk Score</p>
+                      <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">
+                        {riskOverview?.workforceRiskAverage != null
+                          ? Math.round(riskOverview.workforceRiskAverage)
+                          : "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-grey-medium dark:text-gray-400">High Risk Count (score &lt; 50)</p>
+                      <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">
+                        {riskOverview?.workforceHighRiskCount ?? 0}
+                      </p>
+                    </div>
+                  </div>
+                  {riskOverview?.workforceRiskConfidence != null && (
+                    <p className="text-sm text-grey-medium dark:text-gray-400">
+                      Workforce confidence: {Math.round(riskOverview.workforceRiskConfidence)}%
+                    </p>
+                  )}
+                  {riskOverview?.workforceLastCalculated && (
+                    <p className="text-xs text-grey-medium dark:text-gray-500">
+                      Last calculated: {new Date(riskOverview.workforceLastCalculated).toLocaleString()}
+                    </p>
+                  )}
+                  <div className="h-12 rounded-lg border border-grey-background dark:border-[#374151] flex items-center justify-center text-sm text-grey-medium dark:text-gray-500">
+                    Trend placeholder
+                  </div>
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {/* Risk Intelligence v1 — Rehire Registry (feature-flagged) */}
+        {rehireSystemEnabled && (
+          <div className="mt-6">
+            {rehireListLoading ? (
+              <Card className="p-6">
+                <p className="text-sm text-grey-medium dark:text-gray-400">Loading rehire registry…</p>
+              </Card>
+            ) : (
+              <RehireRegistrySection entries={rehireList} onRefresh={fetchRehireList} />
+            )}
           </div>
         )}
 

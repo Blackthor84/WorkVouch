@@ -4,6 +4,7 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { RelationshipType } from '@/types/database'
+import { calculateAndStoreRisk } from '@/lib/risk/calculateAndPersist'
 
 export interface CreateReferenceInput {
   to_user_id: string
@@ -78,6 +79,8 @@ export async function createReference(input: CreateReferenceInput) {
   if (error) {
     throw new Error(`Failed to create reference: ${error.message}`)
   }
+
+  await calculateAndStoreRisk(input.to_user_id).catch(() => {})
 
   revalidatePath('/dashboard')
   return reference
