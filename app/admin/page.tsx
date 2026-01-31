@@ -129,6 +129,17 @@ export default async function AdminPanel() {
             </Link>
           </Card>
 
+          <Card className="p-6 hover:shadow-lg transition-shadow">
+            <Link href="/admin/preview-control" className="block">
+              <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+                Preview &amp; Simulation Control
+              </h2>
+              <p className="text-sm text-grey-medium dark:text-gray-400">
+                Simulate roles, plans, features, limits. Client-side only.
+              </p>
+            </Link>
+          </Card>
+
           <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-blue-500">
             <Link href="/admin/beta" className="block">
               <h2 className="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-2">
@@ -212,6 +223,16 @@ export default async function AdminPanel() {
                   </h2>
                   <p className="text-sm text-grey-medium dark:text-gray-400">
                     Full system access and management
+                  </p>
+                </Link>
+              </Card>
+              <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-red-500">
+                <Link href="/admin/investor" className="block">
+                  <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
+                    Investor Dashboard
+                  </h2>
+                  <p className="text-sm text-grey-medium dark:text-gray-400">
+                    Private metrics, real + simulated growth. Not in navbar. Superadmin only.
                   </p>
                 </Link>
               </Card>
