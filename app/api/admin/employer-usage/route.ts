@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
         }
         const { data: prof } = await supabase.from("profiles").select("guard_credential_score").in("id", uids);
         const scores = (prof ?? []).map((p: { guard_credential_score?: number | null }) => p.guard_credential_score).filter((s: number | null): s is number => typeof s === "number");
-        avgScores[eid] = scores.length ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10 : null;
+        avgScores[eid] = scores.length ? Math.round((scores.reduce((a: number, b: number) => a + b, 0) / scores.length) * 10) / 10 : null;
       }
     } catch {
       // profiles.guard_credential_score may not exist
