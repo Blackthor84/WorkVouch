@@ -95,6 +95,14 @@ export function NavbarClient({ user: userProp, roles: rolesProp }: NavbarClientP
                     >
                       Demo Simulator
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      href="/admin/investor-demo"
+                      className="font-semibold text-slate-600 dark:text-slate-400 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
+                    >
+                      Investor Demo
+                    </Button>
                   </>
                 )}
                 {(roles.includes("employer") || roles.includes("superadmin")) && (

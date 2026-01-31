@@ -10,6 +10,7 @@ import {
   MegaphoneIcon,
   ChartBarIcon,
   ArrowRightIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +47,14 @@ const demos = [
     icon: ChartBarIcon,
     color: "from-emerald-500 to-emerald-700 dark:from-emerald-600 dark:to-emerald-800",
     borderColor: "border-emerald-500/30 hover:border-emerald-500/60",
+  },
+  {
+    href: "/admin/demo/workforce-risk",
+    title: "Workforce Risk Dashboard",
+    description: "Total employees, % verified, disputes, risk score, high risk count, trend. Behind workforce_risk_dashboard flag.",
+    icon: ExclamationTriangleIcon,
+    color: "from-slate-500 to-slate-700 dark:from-slate-600 dark:to-slate-800",
+    borderColor: "border-slate-500/30 hover:border-slate-500/60",
   },
 ];
 

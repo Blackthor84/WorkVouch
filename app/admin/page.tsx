@@ -192,6 +192,17 @@ export default async function AdminPanel() {
             </Link>
           </Card>
 
+          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-slate-500 dark:border-slate-500">
+            <Link href="/admin/investor-demo" className="block">
+              <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                Investor Demo
+              </h2>
+              <p className="text-sm text-grey-medium dark:text-gray-400">
+                Revenue simulation, growth metrics, advertiser ROI, feature flags, simulation controls. Boardroom-only. Not indexed.
+              </p>
+            </Link>
+          </Card>
+
           {isSuperAdmin && (
             <>
               <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-red-500">

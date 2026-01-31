@@ -1,37 +1,103 @@
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function About() {
   return (
-    <div className="bg-gray-50 min-h-screen py-16 px-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-blue-700 mb-8">About WorkVouch</h1>
+    <div className="min-h-screen">
+      {/* Hero */}
+      <section className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 lg:py-28">
+        <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl">
+          Building Trust Infrastructure for Hiring.
+        </h1>
+        <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
+          WorkVouch introduces structured employment verification into modern hiring workflows.
+        </p>
+      </section>
 
-        <div className="bg-white shadow-md rounded-xl p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-blue-700 mb-4">Our Mission</h2>
-          <p className="text-gray-700 mb-4">
-            WorkVouch brings accountability and transparency to the workforce. We help employers make better hiring decisions and employees build credible, verified work histories.
-          </p>
-          <p className="text-gray-700">
-            Our platform ensures that work history is verified, portable, and trusted by all parties.
-          </p>
+      {/* Mission */}
+      <section className="border-y border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-900/40">
+        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:py-20">
+          <h2 className="text-center text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+            Our Mission
+          </h2>
+          <div className="mt-8 space-y-4 text-slate-600 dark:text-slate-400">
+            <p>
+              Hiring decisions shape organizations, careers, and communities. Yet verification systems have not evolved with modern workforce mobility.
+            </p>
+            <p>
+              WorkVouch was built to provide structured, documented, and role-based verification of employment history — reducing ambiguity in hiring decisions while increasing accountability.
+            </p>
+          </div>
         </div>
+      </section>
 
-        <div className="bg-white shadow-md rounded-xl p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-blue-700 mb-4">How It Works</h2>
-          <ul className="space-y-3 text-gray-700">
-            <li>✔ Employees create verified work history profiles</li>
-            <li>✔ Employers verify past employment and performance</li>
-            <li>✔ All records are permanent and portable</li>
-            <li>✔ Trust scores help both sides make informed decisions</li>
+      {/* What Makes Us Different */}
+      <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:py-20">
+        <h2 className="text-center text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+          How WorkVouch Is Different
+        </h2>
+        <ul className="mx-auto mt-8 max-w-xl list-inside list-disc space-y-2 text-slate-600 dark:text-slate-400">
+          <li>Structured coworker confirmations</li>
+          <li>Documented employment verification</li>
+          <li>Role-based administrative controls</li>
+          <li>Subscription-based employer access</li>
+          <li>Scalable plan architecture</li>
+        </ul>
+        <p className="mt-8 text-center text-slate-700 dark:text-slate-300">
+          We are not a resume builder. We are not a job board.
+          We are a verification layer built to sit alongside hiring workflows.
+        </p>
+      </section>
+
+      {/* Platform Structure */}
+      <section className="border-y border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-900/40">
+        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:py-20">
+          <h2 className="text-center text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+            Platform Architecture
+          </h2>
+          <ul className="mx-auto mt-8 max-w-xl list-inside list-disc space-y-2 text-slate-600 dark:text-slate-400">
+            <li>Secure authentication</li>
+            <li>Role-based access</li>
+            <li>Feature flag infrastructure</li>
+            <li>Audit logging for administrative actions</li>
+            <li>Service-role protected database operations</li>
+            <li>Tiered subscription enforcement</li>
           </ul>
+          <p className="mt-8 text-center text-slate-700 dark:text-slate-300">
+            The system is designed for controlled feature activation and enterprise scaling from day one.
+          </p>
         </div>
+      </section>
 
-        <div className="text-center">
-          <Link href="/auth/signup" className="bg-blue-700 text-white px-6 py-3 rounded-lg hover:bg-blue-800 transition">
-            Get Started
-          </Link>
+      {/* Who We Serve */}
+      <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:py-20">
+        <h2 className="text-center text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+          Who We Serve
+        </h2>
+        <ul className="mx-auto mt-8 max-w-xl list-inside list-disc space-y-2 text-slate-600 dark:text-slate-400">
+          <li>Small and mid-sized businesses</li>
+          <li>Staffing and recruiting firms</li>
+          <li>Security and credential-driven agencies</li>
+          <li>Growing HR departments</li>
+          <li>Organizations prioritizing documented trust</li>
+        </ul>
+      </section>
+
+      {/* Closing CTA */}
+      <section className="border-t border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-900/40">
+        <div className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 lg:py-24">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+            Trust Is Not Claimed. It Is Verified.
+          </h2>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <Button href="/pricing" variant="primary" size="lg">
+              View Pricing
+            </Button>
+            <Button href="/signup" variant="secondary" size="lg">
+              Create Free Account
+            </Button>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

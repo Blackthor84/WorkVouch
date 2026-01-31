@@ -24,6 +24,9 @@ const CORE_FEATURE_FLAGS = [
   { name: "Team Compatibility Scoring", key: "team_compatibility_scoring", description: "Team compatibility scoring", visibility_type: "both" as const, is_globally_enabled: false },
   { name: "Integrity Index", key: "integrity_index", description: "Integrity index scoring", visibility_type: "both" as const, is_globally_enabled: false },
   { name: "AI Reference Summaries", key: "ai_reference_summaries", description: "AI-generated reference summaries", visibility_type: "both" as const, is_globally_enabled: false },
+  { name: "Risk Snapshot", key: "risk_snapshot", description: "Smart candidate risk snapshot engine (silent compute)", visibility_type: "both" as const, is_globally_enabled: false },
+  { name: "Rehire Internal", key: "rehire_internal", description: "Internal rehire status per employer-candidate", visibility_type: "both" as const, is_globally_enabled: false },
+  { name: "Workforce Risk Dashboard", key: "workforce_risk_dashboard", description: "Admin workforce risk dashboard (demo)", visibility_type: "ui" as const, is_globally_enabled: false },
 ];
 
 /**
