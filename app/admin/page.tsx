@@ -161,6 +161,16 @@ export default async function AdminPanel() {
               </p>
             </Link>
           </Card>
+          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-emerald-500/80 hover:border-emerald-500">
+            <Link href="/admin/demo" className="block">
+              <h2 className="text-xl font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
+                Demo Simulator
+              </h2>
+              <p className="text-sm text-grey-medium dark:text-gray-400">
+                Employer, Worker, Advertiser, and Analytics demos. Fake data only — no database, no feature flags.
+              </p>
+            </Link>
+          </Card>
           <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-violet-500/80">
             <Link href="/admin/demo/revenue" className="block">
               <h2 className="text-xl font-semibold text-violet-600 dark:text-violet-400 mb-2">

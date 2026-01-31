@@ -1,7 +1,7 @@
 "use client";
 
-import HomepageSimulator from "@/components/demo/HomepageSimulator";
+import PublicDemoWalkthrough from "@/components/demo/PublicDemoWalkthrough";
 
 export default function DemoPage() {
-  return <HomepageSimulator />;
+  return <PublicDemoWalkthrough />;
 }

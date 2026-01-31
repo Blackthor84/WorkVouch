@@ -7,9 +7,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
-export default function DemoAdsClient() {
+interface DemoAdsClientProps {
+  /** When true, show demo without requiring Elite Demo mode (e.g. from /admin/demo hub). */
+  standalone?: boolean;
+}
+
+export default function DemoAdsClient({ standalone = false }: DemoAdsClientProps) {
   const { preview } = usePreview();
-  const demoActive = Boolean(preview?.demoActive);
+  const demoActive = standalone || Boolean(preview?.demoActive);
 
   const [advertiserImpressions, setAdvertiserImpressions] = useState(10000);
   const [advertiserCTR, setAdvertiserCTR] = useState(2.5);
@@ -48,12 +53,17 @@ export default function DemoAdsClient() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">Advertiser ROI Demo</h1>
-          <p className="text-grey-medium dark:text-gray-400 mt-1">Powered by simulation engine — clicks, revenue, ROI from runSimulation()</p>
+          <p className="text-grey-medium dark:text-gray-400 mt-1">Powered by simulation engine — clicks, revenue, ROI from runSimulation(). No database.</p>
         </div>
-        <Link href="/admin" onClick={() => console.log("[Demo Ads] Back to Admin clicked")}>
-          <Button type="button" variant="secondary">Back to Admin</Button>
-        </Link>
+        <Button variant="secondary" href={standalone ? "/admin/demo" : "/admin"}>
+          {standalone ? "Back to Demo Hub" : "Back to Admin"}
+        </Button>
       </div>
+      {standalone && (
+        <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 mb-6 text-amber-800 dark:text-amber-200 text-sm font-medium">
+          Demo Mode — All data is simulated. No real user data.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <Card>

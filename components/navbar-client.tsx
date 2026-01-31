@@ -78,14 +78,24 @@ export function NavbarClient({ user: userProp, roles: rolesProp }: NavbarClientP
                   Pricing
                 </Button>
                 {(roles.includes("admin") || roles.includes("superadmin")) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    href="/admin"
-                    className="font-semibold text-primary dark:text-blue-400 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
-                  >
-                    Admin Panel
-                  </Button>
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      href="/admin"
+                      className="font-semibold text-primary dark:text-blue-400 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
+                    >
+                      Admin Panel
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      href="/admin/demo"
+                      className="font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
+                    >
+                      Demo Simulator
+                    </Button>
+                  </>
                 )}
                 {(roles.includes("employer") || roles.includes("superadmin")) && (
                   <Button
