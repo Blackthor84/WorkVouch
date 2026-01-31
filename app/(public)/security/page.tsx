@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
-  title: "Security & Compliance",
-  description: "WorkVouch security and data integrity: access controls, feature deployment, data handling, and audit logging.",
+  title: "Trust & Compliance",
+  description: "WorkVouch trust and compliance: access controls, feature deployment, data handling, and audit logging.",
 };
 
 export default function SecurityPage() {
@@ -11,7 +11,7 @@ export default function SecurityPage() {
       {/* Hero */}
       <section className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 lg:py-28">
         <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl">
-          Security and Data Integrity by Design.
+          Trust &amp; Compliance
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
           WorkVouch is built with structured access controls, controlled feature activation, and role-based enforcement from the foundation up.

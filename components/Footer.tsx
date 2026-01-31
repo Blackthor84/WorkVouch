@@ -31,10 +31,9 @@ export default function Footer() {
             <h3 className="font-semibold mb-4 text-lg">Resources</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="/pricing" className="hover:underline opacity-90 hover:opacity-100">Pricing</Link></li>
-              <li><Link href="/security" className="hover:underline opacity-90 hover:opacity-100">Security</Link></li>
-              <li><Link href="/security-agencies" className="hover:underline opacity-90 hover:opacity-100">For Security Agencies</Link></li>
               <li><Link href="/faq" className="hover:underline opacity-90 hover:opacity-100">FAQ</Link></li>
               <li><Link href="/help" className="hover:underline opacity-90 hover:opacity-100">Help</Link></li>
+              <li><Link href="/security-agencies" className="hover:underline opacity-90 hover:opacity-100">For Security Agencies</Link></li>
             </ul>
           </div>
           
@@ -43,7 +42,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link href="/privacy" className="hover:underline opacity-90 hover:opacity-100">Privacy</Link></li>
               <li><Link href="/terms" className="hover:underline opacity-90 hover:opacity-100">Terms</Link></li>
-              <li><Link href="/security" className="hover:underline opacity-90 hover:opacity-100">Security</Link></li>
+              <li><Link href="/security" className="hover:underline opacity-90 hover:opacity-100">Trust &amp; Compliance</Link></li>
             </ul>
           </div>
         </div>
