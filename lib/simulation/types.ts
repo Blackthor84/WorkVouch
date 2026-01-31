@@ -26,4 +26,5 @@ export interface SimulationOutput {
   workforceRiskScore: number;
   estimatedRevenue?: number;
   estimatedAdROI?: number;
+  estimatedClicks?: number;
 }

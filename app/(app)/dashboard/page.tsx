@@ -131,9 +131,11 @@ export default async function UserDashboardPage() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {shortcuts.map((shortcut) => {
                   const Icon = shortcut.icon;
+                  const isCoworker = shortcut.href === "/coworker-matches";
                   return (
                     <Button
                       key={shortcut.href}
+                      id={isCoworker ? "onboarding-invite-coworker" : undefined}
                       href={shortcut.href}
                       variant="ghost"
                       className="h-auto p-4 flex flex-col items-center gap-2"
@@ -149,7 +151,6 @@ export default async function UserDashboardPage() {
                 })}
               </div>
             </Card>
-
             {/* Activity Feed */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -183,9 +184,11 @@ export default async function UserDashboardPage() {
 
           {/* Sidebar */}
           <div className="flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
-            <TrustScoreCard userId={safeProfile?.id || user.id} />
+            <div id="onboarding-trust-score">
+              <TrustScoreCard userId={safeProfile?.id || user.id} />
+            </div>
 
-            <Card className="p-6">
+            <Card id="onboarding-profile" className="p-6">
               <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
                 Profile Status
               </h3>

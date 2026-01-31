@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,8 @@ import VerificationLimitWarning from "@/components/VerificationLimitWarning";
 import ExportDataButton from "@/components/ExportDataButton";
 import { UsagePanel } from "@/components/employer/UsagePanel";
 import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
+import { runSimulation } from "@/lib/simulation/engine";
+import type { PlanTier } from "@/lib/simulation/types";
 import {
   PlusIcon,
   MagnifyingGlassIcon,
@@ -192,6 +194,16 @@ export function EmployerDashboardClient({
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button
+            id="onboarding-company-profile"
+            variant="secondary"
+            href="/employer/profile"
+            className="h-auto p-4 flex flex-col items-start"
+          >
+            <PlusIcon className="h-6 w-6 mb-2" />
+            <span className="font-semibold">Company profile</span>
+            <span className="text-sm opacity-90">Complete your company details</span>
+          </Button>
+          <Button
             href="/employer/job-posts?action=create"
             className="h-auto p-4 flex flex-col items-start"
           >
@@ -200,6 +212,7 @@ export function EmployerDashboardClient({
             <span className="text-sm opacity-90">Create a job listing</span>
           </Button>
           <Button
+            id="onboarding-add-team"
             variant="secondary"
             href="/employer/employees"
             className="h-auto p-4 flex flex-col items-start"
@@ -209,6 +222,16 @@ export function EmployerDashboardClient({
             <span className="text-sm opacity-90">
               View employees who list your company
             </span>
+          </Button>
+          <Button
+            id="onboarding-request-verification"
+            variant="secondary"
+            href="/employer/candidates"
+            className="h-auto p-4 flex flex-col items-start"
+          >
+            <MagnifyingGlassIcon className="h-6 w-6 mb-2" />
+            <span className="font-semibold">Request verification</span>
+            <span className="text-sm opacity-90">View candidates & request verification</span>
           </Button>
           <Button
             variant="secondary"
@@ -285,7 +308,13 @@ export function EmployerDashboardClient({
         {/* Advanced Analytics (feature-flagged) */}
         {analyticsEnabled && (
           <div className="mt-6">
-            <AdvancedAnalytics />
+            <AdvancedAnalytics simulation={simulationOutput} />
+          </div>
+        )}
+        {!analyticsEnabled && (
+          <div className="mt-6 rounded-xl border border-grey-background dark:border-[#374151] bg-white dark:bg-[#1A1F2B] p-6">
+            <p className="text-sm text-grey-medium dark:text-gray-400">Unlock advanced analytics with a Pro plan.</p>
+            <Button variant="primary" className="mt-3" onClick={() => setShowUpgradeModal(true)}>Upgrade to see analytics</Button>
           </div>
         )}
 
@@ -304,7 +333,7 @@ export function EmployerDashboardClient({
         )}
 
         {/* Analytics Section */}
-        <div className="mt-8">
+        <div id="onboarding-analytics" className="mt-8">
           {loadingAnalytics ? (
             <Card className="p-6">
               <p className="text-grey-medium dark:text-gray-400 text-center">

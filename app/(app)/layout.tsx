@@ -1,5 +1,6 @@
 import { NavbarServer } from "@/components/navbar-server";
 import { ImpersonationBanner } from "@/components/impersonation-banner";
+import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export default function AppLayout({
       <ImpersonationBanner />
       <NavbarServer />
       <main className="flex-1 bg-background dark:bg-[#0D1117] min-h-screen">
-        {children}
+        <OnboardingProvider>{children}</OnboardingProvider>
       </main>
     </>
   );

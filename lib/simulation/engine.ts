@@ -51,10 +51,11 @@ export function runSimulation(input: SimulationInputs): SimulationOutput {
     input.advertiserImpressions > 0 &&
     input.advertiserCTR !== undefined
   ) {
-    const { estimatedRevenue, roi } = calculateAdROI(
+    const { clicks, estimatedRevenue, roi } = calculateAdROI(
       input.advertiserImpressions,
       input.advertiserCTR
     );
+    output.estimatedClicks = clicks;
     output.estimatedRevenue = estimatedRevenue;
     output.estimatedAdROI = roi;
   }

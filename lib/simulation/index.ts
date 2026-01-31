@@ -13,3 +13,4 @@ export {
   calculateAdROI,
 } from "./calculations";
 export { runSimulation } from "./engine";
+export { getMonthlyPrice } from "./pricing";

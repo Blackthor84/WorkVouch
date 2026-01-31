@@ -67,9 +67,9 @@ export function calculateWorkforceRisk(reportsUsed: number): number {
 export function calculateAdROI(
   impressions: number,
   ctrPercent: number
-): { estimatedRevenue: number; roi: number } {
+): { clicks: number; estimatedRevenue: number; roi: number } {
   if (impressions <= 0) {
-    return { estimatedRevenue: 0, roi: 0 };
+    return { clicks: 0, estimatedRevenue: 0, roi: 0 };
   }
   const ctr = ctrPercent / 100;
   const clicks = impressions * ctr;
@@ -77,6 +77,7 @@ export function calculateAdROI(
   const baselineSpend = 1000;
   const roi = baselineSpend > 0 ? estimatedRevenue / baselineSpend : 0;
   return {
+    clicks: Math.round(clicks),
     estimatedRevenue: Math.round(estimatedRevenue * 100) / 100,
     roi: Math.round(roi * 100) / 100,
   };
