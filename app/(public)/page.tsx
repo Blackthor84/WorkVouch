@@ -1,6 +1,6 @@
 import CareersGrid from "@/components/CareersGrid";
 import ActiveAds from "@/components/ActiveAds";
-import HomepageInteractiveDemo from "@/components/demo/HomepageInteractiveDemo";
+import HomepageExperience from "@/components/demo/HomepageExperience";
 import Link from "next/link";
 
 export default function Home() {
