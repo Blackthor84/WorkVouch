@@ -6,9 +6,12 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { createServerSupabase } from "@/lib/supabase/server";
+import type { Database } from "@/types/supabase";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+
+type JobRow = Database["public"]["Tables"]["jobs"]["Row"];
 
 type RiskSnapshot = {
   tenure?: number;
@@ -59,10 +62,14 @@ export async function GET() {
 
     let documentationCompleteness = 100;
     try {
-      const { data: jobsData } = await supabase.from("jobs").select("id, verification_status").eq("user_id", userId);
+      const { data: jobsData } = await supabase
+        .from("jobs")
+        .select("id, verification_status")
+        .eq("user_id", userId)
+        .returns<JobRow[]>();
       const jobs = Array.isArray(jobsData) ? jobsData : [];
       const total = jobs.length;
-      const verified = jobs.filter((j: { verification_status?: string }) => j.verification_status === "verified").length;
+      const verified = jobs.filter((j) => j.verification_status === "verified").length;
       documentationCompleteness = total > 0 ? clamp((verified / total) * 100) : 100;
     } catch {
       // jobs table may not exist or RLS may block

@@ -229,6 +229,7 @@ export interface Database {
           location: string | null
           supervisor_name: string | null
           is_private: boolean
+          verification_status: string | null
           created_at: string
           updated_at: string
         }
@@ -244,6 +245,7 @@ export interface Database {
           location?: string | null
           supervisor_name?: string | null
           is_private?: boolean
+          verification_status?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -259,6 +261,7 @@ export interface Database {
           location?: string | null
           supervisor_name?: string | null
           is_private?: boolean
+          verification_status?: string | null
           created_at?: string
           updated_at?: string
         }
