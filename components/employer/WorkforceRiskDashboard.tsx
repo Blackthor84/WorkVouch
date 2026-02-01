@@ -165,6 +165,11 @@ export function WorkforceRiskDashboard() {
 
   const trendData = history.length > 0 ? history : data.trend.map((t) => ({ month: t.date.slice(0, 7), avgRisk: t.avgRisk }));
 
+  const displayAverageRisk =
+    typeof data.averageRisk === "number" && !Number.isNaN(data.averageRisk)
+      ? data.averageRisk
+      : 0;
+
   return (
     <div className="space-y-6">
       <Card className="p-6 border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1A1F2B] shadow-sm">
