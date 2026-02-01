@@ -3,7 +3,18 @@ import { requireWorkforceRiskEmployer } from "@/lib/employer-workforce-risk-auth
 
 export const dynamic = "force-dynamic";
 
-type ReportRow = { job_role: string | null; risk_score: number; worker_id: string };
+type ReportRow = { job_role: string; risk_score: number; worker_id: string };
+
+type RawRow = { job_role: string | null; risk_score: number | null; worker_id: string | null };
+
+function isReportRow(r: RawRow): r is ReportRow {
+  return (
+    r.risk_score !== null &&
+    r.job_role !== null &&
+    r.worker_id !== null &&
+    Number.isFinite(r.risk_score)
+  );
+}
 
 /**
  * GET /api/employer/workforce-risk/roles
@@ -15,7 +26,7 @@ export async function GET() {
     if (!ctx) return NextResponse.json({ error: "Unauthorized or feature not enabled" }, { status: 403 });
     const { supabase, auth } = ctx;
 
-    let list: ReportRow[] = [];
+    let list: RawRow[] = [];
     try {
       const { data: reports } = await supabase
         .from("verification_reports")
@@ -26,13 +37,13 @@ export async function GET() {
     } catch {
       return NextResponse.json([]);
     }
-    const completed = list.filter((r) => r.risk_score != null && Number.isFinite(Number(r.risk_score)));
+    const completed = list.filter(isReportRow);
 
     const byRole: Record<string, { scores: number[]; workers: Set<string> }> = {};
     for (const r of completed) {
-      const key = r.job_role?.trim() || "(Unspecified)";
+      const key = r.job_role.trim() || "(Unspecified)";
       if (!byRole[key]) byRole[key] = { scores: [], workers: new Set() };
-      byRole[key].scores.push(Number(r.risk_score));
+      byRole[key].scores.push(r.risk_score);
       byRole[key].workers.add(r.worker_id);
     }
 
