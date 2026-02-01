@@ -45,7 +45,6 @@ async function updateEmployerFromSubscription(
     } else {
       const { error } = await adminSupabase
         .from("employer_accounts")
-        // @ts-expect-error manual Database type: employer_accounts update; client inference uses never
         .update(update)
         .eq("stripe_customer_id", stripeCustomerId);
       if (error) console.error("[Stripe Webhook] updateEmployerFromSubscription:", error.message);
