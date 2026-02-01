@@ -30,7 +30,13 @@ export default function DynamicPricingPage() {
         <div key={plan.id}>
           <h3>{plan.name}</h3>
           <p>${plan.price}/{plan.period}</p>
-          <button onClick={() => startCheckout(plan.stripePriceId)}>
+          <button
+            onClick={() => {
+              if (!plan.stripePriceId) return;
+              startCheckout(plan.stripePriceId);
+            }}
+            disabled={!plan.stripePriceId}
+          >
             {plan.id === "starter" && "Start Hiring"}
             {plan.id === "team" && "Upgrade to Team"}
             {plan.id === "pro" && "Go Pro"}
