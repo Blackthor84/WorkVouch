@@ -3,6 +3,10 @@ import { requireWorkforceRiskEmployer } from "@/lib/employer-workforce-risk-auth
 
 export const dynamic = "force-dynamic";
 
+function hasRiskScore(r: { risk_score: number | null }): r is { risk_score: number } {
+  return r.risk_score !== null && Number.isFinite(r.risk_score);
+}
+
 /**
  * GET /api/employer/workforce-risk/industry-benchmark
  * Employer average vs industry average. Employer-only, feature-gated.
@@ -19,9 +23,7 @@ export async function GET() {
       .eq("employer_id", auth.employerId)
       .not("risk_score", "is", null);
 
-    const employerScores = (reports ?? [])
-      .map((r: { risk_score: number }) => Number(r.risk_score))
-      .filter(Number.isFinite);
+    const employerScores = (reports ?? []).filter(hasRiskScore).map((r) => r.risk_score);
     const employerAverage = employerScores.length
       ? Math.round((employerScores.reduce((a, b) => a + b, 0) / employerScores.length) * 10) / 10
       : 0;
@@ -34,9 +36,7 @@ export async function GET() {
           .select("risk_score")
           .eq("industry", auth.industry)
           .not("risk_score", "is", null);
-        const industryScores = (industryReports ?? [])
-          .map((r) => Number(r.risk_score))
-          .filter(Number.isFinite);
+        const industryScores = (industryReports ?? []).filter(hasRiskScore).map((r) => r.risk_score);
         industryAverage = industryScores.length
           ? Math.round((industryScores.reduce((a, b) => a + b, 0) / industryScores.length) * 10) / 10
           : 0;
