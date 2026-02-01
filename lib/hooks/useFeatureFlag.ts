@@ -4,6 +4,12 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { usePreview } from "@/lib/preview-context";
 
+function isPreviewAdmin(session: { user?: { role?: string } } | null): boolean {
+  if (!session?.user) return false;
+  const role = session.user.role;
+  return role === "admin" || role === "superadmin";
+}
+
 const CACHE_TTL_MS = 60 * 1000;
 const cache = new Map<string | undefined, { enabled: boolean; ts: number }>();
 
