@@ -55,7 +55,7 @@ function BetaLoginContent() {
               router.refresh();
             }, 1000);
           } else {
-            // Fallback: redirect to preview page (middleware will handle auth)
+            // Fallback: redirect to preview page (proxy will handle auth)
             window.location.href = `/preview-only?token=${token}`;
           }
         } catch (error) {
