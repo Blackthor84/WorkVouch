@@ -4,6 +4,26 @@ import { StatusPill, type StatusVariant } from "./StatusPill";
 import { TrustScoreRing } from "./TrustScoreRing";
 import { ProfileCard, ProfileCardTitle, ProfileCardContent } from "./ProfileCard";
 
+export type RehireStatus = "Approved" | "Review" | "NotEligible";
+
+const rehireConfigMap: Record<
+  RehireStatus,
+  { label: string; variant: StatusVariant }
+> = {
+  Approved: {
+    label: "Approved for Rehire",
+    variant: "approved",
+  },
+  Review: {
+    label: "Review Required",
+    variant: "review",
+  },
+  NotEligible: {
+    label: "Not Eligible for Rehire",
+    variant: "not_eligible",
+  },
+};
+
 // ——— Dummy data for preview ———
 const DUMMY_PROFILE = {
   fullName: "Sarah Chen",
@@ -15,7 +35,7 @@ const DUMMY_PROFILE = {
   peerMatchPercent: 94,
   riskTier: "low" as const,
   rehireEligibility: "Eligible for rehire",
-  rehireStatus: "approved" as const,
+  rehireStatus: "Approved" as RehireStatus,
   rehireQuote: "Consistently reliable. Strong attendance and clear communication. Would hire again.",
   summary: "Verified professional with strong peer confirmations and positive employment history.",
   employment: [
@@ -50,7 +70,8 @@ export interface EmployeeProfileProps {
 
 export function EmployeeProfile({ profile = DUMMY_PROFILE, className }: EmployeeProfileProps) {
   const riskVariant: StatusVariant = profile.riskTier === "low" ? "low" : profile.riskTier === "moderate" ? "moderate" : "high";
-  const rehireVariant: StatusVariant = profile.rehireStatus === "approved" ? "approved" : profile.rehireStatus === "review" ? "review" : "not_eligible";
+  const rehireConfig =
+    rehireConfigMap[profile.rehireStatus] ?? rehireConfigMap.NotEligible;
 
   return (
     <div className={className}>
@@ -122,7 +143,10 @@ export function EmployeeProfile({ profile = DUMMY_PROFILE, className }: Employee
         <ProfileCardTitle>Rehire Registry</ProfileCardTitle>
         <ProfileCardContent>
           <div className="mb-3">
-            <StatusPill label={rehireLabel} variant={rehireVariant} />
+            <StatusPill
+              label={rehireConfig.label}
+              variant={rehireConfig.variant}
+            />
           </div>
           <blockquote className="rounded-lg border-l-4 border-slate-200 bg-slate-50 px-4 py-3 text-sm italic text-slate-600 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400">
             {profile.rehireQuote}
