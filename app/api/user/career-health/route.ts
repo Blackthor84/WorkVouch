@@ -39,21 +39,15 @@ export async function GET() {
 
     const userId = session.user.id;
     const supabase = await createServerSupabase();
-    const supabaseAny = supabase as {
-      from: (table: string) => {
-        select: (cols: string) => { eq: (col: string, val: string) => Promise<{ data: unknown; error: unknown }> };
-      };
-    };
 
-    const { data: profileData, error: profileError } = await supabaseAny
+    const { data: profileRow, error: profileError } = await supabase
       .from("profiles")
       .select("risk_snapshot, guard_credential_score")
-      .eq("id", userId);
+      .eq("id", userId)
+      .maybeSingle();
 
-    const list = Array.isArray(profileData) ? profileData : profileData != null ? [profileData] : [];
-    const row = list[0] as { risk_snapshot?: RiskSnapshot; guard_credential_score?: number | null } | null;
-    const snapshot = row?.risk_snapshot;
-    const guardCredentialScore = row?.guard_credential_score;
+    const snapshot = (profileRow as { risk_snapshot?: RiskSnapshot } | null)?.risk_snapshot;
+    const guardCredentialScore = (profileRow as { guard_credential_score?: number | null } | null)?.guard_credential_score;
 
     if (profileError) {
       return NextResponse.json({ error: "Failed to load profile" }, { status: 500 });
@@ -65,7 +59,7 @@ export async function GET() {
 
     let documentationCompleteness = 100;
     try {
-      const { data: jobsData } = await supabaseAny.from("jobs").select("id, verification_status").eq("user_id", userId);
+      const { data: jobsData } = await supabase.from("jobs").select("id, verification_status").eq("user_id", userId);
       const jobs = Array.isArray(jobsData) ? jobsData : [];
       const total = jobs.length;
       const verified = jobs.filter((j: { verification_status?: string }) => j.verification_status === "verified").length;
@@ -77,7 +71,7 @@ export async function GET() {
     let credentialValidation = clamp(guardCredentialScore ?? 0);
     if (credentialValidation === 0) {
       try {
-        const { data: credData } = await supabaseAny.from("guard_licenses").select("id").eq("user_id", userId);
+        const { data: credData } = await supabase.from("guard_licenses").select("id").eq("user_id", userId);
         const count = Array.isArray(credData) ? credData.length : 0;
         credentialValidation = count > 0 ? Math.min(100, count * 25) : 0;
       } catch {
