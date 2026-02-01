@@ -44,19 +44,13 @@ export async function GET() {
 
     const userId = session.user.id;
     const supabase = await createServerSupabase();
-    const supabaseAny = supabase as {
-      from: (table: string) => {
-        select: (cols: string) => { eq: (col: string, val: string) => Promise<{ data: unknown; error: unknown }> };
-      };
-    };
 
-    const { data: profileData, error } = await supabaseAny
+    const { data: row, error } = await supabase
       .from("profiles")
       .select("risk_snapshot")
-      .eq("id", userId);
+      .eq("id", userId)
+      .maybeSingle();
 
-    const list = Array.isArray(profileData) ? profileData : profileData != null ? [profileData] : [];
-    const row = list[0];
     const snapshot = (row as { risk_snapshot?: RiskSnapshot } | null)?.risk_snapshot as RiskSnapshot | null | undefined;
 
     if (error) {
