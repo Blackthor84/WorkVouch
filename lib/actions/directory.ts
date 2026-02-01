@@ -16,9 +16,9 @@ function profileStrengthRange(score: number): "High" | "Medium" | "Developing" {
   return "Developing";
 }
 
-function getClientIp(): string {
+async function getClientIp(): Promise<string> {
   try {
-    const h = headers();
+    const h = await headers();
     const forwarded = h.get("x-forwarded-for");
     const real = h.get("x-real-ip");
     if (forwarded) return forwarded.split(",")[0].trim();
@@ -91,7 +91,7 @@ export async function searchDirectoryPublic(params: {
   name: string;
   page?: number;
 }): Promise<PublicDirectoryResult> {
-  const ip = getClientIp();
+  const ip = await getClientIp();
   const { allowed, remaining } = checkPublicDirectoryRateLimit(ip);
   if (!allowed) {
     return {
