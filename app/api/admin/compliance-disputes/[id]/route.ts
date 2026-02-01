@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import {
-  ComplianceDisputeStatus,
-  ComplianceDisputeStatusValue,
-} from "@/lib/compliance-types";
+import { ComplianceDisputeStatus } from "@/lib/compliance-types";
+import type { Database } from "@/types/database";
 import { z } from "zod";
+
+type ComplianceDisputeUpdate = Database["public"]["Tables"]["compliance_disputes"]["Update"];
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +42,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    const sb = getSupabaseServer() as ReturnType<typeof getSupabaseServer>;
+    const sb = getSupabaseServer();
 
     const { data: dispute, error: disputeErr } = await sb
       .from("compliance_disputes")
@@ -140,10 +140,10 @@ export async function PATCH(
       );
     }
 
-    const sb = getSupabaseServer() as ReturnType<typeof getSupabaseServer>;
-    const updates: Record<string, unknown> = {};
+    const sb = getSupabaseServer();
+    const updates: ComplianceDisputeUpdate = {};
     if (parsed.data.status !== undefined) {
-      updates.status = parsed.data.status;
+      updates.status = parsed.data.status as ComplianceDisputeUpdate["status"];
       if (
         parsed.data.status === ComplianceDisputeStatus.Resolved ||
         parsed.data.status === ComplianceDisputeStatus.Rejected

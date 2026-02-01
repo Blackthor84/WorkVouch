@@ -38,6 +38,19 @@ export type ConnectionStatus = 'pending' | 'confirmed' | 'rejected'
 
 export type FeatureVisibility = 'ui' | 'api' | 'both'
 
+export type ComplianceDisputeTypeEnum =
+  | 'RehireStatus'
+  | 'EmploymentDates'
+  | 'PeerVerification'
+  | 'Other'
+
+export type ComplianceDisputeStatusEnum =
+  | 'Pending'
+  | 'UnderReview'
+  | 'AwaitingEmployerResponse'
+  | 'Resolved'
+  | 'Rejected'
+
 export interface Database {
   public: {
     Tables: {
@@ -310,6 +323,44 @@ export interface Database {
           average_rating?: number | null
           calculated_at?: string
           version?: string
+        }
+      }
+      compliance_disputes: {
+        Row: {
+          id: string
+          user_id: string
+          profile_id: string
+          dispute_type: ComplianceDisputeTypeEnum
+          description: string
+          status: ComplianceDisputeStatusEnum
+          reviewer_notes: string | null
+          created_at: string
+          resolved_at: string | null
+          evaluation_id: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          profile_id: string
+          dispute_type: ComplianceDisputeTypeEnum
+          description: string
+          status?: ComplianceDisputeStatusEnum
+          reviewer_notes?: string | null
+          created_at?: string
+          resolved_at?: string | null
+          evaluation_id?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          profile_id?: string
+          dispute_type?: ComplianceDisputeTypeEnum
+          description?: string
+          status?: ComplianceDisputeStatusEnum
+          reviewer_notes?: string | null
+          created_at?: string
+          resolved_at?: string | null
+          evaluation_id?: string | null
         }
       }
     }
