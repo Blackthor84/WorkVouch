@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { TrustProfilePreview } from "@/components/profile";
 
 export default function PreviewCards() {
   return (
@@ -8,27 +8,9 @@ export default function PreviewCards() {
         See What You Get
       </h2>
       <div className="grid gap-8 lg:grid-cols-2">
-        <Card className="border-slate-200 dark:border-slate-700 overflow-hidden">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-slate-900 dark:text-white">Sample Profile</span>
-              <Badge variant="success">Verified</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3 text-slate-600 dark:text-slate-400">
-            <div className="flex items-center gap-4 text-sm">
-              <span>References</span>
-              <span className="font-medium text-slate-800 dark:text-slate-200">3</span>
-            </div>
-            <div className="flex items-center gap-4 text-sm">
-              <span>Trust score</span>
-              <span className="font-medium text-slate-800 dark:text-slate-200">—</span>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-700">
-              Placeholder for employee trust profile preview.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="flex justify-center lg:justify-start">
+          <TrustProfilePreview className="w-full max-w-md" />
+        </div>
         <Card className="border-slate-200 dark:border-slate-700 overflow-hidden">
           <CardHeader className="pb-2">
             <span className="font-semibold text-slate-900 dark:text-white">Employer View</span>
