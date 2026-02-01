@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import {
-  ComplianceDisputeType,
-  ComplianceDisputeTypeValue,
-} from "@/lib/compliance-types";
+import { ComplianceDisputeType } from "@/lib/compliance-types";
+import type { Database } from "@/types/supabase";
 import { z } from "zod";
+
+type ComplianceDisputeInsert = Database["public"]["Tables"]["compliance_disputes"]["Insert"];
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +29,7 @@ async function requireIdentityVerification(userId: string): Promise<{
   allowed: boolean;
   error?: string;
 }> {
-  const sb = getSupabaseServer() as ReturnType<typeof getSupabaseServer>;
+  const sb = getSupabaseServer();
   const { data: profile } = await sb
     .from("profiles")
     .select("id")
@@ -74,17 +74,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const sb = getSupabaseServer() as ReturnType<typeof getSupabaseServer>;
-    const insertPayload: Record<string, unknown> = {
+    const sb = getSupabaseServer();
+    const insertPayload: ComplianceDisputeInsert = {
       user_id: user.id,
       profile_id: parsed.data.profileId,
-      dispute_type: parsed.data.disputeType as ComplianceDisputeTypeValue,
+      dispute_type: parsed.data.disputeType as ComplianceDisputeInsert["dispute_type"],
       description: parsed.data.description,
       status: "Pending",
+      ...(parsed.data.disputeType === ComplianceDisputeType.RehireStatus && parsed.data.evaluationId
+        ? { evaluation_id: parsed.data.evaluationId }
+        : {}),
     };
-    if (parsed.data.disputeType === ComplianceDisputeType.RehireStatus && parsed.data.evaluationId) {
-      insertPayload.evaluation_id = parsed.data.evaluationId;
-    }
     const { data: row, error } = await sb
       .from("compliance_disputes")
       .insert(insertPayload)

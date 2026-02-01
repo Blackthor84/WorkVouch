@@ -69,9 +69,7 @@ export function getPriceToTierMap(): Record<string, string> {
   if (STRIPE_PRICE_SECURITY) map[STRIPE_PRICE_SECURITY] = "security_agency";
   if (STRIPE_PRICE_SECURITY_BUNDLE && !map[STRIPE_PRICE_SECURITY_BUNDLE]) map[STRIPE_PRICE_SECURITY_BUNDLE] = "security_agency";
   return map;
-}
-
-/** Resolve plan_tier from a Stripe subscription (first price ID). Returns "starter" if no match. */
+}/** Resolve plan_tier from a Stripe subscription (first price ID). Returns "starter" if no match. */
 export function getTierFromSubscription(subscription: { items?: { data?: Array<{ price?: { id?: string } }> } }): string {
   const priceId = subscription.items?.data?.[0]?.price?.id;
   if (!priceId) return "starter";

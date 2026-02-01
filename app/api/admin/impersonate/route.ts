@@ -3,18 +3,15 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 import { SignJWT } from "jose";
+import type { Database } from "@/types/supabase";
 
 type Profile = {
   id: string;
   email: string | null;
 };
 
-type AdminAction = {
-  admin_id: string;
-  impersonated_user_id: string;
-  action_type: string;
-  created_at?: string;
-};
+type AdminSessionInsert = Database["public"]["Tables"]["admin_sessions"]["Insert"];
+type AdminActionInsert = Database["public"]["Tables"]["admin_actions"]["Insert"];
 
 export async function POST(request: Request) {
   try {
@@ -121,12 +118,12 @@ export async function POST(request: Request) {
     }
 
     try {
-      const adminAction: AdminAction = {
-        admin_id: session.user.id as string,
-        impersonated_user_id: userId as string,
+      const adminAction: AdminActionInsert = {
+        admin_id: session.user.id,
+        impersonated_user_id: userId,
         action_type: "impersonate",
       };
-      await supabase.from("admin_actions").insert(adminAction as Record<string, unknown>);
+      await supabase.from("admin_actions").insert(adminAction);
     } catch {
       // Table may not exist; ignore
     }

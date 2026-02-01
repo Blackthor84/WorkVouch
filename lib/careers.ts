@@ -143,13 +143,14 @@ export async function fetchCareerData(slug: string): Promise<CareerData | null> 
       .single();
 
     if (!error && data) {
+      const row = data as { slug?: string; name?: string; description?: string | null; image?: string | null; employers?: number | null; employees?: number | null };
       return {
-        slug: data.slug || slug,
-        name: data.name,
-        description: data.description,
-        image: data.image,
-        employers: data.employers,
-        employees: data.employees,
+        slug: row.slug || slug,
+        name: row.name ?? "",
+        description: row.description ?? undefined,
+        image: row.image ?? undefined,
+        employers: undefined,
+        employees: undefined,
       };
     }
   } catch (error) {

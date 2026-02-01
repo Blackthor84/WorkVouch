@@ -70,7 +70,7 @@ export async function GET() {
           .select("risk_score")
           .eq("industry", auth.industry)
           .not("risk_score", "is", null);
-        const industryScores = (industryReports ?? []).map((r: { risk_score: number }) => Number(r.risk_score)).filter(Number.isFinite);
+        const industryScores = (industryReports ?? []).map((r) => Number(r.risk_score)).filter(Number.isFinite);
         const industryAverage = industryScores.length
           ? Math.round((industryScores.reduce((a, b) => a + b, 0) / industryScores.length) * 10) / 10
           : 0;

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { ComplianceDisputeStatus } from "@/lib/compliance-types";
-import type { Database } from "@/types/database";
+import type { Database } from "@/types/supabase";
 import { z } from "zod";
 
 type ComplianceDisputeUpdate = Database["public"]["Tables"]["compliance_disputes"]["Update"];

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import type { Database } from "@/types/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
 
-    const sb = getSupabaseServer() as ReturnType<typeof getSupabaseServer>;
+    const sb = getSupabaseServer();
     let query = sb
       .from("compliance_disputes")
       .select(
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
       .order("created_at", { ascending: false });
 
     if (status) {
-      query = query.eq("status", status);
+      query = query.eq("status", status as Database["public"]["Tables"]["compliance_disputes"]["Row"]["status"]);
     }
 
     const { data: rows, error } = await query;

@@ -7,16 +7,17 @@
  * ✅ Lazy-loaded to prevent build-time errors on Vercel
  */
 import { createClient } from '@supabase/supabase-js'
-import { Database } from '@/types/database'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/types/supabase'
 
-let _supabaseServer: ReturnType<typeof createClient<Database>> | null = null
+let _supabaseServer: SupabaseClient<Database> | null = null
 
 /**
  * Get or create the Supabase admin client
  * Validates environment variables at runtime (not build time)
  * This prevents build failures on Vercel when env vars are set in Vercel dashboard
  */
-export function getSupabaseServer() {
+export function getSupabaseServer(): SupabaseClient<Database> {
   if (_supabaseServer) {
     return _supabaseServer
   }
@@ -31,7 +32,7 @@ export function getSupabaseServer() {
     )
   }
 
-  _supabaseServer = createClient<Database>(
+  const client = createClient<Database>(
     supabaseUrl,
     supabaseServiceRoleKey,
     {
@@ -41,13 +42,13 @@ export function getSupabaseServer() {
       },
     }
   )
-
+  _supabaseServer = client
   return _supabaseServer
 }
 
 // Export as a getter property for backward compatibility
 // This ensures lazy loading - the client is only created when accessed
-export const supabaseServer = new Proxy({} as ReturnType<typeof createClient<Database>>, {
+export const supabaseServer = new Proxy({} as SupabaseClient<Database>, {
   get(_target, prop) {
     const client = getSupabaseServer()
     const value = client[prop as keyof typeof client]

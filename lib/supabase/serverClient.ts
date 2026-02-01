@@ -6,19 +6,21 @@
  * ✅ Initialized at runtime, not at module import time
  */
 import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
 
-export const getSupabaseServerClient = () => {
+export function getSupabaseServerClient(): SupabaseClient<Database> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
   }
-  return createClient(
+  return createClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
-};
+}
 
 // Export as supabaseServerClient for backward compatibility (deprecated - use getSupabaseServerClient())
-export const supabaseServerClient = new Proxy({} as ReturnType<typeof createClient>, {
+export const supabaseServerClient = new Proxy({} as SupabaseClient<Database>, {
   get(_target, prop) {
     const client = getSupabaseServerClient();
     const value = client[prop as keyof typeof client];

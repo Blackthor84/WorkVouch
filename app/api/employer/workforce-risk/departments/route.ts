@@ -22,7 +22,7 @@ export async function GET() {
         .select("department, risk_score, worker_id")
         .eq("employer_id", auth.employerId)
         .not("risk_score", "is", null);
-      list = (reports ?? []) as ReportRow[];
+      list = reports ?? [];
     } catch {
       return NextResponse.json([]);
     }

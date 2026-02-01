@@ -3,7 +3,10 @@ import { stripe } from "@/lib/stripe";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getTierFromSubscription, getMeteredSubscriptionItemIds, getLookupQuotaForTier } from "@/lib/stripe/config";
+import type { Database } from "@/types/supabase";
 import Stripe from "stripe";
+
+type EmployerAccountUpdate = Database["public"]["Tables"]["employer_accounts"]["Update"];
 
 function getSubscriptionInterval(subscription: Stripe.Subscription): string {
   const interval = subscription.items?.data?.[0]?.price?.recurring?.interval;
@@ -22,8 +25,8 @@ async function updateEmployerFromSubscription(
     const subscriptionStatus = subscription.status ?? "active";
     const subscriptionInterval = getSubscriptionInterval(subscription);
     const lookupQuota = getLookupQuotaForTier(tier);
-    const adminSupabase = getSupabaseServer() as any;
-    const update: Record<string, unknown> = {
+    const adminSupabase = getSupabaseServer();
+    const update: EmployerAccountUpdate = {
       plan_tier: tier,
       stripe_subscription_id: subscription.id,
       subscription_status: subscriptionStatus,
@@ -42,6 +45,7 @@ async function updateEmployerFromSubscription(
     } else {
       const { error } = await adminSupabase
         .from("employer_accounts")
+        // @ts-expect-error manual Database type: employer_accounts update; client inference uses never
         .update(update)
         .eq("stripe_customer_id", stripeCustomerId);
       if (error) console.error("[Stripe Webhook] updateEmployerFromSubscription:", error.message);
@@ -54,7 +58,7 @@ async function updateEmployerFromSubscription(
 /** Update employer plan_tier only (e.g. on subscription deleted). */
 async function updateEmployerPlanTier(stripeCustomerId: string, tier: string): Promise<void> {
   try {
-    const adminSupabase = getSupabaseServer() as any;
+    const adminSupabase = getSupabaseServer();
     const { error } = await adminSupabase
       .from("employer_accounts")
       .update({ plan_tier: tier })
@@ -70,7 +74,7 @@ async function resetUsageForCustomer(stripeCustomerId: string, periodEnd: Date):
   try {
     const periodStart = new Date(periodEnd);
     periodStart.setMonth(periodStart.getMonth() - 1);
-    const adminSupabase = getSupabaseServer() as any;
+    const adminSupabase = getSupabaseServer();
     const { error } = await adminSupabase
       .from("employer_accounts")
       .update({
@@ -94,7 +98,7 @@ async function logStripeEvent(
   errorMessage?: string | null
 ): Promise<boolean> {
   try {
-    const adminSupabase = getSupabaseServer() as any;
+    const adminSupabase = getSupabaseServer();
     const { data: existing } = await adminSupabase
       .from("stripe_events")
       .select("event_id")
@@ -167,7 +171,7 @@ export async function POST(req: NextRequest) {
               session.subscription as string,
             );
             const customerId = subscription.customer as string;
-            const adminSupabase = getSupabaseServer() as any;
+            const adminSupabase = getSupabaseServer();
             const employerId = session.metadata?.employerId as string | undefined;
             const supabaseUserId = session.metadata?.supabase_user_id as string | undefined;
 
@@ -219,7 +223,7 @@ export async function POST(req: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription;
         try {
           const customerId = subscription.customer as string;
-          await updateEmployerOnSubscriptionDeleted(customerId);
+          await updateEmployerPlanTier(customerId, "starter");
         } catch (e) {
           console.error("[Stripe Webhook] customer.subscription.deleted:", e);
         }

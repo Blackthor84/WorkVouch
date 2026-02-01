@@ -13,7 +13,13 @@ import {
   type RehireStatusValue,
   type RehireReasonValue,
 } from "@/lib/compliance-types";
+import type { Database } from "@/types/supabase";
 import { z } from "zod";
+
+type RehireRegistryInsert = Database["public"]["Tables"]["rehire_registry"]["Insert"];
+type RehireRegistryUpdate = Database["public"]["Tables"]["rehire_registry"]["Update"];
+type RehireEvaluationVersionInsert =
+  Database["public"]["Tables"]["rehire_evaluation_versions"]["Insert"];
 
 const DETAILED_EXPLANATION_MIN_LENGTH = 150;
 
@@ -24,19 +30,10 @@ interface EmployerAccountRow {
 }
 
 async function getEmployerAccountId(userId: string): Promise<string | null> {
-  const supabase = getSupabaseServer() as unknown as {
-    from: (t: string) => {
-      select: (c: string) => {
-        eq: (col: string, val: string) => Promise<{ data: unknown; error: unknown }>;
-      };
-    };
-  };
-  const { data } = await supabase
-    .from("employer_accounts")
-    .select("id")
-    .eq("user_id", userId);
-  const row = (Array.isArray(data) ? data[0] : data) as EmployerAccountRow | undefined;
-  return row?.id ?? null;
+  const sb = getSupabaseServer();
+  const { data } = await sb.from("employer_accounts").select("id").eq("user_id", userId);
+  const row = Array.isArray(data) ? data[0] : data;
+  return (row as EmployerAccountRow | null | undefined)?.id ?? null;
 }
 
 const rehireStatusValues = [
@@ -147,7 +144,7 @@ export async function POST(req: NextRequest) {
     const rehireEligible =
       rec === RehireStatusEnum.Approved || rec === RehireStatusEnum.EligibleWithReview;
 
-    const sb = getSupabaseServer() as ReturnType<typeof getSupabaseServer>;
+    const sb = getSupabaseServer();
     const now = new Date().toISOString();
 
     const existing = await sb
@@ -170,24 +167,26 @@ export async function POST(req: NextRequest) {
     const isAlreadySubmitted = existingRow?.submitted_at != null;
 
     if (isAlreadySubmitted && existingRow) {
-      await sb.from("rehire_evaluation_versions").insert({
+      const versionInsert: RehireEvaluationVersionInsert = {
         rehire_registry_id: existingRow.id,
         employer_id: employerAccountId,
         profile_id: profileId,
-        rehire_status: existingRow.rehire_status,
-        reason: existingRow.reason,
+        rehire_status: existingRow.rehire_status as RehireEvaluationVersionInsert["rehire_status"],
+        reason: existingRow.reason as RehireEvaluationVersionInsert["reason"],
         detailed_explanation: existingRow.detailed_explanation,
         confirmed_accuracy: existingRow.confirmed_accuracy,
         submitted_at: existingRow.submitted_at,
-      });
+      };
+      await sb.from("rehire_evaluation_versions")
+        .insert(versionInsert);
     }
 
-    const upsertPayload: Record<string, unknown> = {
+    const upsertPayload: RehireRegistryInsert = {
       employer_id: employerAccountId,
       profile_id: profileId,
       rehire_eligible: rehireEligible,
-      rehire_status: rec as RehireStatusValue,
-      reason: rec === RehireStatusEnum.Approved ? null : (reasonCat as RehireReasonValue),
+      rehire_status: rec as RehireRegistryInsert["rehire_status"],
+      reason: rec === RehireStatusEnum.Approved ? null : (reasonCat as RehireRegistryInsert["reason"]),
       justification: detailedExplanation ?? null,
       detailed_explanation: detailedExplanation ?? null,
       confirmed_accuracy: confirmedAccuracy,
@@ -249,15 +248,8 @@ export async function GET() {
     if (!employerAccountId)
       return NextResponse.json({ error: "Employer account not found" }, { status: 404 });
 
-    const supabase = getSupabaseServer() as unknown as {
-      from: (t: string) => {
-        select: (c: string) => {
-          eq: (col: string, val: string) => Promise<{ data: unknown; error: unknown }>;
-        };
-      };
-    };
-
-    const { data: rows, error } = await supabase
+    const sb = getSupabaseServer();
+    const { data: rows, error } = await sb
       .from("rehire_registry")
       .select(
         "id, profile_id, rehire_eligible, rehire_status, reason, justification, detailed_explanation, confirmed_accuracy, submitted_at, internal_notes, created_at, updated_at"
@@ -286,13 +278,7 @@ export async function GET() {
     const profileIds = list.map((r) => r.profile_id);
     const names: Record<string, string> = {};
     if (profileIds.length > 0) {
-      const { data: profiles } = await (getSupabaseServer() as unknown as {
-        from: (t: string) => {
-          select: (c: string) => {
-            in: (col: string, vals: string[]) => Promise<{ data: unknown }>;
-          };
-        };
-      })
+      const { data: profiles } = await getSupabaseServer()
         .from("profiles")
         .select("id, full_name")
         .in("id", profileIds);
@@ -416,25 +402,27 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (existingRow.submitted_at != null) {
-      await sb.from("rehire_evaluation_versions").insert({
+      const versionInsert: RehireEvaluationVersionInsert = {
         rehire_registry_id: existingRow.id,
         employer_id: employerAccountId,
         profile_id: profileId,
-        rehire_status: existingRow.rehire_status,
-        reason: existingRow.reason,
+        rehire_status: existingRow.rehire_status as RehireEvaluationVersionInsert["rehire_status"],
+        reason: existingRow.reason as RehireEvaluationVersionInsert["reason"],
         detailed_explanation: existingRow.detailed_explanation,
         confirmed_accuracy: existingRow.confirmed_accuracy,
         submitted_at: existingRow.submitted_at,
-      });
+      };
+      await sb.from("rehire_evaluation_versions")
+        .insert(versionInsert);
     }
 
-    const updatePayload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const updatePayload: RehireRegistryUpdate = { updated_at: new Date().toISOString() };
     if (rec !== undefined) {
       updatePayload.rehire_eligible =
         rec === RehireStatusEnum.Approved || rec === RehireStatusEnum.EligibleWithReview;
-      updatePayload.rehire_status = rec;
+      updatePayload.rehire_status = rec as RehireRegistryUpdate["rehire_status"];
     }
-    if (reasonCat !== undefined) updatePayload.reason = reasonCat;
+    if (reasonCat !== undefined) updatePayload.reason = reasonCat as RehireRegistryUpdate["reason"];
     if (detailedExplanation !== undefined) {
       updatePayload.justification = detailedExplanation;
       updatePayload.detailed_explanation = detailedExplanation;

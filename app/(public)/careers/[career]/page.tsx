@@ -15,8 +15,8 @@ export default async function CareerPage(props: any) {
 
   return (
     <div style={{ padding: "2rem" }}>
-      <h1>{data?.title}</h1>
-      <p>{data?.description}</p>
+      <h1>{(data as { title?: string; name?: string } | null)?.title ?? (data as { title?: string; name?: string } | null)?.name}</h1>
+      <p>{(data as { description?: string | null } | null)?.description}</p>
     </div>
   );
 }

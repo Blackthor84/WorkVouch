@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const sb = getSupabaseServer() as ReturnType<typeof getSupabaseServer>;
+    const sb = getSupabaseServer();
     const { data: row, error } = await sb
       .from("security_reports")
       .insert({
