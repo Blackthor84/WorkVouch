@@ -34,7 +34,7 @@ export default async function PassportPage({
               This professional has not made their Work Passport searchable.
             </p>
             <div className="mt-8">
-              <Button asChild variant="default" size="lg" className="w-full sm:w-auto">
+              <Button asChild variant="primary" size="lg" className="w-full sm:w-auto">
                 <Link href="/login">Invite to Share Passport</Link>
               </Button>
             </div>
