@@ -140,3 +140,5 @@ export function EmployerRiskOverlay({ candidateId }: { candidateId: string }) {
     </div>
   );
 }
+
+export default EmployerRiskOverlay;

@@ -19,6 +19,7 @@ import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { WorkHistoryViewer } from "./work-history-viewer";
 import { ReferenceViewer } from "./reference-viewer";
 import { WorkVouchInsightsSection } from "./workvouch-insights-section";
+import EmployerRiskOverlay from "@/components/employer/EmployerRiskOverlay";
 
 interface CandidateProfileViewerProps {
   candidateData: any;
