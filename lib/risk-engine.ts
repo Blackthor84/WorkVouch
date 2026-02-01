@@ -53,6 +53,17 @@ const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(Number(n))));
 const safeNum = (n: unknown, d: number): number => (Number.isFinite(Number(n)) ? Number(n) : d);
 
 /**
+ * Apply optional preview override (admin simulation). If override is set and finite, return clamped override; else return computed.
+ * Used by API routes or clients when previewSimulationData.riskOverride is provided.
+ */
+export function applyRiskOverride(computedScore: number, override: number | null | undefined): number {
+  if (override != null && Number.isFinite(Number(override))) {
+    return clamp(Number(override));
+  }
+  return computedScore;
+}
+
+/**
  * Resolve risk model config: company override (if enterprise_override_enabled and override_enabled) else industry preset.
  * Service role only.
  */

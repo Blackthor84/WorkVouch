@@ -157,6 +157,9 @@ export function CandidateProfileViewer({
       {/* WorkVouch Insights (employer-only, feature-flagged) */}
       <WorkVouchInsightsSection candidateId={safeProfile.id} />
 
+      {/* Employer-only risk overlay (Career Health + Rehire, Velocity, Risk Flag, Network, Fraud confidence) */}
+      <EmployerRiskOverlay candidateId={safeProfile.id} />
+
       {/* Trust Score */}
       <Card className="p-6">
         <div className="flex items-center justify-between">

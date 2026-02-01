@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { LayoutWrapper } from "@/components/layout-wrapper";
+import { Providers } from "@/components/providers";
 import { PreviewProvider } from "@/lib/preview-context";
 import SimulationBanner from "@/components/SimulationBanner";
 
@@ -34,12 +35,14 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body className="bg-background dark:bg-[#0D1117] flex flex-col min-h-screen antialiased transition-colors">
-        <PreviewProvider>
-          <SimulationBanner />
-          <LayoutWrapper user={null} roles={[]}>
-            {children}
-          </LayoutWrapper>
-        </PreviewProvider>
+        <Providers>
+          <PreviewProvider>
+            <SimulationBanner />
+            <LayoutWrapper user={null} roles={[]}>
+              {children}
+            </LayoutWrapper>
+          </PreviewProvider>
+        </Providers>
       </body>
     </html>
   );

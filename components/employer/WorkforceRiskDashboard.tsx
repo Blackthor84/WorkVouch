@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { usePreview } from "@/lib/preview-context";
+import { applyRiskOverride } from "@/lib/risk-engine";
 
 interface WorkforceRiskResponse {
   averageRisk: number;
@@ -38,6 +40,7 @@ interface HistoryPoint {
 }
 
 export function WorkforceRiskDashboard() {
+  const { preview } = usePreview();
   const [data, setData] = useState<WorkforceRiskResponse | null>(null);
   const [departments, setDepartments] = useState<DepartmentRow[]>([]);
   const [roles, setRoles] = useState<RoleRow[]>([]);
@@ -74,7 +77,7 @@ export function WorkforceRiskDashboard() {
         setHistory(Array.isArray(hist) ? hist : []);
       })
       .catch((e) => {
-        if (!cancelled) setError(e.message ?? "Unable to load risk overview");
+        if (!cancelled) setError(e.message ?? "Unable to load integrity overview");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -111,7 +114,7 @@ export function WorkforceRiskDashboard() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `risk-summary-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `workforce-integrity-summary-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -131,7 +134,7 @@ export function WorkforceRiskDashboard() {
     return (
       <Card className="p-6 border-slate-200 dark:border-slate-700 shadow-sm">
         <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">
-          Workforce Risk Intelligence
+          Workforce Integrity Dashboard
         </h3>
         <p className="text-sm text-slate-500 dark:text-slate-400">{error ?? "No data available."}</p>
       </Card>
@@ -152,7 +155,7 @@ export function WorkforceRiskDashboard() {
         : "text-red-600 dark:text-red-400";
 
   const statusLabel = (avgRisk: number) =>
-    avgRisk >= 70 ? "Low risk" : avgRisk >= 40 ? "Moderate" : "High risk";
+    avgRisk >= 70 ? "Strong" : avgRisk >= 40 ? "Moderate" : "Building";
   const statusColor = (avgRisk: number) =>
     avgRisk >= 70
       ? "text-emerald-600 dark:text-emerald-400"
@@ -167,11 +170,11 @@ export function WorkforceRiskDashboard() {
       <Card className="p-6 border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1A1F2B] shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
-            Workforce Risk Intelligence
+            Workforce Integrity Dashboard
           </h3>
           {data.canExportRiskSummary && (
             <Button variant="secondary" size="sm" onClick={handleDownloadSummary}>
-              Download Risk Summary
+              Download Summary
             </Button>
           )}
         </div>
@@ -180,9 +183,9 @@ export function WorkforceRiskDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 bg-slate-50/50 dark:bg-slate-800/30">
             <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">
-              Average Risk
+              Average Profile Strength
             </p>
-            <p className={`text-2xl font-bold ${riskColor}`}>{data.averageRisk.toFixed(1)}</p>
+            <p className={`text-2xl font-bold ${riskColor}`}>{displayAverageRisk.toFixed(1)}</p>
             <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5">0–100 scale</p>
           </div>
           <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 bg-slate-50/50 dark:bg-slate-800/30">
@@ -195,7 +198,7 @@ export function WorkforceRiskDashboard() {
           </div>
           <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 bg-slate-50/50 dark:bg-slate-800/30">
             <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">
-              Disputes
+              Pending Clarifications
             </p>
             <p className="text-2xl font-bold text-slate-800 dark:text-slate-200">{data.disputeCount}</p>
           </div>
@@ -228,7 +231,7 @@ export function WorkforceRiskDashboard() {
         {/* Risk distribution stacked bar */}
         <div className="mb-6">
           <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-            Risk Distribution
+            Profile Strength Distribution
           </p>
           <div className="h-8 w-full rounded-lg overflow-hidden flex bg-slate-100 dark:bg-slate-700/50">
             {lowPct > 0 && (
@@ -256,15 +259,15 @@ export function WorkforceRiskDashboard() {
           <div className="flex flex-wrap gap-4 mt-2 text-sm text-slate-600 dark:text-slate-400">
             <span>
               <span className="inline-block w-3 h-3 rounded-full bg-emerald-500 dark:bg-emerald-600 mr-1.5 align-middle" />
-              Low: {data.distribution.low} ({lowPct}%)
+              Strong: {data.distribution.low} ({lowPct}%)
             </span>
             <span>
               <span className="inline-block w-3 h-3 rounded-full bg-amber-500 dark:bg-amber-600 mr-1.5 align-middle" />
               Moderate: {data.distribution.moderate} ({modPct}%)
             </span>
             <span>
-              <span className="inline-block w-3 h-3 rounded-full bg-red-500 dark:bg-red-600 mr-1.5 align-middle" />
-              High: {data.distribution.high} ({highPct}%)
+              <span className="inline-block w-3 h-3 rounded-full bg-slate-400 dark:bg-slate-500 mr-1.5 align-middle" />
+              Building: {data.distribution.high} ({highPct}%)
             </span>
           </div>
         </div>
@@ -272,7 +275,7 @@ export function WorkforceRiskDashboard() {
         {/* Monthly trend */}
         <div className="mb-6">
           <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-            Risk Trend by Month
+            Integrity Trend by Month
           </p>
           <div className="flex items-end gap-0.5 h-24">
             {trendData.map(({ month, avgRisk }) => {
@@ -348,16 +351,16 @@ export function WorkforceRiskDashboard() {
       {roles.length > 0 && (
         <Card className="p-6 border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1A1F2B] shadow-sm">
           <h4 className="text-base font-semibold text-slate-800 dark:text-slate-200 mb-4">
-            Role Risk
+            Role Profile Strength
           </h4>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-left">
                   <th className="pb-2 pr-4 font-medium">Role</th>
-                  <th className="pb-2 pr-4 font-medium">Avg Risk</th>
+                  <th className="pb-2 pr-4 font-medium">Avg Strength</th>
                   <th className="pb-2 pr-4 font-medium">Employees</th>
-                  <th className="pb-2 font-medium">Stability</th>
+                  <th className="pb-2 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -399,21 +402,21 @@ export function WorkforceRiskDashboard() {
                     {Math.abs(
                       Math.round((benchmark.difference / benchmark.industryAverage) * 100)
                     )}
-                    % more stable
+                    % above
                   </span>{" "}
-                  than industry average (your avg: {benchmark.employerAverage.toFixed(1)}, industry
+                  industry average profile strength (yours: {benchmark.employerAverage.toFixed(1)}, industry
                   avg: {benchmark.industryAverage.toFixed(1)}).
                 </>
               ) : (
                 <>
-                  Your workforce risk is{" "}
+                  Your average profile strength is{" "}
                   <span className="font-semibold text-amber-600 dark:text-amber-400">
                     {Math.abs(
                       Math.round((benchmark.difference / benchmark.industryAverage) * 100)
                     )}
-                    % higher
+                    % below
                   </span>{" "}
-                  than industry average (your avg: {benchmark.employerAverage.toFixed(1)}, industry
+                  industry average (yours: {benchmark.employerAverage.toFixed(1)}, industry
                   avg: {benchmark.industryAverage.toFixed(1)}).
                 </>
               )}

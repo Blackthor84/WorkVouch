@@ -196,8 +196,7 @@ export function EmployerDashboardClient({
             Dashboard
           </h1>
           <p className="text-grey-medium dark:text-gray-400 mt-1">
-            Welcome back! Here's what's happening with your job postings and
-            candidates.
+            Welcome back. Manage candidates, verifications, and your subscription.
           </p>
           {planTier && (
             <div className="mt-2 flex items-center gap-2">
@@ -271,7 +270,7 @@ export function EmployerDashboardClient({
         {/* Usage Panel */}
         <UsagePanel />
 
-        {/* Workforce Risk Dashboard (feature-gated) */}
+        {/* Workforce Integrity Dashboard (feature-gated) */}
         {riskDashboardEnabled && (
           <div className="mt-6">
             <WorkforceRiskDashboard />
@@ -289,14 +288,6 @@ export function EmployerDashboardClient({
             <PlusIcon className="h-6 w-6 mb-2" />
             <span className="font-semibold">Company profile</span>
             <span className="text-sm opacity-90">Complete your company details</span>
-          </Button>
-          <Button
-            href="/employer/job-posts?action=create"
-            className="h-auto p-4 flex flex-col items-start"
-          >
-            <PlusIcon className="h-6 w-6 mb-2" />
-            <span className="font-semibold">Post New Job</span>
-            <span className="text-sm opacity-90">Create a job listing</span>
           </Button>
           <Button
             id="onboarding-add-team"
@@ -469,7 +460,7 @@ export function EmployerDashboardClient({
                 </div>
               ) : (
                 <p className="text-sm text-grey-medium dark:text-gray-400">
-                  No sample risk data yet. Risk is computed when you have verified employees in the rehire registry.
+                  No sample data yet. Profile strength is computed when you have verified employees in the rehire registry.
                 </p>
               )}
             </Card>
@@ -481,7 +472,7 @@ export function EmployerDashboardClient({
           <div className="mt-6">
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4 text-grey-dark dark:text-gray-200">
-                Workforce Risk Overview
+                Workforce Integrity Overview
               </h3>
               {riskOverviewLoading ? (
                 <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>

@@ -5,14 +5,12 @@ import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import {
   MagnifyingGlassIcon,
-  BriefcaseIcon,
   BookmarkIcon,
   ChatBubbleLeftRightIcon,
   CreditCardIcon,
   BuildingOfficeIcon,
 } from "@heroicons/react/24/outline";
 import { CandidateSearch } from "./candidate-search";
-import { JobPostingManager } from "./job-posting-manager";
 import { SavedCandidates } from "./saved-candidates";
 import { EmployerMessages } from "./employer-messages";
 import { EmployerBilling } from "./employer-billing";
@@ -20,7 +18,6 @@ import { CompanyProfileSettings } from "./company-profile-settings";
 
 type DashboardTab =
   | "search"
-  | "jobs"
   | "saved"
   | "messages"
   | "billing"
@@ -35,7 +32,6 @@ export function EmployerDashboardMain() {
       label: "Candidate Search",
       icon: MagnifyingGlassIcon,
     },
-    { id: "jobs" as DashboardTab, label: "Job Postings", icon: BriefcaseIcon },
     {
       id: "saved" as DashboardTab,
       label: "Saved Candidates",
@@ -61,7 +57,7 @@ export function EmployerDashboardMain() {
           Employer Dashboard
         </h1>
         <p className="mt-1 text-sm text-grey-medium dark:text-gray-400">
-          Manage candidates, job postings, and your subscription
+          Manage candidates and your subscription
         </p>
       </div>
 
@@ -94,7 +90,6 @@ export function EmployerDashboardMain() {
       {/* Tab Content */}
       <div className="mt-6">
         {activeTab === "search" && <CandidateSearch />}
-        {activeTab === "jobs" && <JobPostingManager />}
         {activeTab === "saved" && <SavedCandidates />}
         {activeTab === "messages" && <EmployerMessages />}
         {activeTab === "billing" && <EmployerBilling />}

@@ -1,64 +1,81 @@
+/**
+ * Career Passport Platform pricing.
+ * Employer: Lite, Pro, Enterprise. Employee: Free, Pro.
+ * Not a job board. Verification + identity infrastructure.
+ */
+
 export const employerPlans = [
   {
-    id: "starter",
-    name: "Starter",
+    id: "lite",
+    name: "Lite",
     price: 49,
     period: "month",
     features: [
-      "15 worker profile searches/month",
-      "10 WorkVouch verification reports",
-      "Contact verified coworkers",
-      "Basic trust scores",
-      "Export verification PDF"
+      "25 verification reports",
+      "Unlimited worker search",
+      "Basic workforce dashboard",
+      "Industry Mode (basic)",
     ],
-    stripePriceId: process.env.STRIPE_PRICE_STARTER
-  },
-  {
-    id: "team",
-    name: "Team",
-    price: 149,
-    period: "month",
-    features: [
-      "50 searches/month",
-      "40 verification reports",
-      "Unlimited coworker messaging",
-      "Advanced trust analytics",
-      "New hire tracking dashboard",
-      "Priority chat support"
-    ],
-    stripePriceId: process.env.STRIPE_PRICE_TEAM
+    stripePriceId: process.env.STRIPE_PRICE_LITE,
   },
   {
     id: "pro",
     name: "Pro",
-    price: 299,
+    price: 149,
     period: "month",
     features: [
-      "150 searches/month",
-      "120 verification reports",
-      "Department subaccounts",
-      "Bulk worker import & auto-verification",
-      "Role-based permissions",
-      "Applicant comparison tools"
+      "100 verification reports",
+      "Credential tracking",
+      "Compliance alerts",
+      "Workforce Integrity Dashboard",
+      "Bulk verification (up to 50)",
     ],
-    stripePriceId: process.env.STRIPE_PRICE_PRO
+    stripePriceId: process.env.STRIPE_PRICE_PRO,
   },
   {
-    id: "security",
-    name: "Security Agency Bundle",
-    price: 199,
+    id: "enterprise",
+    name: "Enterprise",
+    price: null,
+    period: "custom",
+    features: [
+      "Unlimited verifications",
+      "API access",
+      "HR system sync",
+      "Bulk upload 500+",
+      "Advanced analytics",
+      "Private data export",
+      "Dedicated support",
+    ],
+    stripePriceId: null,
+  },
+];
+
+export const employeePlans = [
+  {
+    id: "free",
+    name: "Free",
+    price: 0,
     period: "month",
     features: [
-      "80 verification reports/month",
-      "Unlimited worker searches",
-      "Unlimited coworker messaging",
-      "Proof-of-work history for guards",
-      "Upload guard licenses, certificates & training",
-      "Auto-flag inconsistent claims",
-      "Guard availability & shift preference tools"
+      "Public Career Passport",
+      "Verified employment timeline",
+      "Reference collection",
+      "Profile strength visibility",
     ],
-    stripePriceId: process.env.STRIPE_PRICE_SECURITY
-  }
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    price: 9,
+    period: "month",
+    features: [
+      "Advanced insights",
+      "Downloadable verification PDF",
+      "Industry badge",
+      "Passport analytics (views + shares)",
+    ],
+    stripePriceId: process.env.STRIPE_PRICE_EMPLOYEE_PRO,
+  },
 ];
 
 export const payPerUse = {
@@ -69,10 +86,9 @@ export const payPerUse = {
   features: [
     "Confirmed job history",
     "Peer verification summary",
-    "Trust score breakdown",
-    "Peer reliability insights",
+    "Profile strength breakdown",
     "Exportable PDF",
-    "Contact peers"
+    "Contact peers",
   ],
-  stripePriceId: process.env.STRIPE_PRICE_ONE_TIME
+  stripePriceId: process.env.STRIPE_PRICE_ONE_TIME,
 };

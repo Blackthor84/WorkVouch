@@ -221,6 +221,7 @@ export async function calculateEmployerWorkforceRisk(employerId: string): Promis
 /**
  * Run all profile-level engines for a user (trust, career stability, network density, rehire, risk).
  * Call after verification report created, reference submitted, dispute resolved, credential uploaded.
+ * Then upsert profile_metrics for silent employer overlay / analytics.
  */
 export async function triggerProfileIntelligence(profileId: string): Promise<void> {
   await Promise.all([
@@ -230,6 +231,8 @@ export async function triggerProfileIntelligence(profileId: string): Promise<voi
     calculateRehireProbability(profileId),
     calculateRiskSnapshotForProfile(profileId),
   ]).catch((e) => safeLog("triggerProfileIntelligence", e));
+  const { upsertProfileMetrics } = await import("@/lib/profile-metrics");
+  await upsertProfileMetrics(profileId).catch((e) => safeLog("upsertProfileMetrics", e));
 }
 
 /**

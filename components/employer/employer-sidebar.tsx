@@ -5,7 +5,7 @@ import { ListItem } from "../ui/list-item";
 import {
   HomeIcon,
   MagnifyingGlassIcon,
-  BriefcaseIcon,
+  UserGroupIcon,
   ChatBubbleLeftRightIcon,
   CreditCardIcon,
   Cog6ToothIcon,
@@ -17,11 +17,15 @@ export function EmployerSidebar() {
   const navItems = [
     { href: "/employer/dashboard", label: "Dashboard", icon: HomeIcon },
     {
+      href: "/employer/directory",
+      label: "Directory",
+      icon: UserGroupIcon,
+    },
+    {
       href: "/employer/candidates",
       label: "Candidates",
       icon: MagnifyingGlassIcon,
     },
-    { href: "/employer/job-posts", label: "Job Posts", icon: BriefcaseIcon },
     {
       href: "/employer/messages",
       label: "Messages",

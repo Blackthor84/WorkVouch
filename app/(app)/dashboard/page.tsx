@@ -4,6 +4,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrustScoreCard } from "@/components/trust-score-card";
+import { ProfileStrengthCard } from "@/components/profile";
+import { CareerHealthDashboard } from "@/components/employee/CareerHealthDashboard";
+import { ProfileVisibilityCard } from "@/components/employee/ProfileVisibilityCard";
 import {
   UserCircleIcon,
   BriefcaseIcon,
@@ -186,6 +189,18 @@ export default async function UserDashboardPage() {
           <div className="flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
             <div id="onboarding-trust-score">
               <TrustScoreCard userId={safeProfile?.id || user.id} />
+            </div>
+
+            <div id="profile-strength">
+              <ProfileStrengthCard userId={safeProfile?.id || user.id} />
+            </div>
+
+            <div id="career-health">
+              <CareerHealthDashboard />
+            </div>
+
+            <div id="profile-visibility">
+              <ProfileVisibilityCard />
             </div>
 
             <Card id="onboarding-profile" className="p-6">

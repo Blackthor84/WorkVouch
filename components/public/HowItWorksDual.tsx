@@ -5,14 +5,14 @@ export default function HowItWorksDual() {
   const employeeItems = [
     "Verify past roles",
     "Collect coworker references",
-    "Build career trust score",
-    "Share public trust profile",
+    "Build trust score",
+    "Control who sees your Work Passport",
   ];
   const employerItems = [
-    "Verify candidate history instantly",
-    "View risk snapshot",
-    "Track workforce integrity",
-    "Reduce bad hires",
+    "Request a Work Passport",
+    "Verify before you hire",
+    "Structured, privacy-first verification",
+    "No public job board—verified identity only",
   ];
   return (
     <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-24">
@@ -52,7 +52,7 @@ export default function HowItWorksDual() {
               ))}
             </ul>
             <Button href="/signup?type=employer" variant="secondary" size="md" className="mt-4">
-              Hire With Confidence
+              Request a Work Passport
             </Button>
           </CardContent>
         </Card>

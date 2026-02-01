@@ -22,80 +22,43 @@ export default function SecurityPage() {
       <section className="border-y border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-900/40">
         <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:py-20">
           <h2 className="text-center text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-            Role-Based Access Control
+            Role-Based Access
           </h2>
           <p className="mt-6 text-center text-slate-600 dark:text-slate-400">
-            Access to administrative functionality is restricted through structured role assignments. Sensitive operations require authenticated sessions and server-side validation.
+            Access is restricted by role. Sensitive operations require authenticated sessions and server-side validation.
           </p>
           <ul className="mx-auto mt-6 max-w-xl list-inside list-disc space-y-2 text-slate-600 dark:text-slate-400">
-            <li>Role-based access (User, Employer, Admin, SuperAdmin)</li>
-            <li>Server-side authorization enforcement</li>
-            <li>Service-role database operations</li>
-            <li>Feature-level access control</li>
+            <li>Role-based access (User, Employer, Admin)</li>
+            <li>Server-side authorization</li>
+            <li>Controlled feature rollout</li>
           </ul>
         </div>
-      </section>
-
-      {/* Feature Control Infrastructure */}
-      <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:py-20">
-        <h2 className="text-center text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-          Controlled Feature Deployment
-        </h2>
-        <p className="mt-6 text-center text-slate-600 dark:text-slate-400">
-          WorkVouch includes a feature flag infrastructure that allows platform-level control over feature visibility and activation.
-        </p>
-        <ul className="mx-auto mt-6 max-w-xl list-inside list-disc space-y-2 text-slate-600 dark:text-slate-400">
-          <li>Global feature toggles</li>
-          <li>Per-user and per-employer overrides</li>
-          <li>Hidden features until explicitly enabled</li>
-          <li>Database-persisted flag assignments</li>
-          <li>Administrative preview modes</li>
-        </ul>
       </section>
 
       {/* Data Handling */}
-      <section className="border-y border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-900/40">
-        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:py-20">
-          <h2 className="text-center text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-            Data Handling & Storage
-          </h2>
-          <p className="mt-6 text-center text-slate-600 dark:text-slate-400">
-            WorkVouch stores structured employment verification data with controlled access policies.
-          </p>
-          <ul className="mx-auto mt-6 max-w-xl list-inside list-disc space-y-2 text-slate-600 dark:text-slate-400">
-            <li>Encrypted transport (HTTPS)</li>
-            <li>Secure authentication flows</li>
-            <li>Server-side session validation</li>
-            <li>Row-level security enforcement</li>
-            <li>Restricted direct client database writes</li>
-          </ul>
-        </div>
-      </section>
-
-      {/* Audit & Oversight */}
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:py-20">
         <h2 className="text-center text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-          Administrative Audit Logging
+          Encrypted Storage &amp; Verification
         </h2>
         <p className="mt-6 text-center text-slate-600 dark:text-slate-400">
-          Administrative actions such as impersonation and feature control changes are logged for accountability.
+          WorkVouch stores structured employment verification data with controlled access.
         </p>
         <ul className="mx-auto mt-6 max-w-xl list-inside list-disc space-y-2 text-slate-600 dark:text-slate-400">
-          <li>Logged admin actions</li>
-          <li>Role change tracking</li>
-          <li>Impersonation audit entries</li>
-          <li>Controlled administrative endpoints</li>
+          <li>Encrypted transport (HTTPS)</li>
+          <li>Secure authentication</li>
+          <li>Structured verification workflows</li>
+          <li>Row-level security</li>
         </ul>
       </section>
 
-      {/* Platform Architecture */}
+      {/* Oversight */}
       <section className="border-y border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-900/40">
         <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:py-20">
           <h2 className="text-center text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-            Platform Architecture
+            Accountability
           </h2>
-          <p className="mt-6 text-center text-slate-700 dark:text-slate-300">
-            WorkVouch is structured to support scalable subscription enforcement, plan-based usage limits, and controlled feature growth without architectural rewrites.
+          <p className="mt-6 text-center text-slate-600 dark:text-slate-400">
+            Administrative actions are logged. Access to sensitive endpoints is controlled.
           </p>
         </div>
       </section>

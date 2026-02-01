@@ -450,6 +450,21 @@ export default function HiddenFeaturesClient({
                     <td className="py-3 px-4 text-sm text-grey-medium dark:text-gray-400">{formatDate(flag.created_at)}</td>
                     <td className="py-3 px-4">
                       <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            setPreview((prev) => ({
+                              ...prev,
+                              demoActive: true,
+                              featureFlags: [...(prev?.featureFlags ?? []).filter((f) => f !== flag.key), flag.key],
+                              previewFeatures: { ...(prev?.previewFeatures ?? {}), [flag.key]: true },
+                            } as PreviewState));
+                            setTimeout(() => router.push("/employer/dashboard"), 0);
+                          }}
+                        >
+                          Preview Feature
+                        </Button>
                         <Button variant="ghost" size="sm" onClick={() => setDetailFlagId(detailFlagId === flag.id ? null : flag.id)}>
                           Details
                         </Button>

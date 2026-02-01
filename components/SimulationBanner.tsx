@@ -1,11 +1,19 @@
 "use client";
 
 import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { usePreview, saveEliteStateToStorage } from "@/lib/preview-context";
 
 const BODY_DEMO_CLASS = "workvouch-elite-demo-active";
 
+function isPreviewAdmin(session: { user?: { role?: string; roles?: string[] } } | null): boolean {
+  if (!session?.user) return false;
+  const roles = session.user.roles ?? (session.user.role ? [session.user.role] : []);
+  return roles.includes("admin") || roles.includes("superadmin");
+}
+
 export default function SimulationBanner() {
+  const { data: session } = useSession();
   const { preview, setPreview } = usePreview();
 
   useEffect(() => {
@@ -22,7 +30,8 @@ export default function SimulationBanner() {
 
   if (!preview) return null;
 
-  const isElite = Boolean(preview.demoActive);
+  const adminPreview = isPreviewAdmin(session);
+  if (!adminPreview) return null;
 
   const handleExit = () => {
     saveEliteStateToStorage(null);
@@ -30,27 +39,14 @@ export default function SimulationBanner() {
   };
 
   return (
-    <div
-      className={
-        isElite
-          ? "fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2 bg-gradient-to-r from-violet-900/95 to-purple-900/95 text-white text-sm border-b border-violet-400/50 shadow-lg shadow-violet-500/20"
-          : "fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2 bg-black text-white text-sm"
-      }
-    >
-      <span className="font-medium">
-        {isElite
-          ? "Elite Demo Mode Active"
-          : `Simulation — Role: ${preview.role ?? "—"} | Plan: ${preview.subscription ?? "—"}`}
-      </span>
+    <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2 bg-slate-800 text-white text-sm border-b border-slate-600">
+      <span className="font-medium">Preview Mode Active — Simulation Only</span>
       <button
-        className={
-          isElite
-            ? "px-3 py-1.5 rounded-md bg-violet-600 hover:bg-violet-500 text-white font-medium"
-            : "bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-white"
-        }
+        type="button"
+        className="px-3 py-1.5 rounded-md bg-slate-600 hover:bg-slate-500 text-white font-medium"
         onClick={handleExit}
       >
-        Exit {isElite ? "Demo" : "Simulation"}
+        Exit Preview
       </button>
     </div>
   );

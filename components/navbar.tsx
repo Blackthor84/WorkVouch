@@ -25,7 +25,6 @@ export default function Navbar() {
             <Link href="/" className="hover:text-gray-300 transition">Home</Link>
             <Link href="/about" className="hover:text-gray-300 transition">About</Link>
             <Link href="/pricing" className="hover:text-gray-300 transition">Pricing</Link>
-            <Link href="/security-agencies" className="hover:text-gray-300 transition">For Security Agencies</Link>
             <Link href="/careers" className="hover:text-gray-300 transition">Careers</Link>
             <Link href="/contact" className="hover:text-gray-300 transition">Contact</Link>
           </div>
@@ -55,7 +54,6 @@ export default function Navbar() {
           <Link href="/" className="block py-2 hover:text-gray-300 transition">Home</Link>
           <Link href="/about" className="block py-2 hover:text-gray-300 transition">About</Link>
           <Link href="/pricing" className="block py-2 hover:text-gray-300 transition">Pricing</Link>
-          <Link href="/security-agencies" className="block py-2 hover:text-gray-300 transition">For Security Agencies</Link>
           <Link href="/careers" className="block py-2 hover:text-gray-300 transition">Careers</Link>
           <Link href="/contact" className="block py-2 hover:text-gray-300 transition">Contact</Link>
           <div className="pt-2 space-y-2">

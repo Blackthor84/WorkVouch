@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="bg-blue-700 text-white py-12 px-6">
       <div className="max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-5 gap-8">
           <div>
             <h3 className="font-semibold mb-4 text-lg">WorkVouch</h3>
             <p className="text-sm opacity-90 mb-4">
@@ -31,9 +31,17 @@ export default function Footer() {
             <h3 className="font-semibold mb-4 text-lg">Resources</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="/pricing" className="hover:underline opacity-90 hover:opacity-100">Pricing</Link></li>
+              <li><Link href="/directory" className="hover:underline opacity-90 hover:opacity-100">Directory</Link></li>
               <li><Link href="/faq" className="hover:underline opacity-90 hover:opacity-100">FAQ</Link></li>
               <li><Link href="/help" className="hover:underline opacity-90 hover:opacity-100">Help</Link></li>
-              <li><Link href="/security-agencies" className="hover:underline opacity-90 hover:opacity-100">For Security Agencies</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-4 text-lg">Industry Solutions</h3>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/security-agencies" className="hover:underline opacity-90 hover:opacity-100">Security Agencies</Link></li>
+              <li><Link href="/solutions" className="hover:underline opacity-90 hover:opacity-100">All Solutions</Link></li>
             </ul>
           </div>
           

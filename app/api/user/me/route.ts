@@ -17,14 +17,27 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    const profileAny = profile as {
+      visibility?: string;
+      is_public_passport?: boolean;
+      searchable_by_verified_employers?: boolean;
+      searchable_by_shared_employers?: boolean;
+    };
     return NextResponse.json({
+      id: profile.id,
       user: {
         id: profile.id,
         name: profile.full_name,
         email: profile.email,
         industry: profile.industry,
-        currentEmployerHidden: true, // Default for now
+        currentEmployerHidden: true,
         createdAt: profile.created_at,
+      },
+      profile: {
+        visibility: profileAny.visibility ?? "private",
+        is_public_passport: profileAny.is_public_passport ?? false,
+        searchable_by_verified_employers: profileAny.searchable_by_verified_employers ?? true,
+        searchable_by_shared_employers: profileAny.searchable_by_shared_employers ?? true,
       },
       roles: roles || [],
     });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { usePreview } from "@/lib/preview-context";
 
 const CACHE_TTL_MS = 60 * 1000;
@@ -91,8 +92,12 @@ export function useFeatureFlagWithLoading(featureKey: string): {
   enabled: boolean;
   loading: boolean;
 } {
+  const { data: session } = useSession();
   const { preview } = usePreview();
-  const previewEnabled = Boolean(preview?.featureFlags?.includes(featureKey));
+  const previewModeActive = Boolean(preview && (preview.demoActive || preview.featureFlags?.length) && isPreviewAdmin(session));
+  const previewEnabled =
+    previewModeActive &&
+    (preview?.previewFeatures?.[featureKey] === true || (preview?.previewFeatures?.[featureKey] !== false && preview?.featureFlags?.includes(featureKey)));
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
 

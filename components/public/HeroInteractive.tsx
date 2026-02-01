@@ -36,9 +36,9 @@ const industryDisplayName: Record<HeroIndustry, string> = {
 };
 
 const defaultEmployeeSubtext =
-  "Verify your work history, collect trusted references, and build a career trust profile that follows you.";
+  "Professional Identity. Controlled by You.";
 const defaultEmployerSubtext =
-  "Reduce hiring risk with structured verification, risk snapshots, and workforce intelligence.";
+  "Verify Before You Hire. Request a Work Passport.";
 
 interface HeroInteractiveProps {
   industry?: HeroIndustry | null;
@@ -49,8 +49,8 @@ export default function HeroInteractive({ industry }: HeroInteractiveProps) {
 
   const headline =
     mode === "employee"
-      ? "Own Your Career Reputation."
-      : "Hire With Verified Confidence.";
+      ? "Professional Identity. Controlled by You."
+      : "Verify Before You Hire.";
 
   const subtext =
     industry && industryCopy[industry]

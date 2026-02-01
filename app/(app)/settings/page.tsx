@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { UserSettings } from "@/components/settings/user-settings";
+import { PublicPassportSettings } from "@/components/settings/PublicPassportSettings";
 
 // Ensure runtime rendering - prevents build-time prerendering
 export const revalidate = 0;
@@ -29,7 +28,8 @@ export default async function SettingsPage() {
           </p>
         </div>
         {/* Settings Content */}
-        <div>
+        <div className="space-y-8">
+          <PublicPassportSettings />
           <UserSettings />
         </div>
       </div>
