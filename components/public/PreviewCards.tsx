@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { TrustProfilePreview } from "@/components/profile";
+import IndustryTrustPreview from "./IndustryTrustPreview";
 
 export default function PreviewCards() {
   return (
@@ -9,7 +9,7 @@ export default function PreviewCards() {
       </h2>
       <div className="grid gap-8 lg:grid-cols-2">
         <div className="flex justify-center lg:justify-start">
-          <TrustProfilePreview className="w-full max-w-md" />
+          <IndustryTrustPreview />
         </div>
         <Card className="border-slate-200 dark:border-slate-700 overflow-hidden">
           <CardHeader className="pb-2">
