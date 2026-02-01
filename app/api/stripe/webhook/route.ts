@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { getTierFromSubscription, getMeteredSubscriptionItemIds } from "@/lib/stripe/config";
+import { getTierFromSubscription, getMeteredSubscriptionItemIds, getLookupQuotaForTier } from "@/lib/stripe/config";
 import Stripe from "stripe";
 
-/** Update employer plan_tier and optional subscription/item IDs by stripe_customer_id. Uses service role. Never throws. */
+function getSubscriptionInterval(subscription: Stripe.Subscription): string {
+  const interval = subscription.items?.data?.[0]?.price?.recurring?.interval;
+  return typeof interval === "string" ? interval : "month";
+}
+
+/** Update employer plan_tier, subscription_status, subscription_interval, lookup_quota by stripe_customer_id. Uses service role. Never throws. */
 async function updateEmployerFromSubscription(
   stripeCustomerId: string,
   subscription: Stripe.Subscription,
@@ -14,10 +19,16 @@ async function updateEmployerFromSubscription(
   try {
     const tier = getTierFromSubscription(subscription);
     const ids = getMeteredSubscriptionItemIds(subscription);
+    const subscriptionStatus = subscription.status ?? "active";
+    const subscriptionInterval = getSubscriptionInterval(subscription);
+    const lookupQuota = getLookupQuotaForTier(tier);
     const adminSupabase = getSupabaseServer() as any;
     const update: Record<string, unknown> = {
       plan_tier: tier,
       stripe_subscription_id: subscription.id,
+      subscription_status: subscriptionStatus,
+      subscription_interval: subscriptionInterval,
+      lookup_quota: lookupQuota,
       stripe_report_overage_item_id: ids.reportOverageItemId ?? null,
       stripe_search_overage_item_id: ids.searchOverageItemId ?? null,
       stripe_seat_overage_item_id: ids.seatOverageItemId ?? null,
@@ -156,14 +167,34 @@ export async function POST(req: NextRequest) {
               session.subscription as string,
             );
             const customerId = subscription.customer as string;
+            const adminSupabase = getSupabaseServer() as any;
             const employerId = session.metadata?.employerId as string | undefined;
-            await updateEmployerFromSubscription(customerId, subscription, { employerId });
+            const supabaseUserId = session.metadata?.supabase_user_id as string | undefined;
+
             if (employerId) {
-              const adminSupabase = getSupabaseServer() as any;
               await adminSupabase
                 .from("employer_accounts")
                 .update({ stripe_customer_id: customerId })
                 .eq("id", employerId);
+              await updateEmployerFromSubscription(customerId, subscription, { employerId });
+            } else if (supabaseUserId) {
+              const { data: employer } = await adminSupabase
+                .from("employer_accounts")
+                .select("id")
+                .eq("user_id", supabaseUserId)
+                .maybeSingle();
+              const eaId = (employer as { id?: string } | null)?.id;
+              if (eaId) {
+                await adminSupabase
+                  .from("employer_accounts")
+                  .update({ stripe_customer_id: customerId })
+                  .eq("id", eaId);
+                await updateEmployerFromSubscription(customerId, subscription, { employerId: eaId });
+              } else {
+                await updateEmployerFromSubscription(customerId, subscription);
+              }
+            } else {
+              await updateEmployerFromSubscription(customerId, subscription);
             }
           } catch (e) {
             console.error("[Stripe Webhook] checkout.session.completed:", e);
@@ -188,7 +219,7 @@ export async function POST(req: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription;
         try {
           const customerId = subscription.customer as string;
-          await updateEmployerPlanTier(customerId, "starter");
+          await updateEmployerOnSubscriptionDeleted(customerId);
         } catch (e) {
           console.error("[Stripe Webhook] customer.subscription.deleted:", e);
         }
@@ -205,9 +236,8 @@ export async function POST(req: NextRequest) {
         if (subscriptionId) {
           try {
             const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-            const tier = getTierFromSubscription(subscription);
-            await updateEmployerPlanTier(invoice.customer as string, tier);
             const customerId = invoice.customer as string;
+            await updateEmployerFromSubscription(customerId, subscription);
             const sub = subscription as { current_period_end?: number };
             const periodEndSec = sub.current_period_end ?? Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
             await resetUsageForCustomer(customerId, new Date(periodEndSec * 1000));

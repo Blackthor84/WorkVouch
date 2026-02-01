@@ -16,11 +16,43 @@ export const STRIPE_PRICE_REPORT_OVERAGE = process.env.STRIPE_PRICE_REPORT_OVERA
 export const STRIPE_PRICE_SEARCH_OVERAGE = process.env.STRIPE_PRICE_SEARCH_OVERAGE || ''
 export const STRIPE_PRICE_SEAT_OVERAGE = process.env.STRIPE_PRICE_SEAT_OVERAGE || ''
 
+// Monthly/Yearly subscription price IDs (whitelist for checkout)
+export const PRICE_ID_STARTER_MONTHLY = process.env.STRIPE_PRICE_STARTER_MONTHLY || process.env.PRICE_ID_STARTER_MONTHLY || process.env.STRIPE_PRICE_STARTER || ''
+export const PRICE_ID_STARTER_YEARLY = process.env.STRIPE_PRICE_STARTER_YEARLY || process.env.PRICE_ID_STARTER_YEARLY || ''
+export const PRICE_ID_GROWTH_MONTHLY = process.env.STRIPE_PRICE_GROWTH_MONTHLY || process.env.PRICE_ID_GROWTH_MONTHLY || process.env.STRIPE_PRICE_TEAM || ''
+export const PRICE_ID_GROWTH_YEARLY = process.env.STRIPE_PRICE_GROWTH_YEARLY || process.env.PRICE_ID_GROWTH_YEARLY || ''
+export const PRICE_ID_PRO_MONTHLY = process.env.STRIPE_PRICE_PRO_MONTHLY || process.env.PRICE_ID_PRO_MONTHLY || process.env.STRIPE_PRICE_PRO || ''
+export const PRICE_ID_PRO_YEARLY = process.env.STRIPE_PRICE_PRO_YEARLY || process.env.PRICE_ID_PRO_YEARLY || ''
+
+/** Whitelist of allowed price IDs for checkout (must start with price_) */
+export const STRIPE_WHITELISTED_PRICE_IDS: string[] = [
+  PRICE_ID_STARTER_MONTHLY,
+  PRICE_ID_STARTER_YEARLY,
+  PRICE_ID_GROWTH_MONTHLY,
+  PRICE_ID_GROWTH_YEARLY,
+  PRICE_ID_PRO_MONTHLY,
+  PRICE_ID_PRO_YEARLY,
+].filter((id): id is string => typeof id === 'string' && id.length > 0 && id.startsWith('price_'))
+
+export function isPriceIdWhitelisted(priceId: string | undefined): boolean {
+  if (!priceId || typeof priceId !== 'string' || !priceId.startsWith('price_')) return false
+  return STRIPE_WHITELISTED_PRICE_IDS.includes(priceId)
+}
+
+/** Lookup quota by tier: Starter 5, Growth 25, Pro unlimited (-1) */
+export function getLookupQuotaForTier(tier: string): number {
+  const t = (tier || '').toLowerCase()
+  if (t === 'pro') return -1
+  if (t === 'growth' || t === 'team') return 25
+  return 5 // starter, free, or unknown
+}
+
 /** Canonical price map for subscriptions (starter, team, pro) and one-time */
 export const STRIPE_PRICE_MAP: Record<string, string> = {
-  starter: STRIPE_PRICE_STARTER,
-  team: STRIPE_PRICE_TEAM,
-  pro: STRIPE_PRICE_PRO,
+  starter: STRIPE_PRICE_STARTER || PRICE_ID_STARTER_MONTHLY,
+  team: STRIPE_PRICE_TEAM || PRICE_ID_GROWTH_MONTHLY,
+  growth: PRICE_ID_GROWTH_MONTHLY,
+  pro: STRIPE_PRICE_PRO || PRICE_ID_PRO_MONTHLY,
   security: STRIPE_PRICE_SECURITY,
   one_time: STRIPE_PRICE_ONE_TIME,
 }
@@ -86,6 +118,7 @@ export function logMissingStripePriceIds(): void {
 /** Environment-safe base URL for success/cancel redirects. No trailing slash. */
 export function getCheckoutBaseUrl(origin?: string | null): string {
   const base =
+    process.env.NEXT_PUBLIC_BASE_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.NEXT_PUBLIC_URL ||
     process.env.NEXTAUTH_URL ||

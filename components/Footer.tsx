@@ -48,8 +48,11 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold mb-4 text-lg">Legal</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/privacy" className="hover:underline opacity-90 hover:opacity-100">Privacy</Link></li>
-              <li><Link href="/terms" className="hover:underline opacity-90 hover:opacity-100">Terms</Link></li>
+              <li><Link href="/legal/terms" className="hover:underline opacity-90 hover:opacity-100">Terms</Link></li>
+              <li><Link href="/legal/privacy" className="hover:underline opacity-90 hover:opacity-100">Privacy</Link></li>
+              <li><Link href="/legal/employer-agreement" className="hover:underline opacity-90 hover:opacity-100">Employer Agreement</Link></li>
+              <li><Link href="/how-disputes-work" className="hover:underline opacity-90 hover:opacity-100">How Disputes Work</Link></li>
+              <li><Link href="/compliance" className="hover:underline opacity-90 hover:opacity-100">Compliance</Link></li>
               <li><Link href="/security" className="hover:underline opacity-90 hover:opacity-100">Trust &amp; Compliance</Link></li>
             </ul>
           </div>

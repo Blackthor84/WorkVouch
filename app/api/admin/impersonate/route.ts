@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
+import { SignJWT } from "jose";
 
 type Profile = {
   id: string;
@@ -88,19 +89,52 @@ export async function POST(request: Request) {
       roles: targetRoles,
     };
 
-    // Optional: log impersonation if admin_actions table exists
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 mins
+    let impersonationToken: string | null = null;
+
+    try {
+      const { data: adminSession, error: sessionErr } = await supabase
+        .from("admin_sessions")
+        .insert({
+          admin_id: session.user.id,
+          impersonated_user_id: userId,
+          expires_at: expiresAt.toISOString(),
+        })
+        .select("id")
+        .single();
+
+      if (!sessionErr && adminSession?.id) {
+        const secret = new TextEncoder().encode(
+          process.env.NEXTAUTH_SECRET || process.env.IMPERSONATION_JWT_SECRET || "impersonation-secret"
+        );
+        impersonationToken = await new SignJWT({
+          sessionId: adminSession.id,
+          impersonated_user_id: userId,
+        })
+          .setProtectedHeader({ alg: "HS256" })
+          .setExpirationTime("30m")
+          .setIssuedAt()
+          .sign(secret);
+      }
+    } catch {
+      // admin_sessions may not exist; continue without token
+    }
+
     try {
       const adminAction: AdminAction = {
         admin_id: session.user.id as string,
         impersonated_user_id: userId as string,
         action_type: "impersonate",
       };
-      await supabase.from("admin_actions").insert(adminAction as any);
+      await supabase.from("admin_actions").insert(adminAction as Record<string, unknown>);
     } catch {
       // Table may not exist; ignore
     }
 
-    return NextResponse.json({ impersonateUser });
+    return NextResponse.json({
+      impersonateUser,
+      ...(impersonationToken && { impersonationToken, expiresAt: expiresAt.toISOString() }),
+    });
   } catch (error: unknown) {
     console.error("Impersonate API error:", error);
     return NextResponse.json(

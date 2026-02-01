@@ -7,6 +7,15 @@ import { checkFeatureAccess } from "@/lib/feature-flags";
 import { calculateAndStoreRisk } from "@/lib/risk/calculateAndPersist";
 import { calculateEmployerWorkforceRisk } from "@/lib/risk/workforce";
 import { logAuditAction } from "@/lib/audit";
+import {
+  RehireStatusEnum,
+  RehireReasonEnum,
+  type RehireStatusValue,
+  type RehireReasonValue,
+} from "@/lib/compliance-types";
+import { z } from "zod";
+
+const DETAILED_EXPLANATION_MIN_LENGTH = 150;
 
 export const dynamic = "force-dynamic";
 
@@ -15,15 +24,79 @@ interface EmployerAccountRow {
 }
 
 async function getEmployerAccountId(userId: string): Promise<string | null> {
-  const supabase = getSupabaseServer() as unknown as { from: (t: string) => { select: (c: string) => { eq: (col: string, val: string) => Promise<{ data: unknown; error: unknown }> } } };
-  const { data } = await supabase.from("employer_accounts").select("id").eq("user_id", userId);
+  const supabase = getSupabaseServer() as unknown as {
+    from: (t: string) => {
+      select: (c: string) => {
+        eq: (col: string, val: string) => Promise<{ data: unknown; error: unknown }>;
+      };
+    };
+  };
+  const { data } = await supabase
+    .from("employer_accounts")
+    .select("id")
+    .eq("user_id", userId);
   const row = (Array.isArray(data) ? data[0] : data) as EmployerAccountRow | undefined;
   return row?.id ?? null;
 }
 
+const rehireStatusValues = [
+  RehireStatusEnum.Approved,
+  RehireStatusEnum.EligibleWithReview,
+  RehireStatusEnum.NotEligible,
+] as const;
+
+const rehireReasonValues = [
+  RehireReasonEnum.AttendanceIssues,
+  RehireReasonEnum.PolicyViolation,
+  RehireReasonEnum.PerformanceConcerns,
+  RehireReasonEnum.ContractCompletion,
+  RehireReasonEnum.RoleEliminated,
+  RehireReasonEnum.Other,
+] as const;
+
+const postBodySchema = z
+  .object({
+    profileId: z.string().uuid(),
+    recommendation: z.enum(rehireStatusValues).optional(),
+    rehireStatus: z.enum(rehireStatusValues).optional(),
+    reasonCategory: z.enum(rehireReasonValues).optional(),
+    reason: z.enum(rehireReasonValues).optional(),
+    detailedExplanation: z.string().max(5000).optional().nullable(),
+    justification: z.string().max(5000).optional().nullable(),
+    confirmedAccuracy: z.boolean(),
+    rehireEligible: z.boolean().optional(),
+    internalNotes: z.string().max(2000).optional().nullable(),
+  })
+  .refine((data) => (data.recommendation ?? data.rehireStatus) != null, {
+    message: "recommendation or rehireStatus is required.",
+  })
+  .refine(
+    (data) => {
+      const rec = data.recommendation ?? data.rehireStatus;
+      if (rec !== RehireStatusEnum.EligibleWithReview && rec !== RehireStatusEnum.NotEligible)
+        return data.confirmedAccuracy === true;
+      const reasonCat = data.reasonCategory ?? data.reason;
+      const explanation =
+        data.detailedExplanation != null
+          ? String(data.detailedExplanation).trim()
+          : (data.justification != null ? String(data.justification).trim() : "");
+      return (
+        data.confirmedAccuracy === true &&
+        reasonCat != null &&
+        explanation.length >= DETAILED_EXPLANATION_MIN_LENGTH
+      );
+    },
+    {
+      message: `Submission requires confirmedAccuracy. When recommendation is EligibleWithReview or NotEligible: reason category and detailed explanation (min ${DETAILED_EXPLANATION_MIN_LENGTH} characters) are required.`,
+    }
+  );
+
 /**
  * POST /api/employer/rehire
- * Body: { profileId: string, rehireEligible: boolean, internalNotes?: string }
+ * Body: profileId, rehireStatus (Approved | EligibleWithReview | NotEligible),
+ *       reason (AttendanceIssues | PolicyViolation | PerformanceConcerns | ContractCompletion | RoleEliminated | Other),
+ *       justification (required if EligibleWithReview, NotEligible, or reason=Other).
+ * No free-form "mark not eligible" without reason and justification.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -34,50 +107,114 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     const roles = ((session?.user as { roles?: string[] })?.roles) ?? [];
     const isAdmin = roles.includes("admin") || roles.includes("superadmin");
-    if (!hasEmployer && !isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!hasEmployer && !isAdmin)
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const enabled = await checkFeatureAccess("rehire_system", { userId: user.id });
     if (!enabled) return NextResponse.json({ error: "Feature not enabled" }, { status: 403 });
 
     const employerAccountId = await getEmployerAccountId(user.id);
-    if (!employerAccountId) return NextResponse.json({ error: "Employer account not found" }, { status: 404 });
+    if (!employerAccountId)
+      return NextResponse.json({ error: "Employer account not found" }, { status: 404 });
 
-    const body = await req.json();
-    const profileId = body?.profileId ?? body?.profile_id;
-    const rehireEligible = body?.rehireEligible ?? body?.rehire_eligible ?? true;
-    const internalNotes = typeof body?.internalNotes === "string" ? body.internalNotes : (typeof body?.internal_notes === "string" ? body.internal_notes : null);
+    const body = await req.json().catch(() => ({}));
+    const parsed = postBodySchema.safeParse({
+      profileId: body?.profileId ?? body?.profile_id,
+      recommendation: body?.recommendation ?? body?.rehireStatus ?? body?.rehire_status,
+      rehireStatus: body?.rehireStatus ?? body?.rehire_status,
+      reasonCategory: body?.reasonCategory ?? body?.reason,
+      reason: body?.reason,
+      detailedExplanation:
+        body?.detailedExplanation ?? body?.justification ?? body?.internal_notes ?? null,
+      justification: body?.justification ?? body?.internal_notes ?? null,
+      confirmedAccuracy: body?.confirmedAccuracy === true,
+      rehireEligible: body?.rehireEligible ?? body?.rehire_eligible,
+      internalNotes: body?.internalNotes ?? body?.internal_notes ?? null,
+    });
 
-    if (!profileId || typeof profileId !== "string") {
-      return NextResponse.json({ error: "profileId required" }, { status: 400 });
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.flatten().fieldErrors ?? parsed.error.message },
+        { status: 400 }
+      );
     }
 
-    const supabase = getSupabaseServer() as unknown as {
-      from: (table: string) => {
-        upsert: (row: Record<string, unknown>, opts: { onConflict: string }) => Promise<{ error: unknown }>;
-      };
-    };
+    const rec = parsed.data.recommendation ?? parsed.data.rehireStatus;
+    const reasonCat = parsed.data.reasonCategory ?? parsed.data.reason;
+    const detailedExplanation =
+      parsed.data.detailedExplanation ?? parsed.data.justification ?? null;
+    const { profileId, confirmedAccuracy, internalNotes } = parsed.data;
+    const rehireEligible =
+      rec === RehireStatusEnum.Approved || rec === RehireStatusEnum.EligibleWithReview;
 
-    const { error } = await supabase.from("rehire_registry").upsert(
-      {
+    const sb = getSupabaseServer() as ReturnType<typeof getSupabaseServer>;
+    const now = new Date().toISOString();
+
+    const existing = await sb
+      .from("rehire_registry")
+      .select("id, submitted_at, rehire_status, reason, detailed_explanation, confirmed_accuracy")
+      .eq("employer_id", employerAccountId)
+      .eq("profile_id", profileId)
+      .maybeSingle();
+
+    const existingRow = existing.data as
+      | {
+          id: string;
+          submitted_at: string | null;
+          rehire_status: string | null;
+          reason: string | null;
+          detailed_explanation: string | null;
+          confirmed_accuracy: boolean;
+        }
+      | null;
+    const isAlreadySubmitted = existingRow?.submitted_at != null;
+
+    if (isAlreadySubmitted && existingRow) {
+      await sb.from("rehire_evaluation_versions").insert({
+        rehire_registry_id: existingRow.id,
         employer_id: employerAccountId,
         profile_id: profileId,
-        rehire_eligible: Boolean(rehireEligible),
-        internal_notes: internalNotes ?? null,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "employer_id,profile_id" }
-    );
+        rehire_status: existingRow.rehire_status,
+        reason: existingRow.reason,
+        detailed_explanation: existingRow.detailed_explanation,
+        confirmed_accuracy: existingRow.confirmed_accuracy,
+        submitted_at: existingRow.submitted_at,
+      });
+    }
+
+    const upsertPayload: Record<string, unknown> = {
+      employer_id: employerAccountId,
+      profile_id: profileId,
+      rehire_eligible: rehireEligible,
+      rehire_status: rec as RehireStatusValue,
+      reason: rec === RehireStatusEnum.Approved ? null : (reasonCat as RehireReasonValue),
+      justification: detailedExplanation ?? null,
+      detailed_explanation: detailedExplanation ?? null,
+      confirmed_accuracy: confirmedAccuracy,
+      internal_notes: internalNotes ?? detailedExplanation ?? null,
+      updated_at: now,
+      submitted_at: confirmedAccuracy ? now : (existingRow?.submitted_at ?? null),
+    };
+
+    const { error } = await sb.from("rehire_registry").upsert(upsertPayload, {
+      onConflict: "employer_id,profile_id",
+    });
 
     if (error) {
       console.error("Rehire POST error:", error);
       return NextResponse.json({ error: String(error) }, { status: 500 });
     }
 
-    if (internalNotes && internalNotes.trim()) {
+    if ((internalNotes ?? detailedExplanation)?.trim()) {
       await logAuditAction("internal_note_created", {
         employer_id: employerAccountId,
         profile_id: profileId,
-        details: JSON.stringify({ rehire_registry: true }),
+        details: JSON.stringify({
+          rehire_registry: true,
+          recommendation: rec,
+          reasonCategory: reasonCat,
+          submitted_at: upsertPayload.submitted_at,
+        }),
       });
     }
 
@@ -109,13 +246,22 @@ export async function GET() {
     if (!enabled) return NextResponse.json({ error: "Feature not enabled" }, { status: 403 });
 
     const employerAccountId = await getEmployerAccountId(user.id);
-    if (!employerAccountId) return NextResponse.json({ error: "Employer account not found" }, { status: 404 });
+    if (!employerAccountId)
+      return NextResponse.json({ error: "Employer account not found" }, { status: 404 });
 
-    const supabase = getSupabaseServer() as unknown as { from: (t: string) => { select: (c: string) => { eq: (col: string, val: string) => Promise<{ data: unknown; error: unknown }> } } };
+    const supabase = getSupabaseServer() as unknown as {
+      from: (t: string) => {
+        select: (c: string) => {
+          eq: (col: string, val: string) => Promise<{ data: unknown; error: unknown }>;
+        };
+      };
+    };
 
     const { data: rows, error } = await supabase
       .from("rehire_registry")
-      .select("id, profile_id, rehire_eligible, internal_notes, created_at, updated_at")
+      .select(
+        "id, profile_id, rehire_eligible, rehire_status, reason, justification, detailed_explanation, confirmed_accuracy, submitted_at, internal_notes, created_at, updated_at"
+      )
       .eq("employer_id", employerAccountId);
 
     if (error) {
@@ -123,11 +269,30 @@ export async function GET() {
       return NextResponse.json({ error: String(error) }, { status: 500 });
     }
 
-    const list = (rows ?? []) as { id: string; profile_id: string; rehire_eligible: boolean; internal_notes: string | null; created_at: string; updated_at: string }[];
+    const list = (rows ?? []) as Array<{
+      id: string;
+      profile_id: string;
+      rehire_eligible: boolean;
+      rehire_status?: string | null;
+      reason?: string | null;
+      justification?: string | null;
+      detailed_explanation?: string | null;
+      confirmed_accuracy?: boolean;
+      submitted_at?: string | null;
+      internal_notes: string | null;
+      created_at: string;
+      updated_at: string;
+    }>;
     const profileIds = list.map((r) => r.profile_id);
     const names: Record<string, string> = {};
     if (profileIds.length > 0) {
-      const { data: profiles } = await (getSupabaseServer() as unknown as { from: (t: string) => { select: (c: string) => { in: (col: string, vals: string[]) => Promise<{ data: unknown }> } } })
+      const { data: profiles } = await (getSupabaseServer() as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            in: (col: string, vals: string[]) => Promise<{ data: unknown }>;
+          };
+        };
+      })
         .from("profiles")
         .select("id, full_name")
         .in("id", profileIds);
@@ -135,7 +300,10 @@ export async function GET() {
         names[p.id] = p.full_name ?? "Unknown";
       }
     }
-    const dataWithNames = list.map((r) => ({ ...r, full_name: names[r.profile_id] ?? "Unknown" }));
+    const dataWithNames = list.map((r) => ({
+      ...r,
+      full_name: names[r.profile_id] ?? "Unknown",
+    }));
 
     return NextResponse.json({ data: dataWithNames });
   } catch (e) {
@@ -144,9 +312,39 @@ export async function GET() {
   }
 }
 
+const patchBodySchema = z
+  .object({
+    profileId: z.string().uuid(),
+    recommendation: z.enum(rehireStatusValues).optional(),
+    rehireStatus: z.enum(rehireStatusValues).optional(),
+    reasonCategory: z.enum(rehireReasonValues).optional(),
+    reason: z.enum(rehireReasonValues).optional(),
+    detailedExplanation: z.string().max(5000).optional().nullable(),
+    justification: z.string().max(5000).optional().nullable(),
+    confirmedAccuracy: z.boolean().optional(),
+    internalNotes: z.string().max(2000).optional().nullable(),
+  })
+  .refine(
+    (data) => {
+      const rec = data.recommendation ?? data.rehireStatus;
+      if (rec !== RehireStatusEnum.EligibleWithReview && rec !== RehireStatusEnum.NotEligible)
+        return true;
+      const reasonCat = data.reasonCategory ?? data.reason;
+      const explanation =
+        data.detailedExplanation != null
+          ? String(data.detailedExplanation).trim()
+          : (data.justification != null ? String(data.justification).trim() : "");
+      const accuracyOk = data.confirmedAccuracy !== false;
+      return reasonCat != null && explanation.length >= DETAILED_EXPLANATION_MIN_LENGTH && accuracyOk;
+    },
+    {
+      message: `When recommendation is EligibleWithReview or NotEligible: reason category, detailed explanation (min ${DETAILED_EXPLANATION_MIN_LENGTH} characters), and confirmedAccuracy are required.`,
+    }
+  );
+
 /**
- * PATCH /api/employer/rehire — update rehireEligible or internalNotes for a profile
- * Body: { profileId: string, rehireEligible?: boolean, internalNotes?: string }
+ * PATCH /api/employer/rehire — update rehire for a profile.
+ * When row is already submitted, current state is versioned before update.
  */
 export async function PATCH(req: NextRequest) {
   try {
@@ -157,36 +355,96 @@ export async function PATCH(req: NextRequest) {
     const session = await getServerSession(authOptions);
     const roles = ((session?.user as { roles?: string[] })?.roles) ?? [];
     const isAdmin = roles.includes("admin") || roles.includes("superadmin");
-    if (!hasEmployer && !isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!hasEmployer && !isAdmin)
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const enabled = await checkFeatureAccess("rehire_system", { userId: user.id });
     if (!enabled) return NextResponse.json({ error: "Feature not enabled" }, { status: 403 });
 
     const employerAccountId = await getEmployerAccountId(user.id);
-    if (!employerAccountId) return NextResponse.json({ error: "Employer account not found" }, { status: 404 });
+    if (!employerAccountId)
+      return NextResponse.json({ error: "Employer account not found" }, { status: 404 });
 
-    const body = await req.json();
-    const profileId = body?.profileId ?? body?.profile_id;
-    const rehireEligible = body?.rehireEligible ?? body?.rehire_eligible;
-    const internalNotes = body?.internalNotes ?? body?.internal_notes;
+    const body = await req.json().catch(() => ({}));
+    const parsed = patchBodySchema.safeParse({
+      profileId: body?.profileId ?? body?.profile_id,
+      recommendation: body?.recommendation ?? body?.rehireStatus ?? body?.rehire_status,
+      rehireStatus: body?.rehireStatus ?? body?.rehire_status,
+      reasonCategory: body?.reasonCategory ?? body?.reason,
+      reason: body?.reason,
+      detailedExplanation:
+        body?.detailedExplanation ?? body?.justification ?? body?.internal_notes ?? null,
+      justification: body?.justification ?? body?.internal_notes ?? null,
+      confirmedAccuracy: body?.confirmedAccuracy,
+      internalNotes: body?.internalNotes ?? body?.internal_notes ?? null,
+    });
 
-    if (!profileId || typeof profileId !== "string") {
-      return NextResponse.json({ error: "profileId required" }, { status: 400 });
+    if (!parsed.success || !parsed.data.profileId) {
+      const errMsg =
+        parsed.success === false && parsed.error
+          ? parsed.error.flatten().fieldErrors ?? parsed.error.message
+          : "profileId required; recommendation, reasonCategory, detailedExplanation validated when provided.";
+      return NextResponse.json({ error: errMsg }, { status: 400 });
     }
 
-    const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
-    if (typeof rehireEligible === "boolean") update.rehire_eligible = rehireEligible;
-    if (internalNotes !== undefined) update.internal_notes = typeof internalNotes === "string" ? internalNotes : null;
+    const rec = parsed.data.recommendation ?? parsed.data.rehireStatus;
+    const reasonCat = parsed.data.reasonCategory ?? parsed.data.reason;
+    const detailedExplanation =
+      parsed.data.detailedExplanation ?? parsed.data.justification ?? null;
+    const { profileId, confirmedAccuracy, internalNotes } = parsed.data;
 
-    const supabase = getSupabaseServer() as unknown as {
-      from: (t: string) => {
-        update: (row: Record<string, unknown>) => { eq: (col: string, val: string) => { eq: (col2: string, val2: string) => Promise<{ error: unknown }> } };
-      };
-    };
-
-    const { error } = await supabase
+    const sb = getSupabaseServer() as ReturnType<typeof getSupabaseServer>;
+    const existing = await sb
       .from("rehire_registry")
-      .update(update)
+      .select("id, submitted_at, rehire_status, reason, detailed_explanation, confirmed_accuracy")
+      .eq("employer_id", employerAccountId)
+      .eq("profile_id", profileId)
+      .maybeSingle();
+
+    const existingRow = existing.data as
+      | {
+          id: string;
+          submitted_at: string | null;
+          rehire_status: string | null;
+          reason: string | null;
+          detailed_explanation: string | null;
+          confirmed_accuracy: boolean;
+        }
+      | null;
+    if (existing.error || !existingRow) {
+      return NextResponse.json({ error: "Rehire record not found" }, { status: 404 });
+    }
+
+    if (existingRow.submitted_at != null) {
+      await sb.from("rehire_evaluation_versions").insert({
+        rehire_registry_id: existingRow.id,
+        employer_id: employerAccountId,
+        profile_id: profileId,
+        rehire_status: existingRow.rehire_status,
+        reason: existingRow.reason,
+        detailed_explanation: existingRow.detailed_explanation,
+        confirmed_accuracy: existingRow.confirmed_accuracy,
+        submitted_at: existingRow.submitted_at,
+      });
+    }
+
+    const updatePayload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (rec !== undefined) {
+      updatePayload.rehire_eligible =
+        rec === RehireStatusEnum.Approved || rec === RehireStatusEnum.EligibleWithReview;
+      updatePayload.rehire_status = rec;
+    }
+    if (reasonCat !== undefined) updatePayload.reason = reasonCat;
+    if (detailedExplanation !== undefined) {
+      updatePayload.justification = detailedExplanation;
+      updatePayload.detailed_explanation = detailedExplanation;
+    }
+    if (confirmedAccuracy !== undefined) updatePayload.confirmed_accuracy = confirmedAccuracy;
+    if (internalNotes !== undefined) updatePayload.internal_notes = internalNotes ?? null;
+
+    const { error } = await sb
+      .from("rehire_registry")
+      .update(updatePayload)
       .eq("employer_id", employerAccountId)
       .eq("profile_id", profileId);
 

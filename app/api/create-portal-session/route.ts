@@ -7,19 +7,15 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /**
- * Create Stripe Billing Portal Session
- * POST /api/stripe/portal
- * Gets logged-in user; retrieves stripe_customer_id from employer_accounts first, then profiles.
- * Returns portal URL for managing subscription, payment methods, billing.
+ * POST /api/create-portal-session
+ * Create Stripe Billing Portal session. Get logged-in user; retrieve stripe_customer_id
+ * from employer_accounts first, then profiles. Return portal URL.
  */
 export async function POST() {
   try {
     if (!isStripeConfigured || !stripe) {
       return NextResponse.json(
-        {
-          error:
-            "Stripe is not configured. Please set STRIPE_SECRET_KEY in your environment variables.",
-        },
+        { error: "Stripe is not configured" },
         { status: 503 },
       );
     }
@@ -34,7 +30,6 @@ export async function POST() {
 
     const sb = getSupabaseServer() as any;
 
-    // Try employer_accounts first (employer subscription)
     const { data: employer } = await sb
       .from("employer_accounts")
       .select("stripe_customer_id")
@@ -52,7 +47,6 @@ export async function POST() {
       return NextResponse.json({ url: portal.url ?? null });
     }
 
-    // Fallback: profiles (e.g. employee or legacy)
     const { data: profile } = await sb
       .from("profiles")
       .select("stripe_customer_id")
@@ -77,7 +71,7 @@ export async function POST() {
     return NextResponse.json({ url: portal.url ?? null });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Failed to create portal session";
-    console.error("Stripe portal error:", message);
+    console.error("[create-portal-session]", message);
     return NextResponse.json(
       { error: message },
       { status: 500 },

@@ -3,6 +3,12 @@
 import { StatusPill } from "./StatusPill";
 import { TrustScoreRing } from "./TrustScoreRing";
 import { cn } from "@/lib/utils";
+import {
+  ViewerAccessLevel,
+  shouldShowRehireStatus,
+  shouldShowRehireSafetyLabel,
+} from "@/lib/compliance-types";
+import { REHIRE_INSIGHTS_PUBLIC_MESSAGE } from "@/lib/verification-copy";
 
 export interface TrustProfilePreviewData {
   fullName: string;
@@ -29,11 +35,20 @@ const DEFAULT_PREVIEW: TrustProfilePreviewData = {
 export interface TrustProfilePreviewProps {
   /** Override with industry-specific or custom data; omit for default preview */
   preview?: TrustProfilePreviewData;
+  /** Who is viewing; controls visibility of rehire. Default Public. */
+  viewerAccessLevel?: ViewerAccessLevel;
   className?: string;
 }
 
-export function TrustProfilePreview({ preview: previewProp, className }: TrustProfilePreviewProps) {
+export function TrustProfilePreview({
+  preview: previewProp,
+  viewerAccessLevel = ViewerAccessLevel.Public,
+  className,
+}: TrustProfilePreviewProps) {
   const preview = previewProp ?? DEFAULT_PREVIEW;
+  const showRehirePill = shouldShowRehireStatus(viewerAccessLevel) && preview.rehireEligible;
+  const showSafetyLabel =
+    shouldShowRehireSafetyLabel(viewerAccessLevel, preview.rehireEligible);
 
   return (
     <div
@@ -55,15 +70,20 @@ export function TrustProfilePreview({ preview: previewProp, className }: TrustPr
         )}
       </div>
 
-      {/* Middle */}
+      {/* Middle — Trust Score, references; rehire only when VerifiedEmployer/Admin */}
       <div className="mt-6 flex items-center gap-6">
         <TrustScoreRing score={preview.trustScore} size="md" />
         <div className="space-y-1">
           <p className="text-sm font-medium text-[#1E293B] dark:text-slate-200">
             {preview.referencesCount} references
           </p>
-          {preview.rehireEligible && (
+          {showRehirePill && (
             <StatusPill label="Rehire Eligible" variant="approved" />
+          )}
+          {showSafetyLabel && (
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {REHIRE_INSIGHTS_PUBLIC_MESSAGE}
+            </p>
           )}
         </div>
       </div>
