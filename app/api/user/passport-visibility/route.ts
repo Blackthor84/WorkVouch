@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { createServerSupabase } from "@/lib/supabase/server";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 
 const VISIBILITY_OPTIONS = ["private", "verified_employers", "shared_network", "public"] as const;
