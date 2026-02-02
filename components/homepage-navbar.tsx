@@ -49,8 +49,14 @@ export function HomepageNavbar() {
           Sign Up
         </Link>
       </div>
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu */}
       <div className="md:hidden flex items-center space-x-4">
+        <Link
+          href="/demo"
+          className="text-gray-700 hover:text-blue-600 transition-colors"
+        >
+          Demo
+        </Link>
         <Link
           href="/auth/signin"
           className="text-gray-700 hover:text-blue-600 transition-colors"
