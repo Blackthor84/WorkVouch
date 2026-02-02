@@ -33,10 +33,10 @@ export default function SubscriptionPage() {
   async function handleUpgrade(plan: string) {
     setLoading(plan);
     try {
-      const response = await fetch("/api/stripe/create-checkout-session", {
+      const response = await fetch("/api/stripe/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ planTier: plan }),
       });
 
       if (!response.ok) {

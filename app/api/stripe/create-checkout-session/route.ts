@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe, isStripeConfigured } from "@/lib/stripe/config";
-import { getCurrentUser } from "@/lib/auth";
-import { supabaseServer } from "@/lib/supabase/admin";
+import { getSupabaseServer } from "@/lib/supabase/admin";
 
 // Mark route as dynamic
 export const dynamic = "force-dynamic";
@@ -30,17 +29,20 @@ export async function POST(req: NextRequest) {
       process.env.NEXT_PUBLIC_APP_URL ||
       req.nextUrl.origin;
 
-    // Build metadata
     const metadata: Record<string, string> = {
       priceId: priceId,
     };
-    
+    if (userId) metadata.userId = userId;
+    if (userType) metadata.userType = userType;
+
     if (userId) {
-      metadata.userId = userId;
-    }
-    
-    if (userType) {
-      metadata.userType = userType;
+      const supabase = getSupabaseServer();
+      const { data: employer } = await supabase
+        .from("employer_accounts")
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (employer?.id) metadata.employerId = employer.id;
     }
 
     const session = await stripe.checkout.sessions.create({

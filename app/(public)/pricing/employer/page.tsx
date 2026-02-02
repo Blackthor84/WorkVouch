@@ -1,7 +1,14 @@
 export const dynamic = "force-dynamic";
 
-import EmployerPricing from "./EmployerPricingClient";
+import type { Metadata } from "next";
+import EmployerLandingClient from "./EmployerLandingClient";
+
+export const metadata: Metadata = {
+  title: "For Employers | WorkVouch",
+  description:
+    "Access verified employment overlap, peer-validated references, trust scores, and rehire eligibility — one structured dashboard for high-trust hiring.",
+};
 
 export default function EmployerPricingPage() {
-  return <EmployerPricing />;
+  return <EmployerLandingClient />;
 }
