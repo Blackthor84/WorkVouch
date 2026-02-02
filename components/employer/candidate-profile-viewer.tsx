@@ -161,16 +161,30 @@ export function CandidateProfileViewer({
       {/* Employer-only risk overlay (Career Health + Rehire, Velocity, Risk Flag, Network, Fraud confidence) */}
       <EmployerRiskOverlay candidateId={safeProfile.id} />
 
-      {/* Trust Score */}
+      {/* Trust Score — core score only; high-level summary, no weights or breakdown math */}
       <Card className="p-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-1">
               Trust Score
             </h2>
-            <p className="text-sm text-grey-medium dark:text-gray-400">
-              Verified credibility score based on references and work history
+            <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">
+              Portable credibility score (0–100)
             </p>
+            <ul className="text-sm text-grey-dark dark:text-gray-200 space-y-0.5 list-disc list-inside">
+              <li>Verified roles: {safeJobs.length}</li>
+              <li>References: {references?.length ?? 0}</li>
+              {Array.isArray(references) && references.length > 0 && (
+                <li>
+                  Avg rating:{" "}
+                  {(
+                    references.reduce((s: number, r: { rating?: number }) => s + (r.rating ?? 0), 0) /
+                    references.length
+                  ).toFixed(1)}
+                  /5
+                </li>
+              )}
+            </ul>
           </div>
           <div className="text-4xl font-bold text-blue-600 dark:text-blue-400">
             {trust_score}

@@ -5,27 +5,61 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { getIndustryEmphasis } from "@/lib/industryEmphasis";
+import type { EmphasisComponent } from "@/lib/industryEmphasis";
 
 interface SearchResult {
   id: string;
-  name: string;
-  email: string;
+  name: string | null;
+  industry: string | null;
+  city: string | null;
+  state: string | null;
+  verifiedEmploymentCount: number;
+  trustScore: number;
+  referenceCount: number;
+  aggregateRating: number;
+  rehireEligibleCount: number;
   skills: string[];
-  workHistory: Array<{
-    title: string;
-    company: string;
-    date: string;
-  }>;
-  summary: string | null;
+}
+
+function TrustSummaryBullets({
+  user,
+  order,
+}: {
+  user: SearchResult;
+  order: EmphasisComponent[];
+}) {
+  const bullets: { key: EmphasisComponent; label: string; value: string }[] = [
+    { key: "employment", label: "Verified roles", value: `${user.verifiedEmploymentCount}` },
+    { key: "rating", label: "Avg rating", value: user.referenceCount > 0 ? `${user.aggregateRating.toFixed(1)}/5` : "—" },
+    { key: "referenceVolume", label: "References", value: `${user.referenceCount}` },
+  ];
+  const byKey = new Map(bullets.map((b) => [b.key, b]));
+  const ordered = order
+    .map((key) => byKey.get(key))
+    .filter((b): b is (typeof bullets)[0] => b != null);
+
+  return (
+    <ul className="text-sm text-grey-dark dark:text-gray-200 space-y-0.5 list-disc list-inside">
+      {ordered.map((b) => (
+        <li key={b.key}>
+          {b.label}: {b.value}
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 export function UserSearchForm() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [employerIndustryType, setEmployerIndustryType] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+
+  const emphasisOrder = getIndustryEmphasis(employerIndustryType);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +89,7 @@ export function UserSearchForm() {
 
       const data = await response.json();
       setResults(data.users || []);
+      setEmployerIndustryType(data.employerIndustryType ?? null);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An error occurred during search",
@@ -65,15 +100,10 @@ export function UserSearchForm() {
     }
   };
 
-  const highlightMatch = (text: string, query: string) => {
-    if (!query) return text;
-
-    const terms = query
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((term) => term.length > 0);
+  const highlightMatch = (text: string | null, query: string) => {
+    if (!text || !query) return text ?? "";
+    const terms = query.toLowerCase().split(/\s+/).filter((term) => term.length > 0);
     let highlighted = text;
-
     terms.forEach((term) => {
       const regex = new RegExp(`(${term})`, "gi");
       highlighted = highlighted.replace(
@@ -81,13 +111,11 @@ export function UserSearchForm() {
         '<mark class="bg-yellow-200 dark:bg-yellow-900/50">$1</mark>',
       );
     });
-
     return highlighted;
   };
 
   return (
     <>
-      {/* Search Form */}
       <Card className="p-6 mb-6">
         <form onSubmit={handleSearch} className="flex gap-4">
           <div className="flex-1 relative">
@@ -114,21 +142,16 @@ export function UserSearchForm() {
         )}
       </Card>
 
-      {/* Results */}
       {hasSearched && (
         <Card className="p-6">
           {isSearching ? (
             <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
-              <p className="mt-4 text-grey-medium dark:text-gray-400">
-                Searching...
-              </p>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400" />
+              <p className="mt-4 text-grey-medium dark:text-gray-400">Searching...</p>
             </div>
           ) : results.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-grey-medium dark:text-gray-400">
-                No results found
-              </p>
+              <p className="text-grey-medium dark:text-gray-400">No results found</p>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-2">
                 Try a different search term
               </p>
@@ -137,8 +160,7 @@ export function UserSearchForm() {
             <>
               <div className="mb-4">
                 <p className="text-sm text-grey-medium dark:text-gray-400">
-                  Found {results.length}{" "}
-                  {results.length === 1 ? "result" : "results"}
+                  Found {results.length} {results.length === 1 ? "result" : "results"}
                 </p>
               </div>
               <div className="overflow-x-auto">
@@ -149,13 +171,13 @@ export function UserSearchForm() {
                         Name
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-grey-dark dark:text-gray-200">
-                        Email
+                        Trust Score
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-grey-dark dark:text-gray-200">
+                        Summary
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-grey-dark dark:text-gray-200">
                         Skills
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-grey-dark dark:text-gray-200">
-                        Work History
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-grey-dark dark:text-gray-200">
                         Actions
@@ -172,20 +194,26 @@ export function UserSearchForm() {
                           <div className="font-semibold text-grey-dark dark:text-gray-200">
                             <span
                               dangerouslySetInnerHTML={{
-                                __html: highlightMatch(user.name, searchQuery),
+                                __html: highlightMatch(user.name ?? "", searchQuery),
                               }}
                             />
                           </div>
-                          {user.summary && (
-                            <p className="text-sm text-grey-medium dark:text-gray-400 mt-1 line-clamp-2">
-                              {user.summary}
+                          {(user.city || user.state) && (
+                            <p className="text-sm text-grey-medium dark:text-gray-400 mt-1">
+                              {[user.city, user.state].filter(Boolean).join(", ")}
                             </p>
                           )}
                         </td>
                         <td className="py-4 px-4">
-                          <span className="text-grey-dark dark:text-gray-200">
-                            {user.email}
+                          <span className="text-lg font-bold text-grey-dark dark:text-gray-200">
+                            {user.trustScore}
                           </span>
+                          <span className="text-xs text-grey-medium dark:text-gray-400 ml-1">
+                            / 100
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <TrustSummaryBullets user={user} order={emphasisOrder} />
                         </td>
                         <td className="py-4 px-4">
                           {user.skills.length > 0 ? (
@@ -211,37 +239,7 @@ export function UserSearchForm() {
                           )}
                         </td>
                         <td className="py-4 px-4">
-                          {user.workHistory.length > 0 ? (
-                            <div className="space-y-1">
-                              {user.workHistory.map((job, idx) => (
-                                <div key={idx} className="text-sm">
-                                  <span className="font-medium text-grey-dark dark:text-gray-200">
-                                    {job.title}
-                                  </span>
-                                  {" at "}
-                                  <span className="text-grey-medium dark:text-gray-400">
-                                    {job.company}
-                                  </span>
-                                  {job.date && (
-                                    <span className="text-grey-medium dark:text-gray-400 ml-2">
-                                      ({job.date})
-                                    </span>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-sm text-grey-medium dark:text-gray-400">
-                              No work history
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-4 px-4">
-                          <Button
-                            href={`/employer/profile/${user.id}`}
-                            variant="ghost"
-                            size="sm"
-                          >
+                          <Button href={`/employer/profile/${user.id}`} variant="ghost" size="sm">
                             View Profile
                           </Button>
                         </td>

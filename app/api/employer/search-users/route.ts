@@ -30,9 +30,10 @@ export async function GET(request: NextRequest) {
     const supabaseAny = supabase as any;
     const { data: employerAccount } = await supabaseAny
       .from("employer_accounts")
-      .select("id, plan_tier, reports_used, searches_used, seats_used, stripe_report_overage_item_id, stripe_search_overage_item_id, stripe_seat_overage_item_id")
+      .select("id, plan_tier, industry_type, reports_used, searches_used, seats_used, stripe_report_overage_item_id, stripe_search_overage_item_id, stripe_seat_overage_item_id")
       .eq("user_id", user.id)
       .single();
+    // industry_type used by UI for emphasis ordering only; core trust score is single stored value
     if (!employerAccount) {
       return NextResponse.json(
         { error: "Employer account not found" },
@@ -104,7 +105,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const users = (candidates as any[]).map((c) => ({
+    const users = (candidates as { user_id: string; full_name: string | null; industry: string | null; city: string | null; state: string | null; verified_employment_count: number; trust_score: number; reference_count: number; aggregate_rating: number; rehire_eligible_count: number }[]).map((c) => ({
       id: c.user_id,
       name: c.full_name,
       industry: c.industry ?? null,
@@ -118,7 +119,10 @@ export async function GET(request: NextRequest) {
       skills: (skillsByUser.get(c.user_id) ?? []).slice(0, 10),
     }));
 
-    return NextResponse.json({ users });
+    return NextResponse.json({
+      users,
+      employerIndustryType: employerAccount.industry_type ?? null,
+    });
   } catch (error) {
     console.error("Search users error:", error);
     return NextResponse.json(
