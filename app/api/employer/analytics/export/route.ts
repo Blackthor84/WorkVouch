@@ -5,8 +5,8 @@ import {
 } from "@/lib/actions/employer/analytics";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 
-// Mark route as dynamic
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -47,7 +47,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    // Get employer account ID
+    const subCheck = await requireActiveSubscription(user.id);
+    if (!subCheck.allowed) {
+      return NextResponse.json(
+        { error: subCheck.error ?? "Active subscription required." },
+        { status: 403 },
+      );
+    }
+
     const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
     type EmployerAccountRow = { id: string; plan_tier: string };

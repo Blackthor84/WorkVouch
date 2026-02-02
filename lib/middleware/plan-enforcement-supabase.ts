@@ -1,12 +1,12 @@
 import { createServerSupabase } from '@/lib/supabase/server'
 
 /**
- * Check if employer can view employees (Basic or Pro plan)
+ * Check if employer can view employees (Pro or Custom plan). Standardized tiers: lite, pro, custom.
  */
 export async function canViewEmployees(userId: string): Promise<boolean> {
   const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
-  
+
   const { data: employerAccount } = await supabaseAny
     .from('employer_accounts')
     .select('plan_tier')
@@ -17,17 +17,17 @@ export async function canViewEmployees(userId: string): Promise<boolean> {
     return false
   }
 
-  const employerAccountAny = employerAccount as any
-  return employerAccountAny.plan_tier === 'basic' || employerAccountAny.plan_tier === 'pro'
+  const tier = (employerAccount as { plan_tier?: string }).plan_tier?.toLowerCase()
+  return tier === 'pro' || tier === 'custom'
 }
 
 /**
- * Check if employer can file disputes (Pro plan only)
+ * Check if employer can file disputes (Pro or Custom plan only)
  */
 export async function canFileDispute(userId: string): Promise<boolean> {
   const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
-  
+
   const { data: employerAccount } = await supabaseAny
     .from('employer_accounts')
     .select('plan_tier')
@@ -38,8 +38,8 @@ export async function canFileDispute(userId: string): Promise<boolean> {
     return false
   }
 
-  const employerAccountAny = employerAccount as any
-  return employerAccountAny.plan_tier === 'pro'
+  const tier = (employerAccount as { plan_tier?: string }).plan_tier?.toLowerCase()
+  return tier === 'pro' || tier === 'custom'
 }
 
 /**

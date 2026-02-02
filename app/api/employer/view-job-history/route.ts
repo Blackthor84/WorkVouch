@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { canViewEmployees } from "@/lib/middleware/plan-enforcement-supabase";
-import { Database } from "@/types/database";
+import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 
 export async function GET(req: NextRequest) {
   try {
@@ -17,13 +17,20 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check plan tier
+    const subCheck = await requireActiveSubscription(user.id);
+    if (!subCheck.allowed) {
+      return NextResponse.json(
+        { error: subCheck.error ?? "Active subscription required." },
+        { status: 403 },
+      );
+    }
+
     const hasAccess = await canViewEmployees(user.id);
     if (!hasAccess) {
       return NextResponse.json(
         {
           error:
-            "This feature requires a paid plan. Please upgrade to Basic or Pro.",
+            "This feature requires a paid plan. Please upgrade to Pro or Custom.",
         },
         { status: 403 },
       );

@@ -12,6 +12,7 @@ export type AuditEntity =
   | "rehire_status"
   | "dispute"
   | "employment_record"
+  | "employment_match"
   | "reference";
 
 export async function logAudit(params: {

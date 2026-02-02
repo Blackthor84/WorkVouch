@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { canViewEmployees } from "@/lib/middleware/plan-enforcement-supabase";
-import { Database } from "@/types/database";
+import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 
 export async function GET(req: NextRequest) {
   try {
@@ -17,24 +17,26 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check plan tier
+    const subCheck = await requireActiveSubscription(user.id);
+    if (!subCheck.allowed) {
+      return NextResponse.json(
+        { error: subCheck.error ?? "Active subscription required." },
+        { status: 403 },
+      );
+    }
+
     const hasAccess = await canViewEmployees(user.id);
     if (!hasAccess) {
       return NextResponse.json(
         {
           error:
-            "This feature requires a paid plan. Please upgrade to Basic or Pro.",
+            "This feature requires a paid plan. Please upgrade to Pro or Custom.",
         },
         { status: 403 },
       );
     }
 
     const supabase = await createServerSupabase();
-
-    // Type definition for employer_accounts (not in Database types yet)
-    type EmployerAccountRow = { company_name: string };
-
-    // Get employer's company name
     const supabaseAny = supabase as any;
     const { data: employerAccount } = await supabaseAny
       .from("employer_accounts")
@@ -58,11 +60,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Search for employees who:
-    // 1. Have a job history with this employer's company name
-    // 2. Have isVisibleToEmployer = true OR the employer is searching by name (paid feature)
-    // 3. Match the name search
-
     const { data: jobs, error: jobsError } = await supabase
       .from("jobs")
       .select(
@@ -78,10 +75,9 @@ export async function GET(req: NextRequest) {
         profiles!inner (
           id,
           full_name,
-          email,
           industry
         )
-      `,
+      `
       )
       .ilike("company_name", companyName)
       .ilike("profiles.full_name", `%${name}%`)
@@ -95,12 +91,10 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Filter for visible jobs or allow if searching (paid feature)
     const visibleJobs = (jobs || []).filter(
-      (job: any) => job.is_visible_to_employer || true, // Paid employers can see all when searching
+      (job: any) => job.is_visible_to_employer || true
     );
 
-    // Get references for each job
     const employeesWithReferences = await Promise.all(
       visibleJobs.map(async (job: any) => {
         const { data: references } = await supabase
@@ -114,16 +108,15 @@ export async function GET(req: NextRequest) {
             profiles!references_from_user_id_fkey (
               full_name
             )
-          `,
+          `
           )
           .eq("job_id", job.id)
           .eq("to_user_id", job.user_id);
 
         return {
           userId: job.user_id,
-          jobId: job.id, // Add job ID for verification/dispute actions
+          jobId: job.id,
           name: job.profiles?.full_name || null,
-          email: job.profiles?.email || null,
           industry: job.profiles?.industry || null,
           jobTitle: job.job_title,
           startDate: job.start_date,

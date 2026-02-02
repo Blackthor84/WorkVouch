@@ -3,6 +3,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { enforceLimit } from "@/lib/enforceLimit";
 import { incrementUsage } from "@/lib/usage";
+import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 
 const MAX_RESULTS = 50;
 
@@ -13,6 +14,14 @@ export async function GET(request: NextRequest) {
     if (!user || !userIsEmployer) {
       return NextResponse.json(
         { error: "Forbidden: Employer access required" },
+        { status: 403 },
+      );
+    }
+
+    const subCheck = await requireActiveSubscription(user.id);
+    if (!subCheck.allowed) {
+      return NextResponse.json(
+        { error: subCheck.error ?? "Active subscription required." },
         { status: 403 },
       );
     }
@@ -38,7 +47,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get search query from URL params
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("query")?.trim();
 
@@ -57,128 +65,58 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Search profiles by full_name (case-insensitive)
-    // Split the query to search for first name, last name, or full name
-    const searchTerms = sanitizedQuery
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((term) => term.length > 0);
-
-    // Build the query - search for profiles where full_name contains the query (case-insensitive)
-    // Using ilike for case-insensitive pattern matching
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
+    // Use employer_candidate_view: no email, no private identifiers
+    const { data: candidates, error: viewError } = await supabaseAny
+      .from("employer_candidate_view")
       .select(
-        `
-        id,
-        full_name,
-        email,
-        professional_summary
-      `,
+        "user_id, full_name, industry, city, state, verified_employment_count, trust_score, reference_count, aggregate_rating, rehire_eligible_count"
       )
       .ilike("full_name", `%${sanitizedQuery}%`)
       .limit(MAX_RESULTS);
 
-    if (profilesError) {
-      console.error("Profiles query error:", profilesError);
+    if (viewError) {
+      console.error("employer_candidate_view query error:", viewError);
       return NextResponse.json(
-        { error: "Failed to search profiles" },
+        { error: "Failed to search candidates" },
         { status: 500 },
       );
     }
 
-    if (!profiles || profiles.length === 0) {
+    if (!candidates || candidates.length === 0) {
       return NextResponse.json({ users: [] });
     }
 
     await incrementUsage(employerAccount.id, "search", 1);
 
-    // Get user IDs
-    const userIds = (profiles as any[]).map((p: any) => p.id);
+    const userIds = (candidates as { user_id: string }[]).map((c) => c.user_id);
 
-    // Fetch skills for all users
-    // Note: skills table may not be in Database types yet
     type SkillRow = { user_id: string; skill_name: string };
-    const { data: skillsData, error: skillsError } = await supabaseAny
+    const { data: skillsData } = await supabaseAny
       .from("skills")
       .select("user_id, skill_name")
       .in("user_id", userIds);
 
-    if (skillsError) {
-      console.error("Skills query error:", skillsError);
-      // Continue without skills if query fails
-    }
-
-    // Fetch jobs for all users (limit to most recent 3 per user for summary)
-    const { data: jobsData, error: jobsError } = await (supabaseAny
-      .from("jobs")
-      .select("user_id, job_title, company_name, start_date, is_current")
-      .in("user_id", userIds)
-      .eq("is_private", false) // Only show public jobs
-      .order("start_date", { ascending: false }));
-
-    if (jobsError) {
-      console.error("Jobs query error:", jobsError);
-      // Continue without jobs if query fails
-    }
-
-    // Group skills by user_id
     const skillsByUser = new Map<string, string[]>();
     if (skillsData) {
-      (skillsData as any[]).forEach((skill: any) => {
-        if (!skillsByUser.has(skill.user_id)) {
-          skillsByUser.set(skill.user_id, []);
-        }
-        skillsByUser.get(skill.user_id)!.push(skill.skill_name);
+      (skillsData as SkillRow[]).forEach((s) => {
+        if (!skillsByUser.has(s.user_id)) skillsByUser.set(s.user_id, []);
+        skillsByUser.get(s.user_id)!.push(s.skill_name);
       });
     }
 
-    // Group jobs by user_id and limit to 3 most recent per user
-    const jobsByUser = new Map<
-      string,
-      Array<{ title: string; company: string; date: string }>
-    >();
-    if (jobsData) {
-      const userJobCounts = new Map<string, number>();
-      const jobsArray = jobsData as any[];
-      jobsArray.forEach((job: any) => {
-        const userId = job.user_id;
-        const currentCount = userJobCounts.get(userId) || 0;
-
-        if (currentCount < 3) {
-          if (!jobsByUser.has(userId)) {
-            jobsByUser.set(userId, []);
-          }
-
-          const dateStr = job.is_current
-            ? `${new Date(job.start_date).getFullYear()} - Present`
-            : `${new Date(job.start_date).getFullYear()}`;
-
-          jobsByUser.get(userId)!.push({
-            title: job.job_title,
-            company: job.company_name,
-            date: dateStr,
-          });
-
-          userJobCounts.set(userId, currentCount + 1);
-        }
-      });
-    }
-
-    // Combine data into result array
-    const users = (profiles as any[]).map((profile: any) => {
-      const skills = skillsByUser.get(profile.id) || [];
-      const jobs = jobsByUser.get(profile.id) || [];
-
-      return {
-        id: profile.id,
-        name: profile.full_name,
-        email: profile.email,
-        skills: skills.slice(0, 10), // Limit to 10 skills for display
-        workHistory: jobs,
-        summary: profile.professional_summary || null,
-      };
-    });
+    const users = (candidates as any[]).map((c) => ({
+      id: c.user_id,
+      name: c.full_name,
+      industry: c.industry ?? null,
+      city: c.city ?? null,
+      state: c.state ?? null,
+      verifiedEmploymentCount: c.verified_employment_count ?? 0,
+      trustScore: c.trust_score ?? 0,
+      referenceCount: c.reference_count ?? 0,
+      aggregateRating: c.aggregate_rating ?? 0,
+      rehireEligibleCount: c.rehire_eligible_count ?? 0,
+      skills: (skillsByUser.get(c.user_id) ?? []).slice(0, 10),
+    }));
 
     return NextResponse.json({ users });
   } catch (error) {

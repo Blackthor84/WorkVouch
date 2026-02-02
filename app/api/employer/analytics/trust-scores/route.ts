@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getTrustScoresForEmployer } from "@/lib/actions/employer/analytics";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 
-// Mark route as dynamic
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -18,6 +18,14 @@ export async function GET(req: NextRequest) {
     const isEmployer = await hasRole("employer");
     if (!isEmployer) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    const subCheck = await requireActiveSubscription(user.id);
+    if (!subCheck.allowed) {
+      return NextResponse.json(
+        { error: subCheck.error ?? "Active subscription required." },
+        { status: 403 },
+      );
     }
 
     const searchParams = req.nextUrl.searchParams;

@@ -39,12 +39,11 @@ export function isPriceIdWhitelisted(priceId: string | undefined): boolean {
   return STRIPE_WHITELISTED_PRICE_IDS.includes(priceId)
 }
 
-/** Lookup quota by tier: Starter 5, Growth 25, Pro unlimited (-1) */
+/** Lookup quota by tier: lite 5, pro unlimited (-1), custom unlimited. */
 export function getLookupQuotaForTier(tier: string): number {
   const t = (tier || '').toLowerCase()
-  if (t === 'pro') return -1
-  if (t === 'growth' || t === 'team') return 25
-  return 5 // starter, free, or unknown
+  if (t === 'pro' || t === 'custom') return -1
+  return 5 // lite, free, or unknown
 }
 
 /** Canonical price map for subscriptions (starter, team, pro) and one-time */
@@ -60,21 +59,25 @@ export const STRIPE_PRICE_MAP: Record<string, string> = {
 /** Security Bundle price ID (alias). Maps to plan_tier = "security_agency". */
 export const STRIPE_PRICE_SECURITY_BUNDLE = process.env.STRIPE_PRICE_SECURITY_BUNDLE || process.env.STRIPE_PRICE_SECURITY || "";
 
-/** Map Stripe price ID → plan_tier for webhooks. Used to set employer_accounts.plan_tier. */
+/** Map Stripe price ID → plan_tier for webhooks. Standardized: lite, pro, custom (custom has no Stripe price). */
 export function getPriceToTierMap(): Record<string, string> {
   const map: Record<string, string> = {};
-  if (STRIPE_PRICE_STARTER) map[STRIPE_PRICE_STARTER] = "starter";
-  if (STRIPE_PRICE_TEAM) map[STRIPE_PRICE_TEAM] = "team";
+  if (STRIPE_PRICE_STARTER) map[STRIPE_PRICE_STARTER] = "lite";
+  if (STRIPE_PRICE_TEAM) map[STRIPE_PRICE_TEAM] = "pro";
   if (STRIPE_PRICE_PRO) map[STRIPE_PRICE_PRO] = "pro";
+  if (PRICE_ID_GROWTH_MONTHLY) map[PRICE_ID_GROWTH_MONTHLY] = "pro";
+  if (PRICE_ID_GROWTH_YEARLY) map[PRICE_ID_GROWTH_YEARLY] = "pro";
   if (STRIPE_PRICE_SECURITY) map[STRIPE_PRICE_SECURITY] = "security_agency";
   if (STRIPE_PRICE_SECURITY_BUNDLE && !map[STRIPE_PRICE_SECURITY_BUNDLE]) map[STRIPE_PRICE_SECURITY_BUNDLE] = "security_agency";
   return map;
-}/** Resolve plan_tier from a Stripe subscription (first price ID). Returns "starter" if no match. */
+}
+
+/** Resolve plan_tier from a Stripe subscription (first price ID). Returns "lite" if no match. */
 export function getTierFromSubscription(subscription: { items?: { data?: Array<{ price?: { id?: string } }> } }): string {
   const priceId = subscription.items?.data?.[0]?.price?.id;
-  if (!priceId) return "starter";
+  if (!priceId) return "lite";
   const tier = getPriceToTierMap()[priceId];
-  return tier ?? "starter";
+  return tier ?? "lite";
 }
 
 /** Get metered subscription item IDs from a subscription for overage billing. */

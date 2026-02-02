@@ -9,6 +9,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { recalculateTrustScore } from "@/lib/trustScore";
+import { logAudit } from "@/lib/dispute-audit";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -119,6 +120,14 @@ export async function POST(req: NextRequest) {
       console.error("[employment-references] insert error:", insertErr);
       return NextResponse.json({ error: "Failed to save reference" }, { status: 500 });
     }
+
+    await logAudit({
+      entityType: "reference",
+      entityId: ref?.id ?? employment_match_id,
+      changedBy: reviewerId,
+      newValue: { employment_match_id, reviewed_user_id: reviewedUserId, rating },
+      changeReason: "Reference submitted for confirmed match",
+    });
 
     await recalculateTrustScore(reviewedUserId);
 

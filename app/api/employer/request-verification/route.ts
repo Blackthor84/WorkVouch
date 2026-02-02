@@ -76,10 +76,8 @@ export async function POST(req: NextRequest) {
     }
 
     const employerAccountTyped = employerAccount as EmployerAccountRow;
-    if (
-      employerAccountTyped.plan_tier === "free" ||
-      employerAccountTyped.plan_tier === "basic"
-    ) {
+    const tier = employerAccountTyped.plan_tier?.toLowerCase();
+    if (tier === "lite" || tier === "free" || tier === "basic" || !tier) {
       const { checkVerificationLimit } =
         await import("@/lib/utils/verification-limit");
       const limitCheck = await checkVerificationLimit(employerAccountTyped.id);

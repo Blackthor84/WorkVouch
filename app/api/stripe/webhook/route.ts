@@ -222,7 +222,7 @@ export async function POST(req: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription;
         try {
           const customerId = subscription.customer as string;
-          await updateEmployerPlanTier(customerId, "starter");
+          await updateEmployerPlanTier(customerId, "lite");
         } catch (e) {
           console.error("[Stripe Webhook] customer.subscription.deleted:", e);
         }

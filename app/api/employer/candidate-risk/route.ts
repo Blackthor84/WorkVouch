@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 
 export const dynamic = "force-dynamic";
 
@@ -117,6 +118,14 @@ export async function GET(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const isEmployer = await hasRole("employer");
     if (!isEmployer) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    const subCheck = await requireActiveSubscription(user.id);
+    if (!subCheck.allowed) {
+      return NextResponse.json(
+        { error: subCheck.error ?? "Active subscription required." },
+        { status: 403 }
+      );
+    }
 
     const candidateId = req.nextUrl.searchParams.get("candidateId");
     if (!candidateId) return NextResponse.json({ error: "Missing candidateId" }, { status: 400 });
