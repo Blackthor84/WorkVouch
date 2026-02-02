@@ -1,16 +1,17 @@
 import {
   TruckIcon,
   ShieldCheckIcon,
-  BadgeCheckIcon,
+  CheckBadgeIcon,
   HeartIcon,
   ShoppingBagIcon,
   BuildingOffice2Icon,
 } from "@heroicons/react/24/outline";
+import { SafeIcon } from "@/components/ui/SafeIcon";
 
 const industries: { label: string; Icon: React.ComponentType<{ className?: string }> }[] = [
   { label: "Warehouse & Logistics", Icon: TruckIcon },
   { label: "Security", Icon: ShieldCheckIcon },
-  { label: "Law Enforcement", Icon: BadgeCheckIcon },
+  { label: "Law Enforcement", Icon: CheckBadgeIcon },
   { label: "Healthcare", Icon: HeartIcon },
   { label: "Retail", Icon: ShoppingBagIcon },
   { label: "Hospitality", Icon: BuildingOffice2Icon },
@@ -37,7 +38,7 @@ export default function IndustryPositioning() {
               className="flex items-center gap-2.5 text-slate-700 dark:text-slate-300"
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-400">
-                <Icon className="h-5 w-5" aria-hidden />
+                <SafeIcon icon={Icon} className="h-5 w-5" aria-hidden />
               </span>
               <span className="text-sm font-medium">{label}</span>
             </div>
