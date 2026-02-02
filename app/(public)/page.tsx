@@ -1,6 +1,9 @@
 import ActiveAds from "@/components/ActiveAds";
 import HeroInteractive, { type HeroIndustry } from "@/components/public/HeroInteractive";
+import HowWorkVouchWorks from "@/components/public/HowWorkVouchWorks";
 import HowItWorksDual from "@/components/public/HowItWorksDual";
+import TrustClarificationStrip from "@/components/public/TrustClarificationStrip";
+import IndustryPositioning from "@/components/public/IndustryPositioning";
 import PreviewCards from "@/components/public/PreviewCards";
 import FinalCTA from "@/components/public/FinalCTA";
 
@@ -30,6 +33,9 @@ export default async function Home(props: HomeProps) {
   return (
     <div className="min-h-screen">
       <HeroInteractive industry={industry} />
+      <IndustryPositioning />
+      <HowWorkVouchWorks />
+      <TrustClarificationStrip />
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <ActiveAds />
       </div>

@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckIcon } from "@heroicons/react/24/solid";
 
-// Replace PRICE_ID_* placeholders with your Stripe Price IDs, or set NEXT_PUBLIC_STRIPE_PRICE_*_MONTHLY / *_YEARLY in env.
+// Stripe tier mapping: Lite = Starter price IDs, Pro = Growth price IDs, Custom = Contact Sales (no Stripe).
 const plans = [
   {
-    id: "starter",
-    name: "Starter",
-    positioning: "Verify before you hire.",
+    id: "lite",
+    name: "Lite",
+    subtitle: "Essential Visibility",
     prices: {
       monthly: {
         amount: 49,
@@ -26,18 +27,22 @@ const plans = [
             : "PRICE_ID_STARTER_YEARLY",
       },
     },
-    lookups: "5 verified candidate lookups per month",
     features: [
-      "Verified job history access",
-      "Peer reference viewing",
-      "Standard WorkVouch Trust Score",
-      "Email support",
+      "View Overall Trust Score",
+      "Verified Employment Count",
+      "Limited Monthly Candidate Lookups",
+      "Basic Profile Access",
     ],
+    footnote:
+      "Ideal for smaller teams that hire occasionally and want structured employment transparency.",
+    cta: "Get Started",
+    isCustom: false,
   },
   {
-    id: "growth",
-    name: "Growth",
-    positioning: "Make every hire a confident one.",
+    id: "pro",
+    name: "Pro",
+    subtitle: "Operational Access",
+    badge: "Most Popular",
     prices: {
       monthly: {
         amount: 149,
@@ -54,45 +59,51 @@ const plans = [
             : "PRICE_ID_GROWTH_YEARLY",
       },
     },
-    lookups: "25 verified lookups per month",
     features: [
-      "Everything in Starter",
-      "Automated reference requests",
-      "Enhanced trust analytics",
-      "Downloadable verification reports",
-      "Priority support",
+      "Unlimited Candidate Lookups",
+      "Full Employment Overlap Visibility",
+      "Peer Reference Summaries",
+      "Rehire Eligibility Indicators",
+      "Trust Score Breakdown",
+      "Employer Dashboard Insights",
     ],
+    footnote:
+      "Designed for organizations making ongoing hiring decisions in reliability-driven industries.",
+    cta: "Upgrade to Pro",
+    isCustom: false,
   },
   {
-    id: "pro",
-    name: "Pro",
-    positioning: "Enterprise-level hiring intelligence.",
-    prices: {
-      monthly: {
-        amount: 399,
-        stripePriceId:
-          typeof process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY === "string"
-            ? process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY
-            : process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO ?? "PRICE_ID_PRO_MONTHLY",
-      },
-      yearly: {
-        amount: 3990,
-        stripePriceId:
-          typeof process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY === "string"
-            ? process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY
-            : "PRICE_ID_PRO_YEARLY",
-      },
-    },
-    lookups: "Unlimited lookups",
+    id: "custom",
+    name: "Custom",
+    subtitle: "Enterprise Workforce Intelligence",
+    prices: null,
+    displayPrice: 399,
     features: [
-      "Everything in Growth",
-      "Bulk verification tools",
-      "API access",
-      "Team admin controls",
-      "Advanced fraud detection insights",
-      "Onboarding call",
+      "Multi-location Dashboards",
+      "Multiple Admin Roles",
+      "Advanced Reporting",
+      "Data Export Tools",
+      "API Access (Future Ready)",
+      "Dedicated Onboarding Support",
     ],
+    footnote:
+      "Built for larger organizations managing high-volume workforce operations.",
+    cta: "Contact Sales",
+    ctaHref: "/contact",
+    isCustom: true,
   },
+];
+
+const comparisonRows: { feature: string; lite: boolean; pro: boolean; custom: boolean }[] = [
+  { feature: "Overall Trust Score", lite: true, pro: true, custom: true },
+  { feature: "Verified Employment Count", lite: true, pro: true, custom: true },
+  { feature: "Basic Profile Access", lite: true, pro: true, custom: true },
+  { feature: "Full Employment Overlap Visibility", lite: false, pro: true, custom: true },
+  { feature: "Peer Reference Summaries", lite: false, pro: true, custom: true },
+  { feature: "Rehire Eligibility Indicators", lite: false, pro: true, custom: true },
+  { feature: "Unlimited Candidate Lookups", lite: false, pro: true, custom: true },
+  { feature: "Employer Dashboard Insights", lite: false, pro: true, custom: true },
+  { feature: "Multi-location & API", lite: false, pro: false, custom: true },
 ];
 
 const faqs: { q: string; a: string }[] = [
@@ -152,13 +163,13 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen">
-      {/* Header */}
+      {/* Hero */}
       <section className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 lg:py-20">
-        <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
-          Transparent Pricing Built Around Hiring Volume.
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl">
+          Simple Access to Verified Employment Reputation
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600 dark:text-slate-400">
-          Choose the plan that aligns with your organization&apos;s verification needs.
+          Choose the level of transparency and workforce insight your organization needs.
         </p>
 
         {/* Billing toggle */}
@@ -191,64 +202,96 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Plan cards */}
-      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 lg:pb-20">
-        <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {plans?.map((plan) => {
-            const planId = plan?.id ?? "";
-            const name = plan?.name ?? "Plan";
-            const positioning = plan?.positioning ?? "";
-            const lookups = plan?.lookups ?? "";
-            const features = Array.isArray(plan?.features) ? plan.features : [];
-            const currentPrice = plan?.prices?.[interval];
-
-            const amount = currentPrice?.amount ?? 0;
+      {/* Plan cards — 3 columns, Pro emphasized */}
+      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:pb-16">
+        <div className="grid gap-6 sm:gap-8 lg:grid-cols-3">
+          {plans.map((plan) => {
+            const isPro = plan.id === "pro";
+            const isCustom = plan.isCustom;
+            const currentPrice = !isCustom && plan.prices ? plan.prices[interval] : null;
+            const amount = currentPrice?.amount ?? null;
             const priceId = currentPrice?.stripePriceId;
             const isYearly = interval === "yearly";
 
             return (
-              <Card key={planId} hover className="flex flex-col">
-                <CardHeader>
+              <Card
+                key={plan.id}
+                className={`relative flex flex-col border-slate-200 dark:border-slate-700 ${
+                  isPro
+                    ? "ring-2 ring-blue-500/50 shadow-lg scale-[1.02] lg:scale-[1.03]"
+                    : ""
+                }`}
+              >
+                {plan.badge && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white dark:bg-blue-500">
+                      {plan.badge}
+                    </span>
+                  </div>
+                )}
+                <CardHeader className={plan.badge ? "pt-6" : ""}>
                   <CardTitle className="text-xl text-slate-900 dark:text-white">
-                    {name}
+                    {plan.name}
                   </CardTitle>
-                  <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">
-                    ${amount}
-                    {isYearly ? "/year" : "/month"}
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                    {plan.subtitle}
                   </p>
-                  {positioning ? (
-                    <p className="text-sm font-normal text-slate-600 dark:text-slate-400">
-                      {positioning}
+                  {!isCustom && amount !== null && (
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                      ${amount}
+                      <span className="text-base font-normal text-slate-600 dark:text-slate-400">
+                        {isYearly ? "/year" : "/month"}
+                      </span>
                     </p>
-                  ) : null}
-                  {lookups ? (
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {lookups}
+                  )}
+                  {isCustom && (
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                      $399
+                      <span className="text-base font-normal text-slate-600 dark:text-slate-400">
+                        /month
+                      </span>
                     </p>
-                  ) : null}
+                  )}
+                  {plan.footnote && (
+                    <p className="text-xs text-slate-500 dark:text-slate-500">
+                      {plan.footnote}
+                    </p>
+                  )}
                 </CardHeader>
                 <CardContent className="flex flex-1 flex-col space-y-4">
-                  <ul className="list-inside list-disc space-y-1 text-sm text-slate-600 dark:text-slate-400">
-                    {features.map((item, idx) => (
-                      <li key={idx}>{item ?? ""}</li>
+                  <ul className="list-none space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                    {plan.features.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <CheckIcon className="h-4 w-4 shrink-0 text-blue-500 mt-0.5" aria-hidden />
+                        {item}
+                      </li>
                     ))}
                   </ul>
-                  <div className="mt-auto pt-4">
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      className="w-full"
-                      onClick={() => handleCheckout(priceId)}
-                      disabled={
-                        loadingPlan !== null ||
-                        !priceId ||
-                        !String(priceId).startsWith("price_")
-                      }
-                    >
-                      {loadingPlan === priceId
-                        ? "Redirecting..."
-                        : "Get Started"}
-                    </Button>
+                  <div className="mt-auto pt-6">
+                    {isCustom ? (
+                      <Button
+                        href={plan.ctaHref ?? "/contact"}
+                        variant="secondary"
+                        size="lg"
+                        className="w-full"
+                      >
+                        {plan.cta}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant={isPro ? "primary" : "secondary"}
+                        size="lg"
+                        className="w-full"
+                        onClick={() => handleCheckout(priceId)}
+                        disabled={
+                          loadingPlan !== null ||
+                          !priceId ||
+                          !String(priceId).startsWith("price_")
+                        }
+                      >
+                        {loadingPlan === priceId ? "Redirecting..." : plan.cta}
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -257,39 +300,153 @@ export default function PricingPage() {
         </div>
       </section>
 
+      {/* Feature comparison grid — Pro column emphasized */}
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:py-16">
+        <h2 className="sr-only">Feature comparison</h2>
+        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50">
+          <table className="w-full min-w-[480px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-slate-700">
+                <th className="px-4 py-3 font-semibold text-slate-900 dark:text-white">
+                  Feature
+                </th>
+                <th className="px-4 py-3 font-semibold text-slate-900 dark:text-white text-center">
+                  Lite
+                </th>
+                <th className="bg-blue-50/80 dark:bg-blue-900/20 px-4 py-3 font-semibold text-slate-900 dark:text-white text-center ring-inset ring-1 ring-blue-200/60 dark:ring-blue-700/40">
+                  Pro
+                </th>
+                <th className="px-4 py-3 font-semibold text-slate-900 dark:text-white text-center">
+                  Custom
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {comparisonRows.map((row, idx) => (
+                <tr
+                  key={idx}
+                  className="border-b border-slate-100 dark:border-slate-700/80 last:border-0"
+                >
+                  <td className="px-4 py-3 text-slate-700 dark:text-slate-300">
+                    {row.feature}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {row.lite ? (
+                      <CheckIcon className="mx-auto h-5 w-5 text-blue-500" aria-hidden />
+                    ) : (
+                      <span className="text-slate-300 dark:text-slate-600">—</span>
+                    )}
+                  </td>
+                  <td className="bg-blue-50/50 dark:bg-blue-900/10 px-4 py-3 text-center ring-inset ring-1 ring-blue-200/40 dark:ring-blue-700/30">
+                    {row.pro ? (
+                      <CheckIcon className="mx-auto h-5 w-5 text-blue-500" aria-hidden />
+                    ) : (
+                      <span className="text-slate-300 dark:text-slate-600">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {row.custom ? (
+                      <CheckIcon className="mx-auto h-5 w-5 text-blue-500" aria-hidden />
+                    ) : (
+                      <span className="text-slate-300 dark:text-slate-600">—</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Compliance strip */}
+      <section className="border-y border-slate-200 dark:border-slate-700/80 bg-slate-50/50 dark:bg-slate-800/30">
+        <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+          <p className="text-center text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+            WorkVouch provides verified employment overlap and peer validation
+            data. We do not provide background checks or criminal history
+            reports.
+          </p>
+        </div>
+      </section>
+
+      {/* Fairness & Transparency */}
+      <section className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:py-20">
+        <h2 className="text-center text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+          Transparent & Structured
+        </h2>
+        <ul className="mx-auto mt-8 flex max-w-2xl flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-slate-700 dark:text-slate-300">
+          <li className="flex items-center gap-2">
+            <CheckIcon className="h-4 w-4 shrink-0 text-blue-500" aria-hidden />
+            Built-in dispute system
+          </li>
+          <li className="flex items-center gap-2">
+            <CheckIcon className="h-4 w-4 shrink-0 text-blue-500" aria-hidden />
+            Appeal process
+          </li>
+          <li className="flex items-center gap-2">
+            <CheckIcon className="h-4 w-4 shrink-0 text-blue-500" aria-hidden />
+            Audit logging
+          </li>
+          <li className="flex items-center gap-2">
+            <CheckIcon className="h-4 w-4 shrink-0 text-blue-500" aria-hidden />
+            Role-based access control
+          </li>
+          <li className="flex items-center gap-2">
+            <CheckIcon className="h-4 w-4 shrink-0 text-blue-500" aria-hidden />
+            Secure data handling
+          </li>
+        </ul>
+        <p className="mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+          All verification data can be reviewed and disputed. Trust scores are
+          recalculated when corrections are made.
+        </p>
+      </section>
+
+      {/* Final CTA */}
+      <section className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 lg:py-20">
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+          Bring Verified Employment Transparency Into Your Hiring Process
+        </h2>
+        <p className="mt-4 text-base text-slate-600 dark:text-slate-400">
+          Secure billing. Cancel anytime.
+        </p>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <Button
+            variant="secondary"
+            size="lg"
+            onClick={() => {
+              const litePlan = plans.find((p) => p.id === "lite");
+              if (litePlan && !litePlan.isCustom && litePlan.prices) {
+                const priceId = litePlan.prices[interval]?.stripePriceId;
+                handleCheckout(priceId);
+              }
+            }}
+            disabled={loadingPlan !== null}
+          >
+            {loadingPlan ? "Redirecting..." : "Start With Lite"}
+          </Button>
+          <Button href="/signup?type=employer" variant="primary" size="lg">
+            Upgrade to Pro
+          </Button>
+        </div>
+      </section>
+
       {/* FAQ */}
-      <section className="border-y border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-900/40">
+      <section className="border-t border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-900/40">
         <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:py-20">
           <h2 className="text-center text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
             Frequently Asked Questions
           </h2>
           <div className="mt-10 space-y-8">
-            {faqs?.map((faq, idx) => (
+            {faqs.map((faq, idx) => (
               <div key={idx}>
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                  {faq?.q ?? ""}
+                  {faq.q}
                 </h3>
-                <p className="mt-2 text-slate-600 dark:text-slate-400">
-                  {faq?.a ?? ""}
-                </p>
+                <p className="mt-2 text-slate-600 dark:text-slate-400">{faq.a}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Footer CTA */}
-      <section className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 lg:py-24">
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-          Build Hiring Decisions on Documented Experience.
-        </h2>
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <Button href="/signup" variant="primary" size="lg">
-            Get Started Free
-          </Button>
-          <Button href="/contact" variant="secondary" size="lg">
-            Contact Sales
-          </Button>
         </div>
       </section>
     </div>

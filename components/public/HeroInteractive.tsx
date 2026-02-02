@@ -35,8 +35,10 @@ const industryDisplayName: Record<HeroIndustry, string> = {
   logistics: "Logistics",
 };
 
-const defaultEmployeeSubtext =
-  "Professional Identity. Controlled by You.";
+const employeeSubheadline =
+  "Verified employment. Real coworker validation. Transparent trust scores.";
+const employeeSupportingCopy =
+  "WorkVouch confirms work history through overlapping employment records and structured peer validation — helping professionals build a verified reputation employers can review with confidence.";
 const defaultEmployerSubtext =
   "Verify Before You Hire. Request a Work Passport.";
 
@@ -52,14 +54,10 @@ export default function HeroInteractive({ industry }: HeroInteractiveProps) {
       ? "Professional Identity. Controlled by You."
       : "Verify Before You Hire.";
 
-  const subtext =
+  const employerSubtext =
     industry && industryCopy[industry]
-      ? mode === "employee"
-        ? industryCopy[industry].employeeLine
-        : industryCopy[industry].employerLine
-      : mode === "employee"
-        ? defaultEmployeeSubtext
-        : defaultEmployerSubtext;
+      ? industryCopy[industry].employerLine
+      : defaultEmployerSubtext;
 
   const ctaHref =
     mode === "employee" ? "/signup?type=employee" : "/signup?type=employer";
@@ -101,7 +99,7 @@ export default function HeroInteractive({ industry }: HeroInteractiveProps) {
           </button>
         </div>
 
-        {/* Headline + optional industry pill + subtext — single animated block */}
+        {/* Headline + subheadline/supporting copy (employee) or subtext (employer) */}
         <div className="min-h-[12rem]">
           <AnimatePresence mode="wait">
             <motion.div
@@ -115,26 +113,44 @@ export default function HeroInteractive({ industry }: HeroInteractiveProps) {
               <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-5xl xl:text-6xl w-full">
                 {headline}
               </h1>
-              {industry && industryDisplayName[industry] && (
-                <span
-                  className="text-xs font-medium rounded-full px-3 py-1 bg-slate-200/80 dark:bg-slate-600/40 text-slate-600 dark:text-slate-400"
-                  aria-hidden
-                >
-                  Optimized for {industryDisplayName[industry]}
-                </span>
+              {mode === "employee" ? (
+                <>
+                  <p className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-200 max-w-xl mx-auto lg:mx-0 w-full mt-1">
+                    {employeeSubheadline}
+                  </p>
+                  <p className="text-base leading-relaxed text-slate-600 dark:text-slate-400 max-w-xl mx-auto lg:mx-0 w-full mt-2 lg:line-clamp-2">
+                    {employeeSupportingCopy}
+                  </p>
+                </>
+              ) : (
+                <>
+                  {industry && industryDisplayName[industry] && (
+                    <span
+                      className="text-xs font-medium rounded-full px-3 py-1 bg-slate-200/80 dark:bg-slate-600/40 text-slate-600 dark:text-slate-400"
+                      aria-hidden
+                    >
+                      Optimized for {industryDisplayName[industry]}
+                    </span>
+                  )}
+                  <p className="text-lg leading-relaxed text-slate-600 dark:text-slate-400 max-w-xl mx-auto lg:mx-0 w-full mt-2">
+                    {employerSubtext}
+                  </p>
+                </>
               )}
-              <p className="text-lg leading-relaxed text-slate-600 dark:text-slate-400 max-w-xl mx-auto lg:mx-0 w-full mt-2">
-                {subtext}
-              </p>
             </motion.div>
           </AnimatePresence>
         </div>
 
         {/* CTA */}
-        <div className="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-4">
+        <div className="mt-10 flex flex-col items-center lg:items-start gap-2">
           <Button href={ctaHref} variant="primary" size="lg">
             {mode === "employee" ? "Build Your Profile" : "Start Employer Trial"}
           </Button>
+          {mode === "employee" && (
+            <p className="text-sm text-slate-500 dark:text-slate-500">
+              Free to create. Built for high-trust industries.
+            </p>
+          )}
         </div>
       </div>
     </section>
