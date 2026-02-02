@@ -11,8 +11,32 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { env } from "@/lib/env";
 import OpenAI from "openai";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
+
+const EmploymentSchema = z.object({
+  company_name: z.string().min(1),
+  job_title: z.string().optional().nullable(),
+  start_date: z.string().min(4),
+  end_date: z.string().optional().nullable(),
+  is_current: z.boolean().optional(),
+});
+
+const ResumeParseSchema = z.object({
+  employment: z.array(EmploymentSchema),
+});
+
+type EmploymentInput = z.infer<typeof EmploymentSchema>;
+
+type NormalizedEmployment = {
+  company_name: string;
+  job_title: string;
+  start_date: string;
+  end_date: string | null;
+  is_current: boolean;
+  company_normalized: string;
+};
 
 const BUCKET = "resumes";
 const PARSE_LIMIT_PER_DAY = 3;
@@ -32,31 +56,9 @@ function normalizeDate(s: string | null | undefined): string | null {
   return `${y}-${m}-${day}`;
 }
 
-function normalizeEmployment(
-  raw: Array<{
-    company_name?: string | null;
-    job_title?: string | null;
-    start_date?: string | null;
-    end_date?: string | null;
-    is_current?: boolean;
-  }>
-): Array<{
-  company_name: string;
-  job_title: string;
-  start_date: string;
-  end_date: string | null;
-  is_current: boolean;
-  company_normalized: string;
-}> {
+function normalizeEmployment(raw: EmploymentInput[]): NormalizedEmployment[] {
   const seen = new Set<string>();
-  const out: Array<{
-    company_name: string;
-    job_title: string;
-    start_date: string;
-    end_date: string | null;
-    is_current: boolean;
-    company_normalized: string;
-  }> = [];
+  const out: NormalizedEmployment[] = [];
 
   for (const item of raw) {
     const company = (item.company_name ?? "").trim();
@@ -78,7 +80,11 @@ function normalizeEmployment(
       job_title: (item.job_title ?? "").trim() || "Unknown",
       start_date: start,
       end_date: end,
-      is_current: item.is_current === true || (end == null && (String(item.end_date ?? "").toLowerCase().includes("present") || String(item.end_date ?? "").trim() === "")),
+      is_current:
+        item.is_current === true ||
+        (end == null &&
+          (String(item.end_date ?? "").toLowerCase().includes("present") ||
+            String(item.end_date ?? "").trim() === "")),
       company_normalized,
     });
   }
@@ -197,7 +203,7 @@ ${rawText.slice(0, 12000)}`;
       );
     }
 
-    let parsed: { employment?: unknown[] };
+    let parsed: unknown;
     try {
       parsed = JSON.parse(content);
     } catch {
@@ -207,14 +213,21 @@ ${rawText.slice(0, 12000)}`;
       );
     }
 
-    const employment = Array.isArray(parsed.employment) ? parsed.employment : [];
+    const result = ResumeParseSchema.safeParse(parsed);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: "Invalid structured employment data from parser." },
+        { status: 400 }
+      );
+    }
+    const employment = result.data.employment;
     const normalized = normalizeEmployment(employment);
 
     await sb.from("audit_logs").insert({
       entity_type: PARSE_ENTITY_TYPE,
       entity_id: userId,
       changed_by: userId,
-      new_value: { path, employment_count: normalized.length } as Record<string, unknown>,
+      new_value: { path, employment_count: normalized.length },
       change_reason: "resume_parse",
     });
 
