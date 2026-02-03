@@ -27,7 +27,7 @@ export default async function AdminIntelligenceDashboardPage() {
     .select("id, company_name")
     .order("company_name")
     .limit(100);
-  const employerList = (employers ?? []) as { id: string; company_name?: string }[];
+  const employerList = employers ?? [];
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">

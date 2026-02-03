@@ -270,6 +270,7 @@ export interface Database {
         Row: {
           id: string
           user_id: string
+          company_name: string
           industry_type?: string | null
           plan_tier?: string | null
           stripe_customer_id?: string | null
@@ -288,6 +289,7 @@ export interface Database {
         Insert: {
           id?: string
           user_id: string
+          company_name: string
           industry_type?: string | null
           plan_tier?: string | null
           stripe_customer_id?: string | null
@@ -306,6 +308,7 @@ export interface Database {
         Update: {
           id?: string
           user_id?: string
+          company_name?: string
           industry_type?: string | null
           plan_tier?: string | null
           stripe_customer_id?: string | null
