@@ -35,11 +35,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Employer context required" }, { status: 403 });
     }
 
-    const allowed = await checkFeatureAccess("enterprise_team_fit", {
-      userId,
-      employerId,
-      uiOnly: true,
-    });
+    const allowed =
+      (await checkFeatureAccess("enterprise_intelligence", { userId, employerId, uiOnly: true })) ||
+      (await checkFeatureAccess("enterprise_team_fit", { userId, employerId, uiOnly: true }));
     if (!allowed) {
       return NextResponse.json({ error: "Feature not available" }, { status: 403 });
     }

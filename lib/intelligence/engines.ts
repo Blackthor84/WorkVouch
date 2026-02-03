@@ -221,7 +221,7 @@ export async function calculateEmployerWorkforceRisk(employerId: string): Promis
 /**
  * Run all profile-level engines for a user (trust, career stability, network density, rehire, risk).
  * Call after verification report created, reference submitted, dispute resolved, credential uploaded.
- * Then upsert profile_metrics for silent employer overlay / analytics.
+ * Then run candidate intelligence pipeline and persist unified snapshot (canonical intelligence_snapshots).
  */
 export async function triggerProfileIntelligence(profileId: string): Promise<void> {
   await Promise.all([
@@ -231,11 +231,10 @@ export async function triggerProfileIntelligence(profileId: string): Promise<voi
     calculateRehireProbability(profileId),
     calculateRiskSnapshotForProfile(profileId),
   ]).catch((e) => safeLog("triggerProfileIntelligence", e));
-  const { upsertProfileMetrics } = await import("@/lib/profile-metrics");
-  await upsertProfileMetrics(profileId).catch((e) => safeLog("upsertProfileMetrics", e));
-  // Enterprise intelligence pipeline (team_fit_scores, risk_model_outputs, network_density_index, hiring_confidence_scores)
   const { runCandidateIntelligence } = await import("./runIntelligencePipeline");
-  runCandidateIntelligence(profileId).catch((e) => safeLog("runCandidateIntelligence", e));
+  await runCandidateIntelligence(profileId).catch((e) => safeLog("runCandidateIntelligence", e));
+  const { persistUnifiedIntelligence } = await import("./unified-intelligence");
+  await persistUnifiedIntelligence(profileId).catch((e) => safeLog("persistUnifiedIntelligence", e));
 }
 
 /**

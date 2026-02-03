@@ -162,6 +162,27 @@ export default async function AdminPanel() {
             </Link>
           </Card>
 
+          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-cyan-500/80">
+            <Link href="/admin/intelligence-dashboard" className="block">
+              <h2 className="text-xl font-semibold text-cyan-600 dark:text-cyan-400 mb-2">
+                Intelligence Dashboard
+              </h2>
+              <p className="text-sm text-grey-medium dark:text-gray-400">
+                Full enterprise intelligence: profile strength, career health, risk, fraud, team fit, hiring confidence. Admin/SuperAdmin only.
+              </p>
+            </Link>
+          </Card>
+          <Card className="p-6 hover:shadow-lg transition-shadow">
+            <Link href="/admin/intelligence-preview" className="block">
+              <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+                Intelligence Preview
+              </h2>
+              <p className="text-sm text-grey-medium dark:text-gray-400">
+                Team fit, risk, network density, hiring confidence by candidate.
+              </p>
+            </Link>
+          </Card>
+
           <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-violet-500">
             <Link href="/admin/simulate" className="block">
               <h2 className="text-xl font-semibold text-violet-600 dark:text-violet-400 mb-2">

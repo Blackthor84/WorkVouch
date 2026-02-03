@@ -1,7 +1,11 @@
 /**
- * Simple enterprise metrics (no UI/API exposure).
- * Never throws. Never blocks.
+ * Enterprise metrics: real unified intelligence outputs only. No Math.random.
+ * Used by request-verification to optionally store real metrics (enterprise_metrics).
+ * Never throws; returns neutral values on failure.
  */
+
+import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
+import { calculateUnifiedIntelligence } from "@/lib/intelligence/unified-intelligence";
 
 export async function calculateEnterpriseMetrics(
   userId: string,
@@ -13,19 +17,23 @@ export async function calculateEnterpriseMetrics(
   integrity_index: number;
 } | null> {
   try {
-    const rehireProbability = Math.floor(70 + Math.random() * 20);
-    const compatibilityScore = Math.floor(65 + Math.random() * 25);
-    const workforceRiskScore = Math.floor(10 + Math.random() * 30);
-    const integrityIndex = Math.floor(75 + Math.random() * 20);
-
+    const result = await calculateUnifiedIntelligence(userId, employerId ?? null);
     return {
-      rehire_probability: rehireProbability,
-      compatibility_score: compatibilityScore,
-      workforce_risk_score: workforceRiskScore,
-      integrity_index: integrityIndex,
+      rehire_probability: result.rehire_probability,
+      compatibility_score: result.team_fit_score ?? result.profile_strength,
+      workforce_risk_score: 100 - result.overall_risk_score,
+      integrity_index: result.career_health,
     };
-  } catch (err) {
-    console.error("Enterprise engine error:", err);
-    return null;
+  } catch {
+    const snapshot = await getOrCreateSnapshot(userId).catch(() => null);
+    if (!snapshot) {
+      return { rehire_probability: 0, compatibility_score: 50, workforce_risk_score: 50, integrity_index: 0 };
+    }
+    return {
+      rehire_probability: snapshot.rehire_score ?? 0,
+      compatibility_score: snapshot.profile_strength ?? 50,
+      workforce_risk_score: 50,
+      integrity_index: snapshot.career_health_score ?? 0,
+    };
   }
 }

@@ -104,17 +104,23 @@ export async function calculateAndStoreRisk(profileId: string): Promise<{ error?
     end_date: j.end_date,
   }));
 
-  // Gaps: simple heuristic – sum tenure, assume gaps = 0 for now (or derive from date ranges)
+  // Tenure and gaps: sort by start_date, sum tenure and gaps between consecutive jobs
   let totalTenureMonths = 0;
+  let totalMonthsGap = 0;
   const sortedJobs = [...jobs].sort(
     (a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
   );
-  for (const j of sortedJobs) {
+  const MONTH_MS = 30.44 * 24 * 60 * 60 * 1000;
+  for (let i = 0; i < sortedJobs.length; i++) {
+    const j = sortedJobs[i];
     const s = new Date(j.start_date).getTime();
     const e = j.end_date ? new Date(j.end_date).getTime() : Date.now();
-    totalTenureMonths += (e - s) / (30.44 * 24 * 60 * 60 * 1000);
+    if (e > s) totalTenureMonths += (e - s) / MONTH_MS;
+    if (i < sortedJobs.length - 1) {
+      const nextStart = new Date(sortedJobs[i + 1].start_date).getTime();
+      if (e < nextStart) totalMonthsGap += (nextStart - e) / MONTH_MS;
+    }
   }
-  const totalMonthsGap = Math.max(0, 0); // placeholder; can compute from gaps between jobs
 
   const input: RiskEngineInput = {
     tenure: { jobs: tenureJobs },

@@ -18,6 +18,7 @@ export interface IntelligenceSnapshotRow {
   last_calculated_at: string | null;
   created_at: string;
   updated_at: string;
+  model_version?: string;
 }
 
 const ZERO_SNAPSHOT = (userId: string): IntelligenceSnapshotRow => ({
@@ -33,6 +34,7 @@ const ZERO_SNAPSHOT = (userId: string): IntelligenceSnapshotRow => ({
   last_calculated_at: null,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
+  model_version: "v1.0-enterprise",
 });
 
 /**
@@ -64,6 +66,7 @@ export async function getOrCreateSnapshot(userId: string): Promise<IntelligenceS
       last_calculated_at: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      model_version: "v1.0-enterprise",
     };
 
     const { data: inserted, error: insertError } = await supabase
@@ -102,5 +105,6 @@ function normalizeRow(raw: Record<string, unknown>): IntelligenceSnapshotRow {
     last_calculated_at: raw.last_calculated_at != null ? str(raw.last_calculated_at) : null,
     created_at: str(raw.created_at) || new Date().toISOString(),
     updated_at: str(raw.updated_at) || new Date().toISOString(),
+    model_version: str(raw.model_version) || "v1.0-enterprise",
   };
 }

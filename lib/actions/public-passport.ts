@@ -1,6 +1,7 @@
 "use server";
 
 import { createServerSupabase } from "@/lib/supabase/server";
+import { getSupabaseServer } from "@/lib/supabase/admin";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -106,14 +107,16 @@ export async function getPassportPageData(slug: string): Promise<PassportPageDat
     .order("start_date", { ascending: false });
   const jobList = (jobs ?? []) as PublicPassportJob[];
 
-  const { data: trustRow } = await sb
-    .from("trust_scores")
-    .select("score")
+  const adminSupabase = getSupabaseServer();
+  const { data: snapshotRow } = await adminSupabase
+    .from("intelligence_snapshots")
+    .select("profile_strength")
     .eq("user_id", profileId)
-    .order("calculated_at", { ascending: false })
-    .limit(1)
     .maybeSingle();
-  const profileStrength = (trustRow as { score?: number } | null)?.score ?? (profileRow as any)?.trust_score ?? 0;
+  const profileStrength =
+    (snapshotRow as { profile_strength?: number } | null)?.profile_strength ??
+    (profileRow as { trust_score?: number })?.trust_score ??
+    0;
 
   const { count: refCount } = await sb.from("references").select("id", { count: "exact", head: true }).eq("to_user_id", profileId);
   const referenceCount = refCount ?? 0;

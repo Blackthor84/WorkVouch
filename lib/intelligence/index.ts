@@ -41,3 +41,13 @@ export {
   runEmployerCandidateIntelligence,
   runIntelligencePipeline,
 } from "./runIntelligencePipeline";
+
+export { getOrCreateSnapshot, type IntelligenceSnapshotRow } from "./getOrCreateSnapshot";
+
+export {
+  calculateUnifiedIntelligence,
+  persistUnifiedIntelligence,
+  calculateWorkforceIntelligence,
+  UNIFIED_MODEL_VERSION,
+  type UnifiedIntelligenceResult,
+} from "./unified-intelligence";

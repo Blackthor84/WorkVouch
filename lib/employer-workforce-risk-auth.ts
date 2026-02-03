@@ -26,7 +26,9 @@ export async function requireWorkforceRiskEmployer(): Promise<{
   if (!user) return null;
   const hasEmployer = await hasRole("employer");
   if (!hasEmployer) return null;
-  const allowed = await checkFeatureAccess("workforce_risk_dashboard", { userId: user.id });
+  const allowed =
+    (await checkFeatureAccess("enterprise_intelligence", { userId: user.id })) ||
+    (await checkFeatureAccess("workforce_risk_dashboard", { userId: user.id }));
   if (!allowed) return null;
 
   const supabase = getSupabaseServer() as any;
