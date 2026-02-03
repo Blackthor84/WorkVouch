@@ -172,6 +172,18 @@ export default async function AdminPanel() {
               </p>
             </Link>
           </Card>
+
+          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-amber-500/80">
+            <Link href="/admin/intelligence-sandbox" className="block">
+              <h2 className="text-xl font-semibold text-amber-600 dark:text-amber-400 mb-2">
+                Intelligence Sandbox
+              </h2>
+              <p className="text-sm text-grey-medium dark:text-gray-400">
+                Simulate behavioral baselines, team fit, risk, hiring confidence with fake test data. Auto-expires in 10 min. Admin/SuperAdmin only.
+              </p>
+            </Link>
+          </Card>
+
           <Card className="p-6 hover:shadow-lg transition-shadow">
             <Link href="/admin/intelligence-preview" className="block">
               <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
