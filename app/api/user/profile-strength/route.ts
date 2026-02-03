@@ -1,85 +1,53 @@
 /**
  * GET /api/user/profile-strength
- * Returns employee-safe profile metrics only. No fraud, employer-only, ranking, team fit, or internal notes.
- * Risk engine computes fully in backend; this API exposes only the transparent subset for the current user.
+ * Returns profile strength from intelligence_snapshots. Never crashes; always returns structured data.
+ * Triggers silent background recalc if snapshot is older than 24h.
  */
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
+import { calculateUserIntelligence } from "@/lib/intelligence/calculateUserIntelligence";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-type RiskSnapshot = {
-  tenure?: number;
-  references?: number;
-  disputes?: number;
-  gaps?: number;
-  rehire?: number;
-  overall?: number;
-  confidence?: number;
-  version?: string;
-};
+const STALE_MS = 24 * 60 * 60 * 1000;
 
 export type ProfileStrengthResponse = {
-  tenureStability: number;
-  referenceResponseRate: number;
-  rehireLikelihood: number;
-  employmentGapClarity: number;
-  disputeResolutionStatus: number;
-  /** If true, snapshot was missing and defaults were returned; caller may trigger recalc. */
-  fromDefaults?: boolean;
+  profileStrength: number;
+  lastUpdated: string | null;
 };
 
-function clamp(n: number): number {
-  return Math.max(0, Math.min(100, Math.round(Number(n))));
+function fallback(): NextResponse {
+  return NextResponse.json({
+    profileStrength: 0,
+    lastUpdated: null,
+  } satisfies ProfileStrengthResponse);
 }
 
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ profileStrength: 0, lastUpdated: null } satisfies ProfileStrengthResponse);
     }
 
     const userId = session.user.id;
-    const supabase = await createServerSupabase();
+    const snapshot = await getOrCreateSnapshot(userId);
 
-    const { data: row, error } = await supabase
-      .from("profiles")
-      .select("risk_snapshot")
-      .eq("id", userId)
-      .maybeSingle();
-
-    const snapshot = (row as { risk_snapshot?: RiskSnapshot } | null)?.risk_snapshot as RiskSnapshot | null | undefined;
-
-    if (error) {
-      return NextResponse.json({ error: "Failed to load profile" }, { status: 500 });
+    const lastAt = snapshot.last_calculated_at ? new Date(snapshot.last_calculated_at).getTime() : 0;
+    if (Date.now() - lastAt > STALE_MS) {
+      calculateUserIntelligence(userId).catch(() => {});
     }
 
-    const fromDefaults = !snapshot || typeof snapshot !== "object";
+    const profileStrength = Math.max(0, Math.min(100, Number(snapshot.profile_strength) || 0));
+    const lastUpdated = snapshot.last_calculated_at ?? null;
 
-    const tenureStability = clamp(snapshot?.tenure ?? 0);
-    const referenceResponseRate = clamp(snapshot?.references ?? 0);
-    const rehireLikelihood = clamp(snapshot?.rehire ?? 0);
-    const employmentGapClarity = clamp(snapshot?.gaps ?? 100);
-    const disputeResolutionStatus = clamp(snapshot?.disputes ?? 100);
-
-    const body: ProfileStrengthResponse = {
-      tenureStability,
-      referenceResponseRate,
-      rehireLikelihood,
-      employmentGapClarity,
-      disputeResolutionStatus,
-    };
-
-    if (fromDefaults) {
-      body.fromDefaults = true;
-    }
-
-    return NextResponse.json(body);
-  } catch (e) {
-    console.error("Profile strength error:", e);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({
+      profileStrength,
+      lastUpdated,
+    } satisfies ProfileStrengthResponse);
+  } catch {
+    return fallback();
   }
 }

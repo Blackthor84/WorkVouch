@@ -1,33 +1,43 @@
 /**
  * GET /api/user/career-health
- * Employee-only. Returns career health metrics for dashboard: employment stability, reference strength,
- * documentation completeness, credential validation, dispute resolution. Computed server-side from risk_snapshot and jobs/credentials.
+ * Returns career health and component scores from intelligence_snapshots. Never crashes; always returns structured data.
+ * Triggers silent background recalc if snapshot is older than 24h.
  */
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-import { createServerSupabase } from "@/lib/supabase/server";
-import type { Database } from "@/types/supabase";
+import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
+import { calculateUserIntelligence } from "@/lib/intelligence/calculateUserIntelligence";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-type JobRow = Database["public"]["Tables"]["jobs"]["Row"];
-
-type RiskSnapshot = {
-  tenure?: number;
-  references?: number;
-  disputes?: number;
-  gaps?: number;
-  rehire?: number;
-};
+const STALE_MS = 24 * 60 * 60 * 1000;
 
 export type CareerHealthResponse = {
-  employmentStability: number;
-  referenceStrength: number;
-  documentationCompleteness: number;
-  credentialValidation: number;
-  disputeResolutionHistory: number;
+  careerHealth: number;
+  components: {
+    tenure: number;
+    reference: number;
+    rehire: number;
+    dispute: number;
+    network: number;
+  };
 };
+
+const ZERO_COMPONENTS = {
+  tenure: 0,
+  reference: 0,
+  rehire: 0,
+  dispute: 0,
+  network: 0,
+};
+
+function fallback(): NextResponse {
+  return NextResponse.json({
+    careerHealth: 0,
+    components: { ...ZERO_COMPONENTS },
+  } satisfies CareerHealthResponse);
+}
 
 function clamp(n: number): number {
   return Math.max(0, Math.min(100, Math.round(Number(n))));
@@ -37,66 +47,34 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({
+        careerHealth: 0,
+        components: { ...ZERO_COMPONENTS },
+      } satisfies CareerHealthResponse);
     }
 
     const userId = session.user.id;
-    const supabase = await createServerSupabase();
+    const snapshot = await getOrCreateSnapshot(userId);
 
-    const { data: profileRow, error: profileError } = await supabase
-      .from("profiles")
-      .select("risk_snapshot, guard_credential_score")
-      .eq("id", userId)
-      .maybeSingle();
-
-    const snapshot = (profileRow as { risk_snapshot?: RiskSnapshot } | null)?.risk_snapshot;
-    const guardCredentialScore = (profileRow as { guard_credential_score?: number | null } | null)?.guard_credential_score;
-
-    if (profileError) {
-      return NextResponse.json({ error: "Failed to load profile" }, { status: 500 });
+    const lastAt = snapshot.last_calculated_at ? new Date(snapshot.last_calculated_at).getTime() : 0;
+    if (Date.now() - lastAt > STALE_MS) {
+      calculateUserIntelligence(userId).catch(() => {});
     }
 
-    const employmentStability = clamp(snapshot?.tenure ?? 0);
-    const referenceStrength = clamp(snapshot?.references ?? 0);
-    const disputeResolutionHistory = clamp(snapshot?.disputes ?? 100);
-
-    let documentationCompleteness = 100;
-    try {
-      const { data: jobsData } = await supabase
-        .from("jobs")
-        .select("id, verification_status")
-        .eq("user_id", userId)
-        .returns<JobRow[]>();
-      const jobs = Array.isArray(jobsData) ? jobsData : [];
-      const total = jobs.length;
-      const verified = jobs.filter((j) => j.verification_status === "verified").length;
-      documentationCompleteness = total > 0 ? clamp((verified / total) * 100) : 100;
-    } catch {
-      // jobs table may not exist or RLS may block
-    }
-
-    let credentialValidation = clamp(guardCredentialScore ?? 0);
-    if (credentialValidation === 0) {
-      try {
-        const { data: credData } = await supabase.from("guard_licenses").select("id").eq("user_id", userId);
-        const count = Array.isArray(credData) ? credData.length : 0;
-        credentialValidation = count > 0 ? Math.min(100, count * 25) : 0;
-      } catch {
-        // guard_licenses may not exist
-      }
-    }
-
-    const body: CareerHealthResponse = {
-      employmentStability,
-      referenceStrength,
-      documentationCompleteness,
-      credentialValidation,
-      disputeResolutionHistory,
+    const careerHealth = clamp(Number(snapshot.career_health_score) ?? 0);
+    const components = {
+      tenure: clamp(Number(snapshot.tenure_score) ?? 0),
+      reference: clamp(Number(snapshot.reference_score) ?? 0),
+      rehire: clamp(Number(snapshot.rehire_score) ?? 0),
+      dispute: clamp(Number(snapshot.dispute_score) ?? 0),
+      network: clamp(Number(snapshot.network_density_score) ?? 0),
     };
 
-    return NextResponse.json(body);
-  } catch (e) {
-    console.error("Career health error:", e);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({
+      careerHealth,
+      components,
+    } satisfies CareerHealthResponse);
+  } catch {
+    return fallback();
   }
 }

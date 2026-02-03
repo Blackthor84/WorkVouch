@@ -4,48 +4,51 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 export type CareerHealthData = {
-  employmentStability: number;
-  referenceStrength: number;
-  documentationCompleteness: number;
-  credentialValidation: number;
-  disputeResolutionHistory: number;
+  careerHealth: number;
+  components: {
+    tenure: number;
+    reference: number;
+    rehire: number;
+    dispute: number;
+    network: number;
+  };
 };
 
 const SECTIONS: {
-  key: keyof CareerHealthData;
+  key: keyof CareerHealthData["components"];
   title: string;
   explanation: string;
   improvementTip: string;
 }[] = [
   {
-    key: "employmentStability",
+    key: "tenure",
     title: "Employment Stability",
-    explanation: "Based on average tenure length across your verified positions.",
+    explanation: "Based on tenure across your verified positions.",
     improvementTip: "Add more job history with accurate dates to strengthen this.",
   },
   {
-    key: "referenceStrength",
+    key: "reference",
     title: "Reference Strength",
-    explanation: "Based on how often coworkers respond to your reference requests.",
+    explanation: "Based on completed references from coworkers.",
     improvementTip: "Request references from coworkers and follow up on pending requests.",
   },
   {
-    key: "documentationCompleteness",
-    title: "Documentation Completeness",
-    explanation: "Based on how many of your positions are verified.",
-    improvementTip: "Complete verification for each job to improve this.",
+    key: "rehire",
+    title: "Rehire Likelihood",
+    explanation: "Based on rehire recommendations from employers.",
+    improvementTip: "Complete verifications and build positive rehire status.",
   },
   {
-    key: "credentialValidation",
-    title: "Credential Validation",
-    explanation: "Based on verified certifications and credentials on file.",
-    improvementTip: "Upload and verify licenses or certifications where applicable.",
-  },
-  {
-    key: "disputeResolutionHistory",
-    title: "Dispute Resolution History",
-    explanation: "Based on resolved vs unresolved disputes with employers.",
+    key: "dispute",
+    title: "Dispute Resolution",
+    explanation: "Based on resolved vs open disputes with employers.",
     improvementTip: "Resolve any open disputes with employers to improve this.",
+  },
+  {
+    key: "network",
+    title: "Network Density",
+    explanation: "Based on coworker connections and reference coverage.",
+    improvementTip: "Connect with more coworkers and request references.",
   },
 ];
 
@@ -60,59 +63,92 @@ function barColor(score: number): string {
 export function CareerHealthDashboard() {
   const [data, setData] = useState<CareerHealthData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    setError(null);
     fetch("/api/user/career-health", { credentials: "include" })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load");
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((body: CareerHealthData) => {
-        if (!cancelled) setData(body);
+        if (!cancelled) {
+          const comp = body?.components ?? {};
+          const safe: CareerHealthData = {
+            careerHealth: Number(body?.careerHealth) ?? 0,
+            components: {
+              tenure: Number(comp.tenure) ?? 0,
+              reference: Number(comp.reference) ?? 0,
+              rehire: Number(comp.rehire) ?? 0,
+              dispute: Number(comp.dispute) ?? 0,
+              network: Number(comp.network) ?? 0,
+            },
+          };
+          setData(safe);
+        }
       })
-      .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Something went wrong");
+      .catch(() => {
+        if (!cancelled)
+          setData({
+            careerHealth: 0,
+            components: { tenure: 0, reference: 0, rehire: 0, dispute: 0, network: 0 },
+          });
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading) {
     return (
       <div className="rounded-[20px] border border-slate-200 bg-[#F8FAFC] p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/50">
         <h2 className="text-lg font-semibold text-[#1E293B] dark:text-slate-200">Career Health Overview</h2>
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Loading…</p>
+        <div className="mt-3 h-3 w-2/3 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
+        <div className="mt-5 space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-12 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (error || !data) {
-    return (
-      <div className="rounded-[20px] border border-slate-200 bg-[#F8FAFC] p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/50">
-        <h2 className="text-lg font-semibold text-[#1E293B] dark:text-slate-200">Career Health Overview</h2>
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-          {error ? "Unable to load metrics. Try again later." : "Complete your profile and verifications to see career health metrics."}
-        </p>
-      </div>
-    );
-  }
+  const careerHealth = data?.careerHealth ?? 0;
+  const components = data?.components ?? {
+    tenure: 0,
+    reference: 0,
+    rehire: 0,
+    dispute: 0,
+    network: 0,
+  };
+  const isZero = careerHealth === 0;
 
   return (
     <div className="rounded-[20px] border border-slate-200 bg-[#F8FAFC] p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/50">
       <h2 className="text-lg font-semibold text-[#1E293B] dark:text-slate-200">Career Health Overview</h2>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-        Growth-focused metrics. Improve any area to strengthen your profile.
+        {isZero
+          ? "Building your score… Complete your profile and verifications to see career health metrics."
+          : "Growth-focused metrics. Improve any area to strengthen your profile."}
       </p>
+
+      <div className="mt-4 flex items-center justify-between gap-2">
+        <span className="font-medium text-[#1E293B] dark:text-slate-200">
+          {isZero ? "Building your score…" : "Overall"}
+        </span>
+        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">{careerHealth}/100</span>
+      </div>
+      <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+        <div
+          className={cn("h-full rounded-full transition-[width] duration-500", barColor(careerHealth))}
+          style={{ width: `${careerHealth}%` }}
+        />
+      </div>
 
       <ul className="mt-6 space-y-5">
         {SECTIONS.map(({ key, title, explanation, improvementTip }) => {
-          const score = data[key];
+          const score = components[key] ?? 0;
           const isLow = score < LOW_THRESHOLD;
           return (
             <li key={key} className="border-b border-slate-200 pb-5 last:border-0 last:pb-0 dark:border-slate-700">
@@ -127,7 +163,7 @@ export function CareerHealthDashboard() {
                 />
               </div>
               <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{explanation}</p>
-              {isLow && (
+              {isLow && score > 0 && (
                 <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-300">{improvementTip}</p>
               )}
             </li>
