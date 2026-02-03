@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +25,7 @@ import {
   CreditCardIcon,
   Cog6ToothIcon,
   XMarkIcon,
+  BellIcon,
 } from "@heroicons/react/24/outline";
 
 function getScoreColor(score: number) {
@@ -35,8 +35,8 @@ function getScoreColor(score: number) {
   return "text-green-500";
 }
 
-// Demo-only sidebar: same look as employer, no auth or navigation away
-function DemoSidebar() {
+// Top navbar: Employer Panel + nav links, right = Demo Account badge + Notifications
+function DemoTopNavbar() {
   const navItems = [
     { label: "Dashboard", icon: HomeIcon },
     { label: "Directory", icon: UserGroupIcon },
@@ -46,84 +46,81 @@ function DemoSidebar() {
     { label: "Settings", icon: Cog6ToothIcon },
   ];
   return (
-    <aside className="w-64 flex-shrink-0 bg-white dark:bg-[#111827] border-r border-grey-background dark:border-[#374151] min-h-screen p-4">
-      <div className="mb-6">
-        <h2 className="text-lg font-bold text-grey-dark dark:text-gray-200">
-          Employer Panel
-        </h2>
-      </div>
-      <nav className="space-y-1">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = item.active;
-          return (
-            <div
-              key={item.label}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
-                isActive
-                  ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold"
-                  : "text-grey-dark dark:text-gray-200 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
-              }`}
-            >
-              <Icon className="h-5 w-5" />
-              <span>{item.label}</span>
-            </div>
-          );
-        })}
-      </nav>
-    </aside>
-  );
-}
-
-function DemoHeader() {
-  return (
-    <header className="bg-white dark:bg-[#111827] border-b border-grey-background dark:border-[#374151] px-6 py-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold text-grey-dark dark:text-gray-200">
-            Demo Account
-          </h1>
-          <span className="rounded-md bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-200">
-            Preview
-          </span>
+    <header className="bg-white dark:bg-[#111827] border-b border-grey-background dark:border-[#374151]">
+      <div className="flex justify-between items-center px-4 py-3 md:px-6">
+        <div className="flex items-center gap-4 md:gap-6 min-w-0">
+          <h2 className="text-lg font-bold text-grey-dark dark:text-gray-200 flex-shrink-0">
+            Employer Panel
+          </h2>
+          <nav className="hidden md:flex items-center gap-1 flex-wrap">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = item.active;
+              return (
+                <span
+                  key={item.label}
+                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
+                    isActive
+                      ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                      : "text-grey-dark dark:text-gray-200 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
+                  }`}
+                >
+                  <Icon className="h-4 w-4 flex-shrink-0" aria-hidden />
+                  {item.label}
+                </span>
+              );
+            })}
+          </nav>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" className="cursor-default opacity-70">
-            Notifications
-          </Button>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <span className="text-sm font-semibold text-grey-dark dark:text-gray-200">
+            Demo Account
+          </span>
+          <span className="rounded-md bg-slate-100 dark:bg-slate-700/50 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+            Demo
+          </span>
+          <button
+            type="button"
+            className="p-2 rounded-lg hover:bg-grey-background dark:hover:bg-[#1A1F2B] text-grey-dark dark:text-gray-400"
+            aria-label="Notifications"
+          >
+            <BellIcon className="h-5 w-5" />
+          </button>
         </div>
       </div>
     </header>
   );
 }
 
-// Detail panel sections in industry-emphasis order
+// Detail panel sections in industry-emphasis order (mirrors real employer candidate view)
 const SECTION_LABELS: Record<
   EmphasisComponent,
   { label: string; getValue: (p: DemoProfile) => string }
 > = {
   employment: {
-    label: "Verified employment",
+    label: "Verified Employment",
     getValue: (p) =>
       `${p.verifiedEmployments} role${p.verifiedEmployments !== 1 ? "s" : ""}`,
   },
   tenure: {
-    label: "Tenure strength",
+    label: "Tenure Strength",
     getValue: (p) =>
       `${p.totalYears} year${p.totalYears !== 1 ? "s" : ""} verified`,
   },
   rating: {
-    label: "Peer validation",
-    getValue: (p) => `${p.avgRating.toFixed(1)}/5 avg rating`,
+    label: "Peer Validation",
+    getValue: (p) =>
+      `${p.referenceCount} ref${p.referenceCount !== 1 ? "s" : ""}, ${p.avgRating.toFixed(1)}/5 avg`,
   },
   distribution: {
-    label: "Reference distribution",
+    label: "Reference Distribution",
     getValue: (p) =>
-      `${p.uniqueEmployers} employer${p.uniqueEmployers !== 1 ? "s" : ""} with references`,
+      `${p.uniqueEmployers} employer${p.uniqueEmployers !== 1 ? "s" : ""} validated`,
   },
   referenceVolume: {
-    label: "Reference count",
-    getValue: (p) => `${p.referenceCount} reference${p.referenceCount !== 1 ? "s" : ""}`,
+    label: "Reference Count",
+    getValue: (p) =>
+      `${p.referenceCount} reference${p.referenceCount !== 1 ? "s" : ""}`,
   },
 };
 
@@ -157,7 +154,7 @@ function DemoDetailPanel({
           <div className="h-14 w-14 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
             <UserCircleIcon className="h-9 w-9 text-blue-600 dark:text-blue-400" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h2 className="text-xl font-bold text-grey-dark dark:text-gray-200">
               {profile.name}
             </h2>
@@ -170,42 +167,49 @@ function DemoDetailPanel({
               <span className="text-xs font-medium text-grey-medium dark:text-gray-400 uppercase tracking-wide">
                 Trust Score
               </span>
-              <span className="rounded bg-slate-100 dark:bg-slate-700/50 px-1.5 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
-                Preview
-              </span>
             </div>
           </div>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-0">
           {order.map((key) => {
             const { label, getValue } = SECTION_LABELS[key];
             return (
               <div
                 key={key}
-                className="flex justify-between items-center py-2 border-b border-grey-background dark:border-[#374151]"
+                className="flex justify-between items-center py-3 border-b border-grey-background dark:border-[#374151]"
               >
                 <span className="text-sm text-grey-medium dark:text-gray-400">
                   {label}
                 </span>
-                <span className="text-sm font-semibold text-grey-dark dark:text-gray-200">
+                <span className="text-sm font-semibold text-grey-dark dark:text-gray-200 text-right">
                   {getValue(profile)}
                 </span>
               </div>
             );
           })}
-          <div className="flex justify-between items-center py-2 border-b border-grey-background dark:border-[#374151]">
+          <div className="flex justify-between items-center py-3 border-b border-grey-background dark:border-[#374151]">
             <span className="text-sm text-grey-medium dark:text-gray-400">
-              Rehire eligibility
+              Fraud Indicators
             </span>
             <span className="text-sm font-semibold text-grey-dark dark:text-gray-200">
-              {profile.rehireEligible ? "Eligible" : "—"}
+              {profile.fraudFlags === 0
+                ? "None"
+                : `${profile.fraudFlags} flag${profile.fraudFlags !== 1 ? "s" : ""}`}
+            </span>
+          </div>
+          <div className="flex justify-between items-center py-3 border-b border-grey-background dark:border-[#374151]">
+            <span className="text-sm text-grey-medium dark:text-gray-400">
+              Rehire Eligibility
+            </span>
+            <span className="text-sm font-semibold text-grey-dark dark:text-gray-200">
+              {profile.rehireEligible ? "Yes" : "No"}
             </span>
           </div>
           {profile.fraudFlags > 0 && (
-            <div className="flex items-center gap-2 py-2 text-amber-700 dark:text-amber-300">
+            <div className="flex items-center gap-2 py-3 text-amber-700 dark:text-amber-300">
               <ExclamationTriangleIcon className="h-5 w-5 flex-shrink-0" />
               <span className="text-sm font-medium">
-                Fraud indicators: {profile.fraudFlags} flag
+                {profile.fraudFlags} fraud flag
                 {profile.fraudFlags !== 1 ? "s" : ""} on file
               </span>
             </div>
@@ -216,6 +220,7 @@ function DemoDetailPanel({
   );
 }
 
+// Card: Name, Rehire badge, Trust Score (large, right), summary line only — no Preview
 function DemoProfileCard({
   profile,
   isSelected,
@@ -225,6 +230,7 @@ function DemoProfileCard({
   isSelected: boolean;
   onClick: () => void;
 }) {
+  const summary = `${profile.verifiedEmployments} role${profile.verifiedEmployments !== 1 ? "s" : ""} · ${profile.totalYears} yr · ${profile.avgRating.toFixed(1)}/5 · ${profile.referenceCount} ref${profile.referenceCount !== 1 ? "s" : ""}`;
   return (
     <Card
       role="button"
@@ -268,12 +274,7 @@ function DemoProfileCard({
             </div>
           </div>
           <div className="flex-shrink-0 text-right">
-            <div className="flex items-center gap-1.5 justify-end">
-              <span className="rounded bg-slate-100 dark:bg-slate-700/50 px-1.5 py-0.5 text-[10px] font-medium text-slate-600 dark:text-slate-300">
-                Preview
-              </span>
-            </div>
-            <div className="text-xs font-medium text-grey-medium dark:text-gray-400 uppercase tracking-wide mt-0.5">
+            <div className="text-xs font-medium text-grey-medium dark:text-gray-400 uppercase tracking-wide">
               Trust Score
             </div>
             <div
@@ -284,10 +285,7 @@ function DemoProfileCard({
           </div>
         </div>
         <div className="mt-4 pt-4 border-t border-grey-background dark:border-[#374151] text-sm text-grey-medium dark:text-gray-400">
-          {profile.verifiedEmployments} role
-          {profile.verifiedEmployments !== 1 ? "s" : ""} · {profile.totalYears}{" "}
-          yr · {profile.avgRating.toFixed(1)}/5 · {profile.referenceCount} ref
-          {profile.referenceCount !== 1 ? "s" : ""}
+          {summary}
         </div>
       </CardContent>
     </Card>
@@ -303,50 +301,51 @@ export default function DemoPage() {
   const profiles = demoProfiles[industry];
 
   return (
-    <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
-      <DemoSidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Thin muted demo banner */}
-        <div className="bg-amber-500/10 dark:bg-amber-500/15 border-b border-amber-500/20 dark:border-amber-500/30">
-          <p className="text-center py-2 px-4 text-sm font-medium text-amber-800 dark:text-amber-200">
-            Demo Mode — Sample Data Only
+    <div className="flex min-h-screen flex-col bg-background dark:bg-[#0D1117]">
+      <DemoTopNavbar />
+      {/* Thin subtle demo banner — only demo indicator on page */}
+      <div className="bg-amber-500/10 dark:bg-amber-500/15 border-b border-amber-500/20 dark:border-amber-500/30">
+        <p className="text-center py-2 px-4 text-sm font-medium text-amber-800 dark:text-amber-200">
+          Demo Mode — Sample Data Only
+        </p>
+      </div>
+      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        {/* Left column: industry selector */}
+        <aside className="w-full lg:w-56 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] p-4">
+          <p className="text-sm font-semibold text-grey-dark dark:text-gray-200 mb-3">
+            Industry
           </p>
-        </div>
-        <DemoHeader />
-        <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-6 py-8 md:py-12 lg:py-16">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">
+          <div className="flex flex-wrap gap-2 lg:flex-col">
+            {DEMO_INDUSTRIES.map((key) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  setIndustry(key);
+                  setSelectedProfile(null);
+                }}
+                className={`px-4 py-2.5 rounded-xl font-medium text-sm transition-colors text-left ${
+                  industry === key
+                    ? "bg-blue-600 text-white dark:bg-blue-500 dark:text-white shadow-md"
+                    : "bg-grey-background dark:bg-[#1A1F2B] text-grey-dark dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                }`}
+              >
+                {demoIndustryLabels[key]}
+              </button>
+            ))}
+          </div>
+        </aside>
+        {/* Right column: Candidate Search + cards + CTA */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 overflow-y-auto px-4 py-6 md:px-6 md:py-8">
+            <div className="max-w-3xl">
+              <h1 className="text-2xl md:text-3xl font-bold text-grey-dark dark:text-gray-200 mb-1">
                 Candidate Search
               </h1>
               <p className="text-grey-medium dark:text-gray-400 mb-6">
                 Sample profiles by industry. Click a candidate to view details.
               </p>
-              <div className="mb-6">
-                <p className="text-sm font-semibold text-grey-dark dark:text-gray-200 mb-3">
-                  Industry
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {DEMO_INDUSTRIES.map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => {
-                        setIndustry(key);
-                        setSelectedProfile(null);
-                      }}
-                      className={`px-4 py-2.5 rounded-xl font-medium text-sm transition-colors ${
-                        industry === key
-                          ? "bg-blue-600 text-white dark:bg-blue-500 dark:text-white shadow-md"
-                          : "bg-white dark:bg-[#1A1F2B] text-grey-dark dark:text-gray-200 border border-grey-background dark:border-[#374151] hover:border-blue-500/50 dark:hover:border-blue-500/50"
-                      }`}
-                    >
-                      {demoIndustryLabels[key]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
                 {profiles.map((profile, idx) => (
                   <DemoProfileCard
                     key={`${industry}-${idx}-${profile.name}`}
@@ -359,8 +358,8 @@ export default function DemoPage() {
                   />
                 ))}
               </div>
-              {/* CTA section — dashboard-style callout */}
-              <section className="rounded-2xl border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] p-8 text-center">
+              {/* CTA section */}
+              <section className="rounded-2xl border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] p-6 md:p-8 text-center">
                 <h2 className="text-xl font-bold text-grey-dark dark:text-gray-200 mb-2">
                   Ready to access verified employment transparency?
                 </h2>
@@ -369,7 +368,11 @@ export default function DemoPage() {
                   with confidence.
                 </p>
                 <div className="flex flex-wrap gap-4 justify-center">
-                  <Button href="/signup" variant="primary" size="lg">
+                  <Button
+                    href="/auth/signup?type=employer"
+                    variant="primary"
+                    size="lg"
+                  >
                     Start Your Organization
                   </Button>
                   <Button href="/pricing" variant="secondary" size="lg">
@@ -379,18 +382,18 @@ export default function DemoPage() {
               </section>
             </div>
           </div>
-          {/* Detail panel — visible when a profile is selected */}
-          {selectedProfile ? (
-            <div className="w-full lg:w-[400px] xl:w-[440px] flex-shrink-0 h-[420px] lg:h-auto lg:min-h-0 border-t lg:border-t-0 lg:border-l border-grey-background dark:border-[#374151]">
-              <DemoDetailPanel
-                profile={selectedProfile}
-                industry={industry}
-                onClose={() => setSelectedProfile(null)}
-              />
-            </div>
-          ) : null}
-        </main>
-      </div>
+        </div>
+        {/* Detail panel (side drawer) when a candidate is selected */}
+        {selectedProfile ? (
+          <div className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 h-[420px] lg:h-full lg:min-h-0 border-t lg:border-t-0 lg:border-l border-grey-background dark:border-[#374151]">
+            <DemoDetailPanel
+              profile={selectedProfile}
+              industry={industry}
+              onClose={() => setSelectedProfile(null)}
+            />
+          </div>
+        ) : null}
+      </main>
     </div>
   );
 }
