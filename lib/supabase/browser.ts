@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * Single shared Supabase browser client for the app.
- * Use this or supabaseBrowser from @/lib/supabase/client — same instance.
- * Persistent session: users stay logged in until explicit logout.
+ * Single browser Supabase client for the app.
+ * All client-side Supabase usage must import from this file or lib/supabase/client (re-export).
+ * Users remain logged in until explicit logout.
  */
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";

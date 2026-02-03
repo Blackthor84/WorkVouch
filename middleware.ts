@@ -5,7 +5,10 @@ import { updateSession } from "@/lib/supabase/middleware"
 
 /**
  * Root middleware: refresh Supabase session (do not clear), then enforce protected routes.
- * Users remain logged in until explicit logout. No session clear on navigation/refresh.
+ * Sessions are read from cookies; we do NOT assume null session = logged out.
+ * We do NOT clear auth state or redirect logged-in users to /login.
+ * Only redirect when: no auth cookie/token exists AND route is protected.
+ * Users remain logged in until explicit logout.
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

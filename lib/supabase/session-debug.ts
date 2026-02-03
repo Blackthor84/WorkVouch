@@ -2,10 +2,9 @@
 
 /**
  * Temporary session debug logger. Remove after confirming auth is stable.
- * Enable with NEXT_PUBLIC_DEBUG_AUTH=true or in development.
- * Helps verify: session lost vs middleware misreading.
+ * Use to confirm: session persists across navigation, token refresh fires correctly.
  */
-import { supabaseBrowser } from "@/lib/supabase-browser";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 
 const DEBUG_AUTH =
   process.env.NODE_ENV === "development" ||
@@ -16,8 +15,8 @@ export function initSessionDebug(): (() => void) | undefined {
 
   const { data: sub } = supabaseBrowser.auth.onAuthStateChange(
     (event, session) => {
-      console.log("[Auth Event]", event);
-      console.log("[Auth Session]", session ? "present" : "null", session?.user?.id ?? "-");
+      console.log("AUTH EVENT:", event);
+      console.log("SESSION:", session);
     }
   );
   return () => sub?.subscription?.unsubscribe();
