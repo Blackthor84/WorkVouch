@@ -111,7 +111,7 @@ export async function computeAndPersistRiskModel(
         .select("industry, industry_key")
         .eq("id", candidateId)
         .maybeSingle()
-        .then((r) => {
+        .then((r: { data: unknown }) => {
           const p = r.data as { industry?: string; industry_key?: string } | null;
           return resolveIndustryKey(p?.industry_key, p?.industry);
         })

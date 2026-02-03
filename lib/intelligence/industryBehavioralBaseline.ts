@@ -57,7 +57,7 @@ export async function recalculateIndustryBaseline(
     const { data: profiles } = await supabase
       .from("profiles")
       .select("id, industry");
-    const list = (profiles ?? []) as { id: string; industry?: string | null }[];
+    const list = (profiles ?? []) as unknown as { id: string; industry?: string | null }[];
     const profileIdsInIndustry = list
       .filter((p) => resolveIndustryKey(p.industry ?? null, null) === normalizedIndustry)
       .map((p) => p.id);

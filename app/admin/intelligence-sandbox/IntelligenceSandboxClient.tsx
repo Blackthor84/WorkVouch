@@ -300,7 +300,7 @@ export function IntelligenceSandboxClient({ employerList }: { employerList: Empl
         </div>
       )}
 
-      {!tab === "stress" && (
+      {tab !== "stress" && (
         <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-3 flex items-center justify-between">
           <span className="font-medium text-amber-700 dark:text-amber-400">
             Sandbox Mode — Data auto-deletes in {SANDBOX_TTL_MINUTES} minutes
@@ -405,7 +405,7 @@ export function IntelligenceSandboxClient({ employerList }: { employerList: Empl
                   <input type="range" min={0} max={50} value={leadershipVariance} onChange={(e) => setLeadershipVariance(parseInt(e.target.value, 10))} className="w-full" />
                   <span className="text-sm">{leadershipVariance}</span>
                 </div>
-                <Button variant="outline" onClick={createFraudCluster} disabled={loading}>
+                <Button variant="secondary" onClick={createFraudCluster} disabled={loading}>
                   Fraud Cluster Simulation
                 </Button>
               </>
@@ -429,7 +429,7 @@ export function IntelligenceSandboxClient({ employerList }: { employerList: Empl
               {loading ? "Creating…" : "Create session"}
             </Button>
             {sessionId && (
-              <Button variant="outline" onClick={() => runScoring()} disabled={runLoading}>
+              <Button variant="secondary" onClick={() => runScoring()} disabled={runLoading}>
                 {runLoading ? "Running…" : "Run scoring"}
               </Button>
             )}
@@ -469,7 +469,7 @@ export function IntelligenceSandboxClient({ employerList }: { employerList: Empl
                   </div>
                 </div>
                 <p className="text-xs text-grey-medium dark:text-gray-400">Total: {totalWeight}% {!weightValid && "(will normalize to 100%)"}</p>
-                <Button variant="outline" size="sm" onClick={() => refreshHybridPreview()} disabled={!sessionId}>
+                <Button variant="secondary" size="sm" onClick={() => refreshHybridPreview()} disabled={!sessionId}>
                   Recalculate hybrid (live)
                 </Button>
                 {hybridPreview && (
@@ -520,13 +520,13 @@ export function IntelligenceSandboxClient({ employerList }: { employerList: Empl
                 </ul>
               </div>
             )}
-            {data?.riskOutputs?.length > 0 && (
-              <p>Risk scores (sample): {data.riskOutputs.slice(0, 5).map((r) => r.overall_score).join(", ")}…</p>
+            {(data?.riskOutputs?.length ?? 0) > 0 && (
+              <p>Risk scores (sample): {(data?.riskOutputs?.slice(0, 5) ?? []).map((r) => r.overall_score).join(", ")}…</p>
             )}
-            {data?.hiringConfidenceScores?.length > 0 && (
-              <p>Hiring confidence (sample): {data.hiringConfidenceScores.slice(0, 5).map((h) => h.composite_score).join(", ")}…</p>
+            {(data?.hiringConfidenceScores?.length ?? 0) > 0 && (
+              <p>Hiring confidence (sample): {(data?.hiringConfidenceScores?.slice(0, 5) ?? []).map((h) => h.composite_score).join(", ")}…</p>
             )}
-            {(!data?.riskOutputs?.length && !data?.hiringConfidenceScores?.length) && sessionId && (
+            {((data?.riskOutputs?.length ?? 0) === 0 && (data?.hiringConfidenceScores?.length ?? 0) === 0) && sessionId && (
               <p className="text-grey-medium dark:text-gray-400">Click &quot;Run scoring&quot; to populate risk and hiring confidence.</p>
             )}
             {!sessionId && <p className="text-grey-medium dark:text-gray-400">Create a session and run scoring.</p>}

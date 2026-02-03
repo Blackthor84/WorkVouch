@@ -126,7 +126,7 @@ export function AdminIntelligenceDashboardClient({
           {loading ? "Loading…" : "Load"}
         </Button>
         {data && userId && (
-          <Button variant="outline" onClick={reprocessBehavioral} disabled={reprocessLoading}>
+          <Button variant="secondary" onClick={reprocessBehavioral} disabled={reprocessLoading}>
             {reprocessLoading ? "Reprocessing…" : "Reprocess behavioral"}
           </Button>
         )}
