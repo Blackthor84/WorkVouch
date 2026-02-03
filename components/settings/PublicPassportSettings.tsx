@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import {
@@ -163,10 +164,10 @@ export function PublicPassportSettings() {
               </a>
             </Button>
             <Button variant="ghost" size="sm" asChild className="inline-flex items-center gap-1.5">
-              <a href="/help">
+              <Link href="/help">
                 <PencilSquareIcon className="h-4 w-4" />
                 Request correction
-              </a>
+              </Link>
             </Button>
             <Button
               variant="ghost"

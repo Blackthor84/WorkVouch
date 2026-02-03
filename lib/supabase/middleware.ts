@@ -72,3 +72,14 @@ export const createMiddlewareClient = (request: NextRequest) => {
 
   return { supabase, response }
 }
+
+/**
+ * Refreshes Supabase session in middleware and returns response with updated cookies.
+ * Does NOT clear session — only refreshes so session persists across requests.
+ * Call this in root middleware before protected-route checks.
+ */
+export async function updateSession(request: NextRequest): Promise<NextResponse> {
+  const { supabase, response } = createMiddlewareClient(request)
+  await supabase.auth.getSession()
+  return response
+}
