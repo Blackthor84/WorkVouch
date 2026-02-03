@@ -28,7 +28,7 @@ const plans = [
       },
     },
     features: [
-      "View Overall Trust Score",
+      "View Overall Reputation Score",
       "Verified Employment Count",
       "Limited Monthly Candidate Lookups",
       "Basic Profile Access",
@@ -64,7 +64,7 @@ const plans = [
       "Full Employment Overlap Visibility",
       "Peer Reference Summaries",
       "Rehire Eligibility Indicators",
-      "Trust Score Breakdown",
+      "Reputation Score Breakdown",
       "Employer Dashboard Insights",
     ],
     footnote:
@@ -95,7 +95,7 @@ const plans = [
 ];
 
 const comparisonRows: { feature: string; lite: boolean; pro: boolean; custom: boolean }[] = [
-  { feature: "Overall Trust Score", lite: true, pro: true, custom: true },
+  { feature: "Overall Reputation Score", lite: true, pro: true, custom: true },
   { feature: "Verified Employment Count", lite: true, pro: true, custom: true },
   { feature: "Basic Profile Access", lite: true, pro: true, custom: true },
   { feature: "Full Employment Overlap Visibility", lite: false, pro: true, custom: true },
@@ -108,8 +108,8 @@ const comparisonRows: { feature: string; lite: boolean; pro: boolean; custom: bo
 
 const faqs: { q: string; a: string }[] = [
   {
-    q: "What is a Trust Score?",
-    a: "A Trust Score is a documented metric derived from structured coworker confirmations and verification data. It gives employers a consistent way to assess verification strength without replacing human judgment.",
+    q: "What is a Reputation Score?",
+    a: "A Reputation Score is a documented metric derived from structured coworker confirmations and verification data. It gives employers a consistent way to assess verification strength without replacing human judgment.",
   },
   {
     q: "How does peer verification work?",

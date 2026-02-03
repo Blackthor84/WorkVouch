@@ -214,7 +214,7 @@ export default function SignupClient() {
                   Always free for workers
                 </h2>
                 <p className="text-sm text-emerald-700 dark:text-emerald-300 mb-4">
-                  Full access to profile, references, and trust score.
+                  Full access to profile, references, and reputation score.
                 </p>
                 <ul className="space-y-2 text-sm text-emerald-800 dark:text-emerald-200">
                   {employeePricing[0].benefits.slice(0, 6).map((b, i) => (

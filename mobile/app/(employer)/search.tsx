@@ -115,7 +115,7 @@ export default function EmployerSearchScreen() {
             </View>
             <View>
               <Text className="text-sm font-semibold text-grey-dark dark:text-gray-200 mb-2">
-                Min Trust Score
+                Min Reputation Score
               </Text>
               <TextInput
                 value={filters.minTrustScore}
@@ -153,7 +153,7 @@ export default function EmployerSearchScreen() {
               </Text>
               {candidate.trust_scores?.[0]?.score && (
                 <Text className="text-primary font-semibold">
-                  Trust Score: {candidate.trust_scores[0].score}
+                  Reputation Score: {candidate.trust_scores[0].score}
                 </Text>
               )}
             </TouchableOpacity>

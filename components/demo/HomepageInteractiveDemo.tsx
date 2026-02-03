@@ -183,7 +183,7 @@ export default function HomepageInteractiveDemo() {
               </div>
               <div className="flex flex-col items-center justify-center space-y-6">
                 <div className="flex flex-col items-center">
-                  <p className="text-sm font-medium text-slate-500 mb-2">Trust Score</p>
+                  <p className="text-sm font-medium text-slate-500 mb-2">Reputation Score</p>
                   <div className="relative">
                     <CircularProgress value={trustScore > 0 ? (trustScore / 1000) * 100 : 0} size={120} strokeWidth={8} />
                     <span className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-slate-900">

@@ -19,18 +19,18 @@ export default function LegalTermsPage() {
 
       <section>
         <h2 className="text-2xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
-          Trust Score Disclaimer
+          Reputation Score Disclaimer
         </h2>
         <p className="mb-4">
-          WorkVouch Trust Scores are proprietary metrics calculated from verified
+          WorkVouch Reputation Scores are proprietary metrics calculated from verified
           employment data, peer references, and reference quality. They are provided
           for informational purposes only.
         </p>
         <ul className="list-disc list-inside space-y-1 ml-4">
-          <li>Trust Scores are not an endorsement, certification, or guarantee of job performance.</li>
+          <li>Reputation Scores are not an endorsement, certification, or guarantee of job performance.</li>
           <li>Employers are solely responsible for their hiring and employment decisions.</li>
-          <li>Trust Scores should not be used as the sole basis for adverse employment decisions.</li>
-          <li>WorkVouch does not guarantee any particular Trust Score outcome.</li>
+          <li>Reputation Scores should not be used as the sole basis for adverse employment decisions.</li>
+          <li>WorkVouch does not guarantee any particular Reputation Score outcome.</li>
         </ul>
       </section>
 

@@ -5,7 +5,7 @@ import Link from "next/link";
 
 const STEPS = [
   { title: "Verification System", description: "WorkVouch verifies work history with employers and coworkers. Every profile is backed by real verification." },
-  { title: "Trust Scoring", description: "Our trust score reflects verified experience and rehire probability. Employers see a single, reliable metric." },
+  { title: "Reputation Scoring", description: "Our reputation score reflects verified experience and rehire probability. Employers see a single, reliable metric." },
   { title: "Employer Insights", description: "Employers get dashboards, reports, and fit scores to hire with confidence and reduce risk." },
   { title: "Monetization Model", description: "Subscription plans for employers, optional ads, and verified data create a sustainable business." },
 ];

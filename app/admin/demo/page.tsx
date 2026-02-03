@@ -27,7 +27,7 @@ const demos = [
   {
     href: "/admin/demo/worker",
     title: "Worker Dashboard Demo",
-    description: "Simulated worker dashboard with trust score, jobs, and coworker matches. No database.",
+    description: "Simulated worker dashboard with reputation score, jobs, and coworker matches. No database.",
     icon: UserCircleIcon,
     color: "from-violet-500 to-violet-700 dark:from-violet-600 dark:to-violet-800",
     borderColor: "border-violet-500/30 hover:border-violet-500/60",

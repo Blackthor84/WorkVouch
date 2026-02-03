@@ -11,7 +11,7 @@ export const TOUR_STEPS: TourStepConfig[] = [
   {
     id: "trust-score",
     targetId: "tour-trust-score",
-    title: "Trust Score",
+    title: "Reputation Score",
     description: "Your verified work reputation in one number. Employers use this to assess fit and reduce hiring risk.",
   },
   {

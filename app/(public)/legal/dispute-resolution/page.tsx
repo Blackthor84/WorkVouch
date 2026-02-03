@@ -23,7 +23,7 @@ export default function DisputeResolutionPolicyPage() {
         </h2>
         <p className="mb-4">
           Users may dispute employment verification status, references, fraud flags,
-          trust score calculation, and rehire eligibility (employer-submitted) status.
+          reputation score calculation, and rehire eligibility (employer-submitted) status.
           Evidence submission is allowed. Disputes are reviewed by WorkVouch
           administrators.
         </p>

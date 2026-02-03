@@ -6,7 +6,7 @@ import EmployerLandingClient from "./EmployerLandingClient";
 export const metadata: Metadata = {
   title: "For Employers | WorkVouch",
   description:
-    "Access verified employment overlap, peer-validated references, trust scores, and rehire eligibility — one structured dashboard for high-trust hiring.",
+    "Access verified employment overlap, peer-validated references, reputation scores, and rehire eligibility — one structured dashboard for high-trust hiring.",
 };
 
 export default function EmployerPricingPage() {

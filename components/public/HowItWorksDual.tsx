@@ -5,7 +5,7 @@ export default function HowItWorksDual() {
   const employeeItems = [
     "Verify past roles",
     "Collect coworker references",
-    "Build trust score",
+    "Build reputation score",
     "Control who sees your Work Passport",
   ];
   const employerItems = [

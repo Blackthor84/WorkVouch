@@ -36,7 +36,7 @@ const industryDisplayName: Record<HeroIndustry, string> = {
 };
 
 const employeeSubheadline =
-  "Verified employment. Real coworker validation. Transparent trust scores.";
+  "Verified employment. Real coworker validation. Transparent reputation scores.";
 const employeeSupportingCopy =
   "WorkVouch confirms work history through overlapping employment records and structured peer validation — helping professionals build a verified reputation employers can review with confidence.";
 const defaultEmployerSubtext =

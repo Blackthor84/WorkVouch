@@ -24,7 +24,7 @@ const steps = [
     step: 3,
     title: "Build Verified Reputation",
     description:
-      "Confirmed overlap and validated peer references contribute to a structured trust score.",
+      "Confirmed overlap and validated peer references contribute to a structured reputation score.",
     Icon: ShieldCheckIcon,
   },
   {

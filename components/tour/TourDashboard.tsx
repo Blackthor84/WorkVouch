@@ -49,11 +49,11 @@ export function TourDashboard() {
         </div>
 
         <div className="space-y-6">
-          {/* Trust Score card */}
+          {/* Reputation Score card */}
           <Card id="tour-trust-score">
             <div className="absolute top-0 left-0 right-0 h-1 bg-green-500 rounded-t-2xl" />
             <CardHeader>
-              <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200">Trust Score</h2>
+              <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200">Reputation Score</h2>
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold text-green-600 dark:text-green-400">782</div>

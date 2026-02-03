@@ -70,16 +70,16 @@ export default function TermsPage() {
 
               <section>
                 <h2 className="text-2xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
-                  2. Trust Score System
+                  2. Reputation Score System
                 </h2>
                 <p className="mb-4">
-                  Trust Scores range from 0-100 and are calculated based on
+                  Reputation Scores range from 0-100 and are calculated based on
                   verified jobs, peer references, and reference quality. Scores
-                  are recalculated nightly. Trust Scores are indicators, not
+                  are recalculated nightly. Reputation Scores are indicators, not
                   guarantees of job performance.
                 </p>
                 <p>
-                  You may dispute Trust Score calculations through support.
+                  You may dispute Reputation Score calculations through support.
                   Disputes will be reviewed within 30 business days.
                 </p>
               </section>

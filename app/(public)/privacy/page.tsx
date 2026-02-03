@@ -65,7 +65,7 @@ export default function PrivacyPage() {
                   <li>Create and manage your account</li>
                   <li>Display your profile to employers</li>
                   <li>Match you with coworkers</li>
-                  <li>Calculate and display your Trust Score</li>
+                  <li>Calculate and display your Reputation Score</li>
                   <li>Process payments and manage subscriptions</li>
                   <li>Send notifications and communications</li>
                   <li>Improve our Service</li>

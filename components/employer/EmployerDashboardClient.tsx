@@ -236,7 +236,7 @@ export function EmployerDashboardClient({
           <div className="grid gap-6 md:grid-cols-2">
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-2 text-grey-dark dark:text-gray-200">
-                Trust Score
+                Reputation Score
               </h3>
               <p className="text-3xl font-bold text-grey-dark dark:text-gray-200">
                 {trustScore ?? "N/A"}
@@ -553,7 +553,7 @@ export function EmployerDashboardClient({
                   <ExportDataButton
                     endpoint="/api/employer/analytics/export?type=trust-scores"
                     filename="trust-scores.csv"
-                    label="Export Trust Scores"
+                    label="Export Reputation Scores"
                   />
                 </div>
               )}

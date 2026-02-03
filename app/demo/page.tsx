@@ -165,7 +165,7 @@ function DemoDetailPanel({
                 {profile.trustScore}
               </span>
               <span className="text-xs font-medium text-grey-medium dark:text-gray-400 uppercase tracking-wide">
-                Trust Score
+                Reputation Score
               </span>
             </div>
           </div>
@@ -220,7 +220,7 @@ function DemoDetailPanel({
   );
 }
 
-// Card: Name, Rehire badge, Trust Score (large, right), summary line only — no Preview
+// Card: Name, Rehire badge, Reputation Score (large, right), summary line only — no Preview
 function DemoProfileCard({
   profile,
   isSelected,
@@ -275,7 +275,7 @@ function DemoProfileCard({
           </div>
           <div className="flex-shrink-0 text-right">
             <div className="text-xs font-medium text-grey-medium dark:text-gray-400 uppercase tracking-wide">
-              Trust Score
+              Reputation Score
             </div>
             <div
               className={`text-3xl font-bold ${getScoreColor(profile.trustScore)}`}

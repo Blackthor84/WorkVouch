@@ -10,7 +10,7 @@ import { CheckCircleIcon } from "@heroicons/react/24/solid";
  */
 
 interface ProfileAlignmentInsightsProps {
-  /** Verified employment count (from trust score or profile). */
+  /** Verified employment count (from reputation score or profile). */
   verifiedCount?: number;
   /** Total verified years (tenure). */
   totalYears?: number;

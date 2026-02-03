@@ -17,7 +17,7 @@ export function TrustScoreCard({ score }: TrustScoreCardProps) {
   return (
     <View className="bg-white dark:bg-[#1A1F2B] rounded-2xl p-6 mb-4 shadow-md">
       <Text className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
-        Trust Score
+        Reputation Score
       </Text>
       <View className="items-center">
         <View className="w-32 h-32 rounded-full items-center justify-center mb-4"

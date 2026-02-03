@@ -70,7 +70,7 @@ export function TrustProfilePreview({
         )}
       </div>
 
-      {/* Middle — Trust Score, references; rehire only when VerifiedEmployer/Admin */}
+      {/* Middle — Reputation Score, references; rehire only when VerifiedEmployer/Admin */}
       <div className="mt-6 flex items-center gap-6">
         <TrustScoreRing score={preview.trustScore} size="md" />
         <div className="space-y-1">

@@ -25,7 +25,7 @@ interface TourItem {
 
 const ROLE_TOUR: Record<Role, TourItem[]> = {
   worker: [
-    { id: "demo-trust-score", title: "Trust Score", description: "Your verified work reputation in one number. Employers use this to assess fit." },
+    { id: "demo-trust-score", title: "Reputation Score", description: "Your verified work reputation in one number. Employers use this to assess fit." },
     { id: "demo-profile", title: "Profile", description: "Complete your profile to increase visibility and trust." },
     { id: "demo-jobs", title: "Job History", description: "Add verified roles. Each verification strengthens your profile." },
     { id: "demo-activity", title: "Activity", description: "See references, matches, and messages in one place." },
@@ -118,7 +118,7 @@ export default function PublicDemoWalkthrough() {
           Experience WorkVouch Before You Sign Up
         </h1>
         <p className="text-lg sm:text-xl text-grey-medium dark:text-gray-400 max-w-2xl mx-auto mb-10">
-          See how verification and trust scores help workers showcase their history and employers hire with confidence. All data below is simulated.
+          See how verification and reputation scores help workers showcase their history and employers hire with confidence. All data below is simulated.
         </p>
         <Button
           size="lg"
@@ -141,7 +141,7 @@ export default function PublicDemoWalkthrough() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {(
             [
-              { id: "worker" as Role, label: "Worker", desc: "Verify your work history and build your trust score.", icon: UserCircleIcon, color: "from-violet-500 to-violet-700" },
+              { id: "worker" as Role, label: "Worker", desc: "Verify your work history and build your reputation score.", icon: UserCircleIcon, color: "from-violet-500 to-violet-700" },
               { id: "employer" as Role, label: "Employer", desc: "Search candidates, request verifications, and hire with confidence.", icon: BriefcaseIcon, color: "from-blue-500 to-blue-700" },
               { id: "advertiser" as Role, label: "Advertiser", desc: "Reach candidates with career-targeted ads and track ROI.", icon: MegaphoneIcon, color: "from-amber-500 to-amber-700" },
             ] as const
@@ -240,7 +240,7 @@ export default function PublicDemoWalkthrough() {
               <Card id="demo-trust-score">
                 <div className="h-1 rounded-t-2xl bg-green-500" />
                 <CardHeader>
-                  <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200">Trust Score</h2>
+                  <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200">Reputation Score</h2>
                 </CardHeader>
                 <CardContent>
                   <p className="text-4xl font-bold text-green-600 dark:text-green-400">

@@ -102,7 +102,7 @@ export default function AdminDemoWorkerClient() {
             <div className="h-1 rounded-t-2xl bg-green-500" />
             <CardHeader>
               <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200">
-                Trust Score (simulated)
+                Reputation Score (simulated)
               </h2>
             </CardHeader>
             <CardContent>

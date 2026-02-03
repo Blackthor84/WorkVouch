@@ -189,8 +189,8 @@ export default function AdminPreview() {
               <div className="border-l-4 border-blue-600 pl-4">
                 <h3 className="text-xl font-semibold mb-2">Step 4: Review Applicants</h3>
                 <p className="text-gray-700">
-                  Employers can view applicant profiles with verified work history, trust scores, and peer references.
-                  They can filter by experience, certifications, and trust score.
+                  Employers can view applicant profiles with verified work history, reputation scores, and peer references.
+                  They can filter by experience, certifications, and reputation score.
                 </p>
                 <div className="mt-3 p-4 bg-gray-50 rounded">
                   <p className="text-sm text-gray-600">Applicant Information:</p>

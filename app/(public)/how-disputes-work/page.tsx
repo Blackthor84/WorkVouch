@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 export const metadata: Metadata = {
   title: "How Disputes Work | WorkVouch",
   description:
-    "Learn how WorkVouch handles disputes fairly: overview, what can be disputed, review process, appeals, and trust score recalculation.",
+    "Learn how WorkVouch handles disputes fairly: overview, what can be disputed, review process, appeals, and reputation score recalculation.",
 };
 
 export default function HowDisputesWorkPage() {
@@ -59,8 +59,8 @@ export default function HowDisputesWorkPage() {
           <ol className="list-decimal list-inside space-y-4 text-grey-medium dark:text-gray-400 ml-2">
             <li><strong className="text-grey-dark dark:text-gray-200">Evidence submission</strong> — You submit a dispute with a description and may upload supporting evidence (e.g. documents, screenshots) through our secure system.</li>
             <li><strong className="text-grey-dark dark:text-gray-200">Admin review</strong> — A WorkVouch administrator reviews your dispute and any evidence, and may take action (e.g. modify a record, remove a flag, trigger a recalculation).</li>
-            <li><strong className="text-grey-dark dark:text-gray-200">Resolution</strong> — You receive a resolution summary. If the outcome affects your Trust Score (e.g. employment, reference, fraud flag, or trust score disputes), we recalculate your score server-side.</li>
-            <li><strong className="text-grey-dark dark:text-gray-200">Trust score recalculation</strong> — When a resolution affects verification, references, or fraud flags, your Trust Score is updated automatically. You can see your current score and whether it is under review in your dashboard.</li>
+            <li><strong className="text-grey-dark dark:text-gray-200">Resolution</strong> — You receive a resolution summary. If the outcome affects your Reputation Score (e.g. employment, reference, fraud flag, or reputation score disputes), we recalculate your score server-side.</li>
+            <li><strong className="text-grey-dark dark:text-gray-200">Reputation score recalculation</strong> — When a resolution affects verification, references, or fraud flags, your Reputation Score is updated automatically. You can see your current score and whether it is under review in your dashboard.</li>
           </ol>
         </section>
 

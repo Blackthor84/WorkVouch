@@ -98,7 +98,7 @@ export function SavedCandidates() {
                         : "Location not specified"}
                     </p>
                     <p className="text-sm font-semibold text-grey-dark dark:text-gray-200 mt-1">
-                      Trust Score:{" "}
+                      Reputation Score:{" "}
                       <span className="text-blue-600 dark:text-blue-400">
                         {trustScore}
                       </span>

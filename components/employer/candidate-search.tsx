@@ -130,7 +130,7 @@ export function CandidateSearch() {
           </div>
           <div>
             <label className="block text-sm font-semibold text-grey-dark dark:text-gray-200 mb-2">
-              Min Trust Score
+              Min Reputation Score
             </label>
             <input
               type="number"
@@ -187,7 +187,7 @@ export function CandidateSearch() {
                       {candidate.trust_score !== null && (
                         <div className="flex items-center gap-1 mt-1">
                           <span className="text-sm font-semibold text-grey-dark dark:text-gray-200">
-                            Trust Score:
+                            Reputation Score:
                           </span>
                           <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
                             {candidate.trust_score}

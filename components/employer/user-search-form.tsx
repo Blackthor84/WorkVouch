@@ -171,7 +171,7 @@ export function UserSearchForm() {
                         Name
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-grey-dark dark:text-gray-200">
-                        Trust Score
+                        Reputation Score
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-grey-dark dark:text-gray-200">
                         Summary

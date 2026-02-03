@@ -58,7 +58,7 @@ export default function CompliancePage() {
           <ChecklistItem
             title="Reputation Fairness"
             items={[
-              "Dispute system for employment, references, fraud flags, Trust Score, rehire status.",
+              "Dispute system for employment, references, fraud flags, Reputation Score, rehire status.",
               "Appeal system: one appeal per dispute; final decision logged.",
               "Audit logs for dispute resolutions, admin actions, and fraud workflow.",
               "Trust score recalculation server-side when resolution affects verification or flags.",
@@ -75,7 +75,7 @@ export default function CompliancePage() {
           <ChecklistItem
             title="Legal Safeguards"
             items={[
-              "Informational scoring disclaimer: Trust Scores are proprietary and informational only; not endorsement or certification.",
+              "Informational scoring disclaimer: Reputation Scores are proprietary and informational only; not endorsement or certification.",
               "Employer liability clause: employers responsible for hiring decisions; rehire data is employer-submitted; WorkVouch does not guarantee accuracy of employer input.",
               "Platform limitation: WorkVouch is not a background check service, not a consumer reporting agency (FCRA), and not governed as a credit bureau.",
             ]}

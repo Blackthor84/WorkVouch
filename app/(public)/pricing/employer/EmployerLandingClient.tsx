@@ -63,7 +63,7 @@ export default function EmployerLandingClient() {
                   <ChartBarIcon className="h-5 w-5" aria-hidden />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                  Trust Score Overview
+                  Reputation Score Overview
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                   A calculated score based on verified employment, validated
@@ -135,7 +135,7 @@ export default function EmployerLandingClient() {
                 <ul className="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-400">
                   <li className="flex items-start gap-2">
                     <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
-                    View trust score
+                    View reputation score
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
@@ -239,7 +239,7 @@ export default function EmployerLandingClient() {
             </li>
           </ul>
           <p className="mt-6 text-base leading-relaxed text-slate-600 dark:text-slate-400">
-            All trust scores and verification data can be disputed and
+            All reputation scores and verification data can be disputed and
             reviewed. Changes are logged and recalculated to ensure fairness.
           </p>
         </div>

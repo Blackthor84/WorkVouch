@@ -77,19 +77,19 @@ CREATE INDEX IF NOT EXISTS idx_hiring_confidence_scores_updated ON public.hiring
 
 COMMENT ON TABLE public.hiring_confidence_scores IS 'Composite hiring confidence. Server-only.';
 
--- updated_at triggers (use existing fn if present)
-DO $$
+-- updated_at triggers (use existing fn if present; tagged $ quoting so inner $$ does not close DO block)
+DO $mig$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'update_updated_at_column') THEN
     CREATE OR REPLACE FUNCTION update_updated_at_column()
-    RETURNS TRIGGER AS $$
+    RETURNS TRIGGER AS $func$
     BEGIN
       NEW.updated_at = NOW();
       RETURN NEW;
     END;
-    $$ LANGUAGE plpgsql;
+    $func$ LANGUAGE plpgsql;
   END IF;
-END $$;
+END $mig$;
 
 DROP TRIGGER IF EXISTS team_fit_scores_updated_at ON public.team_fit_scores;
 CREATE TRIGGER team_fit_scores_updated_at

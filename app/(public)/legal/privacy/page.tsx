@@ -5,7 +5,7 @@ import { LegalPageLayout } from "@/components/legal-page-layout";
 export const metadata: Metadata = {
   title: "Privacy Policy | WorkVouch",
   description:
-    "WorkVouch Privacy Policy: data collection, use, storage, and your rights. Trust Score and dispute data handling.",
+    "WorkVouch Privacy Policy: data collection, use, storage, and your rights. Reputation Score and dispute data handling.",
 };
 
 export default function LegalPrivacyPage() {
@@ -19,12 +19,12 @@ export default function LegalPrivacyPage() {
 
       <section>
         <h2 className="text-2xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
-          Trust Score Disclaimer
+          Reputation Score Disclaimer
         </h2>
         <p>
-          Trust Scores are proprietary, informational only, and not an endorsement or
+          Reputation Scores are proprietary, informational only, and not an endorsement or
           certification. Employers are responsible for their own decisions. We process
-          Trust Score data to operate the Service and to support dispute and appeal
+          Reputation Score data to operate the Service and to support dispute and appeal
           processes as described in our Terms.
         </p>
       </section>
@@ -81,7 +81,7 @@ export default function LegalPrivacyPage() {
           How We Use Your Information
         </h2>
         <p className="mb-4">
-          We use your data to operate the Service, calculate Trust Scores, process
+          We use your data to operate the Service, calculate Reputation Scores, process
           disputes and appeals, enforce policies, process payments, and comply with
           legal obligations. We do not sell your personal information.
         </p>

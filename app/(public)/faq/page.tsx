@@ -47,10 +47,10 @@ export default function FAQPage() {
                     className="block p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition"
                   >
                     <h3 className="font-semibold text-grey-dark dark:text-gray-200 mb-2">
-                      Trust Score
+                      Reputation Score
                     </h3>
                     <p className="text-sm text-grey-medium dark:text-gray-400">
-                      Understand how Trust Scores work
+                      Understand how Reputation Scores work
                     </p>
                   </Link>
                   <Link

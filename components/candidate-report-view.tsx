@@ -103,11 +103,11 @@ export function CandidateReportView({ report }: { report: Report }) {
         </div>
       </Card>
 
-      {/* Trust Score */}
+      {/* Reputation Score */}
       {report.trustScore && (
         <Card className="p-6 print:break-inside-avoid">
           <h2 className="text-2xl font-bold text-grey-dark dark:text-gray-200 mb-4">
-            Trust Score
+            Reputation Score
           </h2>
           <div className="flex items-center gap-4">
             <div className="text-5xl font-bold text-primary">

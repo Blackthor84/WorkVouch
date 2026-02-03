@@ -139,7 +139,7 @@ export function AdminPanel({
                     Roles
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-grey-medium dark:text-gray-400">
-                    Trust Score
+                    Reputation Score
                   </th>
                 </tr>
               </thead>

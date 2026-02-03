@@ -5,7 +5,7 @@ import { LegalPageLayout } from "@/components/legal-page-layout";
 export const metadata: Metadata = {
   title: "Employer Agreement | WorkVouch",
   description:
-    "WorkVouch Employer Agreement: Trust Score disclaimer, dispute policy, employer liability, and platform limitations.",
+    "WorkVouch Employer Agreement: Reputation Score disclaimer, dispute policy, employer liability, and platform limitations.",
 };
 
 export default function LegalEmployerAgreementPage() {
@@ -19,17 +19,17 @@ export default function LegalEmployerAgreementPage() {
 
       <section>
         <h2 className="text-2xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
-          Trust Score Disclaimer
+          Reputation Score Disclaimer
         </h2>
         <p className="mb-4">
-          WorkVouch Trust Scores are proprietary and provided for informational
+          WorkVouch Reputation Scores are proprietary and provided for informational
           purposes only. They are not an endorsement, certification, or guarantee of
           job performance or suitability.
         </p>
         <ul className="list-disc list-inside space-y-1 ml-4">
           <li>Employers are solely responsible for hiring and employment decisions.</li>
-          <li>Do not use Trust Scores as the sole basis for adverse employment decisions.</li>
-          <li>Trust Scores reflect verification completeness and reference quality, not future performance.</li>
+<li>Do not use Reputation Scores as the sole basis for adverse employment decisions.</li>
+            <li>Reputation Scores reflect verification completeness and reference quality, not future performance.</li>
         </ul>
       </section>
 

@@ -29,7 +29,7 @@ export default function DashboardScreen() {
     const userProfile = await getUserProfile(currentUser.id)
     setProfile(userProfile)
 
-    // Get trust score
+    // Get reputation score (internal: trust_score)
     const { data } = await supabase
       .from('trust_scores')
       .select('score')
@@ -65,7 +65,7 @@ export default function DashboardScreen() {
           </Text>
         </View>
 
-        {/* Trust Score Card */}
+        {/* Reputation Score Card */}
         <TrustScoreCard score={trustScore} userId={user?.id} />
 
         {/* Industry Badge */}

@@ -39,7 +39,7 @@ export default function WorkerDashboard() {
         const jobsData = await jobsRes.json();
         setJobs(jobsData.jobs || []);
 
-        // Calculate trust score
+        // Calculate reputation score (internal: trust_score)
         // TODO: Fetch actual data for trust score calculation
         const score = calculateTrustScore(
           {
@@ -80,14 +80,14 @@ export default function WorkerDashboard() {
             Worker Dashboard
           </h1>
           <p className="text-gray-600">
-            Manage your verified work profile and track your trust score
+            Manage your verified work profile and track your reputation score
           </p>
         </div>
 
-        {/* Trust Score Card */}
+        {/* Reputation Score Card */}
         {trustScore && (
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white mb-8">
-            <h2 className="text-xl font-semibold mb-2">Your Trust Score</h2>
+            <h2 className="text-xl font-semibold mb-2">Your Reputation Score</h2>
             <div className="flex items-center space-x-4">
               <div className="text-5xl font-bold">{trustScore.score}</div>
               <div>

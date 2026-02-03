@@ -125,7 +125,7 @@ export default function EmployerAnalytics({
         </h2>
         {trustScores.length === 0 ? (
           <p className="text-grey-medium dark:text-gray-400">
-            No trust score data available.
+            No reputation score data available.
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -136,7 +136,7 @@ export default function EmployerAnalytics({
                     Worker Email
                   </th>
                   <th className="py-3 px-4 text-left text-sm font-semibold text-grey-dark dark:text-gray-200">
-                    Trust Score
+                    Reputation Score
                   </th>
                 </tr>
               </thead>

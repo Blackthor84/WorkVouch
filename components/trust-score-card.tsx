@@ -53,7 +53,7 @@ export async function TrustScoreCard({ userId }: { userId: string }) {
       <div className={`absolute top-0 left-0 right-0 h-1 ${getScoreBgColor(score)}`} />
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Trust Score</CardTitle>
+          <CardTitle>Reputation Score</CardTitle>
           <span className="text-grey-medium dark:text-gray-400" title="Portable core score (0–100)">
             <InformationCircleIcon className="h-5 w-5" />
           </span>
@@ -136,7 +136,7 @@ export async function TrustScoreCard({ userId }: { userId: string }) {
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-grey-dark dark:text-gray-200 font-bold mb-4">No trust score calculated yet.</p>
+            <p className="text-grey-dark dark:text-gray-200 font-bold mb-4">No reputation score calculated yet.</p>
             <p className="text-xs text-grey-dark dark:text-gray-200 font-medium">
               Add confirmed employment and references to build your score.
             </p>

@@ -21,18 +21,18 @@ export default function HelpPage() {
       ],
     },
     {
-      title: "Trust Score",
+      title: "Reputation Score",
       questions: [
         {
-          q: "What is the Trust Score?",
-          a: "The Trust Score is a 0-100 rating that reflects how verified and trustworthy your career profile is, based on verified jobs and peer references.",
+          q: "What is the Reputation Score?",
+          a: "The Reputation Score is a 0-100 rating that reflects how verified and trustworthy your career profile is, based on verified jobs and peer references.",
         },
         {
-          q: "How is my Trust Score calculated?",
+          q: "How is my Reputation Score calculated?",
           a: "Scores are calculated from verified jobs, peer references, reference quality, and profile completeness. Scores update nightly.",
         },
         {
-          q: "How can I improve my Trust Score?",
+          q: "How can I improve my Reputation Score?",
           a: "Add more verified jobs, request references from coworkers, complete your profile, and ensure all jobs are verified.",
         },
       ],
@@ -96,8 +96,8 @@ export default function HelpPage() {
           a: "Check your email and password, try resetting your password, or contact support if issues persist.",
         },
         {
-          q: "My Trust Score isn't updating. Why?",
-          a: "Trust Scores update nightly. Wait 24 hours after adding jobs/references. Ensure jobs are verified and references are approved.",
+          q: "My Reputation Score isn't updating. Why?",
+          a: "Reputation Scores update nightly. Wait 24 hours after adding jobs/references. Ensure jobs are verified and references are approved.",
         },
         {
           q: "I'm not receiving verification emails.",

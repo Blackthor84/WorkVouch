@@ -185,13 +185,13 @@ export function EmployeeProfile({
         </div>
       </div>
 
-      {/* Trust Summary — Public: trust score, employment, peer confirmations only; no rehire pill unless VerifiedEmployer/Admin */}
+      {/* Reputation Summary — Public: reputation score, employment, peer confirmations only; no rehire pill unless VerifiedEmployer/Admin */}
       <ProfileCard className="mt-6" hover>
         <ProfileCardTitle>Trust Summary</ProfileCardTitle>
         <ProfileCardContent>
           <div className="flex flex-wrap items-center gap-3">
             <span className="font-medium text-[#1E293B] dark:text-slate-200">
-              Trust Score: {profile.trustScore}
+              Reputation Score: {profile.trustScore}
             </span>
             <StatusPill
               label={profile.riskTier.charAt(0).toUpperCase() + profile.riskTier.slice(1)}

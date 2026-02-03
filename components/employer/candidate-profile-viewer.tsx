@@ -161,12 +161,12 @@ export function CandidateProfileViewer({
       {/* Employer-only risk overlay (Career Health + Rehire, Velocity, Risk Flag, Network, Fraud confidence) */}
       <EmployerRiskOverlay candidateId={safeProfile.id} />
 
-      {/* Trust Score — core score only; high-level summary, no weights or breakdown math */}
+      {/* Reputation Score — core score only; high-level summary, no weights or breakdown math */}
       <Card className="p-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-1">
-              Trust Score
+              Reputation Score
             </h2>
             <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">
               Portable credibility score (0–100)

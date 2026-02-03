@@ -18,7 +18,7 @@ export default function FeaturesPage() {
     },
     {
       icon: ChartBarIcon,
-      title: "Trust Score System",
+      title: "Reputation Score System",
       description:
         "A 0-100 score that shows how verified and trustworthy your career profile is. Built from verified jobs, peer references, and reference quality. Employers trust it.",
     },
@@ -26,7 +26,7 @@ export default function FeaturesPage() {
       icon: ClockIcon,
       title: "Instant Employer Verification",
       description:
-        "Employers can instantly verify your work history, see your peer references, and check your Trust Score. No more waiting weeks for background checks.",
+        "Employers can instantly verify your work history, see your peer references, and check your Reputation Score. No more waiting weeks for background checks.",
     },
     {
       icon: LockClosedIcon,
@@ -44,7 +44,7 @@ export default function FeaturesPage() {
       icon: DevicePhoneMobileIcon,
       title: "Mobile-Ready",
       description:
-        "Manage your profile, request references, and check your Trust Score from your phone. Full mobile app coming soon.",
+        "Manage your profile, request references, and check your Reputation Score from your phone. Full mobile app coming soon.",
     },
   ];
 
