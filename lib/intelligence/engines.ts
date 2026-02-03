@@ -233,6 +233,9 @@ export async function triggerProfileIntelligence(profileId: string): Promise<voi
   ]).catch((e) => safeLog("triggerProfileIntelligence", e));
   const { upsertProfileMetrics } = await import("@/lib/profile-metrics");
   await upsertProfileMetrics(profileId).catch((e) => safeLog("upsertProfileMetrics", e));
+  // Enterprise intelligence pipeline (team_fit_scores, risk_model_outputs, network_density_index, hiring_confidence_scores)
+  const { runCandidateIntelligence } = await import("./runIntelligencePipeline");
+  runCandidateIntelligence(profileId).catch((e) => safeLog("runCandidateIntelligence", e));
 }
 
 /**

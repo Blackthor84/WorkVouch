@@ -35,3 +35,9 @@ export {
 } from "./engines";
 
 export { getIndustryBaseline, safeRatio, type IndustryBaseline } from "./baselines";
+
+export {
+  runCandidateIntelligence,
+  runEmployerCandidateIntelligence,
+  runIntelligencePipeline,
+} from "./runIntelligencePipeline";
