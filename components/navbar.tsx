@@ -24,6 +24,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-4 flex-shrink-0">
             <Link href="/" className="hover:text-gray-300 transition">Home</Link>
             <Link href="/about" className="hover:text-gray-300 transition">About</Link>
+            <Link href="/demo" className="hover:text-gray-300 transition">Demo</Link>
             <Link href="/pricing" className="hover:text-gray-300 transition">Pricing</Link>
             <Link href="/careers" className="hover:text-gray-300 transition">Careers</Link>
             <Link href="/contact" className="hover:text-gray-300 transition">Contact</Link>
@@ -53,6 +54,7 @@ export default function Navbar() {
         <div className="md:hidden mt-4 space-y-2 border-t pt-4">
           <Link href="/" className="block py-2 hover:text-gray-300 transition">Home</Link>
           <Link href="/about" className="block py-2 hover:text-gray-300 transition">About</Link>
+          <Link href="/demo" className="block py-2 hover:text-gray-300 transition">Demo</Link>
           <Link href="/pricing" className="block py-2 hover:text-gray-300 transition">Pricing</Link>
           <Link href="/careers" className="block py-2 hover:text-gray-300 transition">Careers</Link>
           <Link href="/contact" className="block py-2 hover:text-gray-300 transition">Contact</Link>
