@@ -26,6 +26,13 @@ type DashboardData = {
   team_fit_row: Record<string, unknown> | null;
   hiring_confidence_row: Record<string, unknown> | null;
   last_calculated_at: string | null;
+  behavioral_raw_scores?: Record<string, unknown>[];
+  behavioral_vector?: Record<string, unknown> | null;
+  behavioral_alignment_score?: number | null;
+  risk_behavioral_contribution?: number | null;
+  industry_baseline?: Record<string, unknown> | null;
+  employer_baseline?: Record<string, unknown> | null;
+  hybrid_baseline?: Record<string, unknown> | null;
 };
 
 export function AdminIntelligenceDashboardClient({
@@ -40,6 +47,7 @@ export function AdminIntelligenceDashboardClient({
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reprocessLoading, setReprocessLoading] = useState(false);
 
   async function load() {
     if (!userId) return;
@@ -62,6 +70,28 @@ export function AdminIntelligenceDashboardClient({
       setData(null);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function reprocessBehavioral() {
+    if (!userId) return;
+    setReprocessLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/reprocess-behavioral/${userId}`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || "Reprocess failed");
+        return;
+      }
+      await load();
+    } catch {
+      setError("Reprocess request failed");
+    } finally {
+      setReprocessLoading(false);
     }
   }
 
@@ -95,6 +125,11 @@ export function AdminIntelligenceDashboardClient({
         <Button onClick={load} disabled={!userId || loading}>
           {loading ? "Loading…" : "Load"}
         </Button>
+        {data && userId && (
+          <Button variant="outline" onClick={reprocessBehavioral} disabled={reprocessLoading}>
+            {reprocessLoading ? "Reprocessing…" : "Reprocess behavioral"}
+          </Button>
+        )}
       </div>
       {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
       {data && (
@@ -113,6 +148,77 @@ export function AdminIntelligenceDashboardClient({
               <p>Overall risk score: {data.overall_risk_score}</p>
               {data.team_fit_score != null && <p>Team fit score: {data.team_fit_score}</p>}
               {data.hiring_confidence_score != null && <p>Hiring confidence score: {data.hiring_confidence_score}</p>}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Behavioral Intelligence</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              {data.behavioral_vector != null && (
+                <div>
+                  <p className="font-medium text-grey-dark dark:text-gray-200 mb-2">Aggregated vector</p>
+                  <pre className="text-xs overflow-auto max-h-[200px] bg-slate-100 dark:bg-slate-800 p-3 rounded">
+                    {JSON.stringify(data.behavioral_vector, null, 2)}
+                  </pre>
+                </div>
+              )}
+              {data.behavioral_alignment_score != null && (
+                <p>Behavioral alignment score: {data.behavioral_alignment_score}</p>
+              )}
+              {data.risk_behavioral_contribution != null && (
+                <p>Risk behavioral contribution: {data.risk_behavioral_contribution}</p>
+              )}
+              {data.behavioral_raw_scores != null && data.behavioral_raw_scores.length > 0 && (
+                <div>
+                  <p className="font-medium text-grey-dark dark:text-gray-200 mb-2">
+                    Raw extracted scores ({data.behavioral_raw_scores.length} reviews)
+                  </p>
+                  <pre className="text-xs overflow-auto max-h-[300px] bg-slate-100 dark:bg-slate-800 p-3 rounded">
+                    {JSON.stringify(data.behavioral_raw_scores, null, 2)}
+                  </pre>
+                </div>
+              )}
+              {!data.behavioral_vector && (!data.behavioral_raw_scores?.length) && (
+                <p className="text-grey-medium dark:text-gray-400">No behavioral data for this user.</p>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Hybrid Behavioral Baseline</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              {data.industry_baseline != null && (
+                <div>
+                  <p className="font-medium text-grey-dark dark:text-gray-200 mb-2">Industry baseline (sample_size: {(data.industry_baseline as { sample_size?: number }).sample_size ?? "—"})</p>
+                  <pre className="text-xs overflow-auto max-h-[180px] bg-slate-100 dark:bg-slate-800 p-3 rounded">
+                    {JSON.stringify(data.industry_baseline, null, 2)}
+                  </pre>
+                </div>
+              )}
+              {data.employer_baseline != null && (
+                <div>
+                  <p className="font-medium text-grey-dark dark:text-gray-200 mb-2">Employer baseline (employee_sample_size: {(data.employer_baseline as { employee_sample_size?: number }).employee_sample_size ?? "—"})</p>
+                  <pre className="text-xs overflow-auto max-h-[180px] bg-slate-100 dark:bg-slate-800 p-3 rounded">
+                    {JSON.stringify(data.employer_baseline, null, 2)}
+                  </pre>
+                </div>
+              )}
+              {data.hybrid_baseline != null && (
+                <div>
+                  <p className="font-medium text-grey-dark dark:text-gray-200 mb-2">Blended hybrid baseline (employer_weight / industry_weight)</p>
+                  <pre className="text-xs overflow-auto max-h-[200px] bg-slate-100 dark:bg-slate-800 p-3 rounded">
+                    {JSON.stringify(data.hybrid_baseline, null, 2)}
+                  </pre>
+                </div>
+              )}
+              {data.behavioral_alignment_score != null && (
+                <p>Behavioral alignment vs baseline: {data.behavioral_alignment_score}</p>
+              )}
+              {!data.industry_baseline && !data.employer_baseline && !data.hybrid_baseline && (
+                <p className="text-grey-medium dark:text-gray-400">No hybrid baseline data (select employer for employer/hybrid).</p>
+              )}
             </CardContent>
           </Card>
           <Card>

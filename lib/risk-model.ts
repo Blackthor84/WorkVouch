@@ -6,6 +6,9 @@
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { calculateRiskSnapshot, type RiskSnapshotInput } from "@/lib/intelligence/riskEngine";
+import { getBehavioralVector } from "@/lib/intelligence/getBehavioralVector";
+import { getHybridBehavioralBaseline, getIndustryBehavioralBaseline } from "@/lib/intelligence/hybridBehavioralModel";
+import { resolveIndustryKey } from "@/lib/industry-normalization";
 
 const MODEL_VERSION = "1";
 const NEUTRAL_SCORE = 50;
@@ -91,8 +94,8 @@ export async function computeAndPersistRiskModel(
     }
 
     const snapshot = calculateRiskSnapshot(input);
-    const overallScore = clamp(snapshot.overallRiskScore);
-    const breakdown = {
+    let coreOverall = clamp(snapshot.overallRiskScore);
+    const breakdown: Record<string, number> = {
       tenureStabilityScore: snapshot.tenureStabilityScore,
       referenceResponseRate: snapshot.referenceResponseRate,
       rehireLikelihoodIndex: snapshot.rehireLikelihoodIndex,
@@ -100,6 +103,47 @@ export async function computeAndPersistRiskModel(
       disputeRiskScore: snapshot.disputeRiskScore,
     };
 
+    const behavioralVector = await getBehavioralVector(candidateId).catch(() => null);
+    if (behavioralVector) {
+      let behavioralRiskScore: number;
+      const candidateIndustry = await supabase
+        .from("profiles")
+        .select("industry, industry_key")
+        .eq("id", candidateId)
+        .maybeSingle()
+        .then((r) => {
+          const p = r.data as { industry?: string; industry_key?: string } | null;
+          return resolveIndustryKey(p?.industry_key, p?.industry);
+        })
+        .catch(() => "corporate");
+      const baseline = employerId
+        ? await getHybridBehavioralBaseline(candidateIndustry, employerId)
+        : await getIndustryBehavioralBaseline(candidateIndustry).then((b) => b ?? null);
+      if (baseline) {
+        const conflict = behavioralVector.conflict_risk_level ?? 0;
+        const reliability = behavioralVector.avg_reliability ?? 0;
+        const toneStability = behavioralVector.tone_stability ?? 0;
+        const baseConflict = baseline.avg_conflict_risk ?? 50;
+        const baseRel = baseline.avg_reliability ?? 50;
+        const baseTone = baseline.avg_tone_stability ?? 50;
+        let deviation = 0;
+        if (conflict > baseConflict) deviation += Math.min(33, (conflict - baseConflict) / 2);
+        if (reliability < baseRel) deviation += Math.min(33, (baseRel - reliability) / 2);
+        if (toneStability < baseTone) deviation += Math.min(33, (baseTone - toneStability) / 2);
+        behavioralRiskScore = clamp(50 + deviation);
+      } else {
+        const conflict = behavioralVector.conflict_risk_level ?? 0;
+        const reliability = behavioralVector.avg_reliability ?? 0;
+        const toneStability = behavioralVector.tone_stability ?? 0;
+        behavioralRiskScore = clamp(
+          (Number(conflict) + (100 - Number(reliability)) + (100 - Number(toneStability))) / 3
+        );
+      }
+      breakdown.behavioralRiskScore = behavioralRiskScore;
+      coreOverall = clamp(coreOverall * 0.85 + behavioralRiskScore * 0.15);
+    }
+
+    const overallScore = coreOverall;
     await upsertRiskOutput(supabase, candidateId, employerId ?? null, overallScore, breakdown);
     return { overallScore, breakdown };
   } catch (e) {

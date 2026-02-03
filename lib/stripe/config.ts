@@ -37,9 +37,7 @@ export const STRIPE_WHITELISTED_PRICE_IDS: string[] = [
 export function isPriceIdWhitelisted(priceId: string | undefined): boolean {
   if (!priceId || typeof priceId !== 'string' || !priceId.startsWith('price_')) return false
   return STRIPE_WHITELISTED_PRICE_IDS.includes(priceId)
-}
-
-/** Lookup quota by tier: lite 5, pro unlimited (-1), custom unlimited. */
+}/** Lookup quota by tier: lite 5, pro unlimited (-1), custom unlimited. */
 export function getLookupQuotaForTier(tier: string): number {
   const t = (tier || '').toLowerCase()
   if (t === 'pro' || t === 'custom') return -1

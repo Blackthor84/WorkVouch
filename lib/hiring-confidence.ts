@@ -5,6 +5,9 @@
  */
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { getBehavioralVector } from "@/lib/intelligence/getBehavioralVector";
+import { getHybridBehavioralBaseline } from "@/lib/intelligence/hybridBehavioralModel";
+import { resolveIndustryKey } from "@/lib/industry-normalization";
 
 const MODEL_VERSION = "1";
 const NEUTRAL_SCORE = 50;
@@ -21,6 +24,18 @@ function safeLog(context: string, err: unknown): void {
 
 function clamp(n: number): number {
   return Math.max(0, Math.min(100, Math.round(Number(n))));
+}
+
+function baselineAlignmentFactor(
+  candidateVector: { avg_pressure: number; avg_structure: number; avg_communication: number; avg_leadership: number; avg_reliability: number; avg_initiative: number; conflict_risk_level: number; tone_stability: number },
+  baseline: { avg_pressure: number; avg_structure: number; avg_communication: number; avg_leadership: number; avg_reliability: number; avg_initiative: number; avg_conflict_risk: number; avg_tone_stability: number }
+): number {
+  const keys = ["avg_pressure", "avg_structure", "avg_communication", "avg_leadership", "avg_reliability", "avg_initiative"] as const;
+  let sumDiff = 0;
+  for (const k of keys) sumDiff += Math.abs((candidateVector[k] ?? 0) - (baseline[k] ?? 0));
+  sumDiff += Math.abs((candidateVector.conflict_risk_level ?? 0) - (baseline.avg_conflict_risk ?? 0));
+  sumDiff += Math.abs((candidateVector.tone_stability ?? 0) - (baseline.avg_tone_stability ?? 0));
+  return clamp(100 - sumDiff / 8);
 }
 
 /**
@@ -102,11 +117,24 @@ export async function computeAndPersistHiringConfidence(
     const density = Number.isFinite(densityScore) ? (densityScore as number) * 100 : NEUTRAL_SCORE;
     const fraud = Number.isFinite(fraudConfidence) ? (fraudConfidence as number) * 100 : 0;
     const fraudPenalty = 100 - fraud;
+
+    let baselineAlignment = NEUTRAL_SCORE;
+    const [candidateProfile, candidateVector] = await Promise.all([
+      supabase.from("profiles").select("industry, industry_key").eq("id", candidateId).maybeSingle(),
+      getBehavioralVector(candidateId),
+    ]);
+    if (candidateVector) {
+      const profileRow = candidateProfile?.data as { industry?: string; industry_key?: string } | null;
+      const candidateIndustry = resolveIndustryKey(profileRow?.industry_key, profileRow?.industry);
+      const hybrid = await getHybridBehavioralBaseline(candidateIndustry, employerId);
+      baselineAlignment = baselineAlignmentFactor(candidateVector, hybrid);
+    }
     const composite = clamp(
-      team * 0.35 +
-        risk * 0.30 +
+      team * 0.30 +
+        risk * 0.25 +
         density * 0.20 +
-        fraudPenalty * 0.15
+        fraudPenalty * 0.10 +
+        baselineAlignment * 0.15
     );
 
     const breakdown = {
@@ -115,6 +143,7 @@ export async function computeAndPersistHiringConfidence(
       densityScore: density,
       fraudConfidence: fraud,
       fraudPenaltyScore: fraudPenalty,
+      baselineAlignmentFactor: baselineAlignment,
     };
 
     const row = {

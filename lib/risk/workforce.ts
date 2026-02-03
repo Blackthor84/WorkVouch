@@ -1,10 +1,11 @@
 /**
  * Workforce risk aggregation per employer.
  * Gets verified employees linked to employer, averages risk_score, counts high risk (< 50).
- * Uses service role.
+ * Uses employer_behavioral_baselines for reliability/conflict/tone trends. Service role.
  */
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { getEmployerBehavioralBaseline } from "@/lib/intelligence/hybridBehavioralModel";
 
 interface VerificationRequestRow {
   job_id: string;
@@ -91,8 +92,17 @@ export async function calculateEmployerWorkforceRisk(employerId: string): Promis
   const profiles = (profilesResult.data ?? []) as ProfileRow[];
   const scores = profiles.map((p) => p.risk_score).filter((s): s is number => s != null && typeof s === "number");
 
-  const average = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
+  let average = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
   const highRiskCount = scores.filter((s) => s < 50).length;
+
+  const employerBaseline = await getEmployerBehavioralBaseline(employerId).catch(() => null);
+  if (employerBaseline && employerBaseline.employee_sample_size > 0) {
+    const rel = employerBaseline.avg_reliability ?? 50;
+    const conflict = employerBaseline.avg_conflict_risk ?? 50;
+    const tone = employerBaseline.avg_tone_stability ?? 50;
+    const behavioralRisk = Math.max(0, Math.min(100, (100 - rel + conflict + (100 - tone)) / 3));
+    average = average != null ? average * 0.9 + behavioralRisk * 0.1 : behavioralRisk;
+  }
 
   const { error: updateError } = await supabase
     .from("employer_accounts")

@@ -7,6 +7,8 @@
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getIndustryBaseline } from "@/lib/intelligence/baselines";
 import { resolveIndustryKey } from "@/lib/industry-normalization";
+import { getHybridBehavioralBaseline } from "@/lib/intelligence/hybridBehavioralModel";
+import { getBehavioralVector } from "@/lib/intelligence/getBehavioralVector";
 
 const MODEL_VERSION = "1";
 const NEUTRAL_ALIGNMENT = 50;
@@ -125,15 +127,35 @@ async function getCandidateMetrics(
   }
 }
 
+/** Weighted absolute difference between candidate vector and baseline; 0 = perfect match, higher = worse. */
+function behavioralDistance(
+  candidate: { avg_pressure: number; avg_structure: number; avg_communication: number; avg_leadership: number; avg_reliability: number; avg_initiative: number; conflict_risk_level: number; tone_stability: number },
+  baseline: { avg_pressure: number; avg_structure: number; avg_communication: number; avg_leadership: number; avg_reliability: number; avg_initiative: number; avg_conflict_risk: number; avg_tone_stability: number }
+): number {
+  const keys = ["avg_pressure", "avg_structure", "avg_communication", "avg_leadership", "avg_reliability", "avg_initiative"] as const;
+  let sum = 0;
+  for (const k of keys) sum += Math.abs((candidate[k] ?? 50) - (baseline[k] ?? 50));
+  sum += Math.abs((candidate.conflict_risk_level ?? 50) - (baseline.avg_conflict_risk ?? 50));
+  sum += Math.abs((candidate.tone_stability ?? 50) - (baseline.avg_tone_stability ?? 50));
+  return sum / 8;
+}
+
+/** Convert distance (0–100 scale, 0 = perfect) to alignment score 0–100. */
+function distanceToAlignmentScore(distance: number): number {
+  return clamp(100 - Math.min(100, distance));
+}
+
 export async function computeAndPersistTeamFit(
   candidateId: string,
   employerId: string
 ): Promise<{ alignmentScore: number; breakdown: Record<string, number> } | null> {
   try {
     const supabase = getSupabaseServer() as any;
-    const [baseline, candidate] = await Promise.all([
+    const [baseline, candidate, profileRow, candidateVector] = await Promise.all([
       getTeamBaseline(supabase, employerId),
       getCandidateMetrics(supabase, candidateId),
+      supabase.from("profiles").select("industry, industry_key").eq("id", candidateId).maybeSingle(),
+      getBehavioralVector(candidateId),
     ]);
 
     let alignment = NEUTRAL_ALIGNMENT;
@@ -146,12 +168,24 @@ export async function computeAndPersistTeamFit(
     const refRatio = baseline.avgReferenceCount > 0
       ? Math.min(1.5, candidate.referenceCount / baseline.avgReferenceCount)
       : candidate.referenceCount > 0 ? 1 : 0.5;
-    alignment = clamp(
+    const tenureComponent = clamp(
       NEUTRAL_ALIGNMENT +
         (tenureRatio - 1) * 15 +
         (verifiedRatio - 1) * 15 +
         (refRatio - 0.5) * 20
     );
+
+    let behavioral_alignment_score = NEUTRAL_ALIGNMENT;
+    if (candidateVector) {
+      const candidateIndustry = resolveIndustryKey(
+        (profileRow?.data as { industry_key?: string } | null)?.industry_key,
+        (profileRow?.data as { industry?: string } | null)?.industry
+      );
+      const hybridBaseline = await getHybridBehavioralBaseline(candidateIndustry, employerId);
+      const distance = behavioralDistance(candidateVector, hybridBaseline);
+      behavioral_alignment_score = distanceToAlignmentScore(distance);
+    }
+    alignment = clamp(tenureComponent * 0.75 + behavioral_alignment_score * 0.25);
 
     const breakdown = {
       teamAvgTenureMonths: baseline.avgTenureMonths,
@@ -164,6 +198,7 @@ export async function computeAndPersistTeamFit(
       tenureRatio,
       verifiedRatio,
       refRatio,
+      behavioral_alignment_score: behavioral_alignment_score,
     };
 
     const row = {
@@ -171,7 +206,7 @@ export async function computeAndPersistTeamFit(
       employer_id: employerId,
       model_version: MODEL_VERSION,
       alignment_score: alignment,
-      breakdown: breakdown as unknown as Record<string, unknown>,
+      breakdown: { ...breakdown } as unknown as Record<string, unknown>,
       updated_at: new Date().toISOString(),
     };
     const { data: existing } = await supabase
@@ -188,7 +223,7 @@ export async function computeAndPersistTeamFit(
         employer_id: employerId,
         model_version: MODEL_VERSION,
         alignment_score: alignment,
-        breakdown: breakdown as unknown as Record<string, unknown>,
+        breakdown: { ...breakdown } as unknown as Record<string, unknown>,
       });
     }
     return { alignmentScore: alignment, breakdown };
