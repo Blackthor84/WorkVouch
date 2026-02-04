@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,8 @@ import VerificationLimitWarning from "@/components/VerificationLimitWarning";
 import ExportDataButton from "@/components/ExportDataButton";
 import { UsagePanel } from "@/components/employer/UsagePanel";
 import CredentialsOverview from "@/components/employer/CredentialsOverview";
+import { UpgradeBanner } from "@/components/employer/UpgradeBanner";
+import { UpgradeGate } from "@/components/employer/UpgradeGate";
 import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
 import { runSimulation } from "@/lib/simulation/engine";
 import type { PlanTier, SimulationOutput } from "@/lib/simulation/types";
@@ -138,6 +141,7 @@ export function EmployerDashboardClient({
     fetchRehireList();
   }, [rehireSystemEnabled, fetchRehireList]);
 
+  const isFreePlan = planTier === "free" || !planTier;
   const isBasicPlan = planTier === "free" || planTier === "basic" || planTier === "lite" || !planTier;
 
   const simulationOutput: SimulationOutput = {
@@ -190,6 +194,8 @@ export function EmployerDashboardClient({
       )}
 
       <div className="max-w-7xl mx-auto space-y-6">
+        {isFreePlan && <UpgradeBanner />}
+
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
@@ -217,7 +223,9 @@ export function EmployerDashboardClient({
                     : "bg-gray-400 text-white border-gray-500 dark:bg-gray-500 dark:border-gray-600"
                 }
               >
-                {planTier === "enterprise"
+                {planTier === "free" || !planTier
+                  ? "FREE"
+                  : planTier === "enterprise"
                   ? "ENTERPRISE"
                   : planTier === "pro" || planTier === "team" || planTier === "security_bundle" || planTier === "security-bundle"
                   ? "PRO"
@@ -266,12 +274,16 @@ export function EmployerDashboardClient({
         {/* Usage Panel */}
         <UsagePanel />
 
-        {/* Workforce Integrity Dashboard (feature-gated) */}
-        {riskDashboardEnabled && (
+        {/* Workforce Integrity Dashboard (feature-gated; free tier sees upgrade gate) */}
+        {isFreePlan ? (
+          <div className="mt-6">
+            <UpgradeGate feature="Workforce Risk Dashboard" />
+          </div>
+        ) : riskDashboardEnabled ? (
           <div className="mt-6">
             <WorkforceRiskDashboard />
           </div>
-        )}
+        ) : null}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -307,21 +319,31 @@ export function EmployerDashboardClient({
             <span className="font-semibold">Request verification</span>
             <span className="text-sm opacity-90">View candidates & request verification</span>
           </Button>
-          <Button
-            variant="secondary"
-            href="/pricing"
-            className="h-auto p-4 flex flex-col items-start"
-            onClick={(e) => {
-              if (isBasicPlan) {
-                e.preventDefault();
-                setShowUpgradeModal(true);
-              }
-            }}
-          >
-            <ArrowTrendingUpIcon className="h-6 w-6 mb-2" />
-            <span className="font-semibold">Upgrade Plan</span>
-            <span className="text-sm opacity-90">Unlock premium features</span>
-          </Button>
+          {isFreePlan ? (
+            <Button variant="secondary" className="h-auto p-4 flex flex-col items-start" asChild>
+              <Link href="/employer/upgrade">
+                <ArrowTrendingUpIcon className="h-6 w-6 mb-2" />
+                <span className="font-semibold">Upgrade Plan</span>
+                <span className="text-sm opacity-90">Unlock premium features</span>
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              variant="secondary"
+              href="/pricing"
+              className="h-auto p-4 flex flex-col items-start"
+              onClick={(e) => {
+                if (isBasicPlan) {
+                  e.preventDefault();
+                  setShowUpgradeModal(true);
+                }
+              }}
+            >
+              <ArrowTrendingUpIcon className="h-6 w-6 mb-2" />
+              <span className="font-semibold">Upgrade Plan</span>
+              <span className="text-sm opacity-90">Unlock premium features</span>
+            </Button>
+          )}
         </div>
 
         {/* Stats */}
@@ -392,23 +414,34 @@ export function EmployerDashboardClient({
           </div>
         )}
 
-        {/* Rehire Probability Widget (feature-flagged) */}
+        {/* Rehire Probability Widget (feature-flagged; gated for free) */}
         {rehireWidgetEnabled && (
           <div className="mt-6">
-            <RehireProbabilityWidget />
+            {isFreePlan ? (
+              <UpgradeGate feature="Rehire & Team Fit insights" />
+            ) : (
+              <RehireProbabilityWidget />
+            )}
           </div>
         )}
 
-        {/* Workforce Risk Indicator (feature-flagged) */}
+        {/* Workforce Risk Indicator (feature-flagged; gated for free) */}
         {workforceRiskEnabled && (
           <div className="mt-6">
-            <WorkforceRiskIndicator />
+            {isFreePlan ? (
+              <UpgradeGate feature="Workforce Risk Indicator" />
+            ) : (
+              <WorkforceRiskIndicator />
+            )}
           </div>
         )}
 
-        {/* Risk Intelligence v1 — Candidate Risk Snapshot (feature-flagged) */}
+        {/* Risk Intelligence v1 — Candidate Risk Snapshot (feature-flagged; gated for free) */}
         {riskSnapshotEnabled && (
           <div className="mt-6">
+            {isFreePlan ? (
+              <UpgradeGate feature="Candidate Risk Snapshot" />
+            ) : (
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4 text-grey-dark dark:text-gray-200">
                 Candidate Risk Snapshot
@@ -460,12 +493,16 @@ export function EmployerDashboardClient({
                 </p>
               )}
             </Card>
+            )}
           </div>
         )}
 
-        {/* Risk Intelligence v1 — Workforce Risk Overview (feature-flagged) */}
+        {/* Risk Intelligence v1 — Workforce Risk Overview (feature-flagged; gated for free) */}
         {workforceDashboardEnabled && (
           <div className="mt-6">
+            {isFreePlan ? (
+              <UpgradeGate feature="Workforce Integrity Overview" />
+            ) : (
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4 text-grey-dark dark:text-gray-200">
                 Workforce Integrity Overview
@@ -506,13 +543,16 @@ export function EmployerDashboardClient({
                 </div>
               )}
             </Card>
+            )}
           </div>
         )}
 
-        {/* Risk Intelligence v1 — Rehire Registry (feature-flagged) */}
+        {/* Risk Intelligence v1 — Rehire Registry (feature-flagged; gated for free) */}
         {rehireSystemEnabled && (
           <div className="mt-6">
-            {rehireListLoading ? (
+            {isFreePlan ? (
+              <UpgradeGate feature="Rehire Registry" />
+            ) : rehireListLoading ? (
               <Card className="p-6">
                 <p className="text-sm text-grey-medium dark:text-gray-400">Loading rehire registry…</p>
               </Card>
@@ -538,8 +578,12 @@ export function EmployerDashboardClient({
                 userRole={userRole}
                 planTier={planTier}
               />
-              {/* Export button for Pro */}
-              {planTier === "pro" && (
+              {/* Export: Pro only; free sees upgrade gate */}
+              {isFreePlan ? (
+                <div className="mt-6">
+                  <UpgradeGate feature="Export data" />
+                </div>
+              ) : planTier === "pro" ? (
                 <div className="mt-6 flex gap-4">
                   <ExportDataButton
                     endpoint="/api/employer/analytics/export?type=rehire"
@@ -552,7 +596,7 @@ export function EmployerDashboardClient({
                     label="Export Reputation Scores"
                   />
                 </div>
-              )}
+              ) : null}
             </>
           )}
         </div>

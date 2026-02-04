@@ -1,9 +1,10 @@
 /**
  * Plan limit config for tier enforcement and overage billing.
- * Canonical employer plans: lite, pro, enterprise only. -1 = unlimited.
+ * free = default for new employers; lite, pro, enterprise = paid.
+ * -1 = unlimited.
  */
 
-export type PlanTierKey = "lite" | "pro" | "enterprise";
+export type PlanTierKey = "free" | "lite" | "pro" | "enterprise";
 
 export interface PlanLimitConfig {
   reports: number;
@@ -14,6 +15,12 @@ export interface PlanLimitConfig {
 }
 
 export const PLAN_LIMITS: Record<PlanTierKey, PlanLimitConfig> = {
+  free: {
+    reports: 0,
+    searches: 5,
+    seats: 1,
+    allowOverage: false,
+  },
   lite: {
     reports: 15,
     searches: 25,
@@ -34,16 +41,17 @@ export const PLAN_LIMITS: Record<PlanTierKey, PlanLimitConfig> = {
   },
 };
 
-/** Normalize tier from DB to canonical key. Legacy: starter→lite, team/security-bundle→pro, pay-per-use→lite. */
+/** Normalize tier from DB to canonical key. free = default new employer. */
 export function normalizeTier(tier: string | null | undefined): PlanTierKey {
-  if (!tier) return "lite";
+  if (!tier) return "free";
   const t = tier.toLowerCase().replace(/-/g, "_");
+  if (t === "free") return "free";
   if (t === "lite") return "lite";
   if (t === "pro") return "pro";
   if (t === "enterprise" || t === "custom") return "enterprise";
-  if (t === "starter" || t === "free" || t === "basic" || t === "pay_per_use") return "lite";
+  if (t === "starter" || t === "basic" || t === "pay_per_use") return "lite";
   if (t === "team" || t === "growth" || t === "security_bundle" || t === "security_agency" || t === "security") return "pro";
-  return "lite";
+  return "free";
 }
 
 export function getPlanLimits(tier: string | null | undefined): PlanLimitConfig {

@@ -1,10 +1,8 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { employeePricing } from "@/lib/cursor-bundle";
-import { EMPLOYER_PLANS, type EmployerPlan } from "@/lib/pricing/employer-plans";
 import Link from "next/link";
 import Image from "next/image";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -15,35 +13,17 @@ const LOGO_SRC = "/images/workvouch-logo.png.png";
 
 export default function SignupClient() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const prefillPlan = searchParams.get("plan") || "";
-
   const [role, setRole] = useState<Role>("employee");
-  const [selectedPlan, setSelectedPlan] = useState(prefillPlan);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (prefillPlan) {
-      setSelectedPlan(prefillPlan);
-      const isEmployerPlan = EMPLOYER_PLANS.some((p) => p.id === prefillPlan);
-      const isEmployeePlan = employeePricing.some((p) => p.tier === prefillPlan);
-      if (isEmployerPlan) setRole("employer");
-      if (isEmployeePlan) setRole("employee");
-    }
-  }, [prefillPlan]);
-
   const handleRoleChange = (newRole: Role) => {
     if (loading) return;
     setRole(newRole);
-    setSelectedPlan("");
   };
-
-  const employerPlans = EMPLOYER_PLANS;
-  const plans = role === "employee" ? employeePricing : employerPlans;
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,15 +31,6 @@ export default function SignupClient() {
     setLoading(true);
 
     try {
-      const finalPlan = role === "employee" ? "free" : selectedPlan;
-
-      if (role === "employer" && !selectedPlan) {
-        setMessage("Please select a plan to continue.");
-        setLoading(false);
-        setTimeout(() => router.push("/pricing?userType=employer"), 1500);
-        return;
-      }
-
       if (password.length < 8) {
         setMessage("Password must be at least 8 characters.");
         setLoading(false);
@@ -74,7 +45,6 @@ export default function SignupClient() {
           data: {
             full_name: fullName,
             role: role === "employer" ? "employer" : "user",
-            plan: finalPlan,
           },
         },
       });
@@ -103,17 +73,13 @@ export default function SignupClient() {
           return;
         }
 
-        if (role === "employer" && selectedPlan) {
-          const dbPlanTier = ["lite", "pro", "enterprise"].includes(selectedPlan)
-            ? selectedPlan
-            : "lite";
-
+        if (role === "employer") {
           const { error: employerError } = await (supabaseBrowser as any)
             .from("employer_accounts")
             .insert({
               user_id: data.user.id,
               company_name: fullName?.trim() || "Company",
-              plan_tier: dbPlanTier,
+              plan_tier: "free",
             });
 
           if (employerError) {
@@ -127,7 +93,7 @@ export default function SignupClient() {
         if (data.session) {
           setMessage("Account created! Redirecting...");
           setTimeout(() => {
-            router.push(role === "employer" ? "/dashboard/employer" : "/dashboard/worker");
+            router.push(role === "employer" ? "/employer/dashboard" : "/dashboard/worker");
             router.refresh();
           }, 500);
         } else {
@@ -222,43 +188,23 @@ export default function SignupClient() {
                 </ul>
               </div>
             ) : (
-              <div className="space-y-3">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Choose a plan
+              <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10 p-5 sm:p-6">
+                <h2 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                  Employer account
                 </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  You can change or cancel anytime.
+                <p className="text-sm text-blue-700 dark:text-blue-300 mb-4">
+                  Create your account first. You can upgrade to a paid plan anytime from your dashboard.
                 </p>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {employerPlans.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => !loading && setSelectedPlan(p.id)}
-                      disabled={loading}
-                      className={`text-left p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md ${
-                        selectedPlan === p.id
-                          ? "border-blue-600 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                          : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-                      } ${loading ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
-                    >
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{p.name}</h3>
-                      <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mt-0.5">
-                        ${p.priceMonthly}/mo
-                      </p>
-                      <ul className="mt-2 space-y-1 text-xs text-gray-600 dark:text-gray-400">
-                        {p.features.slice(0, 3).map((f: string, i: number) => (
-                          <li key={i}>{f}</li>
-                        ))}
-                      </ul>
-                    </button>
-                  ))}
-                </div>
-                {role === "employer" && !selectedPlan && (
-                  <p className="text-sm text-amber-600 dark:text-amber-400">
-                    Please select a plan to continue.
-                  </p>
-                )}
+                <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+                  <li className="flex items-center gap-2">
+                    <span className="text-blue-500 dark:text-blue-400">✓</span>
+                    Limited dashboard access
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-blue-500 dark:text-blue-400">✓</span>
+                    Upgrade to Lite, Pro, or Enterprise when ready
+                  </li>
+                </ul>
               </div>
             )}
 
