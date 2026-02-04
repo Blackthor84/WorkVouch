@@ -55,7 +55,11 @@ export async function POST(req: NextRequest) {
 
     const { error: updateErr } = await adminSupabase
       .from("employment_records")
-      .update({ verification_status: "verified", updated_at: new Date().toISOString() })
+      .update({
+        verification_status: "verified",
+        employer_confirmation_status: "approved",
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", parsed.data.record_id);
 
     if (updateErr) {
@@ -71,6 +75,9 @@ export async function POST(req: NextRequest) {
       newValue: { verification_status: "verified" },
       changeReason: "Employer confirmed employment",
     });
+
+    const { updateConfirmationLevel } = await import("@/lib/employment/confirmationLevel");
+    updateConfirmationLevel(parsed.data.record_id).catch(() => {});
 
     const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
     const { calculateUserIntelligence } = await import("@/lib/intelligence/calculateUserIntelligence");

@@ -47,7 +47,14 @@ export function EmployerDashboardClient({
   const { enabled: workforceDashboardEnabled } = useFeatureFlag("workforce_dashboard");
   const { enabled: rehireSystemEnabled } = useFeatureFlag("rehire_system");
   const { enabled: riskDashboardEnabled } = useFeatureFlag("workforce_risk_dashboard");
+  const { enabled: enterpriseIntelligenceHidden } = useFeatureFlag("enterprise_intelligence_hidden");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [confirmationActivity, setConfirmationActivity] = useState<{
+    section_a?: { confirmations_requested_last_30_days: number; confirmations_completed_last_30_days: number; pending_confirmations: number; average_confirmation_time_days: number };
+    section_b?: { percent_employer_confirmed: number; percent_peer_confirmed: number; percent_multi_confirmed: number; average_profile_score: number | null };
+    section_c?: { new_peer_confirmations: number; new_peer_reviews: number; disputes_opened: number; disputes_resolved: number };
+  } | null>(null);
+  const [confirmationActivityLoading, setConfirmationActivityLoading] = useState(true);
   const [riskOverview, setRiskOverview] = useState<{
     workforceRiskAverage: number | null;
     workforceHighRiskCount: number;
@@ -142,6 +149,18 @@ export function EmployerDashboardClient({
     fetchRehireList();
   }, [rehireSystemEnabled, fetchRehireList]);
 
+  useEffect(() => {
+    setConfirmationActivityLoading(true);
+    fetch("/api/employer/confirmation-activity", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.section_a != null || data.section_b != null || data.section_c != null) setConfirmationActivity(data);
+        else setConfirmationActivity(null);
+      })
+      .catch(() => setConfirmationActivity(null))
+      .finally(() => setConfirmationActivityLoading(false));
+  }, []);
+
   const isFreePlan = planTier === "free" || !planTier;
   const isBasicPlan = planTier === "free" || planTier === "basic" || planTier === "lite" || !planTier;
 
@@ -155,35 +174,6 @@ export function EmployerDashboardClient({
     teamCompatibilityScore: 91,
     workforceRiskScore: 12,
   };
-
-  // Mock data
-  const recentActivity = [
-    {
-      id: 1,
-      type: "application",
-      message: "New application for Security Guard position",
-      time: "2 hours ago",
-    },
-    {
-      id: 2,
-      type: "message",
-      message: "Message from John Doe",
-      time: "5 hours ago",
-    },
-    {
-      id: 3,
-      type: "candidate",
-      message: "New candidate saved: Jane Smith",
-      time: "1 day ago",
-    },
-  ];
-
-  const stats = [
-    { label: "Active Jobs", value: "12", change: "+3" },
-    { label: "Applications", value: "48", change: "+12" },
-    { label: "Saved Candidates", value: "24", change: "+5" },
-    { label: "Messages", value: "8", change: "+2" },
-  ];
 
   return (
     <>
@@ -280,16 +270,18 @@ export function EmployerDashboardClient({
           <ListedEmployeesCard />
         </div>
 
-        {/* Workforce Integrity Dashboard (feature-gated; free tier sees upgrade gate) */}
-        {isFreePlan ? (
-          <div className="mt-6">
-            <UpgradeGate feature="Workforce Risk Dashboard" />
-          </div>
-        ) : riskDashboardEnabled ? (
-          <div className="mt-6">
-            <WorkforceRiskDashboard />
-          </div>
-        ) : null}
+        {/* Workforce Integrity Dashboard: hidden enterprise — admin/superadmin or enterprise_intelligence_hidden only */}
+        {(userRole === "admin" || userRole === "superadmin" || enterpriseIntelligenceHidden) && (
+          isFreePlan ? (
+            <div className="mt-6">
+              <UpgradeGate feature="Workforce Risk Dashboard" />
+            </div>
+          ) : riskDashboardEnabled ? (
+            <div className="mt-6">
+              <WorkforceRiskDashboard />
+            </div>
+          ) : null
+        )}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -352,51 +344,97 @@ export function EmployerDashboardClient({
           )}
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {stats.map((stat) => (
-            <Card key={stat.label} className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-grey-medium dark:text-gray-400">
-                  {stat.label}
-                </p>
-                <Badge variant="success">{stat.change}</Badge>
-              </div>
-              <p className="text-3xl font-bold text-grey-dark dark:text-gray-200">
-                {stat.value}
-              </p>
-            </Card>
-          ))}
-        </div>
-
-        {/* Recent Activity */}
+        {/* SECTION A — Confirmation Activity */}
         <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200">
-              Recent Activity
-            </h2>
-            <Button variant="ghost" size="sm">
-              View All
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {recentActivity.map((activity) => (
-              <div
-                key={activity.id}
-                className="flex items-start gap-3 p-3 rounded-xl bg-grey-background dark:bg-[#1A1F2B]"
-              >
-                <div className="h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400 mt-2" />
-                <div className="flex-1">
-                  <p className="text-sm text-grey-dark dark:text-gray-200">
-                    {activity.message}
-                  </p>
-                  <p className="text-xs text-grey-medium dark:text-gray-400 mt-1">
-                    {activity.time}
-                  </p>
-                </div>
+          <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
+            Confirmation Activity
+          </h2>
+          {confirmationActivityLoading ? (
+            <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
+          ) : confirmationActivity?.section_a ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-grey-medium dark:text-gray-400">Confirmations requested (30d)</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_a.confirmations_requested_last_30_days}</p>
               </div>
-            ))}
-          </div>
+              <div>
+                <p className="text-sm text-grey-medium dark:text-gray-400">Confirmations completed (30d)</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_a.confirmations_completed_last_30_days}</p>
+              </div>
+              <div>
+                <p className="text-sm text-grey-medium dark:text-gray-400">Pending confirmations</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_a.pending_confirmations}</p>
+              </div>
+              <div>
+                <p className="text-sm text-grey-medium dark:text-gray-400">Avg confirmation time (days)</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_a.average_confirmation_time_days}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-grey-medium dark:text-gray-400">No confirmation activity yet. Request verifications to see metrics here.</p>
+          )}
+        </Card>
+
+        {/* SECTION B — Employee Confirmation Health */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
+            Employee Confirmation Health
+          </h2>
+          {confirmationActivityLoading ? (
+            <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
+          ) : confirmationActivity?.section_b ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-grey-medium dark:text-gray-400">% Employer confirmed</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_b.percent_employer_confirmed}%</p>
+              </div>
+              <div>
+                <p className="text-sm text-grey-medium dark:text-gray-400">% Peer confirmed</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_b.percent_peer_confirmed}%</p>
+              </div>
+              <div>
+                <p className="text-sm text-grey-medium dark:text-gray-400">% Multi confirmed</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_b.percent_multi_confirmed}%</p>
+              </div>
+              <div>
+                <p className="text-sm text-grey-medium dark:text-gray-400">Average profile score</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_b.average_profile_score != null ? confirmationActivity.section_b.average_profile_score : "—"}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-grey-medium dark:text-gray-400">No linked employees yet. When employees list your company, confirmation health will appear here.</p>
+          )}
+        </Card>
+
+        {/* SECTION C — Peer Activity */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
+            Peer Activity
+          </h2>
+          {confirmationActivityLoading ? (
+            <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
+          ) : confirmationActivity?.section_c ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-grey-medium dark:text-gray-400">New peer confirmations (30d)</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_c.new_peer_confirmations}</p>
+              </div>
+              <div>
+                <p className="text-sm text-grey-medium dark:text-gray-400">New peer reviews (30d)</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_c.new_peer_reviews}</p>
+              </div>
+              <div>
+                <p className="text-sm text-grey-medium dark:text-gray-400">Disputes opened (30d)</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_c.disputes_opened}</p>
+              </div>
+              <div>
+                <p className="text-sm text-grey-medium dark:text-gray-400">Disputes resolved (30d)</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_c.disputes_resolved}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-grey-medium dark:text-gray-400">No peer activity in the last 30 days.</p>
+          )}
         </Card>
 
         {/* Verification Limit Warning */}

@@ -40,7 +40,7 @@ export default function WorkerDashboard() {
         setJobs(jobsData.jobs || []);
 
         // Calculate reputation score (internal: trust_score)
-        // TODO: Fetch actual data for trust score calculation
+        // TODO: Fetch actual data for reputation score calculation
         const score = calculateTrustScore(
           {
             coworkerAgreement: 0.8,

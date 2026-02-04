@@ -39,7 +39,7 @@ export default async function EmployerDashboardPage() {
     (employerAccount as EmployerAccountRow | null)?.plan_tier || "free";
   const employerId = (employerAccount as EmployerAccountRow | null)?.id;
   const roles = await getCurrentUserRoles();
-  const userRole = roles.includes("employer") ? "employer" : "user";
+  const userRole = roles.includes("superadmin") ? "superadmin" : roles.includes("admin") ? "admin" : roles.includes("employer") ? "employer" : "user";
 
   return (
     <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">

@@ -5,7 +5,7 @@ import { LegalPageLayout } from "@/components/legal-page-layout";
 export const metadata: Metadata = {
   title: "Terms of Service | WorkVouch",
   description:
-    "WorkVouch Terms of Service: user rights, Trust Score disclaimer, dispute policy, employer liability, and platform limitations.",
+    "WorkVouch Terms of Service: user rights, Reputation Score disclaimer, dispute policy, employer liability, and platform limitations.",
 };
 
 export default function LegalTermsPage() {
