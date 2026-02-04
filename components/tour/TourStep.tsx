@@ -36,6 +36,6 @@ export const TOUR_STEPS: TourStepConfig[] = [
     id: "feature-flag",
     targetId: "tour-feature-flag",
     title: "Feature Preview",
-    description: "Pro and enterprise plans unlock advanced analytics and team tools. Upgrade to see more.",
+    description: "Pro and custom plans unlock advanced analytics and team tools. Upgrade to see more.",
   },
 ];

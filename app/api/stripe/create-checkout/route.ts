@@ -12,7 +12,7 @@ import {
   getStripePriceIdForPlan,
 } from "@/lib/pricing/employer-plans";
 
-const VALID_PLAN_IDS: EmployerPlanId[] = ["lite", "pro", "enterprise"];
+const VALID_PLAN_IDS: EmployerPlanId[] = ["starter", "pro", "custom"];
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,12 +39,19 @@ export async function POST(req: NextRequest) {
 
     if (!planId || !VALID_PLAN_IDS.includes(planId as EmployerPlanId)) {
       return NextResponse.json(
-        { error: "Invalid plan. Use lite, pro, or enterprise." },
+        { error: "Invalid plan. Use starter, pro, or custom." },
         { status: 400 },
       );
     }
 
-    const priceId = getStripePriceIdForPlan(planId as EmployerPlanId);
+    if (planId === "custom") {
+      return NextResponse.json(
+        { error: "Custom plan requires contacting sales. Use /contact." },
+        { status: 400 },
+      );
+    }
+
+    const priceId = getStripePriceIdForPlan(planId as EmployerPlanId, "monthly");
     if (!priceId || !priceId.startsWith("price_")) {
       logMissingStripePriceIds();
       return NextResponse.json(

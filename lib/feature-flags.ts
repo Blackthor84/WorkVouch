@@ -42,24 +42,24 @@ export interface CheckFeatureAccessOptions {
 
 /** Tier order for comparison (lower index = lower tier). */
 const PLAN_TIER_ORDER = ["free", "basic", "pro"] as const;
-const SUBSCRIPTION_TIER_ORDER = ["lite", "pro", "enterprise"] as const;
+const SUBSCRIPTION_TIER_ORDER = ["starter", "pro", "custom"] as const;
 
-/** Tier rank for subscription gates: lite < pro < enterprise. Legacy tiers map to canonical. */
+/** Tier rank for subscription gates: starter < pro < custom. Legacy tiers map to canonical. */
 const TIER_RANK: Record<string, number> = {
-  lite: 1,
-  pro: 2,
-  enterprise: 3,
   starter: 1,
+  pro: 2,
+  custom: 3,
+  lite: 1,
   team: 2,
   security_bundle: 2,
   security_agency: 2,
+  enterprise: 3,
   pay_per_use: 1,
   free: 0,
   basic: 1,
-  custom: 3,
 };
 
-/** When employer plan_tier is enterprise (or legacy security_agency), these features are auto-enabled server-side. */
+/** When employer plan_tier is custom (or legacy security_agency), these features are auto-enabled server-side. */
 const ENTERPRISE_AUTO_FEATURES = new Set([
   "risk_snapshot",
   "workforce_dashboard",
@@ -160,7 +160,7 @@ export async function checkFeatureAccess(
       .maybeSingle();
     const planTier = (emp as { plan_tier?: string } | null)?.plan_tier ?? "";
     const normalized = planTier.toLowerCase().replace(/-/g, "_");
-    if (normalized === "enterprise" || normalized === "security_agency" || normalized === "security_bundle") {
+    if (normalized === "custom" || normalized === "enterprise" || normalized === "security_agency" || normalized === "security_bundle") {
       setCached(featureKey, userId, employerId, true);
       return true;
     }

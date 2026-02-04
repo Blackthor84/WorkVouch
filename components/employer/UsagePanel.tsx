@@ -112,7 +112,7 @@ export function UsagePanel() {
       data.seatsUsed > data.seatsAllowed);
 
   const planLabel =
-    data.planTier === "custom" || data.planTier === "enterprise"
+    data.planTier === "custom"
       ? "Custom"
       : data.planTier === "pro"
         ? "Pro"

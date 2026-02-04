@@ -32,6 +32,10 @@ export default function SubscriptionPage() {
   }, []);
 
   async function handleUpgrade(plan: string) {
+    if (plan === "custom") {
+      window.location.href = "/contact";
+      return;
+    }
     setLoading(plan);
     try {
       const response = await fetch("/api/stripe/create-checkout", {
@@ -76,9 +80,9 @@ export default function SubscriptionPage() {
               const norm = (t: string) => t.toLowerCase().replace(/-/g, "_");
               const cur = norm(currentPlan);
               const isCurrentPlan =
-                (plan.id === "lite" && ["lite", "starter", "free", "basic", "pay_per_use"].includes(cur)) ||
+                (plan.id === "starter" && ["lite", "starter", "free", "basic", "pay_per_use"].includes(cur)) ||
                 (plan.id === "pro" && ["pro", "team", "security_bundle", "security_agency"].includes(cur)) ||
-                (plan.id === "enterprise" && cur === "enterprise");
+                (plan.id === "custom" && (cur === "custom" || cur === "enterprise"));
               return (
                 <Card key={plan.id} className="p-8 relative">
                   {isCurrentPlan && (

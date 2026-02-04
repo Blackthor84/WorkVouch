@@ -11,7 +11,7 @@ const FAKE = {
   employee: { fullName: "Demo Employee", company: "Acme Corp", title: "Operations Associate" },
   employer: { fullName: "Demo Employer", company: "Demo Company LLC", plan: "pro" as const },
   security: { fullName: "Demo Security Admin", company: "Sentinel Security Demo", plan: "security_bundle" as const },
-  enterprise: { fullName: "Demo Enterprise Admin", company: "Enterprise Demo Corp", plan: "enterprise" as const },
+  custom: { fullName: "Demo Custom Admin", company: "Custom Demo Corp", plan: "custom" as const },
 };
 
 function randomSuffix(): string {
@@ -30,14 +30,14 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}));
     const type = (body?.type as string) || "";
-    if (!["employee", "employer", "security", "enterprise"].includes(type)) {
-      return NextResponse.json({ error: "Invalid type. Use employee | employer | security | enterprise" }, { status: 400 });
+    if (!["employee", "employer", "security", "custom"].includes(type)) {
+      return NextResponse.json({ error: "Invalid type. Use employee | employer | security | custom" }, { status: 400 });
     }
 
     const supabase = getSupabaseServer() as any;
     const suffix = randomSuffix();
     const email = `demo-${type}-${suffix}@workvouch.demo`;
-    const info = type === "employee" ? FAKE.employee : type === "security" ? FAKE.security : type === "enterprise" ? FAKE.enterprise : FAKE.employer;
+    const info = type === "employee" ? FAKE.employee : type === "security" ? FAKE.security : type === "custom" ? FAKE.custom : FAKE.employer;
     const companyName = "company" in info ? (info as { company: string }).company : (FAKE.employer as { company: string }).company;
     const plan = "plan" in info ? (info as { plan: string }).plan : "pro";
 

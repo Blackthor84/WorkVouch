@@ -6,9 +6,10 @@
 import type { PlanTier } from "./types";
 
 const MONTHLY_PRICE: Record<PlanTier, number> = {
-  lite: 29,
-  pro: 79,
-  enterprise: 199,
+  free: 0,
+  starter: 49,
+  pro: 149,
+  custom: 399,
 };
 
 export function getMonthlyPrice(plan: PlanTier): number {

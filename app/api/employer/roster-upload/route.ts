@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     if (!account) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
     const employerId = (account as { id: string }).id;
     const planTier = ((account as { plan_tier?: string }).plan_tier ?? "free").toLowerCase();
-    if (planTier !== "pro" && planTier !== "enterprise" && planTier !== "custom") {
+    if (planTier !== "pro" && planTier !== "custom") {
       return NextResponse.json({ error: "Roster upload is available on Pro, Enterprise, or Custom plans only" }, { status: 403 });
     }
 

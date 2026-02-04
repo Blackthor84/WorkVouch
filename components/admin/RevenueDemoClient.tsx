@@ -8,7 +8,7 @@ import type { PlanTier, SimulationInputs } from "@/lib/simulation/types";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-const PLANS: PlanTier[] = ["lite", "pro", "enterprise"];
+const PLANS: PlanTier[] = ["starter", "pro", "custom"];
 
 /** Deterministic pseudo-random in [0, 1) from seed. */
 function seeded(seed: number): number {
@@ -21,7 +21,7 @@ function generateCompanies(count: number): SimulationInputs[] {
   for (let i = 0; i < count; i++) {
     const r = (n: number) => seeded(i * 137 + n);
     const plan = PLANS[Math.floor(r(1) * PLANS.length)] as PlanTier;
-    const seats = plan === "enterprise" ? 50 + Math.floor(r(2) * 150) : Math.max(1, Math.floor(r(2) * 25));
+    const seats = plan === "custom" ? 50 + Math.floor(r(2) * 150) : Math.max(1, Math.floor(r(2) * 25));
     const reportsUsed = Math.floor(r(3) * 80);
     const searchesUsed = Math.floor(r(4) * 100);
     const subscriptionActive = r(5) > 0.12; // ~12% churned

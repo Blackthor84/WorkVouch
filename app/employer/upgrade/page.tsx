@@ -31,7 +31,7 @@ export default function UpgradePage() {
   }, []);
 
   async function handleUpgrade(planId: EmployerPlanId) {
-    if (planId === "enterprise") {
+    if (planId === "custom") {
       window.location.href = "/contact";
       return;
     }
@@ -62,9 +62,9 @@ export default function UpgradePage() {
   const norm = (t: string) => t.toLowerCase().replace(/-/g, "_");
   const cur = norm(currentPlan);
   const isCurrentPlan = (planId: EmployerPlanId) =>
-    (planId === "lite" && ["lite", "starter", "free", "basic", "pay_per_use"].includes(cur)) ||
+    (planId === "starter" && ["lite", "starter", "free", "basic", "pay_per_use"].includes(cur)) ||
     (planId === "pro" && ["pro", "team", "security_bundle", "security_agency"].includes(cur)) ||
-    (planId === "enterprise" && cur === "enterprise");
+    (planId === "custom" && (cur === "custom" || cur === "enterprise"));
 
   return (
     <div className="min-h-screen bg-background dark:bg-[#0D1117] p-8">
@@ -84,7 +84,7 @@ export default function UpgradePage() {
           <div className="grid md:grid-cols-3 gap-6">
             {EMPLOYER_PLANS.map((plan) => {
               const current = isCurrentPlan(plan.id);
-              const isEnterprise = plan.id === "enterprise";
+              const isCustom = plan.id === "custom";
               return (
                 <Card key={plan.id} className="p-8 relative">
                   {current && (
@@ -96,7 +96,7 @@ export default function UpgradePage() {
                     {plan.name}
                   </h2>
                   <p className="text-4xl font-bold mb-4 text-grey-dark dark:text-gray-200">
-                    {isEnterprise ? (
+                    {isCustom ? (
                       "Custom"
                     ) : (
                       <>
@@ -113,7 +113,7 @@ export default function UpgradePage() {
                       </li>
                     ))}
                   </ul>
-                  {isEnterprise ? (
+                  {isCustom ? (
                     <Button
                       variant="primary"
                       className="w-full"

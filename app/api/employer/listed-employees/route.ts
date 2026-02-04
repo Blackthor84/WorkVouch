@@ -108,7 +108,7 @@ export async function GET() {
       });
     }
 
-    if ((planTier === "pro" || planTier === "enterprise") && visible.length > 0) {
+    if ((planTier === "pro" || planTier === "custom") && visible.length > 0) {
       const snapIds = visible.map((v) => v.user_id);
       const { data: snapshots } = await adminSupabase.from("intelligence_snapshots").select("user_id, profile_strength").in("user_id", snapIds);
       const snapMap = new Map<string, number>();

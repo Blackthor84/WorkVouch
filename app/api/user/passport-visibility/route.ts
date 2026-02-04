@@ -48,9 +48,9 @@ export async function PATCH(req: NextRequest) {
           { status: 403 }
         );
       }
-      if (employeeTier !== "emp_enterprise" && employeeTier !== "enterprise") {
+      if (employeeTier !== "emp_enterprise" && employeeTier !== "enterprise" && employeeTier !== "custom") {
         return NextResponse.json(
-          { error: "Full public passport requires Enterprise. Upgrade to unlock." },
+          { error: "Full public passport requires Custom or higher. Upgrade to unlock." },
           { status: 403 }
         );
       }
@@ -58,7 +58,7 @@ export async function PATCH(req: NextRequest) {
 
     if (visibility === "verified_employers") {
       const employerSearchEnabled = await checkFeatureAccess("employer_search_enabled", { userId: user.id });
-      if (!employerSearchEnabled && employeeTier !== "emp_pro" && employeeTier !== "pro" && employeeTier !== "emp_enterprise" && employeeTier !== "enterprise") {
+      if (!employerSearchEnabled && employeeTier !== "emp_pro" && employeeTier !== "pro" && employeeTier !== "emp_enterprise" && employeeTier !== "enterprise" && employeeTier !== "custom") {
         return NextResponse.json(
           { error: "Visible to verified employers requires Pro or higher." },
           { status: 403 }

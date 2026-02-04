@@ -12,15 +12,16 @@ export interface PlanLimits {
 }
 
 /**
- * Returns plan limits. Enterprise returns unlimited (Infinity).
+ * Returns plan limits. Custom returns unlimited (Infinity).
  */
 export function getPlanLimits(plan: PlanTier): PlanLimits {
   switch (plan) {
-    case "lite":
+    case "free":
+    case "starter":
       return { reports: 15, searches: 25, seats: 1 };
     case "pro":
       return { reports: 75, searches: 100, seats: 20 };
-    case "enterprise":
+    case "custom":
       return { reports: Infinity, searches: Infinity, seats: Infinity };
     default:
       return { reports: 15, searches: 25, seats: 1 };

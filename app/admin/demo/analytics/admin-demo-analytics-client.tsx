@@ -6,7 +6,7 @@ import type { PlanTier } from "@/lib/simulation/types";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-const PLANS: PlanTier[] = ["lite", "pro", "enterprise"];
+const PLANS: PlanTier[] = ["free", "starter", "pro", "custom"];
 
 export default function AdminDemoAnalyticsClient() {
   const [plan, setPlan] = useState<PlanTier>("pro");

@@ -3,7 +3,7 @@
  * No Supabase, NextAuth, Stripe. Pure logic only.
  */
 
-export type PlanTier = "lite" | "pro" | "enterprise";
+export type PlanTier = "free" | "starter" | "pro" | "custom";
 
 export interface SimulationInputs {
   plan: PlanTier;

@@ -12,7 +12,7 @@ import { usePreview, type PreviewState } from "@/lib/preview-context";
 type FeatureFlagRow = { id: string; key: string; name: string; description: string | null };
 type PreviewRole = "user" | "employer" | "admin";
 
-const PLAN_TIERS = ["starter", "pro", "team", "enterprise", "security_bundle"] as const;
+const PLAN_TIERS = ["starter", "pro", "custom"] as const;
 const ROLES: { value: PreviewRole; label: string }[] = [
   { value: "user", label: "User" },
   { value: "employer", label: "Employer" },
@@ -32,7 +32,7 @@ const SALES_MODES: { id: SalesMode; label: string; role: PreviewRole; plan: stri
     id: "investor",
     label: "Investor Mode",
     role: "employer",
-    plan: "enterprise",
+    plan: "custom",
     features: ["advanced_analytics", "ads_system", "rehire_probability_index", "team_compatibility_scoring", "workforce_risk_indicator"],
   },
   {

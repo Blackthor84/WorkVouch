@@ -209,7 +209,7 @@ export function EmployerDashboardClient({
               <Badge
                 variant="default"
                 className={
-                  planTier === "custom" || planTier === "enterprise"
+                  planTier === "custom"
                     ? "bg-amber-500 text-white border-amber-600 dark:bg-amber-600 dark:border-amber-700"
                     : planTier === "pro"
                     ? "bg-purple-600 text-white border-purple-700 dark:bg-purple-700 dark:border-purple-800"
@@ -218,7 +218,7 @@ export function EmployerDashboardClient({
               >
                 {planTier === "free" || !planTier
                   ? "FREE"
-                  : planTier === "custom" || planTier === "enterprise"
+                  : planTier === "custom"
                   ? "CUSTOM"
                   : planTier === "pro"
                   ? "PRO"
@@ -461,7 +461,7 @@ export function EmployerDashboardClient({
         )}
 
         {/* Team Fit — Pro / Enterprise only */}
-        {(planTier === "pro" || planTier === "enterprise") && !isFreePlan && (
+        {(planTier === "pro" || planTier === "custom") && !isFreePlan && (
           <Card className="p-6">
             <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
               Team Fit

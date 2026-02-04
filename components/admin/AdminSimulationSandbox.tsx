@@ -12,7 +12,7 @@ function limitLabel(n: number): string {
 }
 
 export default function AdminSimulationSandbox() {
-  const [plan, setPlan] = useState<PlanTier>("lite");
+  const [plan, setPlan] = useState<PlanTier>("starter");
   const [subscriptionActive, setSubscriptionActive] = useState(true);
   const [seats, setSeats] = useState(3);
   const [reportsUsed, setReportsUsed] = useState(5);
@@ -79,9 +79,10 @@ export default function AdminSimulationSandbox() {
                 onChange={(e) => setPlan(e.target.value as PlanTier)}
                 className="w-full rounded-lg border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] px-3 py-2 text-grey-dark dark:text-gray-200"
               >
-                <option value="lite">Lite</option>
+                <option value="free">Free</option>
+                <option value="starter">Starter</option>
                 <option value="pro">Pro</option>
-                <option value="enterprise">Enterprise</option>
+                <option value="custom">Custom</option>
               </select>
             </div>
             <div className="flex items-center gap-2">

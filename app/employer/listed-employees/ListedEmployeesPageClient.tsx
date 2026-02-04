@@ -125,7 +125,7 @@ export function ListedEmployeesPageClient({ employerId, planTier }: ListedEmploy
               <th className="p-3 font-semibold text-grey-dark dark:text-gray-200">Dates</th>
               <th className="p-3 font-semibold text-grey-dark dark:text-gray-200">Status</th>
               {planTier !== "free" && <th className="p-3 font-semibold text-grey-dark dark:text-gray-200">Refs</th>}
-              {(planTier === "pro" || planTier === "enterprise") && <th className="p-3 font-semibold text-grey-dark dark:text-gray-200">Profile</th>}
+              {(planTier === "pro" || planTier === "custom") && <th className="p-3 font-semibold text-grey-dark dark:text-gray-200">Profile</th>}
               <th className="p-3 font-semibold text-grey-dark dark:text-gray-200">Actions</th>
             </tr>
           </thead>
@@ -151,7 +151,7 @@ export function ListedEmployeesPageClient({ employerId, planTier }: ListedEmploy
                   </span>
                 </td>
                 {planTier !== "free" && <td className="p-3 text-grey-medium dark:text-gray-400">{emp.reference_count ?? "—"}</td>}
-                {(planTier === "pro" || planTier === "enterprise") && (
+                {(planTier === "pro" || planTier === "custom") && (
                   <td className="p-3 text-grey-medium dark:text-gray-400">{emp.profile_strength != null ? `${emp.profile_strength}%` : "—"}</td>
                 )}
                 <td className="p-3 flex flex-wrap gap-1">

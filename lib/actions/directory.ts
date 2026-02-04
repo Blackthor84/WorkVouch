@@ -204,7 +204,7 @@ export async function searchDirectoryEmployer(params: {
   }
 
   const limit = Math.min(
-    planTier === "enterprise" ? 500 : planTier === "pro" ? EMPLOYER_PRO_MAX : EMPLOYER_LITE_MAX,
+    planTier === "custom" ? 500 : planTier === "pro" ? EMPLOYER_PRO_MAX : EMPLOYER_LITE_MAX,
     Math.max(1, params.limit ?? 20)
   );
   const page = Math.max(1, params.page ?? 1);

@@ -21,7 +21,7 @@ export async function GET() {
 
     const planTier = (account as { plan_tier?: string }).plan_tier ?? null;
     const normalized = (planTier ?? "").toLowerCase().replace(/-/g, "_");
-    if (normalized !== "enterprise" && normalized !== "security_agency" && normalized !== "security_bundle") {
+    if (normalized !== "custom" && normalized !== "enterprise" && normalized !== "security_agency" && normalized !== "security_bundle") {
       return NextResponse.json({ count: 0, planTier });
     }
 
