@@ -77,10 +77,10 @@ function SessionCreateForm({
         <Button size="sm" onClick={() => handleQuick(60)} disabled={loading}>
           Start 60 min
         </Button>
-        <Button size="sm" variant="outline" onClick={() => handleQuick(30)} disabled={loading}>
+        <Button size="sm" variant="secondary" onClick={() => handleQuick(30)} disabled={loading}>
           Start 30 min
         </Button>
-        <Button size="sm" variant="outline" onClick={() => setUseSchedule((v) => !v)} disabled={loading}>
+        <Button size="sm" variant="ghost" onClick={() => setUseSchedule((v) => !v)} disabled={loading}>
           {useSchedule ? "Hide schedule" : "Schedule start/end"}
         </Button>
       </div>
@@ -366,13 +366,13 @@ export function TestingLabClient() {
               </Badge>
               <span className="text-sm text-gray-400">Session: {activeSession.id.slice(0, 8)}…</span>
               <span className="text-2xl font-mono text-gray-100">{countdown}</span>
-              <Button size="sm" variant="outline" onClick={() => extendSession(30)} disabled={loading}>
+              <Button size="sm" variant="secondary" onClick={() => extendSession(30)} disabled={loading}>
                 +30 min
               </Button>
-              <Button size="sm" variant="outline" onClick={endSession} disabled={loading}>
+              <Button size="sm" variant="secondary" onClick={endSession} disabled={loading}>
                 Deactivate
               </Button>
-              <Button size="sm" variant="destructive" onClick={() => killSession(activeSession.id)} disabled={loading}>
+              <Button size="sm" variant="danger" onClick={() => killSession(activeSession.id)} disabled={loading}>
                 Kill & purge
               </Button>
             </div>
@@ -445,7 +445,7 @@ export function TestingLabClient() {
           <div className="flex flex-wrap items-center gap-2">
             <Button
               size="sm"
-              variant="outline"
+              variant="secondary"
               onClick={async () => {
                 setError(null);
                 try {
@@ -465,7 +465,7 @@ export function TestingLabClient() {
             {activeSession?.id && (
               <Button
                 size="sm"
-                variant="outline"
+                variant="secondary"
                 onClick={async () => {
                   setError(null);
                   try {
@@ -966,7 +966,7 @@ function HiddenFeatureOverridePanel({ setError }: { setError: (s: string | null)
               <span className="text-xs text-gray-500">{f.overrideEnabled === true ? "On" : f.overrideEnabled === false ? "Off" : "—"}</span>
               <Button
                 size="sm"
-                variant={f.overrideEnabled === true ? "default" : "outline"}
+                variant={f.overrideEnabled === true ? "secondary" : "ghost"}
                 onClick={() => toggle(f.id, f.overrideEnabled !== true)}
                 disabled={toggling === f.id}
               >
