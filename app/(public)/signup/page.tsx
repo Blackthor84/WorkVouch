@@ -63,6 +63,20 @@ export default function SignupPage() {
         return;
       }
 
+      // Store credentials + userId so select-role can work even if Supabase session isn't set yet (e.g. email confirm)
+      try {
+        sessionStorage.setItem(
+          "workvouch_signup_credentials",
+          JSON.stringify({
+            email: email.trim().toLowerCase(),
+            password,
+            userId: data.user.id,
+          })
+        );
+      } catch {
+        // ignore if sessionStorage unavailable
+      }
+
       router.push("/select-role");
       router.refresh();
     } catch (err) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
@@ -74,26 +75,30 @@ export function SignUpForm() {
 
         // Check if email confirmation is required
         if (data.session) {
-          // User is automatically signed in
-          console.log("Signup successful, checking user type...");
-
-          // Redirect based on user type
-          if (userType === "employer") {
-            window.location.href = "/employer/dashboard";
-          } else if (industry === "warehousing") {
-            window.location.href = "/onboarding/warehouse";
-          } else if (industry === "healthcare") {
-            window.location.href = "/onboarding/healthcare/role";
-          } else if (
-            industry === "law_enforcement" ||
-            industry === "security" ||
-            industry === "hospitality" ||
-            industry === "retail"
-          ) {
-            window.location.href = `/onboarding/${industry}/role`;
-          } else {
-            window.location.href = "/dashboard";
+          // User is automatically signed in with Supabase; establish NextAuth session so dashboard doesn't redirect to login
+          console.log("Signup successful, signing in with NextAuth...");
+          const callbackUrl =
+            userType === "employer"
+              ? "/employer/dashboard"
+              : industry === "warehousing"
+                ? "/onboarding/warehouse"
+                : industry === "healthcare"
+                  ? "/onboarding/healthcare/role"
+                  : industry === "law_enforcement" || industry === "security" || industry === "hospitality" || industry === "retail"
+                    ? `/onboarding/${industry}/role`
+                    : "/dashboard";
+          const result = await signIn("credentials", {
+            email: email.trim().toLowerCase(),
+            password,
+            callbackUrl,
+            redirect: false,
+          });
+          if (result?.ok && result?.url) {
+            window.location.href = result.url;
+            return;
           }
+          // Fallback: redirect anyway (user may need to log in if NextAuth failed)
+          window.location.href = callbackUrl;
         } else {
           // Email confirmation might be required, but try to sign in anyway
           console.log("No session, attempting to sign in...");
@@ -109,25 +114,28 @@ export function SignUpForm() {
               "Account created! Please check your email to confirm your account, then sign in.",
             );
           } else if (signInData.session) {
-            console.log("Signed in successfully, checking user type...");
-
-            // Redirect based on user type
-            if (userType === "employer") {
-              window.location.href = "/employer/dashboard";
-            } else if (industry === "warehousing") {
-              window.location.href = "/onboarding/warehouse";
-            } else if (industry === "healthcare") {
-              window.location.href = "/onboarding/healthcare/role";
-            } else if (
-              industry === "law_enforcement" ||
-              industry === "security" ||
-              industry === "hospitality" ||
-              industry === "retail"
-            ) {
-              window.location.href = `/onboarding/${industry}/role`;
-            } else {
-              window.location.href = "/dashboard";
+            console.log("Signed in with Supabase, signing in with NextAuth...");
+            const callbackUrl =
+              userType === "employer"
+                ? "/employer/dashboard"
+                : industry === "warehousing"
+                  ? "/onboarding/warehouse"
+                  : industry === "healthcare"
+                    ? "/onboarding/healthcare/role"
+                    : industry === "law_enforcement" || industry === "security" || industry === "hospitality" || industry === "retail"
+                      ? `/onboarding/${industry}/role`
+                      : "/dashboard";
+            const result = await signIn("credentials", {
+              email: email.trim().toLowerCase(),
+              password,
+              callbackUrl,
+              redirect: false,
+            });
+            if (result?.ok && result?.url) {
+              window.location.href = result.url;
+              return;
             }
+            window.location.href = callbackUrl;
           } else {
             setError(
               "Account created! Please check your email to confirm your account, then sign in.",

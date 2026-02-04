@@ -4,17 +4,37 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
+const SIGNUP_CREDENTIALS_KEY = "workvouch_signup_credentials";
+
+/** Minimal user shape for role selection (we only need id for profile/role updates). */
+type UserOrId = User | { id: string };
+
 export default function SelectRolePage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserOrId | null>(null);
   const [loading, setLoading] = useState(true);
   const [selecting, setSelecting] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    // If we have stored signup credentials with userId, we can show role selection without Supabase session
+    try {
+      const raw = sessionStorage.getItem(SIGNUP_CREDENTIALS_KEY);
+      if (raw) {
+        const stored = JSON.parse(raw) as { email?: string; password?: string; userId?: string };
+        if (stored?.userId && stored?.email && stored?.password) {
+          setUser({ id: stored.userId });
+          setLoading(false);
+          return;
+        }
+      }
+    } catch {
+      // ignore
+    }
     supabaseBrowser.auth.getSession().then(({ data: { session } }) => {
       if (!session?.user) {
         router.replace("/signup");
@@ -71,6 +91,35 @@ export default function SelectRolePage() {
       }
 
       const callbackUrl = role === "employer" ? "/employer/dashboard" : "/dashboard";
+
+      // If we have stored signup credentials, sign in with NextAuth and go straight to dashboard (no second login)
+      let stored: { email?: string; password?: string } | null = null;
+      try {
+        const raw = sessionStorage.getItem(SIGNUP_CREDENTIALS_KEY);
+        if (raw) stored = JSON.parse(raw) as { email?: string; password?: string };
+      } catch {
+        // ignore
+      }
+      if (stored?.email && stored?.password) {
+        try {
+          sessionStorage.removeItem(SIGNUP_CREDENTIALS_KEY);
+        } catch {
+          // ignore
+        }
+        const result = await signIn("credentials", {
+          email: stored.email,
+          password: stored.password,
+          callbackUrl,
+          redirect: false,
+        });
+        if (result?.ok && result?.url) {
+          router.push(result.url);
+          router.refresh();
+          return;
+        }
+      }
+
+      // No stored credentials (e.g. arrived from email link): redirect to login with callback
       router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
       router.refresh();
     } catch (err) {
@@ -110,7 +159,7 @@ export default function SelectRolePage() {
           I am a:
         </h1>
         <p className="text-gray-600 dark:text-gray-400 text-sm text-center mb-6">
-          Choose how you&apos;ll use WorkVouch. You&apos;ll log in next.
+          Choose how you&apos;ll use WorkVouch. You&apos;ll go straight to your dashboard.
         </p>
 
         {error && (
