@@ -209,35 +209,24 @@ export function EmployerDashboardClient({
               <Badge
                 variant="default"
                 className={
-                  planTier === "security_bundle" || planTier === "security-bundle"
+                  planTier === "custom" || planTier === "enterprise"
                     ? "bg-amber-500 text-white border-amber-600 dark:bg-amber-600 dark:border-amber-700"
                     : planTier === "pro"
                     ? "bg-purple-600 text-white border-purple-700 dark:bg-purple-700 dark:border-purple-800"
-                    : planTier === "team"
-                    ? "bg-blue-600 text-white border-blue-700 dark:bg-blue-700 dark:border-blue-800"
-                    : planTier === "starter"
-                    ? "bg-gray-500 text-white border-gray-600 dark:bg-gray-600 dark:border-gray-700"
-                    : "bg-gray-400 text-white border-gray-500 dark:bg-gray-500 dark:border-gray-600"
+                    : "bg-gray-500 text-white border-gray-600 dark:bg-gray-600 dark:border-gray-700"
                 }
               >
                 {planTier === "free" || !planTier
                   ? "FREE"
-                  : planTier === "enterprise"
-                  ? "ENTERPRISE"
-                  : planTier === "pro" || planTier === "team" || planTier === "security_bundle" || planTier === "security-bundle"
+                  : planTier === "custom" || planTier === "enterprise"
+                  ? "CUSTOM"
+                  : planTier === "pro"
                   ? "PRO"
-                  : "LITE"}
+                  : "STARTER"}
               </Badge>
             </div>
           )}
         </div>
-
-        {/* Enterprise / Security Agency Dashboard variant (legacy security_bundle → pro) */}
-        {(planTier === "enterprise" || planTier === "security_agency" || planTier === "security_bundle" || planTier === "security-bundle") && (
-          <div className="mt-6">
-            <SecurityDashboard employerId={employerId ?? null} />
-          </div>
-        )}
 
         {/* Plan & Usage */}
         <UsagePanel />

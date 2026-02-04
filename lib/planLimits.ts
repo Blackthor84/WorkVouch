@@ -1,10 +1,9 @@
 /**
- * Plan limit config for tier enforcement and overage billing.
- * free = default for new employers; lite, pro, enterprise = paid.
- * -1 = unlimited.
+ * Plan limit config for tier enforcement. Canonical: starter, pro, custom only.
+ * free = default new employer. -1 = unlimited.
  */
 
-export type PlanTierKey = "free" | "lite" | "pro" | "enterprise";
+export type PlanTierKey = "free" | "starter" | "pro" | "custom";
 
 export interface PlanLimitConfig {
   reports: number;
@@ -21,7 +20,7 @@ export const PLAN_LIMITS: Record<PlanTierKey, PlanLimitConfig> = {
     seats: 1,
     allowOverage: false,
   },
-  lite: {
+  starter: {
     reports: 15,
     searches: 25,
     seats: 1,
@@ -33,7 +32,7 @@ export const PLAN_LIMITS: Record<PlanTierKey, PlanLimitConfig> = {
     seats: 20,
     allowOverage: true,
   },
-  enterprise: {
+  custom: {
     reports: -1,
     searches: -1,
     seats: 50,
@@ -41,16 +40,14 @@ export const PLAN_LIMITS: Record<PlanTierKey, PlanLimitConfig> = {
   },
 };
 
-/** Normalize tier from DB to canonical key. free = default new employer. */
+/** Normalize tier from DB to canonical key. free = default new employer. Starter, pro, custom only. */
 export function normalizeTier(tier: string | null | undefined): PlanTierKey {
   if (!tier) return "free";
   const t = tier.toLowerCase().replace(/-/g, "_");
   if (t === "free") return "free";
-  if (t === "lite") return "lite";
-  if (t === "pro") return "pro";
-  if (t === "enterprise" || t === "custom") return "enterprise";
-  if (t === "starter" || t === "basic" || t === "pay_per_use") return "lite";
-  if (t === "team" || t === "growth" || t === "security_bundle" || t === "security_agency" || t === "security") return "pro";
+  if (t === "starter" || t === "lite" || t === "basic" || t === "pay_per_use") return "starter";
+  if (t === "pro" || t === "team" || t === "growth" || t === "security_bundle" || t === "security_agency" || t === "security") return "pro";
+  if (t === "custom" || t === "enterprise") return "custom";
   return "free";
 }
 

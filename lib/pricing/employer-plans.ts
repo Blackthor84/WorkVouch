@@ -1,81 +1,107 @@
-export type EmployerPlanId = "lite" | "pro" | "enterprise";
+/**
+ * Employer plans: Starter, Pro, Custom only.
+ * Verification + trusted work history infrastructure. No analytics/risk/compliance/intelligence language.
+ */
+
+export type EmployerPlanId = "starter" | "pro" | "custom";
 
 export interface EmployerPlan {
   id: EmployerPlanId;
   name: string;
   priceMonthly: number;
+  priceYearly: number;
   description: string;
   features: string[];
-  stripePriceId?: string;
+  stripePriceIdMonthly?: string;
+  stripePriceIdYearly?: string;
+  cta: string;
+  ctaHref?: string;
+  badge?: string;
 }
 
 export const EMPLOYER_PLANS: EmployerPlan[] = [
   {
-    id: "lite",
-    name: "Lite",
-    priceMonthly: 29,
-    description: "Verification essentials for small hiring teams.",
+    id: "starter",
+    name: "Starter",
+    priceMonthly: 49,
+    priceYearly: 490,
+    description: "For small hiring teams.",
     features: [
-      "25 worker searches / month",
-      "15 verification reports / month",
-      "Basic workforce risk insights",
-      "Reputation + career health visibility",
+      "25 worker searches per month",
+      "15 verification reports per month",
+      "Verified work history visibility",
+      "Contact confirmed coworkers",
       "Email support",
     ],
-    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_LITE_MONTHLY,
+    stripePriceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY,
+    stripePriceIdYearly: process.env.NEXT_PUBLIC_STRIPE_STARTER_YEARLY,
+    cta: "Get Started",
   },
   {
     id: "pro",
     name: "Pro",
-    priceMonthly: 79,
-    description: "Advanced verification and risk intelligence.",
+    priceMonthly: 149,
+    priceYearly: 1490,
+    description: "For growing teams hiring consistently.",
     features: [
-      "100 worker searches / month",
-      "75 verification reports / month",
-      "Team Fit compatibility scoring",
-      "Workforce Risk Dashboard",
-      "Department role segmentation",
-      "Priority support",
+      "100 worker searches per month",
+      "75 verification reports per month",
+      "Team visibility tools",
+      "Priority email support",
+      "Role-based access controls",
     ],
-    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY,
+    stripePriceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY,
+    stripePriceIdYearly: process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY,
+    cta: "Upgrade to Pro",
+    badge: "Most Popular",
   },
   {
-    id: "enterprise",
-    name: "Enterprise",
-    priceMonthly: 199,
-    description: "Full intelligence engine + compliance oversight.",
+    id: "custom",
+    name: "Custom",
+    priceMonthly: 399,
+    priceYearly: 3990,
+    description: "For high-volume hiring teams.",
     features: [
-      "Unlimited searches",
+      "Unlimited worker searches",
       "Unlimited verification reports",
-      "Advanced hiring confidence engine",
-      "Network density + fraud confidence",
-      "Compliance analytics",
-      "Dedicated support",
+      "Multi-location account management",
+      "Dedicated support contact",
+      "Custom onboarding assistance",
     ],
-    stripePriceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY,
+    cta: "Contact Sales",
+    ctaHref: "/contact",
   },
 ];
 
-/** Resolve Stripe price ID for a plan (server or client). Prefer server env then NEXT_PUBLIC_. */
-export function getStripePriceIdForPlan(planId: EmployerPlanId): string | undefined {
+/** Resolve Stripe price ID for a plan and interval (server or client). */
+export function getStripePriceIdForPlan(
+  planId: EmployerPlanId,
+  interval: "monthly" | "yearly"
+): string | undefined {
   const plan = EMPLOYER_PLANS.find((p) => p.id === planId);
-  if (plan?.stripePriceId) return plan.stripePriceId;
-  const serverId =
-    planId === "lite"
-      ? process.env.STRIPE_PRICE_LITE_MONTHLY || process.env.NEXT_PUBLIC_STRIPE_LITE_MONTHLY
-      : planId === "pro"
-        ? process.env.STRIPE_PRICE_PRO_MONTHLY || process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY
-        : process.env.STRIPE_PRICE_ENTERPRISE_MONTHLY || process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY;
-  return typeof serverId === "string" ? serverId : undefined;
+  if (!plan) return undefined;
+  const id =
+    interval === "yearly"
+      ? plan.stripePriceIdYearly
+      : plan.stripePriceIdMonthly;
+  if (id) return id;
+  const env =
+    interval === "yearly"
+      ? (planId === "starter"
+          ? process.env.STRIPE_PRICE_STARTER_YEARLY || process.env.NEXT_PUBLIC_STRIPE_STARTER_YEARLY
+          : process.env.STRIPE_PRICE_PRO_YEARLY || process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY)
+      : (planId === "starter"
+          ? process.env.STRIPE_PRICE_STARTER_MONTHLY || process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY
+          : process.env.STRIPE_PRICE_PRO_MONTHLY || process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY);
+  return typeof env === "string" ? env : undefined;
 }
 
-/** Normalize legacy plan_tier from DB to canonical EmployerPlanId (migration safety). */
+/** Normalize legacy plan_tier from DB to canonical EmployerPlanId. */
 export function normalizeEmployerPlanId(tier: string | null | undefined): EmployerPlanId {
-  if (!tier) return "lite";
+  if (!tier) return "starter";
   const t = tier.toLowerCase().replace(/-/g, "_");
-  if (t === "lite" || t === "enterprise") return t as EmployerPlanId;
-  if (t === "pro") return "pro";
-  if (t === "starter" || t === "free" || t === "basic" || t === "pay_per_use") return "lite";
-  if (t === "team" || t === "growth" || t === "security_bundle" || t === "security_agency") return "pro";
-  return "lite";
+  if (t === "starter" || t === "lite" || t === "free" || t === "basic" || t === "pay_per_use") return "starter";
+  if (t === "pro" || t === "team" || t === "growth" || t === "security_bundle" || t === "security_agency" || t === "security") return "pro";
+  if (t === "custom" || t === "enterprise") return "custom";
+  return "starter";
 }

@@ -72,7 +72,7 @@ export function UsagePanel() {
       .then((d) => {
         if (d.error) return;
         setData({
-          planTier: d.planTier || "lite",
+          planTier: d.planTier || "starter",
           limits: d.limits || { reports: 10, searches: 15, seats: 1, allowOverage: false },
           reportsUsed: d.reportsUsed ?? 0,
           searchesUsed: d.searchesUsed ?? 0,
@@ -112,15 +112,11 @@ export function UsagePanel() {
       data.seatsUsed > data.seatsAllowed);
 
   const planLabel =
-    data.planTier === "enterprise"
-      ? "Enterprise"
+    data.planTier === "custom" || data.planTier === "enterprise"
+      ? "Custom"
       : data.planTier === "pro"
         ? "Pro"
-        : data.planTier === "lite"
-          ? "Lite"
-          : data.planTier === "starter" || data.planTier === "team" || data.planTier === "security_bundle" || data.planTier === "security-bundle"
-            ? (data.planTier === "team" || data.planTier === "security_bundle" || data.planTier === "security-bundle" ? "Pro" : "Lite")
-            : "Lite";
+        : "Starter";
 
   return (
     <Card className="p-6">
