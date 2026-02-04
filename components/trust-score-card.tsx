@@ -121,9 +121,9 @@ export async function TrustScoreCard({ userId }: { userId: string }) {
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-grey-dark dark:text-gray-200 font-medium">Fraud Indicators</span>
+                <span className="text-sm text-grey-dark dark:text-gray-200 font-medium">Dispute history</span>
                 <span className="text-sm font-semibold text-grey-dark dark:text-gray-200">
-                  {components.fraudFlagsCount === 0 ? "None" : `${components.fraudFlagsCount} flagged`}
+                  {components.fraudFlagsCount === 0 ? "None" : `${components.fraudFlagsCount} item${components.fraudFlagsCount !== 1 ? "s" : ""}`}
                 </span>
               </div>
             </div>

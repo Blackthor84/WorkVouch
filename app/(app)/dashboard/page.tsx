@@ -187,7 +187,7 @@ export default async function UserDashboardPage() {
 
           {/* Sidebar */}
           <div className="flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
-            <div id="onboarding-trust-score">
+            <div id="onboarding-reputation-score">
               <TrustScoreCard userId={safeProfile?.id || user.id} />
             </div>
 
@@ -205,12 +205,12 @@ export default async function UserDashboardPage() {
 
             <Card id="onboarding-profile" className="p-6">
               <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
-                Profile Status
+                Profile completeness
               </h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-grey-medium dark:text-gray-400">
-                    Profile Complete
+                    Profile complete
                   </span>
                   <Badge variant="success">85%</Badge>
                 </div>
@@ -222,10 +222,28 @@ export default async function UserDashboardPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-grey-medium dark:text-gray-400">
-                    Job History
+                    Job history
                   </span>
                   <Badge variant="info">5</Badge>
                 </div>
+              </div>
+            </Card>
+
+            {/* Action buttons — growth-focused */}
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
+                Next steps
+              </h3>
+              <div className="space-y-3">
+                <Button href="/dashboard/worker/jobs/add" variant="secondary" className="w-full justify-start">
+                  Add job
+                </Button>
+                <Button href="/coworker-matches" variant="secondary" className="w-full justify-start">
+                  Request confirmation
+                </Button>
+                <Button href="/profile" variant="secondary" className="w-full justify-start">
+                  Improve profile
+                </Button>
               </div>
             </Card>
           </div>

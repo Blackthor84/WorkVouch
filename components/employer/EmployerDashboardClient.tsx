@@ -16,7 +16,6 @@ import { SecurityDashboard } from "@/components/employer/SecurityDashboard";
 import VerificationLimitWarning from "@/components/VerificationLimitWarning";
 import ExportDataButton from "@/components/ExportDataButton";
 import { UsagePanel } from "@/components/employer/UsagePanel";
-import CredentialsOverview from "@/components/employer/CredentialsOverview";
 import { UpgradeBanner } from "@/components/employer/UpgradeBanner";
 import { UpgradeGate } from "@/components/employer/UpgradeGate";
 import { ListedEmployeesCard } from "@/components/employer/ListedEmployeesCard";
@@ -49,12 +48,13 @@ export function EmployerDashboardClient({
   const { enabled: riskDashboardEnabled } = useFeatureFlag("workforce_risk_dashboard");
   const { enabled: enterpriseIntelligenceHidden } = useFeatureFlag("enterprise_intelligence_hidden");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [confirmationActivity, setConfirmationActivity] = useState<{
-    section_a?: { confirmations_requested_last_30_days: number; confirmations_completed_last_30_days: number; pending_confirmations: number; average_confirmation_time_days: number };
-    section_b?: { percent_employer_confirmed: number; percent_peer_confirmed: number; percent_multi_confirmed: number; average_profile_score: number | null };
-    section_c?: { new_peer_confirmations: number; new_peer_reviews: number; disputes_opened: number; disputes_resolved: number };
+  const [workforceStats, setWorkforceStats] = useState<{
+    totalVerified: number;
+    verificationCompletionRate: number | null;
+    disputeRate: number | null;
+    rehireEligibilityPct: number | null;
   } | null>(null);
-  const [confirmationActivityLoading, setConfirmationActivityLoading] = useState(true);
+  const [workforceStatsLoading, setWorkforceStatsLoading] = useState(true);
   const [riskOverview, setRiskOverview] = useState<{
     workforceRiskAverage: number | null;
     workforceHighRiskCount: number;
@@ -74,8 +74,6 @@ export function EmployerDashboardClient({
   const [rehireList, setRehireList] = useState<RehireEntry[]>([]);
   const [riskOverviewLoading, setRiskOverviewLoading] = useState(false);
   const [rehireListLoading, setRehireListLoading] = useState(false);
-  const [trustScore, setTrustScore] = useState<number | null>(null);
-  const [rehireCount, setRehireCount] = useState<number | null>(null);
   const [rehireData, setRehireData] = useState<any[]>([]);
   const [trustScores, setTrustScores] = useState<any[]>([]);
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
@@ -150,15 +148,23 @@ export function EmployerDashboardClient({
   }, [rehireSystemEnabled, fetchRehireList]);
 
   useEffect(() => {
-    setConfirmationActivityLoading(true);
-    fetch("/api/employer/confirmation-activity", { credentials: "include" })
+    setWorkforceStatsLoading(true);
+    fetch("/api/employer/dashboard-stats", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
-        if (data.section_a != null || data.section_b != null || data.section_c != null) setConfirmationActivity(data);
-        else setConfirmationActivity(null);
+        if (data.error) {
+          setWorkforceStats(null);
+          return;
+        }
+        setWorkforceStats({
+          totalVerified: data.totalVerified ?? 0,
+          verificationCompletionRate: data.verificationCompletionRate ?? null,
+          disputeRate: data.disputeRate ?? null,
+          rehireEligibilityPct: data.rehireEligibilityPct ?? null,
+        });
       })
-      .catch(() => setConfirmationActivity(null))
-      .finally(() => setConfirmationActivityLoading(false));
+      .catch(() => setWorkforceStats(null))
+      .finally(() => setWorkforceStatsLoading(false));
   }, []);
 
   const isFreePlan = planTier === "free" || !planTier;
@@ -226,28 +232,6 @@ export function EmployerDashboardClient({
           )}
         </div>
 
-        {/* Pro Features (only visible for Pro) */}
-        {!isBasicPlan && (
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-2 text-grey-dark dark:text-gray-200">
-                Reputation Score
-              </h3>
-              <p className="text-3xl font-bold text-grey-dark dark:text-gray-200">
-                {trustScore ?? "N/A"}
-              </p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-2 text-grey-dark dark:text-gray-200">
-                Rehire Count
-              </h3>
-              <p className="text-3xl font-bold text-grey-dark dark:text-gray-200">
-                {rehireCount ?? "N/A"}
-              </p>
-            </Card>
-          </div>
-        )}
-
         {/* Enterprise / Security Agency Dashboard variant (legacy security_bundle → pro) */}
         {(planTier === "enterprise" || planTier === "security_agency" || planTier === "security_bundle" || planTier === "security-bundle") && (
           <div className="mt-6">
@@ -255,14 +239,7 @@ export function EmployerDashboardClient({
           </div>
         )}
 
-        {/* Universal credentials overview (Lite / Pro non–Security) */}
-        {!(planTier === "enterprise" || planTier === "security_agency" || planTier === "security_bundle" || planTier === "security-bundle") && (
-          <div className="mt-6">
-            <CredentialsOverview showComplianceAlerts={false} />
-          </div>
-        )}
-
-        {/* Usage Panel */}
+        {/* Plan & Usage */}
         <UsagePanel />
 
         {/* Employees Who Listed You */}
@@ -344,98 +321,166 @@ export function EmployerDashboardClient({
           )}
         </div>
 
-        {/* SECTION A — Confirmation Activity */}
+        {/* Workforce Overview */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
-            Confirmation Activity
+            Workforce Overview
           </h2>
-          {confirmationActivityLoading ? (
+          {workforceStatsLoading ? (
             <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
-          ) : confirmationActivity?.section_a ? (
+          ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">Confirmations requested (30d)</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_a.confirmations_requested_last_30_days}</p>
+                <p className="text-sm text-grey-medium dark:text-gray-400">Total verified employees</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{workforceStats?.totalVerified ?? 0}</p>
               </div>
               <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">Confirmations completed (30d)</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_a.confirmations_completed_last_30_days}</p>
+                <p className="text-sm text-grey-medium dark:text-gray-400">Verification completion rate (30d)</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{workforceStats?.verificationCompletionRate != null ? `${workforceStats.verificationCompletionRate}%` : "—"}</p>
               </div>
               <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">Pending confirmations</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_a.pending_confirmations}</p>
+                <p className="text-sm text-grey-medium dark:text-gray-400">Dispute rate</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{workforceStats?.disputeRate != null ? `${workforceStats.disputeRate}%` : "—"}</p>
               </div>
               <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">Avg confirmation time (days)</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_a.average_confirmation_time_days}</p>
+                <p className="text-sm text-grey-medium dark:text-gray-400">Rehire eligibility %</p>
+                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{workforceStats?.rehireEligibilityPct != null ? `${workforceStats.rehireEligibilityPct}%` : "—"}</p>
               </div>
             </div>
-          ) : (
-            <p className="text-sm text-grey-medium dark:text-gray-400">No confirmation activity yet. Request verifications to see metrics here.</p>
           )}
         </Card>
 
-        {/* SECTION B — Employee Confirmation Health */}
+        {/* Workforce Risk Overview — Risk Band (no raw score), Avg, High Risk Count */}
+        {(riskSnapshotEnabled || workforceDashboardEnabled) && !isFreePlan && (
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
+              Workforce Risk Overview
+            </h2>
+            {riskOverviewLoading ? (
+              <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <p className="text-sm text-grey-medium dark:text-gray-400">Avg workforce risk band</p>
+                  <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">
+                    {riskOverview?.workforceRiskAverage != null
+                      ? riskOverview.workforceRiskAverage >= 70
+                        ? "Low"
+                        : riskOverview.workforceRiskAverage >= 40
+                          ? "Medium"
+                          : "High"
+                      : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-grey-medium dark:text-gray-400">High risk count</p>
+                  <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{riskOverview?.workforceHighRiskCount ?? 0}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-grey-medium dark:text-gray-400">Verification completion rate</p>
+                  <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{workforceStats?.verificationCompletionRate != null ? `${workforceStats.verificationCompletionRate}%` : "—"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-grey-medium dark:text-gray-400">Dispute rate</p>
+                  <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{workforceStats?.disputeRate != null ? `${workforceStats.disputeRate}%` : "—"}</p>
+                </div>
+              </div>
+            )}
+          </Card>
+        )}
+
+        {/* Alerts — approaching limits, disputes, verification gaps */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
-            Employee Confirmation Health
+            Alerts
           </h2>
-          {confirmationActivityLoading ? (
-            <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
-          ) : confirmationActivity?.section_b ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">% Employer confirmed</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_b.percent_employer_confirmed}%</p>
-              </div>
-              <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">% Peer confirmed</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_b.percent_peer_confirmed}%</p>
-              </div>
-              <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">% Multi confirmed</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_b.percent_multi_confirmed}%</p>
-              </div>
-              <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">Average profile score</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_b.average_profile_score != null ? confirmationActivity.section_b.average_profile_score : "—"}</p>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-grey-medium dark:text-gray-400">No linked employees yet. When employees list your company, confirmation health will appear here.</p>
-          )}
+          <div className="space-y-2">
+            {workforceStatsLoading && (
+              <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
+            )}
+            {!workforceStatsLoading && isBasicPlan && verificationLimit > 0 && verificationCount >= verificationLimit * 0.8 && (
+              <p className="text-sm text-amber-600 dark:text-amber-400">
+                Approaching verification limit: {verificationCount} / {verificationLimit} used.
+              </p>
+            )}
+            {workforceStats?.disputeRate != null && workforceStats.disputeRate > 10 && (
+              <p className="text-sm text-amber-600 dark:text-amber-400">
+                Dispute rate above 10%. Review open disputes in your team.
+              </p>
+            )}
+            {workforceStats?.verificationCompletionRate != null && workforceStats.verificationCompletionRate < 50 && (workforceStats?.totalVerified ?? 0) > 0 && (
+              <p className="text-sm text-amber-600 dark:text-amber-400">
+                Verification completion rate below 50%. Consider following up on pending requests.
+              </p>
+            )}
+            {!workforceStatsLoading && !workforceStats?.totalVerified && (
+              <p className="text-sm text-grey-medium dark:text-gray-400">No alerts. Add and verify employees to see alerts here.</p>
+            )}
+            {!workforceStatsLoading && (workforceStats?.totalVerified ?? 0) > 0 && (!workforceStats?.disputeRate || workforceStats.disputeRate <= 10) && (workforceStats?.verificationCompletionRate == null || workforceStats.verificationCompletionRate >= 50) && (!isBasicPlan || verificationCount < verificationLimit * 0.8) && (
+              <p className="text-sm text-grey-medium dark:text-gray-400">No active alerts.</p>
+            )}
+          </div>
         </Card>
 
-        {/* SECTION C — Peer Activity */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
-            Peer Activity
-          </h2>
-          {confirmationActivityLoading ? (
-            <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
-          ) : confirmationActivity?.section_c ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">New peer confirmations (30d)</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_c.new_peer_confirmations}</p>
+        {/* Candidate Oversight — recent checks, risk band distribution */}
+        {(riskSnapshotEnabled || workforceDashboardEnabled) && !isFreePlan && (
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
+              Candidate Oversight
+            </h2>
+            {riskOverviewLoading ? (
+              <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
+            ) : riskOverview?.riskSnapshotSample ? (
+              <div className="space-y-4">
+                <p className="text-sm text-grey-medium dark:text-gray-400">Recent check sample — risk band distribution</p>
+                <div className="flex flex-wrap gap-4">
+                  <span className="inline-flex items-center rounded-md bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1 text-sm font-medium text-emerald-800 dark:text-emerald-200">
+                    Low (70–100)
+                  </span>
+                  <span className="inline-flex items-center rounded-md bg-amber-100 dark:bg-amber-900/30 px-3 py-1 text-sm font-medium text-amber-800 dark:text-amber-200">
+                    Medium (40–69)
+                  </span>
+                  <span className="inline-flex items-center rounded-md bg-red-100 dark:bg-red-900/30 px-3 py-1 text-sm font-medium text-red-800 dark:text-red-200">
+                    High (0–39)
+                  </span>
+                </div>
+                <p className="text-sm text-grey-medium dark:text-gray-400">
+                  Workforce average band: {riskOverview.workforceRiskAverage != null
+                    ? riskOverview.workforceRiskAverage >= 70
+                      ? "Low"
+                      : riskOverview.workforceRiskAverage >= 40
+                        ? "Medium"
+                        : "High"
+                    : "—"}
+                </p>
               </div>
-              <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">New peer reviews (30d)</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_c.new_peer_reviews}</p>
-              </div>
-              <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">Disputes opened (30d)</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_c.disputes_opened}</p>
-              </div>
-              <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">Disputes resolved (30d)</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{confirmationActivity.section_c.disputes_resolved}</p>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-grey-medium dark:text-gray-400">No peer activity in the last 30 days.</p>
-          )}
-        </Card>
+            ) : (
+              <p className="text-sm text-grey-medium dark:text-gray-400">No candidate checks yet. Verified employees will appear here.</p>
+            )}
+          </Card>
+        )}
+
+        {/* Hiring Confidence — Pro only */}
+        {planTier === "pro" && !isFreePlan && (
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+              Hiring Confidence
+            </h2>
+            <p className="text-sm text-grey-medium dark:text-gray-400 mb-4">Pro: view hiring confidence indicators for your verified workforce.</p>
+            <Button variant="secondary" href="/employer/candidates">View candidates</Button>
+          </Card>
+        )}
+
+        {/* Team Fit — Pro / Enterprise only */}
+        {(planTier === "pro" || planTier === "enterprise") && !isFreePlan && (
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+              Team Fit
+            </h2>
+            <p className="text-sm text-grey-medium dark:text-gray-400 mb-4">See how candidates fit with your team based on verified data.</p>
+            <Button variant="secondary" href="/employer/candidates">View team fit</Button>
+          </Card>
+        )}
 
         {/* Verification Limit Warning */}
         {isBasicPlan && (
@@ -480,118 +525,7 @@ export function EmployerDashboardClient({
           </div>
         )}
 
-        {/* Risk Intelligence v1 — Candidate Risk Snapshot (feature-flagged; gated for free) */}
-        {riskSnapshotEnabled && (
-          <div className="mt-6">
-            {isFreePlan ? (
-              <UpgradeGate feature="Candidate Risk Snapshot" />
-            ) : (
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4 text-grey-dark dark:text-gray-200">
-                Candidate Risk Snapshot
-              </h3>
-              {riskOverviewLoading ? (
-                <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
-              ) : riskOverview?.riskSnapshotSample ? (
-                <div className="space-y-4">
-                  <div className="flex items-baseline gap-4 flex-wrap">
-                    <span className="text-4xl font-bold text-grey-dark dark:text-gray-200">
-                      {Math.round(riskOverview.riskSnapshotSample.overall ?? 0)}
-                    </span>
-                    <span className="text-sm text-grey-medium dark:text-gray-400">
-                      Overall score (0–100)
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-sm text-grey-medium dark:text-gray-400">Confidence </span>
-                    <span className="font-semibold text-grey-dark dark:text-gray-200">
-                      {Math.round(riskOverview.riskSnapshotSample.confidence ?? 0)}%
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {[
-                      { label: "Tenure", value: riskOverview.riskSnapshotSample.tenure ?? 0 },
-                      { label: "References", value: riskOverview.riskSnapshotSample.references ?? 0 },
-                      { label: "Disputes", value: riskOverview.riskSnapshotSample.disputes ?? 0 },
-                      { label: "Gaps", value: riskOverview.riskSnapshotSample.gaps ?? 0 },
-                      { label: "Rehire", value: riskOverview.riskSnapshotSample.rehire ?? 0 },
-                    ].map(({ label, value }) => (
-                      <div key={label} className="flex items-center gap-2">
-                        <span className="text-sm text-grey-medium dark:text-gray-400 w-24">{label}</span>
-                        <div className="flex-1 h-2 rounded-full bg-grey-background dark:bg-[#374151] overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-blue-600 dark:bg-blue-400"
-                            style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium text-grey-dark dark:text-gray-200 w-8">
-                          {Math.round(value)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm text-grey-medium dark:text-gray-400">
-                  No sample data yet. Profile strength is computed when you have verified employees in the rehire registry.
-                </p>
-              )}
-            </Card>
-            )}
-          </div>
-        )}
-
-        {/* Risk Intelligence v1 — Workforce Risk Overview (feature-flagged; gated for free) */}
-        {workforceDashboardEnabled && (
-          <div className="mt-6">
-            {isFreePlan ? (
-              <UpgradeGate feature="Workforce Integrity Overview" />
-            ) : (
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4 text-grey-dark dark:text-gray-200">
-                Workforce Integrity Overview
-              </h3>
-              {riskOverviewLoading ? (
-                <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
-              ) : (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-grey-medium dark:text-gray-400">Average Risk Score</p>
-                      <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">
-                        {riskOverview?.workforceRiskAverage != null
-                          ? Math.round(riskOverview.workforceRiskAverage)
-                          : "—"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-grey-medium dark:text-gray-400">High Risk Count (score &lt; 50)</p>
-                      <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">
-                        {riskOverview?.workforceHighRiskCount ?? 0}
-                      </p>
-                    </div>
-                  </div>
-                  {riskOverview?.workforceRiskConfidence != null && (
-                    <p className="text-sm text-grey-medium dark:text-gray-400">
-                      Workforce confidence: {Math.round(riskOverview.workforceRiskConfidence)}%
-                    </p>
-                  )}
-                  {riskOverview?.workforceLastCalculated && (
-                    <p className="text-xs text-grey-medium dark:text-gray-500">
-                      Last calculated: {new Date(riskOverview.workforceLastCalculated).toLocaleString()}
-                    </p>
-                  )}
-                  <div className="h-12 rounded-lg border border-grey-background dark:border-[#374151] flex items-center justify-center text-sm text-grey-medium dark:text-gray-500">
-                    Trend placeholder
-                  </div>
-                </div>
-              )}
-            </Card>
-            )}
-          </div>
-        )}
-
-        {/* Risk Intelligence v1 — Rehire Registry (feature-flagged; gated for free) */}
+        {/* Rehire Registry (feature-flagged; gated for free) */}
         {rehireSystemEnabled && (
           <div className="mt-6">
             {isFreePlan ? (

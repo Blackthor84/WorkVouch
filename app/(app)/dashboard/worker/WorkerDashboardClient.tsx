@@ -3,17 +3,13 @@
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { calculateTrustScore, getTrustScoreTier } from "@/lib/trust-score";
+import { calculateTrustScore } from "@/lib/trust-score";
 import Link from "next/link";
 
 /**
- * Worker Dashboard
- * 
- * Features:
- * - Profile management
- * - Job history
- * - Verifications view
- * - Trust score display
+ * Worker Dashboard — employee-only.
+ * Reputation score, career stability, verification %, profile visibility.
+ * Growth-focused; no employer metrics.
  */
 export default function WorkerDashboard() {
   const sessionObj = useSession();
@@ -106,11 +102,22 @@ export default function WorkerDashboard() {
           </div>
         )}
 
-        {/* Quick Stats */}
+        {/* Profile completeness % */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h3 className="text-sm font-medium text-gray-500 mb-2">Profile completeness</h3>
+          <p className="text-3xl font-bold text-gray-900">
+            {profile?.full_name && profile?.email ? Math.min(100, 40 + jobs.length * 15 + (jobs.some((j) => j.verifications?.length) ? 20 : 0)) : 25}%
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Add jobs and get confirmations to grow your profile
+          </p>
+        </div>
+
+        {/* Quick Stats — verification % and confirmation breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-sm font-medium text-gray-500 mb-2">
-              Job History
+              Job history
             </h3>
             <p className="text-3xl font-bold text-gray-900">{jobs.length}</p>
             <Link
@@ -138,11 +145,11 @@ export default function WorkerDashboard() {
 
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-sm font-medium text-gray-500 mb-2">
-              Profile Views
+              Profile visibility
             </h3>
-            <p className="text-3xl font-bold text-gray-900">0</p>
+            <p className="text-3xl font-bold text-gray-900">—</p>
             <p className="text-sm text-gray-500 mt-2">
-              Employers viewing your profile
+              Employers can discover you when your profile is complete
             </p>
           </div>
         </div>
@@ -182,24 +189,33 @@ export default function WorkerDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Action buttons — growth-focused */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link
             href="/dashboard/worker/jobs/add"
             className="bg-blue-600 text-white rounded-lg p-6 hover:bg-blue-700 transition text-center"
           >
-            <h3 className="font-semibold mb-2">Add Job History</h3>
+            <h3 className="font-semibold mb-2">Add job</h3>
             <p className="text-sm text-blue-100">
               Add a new job to your verified profile
+            </p>
+          </Link>
+          <Link
+            href="/coworker-matches"
+            className="bg-emerald-600 text-white rounded-lg p-6 hover:bg-emerald-700 transition text-center"
+          >
+            <h3 className="font-semibold mb-2">Request confirmation</h3>
+            <p className="text-sm text-emerald-100">
+              Ask coworkers to confirm your employment
             </p>
           </Link>
           <Link
             href="/dashboard/worker/profile/edit"
             className="bg-gray-100 text-gray-900 rounded-lg p-6 hover:bg-gray-200 transition text-center"
           >
-            <h3 className="font-semibold mb-2">Edit Profile</h3>
+            <h3 className="font-semibold mb-2">Improve profile</h3>
             <p className="text-sm text-gray-600">
-              Update your profile information
+              Update your profile to stand out
             </p>
           </Link>
         </div>
