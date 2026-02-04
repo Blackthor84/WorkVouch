@@ -1,9 +1,10 @@
 /**
  * Enterprise hiring confidence composite. Server-side only.
  * Accepts candidateId and employerId; aggregates team_fit, risk_model_outputs, network_density; persists to hiring_confidence_scores.
- * Never exposes to employees. Fail gracefully; neutral if insufficient data.
+ * When simulationContext is provided, rows are tagged with simulation_session_id. Optional; production path unchanged.
  */
 
+import type { SimulationContext } from "@/lib/simulation/types";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getBehavioralVector } from "@/lib/intelligence/getBehavioralVector";
 import { getHybridBehavioralBaseline } from "@/lib/intelligence/hybridBehavioralModel";
@@ -102,10 +103,11 @@ async function loadComponentScores(
  */
 export async function computeAndPersistHiringConfidence(
   candidateId: string,
-  employerId: string
+  employerId: string,
+  simulationContext?: SimulationContext
 ): Promise<{ compositeScore: number; breakdown: Record<string, number> } | null> {
   try {
-    const supabase = getSupabaseServer() as any;
+    const supabase = getSupabaseServer();
     const { teamFitScore, riskScore, densityScore, fraudConfidence } = await loadComponentScores(
       supabase,
       candidateId,

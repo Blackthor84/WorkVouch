@@ -3,10 +3,10 @@
  * Run after: verification completion, reference submission, dispute resolution,
  * employment record update, coworker link creation.
  * All engines fail gracefully; neutral scores if insufficient data; never block flow.
- * When simulationContext is provided, all persisted rows are tagged with simulation_session_id.
+ * When simulationContext is provided, all persisted rows are tagged with simulation_session_id. Optional; production path unchanged.
  */
 
-import type { SimulationContext } from "@/lib/simulation-lab";
+import type { SimulationContext } from "@/lib/simulation/types";
 import { computeAndPersistRiskModel } from "@/lib/risk-model";
 import { computeAndPersistNetworkDensity } from "@/lib/network-density";
 import { computeAndPersistTeamFit } from "@/lib/team-fit-engine";
@@ -57,7 +57,7 @@ export async function runEmployerCandidateIntelligence(
     await computeAndPersistTeamFit(candidateId, employerId, simulationContext).catch((e) => {
       safeLogError("team-fit-engine", e);
     });
-    await computeAndPersistHiringConfidence(candidateId, employerId, simulationContext).catch((e) => {
+    await computeAndPersistHiringConfidence(candidateId, employerId, simulationContext ?? undefined).catch((e) => {
       safeLogError("hiring-confidence", e);
     });
   } catch (e) {

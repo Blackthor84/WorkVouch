@@ -3,6 +3,12 @@
  * No Supabase, NextAuth, Stripe. Pure logic only.
  */
 
+/** Optional context for intelligence pipeline when writing simulation data. Validate session before use. */
+export interface SimulationContext {
+  simulationSessionId: string;
+  expiresAt: string; // ISO string
+}
+
 export type PlanTier = "free" | "starter" | "pro" | "custom";
 
 export interface SimulationInputs {

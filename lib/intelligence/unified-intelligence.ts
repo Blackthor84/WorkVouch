@@ -221,31 +221,33 @@ export async function persistUnifiedIntelligence(
       });
     }
 
-    const upsertRow: Record<string, unknown> = {
-      user_id: userId,
-      employer_id: null,
-      profile_strength: result.profile_strength,
-      career_health_score: result.career_health,
-      stability_score: result.stability_score,
-      reference_score: result.reference_score,
-      rehire_probability: result.rehire_probability,
-      dispute_score: result.dispute_score,
-      network_density_score: result.network_density_score,
-      fraud_confidence: result.fraud_confidence,
-      overall_risk_score: result.overall_risk_score,
-      hiring_confidence_score: result.hiring_confidence_score,
-      team_fit_score: result.team_fit_score,
-      model_version: UNIFIED_MODEL_VERSION,
-      updated_at: now,
-    };
-    if (simulationContext) {
-      upsertRow.is_simulation = true;
-      upsertRow.simulation_session_id = simulationContext.simulationSessionId;
-      upsertRow.expires_at = simulationContext.expiresAt;
-    }
-    await supabase.from("unified_intelligence_scores").upsert(upsertRow as Record<string, unknown>, {
-      onConflict: "user_id,employer_id",
-    });
+    await supabase.from("unified_intelligence_scores").upsert(
+      {
+        user_id: userId,
+        employer_id: null,
+        profile_strength: result.profile_strength,
+        career_health_score: result.career_health,
+        stability_score: result.stability_score,
+        reference_score: result.reference_score,
+        rehire_probability: result.rehire_probability,
+        dispute_score: result.dispute_score,
+        network_density_score: result.network_density_score,
+        fraud_confidence: result.fraud_confidence,
+        overall_risk_score: result.overall_risk_score,
+        hiring_confidence_score: result.hiring_confidence_score,
+        team_fit_score: result.team_fit_score,
+        model_version: UNIFIED_MODEL_VERSION,
+        updated_at: now,
+        ...(simulationContext
+          ? {
+              is_simulation: true,
+              simulation_session_id: simulationContext.simulationSessionId,
+              expires_at: simulationContext.expiresAt,
+            }
+          : {}),
+      },
+      { onConflict: "user_id,employer_id" }
+    );
   } catch (e) {
     safeLog("persistUnifiedIntelligence", e);
   }

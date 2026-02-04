@@ -15,12 +15,7 @@ export const SIMULATION_MAX_EXTEND_MINUTES = 120;
 
 export type SimulationSessionStatus = "scheduled" | "running" | "expired" | "deleted";
 
-/** Context passed to intelligence engines when writing simulation data. Validate session before use. */
-export interface SimulationContext {
-  simulationSessionId: string;
-  expiresAt: string;
-}
-
+export type { SimulationContext } from "@/lib/simulation/types";
 export interface SimulationSessionRow {
   id: string;
   created_by_admin_id: string;

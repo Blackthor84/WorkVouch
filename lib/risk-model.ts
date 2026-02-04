@@ -109,16 +109,14 @@ export async function computeAndPersistRiskModel(
     const behavioralVector = await getBehavioralVector(candidateId).catch(() => null);
     if (behavioralVector) {
       let behavioralRiskScore: number;
-      const candidateIndustry = await supabase
-        .from("profiles")
-        .select("industry, industry_key")
-        .eq("id", candidateId)
-        .maybeSingle()
-        .then((r: { data: unknown }) => {
-          const p = r.data as { industry?: string; industry_key?: string } | null;
-          return resolveIndustryKey(p?.industry_key, p?.industry);
-        })
-        .catch(() => "corporate");
+      let candidateIndustry = "corporate";
+      try {
+        const profileRes = await supabase.from("profiles").select("industry, industry_key").eq("id", candidateId).maybeSingle();
+        const p = profileRes.data as { industry?: string; industry_key?: string } | null;
+        candidateIndustry = resolveIndustryKey(p?.industry_key, p?.industry);
+      } catch {
+        // keep default
+      }
       const baseline = employerId
         ? await getHybridBehavioralBaseline(candidateIndustry, employerId)
         : await getIndustryBehavioralBaseline(candidateIndustry).then((b) => b ?? null);
