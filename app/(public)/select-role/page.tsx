@@ -10,8 +10,8 @@ import type { User } from "@supabase/supabase-js";
 
 const SIGNUP_CREDENTIALS_KEY = "workvouch_signup_credentials";
 
-/** Minimal user shape for role selection (we only need id for profile/role updates). */
-type UserOrId = User | { id: string };
+/** Minimal user shape for role selection (id for updates; email optional for company name). */
+type UserOrId = User | { id: string; email?: string };
 
 export default function SelectRolePage() {
   const router = useRouter();
@@ -27,7 +27,7 @@ export default function SelectRolePage() {
       if (raw) {
         const stored = JSON.parse(raw) as { email?: string; password?: string; userId?: string };
         if (stored?.userId && stored?.email && stored?.password) {
-          setUser({ id: stored.userId });
+          setUser({ id: stored.userId, email: stored.email });
           setLoading(false);
           return;
         }
@@ -50,10 +50,8 @@ export default function SelectRolePage() {
     setError("");
     setSelecting(role);
 
-    const supabaseAny = supabaseBrowser as any;
-
     try {
-      const { error: profileError } = await supabaseAny
+      const { error: profileError } = await supabaseBrowser
         .from("profiles")
         .update({ role: role === "employer" ? "employer" : "user" })
         .eq("id", user.id);
@@ -64,7 +62,7 @@ export default function SelectRolePage() {
         return;
       }
 
-      const { error: roleError } = await supabaseAny
+      const { error: roleError } = await supabaseBrowser
         .from("user_roles")
         .insert({ user_id: user.id, role: role === "employer" ? "employer" : "user" });
 
@@ -75,11 +73,11 @@ export default function SelectRolePage() {
       }
 
       if (role === "employer") {
-        const { error: employerError } = await supabaseAny
+        const { error: employerError } = await supabaseBrowser
           .from("employer_accounts")
           .insert({
             user_id: user.id,
-            company_name: user.user_metadata?.full_name || "Company",
+            company_name: user.email?.split("@")[0] ?? "New Company",
             plan_tier: "free",
           });
 
