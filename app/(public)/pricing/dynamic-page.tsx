@@ -1,11 +1,24 @@
 "use client";
 
-import { employerPlans, payPerUse } from "@/data/pricing";
+import { employerPlans } from "@/data/pricing";
+
+const validStripePriceIds = new Set(
+  employerPlans.flatMap((p) => {
+    const ids: string[] = [];
+    if (p.stripePriceIdMonthly) ids.push(p.stripePriceIdMonthly);
+    if (p.stripePriceIdYearly) ids.push(p.stripePriceIdYearly);
+    return ids;
+  })
+);
 
 export default function DynamicPricingPage() {
   const startCheckout = async (stripePriceId: string | undefined) => {
     if (!stripePriceId) {
       alert("Price ID not configured. Please contact support.");
+      return;
+    }
+    if (!validStripePriceIds.has(stripePriceId)) {
+      alert("Invalid plan. Please choose Starter or Pro.");
       return;
     }
 
@@ -18,8 +31,9 @@ export default function DynamicPricingPage() {
       const data = await res.json();
       if (data.url) window.location.href = data.url;
       else alert("Checkout failed: " + (data.error || "Unknown error"));
-    } catch (err: any) {
-      alert("Checkout error: " + err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      alert("Checkout error: " + message);
     }
   };
 
@@ -30,28 +44,22 @@ export default function DynamicPricingPage() {
         <div key={plan.id}>
           <h3>{plan.name}</h3>
           <p>${plan.price}/{plan.period}</p>
-          <button
-            onClick={() => {
-              if (!plan.stripePriceId) return;
-              startCheckout(plan.stripePriceId);
-            }}
-            disabled={!plan.stripePriceId}
-          >
-            {plan.id === "starter" && "Start Hiring"}
-            {plan.id === "team" && "Upgrade to Team"}
-            {plan.id === "pro" && "Go Pro"}
-            {plan.id === "security" && "Get Security Bundle"}
-            {!["starter", "team", "pro", "security"].includes(plan.id) && "Choose Plan"}
-          </button>
+          {plan.ctaHref ? (
+            <a href={plan.ctaHref}>{plan.cta}</a>
+          ) : (
+            <button
+              onClick={() => {
+                const priceId = plan.stripePriceIdMonthly;
+                if (!priceId) return;
+                startCheckout(priceId);
+              }}
+              disabled={!plan.stripePriceIdMonthly}
+            >
+              {plan.cta}
+            </button>
+          )}
         </div>
       ))}
-      <div>
-        <h3>{payPerUse.name}</h3>
-        <p>${payPerUse.price}/{payPerUse.period}</p>
-        <button onClick={() => startCheckout(payPerUse.stripePriceId)}>
-          Buy Report
-        </button>
-      </div>
     </div>
   );
 }
