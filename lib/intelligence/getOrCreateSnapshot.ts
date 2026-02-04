@@ -1,8 +1,10 @@
 /**
  * Get or create intelligence_snapshots row for a user.
  * Uses service role. Never returns null; returns structured fallback if missing/fail.
+ * When simulationContext is provided, new rows are tagged with simulation_session_id and expires_at.
  */
 
+import type { SimulationContext } from "@/lib/simulation-lab";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export interface IntelligenceSnapshotRow {
@@ -39,10 +41,14 @@ const ZERO_SNAPSHOT = (userId: string): IntelligenceSnapshotRow => ({
 
 /**
  * Get existing snapshot or insert default row. Never returns null.
+ * When simulationContext is provided, insert is tagged with is_simulation, simulation_session_id, expires_at.
  */
-export async function getOrCreateSnapshot(userId: string): Promise<IntelligenceSnapshotRow> {
+export async function getOrCreateSnapshot(
+  userId: string,
+  simulationContext?: SimulationContext | null
+): Promise<IntelligenceSnapshotRow> {
   try {
-    const supabase = getSupabaseServer() as any;
+    const supabase = getSupabaseServer();
 
     const { data: existing, error: selectError } = await supabase
       .from("intelligence_snapshots")
@@ -51,10 +57,11 @@ export async function getOrCreateSnapshot(userId: string): Promise<IntelligenceS
       .maybeSingle();
 
     if (!selectError && existing && typeof existing === "object") {
-      return normalizeRow(existing);
+      return normalizeRow(existing as Record<string, unknown>);
     }
 
-    const row = {
+    const now = new Date().toISOString();
+    const row: Record<string, unknown> = {
       user_id: userId,
       profile_strength: 0,
       career_health_score: 0,
@@ -64,19 +71,24 @@ export async function getOrCreateSnapshot(userId: string): Promise<IntelligenceS
       dispute_score: 0,
       network_density_score: 0,
       last_calculated_at: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: now,
+      updated_at: now,
       model_version: "v1.0-enterprise",
     };
+    if (simulationContext) {
+      row.is_simulation = true;
+      row.simulation_session_id = simulationContext.simulationSessionId;
+      row.expires_at = simulationContext.expiresAt;
+    }
 
     const { data: inserted, error: insertError } = await supabase
       .from("intelligence_snapshots")
-      .insert(row)
+      .insert(row as Record<string, unknown>)
       .select()
       .single();
 
     if (!insertError && inserted && typeof inserted === "object") {
-      return normalizeRow(inserted);
+      return normalizeRow(inserted as Record<string, unknown>);
     }
 
     return ZERO_SNAPSHOT(userId);

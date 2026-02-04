@@ -3,23 +3,14 @@
  * Run after: verification completion, reference submission, dispute resolution,
  * employment record update, coworker link creation.
  * All engines fail gracefully; neutral scores if insufficient data; never block flow.
- * Logs model runs and engine failures (server-side only).
+ * When simulationContext is provided, all persisted rows are tagged with simulation_session_id.
  */
 
+import type { SimulationContext } from "@/lib/simulation-lab";
 import { computeAndPersistRiskModel } from "@/lib/risk-model";
 import { computeAndPersistNetworkDensity } from "@/lib/network-density";
 import { computeAndPersistTeamFit } from "@/lib/team-fit-engine";
 import { computeAndPersistHiringConfidence } from "@/lib/hiring-confidence";
-
-function safeLog(context: string, message: string, meta?: Record<string, unknown>): void {
-  try {
-    if (typeof console !== "undefined" && console.info) {
-      console.info(`[intelligence:${context}]`, message, meta ?? "");
-    }
-  } catch {
-    // no-op
-  }
-}
 
 function safeLogError(context: string, err: unknown): void {
   try {
@@ -33,20 +24,21 @@ function safeLogError(context: string, err: unknown): void {
 
 /**
  * Run all candidate-level engines (risk, network density). No employer context required.
- * Call after verification completion, reference submission, dispute resolution, employment record update.
+ * When simulationContext is provided, validates session and tags all outputs.
  */
-export async function runCandidateIntelligence(candidateId: string): Promise<void> {
+export async function runCandidateIntelligence(
+  candidateId: string,
+  simulationContext?: SimulationContext | null
+): Promise<void> {
   try {
-    safeLog("runCandidateIntelligence", "start", { candidateId });
     await Promise.all([
-      computeAndPersistRiskModel(candidateId, null).catch((e) => {
+      computeAndPersistRiskModel(candidateId, null, simulationContext).catch((e) => {
         safeLogError("risk-model", e);
       }),
-      computeAndPersistNetworkDensity(candidateId).catch((e) => {
+      computeAndPersistNetworkDensity(candidateId, simulationContext).catch((e) => {
         safeLogError("network-density", e);
       }),
     ]);
-    safeLog("runCandidateIntelligence", "complete", { candidateId });
   } catch (e) {
     safeLogError("runCandidateIntelligence", e);
   }
@@ -54,21 +46,20 @@ export async function runCandidateIntelligence(candidateId: string): Promise<voi
 
 /**
  * Run employer-candidate engines (team fit, hiring confidence). Requires employerId.
- * Call when employer views candidate or after verification in employer context.
+ * When simulationContext is provided, tags all outputs with simulation_session_id.
  */
 export async function runEmployerCandidateIntelligence(
   candidateId: string,
-  employerId: string
+  employerId: string,
+  simulationContext?: SimulationContext | null
 ): Promise<void> {
   try {
-    safeLog("runEmployerCandidateIntelligence", "start", { candidateId, employerId });
-    await computeAndPersistTeamFit(candidateId, employerId).catch((e) => {
+    await computeAndPersistTeamFit(candidateId, employerId, simulationContext).catch((e) => {
       safeLogError("team-fit-engine", e);
     });
-    await computeAndPersistHiringConfidence(candidateId, employerId).catch((e) => {
+    await computeAndPersistHiringConfidence(candidateId, employerId, simulationContext).catch((e) => {
       safeLogError("hiring-confidence", e);
     });
-    safeLog("runEmployerCandidateIntelligence", "complete", { candidateId, employerId });
   } catch (e) {
     safeLogError("runEmployerCandidateIntelligence", e);
   }
@@ -80,10 +71,11 @@ export async function runEmployerCandidateIntelligence(
  */
 export async function runIntelligencePipeline(
   candidateId: string,
-  employerId?: string | null
+  employerId?: string | null,
+  simulationContext?: SimulationContext | null
 ): Promise<void> {
-  await runCandidateIntelligence(candidateId);
+  await runCandidateIntelligence(candidateId, simulationContext);
   if (employerId) {
-    await runEmployerCandidateIntelligence(candidateId, employerId);
+    await runEmployerCandidateIntelligence(candidateId, employerId, simulationContext);
   }
 }

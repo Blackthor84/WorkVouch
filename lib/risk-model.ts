@@ -81,15 +81,18 @@ async function loadRiskInput(
  * Compute risk model and persist to risk_model_outputs.
  * Returns overall score 0–100 or null on failure. Never throws.
  */
+export type SimulationContext = { simulationSessionId: string; expiresAt: string } | null | undefined;
+
 export async function computeAndPersistRiskModel(
   candidateId: string,
-  employerId?: string | null
+  employerId?: string | null,
+  simulationContext?: SimulationContext
 ): Promise<{ overallScore: number; breakdown: Record<string, number> } | null> {
   try {
-    const supabase = getSupabaseServer() as any;
+    const supabase = getSupabaseServer();
     const input = await loadRiskInput(supabase, candidateId);
     if (!input) {
-      await upsertRiskOutput(supabase, candidateId, employerId ?? null, NEUTRAL_SCORE, {});
+      await upsertRiskOutput(supabase, candidateId, employerId ?? null, NEUTRAL_SCORE, {}, simulationContext);
       return { overallScore: NEUTRAL_SCORE, breakdown: {} };
     }
 
@@ -144,13 +147,13 @@ export async function computeAndPersistRiskModel(
     }
 
     const overallScore = coreOverall;
-    await upsertRiskOutput(supabase, candidateId, employerId ?? null, overallScore, breakdown);
+    await upsertRiskOutput(supabase, candidateId, employerId ?? null, overallScore, breakdown, simulationContext);
     return { overallScore, breakdown };
   } catch (e) {
     safeLog("computeAndPersistRiskModel", e);
     try {
-      const supabase = getSupabaseServer() as any;
-      await upsertRiskOutput(supabase, candidateId, employerId ?? null, NEUTRAL_SCORE, {});
+      const supabase = getSupabaseServer();
+      await upsertRiskOutput(supabase, candidateId, employerId ?? null, NEUTRAL_SCORE, {}, simulationContext);
     } catch (e2) {
       safeLog("upsertRiskOutput fallback", e2);
     }
@@ -159,20 +162,27 @@ export async function computeAndPersistRiskModel(
 }
 
 async function upsertRiskOutput(
-  supabase: any,
+  supabase: ReturnType<typeof getSupabaseServer>,
   candidateId: string,
   employerId: string | null,
   overallScore: number,
-  breakdown: Record<string, number>
+  breakdown: Record<string, number>,
+  simulationContext?: SimulationContext
 ): Promise<void> {
-  const row = {
+  const now = new Date().toISOString();
+  const row: Record<string, unknown> = {
     candidate_id: candidateId,
     employer_id: employerId,
     model_version: MODEL_VERSION,
     overall_score: overallScore,
     breakdown: breakdown as unknown as Record<string, unknown>,
-    updated_at: new Date().toISOString(),
+    updated_at: now,
   };
+  if (simulationContext) {
+    row.is_simulation = true;
+    row.simulation_session_id = simulationContext.simulationSessionId;
+    row.expires_at = simulationContext.expiresAt;
+  }
   const q = supabase
     .from("risk_model_outputs")
     .select("id")
@@ -181,14 +191,20 @@ async function upsertRiskOutput(
     ? await q.is("employer_id", null).maybeSingle()
     : await q.eq("employer_id", employerId).maybeSingle();
   if (existing?.id) {
-    await supabase.from("risk_model_outputs").update(row).eq("id", existing.id);
+    await supabase.from("risk_model_outputs").update(row).eq("id", (existing as { id: string }).id);
   } else {
-    await supabase.from("risk_model_outputs").insert({
+    const insertRow: Record<string, unknown> = {
       candidate_id: candidateId,
       employer_id: employerId,
       model_version: MODEL_VERSION,
       overall_score: overallScore,
       breakdown: breakdown as unknown as Record<string, unknown>,
-    });
+    };
+    if (simulationContext) {
+      insertRow.is_simulation = true;
+      insertRow.simulation_session_id = simulationContext.simulationSessionId;
+      insertRow.expires_at = simulationContext.expiresAt;
+    }
+    await supabase.from("risk_model_outputs").insert(insertRow);
   }
 }

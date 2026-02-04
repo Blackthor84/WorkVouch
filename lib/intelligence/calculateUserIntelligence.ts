@@ -1,25 +1,30 @@
 /**
  * Background calculation for profile_strength and career_health_score.
- * Updates intelligence_snapshots. Never throws; logs and returns on error.
+ * Updates intelligence_snapshots. Never throws; returns on error.
+ * When simulationContext is provided, validates session and tags rows with simulation_session_id.
  */
 
+import type { SimulationContext } from "@/lib/simulation-lab";
+import { validateSessionForWrite } from "@/lib/simulation-lab";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getOrCreateSnapshot } from "./getOrCreateSnapshot";
 
 const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(Number(n))));
 
-function safeNum(v: unknown): number {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
-
 /**
  * Recalculate scores and update intelligence_snapshots for the user.
- * Silent: never throws. Log in dev only.
+ * If simulationContext is provided, validates session is running before writes and tags rows.
  */
-export async function calculateUserIntelligence(userId: string): Promise<void> {
+export async function calculateUserIntelligence(
+  userId: string,
+  simulationContext?: SimulationContext | null
+): Promise<void> {
   try {
-    const supabase = getSupabaseServer() as any;
+    if (simulationContext) {
+      await validateSessionForWrite(simulationContext.simulationSessionId);
+    }
+
+    const supabase = getSupabaseServer();
 
     const [jobsRes, refsRes, disputesRes, rehireRes] = await Promise.all([
       supabase.from("employment_records").select("id, start_date, end_date, verification_status").eq("user_id", userId),
@@ -61,55 +66,41 @@ export async function calculateUserIntelligence(userId: string): Promise<void> {
     );
 
     const now = new Date().toISOString();
-    const snapshot = await getOrCreateSnapshot(userId);
+    const snapshot = await getOrCreateSnapshot(userId, simulationContext);
+
+    const baseUpdate: Record<string, unknown> = {
+      profile_strength,
+      career_health_score,
+      tenure_score,
+      reference_score,
+      rehire_score,
+      dispute_score,
+      network_density_score,
+      last_calculated_at: now,
+      updated_at: now,
+    };
+    if (simulationContext) {
+      baseUpdate.is_simulation = true;
+      baseUpdate.simulation_session_id = simulationContext.simulationSessionId;
+      baseUpdate.expires_at = simulationContext.expiresAt;
+    }
 
     const { error } = await supabase
       .from("intelligence_snapshots")
-      .update({
-        profile_strength,
-        career_health_score,
-        tenure_score,
-        reference_score,
-        rehire_score,
-        dispute_score,
-        network_density_score,
-        last_calculated_at: now,
-        updated_at: now,
-      })
+      .update(baseUpdate as Record<string, unknown>)
       .eq("user_id", userId);
 
     if (error) {
       if (snapshot.id) {
-        await supabase.from("intelligence_snapshots").update({
-          profile_strength,
-          career_health_score,
-          tenure_score,
-          reference_score,
-          rehire_score,
-          dispute_score,
-          network_density_score,
-          last_calculated_at: now,
-          updated_at: now,
-        }).eq("id", snapshot.id);
+        await supabase.from("intelligence_snapshots").update(baseUpdate as Record<string, unknown>).eq("id", snapshot.id);
       } else {
-        await supabase.from("intelligence_snapshots").insert({
+        const insertRow: Record<string, unknown> = {
           user_id: userId,
-          profile_strength,
-          career_health_score,
-          tenure_score,
-          reference_score,
-          rehire_score,
-          dispute_score,
-          network_density_score,
-          last_calculated_at: now,
+          ...baseUpdate,
           created_at: now,
-          updated_at: now,
-        });
+        };
+        await supabase.from("intelligence_snapshots").insert(insertRow as Record<string, unknown>);
       }
-    }
-
-    if (process.env.NODE_ENV === "development") {
-      console.log(`Intelligence recalculated for user ${userId}`);
     }
   } catch (_e) {
     // silent

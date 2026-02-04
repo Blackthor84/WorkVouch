@@ -165,6 +165,9 @@ export interface Database {
           updated_at: string
           guard_credential_score: number | null
           role: string | null
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          expires_at?: string | null
         }
         Insert: {
           id: string
@@ -180,6 +183,9 @@ export interface Database {
           updated_at?: string
           guard_credential_score?: number | null
           role?: string | null
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          expires_at?: string | null
         }
         Update: {
           id?: string
@@ -195,6 +201,9 @@ export interface Database {
           updated_at?: string
           guard_credential_score?: number | null
           role?: string | null
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          expires_at?: string | null
         }
         Relationships: []
       }
@@ -290,6 +299,9 @@ export interface Database {
           searches_used?: number | null
           billing_cycle_start?: string | null
           billing_cycle_end?: string | null
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          expires_at?: string | null
         }
         Insert: {
           id?: string
@@ -311,6 +323,9 @@ export interface Database {
           searches_used?: number | null
           billing_cycle_start?: string | null
           billing_cycle_end?: string | null
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          expires_at?: string | null
         }
         Update: {
           id?: string
@@ -332,6 +347,9 @@ export interface Database {
           searches_used?: number | null
           billing_cycle_start?: string | null
           billing_cycle_end?: string | null
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          expires_at?: string | null
         }
         Relationships: []
       }
@@ -853,6 +871,9 @@ export interface Database {
           employer_id: string | null
           created_at: string
           updated_at: string
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          expires_at?: string | null
         }
         Insert: {
           id?: string
@@ -869,6 +890,9 @@ export interface Database {
           employer_id?: string | null
           created_at?: string
           updated_at?: string
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          expires_at?: string | null
         }
         Update: {
           id?: string
@@ -885,6 +909,9 @@ export interface Database {
           employer_id?: string | null
           created_at?: string
           updated_at?: string
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          expires_at?: string | null
         }
         Relationships: []
       }
@@ -951,6 +978,150 @@ export interface Database {
         }
         Relationships: []
       }
+      simulation_sessions: {
+        Row: {
+          id: string
+          created_by_admin_id: string
+          created_at: string
+          start_at: string
+          expires_at: string
+          is_active: boolean
+          auto_delete: boolean
+          status: string
+        }
+        Insert: {
+          id?: string
+          created_by_admin_id: string
+          created_at?: string
+          start_at?: string
+          expires_at: string
+          is_active?: boolean
+          auto_delete?: boolean
+          status?: string
+        }
+        Update: {
+          id?: string
+          created_by_admin_id?: string
+          created_at?: string
+          start_at?: string
+          expires_at?: string
+          is_active?: boolean
+          auto_delete?: boolean
+          status?: string
+        }
+        Relationships: []
+      }
+      data_density_snapshots: {
+        Row: {
+          id: string
+          snapshot_at: string
+          scope: string
+          scope_id: string | null
+          profiles_count: number
+          employment_records_count: number
+          references_count: number
+          intelligence_rows_count: number
+          is_simulation: boolean
+          simulation_session_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          snapshot_at?: string
+          scope: string
+          scope_id?: string | null
+          profiles_count: number
+          employment_records_count: number
+          references_count: number
+          intelligence_rows_count: number
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          snapshot_at?: string
+          scope?: string
+          scope_id?: string | null
+          profiles_count?: number
+          employment_records_count?: number
+          references_count?: number
+          intelligence_rows_count?: number
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      unified_intelligence_scores: {
+        Row: {
+          id: string
+          user_id: string
+          employer_id: string | null
+          profile_strength: number
+          career_health_score: number
+          stability_score: number
+          reference_score: number
+          rehire_probability: number
+          dispute_score: number
+          network_density_score: number
+          fraud_confidence: number
+          overall_risk_score: number
+          hiring_confidence_score: number | null
+          team_fit_score: number | null
+          model_version: string
+          is_simulation: boolean
+          simulation_session_id: string | null
+          expires_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          employer_id?: string | null
+          profile_strength?: number
+          career_health_score?: number
+          stability_score?: number
+          reference_score?: number
+          rehire_probability?: number
+          dispute_score?: number
+          network_density_score?: number
+          fraud_confidence?: number
+          overall_risk_score?: number
+          hiring_confidence_score?: number | null
+          team_fit_score?: number | null
+          model_version?: string
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          employer_id?: string | null
+          profile_strength?: number
+          career_health_score?: number
+          stability_score?: number
+          reference_score?: number
+          rehire_probability?: number
+          dispute_score?: number
+          network_density_score?: number
+          fraud_confidence?: number
+          overall_risk_score?: number
+          hiring_confidence_score?: number | null
+          team_fit_score?: number | null
+          model_version?: string
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: {
@@ -965,6 +1136,26 @@ export interface Database {
           p_user_id: string
         }
         Returns: undefined
+      }
+      simulation_session_transition_status: {
+        Args: Record<string, never>
+        Returns: undefined
+      }
+      purge_expired_simulations: {
+        Args: Record<string, never>
+        Returns: { deleted_table: string; deleted_count: number }[]
+      }
+      get_expired_simulation_profile_ids: {
+        Args: Record<string, never>
+        Returns: string[]
+      }
+      get_simulation_profile_ids_by_session: {
+        Args: { p_session_id: string }
+        Returns: string[]
+      }
+      purge_simulation_session: {
+        Args: { p_session_id: string }
+        Returns: { deleted_table: string; deleted_count: number }[]
       }
     }
     Enums: {

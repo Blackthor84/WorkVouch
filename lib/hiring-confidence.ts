@@ -146,14 +146,20 @@ export async function computeAndPersistHiringConfidence(
       baselineAlignmentFactor: baselineAlignment,
     };
 
-    const row = {
+    const now = new Date().toISOString();
+    const row: Record<string, unknown> = {
       candidate_id: candidateId,
       employer_id: employerId,
       model_version: MODEL_VERSION,
       composite_score: composite,
       breakdown: breakdown as unknown as Record<string, unknown>,
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     };
+    if (simulationContext) {
+      row.is_simulation = true;
+      row.simulation_session_id = simulationContext.simulationSessionId;
+      row.expires_at = simulationContext.expiresAt;
+    }
     const { data: existing } = await supabase
       .from("hiring_confidence_scores")
       .select("id")
@@ -161,15 +167,21 @@ export async function computeAndPersistHiringConfidence(
       .eq("employer_id", employerId)
       .maybeSingle();
     if (existing?.id) {
-      await supabase.from("hiring_confidence_scores").update(row).eq("id", existing.id);
+      await supabase.from("hiring_confidence_scores").update(row).eq("id", (existing as { id: string }).id);
     } else {
-      await supabase.from("hiring_confidence_scores").insert({
+      const insertRow: Record<string, unknown> = {
         candidate_id: candidateId,
         employer_id: employerId,
         model_version: MODEL_VERSION,
         composite_score: composite,
         breakdown: breakdown as unknown as Record<string, unknown>,
-      });
+      };
+      if (simulationContext) {
+        insertRow.is_simulation = true;
+        insertRow.simulation_session_id = simulationContext.simulationSessionId;
+        insertRow.expires_at = simulationContext.expiresAt;
+      }
+      await supabase.from("hiring_confidence_scores").insert(insertRow);
     }
     return { compositeScore: composite, breakdown };
   } catch (e) {

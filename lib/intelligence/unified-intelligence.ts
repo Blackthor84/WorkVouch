@@ -173,16 +173,25 @@ export async function calculateUnifiedIntelligence(
 }
 
 /**
- * Persist unified result to intelligence_snapshots (canonical view). Never throws.
+ * Persist unified result to intelligence_snapshots and unified_intelligence_scores. Never throws.
+ * When simulationContext is provided, validates session and tags all rows with simulation_session_id.
  */
-export async function persistUnifiedIntelligence(userId: string): Promise<void> {
+export async function persistUnifiedIntelligence(
+  userId: string,
+  simulationContext?: { simulationSessionId: string; expiresAt: string } | null
+): Promise<void> {
   try {
+    if (simulationContext) {
+      const { validateSessionForWrite } = await import("@/lib/simulation-lab");
+      await validateSessionForWrite(simulationContext.simulationSessionId);
+    }
+
     const result = await calculateUnifiedIntelligence(userId, null);
-    const snapshot = await getOrCreateSnapshot(userId);
+    const snapshot = await getOrCreateSnapshot(userId, simulationContext ?? undefined);
     const now = new Date().toISOString();
     const supabase = getSupabaseServer();
 
-    const row = {
+    const row: Record<string, unknown> = {
       profile_strength: result.profile_strength,
       career_health_score: result.career_health,
       tenure_score: result.stability_score,
@@ -194,6 +203,11 @@ export async function persistUnifiedIntelligence(userId: string): Promise<void> 
       updated_at: now,
       model_version: UNIFIED_MODEL_VERSION,
     };
+    if (simulationContext) {
+      row.is_simulation = true;
+      row.simulation_session_id = simulationContext.simulationSessionId;
+      row.expires_at = simulationContext.expiresAt;
+    }
 
     const { error } = await supabase.from("intelligence_snapshots").update(row).eq("user_id", userId);
 
@@ -207,9 +221,31 @@ export async function persistUnifiedIntelligence(userId: string): Promise<void> 
       });
     }
 
-    if (process.env.NODE_ENV === "development") {
-      console.log(`Unified intelligence persisted for user ${userId}`);
+    const upsertRow: Record<string, unknown> = {
+      user_id: userId,
+      employer_id: null,
+      profile_strength: result.profile_strength,
+      career_health_score: result.career_health,
+      stability_score: result.stability_score,
+      reference_score: result.reference_score,
+      rehire_probability: result.rehire_probability,
+      dispute_score: result.dispute_score,
+      network_density_score: result.network_density_score,
+      fraud_confidence: result.fraud_confidence,
+      overall_risk_score: result.overall_risk_score,
+      hiring_confidence_score: result.hiring_confidence_score,
+      team_fit_score: result.team_fit_score,
+      model_version: UNIFIED_MODEL_VERSION,
+      updated_at: now,
+    };
+    if (simulationContext) {
+      upsertRow.is_simulation = true;
+      upsertRow.simulation_session_id = simulationContext.simulationSessionId;
+      upsertRow.expires_at = simulationContext.expiresAt;
     }
+    await supabase.from("unified_intelligence_scores").upsert(upsertRow as Record<string, unknown>, {
+      onConflict: "user_id,employer_id",
+    });
   } catch (e) {
     safeLog("persistUnifiedIntelligence", e);
   }

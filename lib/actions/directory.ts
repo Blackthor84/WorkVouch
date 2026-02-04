@@ -5,6 +5,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { checkPublicDirectoryRateLimit, consumePublicDirectoryRateLimit } from "@/lib/directory/rate-limit";
+import { getProductionSimulationFilter } from "@/lib/simulation-lab";
 
 const PUBLIC_PAGE_SIZE = 20;
 const EMPLOYER_LITE_MAX = 25;
@@ -119,6 +120,9 @@ export async function searchDirectoryPublic(params: {
     .order("full_name", { ascending: true })
     .range(offset, offset + PUBLIC_PAGE_SIZE - 1);
 
+  const simFilter = await getProductionSimulationFilter();
+  if (simFilter.is_simulation === false) chain = chain.eq("is_simulation", false);
+
   if (name) {
     chain = chain.ilike("full_name", `%${name}%`);
   }
@@ -218,12 +222,14 @@ export async function searchDirectoryEmployer(params: {
   }
 
   const sb = supabaseAdmin;
+  const simFilter = await getProductionSimulationFilter();
   let chain = sb
     .from("profiles")
     .select("id, full_name, industry, city, state, profile_photo_url", { count: "exact" })
     .eq("visibility", "public")
     .order("full_name", { ascending: true })
     .range(offset, offset + limit - 1);
+  if (simFilter.is_simulation === false) chain = chain.eq("is_simulation", false);
 
   if (f.name?.trim()) chain = chain.ilike("full_name", `%${f.name.trim()}%`);
   if (f.industry?.trim()) chain = chain.eq("industry", f.industry.trim());

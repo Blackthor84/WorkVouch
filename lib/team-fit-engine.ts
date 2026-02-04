@@ -145,12 +145,15 @@ function distanceToAlignmentScore(distance: number): number {
   return clamp(100 - Math.min(100, distance));
 }
 
+export type SimulationContext = { simulationSessionId: string; expiresAt: string } | null | undefined;
+
 export async function computeAndPersistTeamFit(
   candidateId: string,
-  employerId: string
+  employerId: string,
+  simulationContext?: SimulationContext
 ): Promise<{ alignmentScore: number; breakdown: Record<string, number> } | null> {
   try {
-    const supabase = getSupabaseServer() as any;
+    const supabase = getSupabaseServer();
     const [baseline, candidate, profileRow, candidateVector] = await Promise.all([
       getTeamBaseline(supabase, employerId),
       getCandidateMetrics(supabase, candidateId),
@@ -201,14 +204,20 @@ export async function computeAndPersistTeamFit(
       behavioral_alignment_score: behavioral_alignment_score,
     };
 
-    const row = {
+    const now = new Date().toISOString();
+    const row: Record<string, unknown> = {
       candidate_id: candidateId,
       employer_id: employerId,
       model_version: MODEL_VERSION,
       alignment_score: alignment,
       breakdown: { ...breakdown } as unknown as Record<string, unknown>,
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     };
+    if (simulationContext) {
+      row.is_simulation = true;
+      row.simulation_session_id = simulationContext.simulationSessionId;
+      row.expires_at = simulationContext.expiresAt;
+    }
     const { data: existing } = await supabase
       .from("team_fit_scores")
       .select("id")
@@ -216,15 +225,21 @@ export async function computeAndPersistTeamFit(
       .eq("employer_id", employerId)
       .maybeSingle();
     if (existing?.id) {
-      await supabase.from("team_fit_scores").update(row).eq("id", existing.id);
+      await supabase.from("team_fit_scores").update(row).eq("id", (existing as { id: string }).id);
     } else {
-      await supabase.from("team_fit_scores").insert({
+      const insertRow: Record<string, unknown> = {
         candidate_id: candidateId,
         employer_id: employerId,
         model_version: MODEL_VERSION,
         alignment_score: alignment,
         breakdown: { ...breakdown } as unknown as Record<string, unknown>,
-      });
+      };
+      if (simulationContext) {
+        insertRow.is_simulation = true;
+        insertRow.simulation_session_id = simulationContext.simulationSessionId;
+        insertRow.expires_at = simulationContext.expiresAt;
+      }
+      await supabase.from("team_fit_scores").insert(insertRow);
     }
     return { alignmentScore: alignment, breakdown };
   } catch (e) {

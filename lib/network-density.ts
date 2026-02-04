@@ -51,11 +51,15 @@ async function loadReferenceEdges(
   }
 }
 
+/** Optional simulation context: tag rows with simulation_session_id. */
+export type SimulationContext = { simulationSessionId: string; expiresAt: string } | null | undefined;
+
 export async function computeAndPersistNetworkDensity(
-  candidateId: string
+  candidateId: string,
+  simulationContext?: SimulationContext
 ): Promise<{ densityScore: number; fraudConfidence: number; breakdown: Record<string, number> } | null> {
   try {
-    const supabase = getSupabaseServer() as any;
+    const supabase = getSupabaseServer();
     const { edges, totalPossible } = await loadReferenceEdges(supabase, candidateId);
     const densityRaw = calculateNetworkDensity({
       userId: candidateId,
@@ -76,29 +80,41 @@ export async function computeAndPersistNetworkDensity(
       fraudSignalRaw: fraudRaw,
     };
 
-    const row = {
+    const now = new Date().toISOString();
+    const row: Record<string, unknown> = {
       candidate_id: candidateId,
       model_version: MODEL_VERSION,
       density_score: densityScore,
       fraud_confidence: fraudConfidence,
       breakdown: breakdown as unknown as Record<string, unknown>,
-      updated_at: new Date().toISOString(),
+      updated_at: now,
     };
+    if (simulationContext) {
+      row.is_simulation = true;
+      row.simulation_session_id = simulationContext.simulationSessionId;
+      row.expires_at = simulationContext.expiresAt;
+    }
     const { data: existing } = await supabase
       .from("network_density_index")
       .select("id")
       .eq("candidate_id", candidateId)
       .maybeSingle();
     if (existing?.id) {
-      await supabase.from("network_density_index").update(row).eq("id", existing.id);
+      await supabase.from("network_density_index").update(row).eq("id", (existing as { id: string }).id);
     } else {
-      await supabase.from("network_density_index").insert({
+      const insertRow: Record<string, unknown> = {
         candidate_id: candidateId,
         model_version: MODEL_VERSION,
         density_score: densityScore,
         fraud_confidence: fraudConfidence,
         breakdown: breakdown as unknown as Record<string, unknown>,
-      });
+      };
+      if (simulationContext) {
+        insertRow.is_simulation = true;
+        insertRow.simulation_session_id = simulationContext.simulationSessionId;
+        insertRow.expires_at = simulationContext.expiresAt;
+      }
+      await supabase.from("network_density_index").insert(insertRow);
     }
     return { densityScore, fraudConfidence, breakdown };
   } catch (e) {
