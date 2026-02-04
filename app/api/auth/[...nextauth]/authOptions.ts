@@ -114,13 +114,23 @@ export const authOptions: NextAuthOptions = {
 
           let userRoles: string[] = rolesData.map((r: any) => r.role);
 
-          console.log("Mapped userRoles:", userRoles);
-
           if (userRoles.length === 0) {
-            console.log("⚠️ No roles found for user in DB");
-            throw new Error("Please complete role selection first.");
+            const { data: profileRow } = await supabaseAdmin
+              .from("profiles")
+              .select("role")
+              .eq("id", data.user.id)
+              .single();
+            const profileRole = (profileRow as { role?: string } | null)?.role;
+            if (profileRole) {
+              userRoles = [profileRole];
+              console.log("⚠️ No user_roles; using profile.role:", profileRole);
+            } else {
+              console.log("⚠️ No roles found for user in DB");
+              throw new Error("Please complete role selection first.");
+            }
           }
 
+          console.log("Mapped userRoles:", userRoles);
           console.log("=== ROLE QUERY END ===");
 
           // Also check if user has employer role from employer_accounts

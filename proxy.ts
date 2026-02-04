@@ -7,6 +7,7 @@ import { updateSession } from "@/lib/supabase/middleware";
  * Next.js 16 proxy: refresh Supabase session (preserve cookies), then enforce protected routes.
  * Sessions are read from cookies; we do NOT clear auth or log users out on navigation.
  * Only redirect when: no auth token AND route is protected.
+ * /admin: any authenticated user can reach /admin; role (admin/superadmin) is enforced in admin layout.
  * Public routes (/, /pricing, /passport, /about, /contact, /login, /signup, etc.) pass through.
  */
 export async function proxy(req: NextRequest) {
@@ -44,5 +45,7 @@ export async function proxy(req: NextRequest) {
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/admin",
+    "/admin/:path*",
   ],
 };

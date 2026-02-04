@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { getCurrentUserProfile, getCurrentUserRoles } from "@/lib/auth";
+import { isAdmin as isAdminRole, isSuperAdmin as isSuperAdminRole } from "@/lib/roles";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -18,11 +20,14 @@ export default async function AdminPanel() {
     redirect("/login");
   }
 
-  const roles = session.user.roles || [];
-  const isAdmin = roles.includes("admin") || roles.includes("superadmin");
-  if (!isAdmin) {
+  const profile = await getCurrentUserProfile();
+  const roles = await getCurrentUserRoles();
+  const role = profile?.role ?? roles[0] ?? null;
+  if (!isAdminRole(role) && !roles.some((r) => isAdminRole(r))) {
     redirect("/dashboard");
   }
+
+  const isSuperAdmin = isSuperAdminRole(role) || roles.includes("superadmin");
 
   const supabase = getSupabaseServer();
 
@@ -36,7 +41,6 @@ export default async function AdminPanel() {
     .from("user_roles")
     .select("user_id, role");
 
-  const isSuperAdmin = roles.includes("superadmin");
 
   // Create a map of user_id -> roles
   const rolesMap = new Map<string, string[]>();

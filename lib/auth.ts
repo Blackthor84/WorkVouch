@@ -11,6 +11,7 @@ export interface UserProfile {
   id: string
   full_name: string | null
   email: string | null
+  role: string | null
   industry: string | null
   city: string | null
   state: string | null
@@ -47,7 +48,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   const supabaseAny = supabase as any
   const { data: profile, error } = await supabaseAny
     .from('profiles')
-    .select('*')
+    .select('id, full_name, email, role, industry, city, state, profile_photo_url, professional_summary, visibility, created_at, updated_at')
     .eq('id', user.id)
     .single()
 
@@ -118,6 +119,19 @@ export async function isSuperAdmin(): Promise<boolean> {
 export async function hasRoleOrSuperadmin(role: string): Promise<boolean> {
   const roles = await getCurrentUserRoles()
   return roles.includes('superadmin') || roles.includes(role)
+}
+
+/**
+ * Get primary role for current user: profiles.role first, then first from user_roles.
+ * Use this for admin gating so role cannot disappear due to metadata/session changes.
+ */
+export async function getCurrentUserRole(): Promise<string | null> {
+  const user = await getCurrentUser()
+  if (!user) return null
+  const profile = await getCurrentUserProfile()
+  if (profile?.role) return profile.role
+  const roles = await getCurrentUserRoles()
+  return roles[0] ?? null
 }
 
 /**

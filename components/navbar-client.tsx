@@ -10,18 +10,22 @@ import { EmployerNotificationsBell } from "./employer-notifications-bell";
 import { Logo } from "./logo";
 import { User } from "@/lib/auth";
 import { usePreview } from "@/lib/preview-context";
+import { isAdmin } from "@/lib/roles";
 
 interface NavbarClientProps {
   user?: User | null;
   roles?: string[];
+  role?: string | null;
 }
 
-export function NavbarClient({ user: userProp, roles: rolesProp }: NavbarClientProps = {}) {
+export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp }: NavbarClientProps = {}) {
   const { data: session, status, update } = useSession();
   const router = useRouter();
   const { preview } = usePreview();
   const user = userProp ?? session?.user;
   const roles = rolesProp ?? session?.user?.roles ?? [];
+  const role = roleProp ?? session?.user?.role ?? roles[0] ?? null;
+  const showAdmin = isAdmin(role) || roles.some((r: string) => isAdmin(r));
   const impersonating = Boolean(
     (session as { impersonating?: boolean })?.impersonating
   );
@@ -93,7 +97,7 @@ export function NavbarClient({ user: userProp, roles: rolesProp }: NavbarClientP
                 <Button variant="ghost" size="sm" href="/pricing" className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]">
                   Pricing
                 </Button>
-                {(roles.includes("admin") || roles.includes("superadmin")) && (
+                {showAdmin && (
                   <>
                     <Button
                       variant="ghost"

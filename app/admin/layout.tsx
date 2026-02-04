@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { NavbarServer } from "@/components/navbar-server";
+import { getCurrentUserProfile, getCurrentUserRoles } from "@/lib/auth";
+import { isAdmin } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -16,11 +18,10 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  const roles = session.user.roles || [];
-  const isAdmin =
-    roles.includes("admin") || roles.includes("superadmin");
-
-  if (!isAdmin) {
+  const profile = await getCurrentUserProfile();
+  const roles = await getCurrentUserRoles();
+  const role = profile?.role ?? roles[0] ?? null;
+  if (!isAdmin(role) && !roles.some((r) => isAdmin(r))) {
     redirect("/dashboard");
   }
 
