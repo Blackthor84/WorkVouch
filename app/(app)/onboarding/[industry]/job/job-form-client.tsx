@@ -37,7 +37,7 @@ export function JobFormClient({ industry }: JobFormClientProps) {
       } = await supabase.auth.getUser();
 
       if (!currentUser) {
-        router.push("/auth/signin");
+        router.push("/login");
         return;
       }
 

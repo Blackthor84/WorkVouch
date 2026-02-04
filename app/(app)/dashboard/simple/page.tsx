@@ -17,7 +17,7 @@ export default async function SimpleDashboardPage() {
 
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/(app)/dashboard/simple/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const menuItems = [

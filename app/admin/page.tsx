@@ -15,7 +15,7 @@ export default async function AdminPanel() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const roles = session.user.roles || [];

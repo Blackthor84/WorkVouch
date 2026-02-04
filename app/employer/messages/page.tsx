@@ -9,7 +9,7 @@ export default async function EmployerMessagesPage() {
 
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/employer/messages/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const isEmployer = await hasRole("employer");

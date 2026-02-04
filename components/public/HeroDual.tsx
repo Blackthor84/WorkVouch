@@ -16,7 +16,7 @@ export default function HeroDual() {
             <Button href="/signup?type=employee" variant="primary" size="lg">
               I&apos;m an Employee
             </Button>
-            <Button href="/signup?type=employer" variant="secondary" size="lg">
+            <Button href="/signup" variant="secondary" size="lg">
               I&apos;m an Employer
             </Button>
           </div>

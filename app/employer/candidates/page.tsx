@@ -10,7 +10,7 @@ export default async function EmployerCandidatesPage() {
 
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/employer/candidates/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const isEmployer = await hasRole("employer");

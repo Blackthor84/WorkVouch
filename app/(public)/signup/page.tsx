@@ -1,71 +1,144 @@
 "use client";
+
 import { useState } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 export default function SignupPage() {
   const router = useRouter();
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error) {
-      setError(error.message);
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      setLoading(false);
       return;
     }
 
-    // Auto-login
-    await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const { data, error: signUpError } = await supabaseBrowser.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          data: { full_name: fullName.trim() || undefined },
+        },
+      });
 
-    router.push("/dashboard");
+      if (signUpError) {
+        setError(signUpError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (!data.user) {
+        setError("Account creation failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      const supabaseAny = supabaseBrowser as any;
+      const { error: profileError } = await supabaseAny
+        .from("profiles")
+        .insert({
+          id: data.user.id,
+          full_name: fullName.trim() || " ",
+          email: email.trim().toLowerCase(),
+          role: null,
+        });
+
+      if (profileError) {
+        console.error("Profile insert error:", profileError);
+        setError(profileError.message || "Could not create profile. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      router.push("/select-role");
+      router.refresh();
+    } catch (err) {
+      console.error("Signup error:", err);
+      setError("An unexpected error occurred. Please try again.");
+      setLoading(false);
+    }
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-3xl font-bold mb-6 text-center">Create Account</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 px-4">
+      <Link href="/" className="mb-6">
+        <Image
+          src="/images/workvouch-logo.png.png"
+          alt="WorkVouch"
+          width={180}
+          height={48}
+          className="h-10 w-auto object-contain"
+          priority
+          style={{ objectFit: "contain" }}
+        />
+      </Link>
+      <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200 dark:border-gray-700">
+        <h1 className="text-3xl font-bold mb-2 text-center text-gray-900 dark:text-white">
+          Create account
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 text-sm text-center mb-6">
+          Full name, email, and password. You&apos;ll choose your role next.
+        </p>
         <form onSubmit={handleSignup} className="space-y-4">
           <input
+            type="text"
+            placeholder="Full Name (required)"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            required
+            autoComplete="name"
+          />
+          <input
             type="email"
-            placeholder="Email"
+            placeholder="Email (required)"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
+            autoComplete="email"
           />
-
           <input
             type="password"
-            placeholder="Password (min 6 chars)"
+            placeholder="Password (min 8 characters)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
-            minLength={6}
+            minLength={8}
+            autoComplete="new-password"
           />
-
-          {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
-
+          {error && (
+            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm border border-red-200 dark:border-red-800">
+              {error}
+            </div>
+          )}
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign Up
+            {loading ? "Creating account..." : "Sign up"}
           </button>
         </form>
-        <p className="text-center mt-4 text-sm text-gray-600">
+        <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
           Already have an account?{" "}
-          <Link href="/auth/signin" className="text-blue-600 hover:underline">Log in</Link>
+          <Link href="/login" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            Log in
+          </Link>
         </p>
       </div>
     </div>

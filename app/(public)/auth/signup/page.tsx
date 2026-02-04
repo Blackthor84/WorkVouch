@@ -1,10 +1,5 @@
-import { Suspense } from "react";
-import SignupClient from "./SignupClient";
+import { redirect } from "next/navigation";
 
-export default function SignupPage() {
-  return (
-    <Suspense fallback={<div className="p-10 text-center">Loading...</div>}>
-      <SignupClient />
-    </Suspense>
-  );
+export default function AuthSignupRedirect() {
+  redirect("/signup");
 }

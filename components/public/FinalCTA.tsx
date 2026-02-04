@@ -13,7 +13,7 @@ export default function FinalCTA() {
         <Button href="/signup?type=employee" variant="primary" size="lg">
           Create Free Employee Account
         </Button>
-        <Button href="/signup?type=employer" variant="secondary" size="lg">
+        <Button href="/signup" variant="secondary" size="lg">
           Start Employer Trial
         </Button>
       </div>

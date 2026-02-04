@@ -11,7 +11,7 @@ export default async function DashboardLayout({
 
   if (!session?.user) {
     console.log("REDIRECT TRIGGERED IN: app/(app)/dashboard/layout.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   return <>{children}</>;

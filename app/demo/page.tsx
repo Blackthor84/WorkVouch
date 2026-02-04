@@ -369,7 +369,7 @@ export default function DemoPage() {
                 </p>
                 <div className="flex flex-wrap gap-4 justify-center">
                   <Button
-                    href="/auth/signup?type=employer"
+                    href="/signup"
                     variant="primary"
                     size="lg"
                   >

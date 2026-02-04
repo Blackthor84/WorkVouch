@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
     if (tierId === "free") {
       const baseUrl = getCheckoutBaseUrl(req.nextUrl?.origin);
       return NextResponse.json({
-        url: `${baseUrl}/auth/signup?plan=free`,
+        url: `${baseUrl}/signup?plan=free`,
         isFree: true,
       });
     }

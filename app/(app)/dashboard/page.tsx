@@ -25,7 +25,7 @@ export default async function UserDashboardPage() {
 
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/(app)/dashboard/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   // Check if user is an employer and redirect them

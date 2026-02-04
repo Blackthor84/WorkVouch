@@ -76,7 +76,7 @@ export default function TestPage() {
         )}
         <div className="mt-4">
           <a
-            href="/auth/signin"
+            href="/login"
             className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
           >
             Go to Sign In

@@ -33,7 +33,7 @@ export function HealthcareSettingClient() {
       } = await supabase.auth.getUser();
 
       if (!currentUser) {
-        router.push("/auth/signin");
+        router.push("/login");
         return;
       }
 

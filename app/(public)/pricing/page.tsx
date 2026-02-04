@@ -357,7 +357,7 @@ export default function PricingPage() {
           >
             {loadingPlan ? "Redirecting..." : "Start With Lite"}
           </Button>
-          <Button href="/signup?type=employer" variant="primary" size="lg">
+          <Button href="/signup" variant="primary" size="lg">
             Upgrade to Pro
           </Button>
         </div>

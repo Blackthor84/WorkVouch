@@ -155,10 +155,10 @@ export function DirectoryClient() {
         </p>
         <div className="mt-4 flex gap-3">
           <Button asChild>
-            <Link href="/auth/signup">Create Employer Account</Link>
+            <Link href="/signup">Create Employer Account</Link>
           </Button>
           <Button variant="secondary" asChild>
-            <Link href="/auth/signin">Login</Link>
+            <Link href="/login">Login</Link>
           </Button>
         </div>
       </div>
@@ -173,10 +173,10 @@ export function DirectoryClient() {
             </p>
             <div className="mt-6 flex gap-3">
               <Button asChild>
-                <Link href="/auth/signup">Create Employer Account</Link>
+                <Link href="/signup">Create Employer Account</Link>
               </Button>
               <Button variant="secondary" asChild>
-                <Link href="/auth/signin">Login</Link>
+                <Link href="/login">Login</Link>
               </Button>
               <Button variant="ghost" onClick={() => setGatedOpen(false)}>Close</Button>
             </div>

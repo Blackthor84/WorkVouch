@@ -13,7 +13,7 @@ export default async function WarehouseOnboardingPage() {
 
   if (!session?.user) {
     console.log("REDIRECT TRIGGERED IN: app/(app)/onboarding/warehouse/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const userId = session.user.id;

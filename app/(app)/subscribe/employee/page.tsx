@@ -85,7 +85,7 @@ export default function EmployeeSubscribe() {
         </div>
 
         <div className="text-center">
-          <Link href="/auth/signup">
+          <Link href="/signup">
             <button className="bg-gradient-to-r from-blue-600 to-green-600 text-white px-8 py-4 rounded-lg hover:from-blue-700 hover:to-green-700 transition-all transform hover:scale-105 font-semibold text-lg shadow-lg">
               Sign Up Free
             </button>

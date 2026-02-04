@@ -19,7 +19,7 @@ export default function JobsPage() {
             Build your verified profile and let employers request verification when they find you.
           </p>
           <Button asChild>
-            <Link href="/auth/signup">Get started</Link>
+            <Link href="/signup">Get started</Link>
           </Button>
         </Card>
       </div>

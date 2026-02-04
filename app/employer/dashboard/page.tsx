@@ -14,7 +14,7 @@ export default async function EmployerDashboardPage() {
 
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/employer/dashboard/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const isEmployer = await hasRole("employer");

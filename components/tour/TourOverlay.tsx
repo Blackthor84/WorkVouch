@@ -16,7 +16,7 @@ export function TourOverlay({
   steps,
   onClose,
   endCtaText = "Create Account to Unlock Full Access",
-  endCtaHref = "/auth/signup",
+  endCtaHref = "/signup",
 }: TourOverlayProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);

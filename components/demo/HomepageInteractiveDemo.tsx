@@ -284,7 +284,7 @@ export default function HomepageInteractiveDemo() {
           <p className="text-slate-600 mb-6">Ready to stand out?</p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
-              href="/auth/signup"
+              href="/signup"
               className="inline-flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-3.5 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 ease-in-out"
             >
               Start Building Your Verified Reputation

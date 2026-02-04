@@ -1,12 +1,15 @@
 "use client";
-import { useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { useRouter } from "next/navigation";
+
+import { useState, Suspense } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || undefined;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -17,37 +20,27 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+    const result = await signIn("credentials", {
       email: email.trim().toLowerCase(),
       password,
+      callbackUrl: callbackUrl || "/dashboard",
+      redirect: false,
     });
 
-    if (signInError) {
-      setError("Invalid email or password. Please try again.");
+    if (result?.error) {
+      setError(result.error === "CredentialsSignin" ? "Invalid email or password." : result.error);
       setLoading(false);
       return;
     }
 
-    if (!data.user) {
-      setError("Login failed. Please try again.");
-      setLoading(false);
+    if (result?.ok && result?.url) {
+      router.push(result.url);
+      router.refresh();
       return;
     }
 
-    // Role-based redirect: check user_roles and employer_accounts
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
-    const { data: employerRow } = await supabase.from("employer_accounts").select("id").eq("user_id", data.user.id).maybeSingle();
-    const roleList = (roles ?? []).map((r: { role: string }) => r.role);
-    if (employerRow && !roleList.includes("employer")) roleList.push("employer");
-
-    if (roleList.includes("admin") || roleList.includes("superadmin")) {
-      router.push("/admin");
-    } else if (roleList.includes("employer")) {
-      router.push("/employer/dashboard");
-    } else {
-      router.push("/dashboard");
-    }
-    router.refresh();
+    setError("Sign in failed. Please try again.");
+    setLoading(false);
   }
 
   return (
@@ -100,11 +93,19 @@ export default function LoginPage() {
         </form>
         <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
           Don&apos;t have an account?{" "}
-          <Link href="/auth/signup" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+          <Link href="/signup" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
             Sign up
           </Link>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center" />}>
+      <LoginForm />
+    </Suspense>
   );
 }

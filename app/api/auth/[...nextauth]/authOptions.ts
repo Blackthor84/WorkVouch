@@ -79,11 +79,12 @@ export const authOptions: NextAuthOptions = {
 
           if (error) {
             console.log("Supabase auth error:", error.message);
+            throw new Error(error.message);
           }
           if (data?.user) {
             console.log("Supabase auth success:", data.user.id);
           }
-          if (error || !data.user) {
+          if (!data.user) {
             return null;
           }
 
@@ -117,7 +118,7 @@ export const authOptions: NextAuthOptions = {
 
           if (userRoles.length === 0) {
             console.log("⚠️ No roles found for user in DB");
-            throw new Error("No roles found for user in DB — add role row in user_roles");
+            throw new Error("Please complete role selection first.");
           }
 
           console.log("=== ROLE QUERY END ===");
@@ -222,7 +223,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/login",
   },
 
   secret: process.env.NEXTAUTH_SECRET,

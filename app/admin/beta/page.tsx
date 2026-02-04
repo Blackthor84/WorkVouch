@@ -7,7 +7,7 @@ import { AdminBetaGate } from "@/components/AdminBetaGate";
 export default async function AdminBetaPage() {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user) redirect("/auth/signin");
+  if (!session?.user) redirect("/login");
   const roles = session.user.roles || [];
   if (!roles.includes("admin") && !roles.includes("superadmin")) redirect("/dashboard");
 

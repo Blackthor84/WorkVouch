@@ -410,7 +410,7 @@ export default function PublicDemoWalkthrough() {
           <h2 className="text-2xl font-bold text-grey-dark dark:text-gray-200 mb-4">Ready to get started?</h2>
           <p className="text-grey-medium dark:text-gray-400 mb-8">Create a free account or explore pricing.</p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Button size="lg" href="/auth/signup" className="rounded-xl px-8">
+            <Button size="lg" href="/signup" className="rounded-xl px-8">
               Create Free Account
             </Button>
             <Button variant="secondary" size="lg" href="/pricing" className="rounded-xl px-8">

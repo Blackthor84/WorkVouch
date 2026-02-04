@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function EmployerDirectoryPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/auth/signin");
+  if (!user) redirect("/login");
   const isEmployer = await hasRole("employer");
   if (!isEmployer) redirect("/dashboard");
 

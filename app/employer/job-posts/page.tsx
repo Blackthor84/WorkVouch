@@ -10,7 +10,7 @@ export default async function EmployerJobPostsPage() {
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const isEmployer = await hasRole("employer");

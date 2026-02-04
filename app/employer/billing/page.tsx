@@ -9,7 +9,7 @@ export default async function EmployerBillingPage() {
 
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/employer/billing/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const isEmployer = await hasRole("employer");

@@ -51,7 +51,7 @@ export default function HowItWorksDual() {
                 </li>
               ))}
             </ul>
-            <Button href="/signup?type=employer" variant="secondary" size="md" className="mt-4">
+            <Button href="/signup" variant="secondary" size="md" className="mt-4">
               Request a Work Passport
             </Button>
           </CardContent>

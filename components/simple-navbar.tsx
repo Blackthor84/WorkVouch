@@ -16,8 +16,8 @@ export default function Navbar() {
       </Link>
       <div className="flex space-x-4">
         <Link href="/pricing">Pricing</Link>
-        <Link href="/auth/signup">Sign Up</Link>
-        <Link href="/auth/signin">Login</Link>
+        <Link href="/signup">Sign Up</Link>
+        <Link href="/login">Login</Link>
       </div>
     </nav>
   );

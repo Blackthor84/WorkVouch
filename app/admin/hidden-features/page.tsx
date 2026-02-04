@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function HiddenFeaturesPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const roles = (session.user as { roles?: string[] }).roles || [];

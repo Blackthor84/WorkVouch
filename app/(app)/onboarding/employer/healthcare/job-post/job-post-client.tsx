@@ -42,7 +42,7 @@ export function JobPostClient() {
       } = await supabase.auth.getUser();
 
       if (!currentUser) {
-        router.push("/auth/signin");
+        router.push("/login");
         return;
       }
 

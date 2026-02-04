@@ -15,7 +15,7 @@ export default function PreviewOnlyPage() {
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/auth/signin");
+      router.push("/login");
     } else if (status === "authenticated" && user) {
       const isBeta = user.role === "beta" || user.roles?.includes("beta");
       if (!isBeta) {
@@ -51,7 +51,7 @@ export default function PreviewOnlyPage() {
               </p>
             </div>
             <Link
-              href="/auth/signin"
+              href="/login"
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
             >
               Sign Up for Full Access
@@ -96,7 +96,7 @@ export default function PreviewOnlyPage() {
             Sign up for a full account to start verifying your work history or hiring with confidence.
           </p>
           <Link
-            href="/auth/signup"
+            href="/signup"
             className="inline-block px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition shadow-lg"
           >
             Sign Up for Full Access

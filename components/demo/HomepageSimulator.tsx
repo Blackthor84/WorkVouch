@@ -154,7 +154,7 @@ export default function HomepageSimulator() {
 
       <div className="mt-12 text-center">
         <Link
-          href="/auth/signup"
+          href="/signup"
           className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 transition-colors"
         >
           See This With Your Real Team → Create Account

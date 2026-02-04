@@ -13,7 +13,7 @@ export default async function AdminEmployerUsagePage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const roles = (session.user as { roles?: string[] }).roles || [];

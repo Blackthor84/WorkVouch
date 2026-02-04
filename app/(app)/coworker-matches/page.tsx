@@ -11,7 +11,7 @@ export default async function CoworkerMatchesPage() {
 
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/(app)/coworker-matches/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const connections = await getUserConnections();

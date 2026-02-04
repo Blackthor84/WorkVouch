@@ -34,7 +34,7 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
       } = await supabase.auth.getUser();
 
       if (!currentUser) {
-        router.push("/auth/signin");
+        router.push("/login");
         return;
       }
 

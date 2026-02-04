@@ -32,7 +32,7 @@ export const PricingModal: FC<ModalProps & { autoOpen?: boolean }> = ({
   const handleCheckout = async () => {
     if (!priceId) {
       // Free tier - redirect to signup
-      window.location.href = "/auth/signup";
+      window.location.href = "/signup";
       return;
     }
 

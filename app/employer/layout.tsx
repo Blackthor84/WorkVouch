@@ -13,7 +13,7 @@ export default async function EmployerLayout({
 
   if (!session?.user) {
     console.log("REDIRECT TRIGGERED IN: app/employer/layout.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   return (

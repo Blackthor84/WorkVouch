@@ -33,7 +33,7 @@ export async function proxy(req: NextRequest) {
   });
 
   if (!token) {
-    const signIn = new URL("/auth/signin", req.url);
+    const signIn = new URL("/login", req.url);
     signIn.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(signIn);
   }

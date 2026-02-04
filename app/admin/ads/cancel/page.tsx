@@ -6,7 +6,7 @@ import Link from 'next/link';
 export default async function AdCancelPage() {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user) redirect('/auth/signin');
+  if (!session?.user) redirect('/login');
   const roles = session.user.roles || [];
   if (!roles.includes('admin') && !roles.includes('superadmin')) redirect('/dashboard');
 

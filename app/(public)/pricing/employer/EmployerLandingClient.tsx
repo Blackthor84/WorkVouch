@@ -200,7 +200,7 @@ export default function EmployerLandingClient() {
             </Card>
           </div>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Button href="/signup?type=employer" variant="primary" size="lg">
+            <Button href="/signup" variant="primary" size="lg">
               Start With Lite
             </Button>
             <Button href="/pricing" variant="secondary" size="lg">
@@ -252,7 +252,7 @@ export default function EmployerLandingClient() {
             Bring Verified Reputation Into Your Hiring Process
           </h2>
           <Button
-            href="/signup?type=employer"
+            href="/signup"
             variant="primary"
             size="lg"
             className="mt-8"

@@ -16,7 +16,7 @@ export default function TourPage() {
           steps={TOUR_STEPS}
           onClose={() => setTourActive(false)}
           endCtaText="Create Account to Unlock Full Access"
-          endCtaHref="/auth/signup"
+          endCtaHref="/signup"
         />
       )}
       <TourDashboard />

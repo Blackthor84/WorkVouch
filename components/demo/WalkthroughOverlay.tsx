@@ -37,7 +37,7 @@ export function WalkthroughOverlay({ open, onClose }: WalkthroughOverlayProps) {
               <button type="button" onClick={() => setStepIndex((i) => i - 1)} className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-50">Back</button>
             )}
             {isLast ? (
-              <Link href="/auth/signup" className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Create Your Account</Link>
+              <Link href="/signup" className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Create Your Account</Link>
             ) : (
               <button type="button" onClick={() => setStepIndex((i) => i + 1)} className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Next</button>
             )}

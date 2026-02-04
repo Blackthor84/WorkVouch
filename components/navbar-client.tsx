@@ -152,10 +152,10 @@ export function NavbarClient({ user: userProp, roles: rolesProp }: NavbarClientP
                 <Button variant="ghost" size="sm" href="/pricing" className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]">
                   Pricing
                 </Button>
-                <Button variant="ghost" size="sm" href="/auth/signin" className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]">
+                <Button variant="ghost" size="sm" href="/login" className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]">
                   Sign In
                 </Button>
-                <Button size="sm" href="/auth/signup">
+                <Button size="sm" href="/signup">
                   Sign Up
                 </Button>
               </>

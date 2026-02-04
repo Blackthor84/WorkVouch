@@ -89,7 +89,7 @@ export default function FeaturesPage() {
               get started.
             </p>
             <a
-              href="/auth/signup"
+              href="/signup"
               className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition"
             >
               Get Started Free

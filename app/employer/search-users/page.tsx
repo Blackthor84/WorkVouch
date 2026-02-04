@@ -8,7 +8,7 @@ export default async function SearchUsersPage() {
 
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/employer/search-users/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const userIsEmployer = await isEmployer();

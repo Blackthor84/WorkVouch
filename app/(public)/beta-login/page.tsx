@@ -120,7 +120,7 @@ function BetaLoginContent() {
             </div>
             <p className="text-red-700 mb-4">{message}</p>
             <a
-              href="/auth/signin"
+              href="/login"
               className="text-blue-600 hover:underline"
             >
               Go to regular login

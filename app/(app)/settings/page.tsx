@@ -12,7 +12,7 @@ export default async function SettingsPage() {
 
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/(app)/settings/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   return (

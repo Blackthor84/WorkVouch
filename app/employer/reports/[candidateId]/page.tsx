@@ -9,7 +9,7 @@ export default async function CandidateReportPage(props: any) {
 
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/employer/reports/[candidateId]/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const isEmployer = await hasRole("employer");

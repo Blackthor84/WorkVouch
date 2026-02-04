@@ -9,7 +9,7 @@ export default async function RequestReferencePage() {
   const user = await getCurrentUser();
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/(app)/references/request/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const connections = await getUserConnections();

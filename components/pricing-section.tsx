@@ -25,7 +25,7 @@ export function PricingSection({ currentUserId }: PricingSectionProps) {
 
   const handleSubscribe = async (priceId: string) => {
     if (!currentUserId) {
-      window.location.href = "/auth/signup";
+      window.location.href = "/signup";
       return;
     }
 
@@ -177,7 +177,7 @@ export function PricingSection({ currentUserId }: PricingSectionProps) {
                 ) : (
                   <Button
                     className="w-full mt-8 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 text-white"
-                    href="/auth/signup"
+                    href="/signup"
                   >
                     Get Started
                   </Button>

@@ -11,7 +11,7 @@ export default async function MessagesPage() {
 
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/(app)/messages/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   return (

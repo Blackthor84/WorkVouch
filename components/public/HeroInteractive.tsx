@@ -60,7 +60,7 @@ export default function HeroInteractive({ industry }: HeroInteractiveProps) {
       : defaultEmployerSubtext;
 
   const ctaHref =
-    mode === "employee" ? "/signup?type=employee" : "/signup?type=employer";
+    "/signup";
 
   return (
     <section className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">

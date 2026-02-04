@@ -45,7 +45,7 @@ async function getRealCounts() {
 
 export default async function AdminInvestorPage() {
   const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/auth/signin");
+  if (!session?.user) redirect("/login");
 
   const roles = (session.user as { roles?: string[] })?.roles ?? [];
   if (!roles.includes("superadmin")) redirect("/dashboard");

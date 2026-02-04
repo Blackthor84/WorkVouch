@@ -17,7 +17,7 @@ export default async function MyJobsPage() {
 
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/(app)/my-jobs/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const supabase = await createServerSupabase();

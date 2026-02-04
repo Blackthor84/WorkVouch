@@ -9,7 +9,7 @@ export default async function NotificationsPage() {
 
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/(app)/notifications/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   let notifications: any[] = [];

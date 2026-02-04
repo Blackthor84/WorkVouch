@@ -37,13 +37,13 @@ export function HomepageNavbar() {
           Pricing
         </Link>
         <Link
-          href="/auth/signin"
+          href="/login"
           className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
         >
           Login
         </Link>
         <Link
-          href="/auth/signup"
+          href="/signup"
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all transform hover:scale-105 shadow-md hover:shadow-lg"
         >
           Sign Up
@@ -58,13 +58,13 @@ export function HomepageNavbar() {
           Demo
         </Link>
         <Link
-          href="/auth/signin"
+          href="/login"
           className="text-gray-700 hover:text-blue-600 transition-colors"
         >
           Login
         </Link>
         <Link
-          href="/auth/signup"
+          href="/signup"
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm"
         >
           Sign Up

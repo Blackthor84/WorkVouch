@@ -11,7 +11,7 @@ export default async function CoworkersPage(props: any) {
   const user = await getCurrentUser();
   if (!user) {
     console.log("REDIRECT TRIGGERED IN: app/(app)/jobs/[jobId]/coworkers/page.tsx");
-    redirect("/auth/signin");
+    redirect("/login");
   }
 
   const potentialCoworkers = await findPotentialCoworkers(jobId);
