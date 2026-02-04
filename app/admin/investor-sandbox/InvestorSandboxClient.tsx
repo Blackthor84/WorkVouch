@@ -63,14 +63,22 @@ export function InvestorSandboxClient() {
 
   const latest = snapshots[0];
   const previous = snapshots[1];
-  const deltas: Partial<DataDensityMetrics> = latest && previous
-    ? {
-        profilesCount: latest.profiles_count - previous.profiles_count,
-        employmentRecordsCount: latest.employment_records_count - previous.employment_records_count,
-        referencesCount: latest.references_count - previous.references_count,
-        intelligenceRowsCount: latest.intelligence_rows_count - previous.intelligence_rows_count,
-      }
-    : null;
+  let deltas: Partial<DataDensityMetrics> = {};
+
+  if (latest && previous) {
+    deltas = {
+      profilesCount:
+        latest.profiles_count - previous.profiles_count,
+      employmentRecordsCount:
+        latest.employment_records_count -
+        previous.employment_records_count,
+      referencesCount:
+        latest.references_count - previous.references_count,
+      intelligenceRowsCount:
+        latest.intelligence_rows_count -
+        previous.intelligence_rows_count,
+    };
+  }
 
   return (
     <div className="space-y-8">
