@@ -19,6 +19,7 @@ import { UsagePanel } from "@/components/employer/UsagePanel";
 import CredentialsOverview from "@/components/employer/CredentialsOverview";
 import { UpgradeBanner } from "@/components/employer/UpgradeBanner";
 import { UpgradeGate } from "@/components/employer/UpgradeGate";
+import { ListedEmployeesCard } from "@/components/employer/ListedEmployeesCard";
 import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
 import { runSimulation } from "@/lib/simulation/engine";
 import type { PlanTier, SimulationOutput } from "@/lib/simulation/types";
@@ -273,6 +274,11 @@ export function EmployerDashboardClient({
 
         {/* Usage Panel */}
         <UsagePanel />
+
+        {/* Employees Who Listed You */}
+        <div className="mt-6">
+          <ListedEmployeesCard />
+        </div>
 
         {/* Workforce Integrity Dashboard (feature-gated; free tier sees upgrade gate) */}
         {isFreePlan ? (

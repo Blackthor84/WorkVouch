@@ -112,6 +112,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Failed to create employment record" }, { status: 500 });
       }
       employmentRecordId = inserted.id;
+      const { autoMatchEmployerAfterEmployment } = await import("@/lib/employment/autoMatchEmployer");
+      autoMatchEmployerAfterEmployment(employmentRecordId, company_name.trim(), user_id).catch((e) =>
+        console.error("[match-employment] autoMatchEmployer:", e)
+      );
     }
 
     const { data: myRecord } = await sb

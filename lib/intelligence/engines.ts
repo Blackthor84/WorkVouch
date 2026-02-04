@@ -240,7 +240,10 @@ export async function triggerProfileIntelligence(profileId: string): Promise<voi
 /**
  * Run employer-level workforce risk and indices.
  * Call after employer runs verification or bulk update.
+ * Also recalculates employer reputation (snapshots + history).
  */
 export async function triggerEmployerIntelligence(employerId: string): Promise<void> {
   await calculateEmployerWorkforceRisk(employerId).catch((e) => safeLog("triggerEmployerIntelligence", e));
+  const { calculateEmployerReputation } = await import("./employerReputationEngine");
+  await calculateEmployerReputation(employerId).catch((e) => safeLog("calculateEmployerReputation", e));
 }
