@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       cancel_url: cancelUrl,
       allow_promotion_codes: true,
       metadata: {
-        tier: getPriceToTierMap()[priceId] ?? "starter",
+        tier: getPriceToTierMap()[priceId] ?? "lite",
         ...(supabaseUserId ? { supabase_user_id: supabaseUserId } : {}),
       },
       ...(supabaseUserId ? { client_reference_id: supabaseUserId } : {}),

@@ -20,7 +20,8 @@ export async function GET() {
     if (!account?.id) return NextResponse.json({ count: 0, planTier: null });
 
     const planTier = (account as { plan_tier?: string }).plan_tier ?? null;
-    if (planTier !== "security_agency" && planTier !== "security_bundle") {
+    const normalized = (planTier ?? "").toLowerCase().replace(/-/g, "_");
+    if (normalized !== "enterprise" && normalized !== "security_agency" && normalized !== "security_bundle") {
       return NextResponse.json({ count: 0, planTier });
     }
 

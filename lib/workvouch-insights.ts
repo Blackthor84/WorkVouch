@@ -42,14 +42,11 @@ export interface WorkVouchInsightsPayload {
   environment_fit_indicator: EnvironmentFitResult | null;
 }
 
-/** Map plan_tier from DB to employer insight tier. */
+/** Map plan_tier from DB to employer insight tier. Canonical: lite, pro, enterprise. Legacy mapped. */
 export function toEmployerTier(planTier: string | null): EmployerTier {
-  const t = (planTier || "").toLowerCase();
-  if (t === "emp_enterprise") return "emp_enterprise";
-  if (t === "emp_pro") return "emp_pro";
-  if (t === "emp_lite") return "emp_lite";
-  if (t === "pro") return "emp_pro";
-  if (t === "basic") return "emp_pro";
+  const t = (planTier || "").toLowerCase().replace(/-/g, "_");
+  if (t === "enterprise" || t === "emp_enterprise" || t === "custom") return "emp_enterprise";
+  if (t === "pro" || t === "emp_pro" || t === "team" || t === "growth" || t === "security_bundle" || t === "security_agency" || t === "basic") return "emp_pro";
   return "emp_lite";
 }
 

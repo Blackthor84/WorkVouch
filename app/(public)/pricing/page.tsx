@@ -4,106 +4,38 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckIcon } from "@heroicons/react/24/solid";
+import { EMPLOYER_PLANS } from "@/lib/pricing/employer-plans";
 
-// Stripe tier mapping: Lite = Starter price IDs, Pro = Growth price IDs, Custom = Contact Sales (no Stripe).
-const plans = [
-  {
-    id: "lite",
-    name: "Lite",
-    subtitle: "Essential Visibility",
-    prices: {
-      monthly: {
-        amount: 49,
-        stripePriceId:
-          typeof process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_MONTHLY === "string"
-            ? process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_MONTHLY
-            : process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER ?? "PRICE_ID_STARTER_MONTHLY",
-      },
-      yearly: {
-        amount: 490,
-        stripePriceId:
-          typeof process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_YEARLY === "string"
-            ? process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_YEARLY
-            : "PRICE_ID_STARTER_YEARLY",
-      },
-    },
-    features: [
-      "View Overall Reputation Score",
-      "Verified Employment Count",
-      "Limited Monthly Candidate Lookups",
-      "Basic Profile Access",
-    ],
-    footnote:
-      "Ideal for smaller teams that hire occasionally and want structured employment transparency.",
-    cta: "Get Started",
-    isCustom: false,
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    subtitle: "Operational Access",
-    badge: "Most Popular",
-    prices: {
-      monthly: {
-        amount: 149,
-        stripePriceId:
-          typeof process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_MONTHLY === "string"
-            ? process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_MONTHLY
-            : process.env.NEXT_PUBLIC_STRIPE_PRICE_TEAM ?? "PRICE_ID_GROWTH_MONTHLY",
-      },
-      yearly: {
-        amount: 1490,
-        stripePriceId:
-          typeof process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_YEARLY === "string"
-            ? process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_YEARLY
-            : "PRICE_ID_GROWTH_YEARLY",
-      },
-    },
-    features: [
-      "Unlimited Candidate Lookups",
-      "Full Employment Overlap Visibility",
-      "Peer Reference Summaries",
-      "Rehire Eligibility Indicators",
-      "Reputation Score Breakdown",
-      "Employer Dashboard Insights",
-    ],
-    footnote:
-      "Designed for organizations making ongoing hiring decisions in reliability-driven industries.",
-    cta: "Upgrade to Pro",
-    isCustom: false,
-  },
-  {
-    id: "custom",
-    name: "Custom",
-    subtitle: "Enterprise Workforce Intelligence",
-    prices: null,
-    displayPrice: 399,
-    features: [
-      "Multi-location Dashboards",
-      "Multiple Admin Roles",
-      "Advanced Reporting",
-      "Data Export Tools",
-      "API Access (Future Ready)",
-      "Dedicated Onboarding Support",
-    ],
-    footnote:
-      "Built for larger organizations managing high-volume workforce operations.",
-    cta: "Contact Sales",
-    ctaHref: "/contact",
-    isCustom: true,
-  },
-];
+// Single source of truth: Lite, Pro, Enterprise. Map to pricing page card shape.
+const plans = EMPLOYER_PLANS.map((p) => ({
+  id: p.id,
+  name: p.name,
+  subtitle: p.description,
+  badge: p.id === "pro" ? "Most Popular" : undefined,
+  prices: p.stripePriceId
+    ? {
+        monthly: { amount: p.priceMonthly, stripePriceId: p.stripePriceId },
+        yearly: { amount: Math.round(p.priceMonthly * 10), stripePriceId: p.stripePriceId },
+      }
+    : null,
+  displayPrice: p.priceMonthly,
+  features: p.features,
+  footnote: p.description,
+  cta: p.id === "enterprise" && !p.stripePriceId ? "Contact Sales" : "Get Started",
+  ctaHref: p.id === "enterprise" && !p.stripePriceId ? "/contact" : undefined,
+  isCustom: p.id === "enterprise" && !p.stripePriceId,
+}));
 
-const comparisonRows: { feature: string; lite: boolean; pro: boolean; custom: boolean }[] = [
-  { feature: "Overall Reputation Score", lite: true, pro: true, custom: true },
-  { feature: "Verified Employment Count", lite: true, pro: true, custom: true },
-  { feature: "Basic Profile Access", lite: true, pro: true, custom: true },
-  { feature: "Full Employment Overlap Visibility", lite: false, pro: true, custom: true },
-  { feature: "Peer Reference Summaries", lite: false, pro: true, custom: true },
-  { feature: "Rehire Eligibility Indicators", lite: false, pro: true, custom: true },
-  { feature: "Unlimited Candidate Lookups", lite: false, pro: true, custom: true },
-  { feature: "Employer Dashboard Insights", lite: false, pro: true, custom: true },
-  { feature: "Multi-location & API", lite: false, pro: false, custom: true },
+const comparisonRows: { feature: string; lite: boolean; pro: boolean; enterprise: boolean }[] = [
+  { feature: "Overall Reputation Score", lite: true, pro: true, enterprise: true },
+  { feature: "Verified Employment Count", lite: true, pro: true, enterprise: true },
+  { feature: "Basic Profile Access", lite: true, pro: true, enterprise: true },
+  { feature: "Full Employment Overlap Visibility", lite: false, pro: true, enterprise: true },
+  { feature: "Peer Reference Summaries", lite: false, pro: true, enterprise: true },
+  { feature: "Rehire Eligibility Indicators", lite: false, pro: true, enterprise: true },
+  { feature: "Unlimited Candidate Lookups", lite: false, pro: true, enterprise: true },
+  { feature: "Employer Dashboard Insights", lite: false, pro: true, enterprise: true },
+  { feature: "Multi-location & API", lite: false, pro: false, enterprise: true },
 ];
 
 const faqs: { q: string; a: string }[] = [
@@ -246,7 +178,7 @@ export default function PricingPage() {
                   )}
                   {isCustom && (
                     <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                      $399
+                      ${plan.displayPrice ?? 199}
                       <span className="text-base font-normal text-slate-600 dark:text-slate-400">
                         /month
                       </span>
@@ -345,7 +277,7 @@ export default function PricingPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    {row.custom ? (
+                    {row.enterprise ? (
                       <CheckIcon className="mx-auto h-5 w-5 text-blue-500" aria-hidden />
                     ) : (
                       <span className="text-slate-300 dark:text-slate-600">—</span>

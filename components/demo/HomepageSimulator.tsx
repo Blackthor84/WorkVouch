@@ -25,7 +25,7 @@ function AnimatedMetric({ value, suffix = "" }: { value: number; suffix?: string
 }
 
 export default function HomepageSimulator() {
-  const [plan, setPlan] = useState<PlanTier>("starter");
+  const [plan, setPlan] = useState<PlanTier>("lite");
   const [seats, setSeats] = useState(2);
   const [reportsUsed, setReportsUsed] = useState(3);
   const [searchesUsed, setSearchesUsed] = useState(5);
@@ -63,8 +63,7 @@ export default function HomepageSimulator() {
                   onChange={(e) => setPlan(e.target.value as PlanTier)}
                   className="w-full rounded-lg border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] px-3 py-2 text-grey-dark dark:text-gray-200"
                 >
-                  <option value="starter">Starter</option>
-                  <option value="team">Team</option>
+                  <option value="lite">Lite</option>
                   <option value="pro">Pro</option>
                   <option value="enterprise">Enterprise</option>
                 </select>

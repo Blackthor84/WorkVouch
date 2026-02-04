@@ -6,67 +6,60 @@ export const isStripeConfigured = !!(
   (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_STRIPE_PK)
 )
 
-// Standardized Stripe Price IDs - use canonical env names only (no test/live hardcoding)
-export const STRIPE_PRICE_STARTER = process.env.STRIPE_PRICE_STARTER || ''
-export const STRIPE_PRICE_TEAM = process.env.STRIPE_PRICE_TEAM || ''
-export const STRIPE_PRICE_PRO = process.env.STRIPE_PRICE_PRO || ''
-export const STRIPE_PRICE_SECURITY = process.env.STRIPE_PRICE_SECURITY || ''
+// Canonical employer plans: lite, pro, enterprise only. Use lib/pricing/employer-plans for config.
+export const STRIPE_PRICE_LITE_MONTHLY = process.env.STRIPE_PRICE_LITE_MONTHLY || process.env.NEXT_PUBLIC_STRIPE_LITE_MONTHLY || ''
+export const STRIPE_PRICE_PRO_MONTHLY = process.env.STRIPE_PRICE_PRO_MONTHLY || process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY || ''
+export const STRIPE_PRICE_ENTERPRISE_MONTHLY = process.env.STRIPE_PRICE_ENTERPRISE_MONTHLY || process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY || ''
 export const STRIPE_PRICE_ONE_TIME = process.env.STRIPE_PRICE_ONE_TIME || ''
 export const STRIPE_PRICE_REPORT_OVERAGE = process.env.STRIPE_PRICE_REPORT_OVERAGE || ''
 export const STRIPE_PRICE_SEARCH_OVERAGE = process.env.STRIPE_PRICE_SEARCH_OVERAGE || ''
 export const STRIPE_PRICE_SEAT_OVERAGE = process.env.STRIPE_PRICE_SEAT_OVERAGE || ''
 
-// Monthly/Yearly subscription price IDs (whitelist for checkout)
-export const PRICE_ID_STARTER_MONTHLY = process.env.STRIPE_PRICE_STARTER_MONTHLY || process.env.PRICE_ID_STARTER_MONTHLY || process.env.STRIPE_PRICE_STARTER || ''
-export const PRICE_ID_STARTER_YEARLY = process.env.STRIPE_PRICE_STARTER_YEARLY || process.env.PRICE_ID_STARTER_YEARLY || ''
-export const PRICE_ID_GROWTH_MONTHLY = process.env.STRIPE_PRICE_GROWTH_MONTHLY || process.env.PRICE_ID_GROWTH_MONTHLY || process.env.STRIPE_PRICE_TEAM || ''
-export const PRICE_ID_GROWTH_YEARLY = process.env.STRIPE_PRICE_GROWTH_YEARLY || process.env.PRICE_ID_GROWTH_YEARLY || ''
-export const PRICE_ID_PRO_MONTHLY = process.env.STRIPE_PRICE_PRO_MONTHLY || process.env.PRICE_ID_PRO_MONTHLY || process.env.STRIPE_PRICE_PRO || ''
-export const PRICE_ID_PRO_YEARLY = process.env.STRIPE_PRICE_PRO_YEARLY || process.env.PRICE_ID_PRO_YEARLY || ''
+// Legacy env (migration): map to canonical plans
+const LEGACY_PRICE_STARTER = process.env.STRIPE_PRICE_STARTER || process.env.STRIPE_PRICE_STARTER_MONTHLY || process.env.PRICE_ID_STARTER_MONTHLY || ''
+const LEGACY_PRICE_TEAM = process.env.STRIPE_PRICE_TEAM || process.env.STRIPE_PRICE_GROWTH_MONTHLY || process.env.PRICE_ID_GROWTH_MONTHLY || ''
+const LEGACY_PRICE_PRO = process.env.STRIPE_PRICE_PRO || process.env.STRIPE_PRICE_PRO_MONTHLY || process.env.PRICE_ID_PRO_MONTHLY || ''
+const LEGACY_PRICE_SECURITY = process.env.STRIPE_PRICE_SECURITY || process.env.STRIPE_PRICE_SECURITY_BUNDLE || ''
 
 /** Whitelist of allowed price IDs for checkout (must start with price_) */
 export const STRIPE_WHITELISTED_PRICE_IDS: string[] = [
-  PRICE_ID_STARTER_MONTHLY,
-  PRICE_ID_STARTER_YEARLY,
-  PRICE_ID_GROWTH_MONTHLY,
-  PRICE_ID_GROWTH_YEARLY,
-  PRICE_ID_PRO_MONTHLY,
-  PRICE_ID_PRO_YEARLY,
+  STRIPE_PRICE_LITE_MONTHLY,
+  STRIPE_PRICE_PRO_MONTHLY,
+  STRIPE_PRICE_ENTERPRISE_MONTHLY,
+  LEGACY_PRICE_STARTER,
+  LEGACY_PRICE_TEAM,
+  LEGACY_PRICE_PRO,
+  LEGACY_PRICE_SECURITY,
 ].filter((id): id is string => typeof id === 'string' && id.length > 0 && id.startsWith('price_'))
 
 export function isPriceIdWhitelisted(priceId: string | undefined): boolean {
   if (!priceId || typeof priceId !== 'string' || !priceId.startsWith('price_')) return false
   return STRIPE_WHITELISTED_PRICE_IDS.includes(priceId)
-}/** Lookup quota by tier: lite 5, pro unlimited (-1), custom unlimited. */
+}/** Lookup quota by tier: lite 5, pro/enterprise unlimited (-1). */
 export function getLookupQuotaForTier(tier: string): number {
   const t = (tier || '').toLowerCase()
-  if (t === 'pro' || t === 'custom') return -1
+  if (t === 'pro' || t === 'enterprise' || t === 'custom') return -1
   return 5 // lite, free, or unknown
 }
 
-/** Canonical price map for subscriptions (starter, team, pro) and one-time */
+/** Canonical price map: lite, pro, enterprise only. */
 export const STRIPE_PRICE_MAP: Record<string, string> = {
-  starter: STRIPE_PRICE_STARTER || PRICE_ID_STARTER_MONTHLY,
-  team: STRIPE_PRICE_TEAM || PRICE_ID_GROWTH_MONTHLY,
-  growth: PRICE_ID_GROWTH_MONTHLY,
-  pro: STRIPE_PRICE_PRO || PRICE_ID_PRO_MONTHLY,
-  security: STRIPE_PRICE_SECURITY,
+  lite: STRIPE_PRICE_LITE_MONTHLY,
+  pro: STRIPE_PRICE_PRO_MONTHLY,
+  enterprise: STRIPE_PRICE_ENTERPRISE_MONTHLY,
   one_time: STRIPE_PRICE_ONE_TIME,
-}
+};
 
-/** Security Bundle price ID (alias). Maps to plan_tier = "security_agency". */
-export const STRIPE_PRICE_SECURITY_BUNDLE = process.env.STRIPE_PRICE_SECURITY_BUNDLE || process.env.STRIPE_PRICE_SECURITY || "";
-
-/** Map Stripe price ID → plan_tier for webhooks. Standardized: lite, pro, custom (custom has no Stripe price). */
+/** Map Stripe price ID → canonical plan_tier for webhooks. Legacy IDs map to lite/pro/enterprise. */
 export function getPriceToTierMap(): Record<string, string> {
   const map: Record<string, string> = {};
-  if (STRIPE_PRICE_STARTER) map[STRIPE_PRICE_STARTER] = "lite";
-  if (STRIPE_PRICE_TEAM) map[STRIPE_PRICE_TEAM] = "pro";
-  if (STRIPE_PRICE_PRO) map[STRIPE_PRICE_PRO] = "pro";
-  if (PRICE_ID_GROWTH_MONTHLY) map[PRICE_ID_GROWTH_MONTHLY] = "pro";
-  if (PRICE_ID_GROWTH_YEARLY) map[PRICE_ID_GROWTH_YEARLY] = "pro";
-  if (STRIPE_PRICE_SECURITY) map[STRIPE_PRICE_SECURITY] = "security_agency";
-  if (STRIPE_PRICE_SECURITY_BUNDLE && !map[STRIPE_PRICE_SECURITY_BUNDLE]) map[STRIPE_PRICE_SECURITY_BUNDLE] = "security_agency";
+  if (STRIPE_PRICE_LITE_MONTHLY) map[STRIPE_PRICE_LITE_MONTHLY] = "lite";
+  if (STRIPE_PRICE_PRO_MONTHLY) map[STRIPE_PRICE_PRO_MONTHLY] = "pro";
+  if (STRIPE_PRICE_ENTERPRISE_MONTHLY) map[STRIPE_PRICE_ENTERPRISE_MONTHLY] = "enterprise";
+  if (LEGACY_PRICE_STARTER) map[LEGACY_PRICE_STARTER] = "lite";
+  if (LEGACY_PRICE_TEAM) map[LEGACY_PRICE_TEAM] = "pro";
+  if (LEGACY_PRICE_PRO) map[LEGACY_PRICE_PRO] = "pro";
+  if (LEGACY_PRICE_SECURITY) map[LEGACY_PRICE_SECURITY] = "pro";
   return map;
 }
 
@@ -101,14 +94,12 @@ export function getMeteredSubscriptionItemIds(subscription: {
   return { reportOverageItemId, searchOverageItemId, seatOverageItemId };
 }
 
-/** Log missing price IDs (server-side). Call at startup or when creating checkout. */
+/** Log missing price IDs (server-side). Canonical: lite, pro, enterprise. */
 export function logMissingStripePriceIds(): void {
   const missing: string[] = []
-  if (!STRIPE_PRICE_STARTER) missing.push('STRIPE_PRICE_STARTER')
-  if (!STRIPE_PRICE_TEAM) missing.push('STRIPE_PRICE_TEAM')
-  if (!STRIPE_PRICE_PRO) missing.push('STRIPE_PRICE_PRO')
-  if (!STRIPE_PRICE_SECURITY) missing.push('STRIPE_PRICE_SECURITY')
-  if (!STRIPE_PRICE_ONE_TIME) missing.push('STRIPE_PRICE_ONE_TIME')
+  if (!STRIPE_PRICE_LITE_MONTHLY) missing.push('STRIPE_PRICE_LITE_MONTHLY or NEXT_PUBLIC_STRIPE_LITE_MONTHLY')
+  if (!STRIPE_PRICE_PRO_MONTHLY) missing.push('STRIPE_PRICE_PRO_MONTHLY or NEXT_PUBLIC_STRIPE_PRO_MONTHLY')
+  if (!STRIPE_PRICE_ENTERPRISE_MONTHLY) missing.push('STRIPE_PRICE_ENTERPRISE_MONTHLY or NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY')
   if (missing.length > 0) {
     console.error('[Stripe] Missing price ID env vars:', missing.join(', '))
   }

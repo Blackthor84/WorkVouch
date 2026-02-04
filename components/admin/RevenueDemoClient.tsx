@@ -8,7 +8,7 @@ import type { PlanTier, SimulationInputs } from "@/lib/simulation/types";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-const PLANS: PlanTier[] = ["starter", "team", "pro", "enterprise"];
+const PLANS: PlanTier[] = ["lite", "pro", "enterprise"];
 
 /** Deterministic pseudo-random in [0, 1) from seed. */
 function seeded(seed: number): number {

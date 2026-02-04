@@ -21,66 +21,8 @@ export interface PricingTier {
 }
 
 // ===============================
-// Pricing Tiers
+// Pricing Tiers (employer plans: use EMPLOYER_PLANS from @/lib/pricing/employer-plans)
 // ===============================
-
-export const employerPricing: PricingTier[] = [
-  {
-    tier: "starter",
-    price: "$49/mo",
-    benefits: [
-      "15 worker profile searches/month",
-      "10 verification reports/month",
-      "Contact verified coworkers",
-      "Basic trust scores",
-      "Export verification PDF",
-    ],
-  },
-  {
-    tier: "team",
-    price: "$149/mo",
-    benefits: [
-      "50 searches/month",
-      "40 verification reports",
-      "Unlimited coworker messaging",
-      "Advanced trust analytics",
-      "New hire tracking dashboard",
-      "Priority chat support",
-    ],
-  },
-  {
-    tier: "pro",
-    price: "$299/mo",
-    benefits: [
-      "150 searches/month",
-      "120 verification reports",
-      "Department subaccounts",
-      "Bulk worker import & auto-verification",
-      "Role-based permissions",
-      "Applicant comparison tools",
-    ],
-  },
-  {
-    tier: "security-bundle",
-    price: "$199/mo",
-    benefits: [
-      "80 verification reports/month",
-      "Unlimited worker searches",
-      "Unlimited coworker messaging",
-      "Upload guard licenses & certificates",
-      "Auto-flag inconsistent claims",
-      "Guard availability tools",
-    ],
-  },
-  {
-    tier: "pay-per-use",
-    price: "$14.99/report",
-    benefits: [
-      "One-time report purchase",
-      "After purchase → instantly unlock PDF",
-    ],
-  },
-];
 
 export const employeePricing: PricingTier[] = [
   {

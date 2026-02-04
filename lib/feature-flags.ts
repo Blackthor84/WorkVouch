@@ -42,24 +42,25 @@ export interface CheckFeatureAccessOptions {
 
 /** Tier order for comparison (lower index = lower tier). */
 const PLAN_TIER_ORDER = ["free", "basic", "pro"] as const;
-const SUBSCRIPTION_TIER_ORDER = ["starter", "pro", "elite", "emp_lite", "emp_pro", "emp_enterprise"] as const;
+const SUBSCRIPTION_TIER_ORDER = ["lite", "pro", "enterprise"] as const;
 
-/** Tier rank for subscription gates: starter < team < pro < security_bundle. Deny if employer rank < required rank. */
+/** Tier rank for subscription gates: lite < pro < enterprise. Legacy tiers map to canonical. */
 const TIER_RANK: Record<string, number> = {
+  lite: 1,
+  pro: 2,
+  enterprise: 3,
   starter: 1,
   team: 2,
-  pro: 3,
-  security_bundle: 4,
+  security_bundle: 2,
+  security_agency: 2,
+  pay_per_use: 1,
   free: 0,
   basic: 1,
-  emp_lite: 1,
-  emp_pro: 2,
-  emp_enterprise: 4,
-  elite: 3,
+  custom: 3,
 };
 
-/** When employer plan_tier is security_agency (or security_bundle), these features are auto-enabled server-side. */
-const SECURITY_AGENCY_AUTO_FEATURES = new Set([
+/** When employer plan_tier is enterprise (or legacy security_agency), these features are auto-enabled server-side. */
+const ENTERPRISE_AUTO_FEATURES = new Set([
   "risk_snapshot",
   "workforce_dashboard",
   "rehire_system",
@@ -151,7 +152,7 @@ export async function checkFeatureAccess(
 
   const supabase = getSupabaseServer() as any;
 
-  if (employerId && SECURITY_AGENCY_AUTO_FEATURES.has(featureKey)) {
+  if (employerId && ENTERPRISE_AUTO_FEATURES.has(featureKey)) {
     const { data: emp } = await supabase
       .from("employer_accounts")
       .select("plan_tier")
@@ -159,7 +160,7 @@ export async function checkFeatureAccess(
       .maybeSingle();
     const planTier = (emp as { plan_tier?: string } | null)?.plan_tier ?? "";
     const normalized = planTier.toLowerCase().replace(/-/g, "_");
-    if (normalized === "security_agency" || normalized === "security_bundle") {
+    if (normalized === "enterprise" || normalized === "security_agency" || normalized === "security_bundle") {
       setCached(featureKey, userId, employerId, true);
       return true;
     }

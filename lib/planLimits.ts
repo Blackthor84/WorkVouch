@@ -1,9 +1,9 @@
 /**
  * Plan limit config for tier enforcement and overage billing.
- * Standardized tiers: lite, pro, custom. Used by lib/usage.ts and dashboard. -1 = unlimited.
+ * Canonical employer plans: lite, pro, enterprise only. -1 = unlimited.
  */
 
-export type PlanTierKey = "lite" | "pro" | "custom" | "security_bundle" | "security_agency";
+export type PlanTierKey = "lite" | "pro" | "enterprise";
 
 export interface PlanLimitConfig {
   reports: number;
@@ -15,46 +15,34 @@ export interface PlanLimitConfig {
 
 export const PLAN_LIMITS: Record<PlanTierKey, PlanLimitConfig> = {
   lite: {
-    reports: 10,
-    searches: 15,
+    reports: 15,
+    searches: 25,
     seats: 1,
     allowOverage: false,
   },
   pro: {
-    reports: 120,
-    searches: 150,
+    reports: 75,
+    searches: 100,
     seats: 20,
     allowOverage: true,
   },
-  custom: {
+  enterprise: {
     reports: -1,
     searches: -1,
     seats: 50,
     allowOverage: true,
   },
-  security_bundle: {
-    reports: 80,
-    searches: -1,
-    seats: 20,
-    allowOverage: true,
-  },
-  security_agency: {
-    reports: 80,
-    searches: -1,
-    seats: 20,
-    allowOverage: true,
-  },
 };
 
-/** Normalize tier from DB (starter, team, free, basic, etc.) to key used in PLAN_LIMITS. */
+/** Normalize tier from DB to canonical key. Legacy: starter→lite, team/security-bundle→pro, pay-per-use→lite. */
 export function normalizeTier(tier: string | null | undefined): PlanTierKey {
   if (!tier) return "lite";
   const t = tier.toLowerCase().replace(/-/g, "_");
-  if (t === "security_agency" || t === "security_bundle" || t === "security") return "security_agency";
-  if (t === "lite" || t === "custom") return t as PlanTierKey;
+  if (t === "lite") return "lite";
   if (t === "pro") return "pro";
-  if (t === "team" || t === "growth") return "pro";
-  if (t === "starter" || t === "free" || t === "basic") return "lite";
+  if (t === "enterprise" || t === "custom") return "enterprise";
+  if (t === "starter" || t === "free" || t === "basic" || t === "pay_per_use") return "lite";
+  if (t === "team" || t === "growth" || t === "security_bundle" || t === "security_agency" || t === "security") return "pro";
   return "lite";
 }
 

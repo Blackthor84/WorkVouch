@@ -4,10 +4,15 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import {
   stripe,
-  STRIPE_PRICE_MAP,
   logMissingStripePriceIds,
   getCheckoutBaseUrl,
 } from "@/lib/stripe/config";
+import {
+  type EmployerPlanId,
+  getStripePriceIdForPlan,
+} from "@/lib/pricing/employer-plans";
+
+const VALID_PLAN_IDS: EmployerPlanId[] = ["lite", "pro", "enterprise"];
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,24 +35,26 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { planTier } = body; // 'starter', 'team', or 'pro'
+    const planId = body.planId ?? body.planTier;
 
-    if (!planTier || !["starter", "team", "pro"].includes(planTier)) {
-      return NextResponse.json({ error: "Invalid plan tier" }, { status: 400 });
+    if (!planId || !VALID_PLAN_IDS.includes(planId as EmployerPlanId)) {
+      return NextResponse.json(
+        { error: "Invalid plan. Use lite, pro, or enterprise." },
+        { status: 400 },
+      );
     }
 
-    const priceId = STRIPE_PRICE_MAP[planTier];
-    if (!priceId) {
+    const priceId = getStripePriceIdForPlan(planId as EmployerPlanId);
+    if (!priceId || !priceId.startsWith("price_")) {
       logMissingStripePriceIds();
       return NextResponse.json(
-        { error: "Stripe price ID not configured for this plan. Set STRIPE_PRICE_* in environment." },
+        { error: "Stripe price ID not configured for this plan. Set STRIPE_PRICE_* or NEXT_PUBLIC_STRIPE_* in environment." },
         { status: 500 },
       );
     }
 
-    // Feature gate: ensure plan-linked features exist (e.g. pro -> advanced_analytics)
     const adminSupabase = getSupabaseServer() as any;
-    if (planTier === "pro") {
+    if (planId === "pro") {
       const { data: flag } = await adminSupabase
         .from("feature_flags")
         .select("id")
@@ -127,7 +134,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         employerId: employerAccountTyped.id,
         userId: user.id,
-        planTier,
+        planId: planId as string,
       },
     });
 

@@ -16,16 +16,14 @@ export interface PlanLimits {
  */
 export function getPlanLimits(plan: PlanTier): PlanLimits {
   switch (plan) {
-    case "starter":
-      return { reports: 10, searches: 15, seats: 3 };
-    case "team":
-      return { reports: 40, searches: 50, seats: 10 };
+    case "lite":
+      return { reports: 15, searches: 25, seats: 1 };
     case "pro":
-      return { reports: 120, searches: 150, seats: 30 };
+      return { reports: 75, searches: 100, seats: 20 };
     case "enterprise":
       return { reports: Infinity, searches: Infinity, seats: Infinity };
     default:
-      return { reports: 10, searches: 15, seats: 3 };
+      return { reports: 15, searches: 25, seats: 1 };
   }
 }
 

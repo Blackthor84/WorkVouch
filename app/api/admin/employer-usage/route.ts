@@ -102,7 +102,7 @@ export async function GET(req: NextRequest) {
         return {
           employerId: acc.id,
           companyName: acc.company_name,
-          planTier: usage?.planTier ?? "starter",
+          planTier: usage?.planTier ?? "lite",
           stripeCustomerId: usage?.stripeCustomerId ?? null,
           stripeSubscriptionId: usage?.stripeSubscriptionId ?? null,
           reportsUsed: usage?.reportsUsed ?? 0,

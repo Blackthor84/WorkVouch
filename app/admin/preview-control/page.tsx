@@ -39,7 +39,7 @@ const SALES_MODES: { id: SalesMode; label: string; role: PreviewRole; plan: stri
     id: "internal_qa",
     label: "Internal QA Mode",
     role: "employer",
-    plan: "team",
+    plan: "pro",
     features: [],
   },
 ];

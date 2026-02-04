@@ -138,7 +138,7 @@ export function EmployerDashboardClient({
     fetchRehireList();
   }, [rehireSystemEnabled, fetchRehireList]);
 
-  const isBasicPlan = planTier === "free" || planTier === "basic" || !planTier;
+  const isBasicPlan = planTier === "free" || planTier === "basic" || planTier === "lite" || !planTier;
 
   const simulationOutput: SimulationOutput = {
     allowedReports: 40,
@@ -217,15 +217,11 @@ export function EmployerDashboardClient({
                     : "bg-gray-400 text-white border-gray-500 dark:bg-gray-500 dark:border-gray-600"
                 }
               >
-                {planTier === "pro"
+                {planTier === "enterprise"
+                  ? "ENTERPRISE"
+                  : planTier === "pro" || planTier === "team" || planTier === "security_bundle" || planTier === "security-bundle"
                   ? "PRO"
-                  : planTier === "team"
-                  ? "TEAM"
-                  : planTier === "starter"
-                  ? "STARTER"
-                  : planTier === "security_bundle" || planTier === "security-bundle"
-                  ? "SECURITY BUNDLE"
-                  : "FREE"}
+                  : "LITE"}
               </Badge>
             </div>
           )}
@@ -253,15 +249,15 @@ export function EmployerDashboardClient({
           </div>
         )}
 
-        {/* Security Agency Dashboard variant */}
-        {(planTier === "security_agency" || planTier === "security_bundle" || planTier === "security-bundle") && (
+        {/* Enterprise / Security Agency Dashboard variant (legacy security_bundle → pro) */}
+        {(planTier === "enterprise" || planTier === "security_agency" || planTier === "security_bundle" || planTier === "security-bundle") && (
           <div className="mt-6">
             <SecurityDashboard employerId={employerId ?? null} />
           </div>
         )}
 
-        {/* Universal credentials overview (non–Security Agency) */}
-        {!(planTier === "security_agency" || planTier === "security_bundle" || planTier === "security-bundle") && (
+        {/* Universal credentials overview (Lite / Pro non–Security) */}
+        {!(planTier === "enterprise" || planTier === "security_agency" || planTier === "security_bundle" || planTier === "security-bundle") && (
           <div className="mt-6">
             <CredentialsOverview showComplianceAlerts={false} />
           </div>

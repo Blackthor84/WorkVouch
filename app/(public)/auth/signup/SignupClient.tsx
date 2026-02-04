@@ -3,7 +3,8 @@
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { employeePricing, employerPricing } from "@/lib/cursor-bundle";
+import { employeePricing } from "@/lib/cursor-bundle";
+import { EMPLOYER_PLANS, type EmployerPlan } from "@/lib/pricing/employer-plans";
 import Link from "next/link";
 import Image from "next/image";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -28,7 +29,7 @@ export default function SignupClient() {
   useEffect(() => {
     if (prefillPlan) {
       setSelectedPlan(prefillPlan);
-      const isEmployerPlan = employerPricing.some((p) => p.tier === prefillPlan);
+      const isEmployerPlan = EMPLOYER_PLANS.some((p) => p.id === prefillPlan);
       const isEmployeePlan = employeePricing.some((p) => p.tier === prefillPlan);
       if (isEmployerPlan) setRole("employer");
       if (isEmployeePlan) setRole("employee");
@@ -41,7 +42,8 @@ export default function SignupClient() {
     setSelectedPlan("");
   };
 
-  const plans = role === "employee" ? employeePricing : employerPricing;
+  const employerPlans = EMPLOYER_PLANS;
+  const plans = role === "employee" ? employeePricing : employerPlans;
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,15 +104,9 @@ export default function SignupClient() {
         }
 
         if (role === "employer" && selectedPlan) {
-          const planTierMap: Record<string, "free" | "basic" | "pro"> = {
-            starter: "basic",
-            team: "pro",
-            pro: "pro",
-            security: "pro",
-            "security-bundle": "pro",
-            "pay-per-use": "free",
-          };
-          const dbPlanTier = planTierMap[selectedPlan] ?? "free";
+          const dbPlanTier = ["lite", "pro", "enterprise"].includes(selectedPlan)
+            ? selectedPlan
+            : "lite";
 
           const { error: employerError } = await (supabaseBrowser as any)
             .from("employer_accounts")
@@ -234,25 +230,25 @@ export default function SignupClient() {
                   You can change or cancel anytime.
                 </p>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  {plans.map((p) => (
+                  {employerPlans.map((p) => (
                     <button
-                      key={p.tier}
+                      key={p.id}
                       type="button"
-                      onClick={() => !loading && setSelectedPlan(p.tier)}
+                      onClick={() => !loading && setSelectedPlan(p.id)}
                       disabled={loading}
                       className={`text-left p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md ${
-                        selectedPlan === p.tier
+                        selectedPlan === p.id
                           ? "border-blue-600 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                           : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                       } ${loading ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
                     >
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{p.tier}</h3>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">{p.name}</h3>
                       <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mt-0.5">
-                        {p.price}
+                        ${p.priceMonthly}/mo
                       </p>
                       <ul className="mt-2 space-y-1 text-xs text-gray-600 dark:text-gray-400">
-                        {p.benefits.slice(0, 3).map((b, i) => (
-                          <li key={i}>{b}</li>
+                        {p.features.slice(0, 3).map((f: string, i: number) => (
+                          <li key={i}>{f}</li>
                         ))}
                       </ul>
                     </button>
