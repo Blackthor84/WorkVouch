@@ -26,16 +26,73 @@ interface ListedEmployeesPageClientProps {
 export function ListedEmployeesPageClient({ employerId, planTier }: ListedEmployeesPageClientProps) {
   const [employees, setEmployees] = useState<ListedEmployee[]>([]);
   const [loading, setLoading] = useState(true);
+  const [acting, setActing] = useState<string | null>(null);
 
-  useEffect(() => {
+  const refetch = () => {
     fetch("/api/employer/listed-employees", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data.employees)) setEmployees(data.employees);
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    refetch();
+    setLoading(false);
   }, []);
+
+  const confirmEmployment = async (recordId: string) => {
+    setActing(recordId);
+    try {
+      const res = await fetch("/api/employer/confirm-employment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ record_id: recordId }),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (res.ok && data.success) refetch();
+      else if (!res.ok) alert(data.error ?? "Failed to confirm");
+    } finally {
+      setActing(null);
+    }
+  };
+
+  const disputeEmployment = async (recordId: string) => {
+    if (!confirm("Dispute this employment? The record will be marked as flagged.")) return;
+    setActing(recordId);
+    try {
+      const res = await fetch("/api/employer/dispute-employment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ record_id: recordId }),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (res.ok && data.success) refetch();
+      else if (!res.ok) alert(data.error ?? "Failed to dispute");
+    } finally {
+      setActing(null);
+    }
+  };
+
+  const requestVerification = async (recordId: string) => {
+    setActing(recordId);
+    try {
+      const res = await fetch("/api/employer/request-employment-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ record_id: recordId }),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (res.ok && data.success) refetch();
+      else if (!res.ok) alert(data.error ?? "Failed to request verification");
+    } finally {
+      setActing(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -97,10 +154,41 @@ export function ListedEmployeesPageClient({ employerId, planTier }: ListedEmploy
                 {(planTier === "pro" || planTier === "enterprise") && (
                   <td className="p-3 text-grey-medium dark:text-gray-400">{emp.profile_strength != null ? `${emp.profile_strength}%` : "—"}</td>
                 )}
-                <td className="p-3">
+                <td className="p-3 flex flex-wrap gap-1">
                   <Link href={`/employer/candidates/${emp.user_id}`}>
                     <Button variant="ghost" size="sm">View</Button>
                   </Link>
+                  {(emp.verification_status === "pending" || emp.verification_status === "matched") && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled={acting === emp.record_id}
+                      onClick={() => confirmEmployment(emp.record_id)}
+                    >
+                      {acting === emp.record_id ? "…" : "Confirm"}
+                    </Button>
+                  )}
+                  {(emp.verification_status === "pending" || emp.verification_status === "matched") && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled={acting === emp.record_id}
+                      onClick={() => requestVerification(emp.record_id)}
+                    >
+                      Request verify
+                    </Button>
+                  )}
+                  {(emp.verification_status === "pending" || emp.verification_status === "matched" || emp.verification_status === "verified") && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800"
+                      disabled={acting === emp.record_id}
+                      onClick={() => disputeEmployment(emp.record_id)}
+                    >
+                      Dispute
+                    </Button>
+                  )}
                 </td>
               </tr>
             ))}

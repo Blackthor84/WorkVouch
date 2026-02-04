@@ -9,6 +9,7 @@ import {
   ChatBubbleLeftRightIcon,
   CreditCardIcon,
   Cog6ToothIcon,
+  BuildingOfficeIcon,
 } from "@heroicons/react/24/outline";
 
 export function EmployerSidebar() {
@@ -16,6 +17,7 @@ export function EmployerSidebar() {
 
   const navItems = [
     { href: "/employer/dashboard", label: "Dashboard", icon: HomeIcon },
+    { href: "/employer/claim", label: "Claim company", icon: BuildingOfficeIcon },
     {
       href: "/employer/directory",
       label: "Directory",

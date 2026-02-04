@@ -116,6 +116,8 @@ export async function POST(req: NextRequest) {
       autoMatchEmployerAfterEmployment(employmentRecordId, company_name.trim(), user_id).catch((e) =>
         console.error("[match-employment] autoMatchEmployer:", e)
       );
+      const { recalculateMatchConfidence } = await import("@/lib/employment/matchConfidence");
+      recalculateMatchConfidence(employmentRecordId).catch((e) => console.error("[match-employment] recalculateMatchConfidence:", e));
     }
 
     const { data: myRecord } = await sb

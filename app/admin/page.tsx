@@ -97,6 +97,28 @@ export default async function AdminPanel() {
           </Card>
 
           <Card className="p-6 hover:shadow-lg transition-shadow">
+            <Link href="/admin/claim-requests" className="block">
+              <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+                Employer Claim Requests
+              </h2>
+              <p className="text-sm text-grey-medium dark:text-gray-400">
+                Approve or reject company claim requests
+              </p>
+            </Link>
+          </Card>
+
+          <Card className="p-6 hover:shadow-lg transition-shadow">
+            <Link href="/admin/employer-reputation-preview" className="block">
+              <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+                Employer Reputation Preview
+              </h2>
+              <p className="text-sm text-grey-medium dark:text-gray-400">
+                View reputation breakdown and generate 10-min synthetic preview
+              </p>
+            </Link>
+          </Card>
+
+          <Card className="p-6 hover:shadow-lg transition-shadow">
             <Link href="/admin/employer-usage" className="block">
               <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
                 Employer Usage

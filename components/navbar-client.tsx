@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { NotificationsBell } from "./notifications-bell";
+import { EmployerNotificationsBell } from "./employer-notifications-bell";
 import { Logo } from "./logo";
 import { User } from "@/lib/auth";
 import { usePreview } from "@/lib/preview-context";
@@ -88,7 +89,7 @@ export function NavbarClient({ user: userProp, roles: rolesProp }: NavbarClientP
                 >
                   Profile
                 </Button>
-                <NotificationsBell />
+                {isEmployerArea ? <EmployerNotificationsBell /> : <NotificationsBell />}
                 <Button variant="ghost" size="sm" href="/pricing" className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]">
                   Pricing
                 </Button>

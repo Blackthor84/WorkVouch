@@ -73,5 +73,8 @@ export async function autoMatchEmployerAfterEmployment(
     read: false,
   });
 
+  const { recalculateMatchConfidence } = await import("./matchConfidence");
+  recalculateMatchConfidence(employmentId).catch((e) => console.error("[autoMatchEmployer] recalculateMatchConfidence:", e));
+
   return { employerId: employer.id, linked: true };
 }

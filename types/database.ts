@@ -160,6 +160,7 @@ export interface Database {
           profile_photo_url: string | null
           professional_summary: string | null
           visibility: ProfileVisibility
+          employer_visibility: string | null
           created_at: string
           updated_at: string
           guard_credential_score: number | null
@@ -174,6 +175,7 @@ export interface Database {
           profile_photo_url?: string | null
           professional_summary?: string | null
           visibility?: ProfileVisibility
+          employer_visibility?: string | null
           created_at?: string
           updated_at?: string
           guard_credential_score?: number | null
@@ -188,6 +190,7 @@ export interface Database {
           profile_photo_url?: string | null
           professional_summary?: string | null
           visibility?: ProfileVisibility
+          employer_visibility?: string | null
           created_at?: string
           updated_at?: string
           guard_credential_score?: number | null
@@ -273,6 +276,8 @@ export interface Database {
           company_name: string
           industry_type?: string | null
           plan_tier?: string | null
+          claimed?: boolean | null
+          claim_verified?: boolean | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: string | null
@@ -292,6 +297,8 @@ export interface Database {
           company_name: string
           industry_type?: string | null
           plan_tier?: string | null
+          claimed?: boolean | null
+          claim_verified?: boolean | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: string | null
@@ -311,6 +318,8 @@ export interface Database {
           company_name?: string
           industry_type?: string | null
           plan_tier?: string | null
+          claimed?: boolean | null
+          claim_verified?: boolean | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: string | null
@@ -323,6 +332,149 @@ export interface Database {
           searches_used?: number | null
           billing_cycle_start?: string | null
           billing_cycle_end?: string | null
+        }
+        Relationships: []
+      }
+      employer_notifications: {
+        Row: {
+          id: string
+          employer_id: string
+          type: string
+          related_user_id: string | null
+          related_record_id: string | null
+          read: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          employer_id: string
+          type: string
+          related_user_id?: string | null
+          related_record_id?: string | null
+          read?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          employer_id?: string
+          type?: string
+          related_user_id?: string | null
+          related_record_id?: string | null
+          read?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      employment_match_scores: {
+        Row: {
+          id: string
+          employment_id: string
+          confidence_score: number
+          breakdown: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          employment_id: string
+          confidence_score?: number
+          breakdown?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          employment_id?: string
+          confidence_score?: number
+          breakdown?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      employer_reputation_snapshots: {
+        Row: {
+          id: string
+          employer_id: string
+          reputation_score: number
+          verification_integrity_score: number
+          dispute_ratio_score: number
+          rehire_confirmation_score: number
+          worker_retention_score: number
+          response_time_score: number
+          workforce_risk_score: number
+          fraud_flag_score: number
+          network_trust_score: number
+          compliance_score: number
+          percentile_rank: number | null
+          industry_percentile_rank: number | null
+          model_version: string | null
+          last_calculated_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      employer_reputation_history: {
+        Row: {
+          id: string
+          employer_id: string
+          reputation_score: number
+          breakdown: Json
+          calculated_at: string
+        }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      preview_employer_simulations: {
+        Row: {
+          id: string
+          employer_id: string
+          created_at: string
+          expires_at: string
+        }
+        Insert: {
+          id?: string
+          employer_id: string
+          created_at?: string
+          expires_at?: string
+        }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      employer_claim_requests: {
+        Row: {
+          id: string
+          employer_id: string
+          requested_by_user_id: string
+          status: string
+          reviewed_by: string | null
+          reviewed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          employer_id: string
+          requested_by_user_id: string
+          status?: string
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          employer_id?: string
+          requested_by_user_id?: string
+          status?: string
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -698,6 +850,7 @@ export interface Database {
           verification_status: string
           rehire_eligible: boolean | null
           marked_by_employer_id: string | null
+          employer_id: string | null
           created_at: string
           updated_at: string
         }
@@ -713,6 +866,7 @@ export interface Database {
           verification_status?: string
           rehire_eligible?: boolean | null
           marked_by_employer_id?: string | null
+          employer_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -728,6 +882,7 @@ export interface Database {
           verification_status?: string
           rehire_eligible?: boolean | null
           marked_by_employer_id?: string | null
+          employer_id?: string | null
           created_at?: string
           updated_at?: string
         }
