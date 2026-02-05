@@ -12,6 +12,13 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { runSandboxCleanup } from "@/lib/intelligence/sandboxCreateSession";
 
+type SandboxSessionRow = {
+  id: string;
+  created_at: string;
+  expires_at: string;
+  created_by_admin: string;
+};
+
 function isAdmin(roles: string[]): boolean {
   return roles.includes("admin") || roles.includes("superadmin");
 }
@@ -111,7 +118,12 @@ export async function GET(req: NextRequest) {
     }
 
     const [sessionRes, profilesRes, vectorsRes, industryRes, employerRes, snapshotsRes] = await Promise.all([
-      supabase.from("sandbox_sessions").select("*").eq("id", sessionId).eq("is_sandbox", true).maybeSingle(),
+      supabase
+        .from("sandbox_sessions")
+        .select("id, created_at, expires_at, created_by_admin")
+        .eq("id", sessionId)
+        .eq("is_sandbox", true)
+        .maybeSingle<SandboxSessionRow>(),
       supabase.from("sandbox_profiles").select("*").eq("sandbox_session_id", sessionId).eq("is_sandbox", true),
       supabase.from("sandbox_behavioral_profile_vector").select("*").eq("is_sandbox", true),
       supabase.from("sandbox_industry_baselines").select("*").eq("sandbox_session_id", sessionId).eq("is_sandbox", true),
