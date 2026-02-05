@@ -207,7 +207,7 @@ export function EmployerDashboardClient({
                 Current Plan:
               </span>
               <Badge
-                variant="primary"
+                variant="default"
                 className={
                   planTier === "custom"
                     ? "bg-amber-500 text-white border-amber-600 dark:bg-amber-600 dark:border-amber-700"
