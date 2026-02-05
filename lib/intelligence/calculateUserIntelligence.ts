@@ -20,7 +20,7 @@ export async function calculateUserIntelligence(
   simulationContext?: SimulationContext | null
 ): Promise<void> {
   try {
-    if (simulationContext) {
+    if (simulationContext?.simulationSessionId) {
       await validateSessionForWrite(simulationContext.simulationSessionId);
     }
 
