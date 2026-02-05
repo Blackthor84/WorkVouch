@@ -11,21 +11,21 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { runSandboxCleanup } from "@/lib/intelligence/sandboxCreateSession";
+import type { Database } from "@/types/database";
 
-type SandboxSessionRow = {
-  id: string;
-  created_at: string;
-  expires_at: string;
-  created_by_admin: string;
-};
-
-type SandboxProfileRow = {
-  id: string;
-};
-
-type SandboxVectorRow = {
-  profile_id: string;
-};
+type SandboxSessionRow = Database["public"]["Tables"]["sandbox_sessions"]["Row"];
+type SandboxProfileRow = Database["public"]["Tables"]["sandbox_profiles"]["Row"];
+type SandboxVectorRow = Database["public"]["Tables"]["sandbox_behavioral_profile_vector"]["Row"];
+type IndustryBaselineRow = Database["public"]["Tables"]["sandbox_industry_baselines"]["Row"];
+type EmployerBaselineRow = Database["public"]["Tables"]["sandbox_employer_baselines"]["Row"];
+type BaselineSnapshotRow = Database["public"]["Tables"]["sandbox_baseline_snapshots"]["Row"];
+type TeamFitRow = Database["public"]["Tables"]["sandbox_team_fit_scores"]["Row"];
+type RiskOutputRow = Database["public"]["Tables"]["sandbox_risk_model_outputs"]["Row"];
+type HiringConfidenceRow = Database["public"]["Tables"]["sandbox_hiring_confidence_scores"]["Row"];
+type IntelligenceSandboxRow = Database["public"]["Tables"]["intelligence_sandboxes"]["Row"];
+type EmployerAccountRow = Database["public"]["Tables"]["employer_accounts"]["Row"];
+type SandboxAdCampaignRow = Database["public"]["Tables"]["sandbox_ad_campaigns"]["Row"];
+type HiringConfidenceScoreRow = Database["public"]["Tables"]["hiring_confidence_scores"]["Row"];
 
 function isAdmin(roles: string[]): boolean {
   return roles.includes("admin") || roles.includes("superadmin");
@@ -59,7 +59,8 @@ export async function GET(req: NextRequest) {
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-      return NextResponse.json({ sandboxes: sandboxes ?? [] });
+      const listRows = (sandboxes ?? []) as Pick<IntelligenceSandboxRow, "id" | "name" | "starts_at" | "ends_at" | "status" | "created_at">[];
+      return NextResponse.json({ sandboxes: listRows });
     }
 
     if (sandboxId) {
@@ -71,8 +72,8 @@ export async function GET(req: NextRequest) {
         .eq("id", sandboxId)
         .maybeSingle();
       if (sbErr || !sandbox) return NextResponse.json({ error: "Sandbox not found" }, { status: 404 });
-      const createdBy = (sandbox as { created_by?: string }).created_by;
-      if (createdBy !== uid && !roles.includes("admin") && !roles.includes("superadmin")) {
+      const sandboxRow = sandbox as Pick<IntelligenceSandboxRow, "id" | "name" | "created_by" | "starts_at" | "ends_at" | "status">;
+      if (sandboxRow.created_by !== uid && !roles.includes("admin") && !roles.includes("superadmin")) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
       const [
@@ -90,11 +91,11 @@ export async function GET(req: NextRequest) {
         supabase.from("hiring_confidence_scores").select("id, composite_score", { count: "exact" }).eq("sandbox_id", sandboxId).limit(100),
         supabase.from("sandbox_ad_campaigns").select("id, impressions, clicks, conversions, spend").eq("sandbox_id", sandboxId),
       ]);
-      const profilesCount = (profilesRes as { count?: number }).count ?? 0;
-      const employersCount = (employersRes as { count?: number }).count ?? 0;
-      const refsCount = (refsRes as { count?: number }).count ?? 0;
-      const hiringRows = (hiringRes as { data?: { composite_score: number }[] }).data ?? [];
-      const adsRows = (adsRes as { data?: { impressions: number; clicks: number; conversions: number; spend: number }[] }).data ?? [];
+      const profilesCount = profilesRes.count ?? 0;
+      const employersCount = employersRes.count ?? 0;
+      const refsCount = refsRes.count ?? 0;
+      const hiringRows = (hiringRes.data ?? []) as Pick<HiringConfidenceScoreRow, "id" | "composite_score">[];
+      const adsRows = (adsRes.data ?? []) as Pick<SandboxAdCampaignRow, "id" | "impressions" | "clicks" | "conversions" | "spend">[];
       const totalSpend = adsRows.reduce((s, r) => s + Number(r.spend || 0), 0);
       const totalImpressions = adsRows.reduce((s, r) => s + Number(r.impressions || 0), 0);
       const totalClicks = adsRows.reduce((s, r) => s + Number(r.clicks || 0), 0);
@@ -102,9 +103,9 @@ export async function GET(req: NextRequest) {
       const avgHiringConfidence = hiringRows.length > 0
         ? hiringRows.reduce((a, r) => a + (r.composite_score ?? 0), 0) / hiringRows.length
         : null;
-      const employersList = ((employersListRes as { data?: { id: string; company_name: string | null }[] }).data ?? []) as { id: string; company_name: string | null }[];
+      const employersList = (employersListRes.data ?? []) as Pick<EmployerAccountRow, "id" | "company_name">[];
       return NextResponse.json({
-        sandbox: { id: (sandbox as { id: string }).id, name: (sandbox as { name: string | null }).name, starts_at: (sandbox as { starts_at: string }).starts_at, ends_at: (sandbox as { ends_at: string }).ends_at, status: (sandbox as { status: string }).status },
+        sandbox: { id: sandboxRow.id, name: sandboxRow.name, starts_at: sandboxRow.starts_at, ends_at: sandboxRow.ends_at, status: sandboxRow.status },
         metrics: {
           profiles_count: profilesCount,
           employers_count: employersCount,
@@ -131,7 +132,7 @@ export async function GET(req: NextRequest) {
         .select("id, created_at, expires_at, created_by_admin")
         .eq("id", sessionId)
         .eq("is_sandbox", true)
-        .maybeSingle<SandboxSessionRow>(),
+        .maybeSingle(),
       supabase
         .from("sandbox_profiles")
         .select("id")
@@ -146,7 +147,7 @@ export async function GET(req: NextRequest) {
       supabase.from("sandbox_baseline_snapshots").select("*").eq("sandbox_session_id", sessionId).eq("is_sandbox", true).order("created_at", { ascending: false }).limit(1),
     ]);
 
-    const sessionRow = sessionRes.data;
+    const sessionRow = sessionRes.data as SandboxSessionRow | null;
     if (!sessionRow || sessionRes.error) {
       return NextResponse.json({ error: "Session not found or expired" }, { status: 404 });
     }
@@ -154,18 +155,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Session expired" }, { status: 410 });
     }
 
-    const profilesData = profilesRes.data;
-    const profiles: SandboxProfileRow[] = Array.isArray(profilesData)
-      ? (profilesData as SandboxProfileRow[])
-      : [];
+    const profiles = (profilesRes.data ?? []) as Pick<SandboxProfileRow, "id">[];
     const profileIds = profiles.map((p) => p.id);
-    const vectorsData = vectorsRes.data;
-    const vectorsRows: SandboxVectorRow[] = Array.isArray(vectorsData)
-      ? (vectorsData as SandboxVectorRow[])
-      : [];
+    const vectorsRows = (vectorsRes.data ?? []) as Pick<SandboxVectorRow, "profile_id">[];
     const vectors = vectorsRows.filter((v) => profileIds.includes(v.profile_id));
-    const industryBaselines = industryRes.data ?? [];
-    const employerBaselines = employerRes.data ?? [];
+    const industryBaselines = (industryRes.data ?? []) as IndustryBaselineRow[];
+    const employerBaselines = (employerRes.data ?? []) as EmployerBaselineRow[];
 
     const [teamFitRes, riskRes, hiringRes] = await Promise.all([
       supabase.from("sandbox_team_fit_scores").select("*").eq("sandbox_session_id", sessionId).eq("is_sandbox", true),
@@ -173,11 +168,12 @@ export async function GET(req: NextRequest) {
       supabase.from("sandbox_hiring_confidence_scores").select("*").eq("sandbox_session_id", sessionId).eq("is_sandbox", true),
     ]);
 
-    const baselineSnapshots = snapshotsRes.data ?? [];
-    const latestSnapshot = Array.isArray(baselineSnapshots) ? baselineSnapshots[0] : null;
-    const driftWarning = latestSnapshot && typeof latestSnapshot.delta_percent === "object"
-      ? Object.values(latestSnapshot.delta_percent as Record<string, number>).some((d: number) => Math.abs(d) > 20)
-      : false;
+    const baselineSnapshots = (snapshotsRes.data ?? []) as BaselineSnapshotRow[];
+    const latestSnapshot = baselineSnapshots[0] ?? null;
+    const driftWarning =
+      latestSnapshot?.delta_percent &&
+      typeof latestSnapshot.delta_percent === "object" &&
+      Object.values(latestSnapshot.delta_percent as Record<string, number>).some((d) => Math.abs(d) > 20);
 
     return NextResponse.json({
       session: sessionRow,
@@ -185,11 +181,11 @@ export async function GET(req: NextRequest) {
       vectors,
       industryBaselines,
       employerBaselines,
-      teamFitScores: teamFitRes.data ?? [],
-      riskOutputs: riskRes.data ?? [],
-      hiringConfidenceScores: hiringRes.data ?? [],
+      teamFitScores: (teamFitRes.data ?? []) as TeamFitRow[],
+      riskOutputs: (riskRes.data ?? []) as RiskOutputRow[],
+      hiringConfidenceScores: (hiringRes.data ?? []) as HiringConfidenceRow[],
       baselineSnapshots,
-      driftWarning,
+      driftWarning: Boolean(driftWarning),
     });
   } catch (e) {
     console.error("[intelligence-sandbox GET]", e);
