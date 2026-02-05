@@ -39,9 +39,11 @@ const MAX_STRESS_CANDIDATES = 10000;
 export function IntelligenceSandboxClient({
   employerList,
   onSandboxCreated,
+  onSandboxDataChange,
 }: {
   employerList: EmployerItem[];
   onSandboxCreated?: (id: string) => void;
+  onSandboxDataChange?: () => void;
 }) {
   const [mainTab, setMainTab] = useState<"legacy" | "enterprise">("enterprise");
   const [tab, setTab] = useState<"standard" | "stress">("standard");
@@ -292,7 +294,7 @@ export function IntelligenceSandboxClient({
             Legacy Simulation
           </button>
         </div>
-        <EnterpriseSandboxSection employerList={employerList} onSandboxCreated={onSandboxCreated} />
+        <EnterpriseSandboxSection employerList={employerList} onSandboxCreated={onSandboxCreated} onSandboxDataChange={onSandboxDataChange} />
       </div>
     );
   }

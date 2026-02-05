@@ -58,6 +58,7 @@ function useSandboxMetrics(sandboxId: string | null) {
       console.log("No active sandbox — skipping metrics fetch");
       return;
     }
+    console.log("Fetching sandbox metrics for:", id);
     try {
       const res = await fetch(`/api/admin/intelligence-sandbox?sandboxId=${encodeURIComponent(id)}`, { credentials: "include" });
       const j = await res.json().catch(() => ({}));
@@ -377,6 +378,10 @@ export function CommandCenterClient({
               onSandboxCreated={(id) => {
                 setSandboxId(id);
                 console.log("Active sandbox set:", id);
+                refetchList();
+                refetchMetrics();
+              }}
+              onSandboxDataChange={() => {
                 refetchList();
                 refetchMetrics();
               }}

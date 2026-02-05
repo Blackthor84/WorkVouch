@@ -26,9 +26,11 @@ const VIEW_AS_OPTIONS = ["Admin", "Employee", "Employer"] as const;
 export function EnterpriseSandboxSection({
   employerList,
   onSandboxCreated,
+  onSandboxDataChange,
 }: {
   employerList: { id: string; company_name?: string }[];
   onSandboxCreated?: (id: string) => void;
+  onSandboxDataChange?: () => void;
 }) {
   const [sandboxes, setSandboxes] = useState<SandboxRow[]>([]);
   const [sandboxId, setSandboxId] = useState<string | null>(null);
@@ -67,6 +69,7 @@ export function EnterpriseSandboxSection({
     if (!id) return;
     setLoading(true);
     setError(null);
+    console.log("Fetching sandbox metrics for:", id);
     try {
       const res = await fetch(`/api/admin/intelligence-sandbox?sandboxId=${encodeURIComponent(id)}`, { credentials: "include" });
       if (!res.ok) {
@@ -181,6 +184,7 @@ export function EnterpriseSandboxSection({
         return;
       }
       await fetchMetrics(sandboxId);
+      onSandboxDataChange?.();
     } catch {
       setError("Request failed");
     } finally {
@@ -205,6 +209,7 @@ export function EnterpriseSandboxSection({
         return;
       }
       await fetchMetrics(sandboxId);
+      onSandboxDataChange?.();
     } catch {
       setError("Request failed");
     } finally {
@@ -232,6 +237,7 @@ export function EnterpriseSandboxSection({
         return;
       }
       await fetchMetrics(sandboxId);
+      onSandboxDataChange?.();
     } catch {
       setError("Request failed");
     } finally {
@@ -259,6 +265,7 @@ export function EnterpriseSandboxSection({
         return;
       }
       await fetchMetrics(sandboxId);
+      onSandboxDataChange?.();
     } catch {
       setError("Request failed");
     } finally {
@@ -283,6 +290,7 @@ export function EnterpriseSandboxSection({
         return;
       }
       await fetchMetrics(sandboxId);
+      onSandboxDataChange?.();
     } catch {
       setError("Request failed");
     } finally {
