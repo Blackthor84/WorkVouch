@@ -340,7 +340,7 @@ export function EnterpriseSandboxSection({ employerList }: { employerList: { id:
               <Label>Add peer review (reviewer → reviewed)</Label>
               <Input value={reviewerUserId} onChange={(e) => setReviewerUserId(e.target.value)} placeholder="Reviewer user ID" />
               <Input value={reviewedUserId} onChange={(e) => setReviewedUserId(e.target.value)} placeholder="Reviewed user ID" />
-              <Button onClick={addPeerReview} disabled={!hasSandbox || !reviewerUserId || !reviewedUserId || peerReviewLoading} variant="outline" className="w-full">
+              <Button onClick={addPeerReview} disabled={!hasSandbox || !reviewerUserId || !reviewedUserId || peerReviewLoading} variant="secondary" className="w-full">
                 {peerReviewLoading ? "Adding…" : "Add peer review"}
               </Button>
             </div>
@@ -357,7 +357,7 @@ export function EnterpriseSandboxSection({ employerList }: { employerList: { id:
                   <option key={e.id} value={e.id}>{e.company_name ?? e.id.slice(0, 8)}</option>
                 ))}
               </select>
-              <Button onClick={simulateHiring} disabled={!hasSandbox || !candidateId || !employerIdForHiring || simHiringLoading} variant="outline" className="w-full">
+              <Button onClick={simulateHiring} disabled={!hasSandbox || !candidateId || !employerIdForHiring || simHiringLoading} variant="secondary" className="w-full">
                 {simHiringLoading ? "Running…" : "Simulate hiring"}
               </Button>
             </div>
@@ -373,7 +373,7 @@ export function EnterpriseSandboxSection({ employerList }: { employerList: { id:
                   <option key={e.id} value={e.id}>{e.company_name ?? e.id.slice(0, 8)}</option>
                 ))}
               </select>
-              <Button onClick={simulateAds} disabled={!hasSandbox || simAdsLoading} variant="outline" className="w-full">
+              <Button onClick={simulateAds} disabled={!hasSandbox || simAdsLoading} variant="secondary" className="w-full">
                 {simAdsLoading ? "Running…" : "Simulate ads"}
               </Button>
             </div>
@@ -412,7 +412,7 @@ export function EnterpriseSandboxSection({ employerList }: { employerList: { id:
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Live metrics</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => sandboxId && fetchMetrics(sandboxId)} disabled={loading || !sandboxId}>
+          <Button variant="secondary" size="sm" onClick={() => sandboxId && fetchMetrics(sandboxId)} disabled={loading || !sandboxId}>
             {loading ? "Loading…" : "Refresh"}
           </Button>
         </CardHeader>
