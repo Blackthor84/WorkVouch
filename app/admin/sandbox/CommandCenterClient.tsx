@@ -54,6 +54,10 @@ function useSandboxMetrics(sandboxId: string | null) {
   }, []);
 
   const fetchMetrics = useCallback(async (id: string) => {
+    if (!id) {
+      console.log("No active sandbox — skipping metrics fetch");
+      return;
+    }
     try {
       const res = await fetch(`/api/admin/intelligence-sandbox?sandboxId=${encodeURIComponent(id)}`, { credentials: "include" });
       const j = await res.json().catch(() => ({}));
@@ -127,6 +131,13 @@ export function CommandCenterClient({
   const countdown = useCountdown(endsAt);
 
   const activeSandbox = useMemo(() => sandboxes.find((s) => s.id === sandboxId) ?? null, [sandboxes, sandboxId]);
+
+  useEffect(() => {
+    if (!sandboxId && sandboxes.length > 0) {
+      setSandboxId(sandboxes[0].id);
+      console.log("Auto-selected sandbox:", sandboxes[0].id);
+    }
+  }, [sandboxes, sandboxId]);
 
   const gaugeValues = useMemo(() => {
     if (!metrics) return null;
@@ -238,7 +249,11 @@ export function CommandCenterClient({
             <p className="font-mono text-[10px] text-[#6b7280] mb-2">Active Sandbox</p>
             <select
               value={sandboxId ?? ""}
-              onChange={(e) => setSandboxId(e.target.value || null)}
+              onChange={(e) => {
+                const id = e.target.value;
+                setSandboxId(id || null);
+                console.log("Active sandbox set:", id);
+              }}
               className="w-full rounded border border-[#374151] bg-[#0B0F17] px-2 py-1.5 font-mono text-xs text-[#e5e7eb]"
             >
               <option value="">None</option>

@@ -117,20 +117,28 @@ export function EnterpriseSandboxSection({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ name: name || null, startsAt: start.toISOString(), endsAt: end.toISOString() }),
+        body: JSON.stringify({
+          name: name || null,
+          startTime: start.toISOString(),
+          endTime: end.toISOString(),
+          startsAt: start.toISOString(),
+          endsAt: end.toISOString(),
+        }),
       });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        setError(j.error || "Create failed");
-        return;
+      const json = await res.json().catch(() => ({}));
+      console.log("Sandbox create response:", json);
+
+      if (json?.sandbox?.id) {
+        const id = json.sandbox.id;
+        setSandboxId(id);
+        console.log("Active sandbox set:", id);
+        onSandboxCreated?.(id);
+        await fetchSandboxes();
+      } else if (!res.ok) {
+        setError((json as { message?: string }).message || "Create failed");
       }
-      const j = await res.json();
-      const id = (j.id ?? j.sandbox_id) as string;
-      setSandboxId(id);
-      console.log("Active sandbox set:", id);
-      onSandboxCreated?.(id);
-      await fetchSandboxes();
-    } catch {
+    } catch (err) {
+      console.error("Create sandbox failed:", err);
       setError("Request failed");
     } finally {
       setCreateLoading(false);
