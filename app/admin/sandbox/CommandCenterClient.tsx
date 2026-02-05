@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { CommandCenterGauge } from "@/components/admin/CommandCenterGauge";
 import { IntelligenceSandboxClient } from "@/app/admin/intelligence-sandbox/IntelligenceSandboxClient";
 import AdminSimulationSandbox from "@/components/admin/AdminSimulationSandbox";
 import { SimulationBuilderDataSection } from "@/components/admin/SimulationBuilderDataSection";
@@ -170,9 +169,9 @@ export function CommandCenterClient({
   }, [metrics]);
 
   return (
-    <div className="min-h-screen bg-[#0B0F17] text-[#e5e7eb]">
+    <div className="min-h-screen bg-slate-950 text-white">
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-[#1a1f2e] bg-[#0B0F17]/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-10 border-b border-slate-700 bg-slate-950/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-3">
           <span className="font-mono text-sm font-medium tracking-wider text-[#9ca3af]">
             WORKVOUCH // ENTERPRISE COMMAND
@@ -203,11 +202,11 @@ export function CommandCenterClient({
       <div className="mx-auto max-w-[1600px] grid grid-cols-1 gap-6 p-4 lg:grid-cols-12">
         {/* Left: 25% */}
         <aside className="space-y-3 lg:col-span-3">
-          <p className="font-mono text-sm md:text-base uppercase tracking-wider text-slate-300">System Controls</p>
+          <p className="font-mono text-sm uppercase tracking-wide text-slate-400">System Controls</p>
           {CONTROL_MODULES.map((m) => (
             <div
               key={m.id}
-              className="rounded-xl border border-slate-700 bg-slate-900 p-4 font-mono text-sm md:text-base text-emerald-400 shadow-inner transition-shadow hover:shadow-[0_0_20px_rgba(16,185,129,0.06)]"
+              className="rounded-2xl border border-slate-700 bg-slate-800 p-6 font-mono text-sm text-emerald-400 shadow-lg transition-shadow hover:shadow-[0_0_20px_rgba(16,185,129,0.06)]"
             >
               <div className="flex items-center gap-2">
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-slate-500" />
@@ -246,8 +245,8 @@ export function CommandCenterClient({
               </div>
             </div>
           ))}
-          <div className="rounded-xl border border-slate-700 bg-slate-900 p-4 font-mono text-sm md:text-base text-emerald-400 shadow-inner">
-            <p className="font-mono text-sm md:text-base text-slate-300 mb-2">Active Sandbox</p>
+          <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-lg">
+            <p className="mb-2 font-mono text-sm uppercase tracking-wide text-slate-400">Active Sandbox</p>
             <select
               value={sandboxId ?? ""}
               onChange={(e) => {
@@ -255,7 +254,7 @@ export function CommandCenterClient({
                 setSandboxId(id || null);
                 console.log("Active sandbox set:", id);
               }}
-              className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 font-mono text-sm md:text-base text-emerald-400"
+              className="w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 font-mono text-sm text-emerald-400"
             >
               <option value="">None</option>
               {sandboxes.map((s) => (
@@ -265,66 +264,87 @@ export function CommandCenterClient({
           </div>
         </aside>
 
-        {/* Center: 50% */}
+        {/* Center: 50% — Metrics card grid */}
         <main className="space-y-4 lg:col-span-6">
-          <p className="font-mono text-sm md:text-base uppercase tracking-wider text-slate-300">Metrics</p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <CommandCenterGauge
-              value={gaugeValues?.profileStrength ?? 0}
-              label="Profile Strength"
-              delta={null}
-              updatedAt={metrics ? "live" : null}
-            />
-            <CommandCenterGauge
-              value={gaugeValues?.careerHealth ?? 0}
-              label="Career Health"
-              updatedAt={metrics ? "live" : null}
-            />
-            <CommandCenterGauge
-              value={gaugeValues?.riskIndex ?? 0}
-              label="Risk Index"
-              updatedAt={metrics ? "live" : null}
-            />
-            <CommandCenterGauge
-              value={gaugeValues?.teamFit ?? 0}
-              label="Team Fit"
-              updatedAt={metrics ? "live" : null}
-            />
-            <CommandCenterGauge
-              value={gaugeValues?.hiringConfidence ?? 0}
-              label="Hiring Confidence"
-              updatedAt={metrics ? "live" : null}
-            />
-            <CommandCenterGauge
-              value={gaugeValues?.networkDensity ?? 0}
-              label="Network Density"
-              updatedAt={metrics ? "live" : null}
-            />
+          <p className="font-mono text-sm uppercase tracking-wide text-slate-400">Metrics</p>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { label: "Profile Strength", value: gaugeValues?.profileStrength ?? 0, isIntelligence: true },
+              { label: "Career Health", value: gaugeValues?.careerHealth ?? 0, isIntelligence: true },
+              { label: "Risk Index", value: gaugeValues?.riskIndex ?? 0, isIntelligence: true },
+              { label: "Team Fit", value: gaugeValues?.teamFit ?? 0, isIntelligence: true },
+              { label: "Hiring Confidence", value: gaugeValues?.hiringConfidence ?? 0, isIntelligence: true },
+              { label: "Network Density", value: gaugeValues?.networkDensity ?? 0, isIntelligence: true },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-lg"
+              >
+                <p className="text-sm uppercase tracking-wide text-slate-400">{item.label}</p>
+                <p
+                  className={`mt-2 text-3xl font-bold tabular-nums ${
+                    item.isIntelligence ? "text-cyan-400 drop-shadow-md" : "text-white"
+                  }`}
+                >
+                  {typeof item.value === "number"
+                    ? item.value % 1 === 0
+                      ? String(item.value)
+                      : item.value.toFixed(2)
+                    : "—"}
+                </p>
+                {metrics && (
+                  <p className="mt-1 font-mono text-xs text-slate-500">live</p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Executive Metrics — separate section */}
+          <div className="mt-10 border-t border-slate-700 pt-6">
+            <h2 className="text-lg font-semibold text-white">Executive Metrics</h2>
+            <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                { label: "Profiles", value: execStats.profiles },
+                { label: "Employment Records", value: execStats.employment },
+                { label: "References", value: execStats.references },
+                { label: "Data Density", value: execStats.density },
+                { label: "MRR (sandbox)", value: execStats.mrr },
+                { label: "Ad ROI (sandbox)", value: execStats.adRoi },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-lg"
+                >
+                  <p className="text-sm uppercase tracking-wide text-slate-400">{s.label}</p>
+                  <p className="mt-2 text-3xl font-bold tabular-nums text-white">
+                    {typeof s.value === "number"
+                      ? s.value % 1 === 0
+                        ? String(s.value)
+                        : s.value.toFixed(2)
+                      : "—"}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </main>
 
-        {/* Right: 25% */}
+        {/* Right: 25% — Command Console */}
         <aside className="space-y-3 lg:col-span-3">
-          <p className="font-mono text-sm md:text-base uppercase tracking-wider text-slate-300">Executive Metrics</p>
-          <div className="max-h-64 overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 p-4 font-mono text-sm md:text-base text-emerald-400 shadow-inner">
-            {[
-              { label: "Profiles", value: execStats.profiles },
-              { label: "Employment Records", value: execStats.employment },
-              { label: "References", value: execStats.references },
-              { label: "Data Density", value: execStats.density },
-              { label: "MRR (sandbox)", value: execStats.mrr },
-              { label: "Ad ROI (sandbox)", value: execStats.adRoi },
-            ].map((s) => (
-              <div key={s.label} className="border-b border-slate-700/50 py-2 last:border-0">
-                <p className="font-mono text-slate-300">{s.label}</p>
-                <p className="mt-1 font-mono text-lg tabular-nums text-emerald-400">
-                  {typeof s.value === "number" ? (s.value % 1 === 0 ? String(s.value) : s.value.toFixed(2)) : "—"}
-                </p>
-              </div>
-            ))}
-            <div className="border-t border-slate-700/50 pt-2 mt-2">
-              <p className="font-mono text-slate-300">Session Expiry</p>
-              <p className="mt-1 font-mono text-xl tabular-nums text-green-400">{countdown}</p>
+          <p className="font-mono text-sm uppercase tracking-wide text-slate-400">Command Console</p>
+          <div
+            className="mt-6 max-h-72 overflow-y-auto rounded-xl border border-emerald-500/40 bg-black p-4 font-mono text-sm text-emerald-400 shadow-inner"
+          >
+            <div className="space-y-2">
+              <p className="text-slate-400">&gt; Active sandbox: {activeSandbox ? (activeSandbox.name || activeSandbox.id.slice(0, 8)) : "None"}</p>
+              <p className="text-slate-400">&gt; Profiles: <span className="text-white">{execStats.profiles}</span></p>
+              <p className="text-slate-400">&gt; Employers: <span className="text-white">{metrics?.employers_count ?? 0}</span></p>
+              <p className="text-slate-400">&gt; Employment records: <span className="text-white">{execStats.employment}</span></p>
+              <p className="text-slate-400">&gt; References: <span className="text-white">{execStats.references}</span></p>
+              <p className="text-green-400">&gt; Session expiry: {countdown}</p>
+              {metrics && (
+                <p className="text-green-400">&gt; Metrics OK</p>
+              )}
             </div>
           </div>
         </aside>
@@ -336,10 +356,10 @@ export function CommandCenterClient({
           <button
             type="button"
             onClick={() => setWorkspaceTab(workspaceTab === "simulation" ? null : "simulation")}
-            className={`relative z-50 cursor-pointer rounded-xl px-3 py-2 font-mono text-sm md:text-base transition-colors ${
+            className={`relative z-50 cursor-pointer rounded-xl px-3 py-2 font-mono text-sm transition-colors ${
               workspaceTab === "simulation"
-                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                : "border border-slate-700 text-slate-300 hover:text-emerald-400"
+                ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400"
+                : "border border-slate-700 text-slate-400 hover:text-emerald-400"
             }`}
           >
             Simulation Builder
@@ -347,20 +367,20 @@ export function CommandCenterClient({
           <button
             type="button"
             onClick={() => setWorkspaceTab(workspaceTab === "intelligence" ? null : "intelligence")}
-            className={`relative z-50 cursor-pointer rounded-xl px-3 py-2 font-mono text-sm md:text-base transition-colors ${
+            className={`relative z-50 cursor-pointer rounded-xl px-3 py-2 font-mono text-sm transition-colors ${
               workspaceTab === "intelligence"
-                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                : "border border-slate-700 text-slate-300 hover:text-emerald-400"
+                ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-400"
+                : "border border-slate-700 text-slate-400 hover:text-emerald-400"
             }`}
           >
             Intelligence Sandbox
           </button>
         </div>
         {workspaceTab === "simulation" && (
-          <div className="max-h-64 overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 p-6 font-mono text-sm md:text-base text-emerald-400 shadow-inner space-y-6">
+          <div className="mt-6 max-h-72 overflow-y-auto rounded-xl border border-emerald-500/40 bg-black p-4 font-mono text-sm text-emerald-400 shadow-inner">
             <AdminSimulationSandbox />
-            <div>
-              <p className="font-mono text-slate-300 uppercase tracking-wider mb-3">Data input</p>
+            <div className="mt-6">
+              <p className="mb-3 text-sm uppercase tracking-wide text-slate-400">Data input</p>
               <SimulationBuilderDataSection
                 sandboxId={sandboxId}
                 employerList={(metrics?.employers && metrics.employers.length > 0) ? metrics.employers : employerList}
@@ -370,7 +390,7 @@ export function CommandCenterClient({
           </div>
         )}
         {workspaceTab === "intelligence" && (
-          <div className="max-h-64 overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 p-6 font-mono text-sm md:text-base text-emerald-400 shadow-inner">
+          <div className="mt-6 max-h-72 overflow-y-auto rounded-xl border border-emerald-500/40 bg-black p-4 font-mono text-sm text-emerald-400 shadow-inner">
             <IntelligenceSandboxClient
               employerList={employerList}
               onSandboxCreated={(id) => {

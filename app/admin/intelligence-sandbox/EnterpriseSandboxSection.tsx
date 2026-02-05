@@ -309,7 +309,7 @@ export function EnterpriseSandboxSection({
         </span>
       </div>
 
-      {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         <Card>
@@ -434,27 +434,36 @@ export function EnterpriseSandboxSection({
         </Card>
       </div>
 
-      <Card>
+      <Card className="rounded-2xl border-slate-700 bg-slate-800 shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Live metrics</CardTitle>
-          <Button variant="secondary" size="sm" onClick={() => sandboxId && fetchMetrics(sandboxId)} disabled={false}>
+          <CardTitle className="text-lg font-semibold text-white">Live metrics</CardTitle>
+          <Button variant="secondary" size="sm" onClick={() => sandboxId && fetchMetrics(sandboxId)} disabled={!!loading}>
             {loading ? "Loading…" : "Refresh"}
           </Button>
         </CardHeader>
         <CardContent>
-          {!sandboxId && <p className="text-grey-medium dark:text-gray-400">Select a sandbox to see metrics.</p>}
+          {!sandboxId && <p className="text-sm uppercase tracking-wide text-slate-400">Select a sandbox to see metrics.</p>}
           {sandboxId && metrics && (
-            <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-              <div><dt className="text-grey-medium dark:text-gray-400">Profiles</dt><dd className="font-medium">{metrics.profiles_count}</dd></div>
-              <div><dt className="text-grey-medium dark:text-gray-400">Employers</dt><dd className="font-medium">{metrics.employers_count}</dd></div>
-              <div><dt className="text-grey-medium dark:text-gray-400">Peer reviews</dt><dd className="font-medium">{metrics.peer_reviews_count}</dd></div>
-              <div><dt className="text-grey-medium dark:text-gray-400">Hiring confidence (avg)</dt><dd className="font-medium">{metrics.hiring_confidence_avg != null ? metrics.hiring_confidence_avg.toFixed(2) : "—"}</dd></div>
-              <div><dt className="text-grey-medium dark:text-gray-400">Ad campaigns</dt><dd className="font-medium">{metrics.ad_campaigns_count}</dd></div>
-              <div><dt className="text-grey-medium dark:text-gray-400">Ad spend</dt><dd className="font-medium">${metrics.ad_total_spend.toFixed(2)}</dd></div>
-              <div><dt className="text-grey-medium dark:text-gray-400">Impressions</dt><dd className="font-medium">{metrics.ad_total_impressions}</dd></div>
-              <div><dt className="text-grey-medium dark:text-gray-400">Clicks</dt><dd className="font-medium">{metrics.ad_total_clicks}</dd></div>
-              <div><dt className="text-grey-medium dark:text-gray-400">Conversions</dt><dd className="font-medium">{metrics.ad_total_conversions}</dd></div>
-            </dl>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                { label: "Profiles", value: metrics.profiles_count },
+                { label: "Employers", value: metrics.employers_count },
+                { label: "Peer reviews", value: metrics.peer_reviews_count },
+                { label: "Hiring confidence (avg)", value: metrics.hiring_confidence_avg != null ? metrics.hiring_confidence_avg.toFixed(2) : "—" },
+                { label: "Ad campaigns", value: metrics.ad_campaigns_count },
+                { label: "Ad spend", value: `$${metrics.ad_total_spend.toFixed(2)}` },
+                { label: "Impressions", value: metrics.ad_total_impressions },
+                { label: "Clicks", value: metrics.ad_total_clicks },
+                { label: "Conversions", value: metrics.ad_total_conversions },
+              ].map((item) => (
+                <div key={item.label} className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-lg">
+                  <p className="text-sm uppercase tracking-wide text-slate-400">{item.label}</p>
+                  <p className="mt-2 text-3xl font-bold tabular-nums text-white">
+                    {typeof item.value === "number" ? (item.value % 1 === 0 ? String(item.value) : item.value) : item.value}
+                  </p>
+                </div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>

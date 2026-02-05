@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing sandboxId" }, { status: 400 });
     }
     if (sandboxId) {
-      console.log("Fetching sandbox metrics for:", sandboxId);
+      console.log("Fetching metrics for sandbox:", sandboxId);
 
       const { data: sandbox, error: sbErr } = await supabase
         .from("intelligence_sandboxes")
@@ -75,10 +75,10 @@ export async function GET(req: NextRequest) {
       const referencesCount = refsRes.count ?? 0;
       const employmentRecordsCount = employmentRecordsRes.count ?? 0;
 
-      console.log("Profiles found:", profilesCount);
-      console.log("Employers found:", employersList?.length ?? 0);
-      console.log("Employment records found:", employmentRecordsCount);
-      console.log("References found:", referencesCount);
+      console.log("Profiles:", profilesCount);
+      console.log("Employers:", employersList?.length ?? 0);
+      console.log("Employment Records:", employmentRecordsCount);
+      console.log("References:", referencesCount);
       const avgHiringConfidence =
         hiringRows.length > 0
           ? hiringRows.reduce((sum, row) => sum + (typeof row.composite_score === "number" ? row.composite_score : 0), 0) / hiringRows.length
@@ -125,6 +125,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         sandbox: { id: sandbox.id, name: sandbox.name, starts_at: sandbox.starts_at, ends_at: sandbox.ends_at, status: sandbox.status },
         metrics: metricsPayload,
+        rawCounts: {
+          profiles: profilesCount,
+          employers: employersCount,
+          employmentRecords: employmentRecordsCount,
+          references: referencesCount,
+        },
       });
     }
 

@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (profileError) {
+      console.error("Employer insert failed (profile):", profileError);
       return NextResponse.json(
         { success: false, message: profileError.message },
         { status: 400 }
@@ -50,12 +51,14 @@ export async function POST(req: NextRequest) {
     });
 
     if (employerError) {
+      console.error("Employer insert failed (employer_accounts):", employerError);
       return NextResponse.json(
         { success: false, message: employerError.message },
         { status: 400 }
       );
     }
 
+    console.log("Employer inserted:", fakeUserId);
     return NextResponse.json({
       success: true,
       employerId: fakeUserId,
