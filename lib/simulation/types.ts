@@ -3,10 +3,16 @@
  * No Supabase, NextAuth, Stripe. Pure logic only.
  */
 
-/** Optional context for intelligence pipeline when writing simulation/sandbox data. Validate session or sandbox before use. */
+/**
+ * Context for intelligence pipeline when writing simulation/sandbox data.
+ * expiresAt is always required. Either simulationSessionId (simulation lab) or sandboxId (intelligence sandbox) must be set.
+ * Validate session or sandbox before constructing; pass only after validation.
+ */
 export interface SimulationContext {
+  /** Required for simulation lab flows. */
   simulationSessionId?: string;
-  expiresAt: string; // ISO string
+  /** Required. ISO string. */
+  expiresAt: string;
   /** When set, engines write sandbox_id (intelligence sandbox layer). */
   sandboxId?: string;
 }

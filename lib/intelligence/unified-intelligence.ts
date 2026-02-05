@@ -5,6 +5,7 @@
  */
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import type { SimulationContext } from "@/lib/simulation/types";
 import { getOrCreateSnapshot } from "./getOrCreateSnapshot";
 import { runCandidateIntelligence, runEmployerCandidateIntelligence } from "./runIntelligencePipeline";
 
@@ -178,7 +179,7 @@ export async function calculateUnifiedIntelligence(
  */
 export async function persistUnifiedIntelligence(
   userId: string,
-  simulationContext?: { simulationSessionId: string; expiresAt: string } | null
+  simulationContext?: SimulationContext | null
 ): Promise<void> {
   try {
     if (simulationContext?.simulationSessionId) {
@@ -205,8 +206,9 @@ export async function persistUnifiedIntelligence(
     };
     if (simulationContext) {
       row.is_simulation = true;
-      row.simulation_session_id = simulationContext.simulationSessionId;
       row.expires_at = simulationContext.expiresAt;
+      if (simulationContext.simulationSessionId) row.simulation_session_id = simulationContext.simulationSessionId;
+      if (simulationContext.sandboxId) row.sandbox_id = simulationContext.sandboxId;
     }
 
     const { error } = await supabase.from("intelligence_snapshots").update(row).eq("user_id", userId);

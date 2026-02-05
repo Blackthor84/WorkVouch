@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const verificationStatus = (body.verificationStatus as string) || "verified";
 
     if (!sandboxId) {
-      return NextResponse.json({ error: "sandbox_id required" }, { status: 400 });
+      return NextResponse.json({ error: "Simulation session required" }, { status: 400 });
     }
 
     const sandbox = await validateSandboxForWrite(sandboxId, adminId);
@@ -90,8 +90,8 @@ export async function POST(req: NextRequest) {
     }
 
     await calculateUserIntelligence(userId, context);
-    await runCandidateIntelligence(userId, context ?? undefined);
-    await persistUnifiedIntelligence(userId, context ?? undefined);
+    await runCandidateIntelligence(userId, context);
+    await persistUnifiedIntelligence(userId, context);
 
     return NextResponse.json({
       ok: true,
