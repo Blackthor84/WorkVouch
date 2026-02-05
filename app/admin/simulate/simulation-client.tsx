@@ -183,10 +183,10 @@ export default function SimulationClient() {
           <Button type="button" variant="secondary" size="sm" onClick={() => { console.log("[Elite Demo] Activate Elite Demo clicked"); activateElite({ simulateExpired: false, subscriptionStatus: "active" }); }}>
             Activate Elite Demo
           </Button>
-          <Link href="/admin/demo/revenue" onClick={() => console.log("[Elite Demo] Revenue Simulator clicked")} className="inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 px-3 py-2 text-sm bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 dark:bg-[#111827] dark:text-gray-300 dark:border-[#374151] dark:hover:bg-[#1A1F2B]">
+          <Link href="/admin/sandbox-v2" onClick={() => console.log("[Elite Demo] Revenue Simulator clicked")} className="inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 px-3 py-2 text-sm bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 dark:bg-[#111827] dark:text-gray-300 dark:border-[#374151] dark:hover:bg-[#1A1F2B]">
             Revenue Simulator
           </Link>
-          <Link href="/admin/demo/ads" onClick={() => console.log("[Elite Demo] Ads ROI Simulator clicked")} className="inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 px-3 py-2 text-sm bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 dark:bg-[#111827] dark:text-gray-300 dark:border-[#374151] dark:hover:bg-[#1A1F2B]">
+          <Link href="/admin/sandbox-v2" onClick={() => console.log("[Elite Demo] Ads ROI Simulator clicked")} className="inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 px-3 py-2 text-sm bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 dark:bg-[#111827] dark:text-gray-300 dark:border-[#374151] dark:hover:bg-[#1A1F2B]">
             Ads ROI Simulator
           </Link>
         </CardContent>

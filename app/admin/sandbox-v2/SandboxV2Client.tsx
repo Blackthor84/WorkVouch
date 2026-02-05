@@ -1,0 +1,887 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+const API = "/api/admin/sandbox-v2";
+
+type Session = { id: string; name: string | null; starts_at: string; ends_at: string; status: string };
+type Employer = { id: string; company_name?: string; industry?: string; plan_tier?: string };
+type Employee = { id: string; full_name?: string; industry?: string };
+type IntelOutput = { employee_id: string; profile_strength?: number; career_health?: number; risk_index?: number; team_fit?: number; hiring_confidence?: number; network_density?: number };
+type Executive = { avgProfileStrength: number | null; avgHiringConfidence: number | null; totalSpend: number; adRoi: number; dataDensityIndex: number };
+type Metrics = {
+  session: Session | null;
+  employeeIntelligence: { employeesCount: number; employmentRecordsCount: number; peerReviewsCount: number; avgHiringConfidence: number | null; avgProfileStrength: number | null; outputs: IntelOutput[] };
+  employerAnalytics: { employersCount: number; employers: Employer[] };
+  revenueSimulation: { mrr: number; churn_rate: number; revenueRows: number };
+  adsSimulation: { campaignsCount: number; totalSpend: number; totalImpressions: number; totalClicks: number };
+  rawCounts: { profiles: number; employers: number; employmentRecords: number; references: number };
+  executive?: Executive;
+  sessionSummary?: SessionSummary;
+};
+type FeatureItem = { id: string; feature_key: string; is_enabled: boolean };
+type TemplateItem = { id: string; template_key: string; display_name: string; industry: string; default_employee_count: number; description?: string | null };
+type SessionSummary = { avg_profile_strength?: number; avg_career_health?: number; avg_risk_index?: number; hiring_confidence_mean?: number; network_density?: number; revenue_projection?: number; ad_roi?: number; data_density_index?: number; demo_mode?: string | null } | null;
+
+export function SandboxV2Client() {
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [sandboxId, setSandboxId] = useState<string | null>(null);
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [features, setFeatures] = useState<FeatureItem[]>([]);
+  const [overrides, setOverrides] = useState<Record<string, boolean>>({});
+  const [consoleLogs, setConsoleLogs] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [createName, setCreateName] = useState("");
+  const [createLoading, setCreateLoading] = useState(false);
+  const [employerName, setEmployerName] = useState("");
+  const [employerIndustry, setEmployerIndustry] = useState("");
+  const [employerPlanTier, setEmployerPlanTier] = useState("pro");
+  const [employeeName, setEmployeeName] = useState("");
+  const [employeeIndustry, setEmployeeIndustry] = useState("");
+  const [peerReviewerId, setPeerReviewerId] = useState("");
+  const [peerReviewedId, setPeerReviewedId] = useState("");
+  const [peerRating, setPeerRating] = useState(3);
+  const [peerReviewText, setPeerReviewText] = useState("");
+  const [hireEmployeeId, setHireEmployeeId] = useState("");
+  const [hireEmployerId, setHireEmployerId] = useState("");
+  const [hireRole, setHireRole] = useState("");
+  const [hireTenureMonths, setHireTenureMonths] = useState(12);
+  const [hireRehireEligible, setHireRehireEligible] = useState(true);
+  const [adsEmployerId, setAdsEmployerId] = useState("");
+  const [adsImpressions, setAdsImpressions] = useState(1000);
+  const [adsClicks, setAdsClicks] = useState(50);
+  const [adsSpend, setAdsSpend] = useState(100);
+  const [churnRate, setChurnRate] = useState(0.05);
+  const [viewAs, setViewAs] = useState<"Admin" | "Employer" | "Employee">("Admin");
+  const [executiveMode, setExecutiveMode] = useState(false);
+  const [genEmployerLoading, setGenEmployerLoading] = useState(false);
+  const [genEmployeeLoading, setGenEmployeeLoading] = useState(false);
+  const [peerReviewLoading, setPeerReviewLoading] = useState(false);
+  const [hireLoading, setHireLoading] = useState(false);
+  const [adsLoading, setAdsLoading] = useState(false);
+  const [revenueLoading, setRevenueLoading] = useState(false);
+  const [recalcLoading, setRecalcLoading] = useState(false);
+  const [cleanupLoading, setCleanupLoading] = useState(false);
+  const [syncFeaturesLoading, setSyncFeaturesLoading] = useState(false);
+  const [templates, setTemplates] = useState<TemplateItem[]>([]);
+  const [selectedTemplateKey, setSelectedTemplateKey] = useState("");
+  const [templateEmployeeOverride, setTemplateEmployeeOverride] = useState("");
+  const [deployTemplateLoading, setDeployTemplateLoading] = useState(false);
+  const [deployProgress, setDeployProgress] = useState<string[]>([]);
+  const [demoMode, setDemoMode] = useState<string | null>(null);
+  const [demoModeLoading, setDemoModeLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const log = useCallback((msg: string, type: "info" | "success" | "error" = "info") => {
+    const prefix = type === "success" ? "[OK] " : type === "error" ? "[ERR] " : "> ";
+    setConsoleLogs((prev) => [...prev.slice(-99), `${prefix}${msg}`]);
+  }, []);
+
+  const fetchSessions = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/sessions`, { credentials: "include" });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Failed to load sessions");
+      setSessions(j.sessions ?? []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error");
+      setSessions([]);
+    }
+  }, []);
+
+  const fetchMetrics = useCallback(async (id: string) => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/metrics?sandboxId=${encodeURIComponent(id)}`, { credentials: "include" });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Failed to load metrics");
+      setMetrics(j);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error");
+      setMetrics(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchFeatures = useCallback(async (id: string | null) => {
+    try {
+      const url = id ? `${API}/features?sandboxId=${encodeURIComponent(id)}` : `${API}/features`;
+      const res = await fetch(url, { credentials: "include" });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) return;
+      setFeatures(j.features ?? []);
+      setOverrides(j.overrides ?? {});
+    } catch {
+      setFeatures([]);
+      setOverrides({});
+    }
+  }, []);
+
+  const fetchTemplates = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/templates`, { credentials: "include" });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) return;
+      setTemplates(j.templates ?? []);
+    } catch {
+      setTemplates([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSessions();
+  }, [fetchSessions]);
+
+  useEffect(() => {
+    if (sandboxId) {
+      fetchMetrics(sandboxId);
+      fetchFeatures(sandboxId);
+    } else {
+      setMetrics(null);
+      fetchFeatures(null);
+    }
+  }, [sandboxId, fetchMetrics, fetchFeatures]);
+
+  useEffect(() => {
+    const summary = metrics?.sessionSummary;
+    setDemoMode(summary?.demo_mode ?? null);
+  }, [metrics?.sessionSummary?.demo_mode]);
+
+  const createSession = async () => {
+    setCreateLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ name: createName || null }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Create failed");
+      log("Session created: " + (j.session?.id ?? "").slice(0, 8), "success");
+      setCreateName("");
+      await fetchSessions();
+      if (j.session?.id) setSandboxId(j.session.id);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const generateEmployer = async () => {
+    if (!sandboxId) return;
+    setGenEmployerLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/employers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sandbox_id: sandboxId, company_name: employerName || "Sandbox Company", industry: employerIndustry || null, plan_tier: employerPlanTier }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Generate failed");
+      log("Employer created: " + (j.employer?.id ?? "").slice(0, 8), "success");
+      setEmployerName("");
+      await fetchMetrics(sandboxId);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+    } finally {
+      setGenEmployerLoading(false);
+    }
+  };
+
+  const generateEmployee = async () => {
+    if (!sandboxId) return;
+    setGenEmployeeLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/employees`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sandbox_id: sandboxId, full_name: employeeName || "Sandbox Employee", industry: employeeIndustry || null }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Generate failed");
+      log("Employee created: " + (j.employee?.id ?? "").slice(0, 8), "success");
+      setEmployeeName("");
+      await fetchMetrics(sandboxId);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+    } finally {
+      setGenEmployeeLoading(false);
+    }
+  };
+
+  const addPeerReview = async () => {
+    if (!sandboxId || !peerReviewerId || !peerReviewedId) return;
+    setPeerReviewLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/peer-reviews`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sandbox_id: sandboxId, reviewer_id: peerReviewerId, reviewed_id: peerReviewedId, rating: peerRating, review_text: peerReviewText || null }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Add peer review failed");
+      log("Peer review added (sentiment auto-calculated)", "success");
+      setPeerReviewText("");
+      await fetchMetrics(sandboxId);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+    } finally {
+      setPeerReviewLoading(false);
+    }
+  };
+
+  const addHiring = async () => {
+    if (!sandboxId || !hireEmployeeId || !hireEmployerId) return;
+    setHireLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/employment-records`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sandbox_id: sandboxId, employee_id: hireEmployeeId, employer_id: hireEmployerId, role: hireRole || null, tenure_months: hireTenureMonths, rehire_eligible: hireRehireEligible }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Hiring simulation failed");
+      log("Employment record added", "success");
+      await fetchMetrics(sandboxId);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+    } finally {
+      setHireLoading(false);
+    }
+  };
+
+  const addAds = async () => {
+    if (!sandboxId) return;
+    setAdsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/ads`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sandbox_id: sandboxId, employer_id: adsEmployerId || undefined, impressions: adsImpressions, clicks: adsClicks, spend: adsSpend }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Ads simulation failed");
+      log("Ad campaign added (ROI auto-calculated)", "success");
+      await fetchMetrics(sandboxId);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+    } finally {
+      setAdsLoading(false);
+    }
+  };
+
+  const updateRevenue = async () => {
+    if (!sandboxId) return;
+    setRevenueLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/revenue`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sandbox_id: sandboxId, churn_rate: churnRate }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Revenue update failed");
+      log(`Revenue: MRR=${j.mrr}, churn=${churnRate}`, "success");
+      await fetchMetrics(sandboxId);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+    } finally {
+      setRevenueLoading(false);
+    }
+  };
+
+  const runRecalculate = async () => {
+    if (!sandboxId) return;
+    setRecalcLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/recalculate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sandbox_id: sandboxId }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Recalculate failed");
+      log("Intelligence recalculated", "success");
+      await fetchMetrics(sandboxId);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+    } finally {
+      setRecalcLoading(false);
+    }
+  };
+
+  const runCleanup = async () => {
+    setCleanupLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API}/cleanup`, { method: "POST", credentials: "include" });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Cleanup failed");
+      log(`Cleanup: ${j.deleted ?? 0} expired sessions deleted`, "success");
+      await fetchSessions();
+      if (sandboxId && (j.deleted ?? 0) > 0) setSandboxId(null);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+    } finally {
+      setCleanupLoading(false);
+    }
+  };
+
+  const syncFeatures = async () => {
+    setSyncFeaturesLoading(true);
+    try {
+      const res = await fetch(`${API}/features/sync`, { method: "POST", credentials: "include" });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Sync failed");
+      log(`Features synced: ${j.synced ?? 0}`, "success");
+      await fetchFeatures(sandboxId);
+    } catch (e) {
+      log(e instanceof Error ? e.message : "Error", "error");
+    } finally {
+      setSyncFeaturesLoading(false);
+    }
+  };
+
+  const setFeatureOverride = async (featureKey: string, isEnabled: boolean) => {
+    if (!sandboxId) return;
+    try {
+      const res = await fetch(`${API}/feature-overrides`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sandbox_id: sandboxId, feature_key: featureKey, is_enabled: isEnabled }),
+      });
+      if (!res.ok) return;
+      setOverrides((prev) => ({ ...prev, [featureKey]: isEnabled }));
+    } catch {
+      // no-op
+    }
+  };
+
+  const deployTemplate = async () => {
+    if (!sandboxId || !selectedTemplateKey) return;
+    setDeployTemplateLoading(true);
+    setDeployProgress(["Starting…"]);
+    setError(null);
+    try {
+      const override = templateEmployeeOverride.trim() ? parseInt(templateEmployeeOverride, 10) : undefined;
+      const res = await fetch(`${API}/generate-template`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sandbox_id: sandboxId, template_key: selectedTemplateKey, employee_count_override: override }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Deploy failed");
+      const stats = j.stats ?? {};
+      setDeployProgress([
+        `Employees created: ${stats.employees ?? 0}`,
+        `Reviews created: ${stats.reviews ?? 0}`,
+        "Intelligence calculated",
+        "Revenue simulated",
+        "Ads simulated",
+      ].filter(Boolean));
+      log(`Template deployed: ${stats.employees ?? 0} employees, ${stats.reviews ?? 0} reviews`, "success");
+      await fetchMetrics(sandboxId);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+      setDeployProgress([]);
+    } finally {
+      setDeployTemplateLoading(false);
+    }
+  };
+
+  const setDemoModePreset = async (mode: string | null) => {
+    if (!sandboxId) return;
+    setDemoModeLoading(true);
+    try {
+      const res = await fetch(`${API}/demo-mode`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sandbox_id: sandboxId, demo_mode: mode ?? null }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Set demo mode failed");
+      setDemoMode(j.demo_mode ?? null);
+      log(mode ? `Demo mode: ${mode}` : "Demo mode cleared", "success");
+    } catch (e) {
+      log(e instanceof Error ? e.message : "Error", "error");
+    } finally {
+      setDemoModeLoading(false);
+    }
+  };
+
+  const ei = metrics?.employeeIntelligence ?? null;
+  const ea = metrics?.employerAnalytics ?? null;
+  const rev = metrics?.revenueSimulation ?? null;
+  const ads = metrics?.adsSimulation ?? null;
+  const exec = metrics?.executive;
+
+  const employeeList: Employee[] = (metrics?.employeeIntelligence as { employees?: Employee[] })?.employees ?? [];
+  const employerList = ea?.employers ?? [];
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-white">
+      <header className="sticky top-0 z-10 border-b border-slate-700 bg-slate-950/95 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-3">
+          <span className="text-lg font-semibold text-white">Enterprise Simulation Environment</span>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 text-sm text-slate-400">
+              <input type="checkbox" checked={executiveMode} onChange={(e) => setExecutiveMode(e.target.checked)} className="rounded" />
+              Executive Mode
+            </label>
+            <Link href="/admin">
+              <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white">← Admin</Button>
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-[1600px] space-y-6 p-6">
+        {error && (
+          <div className="rounded-2xl border border-red-500/50 bg-red-500/10 px-4 py-2 text-red-400">{error}</div>
+        )}
+
+        {/* Executive Dashboard (boardroom ready) */}
+        {executiveMode && exec && (
+          <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+            <h2 className="text-lg font-semibold text-white">Executive Dashboard</h2>
+            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <p className="text-sm uppercase tracking-wide text-slate-400">Total Sandbox MRR</p>
+                <p className="text-3xl font-bold text-cyan-400">{rev?.mrr ?? 0}</p>
+              </div>
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <p className="text-sm uppercase tracking-wide text-slate-400">Growth %</p>
+                <p className="text-3xl font-bold text-cyan-400">—</p>
+              </div>
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <p className="text-sm uppercase tracking-wide text-slate-400">Avg Profile Strength</p>
+                <p className="text-3xl font-bold text-cyan-400">{exec.avgProfileStrength != null ? exec.avgProfileStrength.toFixed(1) : "—"}</p>
+              </div>
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <p className="text-sm uppercase tracking-wide text-slate-400">Avg Hiring Confidence</p>
+                <p className="text-3xl font-bold text-cyan-400">{exec.avgHiringConfidence != null ? exec.avgHiringConfidence.toFixed(1) : "—"}</p>
+              </div>
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <p className="text-sm uppercase tracking-wide text-slate-400">Ad ROI</p>
+                <p className="text-3xl font-bold text-cyan-400">{exec.adRoi != null ? exec.adRoi.toFixed(2) : "—"}</p>
+              </div>
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <p className="text-sm uppercase tracking-wide text-slate-400">Data Density Index</p>
+                <p className="text-3xl font-bold text-cyan-400">{exec.dataDensityIndex ?? 0}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Sandbox Session Control */}
+        <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+          <h2 className="text-lg font-semibold text-white">Sandbox Session Control</h2>
+          <div className="mt-4 flex flex-wrap items-end gap-4">
+            <div>
+              <Label className="text-slate-400">Name</Label>
+              <Input value={createName} onChange={(e) => setCreateName(e.target.value)} placeholder="New session name" className="mt-1 w-48 border-slate-700 bg-slate-800 text-white" />
+            </div>
+            <Button onClick={createSession} disabled={createLoading}>{createLoading ? "Creating…" : "Create session"}</Button>
+            <div className="ml-4">
+              <Label className="text-slate-400">Active session</Label>
+              <select value={sandboxId ?? ""} onChange={(e) => setSandboxId(e.target.value || null)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
+                <option value="">None</option>
+                {sessions.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name || s.id.slice(0, 8)} — {s.status}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Auto Population Templates */}
+        <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-900 to-slate-800 p-6 shadow-xl">
+          <h2 className="text-lg font-semibold text-white">Auto Population Templates</h2>
+          <p className="mt-1 text-sm text-slate-400">One-click deploy: employees, reviews, intelligence, revenue, ads.</p>
+          <div className="mt-4 flex flex-wrap items-end gap-4">
+            <div>
+              <Label className="text-slate-400">Select Template</Label>
+              <select value={selectedTemplateKey} onChange={(e) => setSelectedTemplateKey(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
+                <option value="">—</option>
+                {templates.map((t) => (
+                  <option key={t.id} value={t.template_key}>{t.display_name} ({t.default_employee_count})</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label className="text-slate-400">Override Employee Count (optional)</Label>
+              <Input type="number" min={1} value={templateEmployeeOverride} onChange={(e) => setTemplateEmployeeOverride(e.target.value)} placeholder="Default" className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
+            </div>
+            <Button onClick={deployTemplate} disabled={!sandboxId || !selectedTemplateKey || deployTemplateLoading}>
+              {deployTemplateLoading ? "Deploying…" : "Deploy Template"}
+            </Button>
+          </div>
+          {deployProgress.length > 0 && (
+            <div className="mt-4 space-y-1">
+              <p className="text-sm font-medium text-slate-300">Progress</p>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                <div className="h-full bg-cyan-500 transition-all" style={{ width: deployProgress.length >= 5 ? "100%" : `${(deployProgress.length / 5) * 100}%` }} />
+              </div>
+              <ul className="mt-2 space-y-1 text-sm text-slate-400">
+                {deployProgress.map((line, i) => (
+                  <li key={i}>{line}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {metrics?.sessionSummary && (
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-xl border border-cyan-600/40 bg-slate-900/60 p-3">
+                <p className="text-xs uppercase tracking-wide text-slate-400">Avg Profile Strength</p>
+                <p className="text-2xl font-bold text-cyan-400">{metrics.sessionSummary.avg_profile_strength != null ? Number(metrics.sessionSummary.avg_profile_strength).toFixed(1) : "—"}</p>
+              </div>
+              <div className="rounded-xl border border-cyan-600/40 bg-slate-900/60 p-3">
+                <p className="text-xs uppercase tracking-wide text-slate-400">Hiring Confidence</p>
+                <p className="text-2xl font-bold text-cyan-400">{metrics.sessionSummary.hiring_confidence_mean != null ? Number(metrics.sessionSummary.hiring_confidence_mean).toFixed(1) : "—"}</p>
+              </div>
+              <div className="rounded-xl border border-cyan-600/40 bg-slate-900/60 p-3">
+                <p className="text-xs uppercase tracking-wide text-slate-400">Revenue Projection</p>
+                <p className="text-2xl font-bold text-cyan-400">{metrics.sessionSummary.revenue_projection != null ? Number(metrics.sessionSummary.revenue_projection) : "—"}</p>
+              </div>
+              <div className="rounded-xl border border-cyan-600/40 bg-slate-900/60 p-3">
+                <p className="text-xs uppercase tracking-wide text-slate-400">Ad ROI</p>
+                <p className="text-2xl font-bold text-cyan-400">{metrics.sessionSummary.ad_roi != null ? Number(metrics.sessionSummary.ad_roi).toFixed(2) : "—"}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Preset Demo Modes */}
+        <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+          <h2 className="text-lg font-semibold text-white">Preset Demo Modes</h2>
+          <p className="mt-1 text-sm text-slate-400">Alter display emphasis (review volume, sentiment, revenue, risk, churn, ad ROI) without regenerating data.</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {[
+              { key: "boardroom", label: "Boardroom Mode" },
+              { key: "high_risk", label: "High Risk Scenario" },
+              { key: "rapid_growth", label: "Rapid Growth Scenario" },
+              { key: "investor_pitch", label: "Investor Pitch Mode" },
+              { key: "ad_explosion", label: "Ad Explosion Mode" },
+            ].map(({ key, label }) => (
+              <Button key={key} variant={demoMode === key ? "default" : "secondary"} size="sm" onClick={() => setDemoModePreset(demoMode === key ? null : key)} disabled={!sandboxId || demoModeLoading}>
+                {label}
+              </Button>
+            ))}
+            {demoMode && <span className="self-center text-sm text-slate-400">Active: {demoMode}</span>}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Employer Generator */}
+          <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+            <h2 className="text-lg font-semibold text-white">Employer Generator</h2>
+            <div className="mt-4 space-y-3">
+              <div>
+                <Label className="text-slate-400">Company name</Label>
+                <Input value={employerName} onChange={(e) => setEmployerName(e.target.value)} placeholder="Company name" className="mt-1 border-slate-700 bg-slate-800 text-white" />
+              </div>
+              <div>
+                <Label className="text-slate-400">Industry</Label>
+                <Input value={employerIndustry} onChange={(e) => setEmployerIndustry(e.target.value)} placeholder="Industry" className="mt-1 border-slate-700 bg-slate-800 text-white" />
+              </div>
+              <div>
+                <Label className="text-slate-400">Plan tier</Label>
+                <select value={employerPlanTier} onChange={(e) => setEmployerPlanTier(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
+                  <option value="starter">Starter</option>
+                  <option value="pro">Pro</option>
+                  <option value="enterprise">Enterprise</option>
+                </select>
+              </div>
+              <Button onClick={generateEmployer} disabled={!sandboxId || genEmployerLoading}>{genEmployerLoading ? "…" : "Generate employer"}</Button>
+            </div>
+          </div>
+
+          {/* Employee Generator */}
+          <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+            <h2 className="text-lg font-semibold text-white">Employee Generator</h2>
+            <div className="mt-4 space-y-3">
+              <div>
+                <Label className="text-slate-400">Full name</Label>
+                <Input value={employeeName} onChange={(e) => setEmployeeName(e.target.value)} placeholder="Full name" className="mt-1 border-slate-700 bg-slate-800 text-white" />
+              </div>
+              <div>
+                <Label className="text-slate-400">Industry</Label>
+                <Input value={employeeIndustry} onChange={(e) => setEmployeeIndustry(e.target.value)} placeholder="Industry" className="mt-1 border-slate-700 bg-slate-800 text-white" />
+              </div>
+              <Button onClick={generateEmployee} disabled={!sandboxId || genEmployeeLoading}>{genEmployeeLoading ? "…" : "Generate employee"}</Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Peer Review Builder */}
+        <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+          <h2 className="text-lg font-semibold text-white">Peer Review Builder</h2>
+          <p className="mt-1 text-sm text-slate-400">Sentiment score auto-calculated from text (positive +1, negative -1).</p>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <Label className="text-slate-400">Reviewer</Label>
+              <select value={peerReviewerId} onChange={(e) => setPeerReviewerId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
+                <option value="">Select employee</option>
+                {employeeList.map((e) => (
+                  <option key={e.id} value={e.id}>{e.full_name ?? e.id.slice(0, 8)}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label className="text-slate-400">Reviewed</Label>
+              <select value={peerReviewedId} onChange={(e) => setPeerReviewedId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
+                <option value="">Select employee</option>
+                {employeeList.map((e) => (
+                  <option key={e.id} value={e.id}>{e.full_name ?? e.id.slice(0, 8)}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label className="text-slate-400">Rating (1–5)</Label>
+              <select value={peerRating} onChange={(e) => setPeerRating(parseInt(e.target.value, 10))} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
+            <div className="sm:col-span-2">
+              <Label className="text-slate-400">Review text</Label>
+              <Input value={peerReviewText} onChange={(e) => setPeerReviewText(e.target.value)} placeholder="Review text (sentiment auto-calculated)" className="mt-1 border-slate-700 bg-slate-800 text-white" />
+            </div>
+            <Button onClick={addPeerReview} disabled={!sandboxId || !peerReviewerId || !peerReviewedId || peerReviewLoading}>{peerReviewLoading ? "…" : "Add peer review"}</Button>
+          </div>
+        </div>
+
+        {/* Hiring Simulation */}
+        <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+          <h2 className="text-lg font-semibold text-white">Hiring Simulation</h2>
+          <div className="mt-4 flex flex-wrap gap-4">
+            <div>
+              <Label className="text-slate-400">Employee</Label>
+              <select value={hireEmployeeId} onChange={(e) => setHireEmployeeId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
+                <option value="">Select employee</option>
+                {employeeList.map((e) => (
+                  <option key={e.id} value={e.id}>{e.full_name ?? e.id.slice(0, 8)}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label className="text-slate-400">Employer</Label>
+              <select value={hireEmployerId} onChange={(e) => setHireEmployerId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
+                <option value="">Select employer</option>
+                {employerList.map((e) => (
+                  <option key={e.id} value={e.id}>{e.company_name ?? e.id.slice(0, 8)}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label className="text-slate-400">Role</Label>
+              <Input value={hireRole} onChange={(e) => setHireRole(e.target.value)} placeholder="Role" className="mt-1 border-slate-700 bg-slate-800 text-white" />
+            </div>
+            <div>
+              <Label className="text-slate-400">Tenure (months)</Label>
+              <Input type="number" value={hireTenureMonths} onChange={(e) => setHireTenureMonths(parseInt(e.target.value, 10) || 0)} className="mt-1 w-24 border-slate-700 bg-slate-800 text-white" />
+            </div>
+            <label className="flex items-center gap-2 text-slate-400">
+              <input type="checkbox" checked={hireRehireEligible} onChange={(e) => setHireRehireEligible(e.target.checked)} className="rounded" />
+              Rehire eligible
+            </label>
+            <Button onClick={addHiring} disabled={!sandboxId || !hireEmployeeId || !hireEmployerId || hireLoading}>{hireLoading ? "…" : "Add employment record"}</Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Ads Simulation */}
+          <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+            <h2 className="text-lg font-semibold text-white">Ads Simulation</h2>
+            <p className="mt-1 text-sm text-slate-400">ROI = (clicks × 150 − spend) / spend</p>
+            <div className="mt-4 flex flex-wrap gap-4">
+              <div>
+                <Label className="text-slate-400">Employer</Label>
+                <select value={adsEmployerId} onChange={(e) => setAdsEmployerId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
+                  <option value="">Optional</option>
+                  {employerList.map((e) => (
+                    <option key={e.id} value={e.id}>{e.company_name ?? e.id.slice(0, 8)}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label className="text-slate-400">Impressions</Label>
+                <Input type="number" value={adsImpressions} onChange={(e) => setAdsImpressions(parseInt(e.target.value, 10) || 0)} className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
+              </div>
+              <div>
+                <Label className="text-slate-400">Clicks</Label>
+                <Input type="number" value={adsClicks} onChange={(e) => setAdsClicks(parseInt(e.target.value, 10) || 0)} className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
+              </div>
+              <div>
+                <Label className="text-slate-400">Spend</Label>
+                <Input type="number" value={adsSpend} onChange={(e) => setAdsSpend(parseFloat(e.target.value) || 0)} className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
+              </div>
+              <Button onClick={addAds} disabled={!sandboxId || adsLoading}>{adsLoading ? "…" : "Add ad campaign"}</Button>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <p className="text-sm uppercase tracking-wide text-slate-400">Total spend</p>
+                <p className="text-3xl font-bold text-cyan-400">{ads?.totalSpend ?? 0}</p>
+              </div>
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <p className="text-sm uppercase tracking-wide text-slate-400">Campaigns</p>
+                <p className="text-3xl font-bold text-cyan-400">{ads?.campaignsCount ?? 0}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Revenue Simulation */}
+          <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+            <h2 className="text-lg font-semibold text-white">Revenue Simulation</h2>
+            <p className="mt-1 text-sm text-slate-400">MRR = employer count × plan value. Churn adjustable.</p>
+            <div className="mt-4 space-y-3">
+              <div>
+                <Label className="text-slate-400">Churn rate (0–1)</Label>
+                <input type="range" min="0" max="1" step="0.01" value={churnRate} onChange={(e) => setChurnRate(parseFloat(e.target.value))} className="w-full" />
+                <span className="ml-2 text-cyan-400">{(churnRate * 100).toFixed(0)}%</span>
+              </div>
+              <Button onClick={updateRevenue} disabled={!sandboxId || revenueLoading}>{revenueLoading ? "…" : "Update revenue"}</Button>
+            </div>
+            <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
+              <p className="text-sm uppercase tracking-wide text-slate-400">Sandbox MRR</p>
+              <p className="text-3xl font-bold text-cyan-400">{rev?.mrr ?? 0}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Employee Intelligence + Employer Analytics */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+            <h2 className="text-lg font-semibold text-white">Employee Intelligence</h2>
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <p className="text-sm uppercase tracking-wide text-slate-400">Employees</p>
+                <p className="text-3xl font-bold text-cyan-400">{ei?.employeesCount ?? 0}</p>
+              </div>
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <p className="text-sm uppercase tracking-wide text-slate-400">Employment records</p>
+                <p className="text-3xl font-bold text-cyan-400">{ei?.employmentRecordsCount ?? 0}</p>
+              </div>
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <p className="text-sm uppercase tracking-wide text-slate-400">Peer reviews</p>
+                <p className="text-3xl font-bold text-cyan-400">{ei?.peerReviewsCount ?? 0}</p>
+              </div>
+              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <p className="text-sm uppercase tracking-wide text-slate-400">Avg hiring confidence</p>
+                <p className="text-3xl font-bold text-cyan-400">{ei?.avgHiringConfidence != null ? ei.avgHiringConfidence.toFixed(1) : "—"}</p>
+              </div>
+            </div>
+            <Button variant="secondary" className="mt-4" onClick={runRecalculate} disabled={!sandboxId || recalcLoading}>{recalcLoading ? "…" : "Recalculate intelligence"}</Button>
+          </div>
+          <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+            <h2 className="text-lg font-semibold text-white">Employer Analytics</h2>
+            <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
+              <p className="text-sm uppercase tracking-wide text-slate-400">Employers</p>
+              <p className="text-3xl font-bold text-cyan-400">{ea?.employersCount ?? 0}</p>
+            </div>
+            {employerList.length > 0 && (
+              <ul className="mt-3 space-y-1 text-sm text-slate-300">
+                {employerList.slice(0, 10).map((e) => (
+                  <li key={e.id}>{e.company_name ?? e.id.slice(0, 8)}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        {/* Feature Toggles */}
+        <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+          <h2 className="text-lg font-semibold text-white">Feature Toggles</h2>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button variant="secondary" size="sm" onClick={syncFeatures} disabled={syncFeaturesLoading}>{syncFeaturesLoading ? "…" : "Sync from production"}</Button>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {features.map((f) => (
+              <label key={f.id} className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2">
+                <input type="checkbox" checked={overrides[f.feature_key] ?? f.is_enabled} onChange={(e) => sandboxId && setFeatureOverride(f.feature_key, e.target.checked)} className="rounded" />
+                <span className="text-sm text-slate-300">{f.feature_key}</span>
+              </label>
+            ))}
+            {features.length === 0 && <p className="text-sm text-slate-500">Sync from production to see flags.</p>}
+          </div>
+        </div>
+
+        {/* View-As Mode */}
+        <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+          <h2 className="text-lg font-semibold text-white">View-As Mode</h2>
+          <p className="mt-1 text-sm text-slate-400">Simulate plan gating, feature access, intelligence visibility (sandbox-only).</p>
+          <div className="mt-4 flex gap-2">
+            {(["Admin", "Employer", "Employee"] as const).map((mode) => (
+              <Button key={mode} variant={viewAs === mode ? "default" : "secondary"} onClick={() => setViewAs(mode)}>View as {mode}</Button>
+            ))}
+          </div>
+          <p className="mt-2 text-sm text-slate-500">Current: {viewAs}</p>
+        </div>
+
+        {/* Actions */}
+        <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+          <h2 className="text-lg font-semibold text-white">Actions</h2>
+          <Button variant="secondary" className="mt-4" onClick={runCleanup} disabled={cleanupLoading}>{cleanupLoading ? "…" : "Cleanup expired sessions"}</Button>
+        </div>
+
+        {/* Console */}
+        <div className="rounded-xl border border-emerald-600 bg-black p-4 font-mono text-sm text-emerald-400 shadow-inner max-h-72 overflow-y-auto">
+          <p className="text-lg font-semibold text-white">Command Console</p>
+          <div className="mt-2 space-y-1">
+            {consoleLogs.length === 0 && <p className="text-slate-500">No output yet.</p>}
+            {consoleLogs.map((line, i) => (
+              <p key={i} className={line.startsWith("[ERR]") ? "text-red-400" : line.startsWith("[OK]") ? "text-green-400" : ""}>{line}</p>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

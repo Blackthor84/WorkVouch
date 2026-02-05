@@ -200,12 +200,12 @@ export default async function AdminPanel() {
           </Card>
 
           <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-emerald-500/80">
-            <Link href="/admin/sandbox" className="block">
+            <Link href="/admin/sandbox-v2" className="block">
               <h2 className="text-xl font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
-                Enterprise Sandbox Lab
+                Enterprise Simulation Environment
               </h2>
               <p className="text-sm text-grey-medium dark:text-gray-400">
-                Simulation Builder and Intelligence Sandbox. Simulate baselines, team fit, risk, hiring confidence. Auto-expires. Admin/SuperAdmin only.
+                Fully isolated sandbox: sessions, employers, employees, peer reviews, intelligence, ads, revenue. Self-cleaning. Admin/SuperAdmin only.
               </p>
             </Link>
           </Card>

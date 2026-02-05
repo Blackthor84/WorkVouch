@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import RevenueDemoClient from "@/components/admin/RevenueDemoClient";
 import AdminSimulationSandbox from "@/components/admin/AdminSimulationSandbox";
-import DemoAdsClient from "@/app/admin/demo/ads/demo-ads-client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 function GrowthMetric({ end, prefix = "", suffix = "", decimals = 0 }: { end: number; prefix?: string; suffix?: string; decimals?: number }) {
@@ -98,7 +97,13 @@ export default function InvestorDemoClient() {
       <section>
         <h2 className="mb-4 text-2xl font-bold tracking-tight text-white">Advertiser ROI Demo</h2>
         <div className="rounded-xl border border-slate-700/80 bg-slate-900/50 p-4">
-          <DemoAdsClient standalone />
+          <p className="mb-4 text-slate-300">Run ads simulation in the Enterprise Simulation Environment.</p>
+          <Link
+            href="/admin/sandbox-v2"
+            className="inline-flex items-center rounded-lg border border-emerald-600 bg-slate-800 px-4 py-2 text-emerald-400 hover:bg-slate-700"
+          >
+            Open Sandbox v2 →
+          </Link>
         </div>
       </section>
 
