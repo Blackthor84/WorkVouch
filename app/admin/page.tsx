@@ -221,58 +221,6 @@ export default async function AdminPanel() {
             </Link>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-violet-500">
-            <Link href="/admin/simulate" className="block">
-              <h2 className="text-xl font-semibold text-violet-600 dark:text-violet-400 mb-2">
-                Elite Simulation
-              </h2>
-              <p className="text-sm text-grey-medium dark:text-gray-400">
-                Plan limits, seats, reports, searches. Revenue and Ads demo dashboards when demo is active.
-              </p>
-            </Link>
-          </Card>
-          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-emerald-500/80 hover:border-emerald-500">
-            <Link href="/admin/demo" className="block">
-              <h2 className="text-xl font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
-                Demo Simulator
-              </h2>
-              <p className="text-sm text-grey-medium dark:text-gray-400">
-                Employer, Worker, Advertiser, and Analytics demos. Fake data only — no database, no feature flags.
-              </p>
-            </Link>
-          </Card>
-          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-violet-500/80">
-            <Link href="/admin/demo/revenue" className="block">
-              <h2 className="text-xl font-semibold text-violet-600 dark:text-violet-400 mb-2">
-                Demo: Revenue
-              </h2>
-              <p className="text-sm text-grey-medium dark:text-gray-400">
-                Fake MRR, revenue, churn. Visible when Elite Demo is active.
-              </p>
-            </Link>
-          </Card>
-          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-violet-500/80">
-            <Link href="/admin/demo/ads" className="block">
-              <h2 className="text-xl font-semibold text-violet-600 dark:text-violet-400 mb-2">
-                Demo: Ads ROI
-              </h2>
-              <p className="text-sm text-grey-medium dark:text-gray-400">
-                Impressions, clicks, CTR, spend, ROI. Visible when Elite Demo is active.
-              </p>
-            </Link>
-          </Card>
-
-          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-slate-500 dark:border-slate-500">
-            <Link href="/admin/investor-demo" className="block">
-              <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                Investor Demo
-              </h2>
-              <p className="text-sm text-grey-medium dark:text-gray-400">
-                Revenue simulation, growth metrics, advertiser ROI, feature flags, simulation controls. Boardroom-only. Not indexed.
-              </p>
-            </Link>
-          </Card>
-
           {isSuperAdmin && (
             <>
               <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-red-500">

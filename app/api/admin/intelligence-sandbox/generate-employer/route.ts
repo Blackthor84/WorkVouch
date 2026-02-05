@@ -21,8 +21,11 @@ export async function POST(req: NextRequest) {
     const { id: adminId } = await requireSandboxAdmin();
     const body = await req.json().catch(() => ({}));
     const sandboxId = body.sandbox_id as string | undefined;
-    const companyName = (body.companyName as string) || "Sandbox Employer Corp";
-    const planTier = (body.planTier as string) || "pro";
+    const companyName = (body.company_name as string) || (body.companyName as string) || "Sandbox Employer Corp";
+    const industry = (body.industry as string) || null;
+    const planTier = (body.plan_tier as string) || (body.planTier as string) || "pro";
+    const seats = typeof body.seats === "number" ? body.seats : typeof body.seats === "string" ? parseInt(body.seats, 10) : null;
+    const location = (body.location as string) || null;
 
     if (!sandboxId) {
       return NextResponse.json({ error: "sandbox_id required" }, { status: 400 });
@@ -60,16 +63,18 @@ export async function POST(req: NextRequest) {
       { onConflict: "user_id,role" }
     );
 
+    const insertPayload: Record<string, unknown> = {
+      user_id: userId,
+      company_name: companyName,
+      plan_tier: planTier,
+      sandbox_id: sandboxId,
+      reports_used: 0,
+      searches_used: 0,
+    };
+    if (industry) insertPayload.industry_type = industry;
     const { data: eaRow, error: eaErr } = await supabase
       .from("employer_accounts")
-      .insert({
-        user_id: userId,
-        company_name: companyName,
-        plan_tier: planTier,
-        sandbox_id: sandboxId,
-        reports_used: 0,
-        searches_used: 0,
-      })
+      .insert(insertPayload)
       .select("id")
       .single();
 

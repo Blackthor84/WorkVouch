@@ -25,10 +25,18 @@ export async function calculateUserIntelligence(
     }
 
     const supabase = getSupabaseServer();
+    const sandboxId = simulationContext?.sandboxId;
+
+    const jobsQuery = supabase.from("employment_records").select("id, start_date, end_date, verification_status").eq("user_id", userId);
+    const refsQuery = supabase.from("employment_references").select("id").eq("reviewed_user_id", userId);
+    if (sandboxId) {
+      jobsQuery.eq("sandbox_id", sandboxId);
+      refsQuery.eq("sandbox_id", sandboxId);
+    }
 
     const [jobsRes, refsRes, disputesRes, rehireRes] = await Promise.all([
-      supabase.from("employment_records").select("id, start_date, end_date, verification_status").eq("user_id", userId),
-      supabase.from("employment_references").select("id").eq("reviewed_user_id", userId),
+      jobsQuery,
+      refsQuery,
       supabase.from("compliance_disputes").select("id, status").eq("profile_id", userId),
       supabase.from("rehire_recommendations").select("id").eq("user_id", userId).eq("rehire_eligible", true),
     ]);
@@ -88,14 +96,19 @@ export async function calculateUserIntelligence(
       if (simulationContext.sandboxId) baseUpdate.sandbox_id = simulationContext.sandboxId;
     }
 
-    const { error } = await supabase
+    const updateQuery = supabase
       .from("intelligence_snapshots")
       .update(baseUpdate as Record<string, unknown>)
       .eq("user_id", userId);
+    if (sandboxId) updateQuery.eq("sandbox_id", sandboxId);
+
+    const { error } = await updateQuery;
 
     if (error) {
       if (snapshot.id) {
-        await supabase.from("intelligence_snapshots").update(baseUpdate as Record<string, unknown>).eq("id", snapshot.id);
+        const patchQuery = supabase.from("intelligence_snapshots").update(baseUpdate as Record<string, unknown>).eq("id", snapshot.id);
+        if (sandboxId) patchQuery.eq("sandbox_id", sandboxId);
+        await patchQuery;
       } else {
         const insertRow: Record<string, unknown> = {
           user_id: userId,

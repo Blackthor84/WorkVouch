@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CommandCenterGauge } from "@/components/admin/CommandCenterGauge";
 import { IntelligenceSandboxClient } from "@/app/admin/intelligence-sandbox/IntelligenceSandboxClient";
 import AdminSimulationSandbox from "@/components/admin/AdminSimulationSandbox";
+import { SimulationBuilderDataSection } from "@/components/admin/SimulationBuilderDataSection";
 
 type SandboxRow = { id: string; name: string | null; starts_at: string; ends_at: string; status: string };
 type SandboxMetrics = {
@@ -28,7 +29,6 @@ const CONTROL_MODULES: { id: string; label: string; href?: string }[] = [
   { id: "plan", label: "Plan Tier Switch", href: "/admin/preview-control" },
   { id: "role", label: "Role Switch", href: "/admin/preview-control" },
   { id: "recalc", label: "Recalculate", href: undefined },
-  { id: "ads", label: "Ad Simulator", href: "/admin/demo/ads" },
 ];
 
 function useSandboxMetrics(sandboxId: string | null) {
@@ -72,7 +72,11 @@ function useSandboxMetrics(sandboxId: string | null) {
     }
   }, [sandboxId, fetchMetrics]);
 
-  return { metrics, sandboxes, endsAt, refetchList: fetchList };
+  const refetchMetrics = useCallback(() => {
+    if (sandboxId) fetchMetrics(sandboxId);
+  }, [sandboxId, fetchMetrics]);
+
+  return { metrics, sandboxes, endsAt, refetchList: fetchList, refetchMetrics };
 }
 
 function useCountdown(endsAt: string | null) {
@@ -108,7 +112,7 @@ export function CommandCenterClient({
 }) {
   const [sandboxId, setSandboxId] = useState<string | null>(null);
   const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>(null);
-  const { metrics, sandboxes, endsAt, refetchList } = useSandboxMetrics(sandboxId);
+  const { metrics, sandboxes, endsAt, refetchList, refetchMetrics } = useSandboxMetrics(sandboxId);
   const countdown = useCountdown(endsAt);
 
   const activeSandbox = useMemo(() => sandboxes.find((s) => s.id === sandboxId) ?? null, [sandboxes, sandboxId]);
@@ -192,10 +196,25 @@ export function CommandCenterClient({
                   <button
                     type="button"
                     className="font-mono text-xs text-[#d1d5db] hover:text-[#10b981]"
-                    onClick={() => {
+                    onClick={async () => {
                       if (m.id === "launch") setWorkspaceTab("simulation");
                       if (m.id === "end") setWorkspaceTab(null);
-                      if (m.id === "recalc") refetchList();
+                      if (m.id === "recalc") {
+                        if (sandboxId) {
+                          try {
+                            await fetch("/api/admin/intelligence-sandbox/recalculate", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              credentials: "include",
+                              body: JSON.stringify({ sandbox_id: sandboxId }),
+                            });
+                          } catch {
+                            // no-op
+                          }
+                        }
+                        refetchList();
+                        refetchMetrics();
+                      }
                     }}
                   >
                     {m.label}
@@ -313,8 +332,16 @@ export function CommandCenterClient({
           </button>
         </div>
         {workspaceTab === "simulation" && (
-          <div className="rounded-md border border-[#1a1f2e] bg-[#0f131c] p-6">
+          <div className="rounded-md border border-[#1a1f2e] bg-[#0f131c] p-6 space-y-6">
             <AdminSimulationSandbox />
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-wider text-[#6b7280] mb-3">Data input</p>
+              <SimulationBuilderDataSection
+                sandboxId={sandboxId}
+                employerList={(metrics?.employers && metrics.employers.length > 0) ? metrics.employers : employerList}
+                onSuccess={() => { refetchList(); refetchMetrics(); }}
+              />
+            </div>
           </div>
         )}
         {workspaceTab === "intelligence" && (

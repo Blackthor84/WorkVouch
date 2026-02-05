@@ -50,11 +50,14 @@ export async function getOrCreateSnapshot(
   try {
     const supabase = getSupabaseServer();
 
-    const { data: existing, error: selectError } = await supabase
+    const selectQuery = supabase
       .from("intelligence_snapshots")
       .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
+      .eq("user_id", userId);
+    if (simulationContext?.sandboxId) {
+      selectQuery.eq("sandbox_id", simulationContext.sandboxId);
+    }
+    const { data: existing, error: selectError } = await selectQuery.maybeSingle();
 
     if (!selectError && existing && typeof existing === "object") {
       return normalizeRow(existing as Record<string, unknown>);

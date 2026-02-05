@@ -20,10 +20,10 @@ export async function POST(req: NextRequest) {
     const { id: adminId } = await requireSandboxAdmin();
     const body = await req.json().catch(() => ({}));
     const sandboxId = body.sandbox_id as string | undefined;
-    const reviewerUserId = body.reviewerUserId as string;
-    const reviewedUserId = body.reviewedUserId as string;
+    const reviewerUserId = (body.reviewer_id as string) || (body.reviewerUserId as string);
+    const reviewedUserId = (body.reviewed_id as string) || (body.reviewedUserId as string);
     const rating = Math.min(5, Math.max(1, Number(body.rating) || 5));
-    const comment = (body.comment as string) || "";
+    const comment = (body.written_review as string) || (body.comment as string) || "";
 
     if (!sandboxId) {
       return NextResponse.json({ error: "sandbox_id required" }, { status: 400 });
