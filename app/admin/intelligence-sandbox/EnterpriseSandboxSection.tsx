@@ -392,7 +392,7 @@ export function EnterpriseSandboxSection({ employerList }: { employerList: { id:
               {VIEW_AS_OPTIONS.map((opt) => (
                 <Button
                   key={opt}
-                  variant={viewAs === opt ? "default" : "outline"}
+                  variant={viewAs === opt ? "primary" : "secondary"}
                   size="sm"
                   onClick={() => setViewAs(opt)}
                 >
@@ -442,7 +442,7 @@ export function EnterpriseSandboxSection({ employerList }: { employerList: { id:
           <p className="text-sm text-grey-medium dark:text-gray-400 mb-3">
             Delete all expired sandbox data and update status to deleted.
           </p>
-          <Button variant="destructive" onClick={runCleanup} disabled={cleanupLoading}>
+          <Button variant="danger" onClick={runCleanup} disabled={cleanupLoading}>
             {cleanupLoading ? "Running…" : "Run cleanup"}
           </Button>
         </CardContent>

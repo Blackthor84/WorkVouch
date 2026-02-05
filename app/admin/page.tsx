@@ -191,7 +191,7 @@ export default async function AdminPanel() {
           <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-cyan-500/80">
             <Link href="/admin/intelligence-dashboard" className="block">
               <h2 className="text-xl font-semibold text-cyan-600 dark:text-cyan-400 mb-2">
-                Intelligence Dashboard
+                Enterprise Intelligence
               </h2>
               <p className="text-sm text-grey-medium dark:text-gray-400">
                 Full enterprise intelligence: profile strength, career health, risk, fraud, team fit, hiring confidence. Admin/SuperAdmin only.
@@ -199,13 +199,13 @@ export default async function AdminPanel() {
             </Link>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-amber-500/80">
-            <Link href="/admin/intelligence-sandbox" className="block">
-              <h2 className="text-xl font-semibold text-amber-600 dark:text-amber-400 mb-2">
-                Intelligence Sandbox
+          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-emerald-500/80">
+            <Link href="/admin/sandbox" className="block">
+              <h2 className="text-xl font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
+                Enterprise Sandbox Lab
               </h2>
               <p className="text-sm text-grey-medium dark:text-gray-400">
-                Simulate behavioral baselines, team fit, risk, hiring confidence with fake test data. Auto-expires in 10 min. Admin/SuperAdmin only.
+                Simulation Builder and Intelligence Sandbox. Simulate baselines, team fit, risk, hiring confidence. Auto-expires. Admin/SuperAdmin only.
               </p>
             </Link>
           </Card>

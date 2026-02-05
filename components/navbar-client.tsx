@@ -110,18 +110,10 @@ export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp 
                     <Button
                       variant="ghost"
                       size="sm"
-                      href="/admin/demo"
+                      href="/admin/sandbox"
                       className="font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
                     >
-                      Demo Simulator
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      href="/admin/investor-demo"
-                      className="font-semibold text-slate-600 dark:text-slate-400 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
-                    >
-                      Investor Demo
+                      Enterprise Sandbox
                     </Button>
                   </>
                 )}

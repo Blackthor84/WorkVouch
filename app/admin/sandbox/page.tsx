@@ -1,15 +1,31 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { redirect } from "next/navigation";
-import AdminSimulationSandbox from "@/components/admin/AdminSimulationSandbox";
+import { getSupabaseServer } from "@/lib/supabase/admin";
+import { isAdmin } from "@/lib/roles";
+import { getCurrentUserProfile, getCurrentUserRoles } from "@/lib/auth";
+import { CommandCenterClient } from "./CommandCenterClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSandboxPage() {
   const session = await getServerSession(authOptions);
-  const roles = (session?.user as { roles?: string[] })?.roles ?? [];
-  if (!roles.includes("admin") && !roles.includes("superadmin")) {
+  if (!session?.user) redirect("/login");
+
+  const profile = await getCurrentUserProfile();
+  const roles = await getCurrentUserRoles();
+  const role = profile?.role ?? roles[0] ?? null;
+  if (!isAdmin(role) && !roles.some((r) => isAdmin(r))) {
     redirect("/dashboard");
   }
-  return <AdminSimulationSandbox />;
+
+  const supabase = getSupabaseServer();
+  const { data: employers } = await supabase
+    .from("employer_accounts")
+    .select("id, company_name")
+    .order("company_name")
+    .limit(100);
+  const employerList = (employers ?? []) as { id: string; company_name?: string }[];
+
+  return <CommandCenterClient employerList={employerList} role={role ?? null} />;
 }
