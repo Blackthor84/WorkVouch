@@ -347,7 +347,15 @@ export function CommandCenterClient({
         )}
         {workspaceTab === "intelligence" && (
           <div className="rounded-md border border-[#1a1f2e] bg-[#0f131c] p-6">
-            <IntelligenceSandboxClient employerList={employerList} />
+            <IntelligenceSandboxClient
+              employerList={employerList}
+              onSandboxCreated={(id) => {
+                setSandboxId(id);
+                console.log("Active sandbox set:", id);
+                refetchList();
+                refetchMetrics();
+              }}
+            />
           </div>
         )}
       </div>

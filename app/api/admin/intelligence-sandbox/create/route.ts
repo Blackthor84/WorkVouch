@@ -10,9 +10,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSandboxAdmin } from "@/lib/sandbox";
 import { createSandboxSession } from "@/lib/intelligence/sandboxCreateSession";
-import type { Database } from "@/types/database";
-
-type IntelligenceSandboxRow = Database["public"]["Tables"]["intelligence_sandboxes"]["Row"];
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +66,7 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = getSupabaseServer();
-    const { data: sandbox, error } = await supabase
+    const { data, error } = await supabase
       .from("intelligence_sandboxes")
       .insert({
         name,
@@ -79,22 +76,15 @@ export async function POST(req: NextRequest) {
         auto_delete: autoDelete,
         status: "active",
       })
-      .select("id, name, starts_at, ends_at, auto_delete, status, created_at")
+      .select()
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      console.error("Sandbox insert error:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    const row = sandbox as IntelligenceSandboxRow;
-    return NextResponse.json({
-      sandbox_id: row.id,
-      name: row.name,
-      starts_at: row.starts_at,
-      ends_at: row.ends_at,
-      auto_delete: row.auto_delete,
-      status: row.status,
-      created_at: row.created_at,
-    });
+
+    return NextResponse.json(data);
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Error";
     if (msg === "Unauthorized" || msg.startsWith("Forbidden")) {

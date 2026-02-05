@@ -36,7 +36,13 @@ const INDUSTRIES = ["corporate", "security", "healthcare", "logistics", "retail"
 const SANDBOX_TTL_MINUTES = 10;
 const MAX_STRESS_CANDIDATES = 10000;
 
-export function IntelligenceSandboxClient({ employerList }: { employerList: EmployerItem[] }) {
+export function IntelligenceSandboxClient({
+  employerList,
+  onSandboxCreated,
+}: {
+  employerList: EmployerItem[];
+  onSandboxCreated?: (id: string) => void;
+}) {
   const [mainTab, setMainTab] = useState<"legacy" | "enterprise">("enterprise");
   const [tab, setTab] = useState<"standard" | "stress">("standard");
   const [sessionId, setSessionId] = useState("");
@@ -286,7 +292,7 @@ export function IntelligenceSandboxClient({ employerList }: { employerList: Empl
             Legacy Simulation
           </button>
         </div>
-        <EnterpriseSandboxSection employerList={employerList} />
+        <EnterpriseSandboxSection employerList={employerList} onSandboxCreated={onSandboxCreated} />
       </div>
     );
   }

@@ -23,9 +23,15 @@ type SandboxMetrics = {
 
 const VIEW_AS_OPTIONS = ["Admin", "Employee", "Employer"] as const;
 
-export function EnterpriseSandboxSection({ employerList }: { employerList: { id: string; company_name?: string }[] }) {
+export function EnterpriseSandboxSection({
+  employerList,
+  onSandboxCreated,
+}: {
+  employerList: { id: string; company_name?: string }[];
+  onSandboxCreated?: (id: string) => void;
+}) {
   const [sandboxes, setSandboxes] = useState<SandboxRow[]>([]);
-  const [sandboxId, setSandboxId] = useState("");
+  const [sandboxId, setSandboxId] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<SandboxMetrics | null>(null);
   const [viewAs, setViewAs] = useState<"Admin" | "Employee" | "Employer">("Admin");
   const [name, setName] = useState("");
@@ -119,7 +125,10 @@ export function EnterpriseSandboxSection({ employerList }: { employerList: { id:
         return;
       }
       const j = await res.json();
-      setSandboxId(j.sandbox_id);
+      const id = (j.id ?? j.sandbox_id) as string;
+      setSandboxId(id);
+      console.log("Active sandbox set:", id);
+      onSandboxCreated?.(id);
       await fetchSandboxes();
     } catch {
       setError("Request failed");
@@ -310,8 +319,8 @@ export function EnterpriseSandboxSection({ employerList }: { employerList: { id:
             <div>
               <Label>Active sandbox</Label>
               <select
-                value={sandboxId}
-                onChange={(e) => setSandboxId(e.target.value)}
+                value={sandboxId ?? ""}
+                onChange={(e) => setSandboxId(e.target.value || null)}
                 className="mt-1 w-full rounded-lg border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] px-3 py-2 text-grey-dark dark:text-gray-200"
               >
                 <option value="">Select…</option>
@@ -402,7 +411,7 @@ export function EnterpriseSandboxSection({ employerList }: { employerList: { id:
             </div>
             {hasSandbox && (
               <p className="text-xs text-grey-medium dark:text-gray-400">
-                Sandbox ID in context: {sandboxId.slice(0, 8)}…
+                Sandbox ID in context: {(sandboxId ?? "").slice(0, 8)}…
               </p>
             )}
           </CardContent>
