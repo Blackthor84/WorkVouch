@@ -73,8 +73,8 @@ export function SimulationBuilderDataSection({
         }),
       });
       const j = await res.json();
-      if (!res.ok) throw new Error(j.error || "Failed");
-      setMessage(`Employer created: ${j.employer_id?.slice(0, 8)}…`);
+      if (!res.ok) throw new Error(j.message ?? j.error ?? "Failed");
+      setMessage(`Employer created: ${(j.employerId ?? j.employer_id)?.slice(0, 8)}…`);
       setCompanyName("");
       onSuccess?.();
     } catch (e) {

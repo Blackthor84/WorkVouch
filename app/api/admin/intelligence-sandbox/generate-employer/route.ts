@@ -1,6 +1,6 @@
 /**
  * POST /api/admin/intelligence-sandbox/generate-employer
- * Creates a sandbox employer. Requires sandbox_id. Tags row with sandbox_id.
+ * Creates a sandbox employer. Requires sandboxId. Uses service role; tags rows with sandbox_id.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -19,19 +19,21 @@ function randomSuffix(): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const { id: adminId } = await requireSandboxAdmin();
     const body = await req.json().catch(() => ({}));
-    const sandboxId = body.sandbox_id as string | undefined;
-    const companyName = (body.company_name as string) || (body.companyName as string) || "Sandbox Employer Corp";
-    const industry = (body.industry as string) || null;
-    const planTier = (body.plan_tier as string) || (body.planTier as string) || "pro";
-    const seats = typeof body.seats === "number" ? body.seats : typeof body.seats === "string" ? parseInt(body.seats, 10) : null;
-    const location = (body.location as string) || null;
+    const sandboxId = (body.sandboxId ?? body.sandbox_id) as string | undefined;
+    const companyName =
+      (body.companyName as string) ?? (body.company_name as string) ?? "Sandbox Company";
 
     if (!sandboxId) {
-      return NextResponse.json({ error: "sandbox_id required" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "Missing sandboxId" },
+        { status: 400 }
+      );
     }
 
+    console.log("Generating employer for sandbox:", sandboxId);
+
+    const { id: adminId } = await requireSandboxAdmin();
     await validateSandboxForWrite(sandboxId, adminId);
 
     const supabase = getSupabaseServer();
@@ -44,11 +46,14 @@ export async function POST(req: NextRequest) {
       email_confirm: true,
     });
     if (authError || !authUser?.user?.id) {
-      return NextResponse.json({ error: authError?.message ?? "Failed to create auth user" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: authError?.message ?? "Failed to create auth user" },
+        { status: 400 }
+      );
     }
     const userId = authUser.user.id;
 
-    await supabase.from("profiles").upsert(
+    const { error: profileError } = await supabase.from("profiles").upsert(
       {
         id: userId,
         full_name: companyName,
@@ -58,6 +63,13 @@ export async function POST(req: NextRequest) {
       },
       { onConflict: "id" }
     );
+    if (profileError) {
+      await supabase.auth.admin.deleteUser(userId).catch(() => {});
+      return NextResponse.json(
+        { success: false, message: profileError.message },
+        { status: 400 }
+      );
+    }
 
     await supabase.from("user_roles").upsert(
       { user_id: userId, role: "employer" },
@@ -67,11 +79,10 @@ export async function POST(req: NextRequest) {
     const insertPayload: EmployerAccountInsert = {
       user_id: userId,
       company_name: companyName,
-      plan_tier: planTier,
+      plan_tier: "pro",
       sandbox_id: sandboxId,
       reports_used: 0,
       searches_used: 0,
-      ...(industry ? { industry_type: industry } : {}),
     };
     const { data: eaRow, error: eaErr } = await supabase
       .from("employer_accounts")
@@ -80,23 +91,26 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (eaErr) {
-      await supabase.auth.admin.deleteUser(userId);
-      return NextResponse.json({ error: eaErr.message }, { status: 400 });
+      await supabase.auth.admin.deleteUser(userId).catch(() => {});
+      return NextResponse.json(
+        { success: false, message: eaErr.message },
+        { status: 400 }
+      );
     }
 
     const employerAccountId = (eaRow as Pick<EmployerAccountRow, "id"> | null)?.id ?? userId;
     return NextResponse.json({
-      ok: true,
-      employer_id: employerAccountId,
-      company_name: companyName,
-      plan_tier: planTier,
-      email,
+      success: true,
+      employerId: employerAccountId,
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Error";
     if (msg === "Unauthorized" || msg.startsWith("Forbidden")) {
-      return NextResponse.json({ error: msg }, { status: msg === "Unauthorized" ? 401 : 403 });
+      return NextResponse.json(
+        { success: false, message: msg },
+        { status: msg === "Unauthorized" ? 401 : 403 }
+      );
     }
-    return NextResponse.json({ error: msg }, { status: 400 });
+    return NextResponse.json({ success: false, message: msg }, { status: 400 });
   }
 }

@@ -205,7 +205,7 @@ export function EnterpriseSandboxSection({
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        setError(j.error || "Generate failed");
+        setError((j as { message?: string; error?: string }).message ?? (j as { message?: string; error?: string }).error ?? "Generate failed");
         return;
       }
       await fetchMetrics(sandboxId);
