@@ -23,6 +23,10 @@ type SandboxProfileRow = {
   id: string;
 };
 
+type SandboxVectorRow = {
+  profile_id: string;
+};
+
 function isAdmin(roles: string[]): boolean {
   return roles.includes("admin") || roles.includes("superadmin");
 }
@@ -133,7 +137,10 @@ export async function GET(req: NextRequest) {
         .select("id")
         .eq("sandbox_session_id", sessionId)
         .eq("is_sandbox", true),
-      supabase.from("sandbox_behavioral_profile_vector").select("*").eq("is_sandbox", true),
+      supabase
+        .from("sandbox_behavioral_profile_vector")
+        .select("profile_id")
+        .eq("is_sandbox", true),
       supabase.from("sandbox_industry_baselines").select("*").eq("sandbox_session_id", sessionId).eq("is_sandbox", true),
       supabase.from("sandbox_employer_baselines").select("*").eq("sandbox_session_id", sessionId).eq("is_sandbox", true),
       supabase.from("sandbox_baseline_snapshots").select("*").eq("sandbox_session_id", sessionId).eq("is_sandbox", true).order("created_at", { ascending: false }).limit(1),
@@ -152,7 +159,11 @@ export async function GET(req: NextRequest) {
       ? (profilesData as SandboxProfileRow[])
       : [];
     const profileIds = profiles.map((p) => p.id);
-    const vectors = (vectorsRes.data ?? []).filter((v: { profile_id: string }) => profileIds.includes(v.profile_id));
+    const vectorsData = vectorsRes.data;
+    const vectorsRows: SandboxVectorRow[] = Array.isArray(vectorsData)
+      ? (vectorsData as SandboxVectorRow[])
+      : [];
+    const vectors = vectorsRows.filter((v) => profileIds.includes(v.profile_id));
     const industryBaselines = industryRes.data ?? [];
     const employerBaselines = employerRes.data ?? [];
 
