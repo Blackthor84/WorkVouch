@@ -40,10 +40,15 @@ function useSandboxMetrics(sandboxId: string | null) {
   const fetchList = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/intelligence-sandbox?list=1", { credentials: "include" });
-      if (!res.ok) return;
-      const j = await res.json();
-      setSandboxes(j.sandboxes ?? []);
-    } catch {
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.error("Sandbox list fetch failed", res.status);
+        setSandboxes([]);
+        return;
+      }
+      setSandboxes(json.sandboxes ?? []);
+    } catch (err) {
+      console.error("Sandbox list fetch failed", err);
       setSandboxes([]);
     }
   }, []);
@@ -51,12 +56,17 @@ function useSandboxMetrics(sandboxId: string | null) {
   const fetchMetrics = useCallback(async (id: string) => {
     try {
       const res = await fetch(`/api/admin/intelligence-sandbox?sandboxId=${encodeURIComponent(id)}`, { credentials: "include" });
-      if (!res.ok) return;
-      const j = await res.json();
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.error("Sandbox metrics fetch failed", res.status);
+        setMetrics(null);
+        return;
+      }
       setMetrics(j.metrics ?? null);
       const sb = j.sandbox;
       if (sb?.ends_at) setEndsAt(sb.ends_at);
-    } catch {
+    } catch (err) {
+      console.error("Sandbox metrics fetch failed", err);
       setMetrics(null);
     }
   }, []);

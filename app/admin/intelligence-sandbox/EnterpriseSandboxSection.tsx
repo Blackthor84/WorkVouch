@@ -339,17 +339,17 @@ export function EnterpriseSandboxSection({
             <CardTitle>Generate data</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button type="button" onClick={generateEmployee} disabled={!hasSandbox || genEmployeeLoading} className="relative z-50 cursor-pointer w-full">
+            <Button type="button" onClick={generateEmployee} disabled={false} className="relative z-50 cursor-pointer w-full">
               {genEmployeeLoading ? "Generating…" : "Generate employee"}
             </Button>
-            <Button type="button" onClick={generateEmployer} disabled={!hasSandbox || genEmployerLoading} variant="secondary" className="relative z-50 cursor-pointer w-full">
+            <Button type="button" onClick={generateEmployer} disabled={false} variant="secondary" className="relative z-50 cursor-pointer w-full">
               {genEmployerLoading ? "Generating…" : "Generate employer"}
             </Button>
             <div className="pt-2 space-y-2">
               <Label>Add peer review (reviewer → reviewed)</Label>
               <Input value={reviewerUserId} onChange={(e) => setReviewerUserId(e.target.value)} placeholder="Reviewer user ID" />
               <Input value={reviewedUserId} onChange={(e) => setReviewedUserId(e.target.value)} placeholder="Reviewed user ID" />
-              <Button type="button" onClick={addPeerReview} disabled={!hasSandbox || !reviewerUserId || !reviewedUserId || peerReviewLoading} variant="secondary" className="relative z-50 cursor-pointer w-full">
+              <Button type="button" onClick={addPeerReview} disabled={false} variant="secondary" className="relative z-50 cursor-pointer w-full">
                 {peerReviewLoading ? "Adding…" : "Add peer review"}
               </Button>
             </div>
@@ -366,7 +366,7 @@ export function EnterpriseSandboxSection({
                   <option key={e.id} value={e.id}>{e.company_name ?? e.id.slice(0, 8)}</option>
                 ))}
               </select>
-              <Button type="button" onClick={simulateHiring} disabled={!hasSandbox || !candidateId || !employerIdForHiring || simHiringLoading} variant="secondary" className="relative z-50 cursor-pointer w-full">
+              <Button type="button" onClick={simulateHiring} disabled={false} variant="secondary" className="relative z-50 cursor-pointer w-full">
                 {simHiringLoading ? "Running…" : "Simulate hiring"}
               </Button>
             </div>
@@ -382,7 +382,7 @@ export function EnterpriseSandboxSection({
                   <option key={e.id} value={e.id}>{e.company_name ?? e.id.slice(0, 8)}</option>
                 ))}
               </select>
-              <Button type="button" onClick={simulateAds} disabled={!hasSandbox || simAdsLoading} variant="secondary" className="relative z-50 cursor-pointer w-full">
+              <Button type="button" onClick={simulateAds} disabled={false} variant="secondary" className="relative z-50 cursor-pointer w-full">
                 {simAdsLoading ? "Running…" : "Simulate ads"}
               </Button>
             </div>
@@ -421,7 +421,7 @@ export function EnterpriseSandboxSection({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Live metrics</CardTitle>
-          <Button variant="secondary" size="sm" onClick={() => sandboxId && fetchMetrics(sandboxId)} disabled={loading || !sandboxId}>
+          <Button variant="secondary" size="sm" onClick={() => sandboxId && fetchMetrics(sandboxId)} disabled={false}>
             {loading ? "Loading…" : "Refresh"}
           </Button>
         </CardHeader>
