@@ -145,7 +145,7 @@ function distanceToAlignmentScore(distance: number): number {
   return clamp(100 - Math.min(100, distance));
 }
 
-export type SimulationContext = { simulationSessionId: string; expiresAt: string } | null | undefined;
+export type SimulationContext = { simulationSessionId?: string; expiresAt: string; sandboxId?: string } | null | undefined;
 
 export async function computeAndPersistTeamFit(
   candidateId: string,
@@ -235,9 +235,12 @@ export async function computeAndPersistTeamFit(
         breakdown: { ...breakdown } as unknown as Record<string, unknown>,
       };
       if (simulationContext) {
-        insertRow.is_simulation = true;
-        insertRow.simulation_session_id = simulationContext.simulationSessionId;
         insertRow.expires_at = simulationContext.expiresAt;
+        if (simulationContext.simulationSessionId) {
+          insertRow.is_simulation = true;
+          insertRow.simulation_session_id = simulationContext.simulationSessionId;
+        }
+        if (simulationContext.sandboxId) insertRow.sandbox_id = simulationContext.sandboxId;
       }
       await supabase.from("team_fit_scores").insert(insertRow);
     }

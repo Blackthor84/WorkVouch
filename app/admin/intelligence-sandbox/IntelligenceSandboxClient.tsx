@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { EnterpriseSandboxSection } from "./EnterpriseSandboxSection";
 
 type EmployerItem = { id: string; company_name?: string };
 
@@ -36,6 +37,7 @@ const SANDBOX_TTL_MINUTES = 10;
 const MAX_STRESS_CANDIDATES = 10000;
 
 export function IntelligenceSandboxClient({ employerList }: { employerList: EmployerItem[] }) {
+  const [mainTab, setMainTab] = useState<"legacy" | "enterprise">("enterprise");
   const [tab, setTab] = useState<"standard" | "stress">("standard");
   const [sessionId, setSessionId] = useState("");
   const [industry, setIndustry] = useState("security");
@@ -265,9 +267,40 @@ export function IntelligenceSandboxClient({ employerList }: { employerList: Empl
   const totalWeight = roleWeightPct + subIndustryWeightPct + industryWeightPct + employerWeightPct;
   const weightValid = Math.abs(totalWeight - 100) < 1;
 
+  if (mainTab === "enterprise") {
+    return (
+      <div className="space-y-6">
+        <div className="flex gap-2 border-b border-grey-background dark:border-[#374151] pb-2">
+          <button
+            type="button"
+            onClick={() => setMainTab("enterprise")}
+            className="px-4 py-2 rounded-t font-medium bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/50"
+          >
+            Enterprise Sandbox
+          </button>
+          <button
+            type="button"
+            onClick={() => setMainTab("legacy")}
+            className="px-4 py-2 rounded-t font-medium text-grey-medium dark:text-gray-400 hover:text-grey-dark dark:hover:text-gray-200"
+          >
+            Legacy Simulation
+          </button>
+        </div>
+        <EnterpriseSandboxSection employerList={employerList} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex gap-2 border-b border-grey-background dark:border-[#374151] pb-2">
+        <button
+          type="button"
+          onClick={() => setMainTab("enterprise")}
+          className="px-4 py-2 rounded-t font-medium text-grey-medium dark:text-gray-400 hover:text-grey-dark dark:hover:text-gray-200"
+        >
+          Enterprise Sandbox
+        </button>
         <button
           type="button"
           onClick={() => setTab("standard")}

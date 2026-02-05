@@ -181,7 +181,7 @@ export async function persistUnifiedIntelligence(
   simulationContext?: { simulationSessionId: string; expiresAt: string } | null
 ): Promise<void> {
   try {
-    if (simulationContext) {
+    if (simulationContext?.simulationSessionId) {
       const { validateSessionForWrite } = await import("@/lib/simulation-lab");
       await validateSessionForWrite(simulationContext.simulationSessionId);
     }
@@ -240,9 +240,11 @@ export async function persistUnifiedIntelligence(
         updated_at: now,
         ...(simulationContext
           ? {
-              is_simulation: true,
-              simulation_session_id: simulationContext.simulationSessionId,
+              ...(simulationContext.simulationSessionId
+                ? { is_simulation: true, simulation_session_id: simulationContext.simulationSessionId }
+                : {}),
               expires_at: simulationContext.expiresAt,
+              ...(simulationContext.sandboxId ? { sandbox_id: simulationContext.sandboxId } : {}),
             }
           : {}),
       },

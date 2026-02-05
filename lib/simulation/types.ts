@@ -3,10 +3,12 @@
  * No Supabase, NextAuth, Stripe. Pure logic only.
  */
 
-/** Optional context for intelligence pipeline when writing simulation data. Validate session before use. */
+/** Optional context for intelligence pipeline when writing simulation/sandbox data. Validate session or sandbox before use. */
 export interface SimulationContext {
-  simulationSessionId: string;
+  simulationSessionId?: string;
   expiresAt: string; // ISO string
+  /** When set, engines write sandbox_id (intelligence sandbox layer). */
+  sandboxId?: string;
 }
 
 export type PlanTier = "free" | "starter" | "pro" | "custom";

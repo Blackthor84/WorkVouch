@@ -76,9 +76,12 @@ export async function getOrCreateSnapshot(
       model_version: "v1.0-enterprise",
     };
     if (simulationContext) {
-      row.is_simulation = true;
-      row.simulation_session_id = simulationContext.simulationSessionId;
       row.expires_at = simulationContext.expiresAt;
+      if (simulationContext.simulationSessionId) {
+        row.is_simulation = true;
+        row.simulation_session_id = simulationContext.simulationSessionId;
+      }
+      if (simulationContext.sandboxId) row.sandbox_id = simulationContext.sandboxId;
     }
 
     const { data: inserted, error: insertError } = await supabase

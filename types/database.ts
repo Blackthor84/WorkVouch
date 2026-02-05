@@ -168,6 +168,7 @@ export interface Database {
           is_simulation?: boolean
           simulation_session_id?: string | null
           expires_at?: string | null
+          sandbox_id?: string | null
         }
         Insert: {
           id: string
@@ -186,6 +187,7 @@ export interface Database {
           is_simulation?: boolean
           simulation_session_id?: string | null
           expires_at?: string | null
+          sandbox_id?: string | null
         }
         Update: {
           id?: string
@@ -204,6 +206,7 @@ export interface Database {
           is_simulation?: boolean
           simulation_session_id?: string | null
           expires_at?: string | null
+          sandbox_id?: string | null
         }
         Relationships: []
       }
@@ -302,6 +305,7 @@ export interface Database {
           is_simulation?: boolean
           simulation_session_id?: string | null
           expires_at?: string | null
+          sandbox_id?: string | null
         }
         Insert: {
           id?: string
@@ -326,6 +330,7 @@ export interface Database {
           is_simulation?: boolean
           simulation_session_id?: string | null
           expires_at?: string | null
+          sandbox_id?: string | null
         }
         Update: {
           id?: string
@@ -350,6 +355,7 @@ export interface Database {
           is_simulation?: boolean
           simulation_session_id?: string | null
           expires_at?: string | null
+          sandbox_id?: string | null
         }
         Relationships: []
       }
@@ -874,6 +880,7 @@ export interface Database {
           is_simulation?: boolean
           simulation_session_id?: string | null
           expires_at?: string | null
+          sandbox_id?: string | null
         }
         Insert: {
           id?: string
@@ -893,6 +900,7 @@ export interface Database {
           is_simulation?: boolean
           simulation_session_id?: string | null
           expires_at?: string | null
+          sandbox_id?: string | null
         }
         Update: {
           id?: string
@@ -912,6 +920,7 @@ export interface Database {
           is_simulation?: boolean
           simulation_session_id?: string | null
           expires_at?: string | null
+          sandbox_id?: string | null
         }
         Relationships: []
       }
@@ -1008,6 +1017,75 @@ export interface Database {
           is_active?: boolean
           auto_delete?: boolean
           status?: string
+        }
+        Relationships: []
+      }
+      intelligence_sandboxes: {
+        Row: {
+          id: string
+          name: string | null
+          created_by: string
+          starts_at: string
+          ends_at: string
+          auto_delete: boolean
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name?: string | null
+          created_by: string
+          starts_at: string
+          ends_at: string
+          auto_delete?: boolean
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string | null
+          created_by?: string
+          starts_at?: string
+          ends_at?: string
+          auto_delete?: boolean
+          status?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      sandbox_ad_campaigns: {
+        Row: {
+          id: string
+          sandbox_id: string
+          employer_id: string | null
+          type: string
+          impressions: number
+          clicks: number
+          conversions: number
+          spend: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          sandbox_id: string
+          employer_id?: string | null
+          type: string
+          impressions?: number
+          clicks?: number
+          conversions?: number
+          spend?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          sandbox_id?: string
+          employer_id?: string | null
+          type?: string
+          impressions?: number
+          clicks?: number
+          conversions?: number
+          spend?: number
+          created_at?: string
         }
         Relationships: []
       }
@@ -1156,6 +1234,10 @@ export interface Database {
       purge_simulation_session: {
         Args: { p_session_id: string }
         Returns: { deleted_table: string; deleted_count: number }[]
+      }
+      cleanup_expired_intelligence_sandboxes: {
+        Args: Record<string, never>
+        Returns: { sandbox_id: string; deleted_count: number }[]
       }
     }
     Enums: {

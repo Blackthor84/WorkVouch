@@ -158,9 +158,12 @@ export async function computeAndPersistHiringConfidence(
       updated_at: now,
     };
     if (simulationContext) {
-      row.is_simulation = true;
-      row.simulation_session_id = simulationContext.simulationSessionId;
       row.expires_at = simulationContext.expiresAt;
+      if (simulationContext.simulationSessionId) {
+        row.is_simulation = true;
+        row.simulation_session_id = simulationContext.simulationSessionId;
+      }
+      if (simulationContext.sandboxId) row.sandbox_id = simulationContext.sandboxId;
     }
     const { data: existing } = await supabase
       .from("hiring_confidence_scores")
@@ -179,9 +182,12 @@ export async function computeAndPersistHiringConfidence(
         breakdown: breakdown as unknown as Record<string, unknown>,
       };
       if (simulationContext) {
-        insertRow.is_simulation = true;
-        insertRow.simulation_session_id = simulationContext.simulationSessionId;
         insertRow.expires_at = simulationContext.expiresAt;
+        if (simulationContext.simulationSessionId) {
+          insertRow.is_simulation = true;
+          insertRow.simulation_session_id = simulationContext.simulationSessionId;
+        }
+        if (simulationContext.sandboxId) insertRow.sandbox_id = simulationContext.sandboxId;
       }
       await supabase.from("hiring_confidence_scores").insert(insertRow);
     }

@@ -80,9 +80,12 @@ export async function calculateUserIntelligence(
       updated_at: now,
     };
     if (simulationContext) {
-      baseUpdate.is_simulation = true;
-      baseUpdate.simulation_session_id = simulationContext.simulationSessionId;
       baseUpdate.expires_at = simulationContext.expiresAt;
+      if (simulationContext.simulationSessionId) {
+        baseUpdate.is_simulation = true;
+        baseUpdate.simulation_session_id = simulationContext.simulationSessionId;
+      }
+      if (simulationContext.sandboxId) baseUpdate.sandbox_id = simulationContext.sandboxId;
     }
 
     const { error } = await supabase

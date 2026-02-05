@@ -81,7 +81,7 @@ async function loadRiskInput(
  * Compute risk model and persist to risk_model_outputs.
  * Returns overall score 0–100 or null on failure. Never throws.
  */
-export type SimulationContext = { simulationSessionId: string; expiresAt: string } | null | undefined;
+export type SimulationContext = { simulationSessionId?: string; expiresAt: string; sandboxId?: string } | null | undefined;
 
 export async function computeAndPersistRiskModel(
   candidateId: string,
@@ -177,9 +177,12 @@ async function upsertRiskOutput(
     updated_at: now,
   };
   if (simulationContext) {
-    row.is_simulation = true;
-    row.simulation_session_id = simulationContext.simulationSessionId;
     row.expires_at = simulationContext.expiresAt;
+    if (simulationContext.simulationSessionId) {
+      row.is_simulation = true;
+      row.simulation_session_id = simulationContext.simulationSessionId;
+    }
+    if (simulationContext.sandboxId) row.sandbox_id = simulationContext.sandboxId;
   }
   const q = supabase
     .from("risk_model_outputs")
@@ -199,9 +202,12 @@ async function upsertRiskOutput(
       breakdown: breakdown as unknown as Record<string, unknown>,
     };
     if (simulationContext) {
-      insertRow.is_simulation = true;
-      insertRow.simulation_session_id = simulationContext.simulationSessionId;
       insertRow.expires_at = simulationContext.expiresAt;
+      if (simulationContext.simulationSessionId) {
+        insertRow.is_simulation = true;
+        insertRow.simulation_session_id = simulationContext.simulationSessionId;
+      }
+      if (simulationContext.sandboxId) insertRow.sandbox_id = simulationContext.sandboxId;
     }
     await supabase.from("risk_model_outputs").insert(insertRow);
   }

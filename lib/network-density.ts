@@ -51,8 +51,8 @@ async function loadReferenceEdges(
   }
 }
 
-/** Optional simulation context: tag rows with simulation_session_id. */
-export type SimulationContext = { simulationSessionId: string; expiresAt: string } | null | undefined;
+/** Optional simulation/sandbox context: tag rows with simulation_session_id and/or sandbox_id. */
+export type SimulationContext = { simulationSessionId?: string; expiresAt: string; sandboxId?: string } | null | undefined;
 
 export async function computeAndPersistNetworkDensity(
   candidateId: string,
@@ -90,9 +90,12 @@ export async function computeAndPersistNetworkDensity(
       updated_at: now,
     };
     if (simulationContext) {
-      row.is_simulation = true;
-      row.simulation_session_id = simulationContext.simulationSessionId;
       row.expires_at = simulationContext.expiresAt;
+      if (simulationContext.simulationSessionId) {
+        row.is_simulation = true;
+        row.simulation_session_id = simulationContext.simulationSessionId;
+      }
+      if (simulationContext.sandboxId) row.sandbox_id = simulationContext.sandboxId;
     }
     const { data: existing } = await supabase
       .from("network_density_index")
@@ -110,9 +113,12 @@ export async function computeAndPersistNetworkDensity(
         breakdown: breakdown as unknown as Record<string, unknown>,
       };
       if (simulationContext) {
-        insertRow.is_simulation = true;
-        insertRow.simulation_session_id = simulationContext.simulationSessionId;
         insertRow.expires_at = simulationContext.expiresAt;
+        if (simulationContext.simulationSessionId) {
+          insertRow.is_simulation = true;
+          insertRow.simulation_session_id = simulationContext.simulationSessionId;
+        }
+        if (simulationContext.sandboxId) insertRow.sandbox_id = simulationContext.sandboxId;
       }
       await supabase.from("network_density_index").insert(insertRow);
     }
