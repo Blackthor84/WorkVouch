@@ -6,6 +6,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSandboxAdmin, validateSandboxForWrite } from "@/lib/sandbox";
+import type { Database } from "@/types/database";
+
+type EmployerAccountRow = Database["public"]["Tables"]["employer_accounts"]["Row"];
 
 export const dynamic = "force-dynamic";
 
