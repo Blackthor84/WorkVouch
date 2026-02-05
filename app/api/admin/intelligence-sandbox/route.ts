@@ -25,7 +25,7 @@ type HiringConfidenceRow = Database["public"]["Tables"]["sandbox_hiring_confiden
 type IntelligenceSandboxRow = Database["public"]["Tables"]["intelligence_sandboxes"]["Row"];
 type EmployerAccountRow = Database["public"]["Tables"]["employer_accounts"]["Row"];
 type SandboxAdCampaignRow = Database["public"]["Tables"]["sandbox_ad_campaigns"]["Row"];
-type HiringConfidenceScoreRow = Database["public"]["Tables"]["hiring_confidence_scores"]["Row"];
+type HiringConfidenceRow = Database["public"]["Tables"]["hiring_confidence_scores"]["Row"];
 
 function isAdmin(roles: string[]): boolean {
   return roles.includes("admin") || roles.includes("superadmin");
@@ -94,15 +94,23 @@ export async function GET(req: NextRequest) {
       const profilesCount = profilesRes.count ?? 0;
       const employersCount = employersRes.count ?? 0;
       const refsCount = refsRes.count ?? 0;
-      const hiringRows = (hiringRes.data ?? []) as Pick<HiringConfidenceScoreRow, "id" | "composite_score">[];
+      const hiringRows: HiringConfidenceRow[] =
+        (hiringRes.data ?? []) as HiringConfidenceRow[];
       const adsRows = (adsRes.data ?? []) as Pick<SandboxAdCampaignRow, "id" | "impressions" | "clicks" | "conversions" | "spend">[];
       const totalSpend = adsRows.reduce((s, r) => s + Number(r.spend || 0), 0);
       const totalImpressions = adsRows.reduce((s, r) => s + Number(r.impressions || 0), 0);
       const totalClicks = adsRows.reduce((s, r) => s + Number(r.clicks || 0), 0);
       const totalConversions = adsRows.reduce((s, r) => s + Number(r.conversions || 0), 0);
-      const avgHiringConfidence = hiringRows.length > 0
-        ? hiringRows.reduce((a, r) => a + (r.composite_score ?? 0), 0) / hiringRows.length
-        : null;
+      const avgHiringConfidence =
+        hiringRows.length > 0
+          ? hiringRows.reduce((sum, row) => {
+              const score =
+                typeof row.composite_score === "number"
+                  ? row.composite_score
+                  : 0;
+              return sum + score;
+            }, 0) / hiringRows.length
+          : null;
       const employersList = (employersListRes.data ?? []) as Pick<EmployerAccountRow, "id" | "company_name">[];
       return NextResponse.json({
         sandbox: { id: sandboxRow.id, name: sandboxRow.name, starts_at: sandboxRow.starts_at, ends_at: sandboxRow.ends_at, status: sandboxRow.status },
