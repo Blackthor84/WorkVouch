@@ -18,6 +18,7 @@ type SandboxMetrics = {
   ad_total_impressions: number;
   ad_total_clicks: number;
   ad_total_conversions: number;
+  employers?: { id: string; company_name: string }[];
 };
 
 type WorkspaceTab = "simulation" | "intelligence" | null;

@@ -9,6 +9,7 @@ import { requireSandboxAdmin, validateSandboxForWrite } from "@/lib/sandbox";
 import type { Database } from "@/types/database";
 
 type EmployerAccountRow = Database["public"]["Tables"]["employer_accounts"]["Row"];
+type EmployerAccountInsert = Database["public"]["Tables"]["employer_accounts"]["Insert"];
 
 export const dynamic = "force-dynamic";
 
@@ -63,15 +64,15 @@ export async function POST(req: NextRequest) {
       { onConflict: "user_id,role" }
     );
 
-    const insertPayload: Record<string, unknown> = {
+    const insertPayload: EmployerAccountInsert = {
       user_id: userId,
       company_name: companyName,
       plan_tier: planTier,
       sandbox_id: sandboxId,
       reports_used: 0,
       searches_used: 0,
+      ...(industry ? { industry_type: industry } : {}),
     };
-    if (industry) insertPayload.industry_type = industry;
     const { data: eaRow, error: eaErr } = await supabase
       .from("employer_accounts")
       .insert(insertPayload)

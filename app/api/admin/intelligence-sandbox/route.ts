@@ -112,6 +112,10 @@ export async function GET(req: NextRequest) {
             }, 0) / hiringRows.length
           : null;
       const employersList = (employersListRes.data ?? []) as Pick<EmployerAccountRow, "id" | "company_name">[];
+      const employers: { id: string; company_name: string }[] = employersList.map((e) => ({
+        id: e.id,
+        company_name: e.company_name ?? "",
+      }));
       return NextResponse.json({
         sandbox: { id: sandboxRow.id, name: sandboxRow.name, starts_at: sandboxRow.starts_at, ends_at: sandboxRow.ends_at, status: sandboxRow.status },
         metrics: {
@@ -125,7 +129,7 @@ export async function GET(req: NextRequest) {
           ad_total_impressions: totalImpressions,
           ad_total_clicks: totalClicks,
           ad_total_conversions: totalConversions,
-          employers: employersList,
+          employers,
         },
       });
     }
