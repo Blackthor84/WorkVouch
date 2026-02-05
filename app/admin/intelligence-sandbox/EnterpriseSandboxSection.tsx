@@ -179,12 +179,12 @@ export function EnterpriseSandboxSection({
         body: JSON.stringify({ sandbox_id: sandboxId }),
       });
       if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        setError(j.error || "Generate failed");
+        const j = await res.json().catch(() => ({})) as { message?: string; error?: string };
+        setError(j.message ?? j.error ?? "Generate failed");
         return;
       }
       await fetchMetrics(sandboxId);
-      onSandboxDataChange?.();
+      await onSandboxDataChange?.();
     } catch {
       setError("Request failed");
     } finally {
@@ -209,7 +209,7 @@ export function EnterpriseSandboxSection({
         return;
       }
       await fetchMetrics(sandboxId);
-      onSandboxDataChange?.();
+      await onSandboxDataChange?.();
     } catch {
       setError("Request failed");
     } finally {
@@ -237,7 +237,7 @@ export function EnterpriseSandboxSection({
         return;
       }
       await fetchMetrics(sandboxId);
-      onSandboxDataChange?.();
+      await onSandboxDataChange?.();
     } catch {
       setError("Request failed");
     } finally {
@@ -265,11 +265,11 @@ export function EnterpriseSandboxSection({
         return;
       }
       await fetchMetrics(sandboxId);
-      onSandboxDataChange?.();
+      await onSandboxDataChange?.();
     } catch {
       setError("Request failed");
     } finally {
-      setSimHiringLoading(false);
+      setSimAdsLoading(false);
     }
   };
 
@@ -290,7 +290,7 @@ export function EnterpriseSandboxSection({
         return;
       }
       await fetchMetrics(sandboxId);
-      onSandboxDataChange?.();
+      await onSandboxDataChange?.();
     } catch {
       setError("Request failed");
     } finally {

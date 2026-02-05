@@ -203,22 +203,22 @@ export function CommandCenterClient({
       <div className="mx-auto max-w-[1600px] grid grid-cols-1 gap-6 p-4 lg:grid-cols-12">
         {/* Left: 25% */}
         <aside className="space-y-3 lg:col-span-3">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-[#6b7280]">System Controls</p>
+          <p className="font-mono text-sm md:text-base uppercase tracking-wider text-slate-300">System Controls</p>
           {CONTROL_MODULES.map((m) => (
             <div
               key={m.id}
-              className="rounded-md border border-[#1a1f2e] bg-[#0f131c] p-3 transition-shadow hover:shadow-[0_0_20px_rgba(16,185,129,0.06)]"
+              className="rounded-xl border border-slate-700 bg-slate-900 p-4 font-mono text-sm md:text-base text-emerald-400 shadow-inner transition-shadow hover:shadow-[0_0_20px_rgba(16,185,129,0.06)]"
             >
               <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#374151]" />
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-slate-500" />
                 {m.href ? (
-                  <Link href={m.href} className="font-mono text-xs text-[#d1d5db] hover:text-[#10b981]">
+                  <Link href={m.href} className="font-mono text-sm md:text-base text-emerald-400 hover:text-green-400">
                     {m.label}
                   </Link>
                 ) : (
                   <button
                     type="button"
-                    className="relative z-50 cursor-pointer font-mono text-xs text-[#d1d5db] hover:text-[#10b981]"
+                    className="relative z-50 cursor-pointer font-mono text-sm md:text-base text-emerald-400 hover:text-green-400"
                     onClick={async () => {
                       if (m.id === "launch") setWorkspaceTab("simulation");
                       if (m.id === "end") setWorkspaceTab(null);
@@ -246,8 +246,8 @@ export function CommandCenterClient({
               </div>
             </div>
           ))}
-          <div className="rounded-md border border-[#1a1f2e] bg-[#0f131c] p-3">
-            <p className="font-mono text-[10px] text-[#6b7280] mb-2">Active Sandbox</p>
+          <div className="rounded-xl border border-slate-700 bg-slate-900 p-4 font-mono text-sm md:text-base text-emerald-400 shadow-inner">
+            <p className="font-mono text-sm md:text-base text-slate-300 mb-2">Active Sandbox</p>
             <select
               value={sandboxId ?? ""}
               onChange={(e) => {
@@ -255,7 +255,7 @@ export function CommandCenterClient({
                 setSandboxId(id || null);
                 console.log("Active sandbox set:", id);
               }}
-              className="w-full rounded border border-[#374151] bg-[#0B0F17] px-2 py-1.5 font-mono text-xs text-[#e5e7eb]"
+              className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 font-mono text-sm md:text-base text-emerald-400"
             >
               <option value="">None</option>
               {sandboxes.map((s) => (
@@ -267,7 +267,7 @@ export function CommandCenterClient({
 
         {/* Center: 50% */}
         <main className="space-y-4 lg:col-span-6">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-[#6b7280]">Metrics</p>
+          <p className="font-mono text-sm md:text-base uppercase tracking-wider text-slate-300">Metrics</p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <CommandCenterGauge
               value={gaugeValues?.profileStrength ?? 0}
@@ -305,43 +305,41 @@ export function CommandCenterClient({
 
         {/* Right: 25% */}
         <aside className="space-y-3 lg:col-span-3">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-[#6b7280]">Executive Metrics</p>
-          {[
-            { label: "Profiles", value: execStats.profiles },
-            { label: "Employment Records", value: execStats.employment },
-            { label: "References", value: execStats.references },
-            { label: "Data Density", value: execStats.density },
-            { label: "MRR (sandbox)", value: execStats.mrr },
-            { label: "Ad ROI (sandbox)", value: execStats.adRoi },
-          ].map((s) => (
-            <div
-              key={s.label}
-              className="rounded-md border border-[#1a1f2e] bg-[#0f131c] p-3 transition-shadow hover:shadow-[0_0_20px_rgba(16,185,129,0.06)]"
-            >
-              <p className="font-mono text-[10px] text-[#6b7280]">{s.label}</p>
-              <p className="mt-1 font-mono text-lg tabular-nums text-[#e5e7eb]">
-                {typeof s.value === "number" ? (s.value % 1 === 0 ? String(s.value) : s.value.toFixed(2)) : "—"}
-              </p>
-              <div className="mt-2 h-6 w-full rounded bg-[#1a1f2e]" aria-hidden />
+          <p className="font-mono text-sm md:text-base uppercase tracking-wider text-slate-300">Executive Metrics</p>
+          <div className="max-h-64 overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 p-4 font-mono text-sm md:text-base text-emerald-400 shadow-inner">
+            {[
+              { label: "Profiles", value: execStats.profiles },
+              { label: "Employment Records", value: execStats.employment },
+              { label: "References", value: execStats.references },
+              { label: "Data Density", value: execStats.density },
+              { label: "MRR (sandbox)", value: execStats.mrr },
+              { label: "Ad ROI (sandbox)", value: execStats.adRoi },
+            ].map((s) => (
+              <div key={s.label} className="border-b border-slate-700/50 py-2 last:border-0">
+                <p className="font-mono text-slate-300">{s.label}</p>
+                <p className="mt-1 font-mono text-lg tabular-nums text-emerald-400">
+                  {typeof s.value === "number" ? (s.value % 1 === 0 ? String(s.value) : s.value.toFixed(2)) : "—"}
+                </p>
+              </div>
+            ))}
+            <div className="border-t border-slate-700/50 pt-2 mt-2">
+              <p className="font-mono text-slate-300">Session Expiry</p>
+              <p className="mt-1 font-mono text-xl tabular-nums text-green-400">{countdown}</p>
             </div>
-          ))}
-          <div className="rounded-md border border-[#1a1f2e] bg-[#0f131c] p-3">
-            <p className="font-mono text-[10px] text-[#6b7280]">Session Expiry</p>
-            <p className="mt-1 font-mono text-xl tabular-nums text-[#10b981]">{countdown}</p>
           </div>
         </aside>
       </div>
 
       {/* Workspace: existing sandbox tabs */}
-      <div className="mx-auto max-w-[1600px] border-t border-[#1a1f2e] p-4">
+      <div className="mx-auto max-w-[1600px] border-t border-slate-700 p-4">
         <div className="mb-4 flex gap-2">
           <button
             type="button"
             onClick={() => setWorkspaceTab(workspaceTab === "simulation" ? null : "simulation")}
-            className={`relative z-50 cursor-pointer rounded-md px-3 py-2 font-mono text-xs transition-colors ${
+            className={`relative z-50 cursor-pointer rounded-xl px-3 py-2 font-mono text-sm md:text-base transition-colors ${
               workspaceTab === "simulation"
-                ? "bg-[#10b981/20] text-[#10b981] border border-[#10b981/40]"
-                : "border border-[#1a1f2e] text-[#6b7280] hover:text-[#d1d5db]"
+                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                : "border border-slate-700 text-slate-300 hover:text-emerald-400"
             }`}
           >
             Simulation Builder
@@ -349,20 +347,20 @@ export function CommandCenterClient({
           <button
             type="button"
             onClick={() => setWorkspaceTab(workspaceTab === "intelligence" ? null : "intelligence")}
-            className={`relative z-50 cursor-pointer rounded-md px-3 py-2 font-mono text-xs transition-colors ${
+            className={`relative z-50 cursor-pointer rounded-xl px-3 py-2 font-mono text-sm md:text-base transition-colors ${
               workspaceTab === "intelligence"
-                ? "bg-[#10b981/20] text-[#10b981] border border-[#10b981/40]"
-                : "border border-[#1a1f2e] text-[#6b7280] hover:text-[#d1d5db]"
+                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                : "border border-slate-700 text-slate-300 hover:text-emerald-400"
             }`}
           >
             Intelligence Sandbox
           </button>
         </div>
         {workspaceTab === "simulation" && (
-          <div className="rounded-md border border-[#1a1f2e] bg-[#0f131c] p-6 space-y-6">
+          <div className="max-h-64 overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 p-6 font-mono text-sm md:text-base text-emerald-400 shadow-inner space-y-6">
             <AdminSimulationSandbox />
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-wider text-[#6b7280] mb-3">Data input</p>
+              <p className="font-mono text-slate-300 uppercase tracking-wider mb-3">Data input</p>
               <SimulationBuilderDataSection
                 sandboxId={sandboxId}
                 employerList={(metrics?.employers && metrics.employers.length > 0) ? metrics.employers : employerList}
@@ -372,7 +370,7 @@ export function CommandCenterClient({
           </div>
         )}
         {workspaceTab === "intelligence" && (
-          <div className="rounded-md border border-[#1a1f2e] bg-[#0f131c] p-6">
+          <div className="max-h-64 overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 p-6 font-mono text-sm md:text-base text-emerald-400 shadow-inner">
             <IntelligenceSandboxClient
               employerList={employerList}
               onSandboxCreated={(id) => {
@@ -381,9 +379,9 @@ export function CommandCenterClient({
                 refetchList();
                 refetchMetrics();
               }}
-              onSandboxDataChange={() => {
-                refetchList();
-                refetchMetrics();
+              onSandboxDataChange={async () => {
+                await refetchList();
+                await refetchMetrics();
               }}
             />
           </div>
