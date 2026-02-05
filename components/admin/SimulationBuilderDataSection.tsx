@@ -251,7 +251,7 @@ export function SimulationBuilderDataSection({
               <Label>Location (optional)</Label>
               <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="City, State" className="mt-1" />
             </div>
-            <Button onClick={createEmployer} disabled={employerLoading}>{employerLoading ? "Creating…" : "Create employer"}</Button>
+            <Button type="button" onClick={createEmployer} disabled={employerLoading} className="relative z-50 cursor-pointer">{employerLoading ? "Creating…" : "Create employer"}</Button>
           </CardContent>
         </Card>
 
@@ -284,7 +284,7 @@ export function SimulationBuilderDataSection({
               <input type="checkbox" id="rehire" checked={rehireEligible} onChange={(e) => setRehireEligible(e.target.checked)} className="rounded" />
               <Label htmlFor="rehire">Rehire eligible</Label>
             </div>
-            <Button onClick={createEmployee} disabled={employeeLoading}>{employeeLoading ? "Creating…" : "Create employee"}</Button>
+            <Button type="button" onClick={() => { alert("clicked"); createEmployee(); }} disabled={employeeLoading} className="relative z-50 cursor-pointer">{employeeLoading ? "Creating…" : "Create employee"}</Button>
           </CardContent>
         </Card>
       </div>
@@ -312,7 +312,7 @@ export function SimulationBuilderDataSection({
             <Label>Job title (optional)</Label>
             <Input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} className="mt-1" />
           </div>
-          <Button onClick={linkEmployment} disabled={!employeeId || !linkEmployerId || linkLoading}>{linkLoading ? "Linking…" : "Link employment"}</Button>
+          <Button type="button" onClick={linkEmployment} disabled={!employeeId || !linkEmployerId || linkLoading} className="relative z-50 cursor-pointer">{linkLoading ? "Linking…" : "Link employment"}</Button>
         </CardContent>
       </Card>
 
@@ -346,7 +346,7 @@ export function SimulationBuilderDataSection({
             <input type="checkbox" id="rehireRec" checked={rehireRecommendation} onChange={(e) => setRehireRecommendation(e.target.checked)} className="rounded" />
             <Label htmlFor="rehireRec">Rehire recommendation (UI only)</Label>
           </div>
-          <Button onClick={addPeerReview} disabled={!reviewerId || !reviewedId || peerLoading}>{peerLoading ? "Adding…" : "Add peer review"}</Button>
+          <Button type="button" onClick={addPeerReview} disabled={!reviewerId || !reviewedId || peerLoading} className="relative z-50 cursor-pointer">{peerLoading ? "Adding…" : "Add peer review"}</Button>
         </CardContent>
       </Card>
 
@@ -356,10 +356,10 @@ export function SimulationBuilderDataSection({
           <p className="text-xs text-grey-medium dark:text-gray-400">Random realistic names and industries. All rows include sandbox_id.</p>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          <Button variant="secondary" onClick={() => bulkGenerate("10_employees")} disabled={!!bulkLoading}>{bulkLoading === "10_employees" ? "Generating…" : "Generate 10 Employees"}</Button>
-          <Button variant="secondary" onClick={() => bulkGenerate("50_employees")} disabled={!!bulkLoading}>{bulkLoading === "50_employees" ? "Generating…" : "Generate 50 Employees"}</Button>
-          <Button variant="secondary" onClick={() => bulkGenerate("1_employer_25_employees")} disabled={!!bulkLoading}>{bulkLoading === "1_employer_25_employees" ? "Generating…" : "Generate 1 Employer + 25 Employees"}</Button>
-          <Button variant="secondary" onClick={() => bulkGenerate("500_org")} disabled={!!bulkLoading}>{bulkLoading === "500_org" ? "Generating…" : "Generate Enterprise Org (500 users)"}</Button>
+          <Button type="button" variant="secondary" onClick={() => bulkGenerate("10_employees")} disabled={!!bulkLoading} className="relative z-50 cursor-pointer">{bulkLoading === "10_employees" ? "Generating…" : "Generate 10 Employees"}</Button>
+          <Button type="button" variant="secondary" onClick={() => bulkGenerate("50_employees")} disabled={!!bulkLoading} className="relative z-50 cursor-pointer">{bulkLoading === "50_employees" ? "Generating…" : "Generate 50 Employees"}</Button>
+          <Button type="button" variant="secondary" onClick={() => bulkGenerate("1_employer_25_employees")} disabled={!!bulkLoading} className="relative z-50 cursor-pointer">{bulkLoading === "1_employer_25_employees" ? "Generating…" : "Generate 1 Employer + 25 Employees"}</Button>
+          <Button type="button" variant="secondary" onClick={() => bulkGenerate("500_org")} disabled={!!bulkLoading} className="relative z-50 cursor-pointer">{bulkLoading === "500_org" ? "Generating…" : "Generate Enterprise Org (500 users)"}</Button>
         </CardContent>
       </Card>
     </div>

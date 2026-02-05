@@ -196,7 +196,7 @@ export function CommandCenterClient({
                 ) : (
                   <button
                     type="button"
-                    className="font-mono text-xs text-[#d1d5db] hover:text-[#10b981]"
+                    className="relative z-50 cursor-pointer font-mono text-xs text-[#d1d5db] hover:text-[#10b981]"
                     onClick={async () => {
                       if (m.id === "launch") setWorkspaceTab("simulation");
                       if (m.id === "end") setWorkspaceTab(null);
@@ -312,7 +312,7 @@ export function CommandCenterClient({
           <button
             type="button"
             onClick={() => setWorkspaceTab(workspaceTab === "simulation" ? null : "simulation")}
-            className={`rounded-md px-3 py-2 font-mono text-xs transition-colors ${
+            className={`relative z-50 cursor-pointer rounded-md px-3 py-2 font-mono text-xs transition-colors ${
               workspaceTab === "simulation"
                 ? "bg-[#10b981/20] text-[#10b981] border border-[#10b981/40]"
                 : "border border-[#1a1f2e] text-[#6b7280] hover:text-[#d1d5db]"
@@ -323,7 +323,7 @@ export function CommandCenterClient({
           <button
             type="button"
             onClick={() => setWorkspaceTab(workspaceTab === "intelligence" ? null : "intelligence")}
-            className={`rounded-md px-3 py-2 font-mono text-xs transition-colors ${
+            className={`relative z-50 cursor-pointer rounded-md px-3 py-2 font-mono text-xs transition-colors ${
               workspaceTab === "intelligence"
                 ? "bg-[#10b981/20] text-[#10b981] border border-[#10b981/40]"
                 : "border border-[#1a1f2e] text-[#6b7280] hover:text-[#d1d5db]"
