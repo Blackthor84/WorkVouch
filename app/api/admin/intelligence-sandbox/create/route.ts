@@ -10,6 +10,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSandboxAdmin } from "@/lib/sandbox";
 import { createSandboxSession } from "@/lib/intelligence/sandboxCreateSession";
+import type { Database } from "@/types/database";
+
+type IntelligenceSandboxRow = Database["public"]["Tables"]["intelligence_sandboxes"]["Row"];
 
 export const dynamic = "force-dynamic";
 
@@ -82,7 +85,7 @@ export async function POST(req: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    const row = sandbox as { id: string; name: string | null; starts_at: string; ends_at: string; auto_delete: boolean; status: string; created_at: string };
+    const row = sandbox as IntelligenceSandboxRow;
     return NextResponse.json({
       sandbox_id: row.id,
       name: row.name,

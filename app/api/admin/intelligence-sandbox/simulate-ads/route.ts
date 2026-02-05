@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    const r = row as { id: string; type: string; impressions: number; clicks: number; conversions: number; spend: number; created_at: string };
+    const r = row as SandboxAdCampaignRow;
     return NextResponse.json({
       ok: true,
       campaign_id: r.id,

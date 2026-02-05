@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: eaErr.message }, { status: 400 });
     }
 
-    const employerAccountId = (eaRow as { id: string } | null)?.id ?? userId;
+    const employerAccountId = (eaRow as Pick<EmployerAccountRow, "id"> | null)?.id ?? userId;
     return NextResponse.json({
       ok: true,
       employer_id: employerAccountId,

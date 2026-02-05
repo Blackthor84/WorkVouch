@@ -8,6 +8,10 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSandboxAdmin, validateSandboxForWrite } from "@/lib/sandbox";
 import { calculateUserIntelligence } from "@/lib/intelligence/calculateUserIntelligence";
 import type { SimulationContext } from "@/lib/simulation/types";
+import type { Database } from "@/types/database";
+
+type EmploymentRecordRow = Database["public"]["Tables"]["employment_records"]["Row"];
+type EmploymentMatchRow = Database["public"]["Tables"]["employment_matches"]["Row"];
 
 export const dynamic = "force-dynamic";
 
@@ -43,10 +47,10 @@ export async function POST(req: NextRequest) {
       .select("id, company_normalized")
       .eq("user_id", reviewedUserId)
       .eq("sandbox_id", sandboxId);
-    const listA = Array.isArray(recsA) ? recsA : [];
-    const listB = Array.isArray(recsB) ? recsB : [];
-    const recA = listA[0] as { id: string; company_normalized: string } | undefined;
-    const recB = listB[0] as { id: string; company_normalized: string } | undefined;
+    const listA = (recsA ?? []) as Pick<EmploymentRecordRow, "id" | "company_normalized">[];
+    const listB = (recsB ?? []) as Pick<EmploymentRecordRow, "id" | "company_normalized">[];
+    const recA = listA[0];
+    const recB = listB[0];
     if (!recA || !recB) {
       return NextResponse.json({ error: "Both users need at least one sandbox employment record" }, { status: 400 });
     }
@@ -67,8 +71,9 @@ export async function POST(req: NextRequest) {
       .eq("employment_record_id", recA.id)
       .eq("matched_user_id", reviewedUserId)
       .maybeSingle();
-    if (existingMatch && (existingMatch as { id: string }).id) {
-      matchId = (existingMatch as { id: string }).id;
+    const existingRow = existingMatch as Pick<EmploymentMatchRow, "id"> | null;
+    if (existingRow?.id) {
+      matchId = existingRow.id;
     } else {
       const { data: newMatch, error: matchErr } = await supabase
         .from("employment_matches")
@@ -85,7 +90,7 @@ export async function POST(req: NextRequest) {
       if (matchErr || !newMatch) {
         return NextResponse.json({ error: matchErr?.message ?? "Failed to create match" }, { status: 400 });
       }
-      matchId = (newMatch as { id: string }).id;
+      matchId = (newMatch as Pick<EmploymentMatchRow, "id">).id;
     }
 
     const { error: refErr } = await supabase.from("employment_references").insert({

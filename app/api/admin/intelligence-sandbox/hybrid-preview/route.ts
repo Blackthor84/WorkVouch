@@ -10,6 +10,10 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getIndustryBehavioralBaseline, getEmployerBehavioralBaseline } from "@/lib/intelligence/hybridBehavioralModel";
 import { getSandboxBehavioralVector } from "@/lib/intelligence/getBehavioralVector";
+import type { Database } from "@/types/database";
+
+type SandboxSessionRow = Database["public"]["Tables"]["sandbox_sessions"]["Row"];
+type SandboxProfileRow = Database["public"]["Tables"]["sandbox_profiles"]["Row"];
 
 function isAdmin(roles: string[]): boolean {
   return roles.includes("admin") || roles.includes("superadmin");
@@ -59,16 +63,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
     }
 
-    const supabase = getSupabaseServer() as any;
-    const { data: sessionRow } = await supabase
+    const supabase = getSupabaseServer();
+    const { data: sessionData } = await supabase
       .from("sandbox_sessions")
       .select("industry")
       .eq("id", sessionId)
       .eq("is_sandbox", true)
       .maybeSingle();
-    if (!sessionRow) {
+    if (!sessionData) {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
+    const sessionRow = sessionData as Pick<SandboxSessionRow, "industry">;
     const industryKey = (sessionRow.industry || "corporate").trim().toLowerCase();
 
     const options = { sandboxSessionId: sessionId };
@@ -94,13 +99,14 @@ export async function POST(req: NextRequest) {
       avg_tone_stability: blend(safeNum(industry.avg_tone_stability), safeNum(industry.avg_tone_stability), safeNum(industry.avg_tone_stability), safeNum(employer.avg_tone_stability)),
     };
 
-    const { data: profiles } = await supabase
+    const { data: profilesData } = await supabase
       .from("sandbox_profiles")
       .select("id")
       .eq("sandbox_session_id", sessionId)
       .eq("is_sandbox", true)
       .limit(5);
-    const profileIds = (profiles ?? []).map((p: { id: string }) => p.id);
+    const profiles = (profilesData ?? []) as Pick<SandboxProfileRow, "id">[];
+    const profileIds = profiles.map((p) => p.id);
     const alignmentScores: number[] = [];
     for (const pid of profileIds) {
       const vec = await getSandboxBehavioralVector(pid);

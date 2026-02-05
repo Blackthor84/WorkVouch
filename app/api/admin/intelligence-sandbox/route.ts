@@ -21,7 +21,7 @@ type EmployerBaselineRow = Database["public"]["Tables"]["sandbox_employer_baseli
 type BaselineSnapshotRow = Database["public"]["Tables"]["sandbox_baseline_snapshots"]["Row"];
 type TeamFitRow = Database["public"]["Tables"]["sandbox_team_fit_scores"]["Row"];
 type RiskOutputRow = Database["public"]["Tables"]["sandbox_risk_model_outputs"]["Row"];
-type HiringConfidenceRow = Database["public"]["Tables"]["sandbox_hiring_confidence_scores"]["Row"];
+type SandboxHiringConfidenceRow = Database["public"]["Tables"]["sandbox_hiring_confidence_scores"]["Row"];
 type IntelligenceSandboxRow = Database["public"]["Tables"]["intelligence_sandboxes"]["Row"];
 type EmployerAccountRow = Database["public"]["Tables"]["employer_accounts"]["Row"];
 type SandboxAdCampaignRow = Database["public"]["Tables"]["sandbox_ad_campaigns"]["Row"];
@@ -191,7 +191,7 @@ export async function GET(req: NextRequest) {
       employerBaselines,
       teamFitScores: (teamFitRes.data ?? []) as TeamFitRow[],
       riskOutputs: (riskRes.data ?? []) as RiskOutputRow[],
-      hiringConfidenceScores: (hiringRes.data ?? []) as HiringConfidenceRow[],
+      hiringConfidenceScores: (hiringRes.data ?? []) as SandboxHiringConfidenceRow[],
       baselineSnapshots,
       driftWarning: Boolean(driftWarning),
     });

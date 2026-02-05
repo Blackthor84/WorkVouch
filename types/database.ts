@@ -1200,6 +1200,229 @@ export interface Database {
         }
         Relationships: []
       }
+      sandbox_sessions: {
+        Row: {
+          id: string
+          created_by_admin: string
+          industry: string
+          sub_industry: string | null
+          role_title: string | null
+          employer_id: string | null
+          candidate_count: number
+          expires_at: string
+          is_sandbox: boolean
+          created_at: string
+          mode?: string
+        }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_profiles: {
+        Row: {
+          id: string
+          sandbox_session_id: string
+          created_by_admin: string
+          industry: string
+          sub_industry: string | null
+          role_title: string | null
+          expires_at: string
+          is_sandbox: boolean
+          created_at: string
+        }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_behavioral_profile_vector: {
+        Row: {
+          id: string
+          profile_id: string
+          avg_pressure: number | null
+          avg_structure: number | null
+          avg_communication: number | null
+          avg_leadership: number | null
+          avg_reliability: number | null
+          avg_initiative: number | null
+          conflict_risk_level: number | null
+          tone_stability: number | null
+          review_density_weight: number | null
+          expires_at: string
+          is_sandbox: boolean
+          last_updated: string
+        }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_industry_baselines: {
+        Row: {
+          id: string
+          sandbox_session_id: string
+          industry: string
+          avg_pressure: number | null
+          avg_structure: number | null
+          avg_communication: number | null
+          avg_leadership: number | null
+          avg_reliability: number | null
+          avg_initiative: number | null
+          avg_conflict_risk: number | null
+          avg_tone_stability: number | null
+          sample_size: number
+          model_version: string
+          expires_at: string
+          is_sandbox: boolean
+          updated_at: string
+        }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_employer_baselines: {
+        Row: {
+          id: string
+          sandbox_session_id: string
+          employer_id: string | null
+          avg_pressure: number | null
+          avg_structure: number | null
+          avg_communication: number | null
+          avg_leadership: number | null
+          avg_reliability: number | null
+          avg_initiative: number | null
+          avg_conflict_risk: number | null
+          avg_tone_stability: number | null
+          employee_sample_size: number
+          expires_at: string
+          is_sandbox: boolean
+          last_updated: string
+        }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_baseline_snapshots: {
+        Row: {
+          id: string
+          sandbox_session_id: string
+          baseline_before: Json
+          baseline_after: Json
+          delta_percent: Json
+          created_at: string
+          expires_at: string
+          is_sandbox: boolean
+        }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_team_fit_scores: {
+        Row: {
+          id: string
+          sandbox_session_id: string
+          profile_id: string
+          employer_id: string | null
+          alignment_score: number
+          breakdown: Json | null
+          model_version: string
+          expires_at: string
+          is_sandbox: boolean
+          updated_at: string
+        }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_risk_model_outputs: {
+        Row: {
+          id: string
+          sandbox_session_id: string
+          profile_id: string
+          employer_id: string | null
+          overall_score: number
+          breakdown: Json | null
+          model_version: string
+          expires_at: string
+          is_sandbox: boolean
+          updated_at: string
+        }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_hiring_confidence_scores: {
+        Row: {
+          id: string
+          sandbox_session_id: string
+          profile_id: string
+          employer_id: string | null
+          composite_score: number
+          breakdown: Json | null
+          model_version: string
+          expires_at: string
+          is_sandbox: boolean
+          updated_at: string
+        }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      employment_references: {
+        Row: {
+          id: string
+          employment_match_id: string
+          reviewer_id: string
+          reviewed_user_id: string
+          rating: number
+          reliability_score: number | null
+          comment: string | null
+          created_at: string
+          flagged: boolean
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          expires_at?: string | null
+          sandbox_id?: string | null
+        }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      employment_matches: {
+        Row: {
+          id: string
+          employment_record_id: string
+          matched_user_id: string
+          overlap_start: string
+          overlap_end: string
+          match_status: string
+          created_at: string
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          expires_at?: string | null
+          sandbox_id?: string | null
+        }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      hiring_confidence_scores: {
+        Row: {
+          id: string
+          candidate_id: string
+          employer_id: string
+          model_version: string
+          composite_score: number
+          breakdown: Json
+          created_at: string
+          updated_at: string
+          is_simulation?: boolean
+          simulation_session_id?: string | null
+          expires_at?: string | null
+          sandbox_id?: string | null
+        }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: {
