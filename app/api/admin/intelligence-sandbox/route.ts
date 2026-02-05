@@ -19,6 +19,10 @@ type SandboxSessionRow = {
   created_by_admin: string;
 };
 
+type SandboxProfileRow = {
+  id: string;
+};
+
 function isAdmin(roles: string[]): boolean {
   return roles.includes("admin") || roles.includes("superadmin");
 }
@@ -124,7 +128,11 @@ export async function GET(req: NextRequest) {
         .eq("id", sessionId)
         .eq("is_sandbox", true)
         .maybeSingle<SandboxSessionRow>(),
-      supabase.from("sandbox_profiles").select("*").eq("sandbox_session_id", sessionId).eq("is_sandbox", true),
+      supabase
+        .from("sandbox_profiles")
+        .select("id")
+        .eq("sandbox_session_id", sessionId)
+        .eq("is_sandbox", true),
       supabase.from("sandbox_behavioral_profile_vector").select("*").eq("is_sandbox", true),
       supabase.from("sandbox_industry_baselines").select("*").eq("sandbox_session_id", sessionId).eq("is_sandbox", true),
       supabase.from("sandbox_employer_baselines").select("*").eq("sandbox_session_id", sessionId).eq("is_sandbox", true),
@@ -139,8 +147,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Session expired" }, { status: 410 });
     }
 
-    const profiles = profilesRes.data ?? [];
-    const profileIds = profiles.map((p: { id: string }) => p.id);
+    const profilesData = profilesRes.data;
+    const profiles: SandboxProfileRow[] = Array.isArray(profilesData)
+      ? (profilesData as SandboxProfileRow[])
+      : [];
+    const profileIds = profiles.map((p) => p.id);
     const vectors = (vectorsRes.data ?? []).filter((v: { profile_id: string }) => profileIds.includes(v.profile_id));
     const industryBaselines = industryRes.data ?? [];
     const employerBaselines = employerRes.data ?? [];
