@@ -100,7 +100,11 @@ export function SandboxV2Client() {
       const res = await fetch(`${API}/sessions`, { credentials: "include" });
       const json = await res.json();
       if (json.success) {
-        setSessions(Array.isArray(json.data) ? json.data : []);
+        const newData = Array.isArray(json.data) ? json.data : [];
+        setSessions((prev) => {
+          if (JSON.stringify(prev) === JSON.stringify(newData)) return prev;
+          return newData;
+        });
         setError(null);
       } else {
         setSessions([]);
@@ -118,7 +122,11 @@ export function SandboxV2Client() {
       const res = await fetch(`${API}/employers?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
       const json = await res.json();
       if (json.success) {
-        setEmployers(Array.isArray(json.data) ? json.data : []);
+        const newData = Array.isArray(json.data) ? json.data : [];
+        setEmployers((prev) => {
+          if (JSON.stringify(prev) === JSON.stringify(newData)) return prev;
+          return newData;
+        });
         setError(null);
       } else {
         setEmployers([]);
@@ -136,7 +144,11 @@ export function SandboxV2Client() {
       const res = await fetch(`${API}/employees?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
       const json = await res.json();
       if (json.success) {
-        setEmployees(Array.isArray(json.data) ? json.data : []);
+        const newData = Array.isArray(json.data) ? json.data : [];
+        setEmployees((prev) => {
+          if (JSON.stringify(prev) === JSON.stringify(newData)) return prev;
+          return newData;
+        });
         setError(null);
       } else {
         setEmployees([]);
@@ -154,7 +166,11 @@ export function SandboxV2Client() {
       const res = await fetch(`${API}/metrics?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
       const json = await res.json();
       if (json.success) {
-        setMetrics((json.data ?? {}) as Metrics);
+        const newData = (json.data ?? {}) as Metrics;
+        setMetrics((prev) => {
+          if (JSON.stringify(prev) === JSON.stringify(newData)) return prev;
+          return newData;
+        });
         setError(null);
       } else {
         setMetrics(null);
@@ -558,12 +574,14 @@ export function SandboxV2Client() {
       : "active";
 
   useEffect(() => {
-    console.log("SANDBOX STATE", {
-      sandboxId: activeSandboxId,
-      employers: employers.length,
-      employees: employees.length,
-      sessions: sessions.length,
-    });
+    if (process.env.NODE_ENV === "development") {
+      console.log("SANDBOX STATE", {
+        sandboxId: activeSandboxId,
+        employers: employers.length,
+        employees: employees.length,
+        sessions: sessions.length,
+      });
+    }
   }, [activeSandboxId]);
 
   return (
