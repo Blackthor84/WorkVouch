@@ -98,15 +98,24 @@ export function SandboxV2Client() {
   async function fetchSessions() {
     try {
       const res = await fetch(`${API}/sessions`, { credentials: "include" });
+      const raw = await res.text();
+      console.log("RAW RESPONSE STRING:", raw);
       if (!res.ok) {
         console.error("API failed", res.status);
         setSessions([]);
         return;
       }
-      const json = await res.json();
-      console.log("PARSED JSON", json);
+      let json: { success?: boolean; data?: unknown };
+      try {
+        json = JSON.parse(raw);
+      } catch (e) {
+        console.error("JSON PARSE FAILED", e);
+        setSessions([]);
+        return;
+      }
+      console.log("PARSED JSON FULL:", JSON.stringify(json, null, 2));
       if (!json.success) {
-        console.error("API returned success:false", json);
+        console.error("API returned failure", json);
         setSessions([]);
         return;
       }
@@ -122,15 +131,24 @@ export function SandboxV2Client() {
     if (!sandboxIdArg) return;
     try {
       const res = await fetch(`${API}/employers?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
+      const raw = await res.text();
+      console.log("RAW RESPONSE STRING:", raw);
       if (!res.ok) {
         console.error("API failed", res.status);
         setEmployers([]);
         return;
       }
-      const json = await res.json();
-      console.log("PARSED JSON", json);
+      let json: { success?: boolean; data?: unknown };
+      try {
+        json = JSON.parse(raw);
+      } catch (e) {
+        console.error("JSON PARSE FAILED", e);
+        setEmployers([]);
+        return;
+      }
+      console.log("PARSED JSON FULL:", JSON.stringify(json, null, 2));
       if (!json.success) {
-        console.error("API returned success:false", json);
+        console.error("API returned failure", json);
         setEmployers([]);
         return;
       }
@@ -146,15 +164,24 @@ export function SandboxV2Client() {
     if (!sandboxIdArg) return;
     try {
       const res = await fetch(`${API}/employees?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
+      const raw = await res.text();
+      console.log("RAW RESPONSE STRING:", raw);
       if (!res.ok) {
         console.error("API failed", res.status);
         setEmployees([]);
         return;
       }
-      const json = await res.json();
-      console.log("PARSED JSON", json);
+      let json: { success?: boolean; data?: unknown };
+      try {
+        json = JSON.parse(raw);
+      } catch (e) {
+        console.error("JSON PARSE FAILED", e);
+        setEmployees([]);
+        return;
+      }
+      console.log("PARSED JSON FULL:", JSON.stringify(json, null, 2));
       if (!json.success) {
-        console.error("API returned success:false", json);
+        console.error("API returned failure", json);
         setEmployees([]);
         return;
       }
@@ -170,15 +197,24 @@ export function SandboxV2Client() {
     if (!sandboxIdArg) return;
     try {
       const res = await fetch(`${API}/metrics?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
+      const raw = await res.text();
+      console.log("RAW RESPONSE STRING:", raw);
       if (!res.ok) {
         console.error("API failed", res.status);
         setMetrics(null);
         return;
       }
-      const json = await res.json();
-      console.log("PARSED JSON", json);
+      let json: { success?: boolean; data?: unknown };
+      try {
+        json = JSON.parse(raw);
+      } catch (e) {
+        console.error("JSON PARSE FAILED", e);
+        setMetrics(null);
+        return;
+      }
+      console.log("PARSED JSON FULL:", JSON.stringify(json, null, 2));
       if (!json.success) {
-        console.error("API returned success:false", json);
+        console.error("API returned failure", json);
         setMetrics(null);
         return;
       }
@@ -581,17 +617,6 @@ export function SandboxV2Client() {
       ? "expired"
       : "active";
 
-  useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      console.log("SANDBOX STATE", {
-        sandboxId: activeSandboxId,
-        employers: employers.length,
-        employees: employees.length,
-        sessions: sessions.length,
-      });
-    }
-  }, [activeSandboxId]);
-
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       <header className="sticky top-0 z-10 border-b border-slate-600 bg-slate-950/98 backdrop-blur-sm">
@@ -980,7 +1005,7 @@ export function SandboxV2Client() {
               </div>
             </div>
             {employees?.length === 0 && activeSandboxId && (
-              <p className="mt-3 text-sm text-slate-500">No employees yet.</p>
+              <div style={{ padding: 20, opacity: 0.6 }}>No data found for this sandbox.</div>
             )}
             <Button variant="secondary" className="mt-4" onClick={runRecalculate} disabled={loading || !activeSandboxId || recalcLoading}>{recalcLoading ? "…" : "Recalculate intelligence"}</Button>
           </div>
@@ -991,7 +1016,7 @@ export function SandboxV2Client() {
               <p className="text-3xl font-bold text-cyan-400">{activeSandboxId && metrics ? (ea?.employersCount ?? 0) : "—"}</p>
             </div>
             {employers?.length === 0 && activeSandboxId && (
-              <p className="mt-3 text-sm text-slate-500">No employers yet.</p>
+              <div style={{ padding: 20, opacity: 0.6 }}>No data found for this sandbox.</div>
             )}
             {employers?.length > 0 && (
               <ul className="mt-3 space-y-1 text-sm text-slate-300">

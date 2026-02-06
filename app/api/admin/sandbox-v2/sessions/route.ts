@@ -96,15 +96,11 @@ export async function GET() {
 
     if (error) {
       console.error("Supabase error:", error);
-      return NextResponse.json({
-        success: false,
-        stage: "get",
-        error: error?.message,
-        details: error,
-      }, { status: 500 });
+      return NextResponse.json({ success: false, error: String(error?.message ?? error) }, { status: 500 });
     }
 
-    const result = data ?? [];
+    const result = Array.isArray(data) ? data : (data ?? []);
+    console.log("SUPABASE RAW DATA:", JSON.stringify(data, null, 2));
     return NextResponse.json({ success: true, data: result });
   } catch (err: unknown) {
     console.error("Sessions GET failure:", { stage: "server_crash", err });

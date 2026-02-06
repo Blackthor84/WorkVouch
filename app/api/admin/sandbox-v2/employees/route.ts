@@ -123,24 +123,14 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error("Supabase error:", error);
-      return NextResponse.json({
-        success: false,
-        stage: "supabase_insert",
-        error: error.message,
-        details: error,
-      }, { status: 500 });
+      return NextResponse.json({ success: false, error: String(error?.message ?? error) }, { status: 500 });
     }
 
-    const result = data ?? [];
+    const result = Array.isArray(data) ? data : (data ?? []);
     return NextResponse.json({ success: true, data: result });
   } catch (error) {
     const err = error as { message?: string };
     console.error("EMPLOYEES GET ROUTE ERROR", error);
-    return NextResponse.json({
-      success: false,
-      stage: "employees_route",
-      error: err?.message ?? "Unknown",
-      details: error,
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: String(err?.message ?? error) }, { status: 500 });
   }
 }
