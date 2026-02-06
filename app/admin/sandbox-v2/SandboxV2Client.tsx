@@ -292,16 +292,26 @@ export function SandboxV2Client() {
   };
 
   const addPeerReview = async () => {
-    if (!currentSandboxId || !peerReviewerId || !peerReviewedId) return;
+    const sandboxId = currentSandboxId?.trim() || null;
+    const reviewerId = peerReviewerId?.trim() || null;
+    const reviewedId = peerReviewedId?.trim() || null;
+    if (!sandboxId || !reviewerId || !reviewedId) return;
     setLoading(true);
     setPeerReviewLoading(true);
     setError(null);
     try {
+      const payload = {
+        sandbox_id: sandboxId,
+        reviewer_id: reviewerId,
+        reviewed_id: reviewedId,
+        rating: peerRating,
+        review_text: peerReviewText?.trim() || null,
+      };
       const res = await fetch(`${API}/peer-reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: currentSandboxId, reviewer_id: peerReviewerId, reviewed_id: peerReviewedId, rating: peerRating, review_text: peerReviewText || null }),
+        body: JSON.stringify(payload),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Add peer review failed");

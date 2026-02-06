@@ -6,10 +6,20 @@ import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Expected request body (no Zod; validated manually):
+ * - sandbox_id or sandboxId: string (required, UUID)
+ * - reviewer_id or reviewerId: string (required, UUID)
+ * - reviewed_id or reviewedId: string (required, UUID)
+ * - rating?: number 1-5 or string (optional, default 3)
+ * - review_text or reviewText?: string | null (optional)
+ * Do not send empty strings for required IDs; 400 if any required is missing.
+ */
 export async function POST(req: NextRequest) {
   try {
     await requireSandboxV2Admin();
     const body = await req.json().catch(() => ({}));
+    console.log("PEER REVIEW RECEIVED BODY (before validation):", JSON.stringify(body, null, 2));
     const sandbox_id = (body.sandbox_id ?? body.sandboxId) as string | undefined;
     const reviewer_id = (body.reviewer_id ?? body.reviewerId) as string | undefined;
     const reviewed_id = (body.reviewed_id ?? body.reviewedId) as string | undefined;
@@ -17,9 +27,14 @@ export async function POST(req: NextRequest) {
     const review_text = (body.review_text ?? body.reviewText) as string | undefined;
 
     if (!sandbox_id || !reviewer_id || !reviewed_id) {
+      const missing = [
+        !sandbox_id && "sandbox_id",
+        !reviewer_id && "reviewer_id",
+        !reviewed_id && "reviewed_id",
+      ].filter(Boolean);
       console.log("PEER REVIEW BODY:", body);
-      console.log("ERROR:", "Missing sandbox_id, reviewer_id, or reviewed_id");
-      return NextResponse.json({ error: "Missing sandbox_id, reviewer_id, or reviewed_id" }, { status: 400 });
+      console.log("ERROR: Missing required fields", missing);
+      return NextResponse.json({ error: "Missing sandbox_id, reviewer_id, or reviewed_id", missing }, { status: 400 });
     }
 
     const sentiment_score = calculateSentimentFromText(review_text ?? null);
