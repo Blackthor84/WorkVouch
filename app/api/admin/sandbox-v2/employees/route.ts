@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
+import { linkEmployeeToRandomEmployer } from "@/lib/sandbox/employmentGenerator";
+import { generatePeerReviews } from "@/lib/sandbox/peerReviewGenerator";
+import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";
+import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
+import { pickFullName, pickIndustry } from "@/lib/sandbox/namePools";
 
 export const dynamic = "force-dynamic";
 
@@ -38,8 +43,8 @@ export async function POST(req: NextRequest) {
     const last = body.last_name ?? body.lastName;
     const full_name =
       body.full_name ?? body.fullName ??
-      (first != null && last != null ? `${first} ${last}` : "John Doe");
-    const industry = body.industry ?? "Security";
+      (first != null && last != null ? `${first} ${last}` : pickFullName());
+    const industry = body.industry ?? pickIndustry();
 
     const { data, error } = await supabase
       .from("sandbox_employees")
@@ -60,6 +65,19 @@ export async function POST(req: NextRequest) {
         details: error,
       }, { status: 500 });
     }
+
+    const supabase = getServiceRoleClient();
+    const employmentCount = 1 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < employmentCount; i++) {
+      await linkEmployeeToRandomEmployer({ sandboxId, employeeId: data.id });
+    }
+
+    const { data: allEmployees } = await supabase.from("sandbox_employees").select("id").eq("sandbox_id", sandboxId);
+    const employeePool = (allEmployees ?? []).map((e) => ({ id: e.id }));
+    await generatePeerReviews({ sandboxId, employeeId: data.id, employeePool });
+
+    await runSandboxIntelligenceRecalculation(sandboxId);
+    await calculateSandboxMetrics(sandboxId);
 
     return NextResponse.json({ success: true, data, employee: data });
   } catch (error) {

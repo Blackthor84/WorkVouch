@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
+import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +35,8 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = getServiceRoleClient();
     const sandbox_id = sandboxId;
-    const company_name = body.company_name ?? "Test Company";
-    const industry = body.industry ?? "Security";
+    const company_name = body.company_name ?? pickCompany();
+    const industry = body.industry ?? pickIndustry();
     const plan_tier = body.plan_tier ?? "pro";
 
     const { data, error } = await supabase
@@ -58,6 +59,8 @@ export async function POST(req: NextRequest) {
         details: error,
       }, { status: 500 });
     }
+
+    await calculateSandboxMetrics(sandboxId);
 
     return NextResponse.json({ success: true, data, employer: data });
   } catch (error) {

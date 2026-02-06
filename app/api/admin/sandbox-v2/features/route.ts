@@ -1,19 +1,21 @@
 import { NextResponse } from "next/server";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
+import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 
 export async function GET(req: Request) {
   try {
+    await requireSandboxV2Admin();
     const { searchParams } = new URL(req.url);
     const sandboxId = searchParams.get("sandboxId");
 
     if (!sandboxId) {
       return NextResponse.json(
-        { success: false, message: "Missing sandboxId" },
+        { success: false, stage: "validation", error: "Missing sandboxId" },
         { status: 400 }
       );
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = getServiceRoleClient();
 
     const { data, error } = await supabase
       .from("sandbox_features")
@@ -21,9 +23,9 @@ export async function GET(req: Request) {
       .eq("sandbox_id", sandboxId);
 
     if (error) {
-      console.error("SANDBOX FEATURES ERROR:", error);
+      console.error("Supabase error:", error);
       return NextResponse.json(
-        { success: false, stage: "supabase_select", error },
+        { success: false, stage: "supabase_select", error: error.message, details: error },
         { status: 500 }
       );
     }
@@ -36,7 +38,7 @@ export async function GET(req: Request) {
   } catch (err) {
     console.error("SANDBOX FEATURES FATAL:", err);
     return NextResponse.json(
-      { success: false, error: String(err) },
+      { success: false, stage: "features_route", error: String(err) },
       { status: 500 }
     );
   }

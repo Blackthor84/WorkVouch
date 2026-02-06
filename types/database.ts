@@ -1375,7 +1375,7 @@ export interface Database {
         Relationships: []
       }
       sandbox_employment_records: {
-        Row: { id: string; sandbox_id: string; employee_id: string; employer_id: string; role: string | null; tenure_months: number | null; rehire_eligible: boolean | null; created_at: string }
+        Row: { id: string; sandbox_id: string; employee_id: string; employer_id: string; role: string | null; tenure_months: number | null; rehire_eligible: boolean | null; start_date: string | null; end_date: string | null; department: string | null; verified: boolean | null; created_at: string }
         Insert: { [key: string]: unknown }
         Update: { [key: string]: unknown }
         Relationships: []
@@ -1430,6 +1430,12 @@ export interface Database {
       }
       sandbox_feature_overrides: {
         Row: { sandbox_id: string; feature_key: string; is_enabled: boolean }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_features: {
+        Row: { id: string; sandbox_id: string; feature_key: string; is_enabled: boolean; created_at: string }
         Insert: { [key: string]: unknown }
         Update: { [key: string]: unknown }
         Relationships: []

@@ -1,14 +1,14 @@
 /**
- * Sandbox metrics aggregator. Computes counts and averages from sandbox_* tables
- * and upserts into sandbox_metrics. Data-driven; no mocks.
+ * Sandbox metrics aggregator. Computes profiles_count, employment_records_count, references_count,
+ * mrr, ad_roi and averages from sandbox_* tables; upserts into sandbox_metrics. Data-driven; no mocks.
  */
 
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 const PLAN_VALUE = 99;
 
 export async function calculateSandboxMetrics(sandboxId: string): Promise<{ ok: boolean; error?: string }> {
-  const supabase = getSupabaseServer();
+  const supabase = getServiceRoleClient();
 
   const [employeesRes, recordsRes, reviewsRes, intelRes, employersRes, revenueRes, adsRes] = await Promise.all([
     supabase.from("sandbox_employees").select("id").eq("sandbox_id", sandboxId),

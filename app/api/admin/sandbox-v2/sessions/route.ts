@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin, requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
+import { seedSandboxFeatures } from "@/lib/sandbox/seedFeatures";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +57,11 @@ export async function POST(req: Request) {
     }
 
     console.log("Sandbox created:", data?.id);
+
+    const seedResult = await seedSandboxFeatures(data.id);
+    if (!seedResult.ok) {
+      console.error("Session seed features failed:", seedResult.error);
+    }
 
     return NextResponse.json({
       success: true,
