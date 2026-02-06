@@ -3,12 +3,11 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 
 export const dynamic = "force-dynamic";
-const sb = () => getSupabaseServer() as any;
 
 export async function GET() {
   try {
     await requireSandboxV2Admin();
-    const { data, error } = await sb()
+    const { data, error } = await getSupabaseServer()
       .from("sandbox_sessions")
       .select("id, name, created_by, starts_at, ends_at, status, created_at")
       .order("created_at", { ascending: false })
@@ -32,7 +31,7 @@ export async function POST(req: NextRequest) {
     const starts_at = body.starts_at ? new Date(body.starts_at).toISOString() : now.toISOString();
     const ends_at = body.ends_at ? new Date(body.ends_at).toISOString() : new Date(now.getTime() + 60 * 60 * 1000).toISOString();
 
-    const { data, error } = await sb()
+    const { data, error } = await getSupabaseServer()
       .from("sandbox_sessions")
       .insert({ name, created_by: userId, starts_at, ends_at, status: "active" })
       .select("id, name, starts_at, ends_at, status")

@@ -3,13 +3,12 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 
 export const dynamic = "force-dynamic";
-const sb = () => getSupabaseServer() as any;
 
 /** GET /api/admin/sandbox-v2/templates — list sandbox_templates for dropdown */
 export async function GET() {
   try {
     await requireSandboxV2Admin();
-    const { data, error } = await sb()
+    const { data, error } = await getSupabaseServer()
       .from("sandbox_templates")
       .select("id, template_key, display_name, industry, default_employee_count, description")
       .order("display_name");

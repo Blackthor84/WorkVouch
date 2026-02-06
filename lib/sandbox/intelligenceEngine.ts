@@ -6,10 +6,6 @@
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
-function sb() {
-  return getSupabaseServer() as { from: (table: string) => { select: (q: string) => { eq: (col: string, val: string) => Promise<{ data: unknown; error: unknown }> }; insert: (row: unknown) => Promise<{ error: unknown }>; upsert: (row: unknown, opts: { onConflict: string }) => Promise<{ error: unknown }> } };
-}
-
 /** Positive/negative keyword weights for sentiment (simple scoring) */
 const SENTIMENT_KEYWORDS: Record<string, number> = {
   excellent: 1.2, great: 1.1, reliable: 1.0, team: 0.9, recommend: 1.0,
@@ -100,21 +96,21 @@ function computeHiringConfidence(
  * Run the sandbox intelligence engine for a session and persist to sandbox_intelligence_outputs only.
  */
 export async function runSandboxIntelligence(sandboxId: string): Promise<{ ok: boolean; error?: string }> {
-  const supabase = getSandboxClient();
+  const supabase = getSupabaseServer();
 
-  const [
-    employeesRes,
-    reviewsRes,
-    recordsRes,
-  ] = await Promise.all([
-    (supabase.from("sandbox_employees") as any).select("*").eq("sandbox_id", sandboxId),
-    (supabase.from("sandbox_peer_reviews") as any).select("*").eq("sandbox_id", sandboxId),
-    (supabase.from("sandbox_employment_records") as any).select("*").eq("sandbox_id", sandboxId),
+  const [employeesRes, reviewsRes, recordsRes] = await Promise.all([
+    supabase.from("sandbox_employees").select("*").eq("sandbox_id", sandboxId),
+    supabase.from("sandbox_peer_reviews").select("*").eq("sandbox_id", sandboxId),
+    supabase.from("sandbox_employment_records").select("*").eq("sandbox_id", sandboxId),
   ]);
 
-  const employees = (employeesRes.data ?? []) as { id: string }[];
-  const reviews = (reviewsRes.data ?? []) as { reviewer_id: string; reviewed_id: string; rating: number | null; review_text: string | null; sentiment_score: number | null }[];
-  const records = (recordsRes.data ?? []) as { employee_id: string; employer_id: string; tenure_months: number | null; rehire_eligible: boolean | null }[];
+  if (employeesRes.error) return { ok: false, error: employeesRes.error.message };
+  if (reviewsRes.error) return { ok: false, error: reviewsRes.error.message };
+  if (recordsRes.error) return { ok: false, error: recordsRes.error.message };
+
+  const employees = employeesRes.data ?? [];
+  const reviews = reviewsRes.data ?? [];
+  const records = recordsRes.data ?? [];
 
   const employeeIds = new Set(employees.map((e) => e.id));
   const rehireByEmployee = new Map<string, boolean>();
@@ -127,7 +123,8 @@ export async function runSandboxIntelligence(sandboxId: string): Promise<{ ok: b
 
   const reviewsByReviewed = new Map<string, typeof reviews>();
   for (const r of reviews) {
-    const id = r.reviewed_id;
+    const id = r.reviewed_id ?? "";
+    if (!id) continue;
     if (!reviewsByReviewed.has(id)) reviewsByReviewed.set(id, []);
     reviewsByReviewed.get(id)!.push(r);
   }
@@ -164,10 +161,8 @@ export async function runSandboxIntelligence(sandboxId: string): Promise<{ ok: b
       hiring_confidence: hiringConfidence,
       network_density: networkDensity,
     };
-    const { error } = await supabase.from("sandbox_intelligence_outputs").upsert(payload, { onConflict: "sandbox_id,employee_id" }) as Promise<{ error: unknown }>;
-    if (error) {
-      return { ok: false, error: (error as { message?: string }).message ?? String(error) };
-    }
+    const { error } = await supabase.from("sandbox_intelligence_outputs").upsert(payload, { onConflict: "sandbox_id,employee_id" });
+    if (error) return { ok: false, error: error.message };
   }
 
   return { ok: true };

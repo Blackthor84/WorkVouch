@@ -4,7 +4,6 @@ import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 import { calculateSentimentFromText } from "@/lib/sandbox/enterpriseEngine";
 
 export const dynamic = "force-dynamic";
-const sb = () => getSupabaseServer() as any;
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const sentiment_score = calculateSentimentFromText(review_text ?? null);
 
-    const { data, error } = await sb()
+    const { data, error } = await getSupabaseServer()
       .from("sandbox_peer_reviews")
       .insert({ sandbox_id, reviewer_id, reviewed_id, rating, review_text: review_text ?? null, sentiment_score })
       .select("id, rating, sentiment_score")

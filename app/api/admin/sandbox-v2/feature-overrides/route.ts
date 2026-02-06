@@ -3,7 +3,6 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 
 export const dynamic = "force-dynamic";
-const sb = () => getSupabaseServer() as any;
 
 export async function PUT(req: NextRequest) {
   try {
@@ -13,7 +12,7 @@ export async function PUT(req: NextRequest) {
     const feature_key = (body.feature_key ?? body.featureKey) as string | undefined;
     const is_enabled = typeof body.is_enabled === "boolean" ? body.is_enabled : body.is_enabled === "true" || body.is_enabled === true;
     if (!sandbox_id || !feature_key) return NextResponse.json({ error: "Missing sandbox_id or feature_key" }, { status: 400 });
-    const { error } = await sb().from("sandbox_feature_overrides").upsert({ sandbox_id, feature_key, is_enabled }, { onConflict: "sandbox_id,feature_key" });
+    const { error } = await getSupabaseServer().from("sandbox_feature_overrides").upsert({ sandbox_id, feature_key, is_enabled }, { onConflict: "sandbox_id,feature_key" });
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ success: true });
   } catch (e: unknown) {

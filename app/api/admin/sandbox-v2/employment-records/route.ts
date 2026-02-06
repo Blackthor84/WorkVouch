@@ -3,7 +3,6 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 
 export const dynamic = "force-dynamic";
-const sb = () => getSupabaseServer() as any;
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,7 +17,7 @@ export async function POST(req: NextRequest) {
 
     if (!sandbox_id || !employee_id || !employer_id) return NextResponse.json({ error: "Missing sandbox_id, employee_id, or employer_id" }, { status: 400 });
 
-    const { data, error } = await sb()
+    const { data, error } = await getSupabaseServer()
       .from("sandbox_employment_records")
       .insert({ sandbox_id, employee_id, employer_id, role, tenure_months, rehire_eligible })
       .select("id")

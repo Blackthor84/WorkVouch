@@ -5,8 +5,6 @@
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
-const sb = () => getSupabaseServer() as any;
-
 /** Positive/negative words for sentiment: +1 / -1 */
 const POSITIVE_WORDS = new Set(["excellent", "great", "reliable", "team", "recommend", "strong", "positive", "professional", "trustworthy"]);
 const NEGATIVE_WORDS = new Set(["poor", "issues", "unreliable", "avoid", "weak", "negative", "unprofessional", "concerns"]);
@@ -40,17 +38,21 @@ export function calculateSentimentFromText(reviewText: string | null): number {
  * - Hiring Confidence: (profile_strength * 0.4) + (team_fit * 0.3) + (100 - risk_index) * 0.3
  */
 export async function runEnterpriseEngine(sandboxId: string): Promise<{ ok: boolean; error?: string }> {
-  const supabase = sb();
+  const supabase = getSupabaseServer();
 
   const [employeesRes, reviewsRes, recordsRes] = await Promise.all([
-    supabase.from("sandbox_employees").select("id, industry").eq("sandbox_id", sandboxId) as Promise<{ data: unknown; error: unknown }>,
-    supabase.from("sandbox_peer_reviews").select("reviewer_id, reviewed_id, rating, review_text, sentiment_score").eq("sandbox_id", sandboxId) as Promise<{ data: unknown; error: unknown }>,
-    supabase.from("sandbox_employment_records").select("employee_id, tenure_months, rehire_eligible").eq("sandbox_id", sandboxId) as Promise<{ data: unknown; error: unknown }>,
+    supabase.from("sandbox_employees").select("id, industry").eq("sandbox_id", sandboxId),
+    supabase.from("sandbox_peer_reviews").select("reviewer_id, reviewed_id, rating, review_text, sentiment_score").eq("sandbox_id", sandboxId),
+    supabase.from("sandbox_employment_records").select("employee_id, tenure_months, rehire_eligible").eq("sandbox_id", sandboxId),
   ]);
 
-  const employees = (employeesRes.data ?? []) as { id: string; industry?: string | null }[];
-  const reviews = (reviewsRes.data ?? []) as { reviewer_id: string; reviewed_id: string; rating: number | null; review_text: string | null; sentiment_score: number | null }[];
-  const records = (recordsRes.data ?? []) as { employee_id: string; tenure_months: number | null; rehire_eligible: boolean | null }[];
+  if (employeesRes.error) return { ok: false, error: employeesRes.error.message };
+  if (reviewsRes.error) return { ok: false, error: reviewsRes.error.message };
+  if (recordsRes.error) return { ok: false, error: recordsRes.error.message };
+
+  const employees = employeesRes.data ?? [];
+  const reviews = reviewsRes.data ?? [];
+  const records = recordsRes.data ?? [];
 
   const totalEmployees = employees.length;
   const uniqueConnections = new Set(reviews.map((r) => `${r.reviewer_id}-${r.reviewed_id}`)).size;
@@ -59,7 +61,8 @@ export async function runEnterpriseEngine(sandboxId: string): Promise<{ ok: bool
 
   const reviewsByReviewed = new Map<string, typeof reviews>();
   for (const r of reviews) {
-    const id = r.reviewed_id;
+    const id = r.reviewed_id ?? "";
+    if (!id) continue;
     if (!reviewsByReviewed.has(id)) reviewsByReviewed.set(id, []);
     reviewsByReviewed.get(id)!.push(r);
   }
@@ -131,10 +134,8 @@ export async function runEnterpriseEngine(sandboxId: string): Promise<{ ok: bool
       hiring_confidence,
       network_density,
     };
-    const { error } = await supabase.from("sandbox_intelligence_outputs").upsert(payload, { onConflict: "sandbox_id,employee_id" }) as Promise<{ error: unknown }>;
-    if (error) {
-      return { ok: false, error: (error as { message?: string }).message ?? String(error) };
-    }
+    const { error } = await supabase.from("sandbox_intelligence_outputs").upsert(payload, { onConflict: "sandbox_id,employee_id" });
+    if (error) return { ok: false, error: error.message };
   }
 
   return { ok: true };

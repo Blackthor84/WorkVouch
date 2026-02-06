@@ -1366,6 +1366,72 @@ export interface Database {
         Update: { [key: string]: unknown }
         Relationships: []
       }
+      sandbox_employees: {
+        Row: { id: string; sandbox_id: string; full_name: string | null; industry: string | null; created_at: string }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_employers: {
+        Row: { id: string; sandbox_id: string; company_name: string | null; industry: string | null; plan_tier: string | null; created_at: string }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_employment_records: {
+        Row: { id: string; sandbox_id: string; employee_id: string; employer_id: string; role: string | null; tenure_months: number | null; rehire_eligible: boolean | null; created_at: string }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_peer_reviews: {
+        Row: { id: string; sandbox_id: string; reviewer_id: string | null; reviewed_id: string | null; rating: number | null; review_text: string | null; sentiment_score: number | null; created_at: string }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_intelligence_outputs: {
+        Row: { id: string; sandbox_id: string; employee_id: string | null; profile_strength: number | null; career_health: number | null; risk_index: number | null; team_fit: number | null; hiring_confidence: number | null; network_density: number | null; created_at: string }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_revenue: {
+        Row: { id: string; sandbox_id: string; mrr: number | null; churn_rate: number | null; created_at: string }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_ads: {
+        Row: { id: string; sandbox_id: string; employer_id: string | null; impressions: number; clicks: number; spend: number | null; roi: number | null; created_at: string }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_templates: {
+        Row: { id: string; template_key: string; display_name: string; industry: string; default_employee_count: number; description: string | null; created_at: string }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_session_summary: {
+        Row: { id: string; sandbox_id: string; avg_profile_strength: number | null; avg_career_health: number | null; avg_risk_index: number | null; hiring_confidence_mean: number | null; network_density: number | null; revenue_projection: number | null; ad_roi: number | null; data_density_index: number | null; demo_mode: string | null; created_at: string; updated_at: string }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_feature_registry: {
+        Row: { id: string; feature_key: string; is_enabled: boolean; created_at: string }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
+      sandbox_feature_overrides: {
+        Row: { sandbox_id: string; feature_key: string; is_enabled: boolean }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
       employment_references: {
         Row: {
           id: string

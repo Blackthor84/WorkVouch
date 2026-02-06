@@ -3,7 +3,6 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 
 export const dynamic = "force-dynamic";
-const sb = () => getSupabaseServer() as any;
 const ASSUMED_CONVERSION_VALUE = 150;
 
 export async function POST(req: NextRequest) {
@@ -19,7 +18,7 @@ export async function POST(req: NextRequest) {
 
     if (!sandbox_id) return NextResponse.json({ error: "Missing sandbox_id" }, { status: 400 });
 
-    const { data, error } = await sb()
+    const { data, error } = await getSupabaseServer()
       .from("sandbox_ads")
       .insert({ sandbox_id, employer_id: employer_id ?? null, impressions, clicks, spend, roi })
       .select("id, impressions, clicks, spend, roi")

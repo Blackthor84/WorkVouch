@@ -8,8 +8,6 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { runEnterpriseEngine } from "@/lib/sandbox/enterpriseEngine";
 import { generateEmployeeIdentities } from "@/lib/sandbox/generators/identityGenerator";
 
-const sb = () => getSupabaseServer() as any;
-
 /** Rating distribution: probability per star 1–5. Should sum to 1. */
 export type RatingDistribution = { 1: number; 2: number; 3: number; 4: number; 5: number };
 
@@ -57,7 +55,7 @@ function sampleTenure(avg: number, variance: number): number {
 
 /** Refresh sandbox_session_summary from current intel/revenue/ads (future-proof: pull fields dynamically). */
 export async function refreshSessionSummary(sandboxId: string, dataDensityIndexOverride?: number): Promise<void> {
-  const supabase = sb();
+  const supabase = getSupabaseServer();
   const { data: intel } = await supabase
     .from("sandbox_intelligence_outputs")
     .select("profile_strength, career_health, risk_index, hiring_confidence, network_density")
@@ -73,8 +71,8 @@ export async function refreshSessionSummary(sandboxId: string, dataDensityIndexO
   const { data: revRow } = await supabase.from("sandbox_revenue").select("mrr").eq("sandbox_id", sandboxId).order("created_at", { ascending: false }).limit(1).maybeSingle();
   const revenue_projection = revRow?.mrr ?? 0;
   const { data: adsRows } = await supabase.from("sandbox_ads").select("spend, clicks").eq("sandbox_id", sandboxId);
-  const totalSpend = (adsRows ?? []).reduce((s: number, r: { spend?: number }) => s + Number(r.spend ?? 0), 0);
-  const totalClicks = (adsRows ?? []).reduce((s: number, r: { clicks?: number }) => s + Number(r.clicks ?? 0), 0);
+  const totalSpend = (adsRows ?? []).reduce<number>((s, r) => s + Number(r.spend ?? 0), 0);
+  const totalClicks = (adsRows ?? []).reduce<number>((s, r) => s + Number(r.clicks ?? 0), 0);
   const ad_roi = totalSpend > 0 && totalClicks > 0 ? (totalClicks * 150 - totalSpend) / totalSpend : 0;
 
   let data_density_index: number;
@@ -86,9 +84,9 @@ export async function refreshSessionSummary(sandboxId: string, dataDensityIndexO
       supabase.from("sandbox_employment_records").select("id", { count: "exact", head: true }).eq("sandbox_id", sandboxId),
       supabase.from("sandbox_peer_reviews").select("id", { count: "exact", head: true }).eq("sandbox_id", sandboxId),
     ]);
-    const ec = (empRes as { count?: number }).count ?? 0;
-    const rc = (recRes as { count?: number }).count ?? 0;
-    const rvc = (revRes as { count?: number }).count ?? 0;
+    const ec = empRes.count ?? 0;
+    const rc = recRes.count ?? 0;
+    const rvc = revRes.count ?? 0;
     data_density_index = ec + rc + rvc;
   }
 
@@ -115,7 +113,7 @@ export async function runTemplate(
   profile: TemplateProfile,
   employeeCount: number
 ): Promise<{ ok: boolean; error?: string; stats?: { employees: number; reviews: number; records: number } }> {
-  const supabase = sb();
+  const supabase = getSupabaseServer();
   const targetReviews = Math.max(employeeCount, Math.round(profile.peerReviewDensity * employeeCount));
 
   // 1. Create employer

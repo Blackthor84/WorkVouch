@@ -3,13 +3,12 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 
 export const dynamic = "force-dynamic";
-const sb = () => getSupabaseServer() as any;
 
 /** Delete expired sandbox_sessions; cascade deletes all sandbox_* data. */
 export async function POST() {
   try {
     await requireSandboxV2Admin();
-    const { data, error } = await sb()
+    const { data, error } = await getSupabaseServer()
       .from("sandbox_sessions")
       .delete()
       .lt("ends_at", new Date().toISOString())
