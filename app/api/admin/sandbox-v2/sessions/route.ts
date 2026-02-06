@@ -110,12 +110,8 @@ export async function GET() {
       }, { status: 500 });
     }
 
-    const sessions = data ?? [];
-    return NextResponse.json({
-      success: true,
-      data: sessions,
-      sessions,
-    });
+    const result = data ?? [];
+    return NextResponse.json({ success: true, data: result });
   } catch (err: unknown) {
     console.error("Sessions GET failure:", { stage: "server_crash", err });
     const msg = err instanceof Error ? err.message : String(err);

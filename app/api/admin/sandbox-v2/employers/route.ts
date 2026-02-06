@@ -119,7 +119,8 @@ export async function GET(req: NextRequest) {
       }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, data: data ?? [], employers: data ?? [] });
+    const result = data ?? [];
+    return NextResponse.json({ success: true, data: result });
   } catch (error) {
     const err = error as { message?: string };
     console.error("EMPLOYERS GET ROUTE ERROR", error);

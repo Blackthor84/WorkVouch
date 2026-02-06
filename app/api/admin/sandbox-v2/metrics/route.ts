@@ -84,8 +84,7 @@ export async function GET(req: NextRequest) {
 
     console.log("Sandbox metrics fetched:", sandboxId);
 
-    return NextResponse.json({
-      success: true,
+    const result = {
       metrics: {
         employers: employersCount,
         employees: employeesCount,
@@ -122,7 +121,8 @@ export async function GET(req: NextRequest) {
       adsSimulation: { campaignsCount: ads.length, totalSpend, totalImpressions, totalClicks, ads },
       rawCounts: { profiles: profilesCount, employers: employers.length, employmentRecords: employmentRecordsCount, references: referencesCount },
       executive: { avgProfileStrength, avgHiringConfidence, totalSpend, adRoi, dataDensityIndex },
-    });
+    };
+    return NextResponse.json({ success: true, data: result });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Error";
     if (msg === "Unauthorized") return NextResponse.json({ success: false, error: msg }, { status: 401 });

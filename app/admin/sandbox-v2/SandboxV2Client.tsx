@@ -95,21 +95,22 @@ export function SandboxV2Client() {
     setConsoleLogs((prev) => [...prev.slice(-99), `${prefix}${msg}`]);
   }, []);
 
-  async function fetchSession(sandboxIdArg: string) {
+  async function fetchSessions() {
     try {
       const res = await fetch(`${API}/sessions`, { credentials: "include" });
-      const j = await res.json().catch(() => ({}));
-      console.log("Sessions API response:", j);
-      if (j.success === false) {
-        setError(j.error ?? "Failed to load sessions");
+      const json = await res.json().catch(() => ({}));
+      console.log("Sessions API response:", json);
+      if (json.success && Array.isArray(json.data)) {
+        setSessions(json.data);
+        setError(null);
+      } else {
+        console.error("Invalid sessions response:", json);
         setSessions([]);
-        return;
+        if (json.success === false) setError(json.error ?? "Failed to load sessions");
       }
-      const list = j.sessions ?? j.data ?? [];
-      setSessions(Array.isArray(list) ? list : []);
-      setError(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+    } catch (err) {
+      console.error("Sessions fetch failed:", err);
+      setError(err instanceof Error ? err.message : "Error");
       setSessions([]);
     }
   }
@@ -118,18 +119,19 @@ export function SandboxV2Client() {
     if (!sandboxIdArg) return;
     try {
       const res = await fetch(`${API}/employers?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
-      const j = await res.json().catch(() => ({}));
-      console.log("Employers API response:", j);
-      if (j.success === false) {
-        setError(j.error ?? "Failed to load employers");
+      const json = await res.json().catch(() => ({}));
+      console.log("Employers API response:", json);
+      if (json.success && Array.isArray(json.data)) {
+        setEmployers(json.data);
+        setError(null);
+      } else {
+        console.error("Invalid employers response:", json);
         setEmployers([]);
-        return;
+        if (json.success === false) setError(json.error ?? "Failed to load employers");
       }
-      const data = j.data ?? j.employers ?? [];
-      setEmployers(Array.isArray(data) ? data : []);
-      setError(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+    } catch (err) {
+      console.error("Employers fetch failed:", err);
+      setError(err instanceof Error ? err.message : "Error");
       setEmployers([]);
     }
   }
@@ -138,18 +140,19 @@ export function SandboxV2Client() {
     if (!sandboxIdArg) return;
     try {
       const res = await fetch(`${API}/employees?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
-      const j = await res.json().catch(() => ({}));
-      console.log("Employees API response:", j);
-      if (j.success === false) {
-        setError(j.error ?? "Failed to load employees");
+      const json = await res.json().catch(() => ({}));
+      console.log("Employees API response:", json);
+      if (json.success && Array.isArray(json.data)) {
+        setEmployees(json.data);
+        setError(null);
+      } else {
+        console.error("Invalid employees response:", json);
         setEmployees([]);
-        return;
+        if (json.success === false) setError(json.error ?? "Failed to load employees");
       }
-      const data = j.data ?? j.employees ?? [];
-      setEmployees(Array.isArray(data) ? data : []);
-      setError(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+    } catch (err) {
+      console.error("Employees fetch failed:", err);
+      setError(err instanceof Error ? err.message : "Error");
       setEmployees([]);
     }
   }
@@ -158,23 +161,25 @@ export function SandboxV2Client() {
     if (!sandboxIdArg) return;
     try {
       const res = await fetch(`${API}/metrics?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
-      const j = await res.json().catch(() => ({}));
-      if (j.success === false) {
-        setError(j.error ?? "Failed to load metrics");
+      const json = await res.json().catch(() => ({}));
+      console.log("Metrics API response (keys):", json ? Object.keys(json) : "null");
+      if (json.success && json.data != null && typeof json.data === "object") {
+        setMetrics(json.data);
+        setError(null);
+      } else {
+        console.error("Invalid metrics response:", json);
         setMetrics(null);
-        return;
+        if (json.success === false) setError(json.error ?? "Failed to load metrics");
       }
-      setMetrics(j);
-      console.log("Sandbox metrics fetched", sandboxIdArg);
-      setError(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+    } catch (err) {
+      console.error("Metrics fetch failed:", err);
+      setError(err instanceof Error ? err.message : "Error");
       setMetrics(null);
     }
   }
 
   async function refetchEverything(id: string) {
-    await fetchSession(id);
+    await fetchSessions();
     await fetchEmployers(id);
     await fetchEmployees(id);
     await fetchMetrics(id);
@@ -211,14 +216,14 @@ export function SandboxV2Client() {
       setEmployees([]);
       setMetrics(null);
       fetchFeatures(null);
-      fetchSession("");
+      fetchSessions();
       return;
     }
     setLoading(true);
     let cancelled = false;
     (async () => {
       try {
-        await fetchSession(sandboxId);
+        await fetchSessions();
         if (cancelled) return;
         await fetchEmployers(sandboxId);
         await fetchEmployees(sandboxId);
@@ -463,7 +468,7 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Cleanup failed");
       log(`Cleanup: ${j.deleted ?? 0} expired sessions deleted`, "success");
-      await fetchSession("");
+      await fetchSessions();
       if (sandboxId && (j.deleted ?? 0) > 0) {
         setSandboxId(null);
         setEmployers([]);
@@ -971,7 +976,10 @@ export function SandboxV2Client() {
                 <p className="text-3xl font-bold text-cyan-400">{ei?.avgHiringConfidence != null ? ei.avgHiringConfidence.toFixed(1) : "—"}</p>
               </div>
             </div>
-            <Button variant="secondary" className="mt-4" onClick={runRecalculate} disabled={!sandboxId || recalcLoading}>{recalcLoading ? "…" : "Recalculate intelligence"}</Button>
+            {employees.length === 0 && sandboxId && (
+              <p className="mt-3 text-sm text-slate-500">No employees yet.</p>
+            )}
+            <Button variant="secondary" className="mt-4" onClick={runRecalculate} disabled={loading || !sandboxId || recalcLoading}>{recalcLoading ? "…" : "Recalculate intelligence"}</Button>
           </div>
           <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
             <h2 className="text-lg font-semibold text-white">Employer Analytics</h2>
@@ -979,6 +987,9 @@ export function SandboxV2Client() {
               <p className="text-sm uppercase tracking-wide text-slate-400">Employers</p>
               <p className="text-3xl font-bold text-cyan-400">{sandboxId && metrics ? (ea?.employersCount ?? 0) : "—"}</p>
             </div>
+            {employers.length === 0 && sandboxId && (
+              <p className="mt-3 text-sm text-slate-500">No employers yet.</p>
+            )}
             {employers.length > 0 && (
               <ul className="mt-3 space-y-1 text-sm text-slate-300">
                 {employers.slice(0, 10).map((e) => (
@@ -1035,6 +1046,14 @@ export function SandboxV2Client() {
               ))}
             </div>
           </div>
+        </section>
+
+        {/* Debug: live state (temporary) */}
+        <section className="rounded-2xl border border-slate-600 bg-slate-900 p-6 shadow-xl">
+          <h2 className="text-lg font-semibold text-white">Debug — Live State</h2>
+          <pre style={{ background: "#111", color: "#0f0", padding: 12 }} className="mt-4 max-h-96 overflow-auto text-xs">
+            {JSON.stringify({ employers, employees, sessions, metrics }, null, 2)}
+          </pre>
         </section>
       </div>
     </div>
