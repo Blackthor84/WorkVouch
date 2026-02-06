@@ -40,10 +40,10 @@ type FeatureItem = { id: string; feature_key: string; is_enabled: boolean };
 type TemplateItem = { id: string; template_key: string; display_name: string; industry: string; default_employee_count: number; description?: string | null };
 
 export function SandboxV2Client() {
-  const [sessions, setSessions] = useState<Session[]>([]);
+  const [sessions, setSessions] = useState<any[]>([]);
   const [activeSandboxId, setActiveSandboxId] = useState<string | null>(null);
-  const [employers, setEmployers] = useState<Employer[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [employers, setEmployers] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [features, setFeatures] = useState<FeatureItem[]>([]);
   const [overrides, setOverrides] = useState<Record<string, boolean>>({});
@@ -98,9 +98,9 @@ export function SandboxV2Client() {
   async function fetchSessions() {
     try {
       const res = await fetch(`${API}/sessions`, { credentials: "include" });
-      const json = await res.json().catch(() => ({}));
-      if (json.success && Array.isArray(json.data)) {
-        setSessions(json.data);
+      const json = await res.json();
+      if (json.success) {
+        setSessions(Array.isArray(json.data) ? json.data : []);
         setError(null);
       } else {
         setSessions([]);
@@ -116,16 +116,9 @@ export function SandboxV2Client() {
     if (!sandboxIdArg) return;
     try {
       const res = await fetch(`${API}/employers?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
-      const json = await res.json().catch(() => ({}));
-      if (json.success && Array.isArray(json.data)) {
-        setEmployers(
-          (json.data as Record<string, unknown>[]).map((e: Record<string, unknown>) => ({
-            id: String(e.id ?? ""),
-            company_name: (e.company_name ?? e.companyName ?? "Unknown") as string,
-            industry: (e.industry ?? "Unknown") as string,
-            plan_tier: (e.plan_tier ?? e.planTier ?? "pro") as string,
-          }))
-        );
+      const json = await res.json();
+      if (json.success) {
+        setEmployers(Array.isArray(json.data) ? json.data : []);
         setError(null);
       } else {
         setEmployers([]);
@@ -141,15 +134,9 @@ export function SandboxV2Client() {
     if (!sandboxIdArg) return;
     try {
       const res = await fetch(`${API}/employees?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
-      const json = await res.json().catch(() => ({}));
-      if (json.success && Array.isArray(json.data)) {
-        setEmployees(
-          (json.data as Record<string, unknown>[]).map((e: Record<string, unknown>) => ({
-            id: String(e.id ?? ""),
-            full_name: (e.full_name ?? e.fullName ?? "Unnamed") as string,
-            industry: (e.industry ?? "Unknown") as string,
-          }))
-        );
+      const json = await res.json();
+      if (json.success) {
+        setEmployees(Array.isArray(json.data) ? json.data : []);
         setError(null);
       } else {
         setEmployees([]);
@@ -165,9 +152,9 @@ export function SandboxV2Client() {
     if (!sandboxIdArg) return;
     try {
       const res = await fetch(`${API}/metrics?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
-      const json = await res.json().catch(() => ({}));
-      if (json.success && json.data != null && typeof json.data === "object") {
-        setMetrics(json.data as Metrics);
+      const json = await res.json();
+      if (json.success) {
+        setMetrics((json.data ?? {}) as Metrics);
         setError(null);
       } else {
         setMetrics(null);
