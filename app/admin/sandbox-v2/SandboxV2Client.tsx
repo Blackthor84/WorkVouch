@@ -486,7 +486,7 @@ export function SandboxV2Client() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandboxId: currentSandboxId, preset: "startup" }),
+        body: JSON.stringify({ sandboxId: currentSandboxId }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));

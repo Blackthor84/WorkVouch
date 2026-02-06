@@ -26,14 +26,16 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ success: false, stage: "validation", error: "Invalid JSON body" }, { status: 400 });
   }
-  const sandboxId: string = String(body.sandboxId ?? body.sandbox_id ?? "");
-  const presetKey = body.preset as keyof typeof PRESETS | undefined;
+  console.log("PRESET RECEIVED BODY:", body);
+  console.log("PRESET SANDBOX ID:", body.sandboxId);
 
-  if (!sandboxId) {
-    return NextResponse.json({ success: false, stage: "validation", error: "Missing sandboxId" }, { status: 400 });
+  if (!body.sandboxId) {
+    return NextResponse.json({ success: false, error: "Missing sandboxId" }, { status: 400 });
   }
-  if (!presetKey || !PRESETS[presetKey]) {
-    return NextResponse.json({ success: false, stage: "validation", error: "Missing or invalid preset (fortune_500 | startup | agency)" }, { status: 400 });
+  const sandboxId: string = body.sandboxId;
+  const presetKey = (body.preset as keyof typeof PRESETS) || "startup";
+  if (!PRESETS[presetKey]) {
+    return NextResponse.json({ success: false, stage: "validation", error: "Invalid preset (fortune_500 | startup | agency)" }, { status: 400 });
   }
 
   try {
@@ -101,6 +103,12 @@ export async function POST(req: NextRequest) {
 
   await runSandboxIntelligenceRecalculation(String(sandboxId));
   await calculateSandboxMetrics(String(sandboxId));
+
+  const { count } = await supabase
+    .from("sandbox_employees")
+    .select("*", { count: "exact", head: true })
+    .eq("sandbox_id", body.sandboxId);
+  console.log("EMPLOYEE COUNT AFTER PRESET:", count);
 
   const data = { preset: presetKey, employersCreated: employerCount, employeesCreated: employeeCount };
   return NextResponse.json({ success: true, data });
