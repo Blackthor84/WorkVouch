@@ -242,12 +242,12 @@ export function SandboxV2Client() {
     setGenEmployerLoading(true);
     setError(null);
     try {
-      console.log("Before POST /employers", { sandboxId });
-      const res = await fetch(`${API}/employers`, {
+      console.log("Calling employers endpoint with:", currentSandboxId);
+      const res = await fetch("/api/admin/sandbox-v2/employers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: sandboxId, company_name: employerName || "Sandbox Company", industry: employerIndustry || null, plan_tier: employerPlanTier }),
+        body: JSON.stringify({ sandboxId: currentSandboxId }),
       });
       const j = await res.json().catch(() => ({}));
       console.log("After POST /employers", { ok: res.ok, status: res.status });
@@ -275,12 +275,12 @@ export function SandboxV2Client() {
     setGenEmployeeLoading(true);
     setError(null);
     try {
-      console.log("Before POST /employees", { sandboxId });
-      const res = await fetch(`${API}/employees`, {
+      console.log("Calling employees endpoint with:", currentSandboxId);
+      const res = await fetch("/api/admin/sandbox-v2/employees", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: sandboxId, full_name: employeeName || "Sandbox Employee", industry: employeeIndustry || null }),
+        body: JSON.stringify({ sandboxId: currentSandboxId }),
       });
       const j = await res.json().catch(() => ({}));
       console.log("After POST /employees", { ok: res.ok, status: res.status });
