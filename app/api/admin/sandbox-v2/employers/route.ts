@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message ?? String(error) }, { status: 500 });
     }
 
-    console.log("Employers insert result:", data);
+    console.log("Employers insert result:", data, "sandbox_id:", data?.sandbox_id ?? sandboxId);
 
     await calculateSandboxMetrics(String(sandboxId));
 

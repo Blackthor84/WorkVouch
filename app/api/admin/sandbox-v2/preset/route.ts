@@ -29,10 +29,10 @@ export async function POST(req: NextRequest) {
   console.log("PRESET BODY:", body);
   console.log("SANDBOX ID RECEIVED:", body.sandboxId);
 
-  if (!body.sandboxId) {
+  const sandboxId: string = (body.sandboxId ?? body.sandbox_id ?? "").trim();
+  if (!sandboxId) {
     return NextResponse.json({ success: false, error: "sandboxId missing" }, { status: 400 });
   }
-  const sandboxId: string = body.sandboxId;
   const presetKey = (body.preset as keyof typeof PRESETS) || "startup";
   if (!PRESETS[presetKey]) {
     return NextResponse.json({ success: false, stage: "validation", error: "Invalid preset (fortune_500 | startup | agency)" }, { status: 400 });
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     const { data: emp, error } = await supabase
       .from("sandbox_employers")
       .insert({
-        sandbox_id: body.sandboxId,
+        sandbox_id: sandboxId,
         company_name: pickCompany(),
         industry: pickIndustry(),
         plan_tier: "pro",
@@ -67,14 +67,14 @@ export async function POST(req: NextRequest) {
     }
     employerIds.push(emp!.id);
   }
-  console.log("Preset insert employers result:", employerIds.length);
+  console.log("Preset insert employers result:", employerIds.length, "sandbox_id:", sandboxId);
 
   const employeeIds: { id: string }[] = [];
   for (let i = 0; i < employeeCount; i++) {
     const { data: emp, error } = await supabase
       .from("sandbox_employees")
       .insert({
-        sandbox_id: body.sandboxId,
+        sandbox_id: sandboxId,
         full_name: pickFullName(),
         industry: pickFrom(INDUSTRIES),
       })
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
     }
     employeeIds.push({ id: emp!.id });
   }
-  console.log("Preset insert employees result:", employeeIds.length);
+  console.log("Preset insert employees result:", employeeIds.length, "sandbox_id:", sandboxId);
 
   for (const emp of employeeIds) {
     const links = 1 + Math.floor(Math.random() * 3);
@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
   const { count } = await supabase
     .from("sandbox_employees")
     .select("*", { count: "exact", head: true })
-    .eq("sandbox_id", body.sandboxId);
+    .eq("sandbox_id", sandboxId);
   console.log("EMPLOYEE COUNT AFTER INSERT:", count);
 
   const data = { preset: presetKey, employersCreated: employerCount, employeesCreated: employeeCount, employeeCountAfterInsert: count ?? null };

@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     const { data: insertData, error } = await supabase
       .from("sandbox_employees")
       .insert(payload)
-      .select("id")
+      .select("id, sandbox_id")
       .single();
 
     if (error) {
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Employee insert returned no id" }, { status: 500 });
     }
 
-    console.log("Employees insert result:", insertData);
+    console.log("Employees insert result:", insertData, "sandbox_id:", insertData?.sandbox_id ?? sandbox_id);
 
     const employeeId = String(insertData.id);
 
