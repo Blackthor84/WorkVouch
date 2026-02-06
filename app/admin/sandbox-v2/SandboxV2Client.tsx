@@ -329,17 +329,27 @@ export function SandboxV2Client() {
   };
 
   const handleAddEmployment = async () => {
-    console.log("ADD EMPLOYMENT CLICKED");
-    if (!currentSandboxId || !hireEmployeeId || !hireEmployerId) return;
+    const sandboxId = currentSandboxId?.trim() || null;
+    const employeeId = hireEmployeeId?.trim() || null;
+    const employerId = hireEmployerId?.trim() || null;
+    if (!sandboxId || !employeeId || !employerId) return;
     setLoading(true);
     setHireLoading(true);
     setError(null);
     try {
+      const payload = {
+        sandbox_id: sandboxId,
+        employee_id: employeeId,
+        employer_id: employerId,
+        role: hireRole?.trim() || null,
+        tenure_months: hireTenureMonths,
+        rehire_eligible: hireRehireEligible,
+      };
       const res = await fetch(`${API}/employment-records`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: currentSandboxId, employee_id: hireEmployeeId, employer_id: hireEmployerId, role: hireRole || null, tenure_months: hireTenureMonths, rehire_eligible: hireRehireEligible }),
+        body: JSON.stringify(payload),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Hiring simulation failed");

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 import { calculateSentimentFromText, runSandboxIntelligence } from "@/lib/sandbox/enterpriseEngine";
 import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
@@ -19,7 +19,6 @@ export async function POST(req: NextRequest) {
   try {
     await requireSandboxV2Admin();
     const body = await req.json().catch(() => ({}));
-    console.log("PEER REVIEW RECEIVED BODY (before validation):", JSON.stringify(body, null, 2));
     const sandbox_id = (body.sandbox_id ?? body.sandboxId) as string | undefined;
     const reviewer_id = (body.reviewer_id ?? body.reviewerId) as string | undefined;
     const reviewed_id = (body.reviewed_id ?? body.reviewedId) as string | undefined;
@@ -32,29 +31,23 @@ export async function POST(req: NextRequest) {
         !reviewer_id && "reviewer_id",
         !reviewed_id && "reviewed_id",
       ].filter(Boolean);
-      console.log("PEER REVIEW BODY:", body);
-      console.log("ERROR: Missing required fields", missing);
       return NextResponse.json({ error: "Missing sandbox_id, reviewer_id, or reviewed_id", missing }, { status: 400 });
     }
 
     const sentiment_score = calculateSentimentFromText(review_text ?? null);
 
-    const { data, error } = await getSupabaseServer()
+    const supabase = getServiceRoleClient();
+    const { data, error } = await supabase
       .from("sandbox_peer_reviews")
       .insert({ sandbox_id, reviewer_id, reviewed_id, rating, review_text: review_text ?? null, sentiment_score })
       .select("id, rating, sentiment_score")
       .single();
-    if (error) {
-      console.log("PEER REVIEW BODY:", body);
-      console.log("ERROR:", error);
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     await runSandboxIntelligence(sandbox_id);
     await calculateSandboxMetrics(sandbox_id);
     return NextResponse.json({ success: true, review: data });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Error";
-    console.log("ERROR:", e);
     if (msg === "Unauthorized") return NextResponse.json({ error: msg }, { status: 401 });
     if (msg.startsWith("Forbidden")) return NextResponse.json({ error: msg }, { status: 403 });
     return NextResponse.json({ error: msg }, { status: 400 });

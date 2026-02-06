@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 import { runSandboxIntelligence } from "@/lib/sandbox/enterpriseEngine";
 import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Required body fields (no Zod; validated manually):
+ * - sandbox_id or sandboxId: string (required)
+ * - employee_id or employeeId: string (required)
+ * - employer_id or employerId: string (required)
+ * - role?: string | null, tenure_months?: number | null, rehire_eligible?: boolean
+ */
 export async function POST(req: NextRequest) {
   try {
     await requireSandboxV2Admin();
@@ -17,9 +24,17 @@ export async function POST(req: NextRequest) {
     const tenure_months = typeof body.tenure_months === "number" ? body.tenure_months : typeof body.tenure_months === "string" ? parseInt(body.tenure_months, 10) : null;
     const rehire_eligible = typeof body.rehire_eligible === "boolean" ? body.rehire_eligible : body.rehire_eligible === "true" || body.rehire_eligible === true;
 
-    if (!sandbox_id || !employee_id || !employer_id) return NextResponse.json({ error: "Missing sandbox_id, employee_id, or employer_id" }, { status: 400 });
+    if (!sandbox_id || !employee_id || !employer_id) {
+      const missing = [
+        !sandbox_id && "sandbox_id",
+        !employee_id && "employee_id",
+        !employer_id && "employer_id",
+      ].filter(Boolean);
+      return NextResponse.json({ error: "Missing sandbox_id, employee_id, or employer_id", missing }, { status: 400 });
+    }
 
-    const { data, error } = await getSupabaseServer()
+    const supabase = getServiceRoleClient();
+    const { data, error } = await supabase
       .from("sandbox_employment_records")
       .insert({ sandbox_id, employee_id, employer_id, role, tenure_months, rehire_eligible })
       .select("id")
