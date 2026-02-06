@@ -1204,7 +1204,6 @@ export interface Database {
         Row: {
           id: string
           name: string | null
-          created_by: string | null
           starts_at: string | null
           ends_at: string | null
           status: string

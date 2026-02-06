@@ -12,7 +12,7 @@ export async function GET() {
     const supabase = getSupabaseServer();
     const { data, error } = await supabase
       .from(TABLE)
-      .select("id, name, created_by, starts_at, ends_at, status, created_at")
+      .select("id, name, starts_at, ends_at, status, created_at")
       .order("created_at", { ascending: false })
       .limit(100);
 
@@ -32,9 +32,13 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { id: userId } = await requireSandboxV2Admin();
+    await requireSandboxV2Admin();
     const body = await req.json().catch(() => ({}));
-    const name = (body.name as string) ?? null;
+    const name = typeof body?.name === "string" ? body.name.trim() : (body?.name ?? null);
+    if (!name) {
+      console.error("Validation failed: sandbox name required", body);
+      return NextResponse.json({ success: false, error: "Sandbox name required" }, { status: 400 });
+    }
     const now = new Date();
     const starts_at = body.starts_at ? new Date(body.starts_at).toISOString() : now.toISOString();
     const ends_at = body.ends_at ? new Date(body.ends_at).toISOString() : new Date(now.getTime() + 30 * 60 * 1000).toISOString();
@@ -42,7 +46,7 @@ export async function POST(req: NextRequest) {
     const supabase = getSupabaseServer();
     const { data, error } = await supabase
       .from(TABLE)
-      .insert({ name, created_by: userId, starts_at, ends_at, status: "active" })
+      .insert({ name, starts_at, ends_at, status: "active" })
       .select("id, name, starts_at, ends_at, status, created_at")
       .single();
 
