@@ -501,6 +501,33 @@ export function SandboxV2Client() {
     }
   };
 
+  const handleDeployTemplate = async () => {
+    console.log("DEPLOY CLICKED");
+    console.log("ACTIVE SANDBOX:", currentSandboxId);
+    if (!currentSandboxId) {
+      alert("No active sandbox selected");
+      return;
+    }
+    try {
+      const res = await fetch(`${API}/preset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sandboxId: currentSandboxId }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error((j as { error?: string }).error || "Preset failed");
+      }
+      await fetchDashboard(currentSandboxId);
+      log("Template deployed", "success");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+    }
+  };
+
   const deployTemplate = async () => {
     if (!currentSandboxId || !selectedTemplateKey) return;
     setLoading(true);
@@ -711,9 +738,14 @@ export function SandboxV2Client() {
               <Input type="number" min={1} value={templateEmployeeOverride} onChange={(e) => setTemplateEmployeeOverride(e.target.value)} placeholder="Default" className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
             </div>
             <Button onClick={handlePreset}>Load Template</Button>
-            <Button onClick={deployTemplate} disabled={loading || !currentSandboxId || !selectedTemplateKey || deployTemplateLoading}>
-              {deployTemplateLoading ? "Deploying…" : "Deploy Template"}
-            </Button>
+            <div style={{ position: "relative", zIndex: 1000 }}>
+              <button
+                onClick={handleDeployTemplate}
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+              >
+                Deploy Template
+              </button>
+            </div>
           </div>
           {deployProgress.length > 0 && (
             <div className="mt-4 space-y-1">

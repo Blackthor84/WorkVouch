@@ -26,11 +26,11 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ success: false, stage: "validation", error: "Invalid JSON body" }, { status: 400 });
   }
-  console.log("PRESET RECEIVED BODY:", body);
-  console.log("PRESET SANDBOX ID:", body.sandboxId);
+  console.log("PRESET BODY:", body);
+  console.log("SANDBOX ID RECEIVED:", body.sandboxId);
 
   if (!body.sandboxId) {
-    return NextResponse.json({ success: false, error: "Missing sandboxId" }, { status: 400 });
+    return NextResponse.json({ success: false, error: "sandboxId missing" }, { status: 400 });
   }
   const sandboxId: string = body.sandboxId;
   const presetKey = (body.preset as keyof typeof PRESETS) || "startup";
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     const { data: emp, error } = await supabase
       .from("sandbox_employers")
       .insert({
-        sandbox_id: sandboxId,
+        sandbox_id: body.sandboxId,
         company_name: pickCompany(),
         industry: pickIndustry(),
         plan_tier: "pro",
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     const { data: emp, error } = await supabase
       .from("sandbox_employees")
       .insert({
-        sandbox_id: sandboxId,
+        sandbox_id: body.sandboxId,
         full_name: pickFullName(),
         industry: pickFrom(INDUSTRIES),
       })
@@ -108,8 +108,8 @@ export async function POST(req: NextRequest) {
     .from("sandbox_employees")
     .select("*", { count: "exact", head: true })
     .eq("sandbox_id", body.sandboxId);
-  console.log("EMPLOYEE COUNT AFTER PRESET:", count);
+  console.log("EMPLOYEE COUNT AFTER INSERT:", count);
 
-  const data = { preset: presetKey, employersCreated: employerCount, employeesCreated: employeeCount };
+  const data = { preset: presetKey, employersCreated: employerCount, employeesCreated: employeeCount, employeeCountAfterInsert: count ?? null };
   return NextResponse.json({ success: true, data });
 }
