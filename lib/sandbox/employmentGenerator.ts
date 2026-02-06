@@ -42,18 +42,22 @@ export async function linkEmployeeToEmployer(params: {
   return { ok: true };
 }
 
-export async function linkEmployeeToRandomEmployer(params: {
+export type LinkEmployeeToRandomEmployerParams = {
   sandboxId: string;
   employeeId: string;
-}): Promise<{ ok: boolean; error?: string }> {
+};
+
+export async function linkEmployeeToRandomEmployer(
+  params: LinkEmployeeToRandomEmployerParams
+): Promise<{ ok: boolean; error?: string }> {
   const supabase = getServiceRoleClient();
   const { data: employers } = await supabase
     .from("sandbox_employers")
     .select("id")
     .eq("sandbox_id", params.sandboxId);
-  const list = employers ?? [];
+  const list: { id: string }[] = (employers ?? []) as { id: string }[];
   if (list.length === 0) return { ok: true };
-  const employer = list[Math.floor(Math.random() * list.length)];
+  const employer: { id: string } = list[Math.floor(Math.random() * list.length)]!;
   return linkEmployeeToEmployer({
     sandboxId: params.sandboxId,
     employeeId: params.employeeId,
