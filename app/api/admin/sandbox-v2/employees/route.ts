@@ -89,8 +89,8 @@ export async function POST(req: NextRequest) {
     await runSandboxIntelligenceRecalculation(String(sandboxId));
     await calculateSandboxMetrics(String(sandboxId));
 
-    const data = { id: employeeId, full_name, industry, sandbox_id };
-    return NextResponse.json({ success: true, data });
+    const employeeResponse = { id: employeeId, full_name, industry, sandbox_id };
+    return NextResponse.json({ success: true, data: employeeResponse });
   } catch (error) {
     const err = error as { message?: string };
     console.error("EMPLOYEES ROUTE ERROR", error);
