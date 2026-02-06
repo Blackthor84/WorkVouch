@@ -1,7 +1,7 @@
 /**
- * Sandbox identity generator. Uses industry name pools; no hardcoded industry switch.
+ * Sandbox identity generator. Uses name pools via getPool; no hardcoded industry switch.
  * Ensures unique full names per sandbox via usedFullNames Set.
- * Weighted department and job title selection (manager vs staff ratio from pool arrays).
+ * Weighted department and job title selection from pool arrays.
  */
 
 import { getPool } from "@/lib/sandbox/namePools";
@@ -28,7 +28,7 @@ function pickWeighted<T>(arr: T[]): T {
 }
 
 /**
- * Generate a single employee identity. Uses pool for industry; no duplicate full names in usedFullNames.
+ * Generate a single employee identity. Uses getPool for arrays; no duplicate full names in usedFullNames.
  * Caller must pass and mutate usedFullNames (add returned fullName) to enforce uniqueness per sandbox.
  */
 export function generateEmployeeIdentity(
@@ -36,37 +36,28 @@ export function generateEmployeeIdentity(
   usedFullNames: Set<string>
 ): EmployeeIdentity {
   const { industry, department: departmentHint } = options;
-  const pool = getPool(industry);
+  const firstNames = getPool("firstNames");
+  const lastNames = getPool("lastNames");
+  const departments = getPool("departments");
+  const jobTitles = getPool("jobTitles");
+  const geographicClusters = getPool("geographicClusters");
 
-  if (!pool) {
-    return fallbackIdentity(industry, departmentHint, usedFullNames);
-  }
+  const department =
+    departmentHint && departments.includes(departmentHint)
+      ? departmentHint
+      : departments.length ? pickWeighted(departments) : "General";
 
-  const firstNames = pool.firstNames;
-  const lastNames = pool.lastNames;
-  const departments = pool.departments;
-  const jobTitles = pool.jobTitles;
-  const geographicClusters = pool.geographicClusters;
+  const jobTitle = jobTitles.length ? pickWeighted(jobTitles) : department;
 
-  const department = departmentHint && departments.includes(departmentHint)
-    ? departmentHint
-    : pickWeighted(departments);
+  const geographicCluster =
+    geographicClusters.length ? pickWeighted(geographicClusters) : "Default";
 
-  const titlesForDept = jobTitles[department];
-  const jobTitle = titlesForDept?.length
-    ? pickWeighted(titlesForDept)
-    : department;
-
-  const geographicCluster = geographicClusters.length
-    ? pickWeighted(geographicClusters)
-    : "Default";
-
-  const maxAttempts = firstNames.length * lastNames.length * 2;
+  const maxAttempts = Math.max(100, firstNames.length * lastNames.length * 2);
   let fullName: string;
   let attempts = 0;
   do {
-    const first = pickWeighted(firstNames);
-    const last = pickWeighted(lastNames);
+    const first = firstNames.length ? pickWeighted(firstNames) : "Unknown";
+    const last = lastNames.length ? pickWeighted(lastNames) : "Unknown";
     fullName = `${first} ${last}`;
     if (attempts++ >= maxAttempts) break;
   } while (usedFullNames.has(fullName));
@@ -78,36 +69,6 @@ export function generateEmployeeIdentity(
     department,
     jobTitle,
     geographicCluster,
-    industry,
-  };
-}
-
-/**
- * Fallback when industry has no pool: generic names, department/title from hint or "General".
- */
-function fallbackIdentity(
-  industry: string,
-  departmentHint: string | undefined,
-  usedFullNames: Set<string>
-): EmployeeIdentity {
-  const firstNames = ["James", "Maria", "David", "Sarah", "Michael", "Jennifer", "Robert", "Linda"];
-  const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis"];
-  const maxAttempts = firstNames.length * lastNames.length * 2;
-  let fullName: string;
-  let attempts = 0;
-  do {
-    const first = pickWeighted(firstNames);
-    const last = pickWeighted(lastNames);
-    fullName = `${first} ${last}`;
-    if (attempts++ >= maxAttempts) break;
-  } while (usedFullNames.has(fullName));
-  usedFullNames.add(fullName);
-
-  return {
-    fullName,
-    department: departmentHint ?? "General",
-    jobTitle: departmentHint ?? "Staff",
-    geographicCluster: "Default",
     industry,
   };
 }

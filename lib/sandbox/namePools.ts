@@ -104,3 +104,22 @@ export function pickDepartment(): string {
 export function pickFrom<T>(arr: readonly T[]): T {
   return arr[randomInt(0, arr.length - 1)];
 }
+
+const POOL_MAP: Record<string, readonly string[]> = {
+  firstNames: FIRST_NAMES,
+  lastNames: LAST_NAMES,
+  companyNames: COMPANY_NAMES,
+  jobTitles: JOB_TITLES,
+  industries: INDUSTRIES,
+  departments: DEPARTMENTS,
+  geographicClusters: ["HQ", "Northeast", "Southeast", "Midwest", "Default"],
+};
+
+/**
+ * Get a name pool array by pool name. Returns empty array for unknown names.
+ */
+export function getPool(poolName: string): string[] {
+  const key = poolName?.trim() || "";
+  const arr = POOL_MAP[key];
+  return arr ? [...arr] : [];
+}
