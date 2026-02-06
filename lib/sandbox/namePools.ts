@@ -86,7 +86,19 @@ export function pickFullName(): string {
 }
 
 export function pickCompany(): string {
-  return COMPANY_NAMES[randomInt(0, COMPANY_NAMES.length - 1)];
+  const companies = [
+    "Atlas Security Group",
+    "Sentinel Protective Services",
+    "IronGate Patrol",
+    "Vanguard Risk Solutions",
+    "BlackShield Security",
+    "Fortress Operations",
+    "Cobalt Enforcement",
+    "Titan Field Services",
+    "Aegis Workforce",
+    "Pinnacle Security Systems",
+  ];
+  return companies[Math.floor(Math.random() * companies.length)]!;
 }
 
 export function pickJobTitle(): string {
@@ -94,7 +106,16 @@ export function pickJobTitle(): string {
 }
 
 export function pickIndustry(): string {
-  return INDUSTRIES[randomInt(0, INDUSTRIES.length - 1)];
+  const industries = [
+    "Security",
+    "Healthcare",
+    "Logistics",
+    "Construction",
+    "Retail",
+    "Technology",
+    "Manufacturing",
+  ];
+  return industries[Math.floor(Math.random() * industries.length)]!;
 }
 
 export function pickDepartment(): string {

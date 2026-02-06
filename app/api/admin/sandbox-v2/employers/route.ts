@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
+import { pickCompany, pickIndustry } from "@/lib/sandbox/namePools";
 
 export const dynamic = "force-dynamic";
 
