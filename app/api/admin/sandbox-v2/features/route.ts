@@ -36,8 +36,8 @@ export async function GET(req: NextRequest) {
       console.error("Supabase error:", flagsErr);
       return NextResponse.json({
         success: false,
-        stage: "get",
-        error: flagsErr?.message,
+        stage: "supabase_insert",
+        error: flagsErr.message,
         details: flagsErr,
       }, { status: 500 });
     }
@@ -51,8 +51,8 @@ export async function GET(req: NextRequest) {
       console.error("Supabase error:", overridesErr);
       return NextResponse.json({
         success: false,
-        stage: "get",
-        error: overridesErr?.message,
+        stage: "supabase_insert",
+        error: overridesErr.message,
         details: overridesErr,
       }, { status: 500 });
     }
@@ -130,8 +130,8 @@ export async function POST(req: NextRequest) {
       console.error("Supabase error:", error);
       return NextResponse.json({
         success: false,
-        stage: "insert",
-        error: error?.message,
+        stage: "supabase_insert",
+        error: error.message,
         details: error,
       }, { status: 500 });
     }

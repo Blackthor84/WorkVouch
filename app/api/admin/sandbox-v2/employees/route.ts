@@ -55,8 +55,8 @@ export async function POST(req: NextRequest) {
       console.error("Supabase error:", error);
       return NextResponse.json({
         success: false,
-        stage: "insert",
-        error: error?.message,
+        stage: "supabase_insert",
+        error: error.message,
         details: error,
       }, { status: 500 });
     }
@@ -107,8 +107,8 @@ export async function GET(req: NextRequest) {
       console.error("Supabase error:", error);
       return NextResponse.json({
         success: false,
-        stage: "get",
-        error: error?.message,
+        stage: "supabase_insert",
+        error: error.message,
         details: error,
       }, { status: 500 });
     }
