@@ -42,6 +42,8 @@ type TemplateItem = { id: string; template_key: string; display_name: string; in
 export function SandboxV2Client() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [sandboxId, setSandboxId] = useState<string | null>(null);
+  const [employers, setEmployers] = useState<Employer[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [features, setFeatures] = useState<FeatureItem[]>([]);
   const [overrides, setOverrides] = useState<Record<string, boolean>>({});
@@ -93,34 +95,90 @@ export function SandboxV2Client() {
     setConsoleLogs((prev) => [...prev.slice(-99), `${prefix}${msg}`]);
   }, []);
 
-  const fetchSessions = useCallback(async () => {
+  async function fetchSession(sandboxIdArg: string) {
     try {
       const res = await fetch(`${API}/sessions`, { credentials: "include" });
       const j = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(j.error || "Failed to load sessions");
-      setSessions(j.sessions ?? []);
+      console.log("Sessions API response:", j);
+      if (j.success === false) {
+        setError(j.error ?? "Failed to load sessions");
+        setSessions([]);
+        return;
+      }
+      const list = j.sessions ?? j.data ?? [];
+      setSessions(Array.isArray(list) ? list : []);
+      setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
       setSessions([]);
     }
-  }, []);
+  }
 
-  const fetchMetrics = useCallback(async (id: string) => {
-    if (!id) return;
-    setLoading(true);
+  async function fetchEmployers(sandboxIdArg: string) {
+    if (!sandboxIdArg) return;
     try {
-      const res = await fetch(`${API}/metrics?sandboxId=${encodeURIComponent(id)}`, { credentials: "include" });
+      const res = await fetch(`${API}/employers?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
       const j = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(j.error || "Failed to load metrics");
+      console.log("Employers API response:", j);
+      if (j.success === false) {
+        setError(j.error ?? "Failed to load employers");
+        setEmployers([]);
+        return;
+      }
+      const data = j.data ?? j.employers ?? [];
+      setEmployers(Array.isArray(data) ? data : []);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error");
+      setEmployers([]);
+    }
+  }
+
+  async function fetchEmployees(sandboxIdArg: string) {
+    if (!sandboxIdArg) return;
+    try {
+      const res = await fetch(`${API}/employees?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
+      const j = await res.json().catch(() => ({}));
+      console.log("Employees API response:", j);
+      if (j.success === false) {
+        setError(j.error ?? "Failed to load employees");
+        setEmployees([]);
+        return;
+      }
+      const data = j.data ?? j.employees ?? [];
+      setEmployees(Array.isArray(data) ? data : []);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error");
+      setEmployees([]);
+    }
+  }
+
+  async function fetchMetrics(sandboxIdArg: string) {
+    if (!sandboxIdArg) return;
+    try {
+      const res = await fetch(`${API}/metrics?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
+      const j = await res.json().catch(() => ({}));
+      if (j.success === false) {
+        setError(j.error ?? "Failed to load metrics");
+        setMetrics(null);
+        return;
+      }
       setMetrics(j);
-      console.log("Sandbox metrics fetched", id);
+      console.log("Sandbox metrics fetched", sandboxIdArg);
+      setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
       setMetrics(null);
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  }
+
+  async function refetchEverything(id: string) {
+    await fetchSession(id);
+    await fetchEmployers(id);
+    await fetchEmployees(id);
+    await fetchMetrics(id);
+  }
 
   const fetchFeatures = useCallback(async (id: string | null) => {
     try {
@@ -148,18 +206,30 @@ export function SandboxV2Client() {
   }, []);
 
   useEffect(() => {
-    fetchSessions();
-  }, [fetchSessions]);
-
-  useEffect(() => {
-    if (sandboxId) {
-      fetchMetrics(sandboxId);
-      fetchFeatures(sandboxId);
-    } else {
+    if (!sandboxId) {
+      setEmployers([]);
+      setEmployees([]);
       setMetrics(null);
       fetchFeatures(null);
+      fetchSession("");
+      return;
     }
-  }, [sandboxId, fetchMetrics, fetchFeatures]);
+    setLoading(true);
+    let cancelled = false;
+    (async () => {
+      try {
+        await fetchSession(sandboxId);
+        if (cancelled) return;
+        await fetchEmployers(sandboxId);
+        await fetchEmployees(sandboxId);
+        await fetchMetrics(sandboxId);
+        if (!cancelled) await fetchFeatures(sandboxId);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [sandboxId]);
 
   useEffect(() => {
     const mode = (metrics as { demo_mode?: string | null })?.demo_mode;
@@ -167,6 +237,7 @@ export function SandboxV2Client() {
   }, [(metrics as { demo_mode?: string | null })?.demo_mode]);
 
   const createSession = async () => {
+    setLoading(true);
     setCreateLoading(true);
     setError(null);
     try {
@@ -181,8 +252,7 @@ export function SandboxV2Client() {
       const newId = j.id ?? j.session?.id ?? j.data?.id;
       if (newId) {
         setSandboxId(newId);
-        await fetchSessions();
-        await fetchMetrics(newId);
+        await refetchEverything(newId);
       }
       console.log("Sandbox session created", newId);
       log("Session created: " + (newId ?? "").slice(0, 8), "success");
@@ -193,11 +263,13 @@ export function SandboxV2Client() {
       log(msg, "error");
     } finally {
       setCreateLoading(false);
+      setLoading(false);
     }
   };
 
   const generateEmployer = async () => {
     if (!sandboxId) return;
+    setLoading(true);
     setGenEmployerLoading(true);
     setError(null);
     try {
@@ -212,18 +284,20 @@ export function SandboxV2Client() {
       console.log("Sandbox employer generated", j.employer?.id);
       log("Employer created: " + (j.employer?.id ?? "").slice(0, 8), "success");
       setEmployerName("");
-      await fetchMetrics(sandboxId);
+      await refetchEverything(sandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
       log(msg, "error");
     } finally {
       setGenEmployerLoading(false);
+      setLoading(false);
     }
   };
 
   const generateEmployee = async () => {
     if (!sandboxId) return;
+    setLoading(true);
     setGenEmployeeLoading(true);
     setError(null);
     try {
@@ -238,18 +312,20 @@ export function SandboxV2Client() {
       console.log("Sandbox employee generated", j.employee?.id);
       log("Employee created: " + (j.employee?.id ?? "").slice(0, 8), "success");
       setEmployeeName("");
-      await fetchMetrics(sandboxId);
+      await refetchEverything(sandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
       log(msg, "error");
     } finally {
       setGenEmployeeLoading(false);
+      setLoading(false);
     }
   };
 
   const addPeerReview = async () => {
     if (!sandboxId || !peerReviewerId || !peerReviewedId) return;
+    setLoading(true);
     setPeerReviewLoading(true);
     setError(null);
     try {
@@ -263,18 +339,20 @@ export function SandboxV2Client() {
       if (!res.ok) throw new Error(j.error || "Add peer review failed");
       log("Peer review added (sentiment auto-calculated)", "success");
       setPeerReviewText("");
-      await fetchMetrics(sandboxId);
+      await refetchEverything(sandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
       log(msg, "error");
     } finally {
       setPeerReviewLoading(false);
+      setLoading(false);
     }
   };
 
   const addHiring = async () => {
     if (!sandboxId || !hireEmployeeId || !hireEmployerId) return;
+    setLoading(true);
     setHireLoading(true);
     setError(null);
     try {
@@ -287,18 +365,20 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Hiring simulation failed");
       log("Employment record added", "success");
-      await fetchMetrics(sandboxId);
+      await refetchEverything(sandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
       log(msg, "error");
     } finally {
       setHireLoading(false);
+      setLoading(false);
     }
   };
 
   const addAds = async () => {
     if (!sandboxId) return;
+    setLoading(true);
     setAdsLoading(true);
     setError(null);
     try {
@@ -311,18 +391,20 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Ads simulation failed");
       log("Ad campaign added (ROI auto-calculated)", "success");
-      await fetchMetrics(sandboxId);
+      await refetchEverything(sandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
       log(msg, "error");
     } finally {
       setAdsLoading(false);
+      setLoading(false);
     }
   };
 
   const updateRevenue = async () => {
     if (!sandboxId) return;
+    setLoading(true);
     setRevenueLoading(true);
     setError(null);
     try {
@@ -335,18 +417,20 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Revenue update failed");
       log(`Revenue: MRR=${j.mrr}, churn=${churnRate}`, "success");
-      await fetchMetrics(sandboxId);
+      await refetchEverything(sandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
       log(msg, "error");
     } finally {
       setRevenueLoading(false);
+      setLoading(false);
     }
   };
 
   const runRecalculate = async () => {
     if (!sandboxId) return;
+    setLoading(true);
     setRecalcLoading(true);
     setError(null);
     try {
@@ -359,17 +443,19 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Recalculate failed");
       log("Intelligence recalculated", "success");
-      await fetchMetrics(sandboxId);
+      await refetchEverything(sandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
       log(msg, "error");
     } finally {
       setRecalcLoading(false);
+      setLoading(false);
     }
   };
 
   const runCleanup = async () => {
+    setLoading(true);
     setCleanupLoading(true);
     setError(null);
     try {
@@ -377,14 +463,22 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Cleanup failed");
       log(`Cleanup: ${j.deleted ?? 0} expired sessions deleted`, "success");
-      await fetchSessions();
-      if (sandboxId && (j.deleted ?? 0) > 0) setSandboxId(null);
+      await fetchSession("");
+      if (sandboxId && (j.deleted ?? 0) > 0) {
+        setSandboxId(null);
+        setEmployers([]);
+        setEmployees([]);
+        setMetrics(null);
+      } else if (sandboxId) {
+        await refetchEverything(sandboxId);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
       log(msg, "error");
     } finally {
       setCleanupLoading(false);
+      setLoading(false);
     }
   };
 
@@ -421,6 +515,7 @@ export function SandboxV2Client() {
 
   const deployTemplate = async () => {
     if (!sandboxId || !selectedTemplateKey) return;
+    setLoading(true);
     setDeployTemplateLoading(true);
     setDeployProgress(["Starting…"]);
     setError(null);
@@ -443,7 +538,7 @@ export function SandboxV2Client() {
         "Ads simulated",
       ].filter(Boolean));
       log(`Template deployed: ${stats.employees ?? 0} employees, ${stats.reviews ?? 0} reviews`, "success");
-      await fetchMetrics(sandboxId);
+      await refetchEverything(sandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -451,6 +546,7 @@ export function SandboxV2Client() {
       setDeployProgress([]);
     } finally {
       setDeployTemplateLoading(false);
+      setLoading(false);
     }
   };
 
@@ -480,9 +576,6 @@ export function SandboxV2Client() {
   const rev = metrics?.revenueSimulation ?? null;
   const ads = metrics?.adsSimulation ?? null;
   const exec = metrics?.executive;
-
-  const employeeList: Employee[] = (metrics?.employeeIntelligence as { employees?: Employee[] })?.employees ?? [];
-  const employerList = ea?.employers ?? [];
 
   const activeSession = sandboxId ? sessions.find((s) => s.id === sandboxId) : null;
   const now = typeof window !== "undefined" ? Date.now() : 0;
@@ -586,7 +679,7 @@ export function SandboxV2Client() {
               <Label className="text-slate-400">Name</Label>
               <Input value={createName} onChange={(e) => setCreateName(e.target.value)} placeholder="New session name" className="mt-1 w-48 border-slate-700 bg-slate-800 text-white" />
             </div>
-            <Button onClick={createSession} disabled={createLoading}>{createLoading ? "Creating…" : "Create session"}</Button>
+            <Button onClick={createSession} disabled={loading || createLoading}>{createLoading ? "Creating…" : "Create session"}</Button>
             <div className="ml-4">
               <Label className="text-slate-300">Active session</Label>
               <select value={sandboxId ?? ""} onChange={(e) => setSandboxId(e.target.value || null)} className="mt-1 rounded border border-slate-600 bg-slate-800 px-3 py-2 text-slate-100">
@@ -618,7 +711,7 @@ export function SandboxV2Client() {
               <Label className="text-slate-400">Override Employee Count (optional)</Label>
               <Input type="number" min={1} value={templateEmployeeOverride} onChange={(e) => setTemplateEmployeeOverride(e.target.value)} placeholder="Default" className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
             </div>
-            <Button onClick={deployTemplate} disabled={!sandboxId || !selectedTemplateKey || deployTemplateLoading}>
+            <Button onClick={deployTemplate} disabled={loading || !sandboxId || !selectedTemplateKey || deployTemplateLoading}>
               {deployTemplateLoading ? "Deploying…" : "Deploy Template"}
             </Button>
           </div>
@@ -698,7 +791,7 @@ export function SandboxV2Client() {
                   <option value="enterprise">Enterprise</option>
                 </select>
               </div>
-              <Button onClick={generateEmployer} disabled={!sandboxId || genEmployerLoading}>{genEmployerLoading ? "…" : "Generate employer"}</Button>
+              <Button onClick={generateEmployer} disabled={loading || !sandboxId || genEmployerLoading}>{genEmployerLoading ? "…" : "Generate employer"}</Button>
             </div>
           </div>
 
@@ -714,7 +807,7 @@ export function SandboxV2Client() {
                 <Label className="text-slate-400">Industry</Label>
                 <Input value={employeeIndustry} onChange={(e) => setEmployeeIndustry(e.target.value)} placeholder="Industry" className="mt-1 border-slate-700 bg-slate-800 text-white" />
               </div>
-              <Button onClick={generateEmployee} disabled={!sandboxId || genEmployeeLoading}>{genEmployeeLoading ? "…" : "Generate employee"}</Button>
+              <Button onClick={generateEmployee} disabled={loading || !sandboxId || genEmployeeLoading}>{genEmployeeLoading ? "…" : "Generate employee"}</Button>
             </div>
           </div>
         </div>
@@ -728,7 +821,7 @@ export function SandboxV2Client() {
               <Label className="text-slate-400">Reviewer</Label>
               <select value={peerReviewerId} onChange={(e) => setPeerReviewerId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
                 <option value="">Select employee</option>
-                {employeeList.map((e) => (
+                {employees.map((e) => (
                   <option key={e.id} value={e.id}>{e.full_name ?? e.id.slice(0, 8)}</option>
                 ))}
               </select>
@@ -737,7 +830,7 @@ export function SandboxV2Client() {
               <Label className="text-slate-400">Reviewed</Label>
               <select value={peerReviewedId} onChange={(e) => setPeerReviewedId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
                 <option value="">Select employee</option>
-                {employeeList.map((e) => (
+                {employees.map((e) => (
                   <option key={e.id} value={e.id}>{e.full_name ?? e.id.slice(0, 8)}</option>
                 ))}
               </select>
@@ -754,7 +847,7 @@ export function SandboxV2Client() {
               <Label className="text-slate-400">Review text</Label>
               <Input value={peerReviewText} onChange={(e) => setPeerReviewText(e.target.value)} placeholder="Review text (sentiment auto-calculated)" className="mt-1 border-slate-700 bg-slate-800 text-white" />
             </div>
-            <Button onClick={addPeerReview} disabled={!sandboxId || !peerReviewerId || !peerReviewedId || peerReviewLoading}>{peerReviewLoading ? "…" : "Add peer review"}</Button>
+            <Button onClick={addPeerReview} disabled={loading || !sandboxId || !peerReviewerId || !peerReviewedId || peerReviewLoading}>{peerReviewLoading ? "…" : "Add peer review"}</Button>
           </div>
         </div>
 
@@ -766,7 +859,7 @@ export function SandboxV2Client() {
               <Label className="text-slate-400">Employee</Label>
               <select value={hireEmployeeId} onChange={(e) => setHireEmployeeId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
                 <option value="">Select employee</option>
-                {employeeList.map((e) => (
+                {employees.map((e) => (
                   <option key={e.id} value={e.id}>{e.full_name ?? e.id.slice(0, 8)}</option>
                 ))}
               </select>
@@ -775,7 +868,7 @@ export function SandboxV2Client() {
               <Label className="text-slate-400">Employer</Label>
               <select value={hireEmployerId} onChange={(e) => setHireEmployerId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
                 <option value="">Select employer</option>
-                {employerList.map((e) => (
+                {employers.map((e) => (
                   <option key={e.id} value={e.id}>{e.company_name ?? e.id.slice(0, 8)}</option>
                 ))}
               </select>
@@ -792,7 +885,7 @@ export function SandboxV2Client() {
               <input type="checkbox" checked={hireRehireEligible} onChange={(e) => setHireRehireEligible(e.target.checked)} className="rounded" />
               Rehire eligible
             </label>
-            <Button onClick={addHiring} disabled={!sandboxId || !hireEmployeeId || !hireEmployerId || hireLoading}>{hireLoading ? "…" : "Add employment record"}</Button>
+            <Button onClick={addHiring} disabled={loading || !sandboxId || !hireEmployeeId || !hireEmployerId || hireLoading}>{hireLoading ? "…" : "Add employment record"}</Button>
           </div>
         </div>
 
@@ -806,7 +899,7 @@ export function SandboxV2Client() {
                 <Label className="text-slate-400">Employer</Label>
                 <select value={adsEmployerId} onChange={(e) => setAdsEmployerId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
                   <option value="">Optional</option>
-                  {employerList.map((e) => (
+                  {employers.map((e) => (
                     <option key={e.id} value={e.id}>{e.company_name ?? e.id.slice(0, 8)}</option>
                   ))}
                 </select>
@@ -823,7 +916,7 @@ export function SandboxV2Client() {
                 <Label className="text-slate-400">Spend</Label>
                 <Input type="number" value={adsSpend} onChange={(e) => setAdsSpend(parseFloat(e.target.value) || 0)} className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
               </div>
-              <Button onClick={addAds} disabled={!sandboxId || adsLoading}>{adsLoading ? "…" : "Add ad campaign"}</Button>
+              <Button onClick={addAds} disabled={loading || !sandboxId || adsLoading}>{adsLoading ? "…" : "Add ad campaign"}</Button>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-4">
               <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
@@ -847,7 +940,7 @@ export function SandboxV2Client() {
                 <input type="range" min="0" max="1" step="0.01" value={churnRate} onChange={(e) => setChurnRate(parseFloat(e.target.value))} className="w-full" />
                 <span className="ml-2 text-cyan-400">{(churnRate * 100).toFixed(0)}%</span>
               </div>
-              <Button onClick={updateRevenue} disabled={!sandboxId || revenueLoading}>{revenueLoading ? "…" : "Update revenue"}</Button>
+              <Button onClick={updateRevenue} disabled={loading || !sandboxId || revenueLoading}>{revenueLoading ? "…" : "Update revenue"}</Button>
             </div>
             <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
               <p className="text-sm uppercase tracking-wide text-slate-400">Sandbox MRR</p>
@@ -886,9 +979,9 @@ export function SandboxV2Client() {
               <p className="text-sm uppercase tracking-wide text-slate-400">Employers</p>
               <p className="text-3xl font-bold text-cyan-400">{sandboxId && metrics ? (ea?.employersCount ?? 0) : "—"}</p>
             </div>
-            {employerList.length > 0 && (
+            {employers.length > 0 && (
               <ul className="mt-3 space-y-1 text-sm text-slate-300">
-                {employerList.slice(0, 10).map((e) => (
+                {employers.slice(0, 10).map((e) => (
                   <li key={e.id}>{e.company_name ?? e.id.slice(0, 8)}</li>
                 ))}
               </ul>
@@ -928,7 +1021,7 @@ export function SandboxV2Client() {
         {/* Actions */}
         <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
           <h2 className="text-lg font-semibold text-white">Actions</h2>
-          <Button variant="secondary" className="mt-4" onClick={runCleanup} disabled={cleanupLoading}>{cleanupLoading ? "…" : "Cleanup expired sessions"}</Button>
+          <Button variant="secondary" className="mt-4" onClick={runCleanup} disabled={loading || cleanupLoading}>{cleanupLoading ? "…" : "Cleanup expired sessions"}</Button>
         </div>
 
         {/* Console */}
