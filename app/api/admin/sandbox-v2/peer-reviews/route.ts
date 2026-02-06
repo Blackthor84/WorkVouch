@@ -16,7 +16,11 @@ export async function POST(req: NextRequest) {
     const rating = typeof body.rating === "number" ? Math.max(1, Math.min(5, body.rating)) : typeof body.rating === "string" ? Math.max(1, Math.min(5, parseInt(body.rating, 10) || 3)) : 3;
     const review_text = (body.review_text ?? body.reviewText) as string | undefined;
 
-    if (!sandbox_id || !reviewer_id || !reviewed_id) return NextResponse.json({ error: "Missing sandbox_id, reviewer_id, or reviewed_id" }, { status: 400 });
+    if (!sandbox_id || !reviewer_id || !reviewed_id) {
+      console.log("PEER REVIEW BODY:", body);
+      console.log("ERROR:", "Missing sandbox_id, reviewer_id, or reviewed_id");
+      return NextResponse.json({ error: "Missing sandbox_id, reviewer_id, or reviewed_id" }, { status: 400 });
+    }
 
     const sentiment_score = calculateSentimentFromText(review_text ?? null);
 
@@ -25,12 +29,17 @@ export async function POST(req: NextRequest) {
       .insert({ sandbox_id, reviewer_id, reviewed_id, rating, review_text: review_text ?? null, sentiment_score })
       .select("id, rating, sentiment_score")
       .single();
-    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    if (error) {
+      console.log("PEER REVIEW BODY:", body);
+      console.log("ERROR:", error);
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     await runSandboxIntelligence(sandbox_id);
     await calculateSandboxMetrics(sandbox_id);
     return NextResponse.json({ success: true, review: data });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Error";
+    console.log("ERROR:", e);
     if (msg === "Unauthorized") return NextResponse.json({ error: msg }, { status: 401 });
     if (msg.startsWith("Forbidden")) return NextResponse.json({ error: msg }, { status: 403 });
     return NextResponse.json({ error: msg }, { status: 400 });

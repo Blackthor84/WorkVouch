@@ -318,7 +318,8 @@ export function SandboxV2Client() {
     }
   };
 
-  const addHiring = async () => {
+  const handleAddEmployment = async () => {
+    console.log("ADD EMPLOYMENT CLICKED");
     if (!currentSandboxId || !hireEmployeeId || !hireEmployerId) return;
     setLoading(true);
     setHireLoading(true);
@@ -343,6 +344,8 @@ export function SandboxV2Client() {
       setLoading(false);
     }
   };
+
+  const addHiring = handleAddEmployment;
 
   const addAds = async () => {
     if (!currentSandboxId) return;
@@ -919,7 +922,12 @@ export function SandboxV2Client() {
               <input type="checkbox" checked={hireRehireEligible} onChange={(e) => setHireRehireEligible(e.target.checked)} className="rounded" />
               Rehire eligible
             </label>
-            <Button onClick={addHiring} disabled={loading || !currentSandboxId || !hireEmployeeId || !hireEmployerId || hireLoading}>{hireLoading ? "…" : "Add employment record"}</Button>
+            <button
+                onClick={handleAddEmployment}
+                className="px-4 py-2 bg-green-600 text-white rounded"
+              >
+                Add Employment
+              </button>
           </div>
         </div>
 
