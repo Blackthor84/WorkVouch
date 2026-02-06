@@ -9,6 +9,10 @@ import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
 
 export const dynamic = "force-dynamic";
 
+async function parseBody<T>(req: Request): Promise<T> {
+  return (await req.json()) as T;
+}
+
 const PRESETS = {
   fortune_500: { employers: 5, employees: 25 },
   startup: { employers: 1, employees: 6 },
@@ -16,13 +20,13 @@ const PRESETS = {
 } as const;
 
 export async function POST(req: NextRequest) {
-  let body: Record<string, unknown> = {};
+  let body: { sandboxId?: string; sandbox_id?: string; preset?: string; employerCount?: number; employeeCount?: number };
   try {
-    body = await req.json();
+    body = await parseBody<typeof body>(req);
   } catch {
-    // ignore
+    return NextResponse.json({ success: false, stage: "validation", error: "Invalid JSON body" }, { status: 400 });
   }
-  const sandboxId = body.sandboxId ?? body.sandbox_id;
+  const sandboxId: string = String(body.sandboxId ?? body.sandbox_id ?? "");
   const presetKey = body.preset as keyof typeof PRESETS | undefined;
 
   if (!sandboxId) {
@@ -83,9 +87,16 @@ export async function POST(req: NextRequest) {
   for (const emp of employeeIds) {
     const links = 1 + Math.floor(Math.random() * 3);
     for (let i = 0; i < links; i++) {
-      await linkEmployeeToRandomEmployer({ sandboxId, employeeId: emp.id });
+      await linkEmployeeToRandomEmployer({
+        sandboxId: String(sandboxId),
+        employeeId: String(emp.id),
+      });
     }
-    await generatePeerReviews({ sandboxId, employeeId: emp.id, employeePool: employeeIds });
+    await generatePeerReviews({
+      sandboxId: String(sandboxId),
+      employeeId: String(emp.id),
+      employeePool: employeeIds,
+    });
   }
 
   await runSandboxIntelligenceRecalculation(sandboxId);
