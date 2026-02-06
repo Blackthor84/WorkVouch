@@ -218,25 +218,9 @@ export function SandboxV2Client() {
       setEmployers([]);
       setEmployees([]);
       setMetrics(null);
-      fetchFeatures(null);
-      fetchSessions();
       return;
     }
-    setLoading(true);
-    let cancelled = false;
-    (async () => {
-      try {
-        await fetchSessions();
-        if (cancelled) return;
-        await fetchEmployers(activeSandboxId);
-        await fetchEmployees(activeSandboxId);
-        await fetchMetrics(activeSandboxId);
-        if (!cancelled) await fetchFeatures(activeSandboxId);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
+    refreshSandbox(activeSandboxId);
   }, [activeSandboxId]);
 
   useEffect(() => {
@@ -593,12 +577,14 @@ export function SandboxV2Client() {
       ? "expired"
       : "active";
 
-  console.log("SANDBOX STATE", {
-    sandboxId: activeSandboxId,
-    employersCount: employers.length,
-    employeesCount: employees.length,
-    sessionsCount: sessions.length,
-  });
+  useEffect(() => {
+    console.log("SANDBOX STATE", {
+      sandboxId: activeSandboxId,
+      employersCount: employers.length,
+      employeesCount: employees.length,
+      sessionsCount: sessions.length,
+    });
+  }, [activeSandboxId, employers.length, employees.length, sessions.length]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
