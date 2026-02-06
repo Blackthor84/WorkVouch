@@ -62,11 +62,12 @@ export async function POST(req: NextRequest) {
       .select("id")
       .single();
     if (error) {
-      console.error("Supabase error:", error);
-      return NextResponse.json({ success: false, stage: "supabase_insert", error: error.message, details: error }, { status: 500 });
+      console.error(error);
+      return NextResponse.json({ error: error.message ?? String(error) }, { status: 500 });
     }
-    employerIds.push(emp.id);
+    employerIds.push(emp!.id);
   }
+  console.log("Preset insert employers result:", employerIds.length);
 
   const employeeIds: { id: string }[] = [];
   for (let i = 0; i < employeeCount; i++) {
@@ -80,11 +81,12 @@ export async function POST(req: NextRequest) {
       .select("id")
       .single();
     if (error) {
-      console.error("Supabase error:", error);
-      return NextResponse.json({ success: false, stage: "supabase_insert", error: error.message, details: error }, { status: 500 });
+      console.error(error);
+      return NextResponse.json({ error: error.message ?? String(error) }, { status: 500 });
     }
-    employeeIds.push({ id: emp.id });
+    employeeIds.push({ id: emp!.id });
   }
+  console.log("Preset insert employees result:", employeeIds.length);
 
   for (const emp of employeeIds) {
     const links = 1 + Math.floor(Math.random() * 3);

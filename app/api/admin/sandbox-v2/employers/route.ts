@@ -56,14 +56,11 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      console.error("Supabase error:", error);
-      return NextResponse.json({
-        success: false,
-        stage: "supabase_insert",
-        error: error.message,
-        details: error,
-      }, { status: 500 });
+      console.error(error);
+      return NextResponse.json({ error: error.message ?? String(error) }, { status: 500 });
     }
+
+    console.log("Employers insert result:", data);
 
     await calculateSandboxMetrics(String(sandboxId));
 
