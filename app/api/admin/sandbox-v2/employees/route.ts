@@ -47,25 +47,32 @@ export async function POST(req: NextRequest) {
     const industry = body.industry ?? pickIndustry();
 
     const payload = { sandbox_id, full_name, industry };
-    const { data: insertData, error } = await supabase
+
+    console.log("=== EMPLOYEE INSERT START ===");
+    console.log("INSERT sandboxId:", sandboxId);
+
+    const { data, error } = await supabase
       .from("sandbox_employees")
       .insert(payload)
-      .select("id, sandbox_id")
+      .select()
       .single();
+
+    console.log("EMPLOYEE ROW CREATED:", data);
+    console.log("EMPLOYEE INSERT ERROR:", error);
 
     if (error) {
       console.error(error);
       return NextResponse.json({ error: error.message ?? String(error) }, { status: 500 });
     }
 
-    if (!insertData?.id) {
-      console.error("Employee insert returned no id:", insertData);
-      return NextResponse.json({ error: "Employee insert returned no id" }, { status: 500 });
+    if (!data?.id) {
+      console.error("Employees insert returned no data or id:", data);
+      return NextResponse.json({ error: "Insert returned no row or id" }, { status: 500 });
     }
 
-    console.log("Employees insert result:", insertData, "sandbox_id:", insertData?.sandbox_id ?? sandbox_id);
+    console.log("Employees insert confirmed sandbox_id:", data.sandbox_id);
 
-    const employeeId = String(insertData.id);
+    const employeeId = String(data.id);
 
     const employmentCount = 1 + Math.floor(Math.random() * 3);
     for (let i = 0; i < employmentCount; i++) {

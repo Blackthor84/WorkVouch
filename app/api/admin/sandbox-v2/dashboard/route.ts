@@ -11,6 +11,9 @@ export async function GET(req: NextRequest) {
     const sandboxId = req.nextUrl.searchParams.get("sandboxId")?.trim() ?? null;
     if (!sandboxId) return NextResponse.json({ success: false, error: "Missing sandboxId" }, { status: 400 });
 
+    console.log("=== DASHBOARD QUERY START ===");
+    console.log("DASHBOARD QUERY sandboxId:", sandboxId);
+
     const supabase = getServiceRoleClient();
     const [sessionRes, metricsRes, employersRes, employeesRes, recordsRes, reviewsRes, intelRes, revenueRes, adsRes] = await Promise.all([
       supabase.from("sandbox_sessions").select("id, name, starts_at, ends_at, status").eq("id", sandboxId).maybeSingle(),
@@ -44,6 +47,10 @@ export async function GET(req: NextRequest) {
 
     const employers = employersRes.data ?? [];
     const employees = employeesRes.data ?? [];
+
+    console.log("DASHBOARD employers result:", employers);
+    console.log("DASHBOARD employees result:", employees);
+
     const records = recordsRes.data ?? [];
     const reviews = reviewsRes.data ?? [];
     const intel = intelRes.data ?? [];

@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
     plan_tier?: string;
   };
   console.log("BODY:", body);
+  console.log("SUPABASE URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
 
   const sandboxId: string = String(body.sandboxId ?? body.sandbox_id ?? "");
   if (!sandboxId || typeof sandboxId !== "string") {
@@ -44,6 +45,9 @@ export async function POST(req: NextRequest) {
     const industry = body.industry ?? pickIndustry();
     const plan_tier = body.plan_tier ?? "pro";
 
+    console.log("=== EMPLOYER INSERT START ===");
+    console.log("INSERT sandboxId:", sandboxId);
+
     const { data, error } = await supabase
       .from("sandbox_employers")
       .insert({
@@ -55,12 +59,20 @@ export async function POST(req: NextRequest) {
       .select()
       .single();
 
+    console.log("EMPLOYER ROW CREATED:", data);
+    console.log("EMPLOYER INSERT ERROR:", error);
+
     if (error) {
       console.error(error);
       return NextResponse.json({ error: error.message ?? String(error) }, { status: 500 });
     }
 
-    console.log("Employers insert result:", data, "sandbox_id:", data?.sandbox_id ?? sandboxId);
+    if (!data) {
+      console.error("Employers insert returned no data");
+      return NextResponse.json({ error: "Insert returned no row" }, { status: 500 });
+    }
+
+    console.log("Employers insert confirmed sandbox_id:", data.sandbox_id);
 
     await calculateSandboxMetrics(String(sandboxId));
 
