@@ -98,21 +98,21 @@ export function SandboxV2Client() {
   async function fetchSessions() {
     try {
       const res = await fetch(`${API}/sessions`, { credentials: "include" });
-      const json = await res.json();
-      console.log("RAW API RESPONSE", json);
-      if (json.success) {
-        const raw = json.data?.data ?? json.data;
-        const newData = Array.isArray(raw) ? raw : [];
-        setSessions((prev) => {
-          if (JSON.stringify(prev) === JSON.stringify(newData)) return prev;
-          return newData;
-        });
-        setError(null);
-      } else {
+      if (!res.ok) {
+        console.error("API failed", res.status);
         setSessions([]);
-        if (json.success === false) setError(json.error ?? "Failed to load sessions");
+        return;
       }
+      const json = await res.json();
+      console.log("PARSED JSON", json);
+      if (!json.success) {
+        console.error("API returned success:false", json);
+        setSessions([]);
+        return;
+      }
+      setSessions(Array.isArray(json.data) ? json.data : []);
     } catch (err) {
+      console.error("fetchSessions failed", err);
       setError(err instanceof Error ? err.message : "Error");
       setSessions([]);
     }
@@ -122,21 +122,21 @@ export function SandboxV2Client() {
     if (!sandboxIdArg) return;
     try {
       const res = await fetch(`${API}/employers?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
-      const json = await res.json();
-      console.log("RAW API RESPONSE", json);
-      if (json.success) {
-        const raw = json.data?.data ?? json.data;
-        const newData = Array.isArray(raw) ? raw : [];
-        setEmployers((prev) => {
-          if (JSON.stringify(prev) === JSON.stringify(newData)) return prev;
-          return newData;
-        });
-        setError(null);
-      } else {
+      if (!res.ok) {
+        console.error("API failed", res.status);
         setEmployers([]);
-        if (json.success === false) setError(json.error ?? "Failed to load employers");
+        return;
       }
+      const json = await res.json();
+      console.log("PARSED JSON", json);
+      if (!json.success) {
+        console.error("API returned success:false", json);
+        setEmployers([]);
+        return;
+      }
+      setEmployers(Array.isArray(json.data) ? json.data : []);
     } catch (err) {
+      console.error("fetchEmployers failed", err);
       setError(err instanceof Error ? err.message : "Error");
       setEmployers([]);
     }
@@ -146,21 +146,21 @@ export function SandboxV2Client() {
     if (!sandboxIdArg) return;
     try {
       const res = await fetch(`${API}/employees?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
-      const json = await res.json();
-      console.log("RAW API RESPONSE", json);
-      if (json.success) {
-        const raw = json.data?.data ?? json.data;
-        const newData = Array.isArray(raw) ? raw : [];
-        setEmployees((prev) => {
-          if (JSON.stringify(prev) === JSON.stringify(newData)) return prev;
-          return newData;
-        });
-        setError(null);
-      } else {
+      if (!res.ok) {
+        console.error("API failed", res.status);
         setEmployees([]);
-        if (json.success === false) setError(json.error ?? "Failed to load employees");
+        return;
       }
+      const json = await res.json();
+      console.log("PARSED JSON", json);
+      if (!json.success) {
+        console.error("API returned success:false", json);
+        setEmployees([]);
+        return;
+      }
+      setEmployees(Array.isArray(json.data) ? json.data : []);
     } catch (err) {
+      console.error("fetchEmployees failed", err);
       setError(err instanceof Error ? err.message : "Error");
       setEmployees([]);
     }
@@ -170,21 +170,21 @@ export function SandboxV2Client() {
     if (!sandboxIdArg) return;
     try {
       const res = await fetch(`${API}/metrics?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
-      const json = await res.json();
-      console.log("RAW API RESPONSE", json);
-      if (json.success) {
-        const raw = json.data?.data ?? json.data;
-        const newData = (raw ?? {}) as Metrics;
-        setMetrics((prev) => {
-          if (JSON.stringify(prev) === JSON.stringify(newData)) return prev;
-          return newData;
-        });
-        setError(null);
-      } else {
+      if (!res.ok) {
+        console.error("API failed", res.status);
         setMetrics(null);
-        if (json.success === false) setError(json.error ?? "Failed to load metrics");
+        return;
       }
+      const json = await res.json();
+      console.log("PARSED JSON", json);
+      if (!json.success) {
+        console.error("API returned success:false", json);
+        setMetrics(null);
+        return;
+      }
+      setMetrics(json.data != null ? (json.data as Metrics) : null);
     } catch (err) {
+      console.error("fetchMetrics failed", err);
       setError(err instanceof Error ? err.message : "Error");
       setMetrics(null);
     }
