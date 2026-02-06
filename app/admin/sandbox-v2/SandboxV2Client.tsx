@@ -99,8 +99,10 @@ export function SandboxV2Client() {
     try {
       const res = await fetch(`${API}/sessions`, { credentials: "include" });
       const json = await res.json();
+      console.log("RAW API RESPONSE", json);
       if (json.success) {
-        const newData = Array.isArray(json.data) ? json.data : [];
+        const raw = json.data?.data ?? json.data;
+        const newData = Array.isArray(raw) ? raw : [];
         setSessions((prev) => {
           if (JSON.stringify(prev) === JSON.stringify(newData)) return prev;
           return newData;
@@ -121,8 +123,10 @@ export function SandboxV2Client() {
     try {
       const res = await fetch(`${API}/employers?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
       const json = await res.json();
+      console.log("RAW API RESPONSE", json);
       if (json.success) {
-        const newData = Array.isArray(json.data) ? json.data : [];
+        const raw = json.data?.data ?? json.data;
+        const newData = Array.isArray(raw) ? raw : [];
         setEmployers((prev) => {
           if (JSON.stringify(prev) === JSON.stringify(newData)) return prev;
           return newData;
@@ -143,8 +147,10 @@ export function SandboxV2Client() {
     try {
       const res = await fetch(`${API}/employees?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
       const json = await res.json();
+      console.log("RAW API RESPONSE", json);
       if (json.success) {
-        const newData = Array.isArray(json.data) ? json.data : [];
+        const raw = json.data?.data ?? json.data;
+        const newData = Array.isArray(raw) ? raw : [];
         setEmployees((prev) => {
           if (JSON.stringify(prev) === JSON.stringify(newData)) return prev;
           return newData;
@@ -165,8 +171,10 @@ export function SandboxV2Client() {
     try {
       const res = await fetch(`${API}/metrics?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
       const json = await res.json();
+      console.log("RAW API RESPONSE", json);
       if (json.success) {
-        const newData = (json.data ?? {}) as Metrics;
+        const raw = json.data?.data ?? json.data;
+        const newData = (raw ?? {}) as Metrics;
         setMetrics((prev) => {
           if (JSON.stringify(prev) === JSON.stringify(newData)) return prev;
           return newData;
@@ -682,7 +690,7 @@ export function SandboxV2Client() {
               <Label className="text-slate-300">Active session</Label>
               <select value={activeSandboxId ?? ""} onChange={(e) => setActiveSandboxId(e.target.value || null)} className="mt-1 rounded border border-slate-600 bg-slate-800 px-3 py-2 text-slate-100">
                 <option value="">None</option>
-                {sessions.map((s) => (
+                {sessions?.map((s) => (
                   <option key={s.id} value={s.id}>{s.name || s.id.slice(0, 8)} — {s.status}</option>
                 ))}
               </select>
@@ -819,7 +827,8 @@ export function SandboxV2Client() {
               <Label className="text-slate-400">Reviewer</Label>
               <select value={peerReviewerId} onChange={(e) => setPeerReviewerId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
                 <option value="">Select employee</option>
-                {employees.map((e) => (
+                {employees?.length === 0 && <option disabled>No employees yet</option>}
+                {employees?.map((e) => (
                   <option key={e.id} value={e.id}>{e.full_name ?? e.id.slice(0, 8)}</option>
                 ))}
               </select>
@@ -828,7 +837,7 @@ export function SandboxV2Client() {
               <Label className="text-slate-400">Reviewed</Label>
               <select value={peerReviewedId} onChange={(e) => setPeerReviewedId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
                 <option value="">Select employee</option>
-                {employees.map((e) => (
+                {employees?.map((e) => (
                   <option key={e.id} value={e.id}>{e.full_name ?? e.id.slice(0, 8)}</option>
                 ))}
               </select>
@@ -857,7 +866,8 @@ export function SandboxV2Client() {
               <Label className="text-slate-400">Employee</Label>
               <select value={hireEmployeeId} onChange={(e) => setHireEmployeeId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
                 <option value="">Select employee</option>
-                {employees.map((e) => (
+                {employees?.length === 0 && <option disabled>No employees yet</option>}
+                {employees?.map((e) => (
                   <option key={e.id} value={e.id}>{e.full_name ?? e.id.slice(0, 8)}</option>
                 ))}
               </select>
@@ -866,7 +876,7 @@ export function SandboxV2Client() {
               <Label className="text-slate-400">Employer</Label>
               <select value={hireEmployerId} onChange={(e) => setHireEmployerId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
                 <option value="">Select employer</option>
-                {employers.map((e) => (
+                {employers?.map((e) => (
                   <option key={e.id} value={e.id}>{e.company_name ?? e.id.slice(0, 8)}</option>
                 ))}
               </select>
@@ -969,7 +979,7 @@ export function SandboxV2Client() {
                 <p className="text-3xl font-bold text-cyan-400">{ei?.avgHiringConfidence != null ? ei.avgHiringConfidence.toFixed(1) : "—"}</p>
               </div>
             </div>
-            {employees.length === 0 && activeSandboxId && (
+            {employees?.length === 0 && activeSandboxId && (
               <p className="mt-3 text-sm text-slate-500">No employees yet.</p>
             )}
             <Button variant="secondary" className="mt-4" onClick={runRecalculate} disabled={loading || !activeSandboxId || recalcLoading}>{recalcLoading ? "…" : "Recalculate intelligence"}</Button>
@@ -980,12 +990,12 @@ export function SandboxV2Client() {
               <p className="text-sm uppercase tracking-wide text-slate-400">Employers</p>
               <p className="text-3xl font-bold text-cyan-400">{activeSandboxId && metrics ? (ea?.employersCount ?? 0) : "—"}</p>
             </div>
-            {employers.length === 0 && activeSandboxId && (
+            {employers?.length === 0 && activeSandboxId && (
               <p className="mt-3 text-sm text-slate-500">No employers yet.</p>
             )}
-            {employers.length > 0 && (
+            {employers?.length > 0 && (
               <ul className="mt-3 space-y-1 text-sm text-slate-300">
-                {employers.slice(0, 10).map((e) => (
+                {employers?.slice(0, 10).map((e) => (
                   <li key={e.id}>{e.company_name ?? e.id.slice(0, 8)}</li>
                 ))}
               </ul>
