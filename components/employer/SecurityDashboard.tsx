@@ -187,7 +187,7 @@ export function SecurityDashboard({ employerId: _employerId }: SecurityDashboard
                   <span className="text-sm font-medium text-grey-dark dark:text-gray-200">
                     {i + 1}. {row.full_name ?? "Unknown"}
                   </span>
-                  <Badge variant="default">{row.guard_credential_score}</Badge>
+                  <Badge variant="primary">{row.guard_credential_score}</Badge>
                 </li>
               ))}
             </ul>

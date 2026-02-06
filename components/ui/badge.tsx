@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 interface BadgeProps {
   children: React.ReactNode;
   variant?:
+    | "primary"
     | "default"
     | "success"
     | "warning"
@@ -15,10 +16,12 @@ interface BadgeProps {
 
 export function Badge({
   children,
-  variant = "default",
+  variant = "primary",
   className,
 }: BadgeProps) {
   const variants = {
+    primary:
+      "bg-grey-background dark:bg-[#1A1F2B] text-grey-dark dark:text-gray-200",
     default:
       "bg-grey-background dark:bg-[#1A1F2B] text-grey-dark dark:text-gray-200",
     success:

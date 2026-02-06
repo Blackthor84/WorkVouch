@@ -315,7 +315,7 @@ export default async function AdminPanel() {
                                 </Badge>
                               ))
                             ) : (
-                              <Badge variant="default">user</Badge>
+                              <Badge variant="primary">user</Badge>
                             )}
                           </div>
                         </td>
