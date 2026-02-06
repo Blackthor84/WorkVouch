@@ -9,10 +9,7 @@ export async function GET(req: Request) {
     const sandboxId = searchParams.get("sandboxId");
 
     if (!sandboxId) {
-      return NextResponse.json(
-        { success: false, stage: "validation", error: "Missing sandboxId" },
-        { status: 400 }
-      );
+      return NextResponse.json({ features: [] });
     }
 
     const supabase = getServiceRoleClient();
