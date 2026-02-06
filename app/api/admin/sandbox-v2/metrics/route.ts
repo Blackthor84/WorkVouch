@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   try {
     await requireSandboxV2Admin();
     const sandboxId = req.nextUrl.searchParams.get("sandboxId")?.trim() ?? null;
-    if (!sandboxId) return NextResponse.json({ error: "Missing sandboxId" }, { status: 400 });
+    if (!sandboxId) return NextResponse.json({ success: false, error: "Missing sandboxId" }, { status: 400 });
 
     const supabase = getSupabaseServer();
     const [sessionRes, metricsRes, employersRes, employeesRes, recordsRes, reviewsRes, intelRes, revenueRes, adsRes] = await Promise.all([
@@ -67,7 +67,23 @@ export async function GET(req: NextRequest) {
     const adRoi = m?.ad_roi ?? (totalSpend > 0 && totalClicks > 0 ? (totalClicks * 150 - totalSpend) / totalSpend : null);
     const dataDensityIndex = profilesCount + employmentRecordsCount + referencesCount;
 
+    const employersCount = employers.length;
+    const employeesCount = profilesCount;
+    const peerReviewsCount = referencesCount;
+    const totalAdSpend = totalSpend;
+
+    console.log("Sandbox metrics fetched:", sandboxId);
+
     return NextResponse.json({
+      success: true,
+      metrics: {
+        employers: employersCount,
+        employees: employeesCount,
+        peerReviews: peerReviewsCount,
+        avgProfileStrength: avgProfileStrength ?? null,
+        avgHiringConfidence: avgHiringConfidence ?? null,
+        totalAdSpend,
+      },
       session,
       sandbox_metrics: metricsRow ? {
         profiles_count: m?.profiles_count,
@@ -99,8 +115,8 @@ export async function GET(req: NextRequest) {
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Error";
-    if (msg === "Unauthorized") return NextResponse.json({ error: msg }, { status: 401 });
-    if (msg.startsWith("Forbidden")) return NextResponse.json({ error: msg }, { status: 403 });
-    return NextResponse.json({ error: msg }, { status: 400 });
+    if (msg === "Unauthorized") return NextResponse.json({ success: false, error: msg }, { status: 401 });
+    if (msg.startsWith("Forbidden")) return NextResponse.json({ success: false, error: msg }, { status: 403 });
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

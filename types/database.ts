@@ -1203,16 +1203,12 @@ export interface Database {
       sandbox_sessions: {
         Row: {
           id: string
-          created_by_admin: string
-          industry: string
-          sub_industry: string | null
-          role_title: string | null
-          employer_id: string | null
-          candidate_count: number
-          expires_at: string
-          is_sandbox: boolean
+          name: string | null
+          created_by: string | null
+          starts_at: string | null
+          ends_at: string | null
+          status: string
           created_at: string
-          mode?: string
         }
         Insert: { [key: string]: unknown }
         Update: { [key: string]: unknown }

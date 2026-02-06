@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     const name = (body.name as string) ?? null;
     const now = new Date();
     const starts_at = body.starts_at ? new Date(body.starts_at).toISOString() : now.toISOString();
-    const ends_at = body.ends_at ? new Date(body.ends_at).toISOString() : new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+    const ends_at = body.ends_at ? new Date(body.ends_at).toISOString() : new Date(now.getTime() + 30 * 60 * 1000).toISOString();
 
     const supabase = getSupabaseServer();
     const { data, error } = await supabase
@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
       console.error("Validation/insert failed:", { body, error: error.message, code: error.code });
       return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }
+    console.log("Sandbox session created:", data?.id);
     return NextResponse.json({ success: true, session: data });
   } catch (err) {
     console.error("SANDBOX SESSIONS ERROR:", err);

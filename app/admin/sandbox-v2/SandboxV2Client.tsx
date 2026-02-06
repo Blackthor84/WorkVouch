@@ -113,6 +113,7 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Failed to load metrics");
       setMetrics(j);
+      console.log("Sandbox metrics fetched", id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error");
       setMetrics(null);
@@ -177,10 +178,15 @@ export function SandboxV2Client() {
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Create failed");
-      log("Session created: " + (j.session?.id ?? "").slice(0, 8), "success");
+      const newId = j.session?.id;
+      if (newId) {
+        setSandboxId(newId);
+        await fetchSessions();
+        await fetchMetrics(newId);
+      }
+      console.log("Sandbox session created", newId);
+      log("Session created: " + (newId ?? "").slice(0, 8), "success");
       setCreateName("");
-      await fetchSessions();
-      if (j.session?.id) setSandboxId(j.session.id);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -203,6 +209,7 @@ export function SandboxV2Client() {
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Generate failed");
+      console.log("Sandbox employer generated", j.employer?.id);
       log("Employer created: " + (j.employer?.id ?? "").slice(0, 8), "success");
       setEmployerName("");
       await fetchMetrics(sandboxId);
@@ -228,6 +235,7 @@ export function SandboxV2Client() {
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Generate failed");
+      console.log("Sandbox employee generated", j.employee?.id);
       log("Employee created: " + (j.employee?.id ?? "").slice(0, 8), "success");
       setEmployeeName("");
       await fetchMetrics(sandboxId);

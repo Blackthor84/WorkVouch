@@ -13,12 +13,12 @@ export async function POST() {
       .delete()
       .lt("ends_at", new Date().toISOString())
       .select("id");
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     return NextResponse.json({ success: true, deleted: (data ?? []).length });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Error";
-    if (msg === "Unauthorized") return NextResponse.json({ error: msg }, { status: 401 });
-    if (msg.startsWith("Forbidden")) return NextResponse.json({ error: msg }, { status: 403 });
-    return NextResponse.json({ error: msg }, { status: 400 });
+    if (msg === "Unauthorized") return NextResponse.json({ success: false, error: msg }, { status: 401 });
+    if (msg.startsWith("Forbidden")) return NextResponse.json({ success: false, error: msg }, { status: 403 });
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }
