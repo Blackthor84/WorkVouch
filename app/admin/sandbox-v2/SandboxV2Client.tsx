@@ -179,14 +179,14 @@ export function SandboxV2Client() {
     }
   }
 
-  const refreshSandbox = async (sandboxId: string) => {
+  const refreshSandbox = useCallback(async (sandboxId: string) => {
     await Promise.all([
       fetchSessions(),
       fetchEmployers(sandboxId),
       fetchEmployees(sandboxId),
       fetchMetrics(sandboxId),
     ]);
-  };
+  }, []);
 
   const fetchFeatures = useCallback(async (id: string | null) => {
     try {
@@ -214,19 +214,12 @@ export function SandboxV2Client() {
   }, []);
 
   useEffect(() => {
-    if (!activeSandboxId) {
-      setEmployers([]);
-      setEmployees([]);
-      setMetrics(null);
-      return;
-    }
-    refreshSandbox(activeSandboxId);
+    if (!activeSandboxId) return;
+    const run = async () => {
+      await refreshSandbox(activeSandboxId);
+    };
+    run();
   }, [activeSandboxId]);
-
-  useEffect(() => {
-    const mode = (metrics as { demo_mode?: string | null })?.demo_mode;
-    setDemoMode(mode ?? null);
-  }, [(metrics as { demo_mode?: string | null })?.demo_mode]);
 
   const createSession = async () => {
     setLoading(true);
@@ -580,11 +573,11 @@ export function SandboxV2Client() {
   useEffect(() => {
     console.log("SANDBOX STATE", {
       sandboxId: activeSandboxId,
-      employersCount: employers.length,
-      employeesCount: employees.length,
-      sessionsCount: sessions.length,
+      employers: employers.length,
+      employees: employees.length,
+      sessions: sessions.length,
     });
-  }, [activeSandboxId, employers.length, employees.length, sessions.length]);
+  }, [activeSandboxId]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
