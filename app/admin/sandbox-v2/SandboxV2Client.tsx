@@ -252,7 +252,7 @@ export function SandboxV2Client() {
       const data = (j as { data?: { id?: string } }).data;
       log("Employer created: " + (data?.id ?? "").slice(0, 8), "success");
       setEmployerName("");
-      await refreshSandbox(currentSandboxId);
+      if (currentSandboxId) await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -280,7 +280,7 @@ export function SandboxV2Client() {
       const data = (j as { data?: { id?: string } }).data;
       log("Employee created: " + (data?.id ?? "").slice(0, 8), "success");
       setEmployeeName("");
-      await refreshSandbox(currentSandboxId);
+      if (currentSandboxId) await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -317,7 +317,7 @@ export function SandboxV2Client() {
       if (!res.ok) throw new Error(j.error || "Add peer review failed");
       log("Peer review added (sentiment auto-calculated)", "success");
       setPeerReviewText("");
-      await refreshSandbox(currentSandboxId);
+      if (currentSandboxId) await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -344,7 +344,7 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Hiring simulation failed");
       log("Employment record added", "success");
-      await refreshSandbox(currentSandboxId);
+      if (currentSandboxId) await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -372,7 +372,7 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Ads simulation failed");
       log("Ad campaign added (ROI auto-calculated)", "success");
-      await refreshSandbox(currentSandboxId);
+      if (currentSandboxId) await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -398,7 +398,7 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Revenue update failed");
       log(`Revenue: MRR=${j.mrr}, churn=${churnRate}`, "success");
-      await refreshSandbox(currentSandboxId);
+      if (currentSandboxId) await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -424,7 +424,7 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Recalculate failed");
       log("Intelligence recalculated", "success");
-      await refreshSandbox(currentSandboxId);
+      if (currentSandboxId) await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -566,7 +566,7 @@ export function SandboxV2Client() {
         "Ads simulated",
       ].filter(Boolean));
       log(`Template deployed: ${stats.employees ?? 0} employees, ${stats.reviews ?? 0} reviews`, "success");
-      await refreshSandbox(currentSandboxId);
+      if (currentSandboxId) await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
