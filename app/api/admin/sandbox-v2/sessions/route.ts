@@ -63,13 +63,7 @@ export async function POST(req: Request) {
       console.error("Session seed features failed:", seedResult.error);
     }
 
-    return NextResponse.json({
-      success: true,
-      id: data?.id,
-      data: data,
-      sandbox: data,
-      session: data,
-    });
+    return NextResponse.json({ success: true, data: data ?? {} });
   } catch (err: unknown) {
     console.error("Sessions POST failure:", { stage: "server_crash", err });
     const msg = err instanceof Error ? err.message : "Unknown error";

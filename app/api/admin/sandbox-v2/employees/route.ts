@@ -68,18 +68,18 @@ export async function POST(req: NextRequest) {
       await linkEmployeeToRandomEmployer({
         sandboxId: String(sandboxId),
         employeeId: String(employeeId),
-      } as any);
+      });
     }
 
     const { data: allEmployees } = await supabase.from("sandbox_employees").select("id").eq("sandbox_id", sandboxId);
     const employeePool = (allEmployees ?? []).map((e: { id: string }) => ({ id: e.id }));
     await generatePeerReviews({ sandboxId: String(sandboxId), employeeId: String(employeeId), employeePool });
 
-    await (runSandboxIntelligenceRecalculation as any)(sandboxId);
-    await (calculateSandboxMetrics as any)(sandboxId);
+    await runSandboxIntelligenceRecalculation(String(sandboxId));
+    await calculateSandboxMetrics(String(sandboxId));
 
     const data = { id: employeeId, full_name, industry, sandbox_id };
-    return NextResponse.json({ success: true, data, employee: data });
+    return NextResponse.json({ success: true, data });
   } catch (error) {
     const err = error as { message?: string };
     console.error("EMPLOYEES ROUTE ERROR", error);

@@ -99,13 +99,9 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  await runSandboxIntelligenceRecalculation(sandboxId);
-  await calculateSandboxMetrics(sandboxId);
+  await runSandboxIntelligenceRecalculation(String(sandboxId));
+  await calculateSandboxMetrics(String(sandboxId));
 
-  return NextResponse.json({
-    success: true,
-    preset: presetKey,
-    employersCreated: employerCount,
-    employeesCreated: employeeCount,
-  });
+  const data = { preset: presetKey, employersCreated: employerCount, employeesCreated: employeeCount };
+  return NextResponse.json({ success: true, data });
 }
