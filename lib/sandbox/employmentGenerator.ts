@@ -42,25 +42,27 @@ export async function linkEmployeeToEmployer(params: {
   return { ok: true };
 }
 
-export type LinkEmployeeToRandomEmployerParams = {
+export async function linkEmployeeToRandomEmployer({
+  sandboxId,
+  employeeId,
+}: {
   sandboxId: string;
   employeeId: string;
-};
-
-export async function linkEmployeeToRandomEmployer(
-  params: LinkEmployeeToRandomEmployerParams
-): Promise<{ ok: boolean; error?: string }> {
+}): Promise<{ ok: boolean; error?: string }> {
+  if (typeof sandboxId !== "string" || typeof employeeId !== "string") {
+    throw new Error("Invalid types passed to linkEmployeeToRandomEmployer");
+  }
   const supabase = getServiceRoleClient();
   const { data: employers } = await supabase
     .from("sandbox_employers")
     .select("id")
-    .eq("sandbox_id", params.sandboxId);
+    .eq("sandbox_id", sandboxId);
   const list: { id: string }[] = (employers ?? []) as { id: string }[];
   if (list.length === 0) return { ok: true };
   const employer: { id: string } = list[Math.floor(Math.random() * list.length)]!;
   return linkEmployeeToEmployer({
-    sandboxId: params.sandboxId,
-    employeeId: params.employeeId,
+    sandboxId,
+    employeeId,
     employerId: employer.id,
   });
 }

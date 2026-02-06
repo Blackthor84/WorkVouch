@@ -46,46 +46,34 @@ export async function POST(req: NextRequest) {
       (first != null && last != null ? `${first} ${last}` : pickFullName());
     const industry = body.industry ?? pickIndustry();
 
-    type SandboxEmployeeInsertResult = { id: string };
+    const payload = { sandbox_id, full_name, industry };
     const insertResult = await supabase
       .from("sandbox_employees")
-      .insert({
-        sandbox_id,
-        full_name,
-        industry,
-      })
+      .insert(payload)
       .select("id")
       .single();
 
-    if (insertResult.error) {
-      console.error("Supabase error:", insertResult.error);
-      return NextResponse.json({
-        success: false,
-        stage: "supabase_insert",
-        error: insertResult.error.message,
-        details: insertResult.error,
-      }, { status: 500 });
+    if (!insertResult || !insertResult.data || !insertResult.data.id) {
+      console.error("Employee insert failed:", insertResult);
+      return NextResponse.json(
+        { success: false, error: "Employee insert failed" },
+        { status: 500 }
+      );
     }
 
-    const insertData = insertResult.data as SandboxEmployeeInsertResult | null;
-    if (!insertData?.id) {
-      return NextResponse.json({
-        success: false,
-        stage: "supabase_insert",
-        error: "Insert did not return id",
-      }, { status: 500 });
-    }
-
-    const employeeId: string = insertData.id;
+    const employeeId = String(insertResult.data.id);
 
     const employmentCount = 1 + Math.floor(Math.random() * 3);
     for (let i = 0; i < employmentCount; i++) {
-      await linkEmployeeToRandomEmployer({ sandboxId, employeeId });
+      await linkEmployeeToRandomEmployer({
+        sandboxId: String(sandboxId),
+        employeeId: String(employeeId),
+      } as any);
     }
 
     const { data: allEmployees } = await supabase.from("sandbox_employees").select("id").eq("sandbox_id", sandboxId);
     const employeePool = (allEmployees ?? []).map((e: { id: string }) => ({ id: e.id }));
-    await generatePeerReviews({ sandboxId, employeeId, employeePool });
+    await generatePeerReviews({ sandboxId: String(sandboxId), employeeId: String(employeeId), employeePool });
 
     await runSandboxIntelligenceRecalculation(sandboxId);
     await calculateSandboxMetrics(sandboxId);
