@@ -97,7 +97,6 @@ export function SandboxV2Client() {
     try {
       const res = await fetch(`${API}/sessions`, { credentials: "include" });
       const raw = await res.text();
-      console.log("RAW RESPONSE STRING:", raw);
       if (!res.ok) {
         console.error("API failed", res.status);
         setSessions([]);
@@ -111,7 +110,6 @@ export function SandboxV2Client() {
         setSessions([]);
         return;
       }
-      console.log("PARSED JSON FULL:", JSON.stringify(json, null, 2));
       if (!json.success) {
         console.error("API returned failure", json);
         setSessions([]);
@@ -481,6 +479,28 @@ export function SandboxV2Client() {
     }
   };
 
+  const handlePreset = async () => {
+    if (!currentSandboxId) return;
+    try {
+      const res = await fetch(`${API}/preset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sandboxId: currentSandboxId, preset: "startup" }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error((j as { error?: string }).error || "Preset failed");
+      }
+      await fetchDashboard(currentSandboxId);
+      log("Template loaded", "success");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+    }
+  };
+
   const deployTemplate = async () => {
     if (!currentSandboxId || !selectedTemplateKey) return;
     setLoading(true);
@@ -690,6 +710,7 @@ export function SandboxV2Client() {
               <Label className="text-slate-400">Override Employee Count (optional)</Label>
               <Input type="number" min={1} value={templateEmployeeOverride} onChange={(e) => setTemplateEmployeeOverride(e.target.value)} placeholder="Default" className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
             </div>
+            <Button onClick={handlePreset}>Load Template</Button>
             <Button onClick={deployTemplate} disabled={loading || !currentSandboxId || !selectedTemplateKey || deployTemplateLoading}>
               {deployTemplateLoading ? "Deploying…" : "Deploy Template"}
             </Button>
