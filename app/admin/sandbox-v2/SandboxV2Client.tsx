@@ -42,9 +42,7 @@ type TemplateItem = { id: string; template_key: string; display_name: string; in
 export function SandboxV2Client() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [currentSandboxId, setCurrentSandboxId] = useState<string | null>(null);
-  const [employers, setEmployers] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [dashboardData, setDashboardData] = useState<Metrics | null>(null);
   const [features, setFeatures] = useState<FeatureItem[]>([]);
   const [overrides, setOverrides] = useState<Record<string, boolean>>({});
   const [consoleLogs, setConsoleLogs] = useState<string[]>([]);
@@ -137,15 +135,14 @@ export function SandboxV2Client() {
     }
   }
 
-  async function fetchEmployers(sandboxIdArg: string) {
+  async function fetchDashboard(sandboxIdArg: string) {
     if (!sandboxIdArg) return;
     try {
-      const res = await fetch(`${API}/employers?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
+      const res = await fetch(`${API}/dashboard?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
       const raw = await res.text();
-      console.log("RAW RESPONSE STRING:", raw);
       if (!res.ok) {
-        console.error("API failed", res.status);
-        setEmployers([]);
+        console.error("Dashboard API failed", res.status);
+        setDashboardData(null);
         return;
       }
       let json: { success?: boolean; data?: unknown };
@@ -153,100 +150,24 @@ export function SandboxV2Client() {
         json = JSON.parse(raw);
       } catch (e) {
         console.error("JSON PARSE FAILED", e);
-        setEmployers([]);
-        return;
-      }
-      console.log("PARSED JSON FULL:", JSON.stringify(json, null, 2));
-      if (!json.success) {
-        console.error("API returned failure", json);
-        setEmployers([]);
+        setDashboardData(null);
         return;
       }
       if (json.success) {
-        setEmployers(Array.isArray(json.data) ? json.data : []);
+        setDashboardData((json.data ?? null) as Metrics | null);
+      } else {
+        setDashboardData(null);
       }
     } catch (err) {
-      console.error("fetchEmployers failed", err);
+      console.error("fetchDashboard failed", err);
       setError(err instanceof Error ? err.message : "Error");
-      setEmployers([]);
-    }
-  }
-
-  async function fetchEmployees(sandboxIdArg: string) {
-    if (!sandboxIdArg) return;
-    try {
-      const res = await fetch(`${API}/employees?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
-      const raw = await res.text();
-      console.log("RAW RESPONSE STRING:", raw);
-      if (!res.ok) {
-        console.error("API failed", res.status);
-        setEmployees([]);
-        return;
-      }
-      let json: { success?: boolean; data?: unknown };
-      try {
-        json = JSON.parse(raw);
-      } catch (e) {
-        console.error("JSON PARSE FAILED", e);
-        setEmployees([]);
-        return;
-      }
-      console.log("PARSED JSON FULL:", JSON.stringify(json, null, 2));
-      if (!json.success) {
-        console.error("API returned failure", json);
-        setEmployees([]);
-        return;
-      }
-      setEmployees(Array.isArray(json.data) ? json.data : []);
-    } catch (err) {
-      console.error("fetchEmployees failed", err);
-      setError(err instanceof Error ? err.message : "Error");
-      setEmployees([]);
-    }
-  }
-
-  async function fetchMetrics(sandboxIdArg: string) {
-    if (!sandboxIdArg) return;
-    try {
-      const res = await fetch(`${API}/metrics?sandboxId=${encodeURIComponent(sandboxIdArg)}`, { credentials: "include" });
-      const raw = await res.text();
-      console.log("RAW RESPONSE STRING:", raw);
-      if (!res.ok) {
-        console.error("API failed", res.status);
-        setMetrics(null);
-        return;
-      }
-      let json: { success?: boolean; data?: unknown };
-      try {
-        json = JSON.parse(raw);
-      } catch (e) {
-        console.error("JSON PARSE FAILED", e);
-        setMetrics(null);
-        return;
-      }
-      console.log("PARSED JSON FULL:", JSON.stringify(json, null, 2));
-      if (!json.success) {
-        console.error("API returned failure", json);
-        setMetrics(null);
-        return;
-      }
-      if (json.success) {
-        setMetrics((json.data ?? null) as Metrics | null);
-      }
-    } catch (err) {
-      console.error("fetchMetrics failed", err);
-      setError(err instanceof Error ? err.message : "Error");
-      setMetrics(null);
+      setDashboardData(null);
     }
   }
 
   const refreshSandbox = useCallback(async (sandboxId: string) => {
-    await Promise.all([
-      fetchSessions(),
-      fetchEmployers(sandboxId),
-      fetchEmployees(sandboxId),
-      fetchMetrics(sandboxId),
-    ]);
+    await fetchSessions();
+    await fetchDashboard(sandboxId);
   }, []);
 
   const fetchFeatures = useCallback(async (id: string | null) => {
@@ -279,10 +200,11 @@ export function SandboxV2Client() {
   }, []);
 
   useEffect(() => {
-    if (!currentSandboxId) return;
-    fetchEmployers(currentSandboxId);
-    fetchEmployees(currentSandboxId);
-    fetchMetrics(currentSandboxId);
+    if (!currentSandboxId) {
+      setDashboardData(null);
+      return;
+    }
+    fetchDashboard(currentSandboxId);
   }, [currentSandboxId]);
 
   const createSession = async () => {
@@ -514,9 +436,7 @@ export function SandboxV2Client() {
       await fetchSessions();
       if (currentSandboxId && (j.deleted ?? 0) > 0) {
         setCurrentSandboxId(null);
-        setEmployers([]);
-        setEmployees([]);
-        setMetrics(null);
+        setDashboardData(null);
       } else if (currentSandboxId) {
         await refreshSandbox(currentSandboxId);
       }
@@ -619,11 +539,13 @@ export function SandboxV2Client() {
     }
   };
 
-  const ei = metrics?.employeeIntelligence ?? null;
-  const ea = metrics?.employerAnalytics ?? null;
-  const rev = metrics?.revenueSimulation ?? null;
-  const ads = metrics?.adsSimulation ?? null;
-  const exec = metrics?.executive;
+  const employers = dashboardData?.employerAnalytics?.employers ?? [];
+  const employees = dashboardData?.employeeIntelligence?.employees ?? [];
+  const ei = dashboardData?.employeeIntelligence ?? null;
+  const ea = dashboardData?.employerAnalytics ?? null;
+  const rev = dashboardData?.revenueSimulation ?? null;
+  const ads = dashboardData?.adsSimulation ?? null;
+  const exec = dashboardData?.executive;
 
   const activeSession = currentSandboxId ? sessions.find((s) => s.id === currentSandboxId) : null;
   const now = typeof window !== "undefined" ? Date.now() : 0;
@@ -673,6 +595,11 @@ export function SandboxV2Client() {
             <p className="font-medium">No sandbox selected</p>
             <p className="mt-1 text-sm text-amber-200/90">Select a sandbox above to view aggregated metrics and generate employees, employers, peer reviews, or simulations. All values are derived from sandbox data.</p>
           </div>
+        )}
+
+        {/* Loading when sandbox selected but dashboard not yet loaded */}
+        {currentSandboxId && !dashboardData && (
+          <div className="rounded-2xl border border-slate-600 bg-slate-900 px-4 py-8 text-center text-slate-400">Loading...</div>
         )}
 
         {/* Executive Dashboard (boardroom ready) — only when sandbox selected */}
@@ -780,23 +707,23 @@ export function SandboxV2Client() {
               </ul>
             </div>
           )}
-          {currentSandboxId && metrics !== null && metrics.sandbox_metrics && (
+          {currentSandboxId && dashboardData !== null && dashboardData.sandbox_metrics && (
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-xl border border-cyan-600/40 bg-slate-900/60 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Avg Profile Strength</p>
-                <p className="text-2xl font-bold text-cyan-400">{metrics.sandbox_metrics.avg_profile_strength != null ? Number(metrics.sandbox_metrics.avg_profile_strength).toFixed(1) : "—"}</p>
+                <p className="text-2xl font-bold text-cyan-400">{dashboardData.sandbox_metrics.avg_profile_strength != null ? Number(dashboardData.sandbox_metrics.avg_profile_strength).toFixed(1) : "—"}</p>
               </div>
               <div className="rounded-xl border border-cyan-600/40 bg-slate-900/60 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Hiring Confidence</p>
-                <p className="text-2xl font-bold text-cyan-400">{metrics.sandbox_metrics.avg_hiring_confidence != null ? Number(metrics.sandbox_metrics.avg_hiring_confidence).toFixed(1) : "—"}</p>
+                <p className="text-2xl font-bold text-cyan-400">{dashboardData.sandbox_metrics.avg_hiring_confidence != null ? Number(dashboardData.sandbox_metrics.avg_hiring_confidence).toFixed(1) : "—"}</p>
               </div>
               <div className="rounded-xl border border-cyan-600/40 bg-slate-900/60 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-400">MRR</p>
-                <p className="text-2xl font-bold text-cyan-400">{metrics.sandbox_metrics.mrr != null ? Number(metrics.sandbox_metrics.mrr) : "—"}</p>
+                <p className="text-2xl font-bold text-cyan-400">{dashboardData.sandbox_metrics.mrr != null ? Number(dashboardData.sandbox_metrics.mrr) : "—"}</p>
               </div>
               <div className="rounded-xl border border-cyan-600/40 bg-slate-900/60 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Ad ROI</p>
-                <p className="text-2xl font-bold text-cyan-400">{metrics.sandbox_metrics.ad_roi != null ? Number(metrics.sandbox_metrics.ad_roi).toFixed(2) : "—"}</p>
+                <p className="text-2xl font-bold text-cyan-400">{dashboardData.sandbox_metrics.ad_roi != null ? Number(dashboardData.sandbox_metrics.ad_roi).toFixed(2) : "—"}</p>
               </div>
             </div>
           )}
@@ -975,11 +902,11 @@ export function SandboxV2Client() {
             <div className="mt-4 grid grid-cols-2 gap-4">
               <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Total spend</p>
-                <p className="text-3xl font-bold text-cyan-400">{currentSandboxId && metrics ? (ads?.totalSpend ?? "—") : "—"}</p>
+                <p className="text-3xl font-bold text-cyan-400">{currentSandboxId && dashboardData ? (ads?.totalSpend ?? "—") : "—"}</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Campaigns</p>
-                <p className="text-3xl font-bold text-cyan-400">{currentSandboxId && metrics ? (ads?.campaignsCount ?? 0) : "—"}</p>
+                <p className="text-3xl font-bold text-cyan-400">{currentSandboxId && dashboardData ? (ads?.campaignsCount ?? 0) : "—"}</p>
               </div>
             </div>
           </div>
@@ -998,13 +925,13 @@ export function SandboxV2Client() {
             </div>
             <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
               <p className="text-sm uppercase tracking-wide text-slate-400">Sandbox MRR</p>
-              <p className="text-3xl font-bold text-cyan-400">{currentSandboxId && metrics && rev?.mrr != null ? rev.mrr : "—"}</p>
+              <p className="text-3xl font-bold text-cyan-400">{currentSandboxId && dashboardData && rev?.mrr != null ? rev.mrr : "—"}</p>
             </div>
           </div>
         </div>
 
-        {/* Employee Intelligence + Employer Analytics — only when metrics loaded */}
-        {metrics !== null ? (
+        {/* Employee Intelligence + Employer Analytics — only when dashboard loaded */}
+        {dashboardData !== null ? (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
               <h2 className="text-lg font-semibold text-white">Employee Intelligence</h2>
