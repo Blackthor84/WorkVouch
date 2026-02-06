@@ -7,17 +7,21 @@ import { pickCompany, pickIndustry } from "@/lib/sandbox/namePools";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  let body: Record<string, unknown> = {};
-  try {
-    body = await req.json();
-  } catch {
-    // ignore
-  }
+  const body = (await req.json().catch(() => ({}))) as {
+    sandboxId?: string;
+    sandbox_id?: string;
+    company_name?: string;
+    industry?: string;
+    plan_tier?: string;
+  };
   console.log("BODY:", body);
 
-  const sandboxId = body.sandboxId ?? body.sandbox_id;
-  if (!sandboxId) {
-    return NextResponse.json({ success: false, error: "Missing sandboxId" }, { status: 400 });
+  const sandboxId: string = String(body.sandboxId ?? body.sandbox_id ?? "");
+  if (!sandboxId || typeof sandboxId !== "string") {
+    return NextResponse.json(
+      { success: false, error: "Invalid sandboxId" },
+      { status: 400 }
+    );
   }
 
   try {
@@ -61,7 +65,7 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    await calculateSandboxMetrics(sandboxId);
+    await calculateSandboxMetrics(String(sandboxId));
 
     return NextResponse.json({ success: true, data, employer: data });
   } catch (error) {
