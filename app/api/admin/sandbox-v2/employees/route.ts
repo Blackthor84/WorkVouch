@@ -6,29 +6,85 @@ import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
 
 export const dynamic = "force-dynamic";
 
+const FIRST_NAMES = ["Alex", "Jordan", "Sam", "Taylor", "Morgan", "Casey", "Riley", "Quinn", "Avery", "Blake"];
+const LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Wilson", "Moore"];
+const INDUSTRIES = ["Technology", "Healthcare", "Finance", "Retail", "Manufacturing", "Education"];
+
+function pick<T>(arr: readonly T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function structuredError(stage: string, error: string, details?: unknown) {
+  return { success: false, stage, error, ...(details != null && { details }) };
+}
+
 export async function POST(req: NextRequest) {
   try {
     await requireSandboxV2Admin();
     const body = await req.json().catch(() => ({}));
-    const sandbox_id = (body.sandbox_id ?? body.sandboxId) as string | undefined;
-    const full_name = (body.full_name ?? body.fullName) ?? "Sandbox Employee";
-    const industry = (body.industry as string) ?? null;
+    const sandboxId = (body.sandbox_id ?? body.sandboxId) as string | undefined;
 
-    if (!sandbox_id) return NextResponse.json({ error: "Missing sandbox_id" }, { status: 400 });
+    if (!sandboxId || typeof sandboxId !== "string") {
+      return NextResponse.json(structuredError("validation", "Missing sandboxId"), { status: 400 });
+    }
 
-    const { data, error } = await getSupabaseServer()
+    const first = (body.first_name ?? body.firstName)?.trim() || pick(FIRST_NAMES);
+    const last = (body.last_name ?? body.lastName)?.trim() || pick(LAST_NAMES);
+    const full_name = (body.full_name ?? body.fullName)?.trim() || `${first} ${last}`;
+    const industry = (body.industry as string)?.trim() || pick(INDUSTRIES);
+
+    const supabase = getSupabaseServer();
+    const { data, error } = await supabase
       .from("sandbox_employees")
-      .insert({ sandbox_id, full_name, industry })
-      .select("id, full_name, industry")
+      .insert({ sandbox_id: sandboxId, full_name, industry })
+      .select("id, full_name, industry, created_at")
       .single();
-    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-    await runSandboxIntelligence(sandbox_id);
-    await calculateSandboxMetrics(sandbox_id);
-    return NextResponse.json({ success: true, employee: data });
+
+    if (error) {
+      console.error("EMPLOYEES POST ERROR", error);
+      return NextResponse.json(structuredError("supabase_insert", error.message, { code: error.code, hint: error.hint }), { status: 500 });
+    }
+
+    await runSandboxIntelligence(sandboxId);
+    await calculateSandboxMetrics(sandboxId);
+
+    return NextResponse.json({ success: true, data: data, employee: data });
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Error";
-    if (msg === "Unauthorized") return NextResponse.json({ error: msg }, { status: 401 });
-    if (msg.startsWith("Forbidden")) return NextResponse.json({ error: msg }, { status: 403 });
-    return NextResponse.json({ error: msg }, { status: 400 });
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("EMPLOYEES ROUTE ERROR", e);
+    if (msg === "Unauthorized") return NextResponse.json(structuredError("auth", msg), { status: 401 });
+    if (msg.startsWith("Forbidden")) return NextResponse.json(structuredError("auth", msg), { status: 403 });
+    return NextResponse.json(structuredError("server", msg), { status: 500 });
+  }
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    await requireSandboxV2Admin();
+    const sandboxId = req.nextUrl.searchParams.get("sandboxId")?.trim() ?? null;
+
+    if (!sandboxId) {
+      return NextResponse.json(structuredError("validation", "Missing sandboxId"), { status: 400 });
+    }
+
+    const supabase = getSupabaseServer();
+    const { data, error } = await supabase
+      .from("sandbox_employees")
+      .select("id, full_name, industry, created_at")
+      .eq("sandbox_id", sandboxId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("EMPLOYEES GET ERROR", error);
+      return NextResponse.json(structuredError("supabase_get", error.message, { code: error.code }), { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, data: data ?? [], employees: data ?? [] });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("EMPLOYEES GET ROUTE ERROR", e);
+    if (msg === "Unauthorized") return NextResponse.json(structuredError("auth", msg), { status: 401 });
+    if (msg.startsWith("Forbidden")) return NextResponse.json(structuredError("auth", msg), { status: 403 });
+    return NextResponse.json(structuredError("server", msg), { status: 500 });
   }
 }
