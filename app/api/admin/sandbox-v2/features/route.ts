@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const supabase = getSupabaseServer();
+    const supabase = getServiceRoleClient();
 
     const { data: flags, error: flagsErr } = await supabase
       .from("feature_flags")
@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = getSupabaseServer();
+    const supabase = getServiceRoleClient();
     const payload: Record<string, unknown> = {
       sandbox_id: sandboxId,
       feature_key,

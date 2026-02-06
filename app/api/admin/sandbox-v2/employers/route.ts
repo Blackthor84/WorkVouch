@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = getSupabaseServer();
+    const supabase = getServiceRoleClient();
     const payload = {
       sandbox_id: sandboxId,
       company_name: body.company_name ?? "Test Company",
@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const supabase = getSupabaseServer();
+    const supabase = getServiceRoleClient();
     const { data, error } = await supabase
       .from("sandbox_employers")
       .select("*")

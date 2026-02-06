@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
 
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const sandboxId = req.nextUrl.searchParams.get("sandboxId")?.trim() ?? null;
     if (!sandboxId) return NextResponse.json({ success: false, error: "Missing sandboxId" }, { status: 400 });
 
-    const supabase = getSupabaseServer();
+    const supabase = getServiceRoleClient();
     const [sessionRes, metricsRes, employersRes, employeesRes, recordsRes, reviewsRes, intelRes, revenueRes, adsRes] = await Promise.all([
       supabase.from("sandbox_sessions").select("id, name, starts_at, ends_at, status").eq("id", sandboxId).maybeSingle(),
       supabase.from("sandbox_metrics").select("*").eq("sandbox_id", sandboxId).maybeSingle(),
@@ -23,6 +23,16 @@ export async function GET(req: NextRequest) {
       supabase.from("sandbox_revenue").select("mrr, churn_rate").eq("sandbox_id", sandboxId),
       supabase.from("sandbox_ads").select("impressions, clicks, spend, roi").eq("sandbox_id", sandboxId),
     ]);
+
+    if (sessionRes.error) {
+      console.error("METRICS ROUTE ERROR", sessionRes.error);
+      return NextResponse.json({
+        success: false,
+        stage: "supabase_get",
+        error: sessionRes.error?.message,
+        details: sessionRes.error,
+      }, { status: 500 });
+    }
 
     const session = sessionRes.data;
     let metricsRow = metricsRes.data;

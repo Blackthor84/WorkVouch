@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin, requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       return NextResponse.json(structuredError(false, "Not authenticated"), { status: 401 });
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = getServiceRoleClient();
     const body = await req.json().catch(() => ({}));
 
     console.log("=== SANDBOX CREATE REQUEST ===");
@@ -47,10 +47,12 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("Sessions POST failure:", { stage: "supabase_insert", error });
-      return NextResponse.json(
-        structuredError(false, error.message, { code: error.code, hint: error.hint, details: error.details }),
-        { status: 400 }
-      );
+      return NextResponse.json({
+        success: false,
+        stage: "supabase_insert",
+        error: error?.message,
+        details: error,
+      }, { status: 500 });
     }
 
     console.log("Sandbox created:", data?.id);
@@ -79,7 +81,7 @@ export async function GET() {
       return NextResponse.json(structuredError(false, "Not authenticated"), { status: 401 });
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = getServiceRoleClient();
     let query = supabase
       .from(TABLE)
       .select("*")
@@ -94,7 +96,12 @@ export async function GET() {
 
     if (error) {
       console.error("Sessions GET failure:", { stage: "supabase_get", error });
-      return NextResponse.json(structuredError(false, error.message, { code: error.code }), { status: 400 });
+      return NextResponse.json({
+        success: false,
+        stage: "supabase_get",
+        error: error?.message,
+        details: error,
+      }, { status: 500 });
     }
 
     const sessions = data ?? [];
