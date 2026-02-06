@@ -66,7 +66,6 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    const supabase = getServiceRoleClient();
     const employmentCount = 1 + Math.floor(Math.random() * 3);
     for (let i = 0; i < employmentCount; i++) {
       await linkEmployeeToRandomEmployer({ sandboxId, employeeId: data.id });
