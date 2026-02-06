@@ -41,7 +41,7 @@ type TemplateItem = { id: string; template_key: string; display_name: string; in
 
 export function SandboxV2Client() {
   const [sessions, setSessions] = useState<any[]>([]);
-  const [activeSandboxId, setActiveSandboxId] = useState<string | null>(null);
+  const [currentSandboxId, setCurrentSandboxId] = useState<string | null>(null);
   const [employers, setEmployers] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
@@ -120,7 +120,15 @@ export function SandboxV2Client() {
         return;
       }
       if (json.success) {
-        setSessions(Array.isArray(json.data) ? json.data : []);
+        const data = Array.isArray(json.data) ? json.data : [];
+        const sorted = [...data].sort(
+          (a: { created_at?: string }, b: { created_at?: string }) =>
+            new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
+        );
+        setSessions(sorted);
+        if (sorted.length > 0) {
+          setCurrentSandboxId((prev) => prev || (sorted[0] as { id: string }).id);
+        }
       }
     } catch (err) {
       console.error("fetchSessions failed", err);
@@ -267,12 +275,15 @@ export function SandboxV2Client() {
   }, []);
 
   useEffect(() => {
-    if (!activeSandboxId) return;
-    const run = async () => {
-      await refreshSandbox(activeSandboxId);
-    };
-    run();
-  }, [activeSandboxId]);
+    fetchSessions();
+  }, []);
+
+  useEffect(() => {
+    if (!currentSandboxId) return;
+    fetchEmployers(currentSandboxId);
+    fetchEmployees(currentSandboxId);
+    fetchMetrics(currentSandboxId);
+  }, [currentSandboxId]);
 
   const createSession = async () => {
     setLoading(true);
@@ -289,7 +300,7 @@ export function SandboxV2Client() {
       if (!res.ok) throw new Error((json as { error?: string }).error || "Create failed");
       if (json.success && json.data && typeof (json.data as { id?: string }).id === "string") {
         const newId = (json.data as { id: string }).id;
-        setActiveSandboxId(newId);
+        setCurrentSandboxId(newId);
         await refreshSandbox(newId);
         log("Session created: " + newId.slice(0, 8), "success");
       }
@@ -305,7 +316,7 @@ export function SandboxV2Client() {
   };
 
   const generateEmployer = async () => {
-    if (!activeSandboxId) return;
+    if (!currentSandboxId) return;
     setLoading(true);
     setGenEmployerLoading(true);
     setError(null);
@@ -314,14 +325,14 @@ export function SandboxV2Client() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: activeSandboxId, company_name: employerName || "Sandbox Company", industry: employerIndustry || null, plan_tier: employerPlanTier }),
+        body: JSON.stringify({ sandbox_id: currentSandboxId, company_name: employerName || "Sandbox Company", industry: employerIndustry || null, plan_tier: employerPlanTier }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Generate failed");
       const data = (j as { data?: { id?: string } }).data;
       log("Employer created: " + (data?.id ?? "").slice(0, 8), "success");
       setEmployerName("");
-      await refreshSandbox(activeSandboxId);
+      await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -333,7 +344,7 @@ export function SandboxV2Client() {
   };
 
   const generateEmployee = async () => {
-    if (!activeSandboxId) return;
+    if (!currentSandboxId) return;
     setLoading(true);
     setGenEmployeeLoading(true);
     setError(null);
@@ -342,14 +353,14 @@ export function SandboxV2Client() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: activeSandboxId, full_name: employeeName || "Sandbox Employee", industry: employeeIndustry || null }),
+        body: JSON.stringify({ sandbox_id: currentSandboxId, full_name: employeeName || "Sandbox Employee", industry: employeeIndustry || null }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Generate failed");
       const data = (j as { data?: { id?: string } }).data;
       log("Employee created: " + (data?.id ?? "").slice(0, 8), "success");
       setEmployeeName("");
-      await refreshSandbox(activeSandboxId);
+      await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -361,7 +372,7 @@ export function SandboxV2Client() {
   };
 
   const addPeerReview = async () => {
-    if (!activeSandboxId || !peerReviewerId || !peerReviewedId) return;
+    if (!currentSandboxId || !peerReviewerId || !peerReviewedId) return;
     setLoading(true);
     setPeerReviewLoading(true);
     setError(null);
@@ -370,13 +381,13 @@ export function SandboxV2Client() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: activeSandboxId, reviewer_id: peerReviewerId, reviewed_id: peerReviewedId, rating: peerRating, review_text: peerReviewText || null }),
+        body: JSON.stringify({ sandbox_id: currentSandboxId, reviewer_id: peerReviewerId, reviewed_id: peerReviewedId, rating: peerRating, review_text: peerReviewText || null }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Add peer review failed");
       log("Peer review added (sentiment auto-calculated)", "success");
       setPeerReviewText("");
-      await refreshSandbox(activeSandboxId);
+      await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -388,7 +399,7 @@ export function SandboxV2Client() {
   };
 
   const addHiring = async () => {
-    if (!activeSandboxId || !hireEmployeeId || !hireEmployerId) return;
+    if (!currentSandboxId || !hireEmployeeId || !hireEmployerId) return;
     setLoading(true);
     setHireLoading(true);
     setError(null);
@@ -397,12 +408,12 @@ export function SandboxV2Client() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: activeSandboxId, employee_id: hireEmployeeId, employer_id: hireEmployerId, role: hireRole || null, tenure_months: hireTenureMonths, rehire_eligible: hireRehireEligible }),
+        body: JSON.stringify({ sandbox_id: currentSandboxId, employee_id: hireEmployeeId, employer_id: hireEmployerId, role: hireRole || null, tenure_months: hireTenureMonths, rehire_eligible: hireRehireEligible }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Hiring simulation failed");
       log("Employment record added", "success");
-      await refreshSandbox(activeSandboxId);
+      await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -414,7 +425,7 @@ export function SandboxV2Client() {
   };
 
   const addAds = async () => {
-    if (!activeSandboxId) return;
+    if (!currentSandboxId) return;
     setLoading(true);
     setAdsLoading(true);
     setError(null);
@@ -423,12 +434,12 @@ export function SandboxV2Client() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: activeSandboxId, employer_id: adsEmployerId || undefined, impressions: adsImpressions, clicks: adsClicks, spend: adsSpend }),
+        body: JSON.stringify({ sandbox_id: currentSandboxId, employer_id: adsEmployerId || undefined, impressions: adsImpressions, clicks: adsClicks, spend: adsSpend }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Ads simulation failed");
       log("Ad campaign added (ROI auto-calculated)", "success");
-      await refreshSandbox(activeSandboxId);
+      await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -440,7 +451,7 @@ export function SandboxV2Client() {
   };
 
   const updateRevenue = async () => {
-    if (!activeSandboxId) return;
+    if (!currentSandboxId) return;
     setLoading(true);
     setRevenueLoading(true);
     setError(null);
@@ -449,12 +460,12 @@ export function SandboxV2Client() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: activeSandboxId, churn_rate: churnRate }),
+        body: JSON.stringify({ sandbox_id: currentSandboxId, churn_rate: churnRate }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Revenue update failed");
       log(`Revenue: MRR=${j.mrr}, churn=${churnRate}`, "success");
-      await refreshSandbox(activeSandboxId);
+      await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -466,7 +477,7 @@ export function SandboxV2Client() {
   };
 
   const runRecalculate = async () => {
-    if (!activeSandboxId) return;
+    if (!currentSandboxId) return;
     setLoading(true);
     setRecalcLoading(true);
     setError(null);
@@ -475,12 +486,12 @@ export function SandboxV2Client() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: activeSandboxId }),
+        body: JSON.stringify({ sandbox_id: currentSandboxId }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Recalculate failed");
       log("Intelligence recalculated", "success");
-      await refreshSandbox(activeSandboxId);
+      await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -501,13 +512,13 @@ export function SandboxV2Client() {
       if (!res.ok) throw new Error(j.error || "Cleanup failed");
       log(`Cleanup: ${j.deleted ?? 0} expired sessions deleted`, "success");
       await fetchSessions();
-      if (activeSandboxId && (j.deleted ?? 0) > 0) {
-        setActiveSandboxId(null);
+      if (currentSandboxId && (j.deleted ?? 0) > 0) {
+        setCurrentSandboxId(null);
         setEmployers([]);
         setEmployees([]);
         setMetrics(null);
-      } else if (activeSandboxId) {
-        await refreshSandbox(activeSandboxId);
+      } else if (currentSandboxId) {
+        await refreshSandbox(currentSandboxId);
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
@@ -526,7 +537,7 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Sync failed");
       log(`Features synced: ${j.synced ?? 0}`, "success");
-      await fetchFeatures(activeSandboxId);
+      await fetchFeatures(currentSandboxId);
     } catch (e) {
       log(e instanceof Error ? e.message : "Error", "error");
     } finally {
@@ -535,13 +546,13 @@ export function SandboxV2Client() {
   };
 
   const setFeatureOverride = async (featureKey: string, isEnabled: boolean) => {
-    if (!activeSandboxId) return;
+    if (!currentSandboxId) return;
     try {
       const res = await fetch(`${API}/feature-overrides`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: activeSandboxId, feature_key: featureKey, is_enabled: isEnabled }),
+        body: JSON.stringify({ sandbox_id: currentSandboxId, feature_key: featureKey, is_enabled: isEnabled }),
       });
       if (!res.ok) return;
       setOverrides((prev) => ({ ...prev, [featureKey]: isEnabled }));
@@ -551,7 +562,7 @@ export function SandboxV2Client() {
   };
 
   const deployTemplate = async () => {
-    if (!activeSandboxId || !selectedTemplateKey) return;
+    if (!currentSandboxId || !selectedTemplateKey) return;
     setLoading(true);
     setDeployTemplateLoading(true);
     setDeployProgress(["Starting…"]);
@@ -562,7 +573,7 @@ export function SandboxV2Client() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: activeSandboxId, template_key: selectedTemplateKey, employee_count_override: override }),
+        body: JSON.stringify({ sandbox_id: currentSandboxId, template_key: selectedTemplateKey, employee_count_override: override }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Deploy failed");
@@ -575,7 +586,7 @@ export function SandboxV2Client() {
         "Ads simulated",
       ].filter(Boolean));
       log(`Template deployed: ${stats.employees ?? 0} employees, ${stats.reviews ?? 0} reviews`, "success");
-      await refreshSandbox(activeSandboxId);
+      await refreshSandbox(currentSandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -588,14 +599,14 @@ export function SandboxV2Client() {
   };
 
   const setDemoModePreset = async (mode: string | null) => {
-    if (!activeSandboxId) return;
+    if (!currentSandboxId) return;
     setDemoModeLoading(true);
     try {
       const res = await fetch(`${API}/demo-mode`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: activeSandboxId, demo_mode: mode ?? null }),
+        body: JSON.stringify({ sandbox_id: currentSandboxId, demo_mode: mode ?? null }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Set demo mode failed");
@@ -614,10 +625,10 @@ export function SandboxV2Client() {
   const ads = metrics?.adsSimulation ?? null;
   const exec = metrics?.executive;
 
-  const activeSession = activeSandboxId ? sessions.find((s) => s.id === activeSandboxId) : null;
+  const activeSession = currentSandboxId ? sessions.find((s) => s.id === currentSandboxId) : null;
   const now = typeof window !== "undefined" ? Date.now() : 0;
   const sessionEnded = activeSession?.ends_at ? new Date(activeSession.ends_at).getTime() < now : false;
-  const sessionStatus: "no_session" | "expired" | "active" = !activeSandboxId
+  const sessionStatus: "no_session" | "expired" | "active" = !currentSandboxId
     ? "no_session"
     : sessionEnded
       ? "expired"
@@ -657,7 +668,7 @@ export function SandboxV2Client() {
         )}
 
         {/* No sandbox selected */}
-        {!activeSandboxId && (
+        {!currentSandboxId && (
           <div className="rounded-2xl border border-amber-600/50 bg-amber-500/10 px-4 py-6 text-amber-100">
             <p className="font-medium">No sandbox selected</p>
             <p className="mt-1 text-sm text-amber-200/90">Select a sandbox above to view aggregated metrics and generate employees, employers, peer reviews, or simulations. All values are derived from sandbox data.</p>
@@ -665,7 +676,7 @@ export function SandboxV2Client() {
         )}
 
         {/* Executive Dashboard (boardroom ready) — only when sandbox selected */}
-        {activeSandboxId && executiveMode && (
+        {currentSandboxId && executiveMode && (
           <section className="rounded-2xl border border-slate-600 bg-slate-900 p-6 shadow-xl">
             <h2 className="text-lg font-semibold text-white">Executive Dashboard</h2>
             <div className="mt-4 border-t border-slate-600 pt-4">
@@ -719,12 +730,13 @@ export function SandboxV2Client() {
             <Button onClick={createSession} disabled={loading || createLoading}>{createLoading ? "Creating…" : "Create session"}</Button>
             <div className="ml-4">
               <Label className="text-slate-300">Active session</Label>
-              <select value={activeSandboxId ?? ""} onChange={(e) => setActiveSandboxId(e.target.value || null)} className="mt-1 rounded border border-slate-600 bg-slate-800 px-3 py-2 text-slate-100">
+              <select value={currentSandboxId ?? ""} onChange={(e) => setCurrentSandboxId(e.target.value || null)} className="mt-1 rounded border border-slate-600 bg-slate-800 px-3 py-2 text-slate-100">
                 <option value="">None</option>
                 {sessions?.map((s) => (
                   <option key={s.id} value={s.id}>{s.name || s.id.slice(0, 8)} — {s.status}</option>
                 ))}
               </select>
+              <p className="mt-1 text-sm text-slate-400">Active Sandbox: {currentSandboxId ?? "—"}</p>
               {sessions.length === 0 && (
                 <div style={{ padding: 20, opacity: 0.6 }}>No sessions found</div>
               )}
@@ -751,7 +763,7 @@ export function SandboxV2Client() {
               <Label className="text-slate-400">Override Employee Count (optional)</Label>
               <Input type="number" min={1} value={templateEmployeeOverride} onChange={(e) => setTemplateEmployeeOverride(e.target.value)} placeholder="Default" className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
             </div>
-            <Button onClick={deployTemplate} disabled={loading || !activeSandboxId || !selectedTemplateKey || deployTemplateLoading}>
+            <Button onClick={deployTemplate} disabled={loading || !currentSandboxId || !selectedTemplateKey || deployTemplateLoading}>
               {deployTemplateLoading ? "Deploying…" : "Deploy Template"}
             </Button>
           </div>
@@ -768,7 +780,7 @@ export function SandboxV2Client() {
               </ul>
             </div>
           )}
-          {activeSandboxId && metrics !== null && metrics.sandbox_metrics && (
+          {currentSandboxId && metrics !== null && metrics.sandbox_metrics && (
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-xl border border-cyan-600/40 bg-slate-900/60 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Avg Profile Strength</p>
@@ -802,7 +814,7 @@ export function SandboxV2Client() {
               { key: "investor_pitch", label: "Investor Pitch Mode" },
               { key: "ad_explosion", label: "Ad Explosion Mode" },
             ].map(({ key, label }) => (
-              <Button key={key} variant={demoMode === key ? "primary" : "secondary"} size="sm" onClick={() => setDemoModePreset(demoMode === key ? null : key)} disabled={!activeSandboxId || demoModeLoading}>
+              <Button key={key} variant={demoMode === key ? "primary" : "secondary"} size="sm" onClick={() => setDemoModePreset(demoMode === key ? null : key)} disabled={!currentSandboxId || demoModeLoading}>
                 {label}
               </Button>
             ))}
@@ -831,7 +843,7 @@ export function SandboxV2Client() {
                   <option value="enterprise">Enterprise</option>
                 </select>
               </div>
-              <Button onClick={generateEmployer} disabled={loading || !activeSandboxId || genEmployerLoading}>{genEmployerLoading ? "…" : "Generate employer"}</Button>
+              <Button onClick={generateEmployer} disabled={loading || !currentSandboxId || genEmployerLoading}>{genEmployerLoading ? "…" : "Generate employer"}</Button>
             </div>
           </div>
 
@@ -847,7 +859,7 @@ export function SandboxV2Client() {
                 <Label className="text-slate-400">Industry</Label>
                 <Input value={employeeIndustry} onChange={(e) => setEmployeeIndustry(e.target.value)} placeholder="Industry" className="mt-1 border-slate-700 bg-slate-800 text-white" />
               </div>
-              <Button onClick={generateEmployee} disabled={loading || !activeSandboxId || genEmployeeLoading}>{genEmployeeLoading ? "…" : "Generate employee"}</Button>
+              <Button onClick={generateEmployee} disabled={loading || !currentSandboxId || genEmployeeLoading}>{genEmployeeLoading ? "…" : "Generate employee"}</Button>
             </div>
           </div>
         </div>
@@ -888,7 +900,7 @@ export function SandboxV2Client() {
               <Label className="text-slate-400">Review text</Label>
               <Input value={peerReviewText} onChange={(e) => setPeerReviewText(e.target.value)} placeholder="Review text (sentiment auto-calculated)" className="mt-1 border-slate-700 bg-slate-800 text-white" />
             </div>
-            <Button onClick={addPeerReview} disabled={loading || !activeSandboxId || !peerReviewerId || !peerReviewedId || peerReviewLoading}>{peerReviewLoading ? "…" : "Add peer review"}</Button>
+            <Button onClick={addPeerReview} disabled={loading || !currentSandboxId || !peerReviewerId || !peerReviewedId || peerReviewLoading}>{peerReviewLoading ? "…" : "Add peer review"}</Button>
           </div>
         </div>
 
@@ -927,7 +939,7 @@ export function SandboxV2Client() {
               <input type="checkbox" checked={hireRehireEligible} onChange={(e) => setHireRehireEligible(e.target.checked)} className="rounded" />
               Rehire eligible
             </label>
-            <Button onClick={addHiring} disabled={loading || !activeSandboxId || !hireEmployeeId || !hireEmployerId || hireLoading}>{hireLoading ? "…" : "Add employment record"}</Button>
+            <Button onClick={addHiring} disabled={loading || !currentSandboxId || !hireEmployeeId || !hireEmployerId || hireLoading}>{hireLoading ? "…" : "Add employment record"}</Button>
           </div>
         </div>
 
@@ -958,16 +970,16 @@ export function SandboxV2Client() {
                 <Label className="text-slate-400">Spend</Label>
                 <Input type="number" value={adsSpend} onChange={(e) => setAdsSpend(parseFloat(e.target.value) || 0)} className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
               </div>
-              <Button onClick={addAds} disabled={loading || !activeSandboxId || adsLoading}>{adsLoading ? "…" : "Add ad campaign"}</Button>
+              <Button onClick={addAds} disabled={loading || !currentSandboxId || adsLoading}>{adsLoading ? "…" : "Add ad campaign"}</Button>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-4">
               <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Total spend</p>
-                <p className="text-3xl font-bold text-cyan-400">{activeSandboxId && metrics ? (ads?.totalSpend ?? "—") : "—"}</p>
+                <p className="text-3xl font-bold text-cyan-400">{currentSandboxId && metrics ? (ads?.totalSpend ?? "—") : "—"}</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Campaigns</p>
-                <p className="text-3xl font-bold text-cyan-400">{activeSandboxId && metrics ? (ads?.campaignsCount ?? 0) : "—"}</p>
+                <p className="text-3xl font-bold text-cyan-400">{currentSandboxId && metrics ? (ads?.campaignsCount ?? 0) : "—"}</p>
               </div>
             </div>
           </div>
@@ -982,11 +994,11 @@ export function SandboxV2Client() {
                 <input type="range" min="0" max="1" step="0.01" value={churnRate} onChange={(e) => setChurnRate(parseFloat(e.target.value))} className="w-full" />
                 <span className="ml-2 text-cyan-400">{(churnRate * 100).toFixed(0)}%</span>
               </div>
-              <Button onClick={updateRevenue} disabled={loading || !activeSandboxId || revenueLoading}>{revenueLoading ? "…" : "Update revenue"}</Button>
+              <Button onClick={updateRevenue} disabled={loading || !currentSandboxId || revenueLoading}>{revenueLoading ? "…" : "Update revenue"}</Button>
             </div>
             <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
               <p className="text-sm uppercase tracking-wide text-slate-400">Sandbox MRR</p>
-              <p className="text-3xl font-bold text-cyan-400">{activeSandboxId && metrics && rev?.mrr != null ? rev.mrr : "—"}</p>
+              <p className="text-3xl font-bold text-cyan-400">{currentSandboxId && metrics && rev?.mrr != null ? rev.mrr : "—"}</p>
             </div>
           </div>
         </div>
@@ -999,33 +1011,33 @@ export function SandboxV2Client() {
               <div className="mt-4 grid grid-cols-2 gap-4">
                 <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                   <p className="text-sm uppercase tracking-wide text-slate-400">Employees</p>
-                  <p className="text-3xl font-bold text-cyan-400">{activeSandboxId ? (ei?.employeesCount ?? 0) : "—"}</p>
+                  <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? (ei?.employeesCount ?? 0) : "—"}</p>
                 </div>
                 <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                   <p className="text-sm uppercase tracking-wide text-slate-400">Employment records</p>
-                  <p className="text-3xl font-bold text-cyan-400">{activeSandboxId ? (ei?.employmentRecordsCount ?? 0) : "—"}</p>
+                  <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? (ei?.employmentRecordsCount ?? 0) : "—"}</p>
                 </div>
                 <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                   <p className="text-sm uppercase tracking-wide text-slate-400">Peer reviews</p>
-                  <p className="text-3xl font-bold text-cyan-400">{activeSandboxId ? (ei?.peerReviewsCount ?? 0) : "—"}</p>
+                  <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? (ei?.peerReviewsCount ?? 0) : "—"}</p>
                 </div>
                 <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                   <p className="text-sm uppercase tracking-wide text-slate-400">Avg hiring confidence</p>
                   <p className="text-3xl font-bold text-cyan-400">{ei?.avgHiringConfidence != null ? ei.avgHiringConfidence.toFixed(1) : "—"}</p>
                 </div>
               </div>
-              {employees.length === 0 && activeSandboxId && (
+              {employees.length === 0 && currentSandboxId && (
                 <div style={{ padding: 20, opacity: 0.6 }}>No employees found</div>
               )}
-              <Button variant="secondary" className="mt-4" onClick={runRecalculate} disabled={loading || !activeSandboxId || recalcLoading}>{recalcLoading ? "…" : "Recalculate intelligence"}</Button>
+              <Button variant="secondary" className="mt-4" onClick={runRecalculate} disabled={loading || !currentSandboxId || recalcLoading}>{recalcLoading ? "…" : "Recalculate intelligence"}</Button>
             </div>
             <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
               <h2 className="text-lg font-semibold text-white">Employer Analytics</h2>
               <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Employers</p>
-                <p className="text-3xl font-bold text-cyan-400">{activeSandboxId ? (ea?.employersCount ?? 0) : "—"}</p>
+                <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? (ea?.employersCount ?? 0) : "—"}</p>
               </div>
-              {employers.length === 0 && activeSandboxId && (
+              {employers.length === 0 && currentSandboxId && (
                 <div style={{ padding: 20, opacity: 0.6 }}>No employers found</div>
               )}
               {employers.length > 0 && (
@@ -1037,7 +1049,7 @@ export function SandboxV2Client() {
               )}
             </div>
           </div>
-        ) : activeSandboxId ? (
+        ) : currentSandboxId ? (
           <div style={{ padding: 20, opacity: 0.6 }}>No metrics loaded. Select a sandbox and refresh.</div>
         ) : null}
 
@@ -1050,7 +1062,7 @@ export function SandboxV2Client() {
           <div className="mt-4 flex flex-wrap gap-2">
             {features.map((f) => (
               <label key={f.id} className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2">
-                <input type="checkbox" checked={overrides[f.feature_key] ?? f.is_enabled} onChange={(e) => activeSandboxId && setFeatureOverride(f.feature_key, e.target.checked)} className="rounded" />
+                <input type="checkbox" checked={overrides[f.feature_key] ?? f.is_enabled} onChange={(e) => currentSandboxId && setFeatureOverride(f.feature_key, e.target.checked)} className="rounded" />
                 <span className="text-sm text-slate-300">{f.feature_key}</span>
               </label>
             ))}
