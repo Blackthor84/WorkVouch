@@ -236,23 +236,28 @@ export function SandboxV2Client() {
   };
 
   const generateEmployer = async () => {
-    if (!currentSandboxId) return;
+    const sandboxId = currentSandboxId?.trim() || null;
+    if (!sandboxId) return;
     setLoading(true);
     setGenEmployerLoading(true);
     setError(null);
     try {
+      console.log("Before POST /employers", { sandboxId });
       const res = await fetch(`${API}/employers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: currentSandboxId, company_name: employerName || "Sandbox Company", industry: employerIndustry || null, plan_tier: employerPlanTier }),
+        body: JSON.stringify({ sandbox_id: sandboxId, company_name: employerName || "Sandbox Company", industry: employerIndustry || null, plan_tier: employerPlanTier }),
       });
       const j = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(j.error || "Generate failed");
+      console.log("After POST /employers", { ok: res.ok, status: res.status });
+      if (!res.ok) throw new Error((j as { error?: string }).error || "Generate failed");
       const data = (j as { data?: { id?: string } }).data;
       log("Employer created: " + (data?.id ?? "").slice(0, 8), "success");
       setEmployerName("");
-      if (currentSandboxId) await refreshSandbox(currentSandboxId);
+      console.log("Before refresh");
+      await refreshSandbox(sandboxId);
+      console.log("After refresh");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -264,23 +269,28 @@ export function SandboxV2Client() {
   };
 
   const generateEmployee = async () => {
-    if (!currentSandboxId) return;
+    const sandboxId = currentSandboxId?.trim() || null;
+    if (!sandboxId) return;
     setLoading(true);
     setGenEmployeeLoading(true);
     setError(null);
     try {
+      console.log("Before POST /employees", { sandboxId });
       const res = await fetch(`${API}/employees`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: currentSandboxId, full_name: employeeName || "Sandbox Employee", industry: employeeIndustry || null }),
+        body: JSON.stringify({ sandbox_id: sandboxId, full_name: employeeName || "Sandbox Employee", industry: employeeIndustry || null }),
       });
       const j = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(j.error || "Generate failed");
+      console.log("After POST /employees", { ok: res.ok, status: res.status });
+      if (!res.ok) throw new Error((j as { error?: string }).error || "Generate failed");
       const data = (j as { data?: { id?: string } }).data;
       log("Employee created: " + (data?.id ?? "").slice(0, 8), "success");
       setEmployeeName("");
-      if (currentSandboxId) await refreshSandbox(currentSandboxId);
+      console.log("Before refresh");
+      await refreshSandbox(sandboxId);
+      console.log("After refresh");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -525,24 +535,27 @@ export function SandboxV2Client() {
   };
 
   const handleDeployTemplate = async () => {
-    console.log("DEPLOY CLICKED");
-    console.log("ACTIVE SANDBOX:", currentSandboxId);
-    if (!currentSandboxId) {
+    const sandboxId = currentSandboxId?.trim() || null;
+    console.log("DEPLOY CLICKED", "ACTIVE SANDBOX:", sandboxId);
+    if (!sandboxId) {
       alert("No active sandbox selected");
       return;
     }
     try {
+      console.log("Before POST /preset", { sandboxId });
       const res = await fetch(`${API}/preset`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandboxId: currentSandboxId }),
+        body: JSON.stringify({ sandboxId }),
       });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error || "Preset failed");
-      }
-      await fetchDashboard(currentSandboxId);
+      const j = await res.json().catch(() => ({}));
+      console.log("After POST /preset", { ok: res.ok, status: res.status, success: (j as { success?: boolean }).success });
+      if (!res.ok) throw new Error((j as { error?: string }).error || "Preset failed");
+      if (!(j as { success?: boolean }).success) throw new Error("Preset returned success: false");
+      console.log("Before refresh");
+      await refreshSandbox(sandboxId);
+      console.log("After refresh");
       log("Template deployed", "success");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
