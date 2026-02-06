@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
+import { runSandboxIntelligence } from "@/lib/sandbox/enterpriseEngine";
+import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,8 @@ export async function POST(req: NextRequest) {
       .select("id, company_name, industry, plan_tier")
       .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    await runSandboxIntelligence(sandbox_id);
+    await calculateSandboxMetrics(sandbox_id);
     return NextResponse.json({ success: true, employer: data });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Error";

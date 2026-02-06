@@ -140,3 +140,8 @@ export async function runEnterpriseEngine(sandboxId: string): Promise<{ ok: bool
 
   return { ok: true };
 }
+
+/** Alias for runEnterpriseEngine — single intelligence pipeline for sandbox. */
+export async function runSandboxIntelligence(sandboxId: string): Promise<{ ok: boolean; error?: string }> {
+  return runEnterpriseEngine(sandboxId);
+}

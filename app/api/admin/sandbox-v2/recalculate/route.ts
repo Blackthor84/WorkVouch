@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 import { runEnterpriseEngine } from "@/lib/sandbox/enterpriseEngine";
-import { refreshSessionSummary } from "@/lib/sandbox/templateEngine";
+import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     if (!sandbox_id) return NextResponse.json({ error: "Missing sandbox_id" }, { status: 400 });
     const result = await runEnterpriseEngine(sandbox_id);
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
-    await refreshSessionSummary(sandbox_id);
+    await calculateSandboxMetrics(sandbox_id);
     return NextResponse.json({ success: true });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Error";

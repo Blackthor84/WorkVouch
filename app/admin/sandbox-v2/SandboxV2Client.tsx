@@ -12,20 +12,32 @@ type Session = { id: string; name: string | null; starts_at: string; ends_at: st
 type Employer = { id: string; company_name?: string; industry?: string; plan_tier?: string };
 type Employee = { id: string; full_name?: string; industry?: string };
 type IntelOutput = { employee_id: string; profile_strength?: number; career_health?: number; risk_index?: number; team_fit?: number; hiring_confidence?: number; network_density?: number };
-type Executive = { avgProfileStrength: number | null; avgHiringConfidence: number | null; totalSpend: number; adRoi: number; dataDensityIndex: number };
+type Executive = { avgProfileStrength: number | null; avgHiringConfidence: number | null; totalSpend: number; adRoi: number | null; dataDensityIndex: number };
+type SandboxMetricsRow = {
+  profiles_count?: number;
+  employment_records_count?: number;
+  references_count?: number;
+  avg_profile_strength?: number | null;
+  avg_career_health?: number | null;
+  avg_risk_index?: number | null;
+  avg_team_fit?: number | null;
+  avg_hiring_confidence?: number | null;
+  avg_network_density?: number | null;
+  mrr?: number | null;
+  ad_roi?: number | null;
+} | null;
 type Metrics = {
   session: Session | null;
-  employeeIntelligence: { employeesCount: number; employmentRecordsCount: number; peerReviewsCount: number; avgHiringConfidence: number | null; avgProfileStrength: number | null; outputs: IntelOutput[] };
+  sandbox_metrics: SandboxMetricsRow;
+  employeeIntelligence: { employeesCount: number; employmentRecordsCount: number; peerReviewsCount: number; avgHiringConfidence: number | null; avgProfileStrength: number | null; outputs: IntelOutput[]; employees?: Employee[] };
   employerAnalytics: { employersCount: number; employers: Employer[] };
   revenueSimulation: { mrr: number; churn_rate: number; revenueRows: number };
   adsSimulation: { campaignsCount: number; totalSpend: number; totalImpressions: number; totalClicks: number };
   rawCounts: { profiles: number; employers: number; employmentRecords: number; references: number };
   executive?: Executive;
-  sessionSummary?: SessionSummary;
 };
 type FeatureItem = { id: string; feature_key: string; is_enabled: boolean };
 type TemplateItem = { id: string; template_key: string; display_name: string; industry: string; default_employee_count: number; description?: string | null };
-type SessionSummary = { avg_profile_strength?: number; avg_career_health?: number; avg_risk_index?: number; hiring_confidence_mean?: number; network_density?: number; revenue_projection?: number; ad_roi?: number; data_density_index?: number; demo_mode?: string | null } | null;
 
 export function SandboxV2Client() {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -149,9 +161,9 @@ export function SandboxV2Client() {
   }, [sandboxId, fetchMetrics, fetchFeatures]);
 
   useEffect(() => {
-    const summary = metrics?.sessionSummary;
-    setDemoMode(summary?.demo_mode ?? null);
-  }, [metrics?.sessionSummary?.demo_mode]);
+    const mode = (metrics as { demo_mode?: string | null })?.demo_mode;
+    setDemoMode(mode ?? null);
+  }, [(metrics as { demo_mode?: string | null })?.demo_mode]);
 
   const createSession = async () => {
     setCreateLoading(true);
@@ -486,14 +498,22 @@ export function SandboxV2Client() {
           <div className="rounded-2xl border border-red-500/50 bg-red-500/10 px-4 py-2 text-red-400">{error}</div>
         )}
 
-        {/* Executive Dashboard (boardroom ready) */}
-        {executiveMode && exec && (
+        {/* No sandbox selected */}
+        {!sandboxId && (
+          <div className="rounded-2xl border border-amber-600/50 bg-amber-500/10 px-4 py-6 text-amber-200">
+            <p className="font-medium">No sandbox selected</p>
+            <p className="mt-1 text-sm text-amber-200/80">Select a sandbox above to view aggregated metrics and generate employees, employers, peer reviews, or simulations. All values are derived from sandbox data.</p>
+          </div>
+        )}
+
+        {/* Executive Dashboard (boardroom ready) — only when sandbox selected */}
+        {sandboxId && executiveMode && exec && (
           <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
             <h2 className="text-lg font-semibold text-white">Executive Dashboard</h2>
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
               <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Total Sandbox MRR</p>
-                <p className="text-3xl font-bold text-cyan-400">{rev?.mrr ?? 0}</p>
+                <p className="text-3xl font-bold text-cyan-400">{rev?.mrr != null ? rev.mrr : "—"}</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Growth %</p>
@@ -513,7 +533,7 @@ export function SandboxV2Client() {
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Data Density Index</p>
-                <p className="text-3xl font-bold text-cyan-400">{exec.dataDensityIndex ?? 0}</p>
+                <p className="text-3xl font-bold text-cyan-400">{exec.dataDensityIndex != null ? exec.dataDensityIndex : "—"}</p>
               </div>
             </div>
           </div>
@@ -575,23 +595,23 @@ export function SandboxV2Client() {
               </ul>
             </div>
           )}
-          {metrics?.sessionSummary && (
+          {sandboxId && metrics?.sandbox_metrics && (
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-xl border border-cyan-600/40 bg-slate-900/60 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Avg Profile Strength</p>
-                <p className="text-2xl font-bold text-cyan-400">{metrics.sessionSummary.avg_profile_strength != null ? Number(metrics.sessionSummary.avg_profile_strength).toFixed(1) : "—"}</p>
+                <p className="text-2xl font-bold text-cyan-400">{metrics.sandbox_metrics.avg_profile_strength != null ? Number(metrics.sandbox_metrics.avg_profile_strength).toFixed(1) : "—"}</p>
               </div>
               <div className="rounded-xl border border-cyan-600/40 bg-slate-900/60 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Hiring Confidence</p>
-                <p className="text-2xl font-bold text-cyan-400">{metrics.sessionSummary.hiring_confidence_mean != null ? Number(metrics.sessionSummary.hiring_confidence_mean).toFixed(1) : "—"}</p>
+                <p className="text-2xl font-bold text-cyan-400">{metrics.sandbox_metrics.avg_hiring_confidence != null ? Number(metrics.sandbox_metrics.avg_hiring_confidence).toFixed(1) : "—"}</p>
               </div>
               <div className="rounded-xl border border-cyan-600/40 bg-slate-900/60 p-3">
-                <p className="text-xs uppercase tracking-wide text-slate-400">Revenue Projection</p>
-                <p className="text-2xl font-bold text-cyan-400">{metrics.sessionSummary.revenue_projection != null ? Number(metrics.sessionSummary.revenue_projection) : "—"}</p>
+                <p className="text-xs uppercase tracking-wide text-slate-400">MRR</p>
+                <p className="text-2xl font-bold text-cyan-400">{metrics.sandbox_metrics.mrr != null ? Number(metrics.sandbox_metrics.mrr) : "—"}</p>
               </div>
               <div className="rounded-xl border border-cyan-600/40 bg-slate-900/60 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Ad ROI</p>
-                <p className="text-2xl font-bold text-cyan-400">{metrics.sessionSummary.ad_roi != null ? Number(metrics.sessionSummary.ad_roi).toFixed(2) : "—"}</p>
+                <p className="text-2xl font-bold text-cyan-400">{metrics.sandbox_metrics.ad_roi != null ? Number(metrics.sandbox_metrics.ad_roi).toFixed(2) : "—"}</p>
               </div>
             </div>
           )}
@@ -768,11 +788,11 @@ export function SandboxV2Client() {
             <div className="mt-4 grid grid-cols-2 gap-4">
               <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Total spend</p>
-                <p className="text-3xl font-bold text-cyan-400">{ads?.totalSpend ?? 0}</p>
+                <p className="text-3xl font-bold text-cyan-400">{sandboxId && metrics ? (ads?.totalSpend ?? "—") : "—"}</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Campaigns</p>
-                <p className="text-3xl font-bold text-cyan-400">{ads?.campaignsCount ?? 0}</p>
+                <p className="text-3xl font-bold text-cyan-400">{sandboxId && metrics ? (ads?.campaignsCount ?? 0) : "—"}</p>
               </div>
             </div>
           </div>
@@ -791,7 +811,7 @@ export function SandboxV2Client() {
             </div>
             <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
               <p className="text-sm uppercase tracking-wide text-slate-400">Sandbox MRR</p>
-              <p className="text-3xl font-bold text-cyan-400">{rev?.mrr ?? 0}</p>
+              <p className="text-3xl font-bold text-cyan-400">{sandboxId && metrics && rev?.mrr != null ? rev.mrr : "—"}</p>
             </div>
           </div>
         </div>
@@ -803,15 +823,15 @@ export function SandboxV2Client() {
             <div className="mt-4 grid grid-cols-2 gap-4">
               <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Employees</p>
-                <p className="text-3xl font-bold text-cyan-400">{ei?.employeesCount ?? 0}</p>
+                <p className="text-3xl font-bold text-cyan-400">{sandboxId && metrics ? (ei?.employeesCount ?? 0) : "—"}</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Employment records</p>
-                <p className="text-3xl font-bold text-cyan-400">{ei?.employmentRecordsCount ?? 0}</p>
+                <p className="text-3xl font-bold text-cyan-400">{sandboxId && metrics ? (ei?.employmentRecordsCount ?? 0) : "—"}</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Peer reviews</p>
-                <p className="text-3xl font-bold text-cyan-400">{ei?.peerReviewsCount ?? 0}</p>
+                <p className="text-3xl font-bold text-cyan-400">{sandboxId && metrics ? (ei?.peerReviewsCount ?? 0) : "—"}</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Avg hiring confidence</p>
@@ -824,7 +844,7 @@ export function SandboxV2Client() {
             <h2 className="text-lg font-semibold text-white">Employer Analytics</h2>
             <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
               <p className="text-sm uppercase tracking-wide text-slate-400">Employers</p>
-              <p className="text-3xl font-bold text-cyan-400">{ea?.employersCount ?? 0}</p>
+              <p className="text-3xl font-bold text-cyan-400">{sandboxId && metrics ? (ea?.employersCount ?? 0) : "—"}</p>
             </div>
             {employerList.length > 0 && (
               <ul className="mt-3 space-y-1 text-sm text-slate-300">

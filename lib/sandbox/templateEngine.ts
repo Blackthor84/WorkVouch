@@ -6,6 +6,7 @@
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { runEnterpriseEngine } from "@/lib/sandbox/enterpriseEngine";
+import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
 import { generateEmployeeIdentities } from "@/lib/sandbox/generators/identityGenerator";
 
 /** Rating distribution: probability per star 1–5. Should sum to 1. */
@@ -223,6 +224,7 @@ export async function runTemplate(
   // 8. Compute and upsert session summary (pull metrics dynamically from intelligence_outputs)
   const data_density_index = employeeCount + records.length + reviewRows.length;
   await refreshSessionSummary(sandboxId, data_density_index);
+  await calculateSandboxMetrics(sandboxId);
 
   return {
     ok: true,

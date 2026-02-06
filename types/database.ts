@@ -1420,6 +1420,12 @@ export interface Database {
         Update: { [key: string]: unknown }
         Relationships: []
       }
+      sandbox_metrics: {
+        Row: { id: string; sandbox_id: string; profiles_count: number; employment_records_count: number; references_count: number; avg_profile_strength: number | null; avg_career_health: number | null; avg_risk_index: number | null; avg_team_fit: number | null; avg_hiring_confidence: number | null; avg_network_density: number | null; mrr: number | null; ad_roi: number | null; created_at: string; updated_at: string }
+        Insert: { [key: string]: unknown }
+        Update: { [key: string]: unknown }
+        Relationships: []
+      }
       sandbox_feature_registry: {
         Row: { id: string; feature_key: string; is_enabled: boolean; created_at: string }
         Insert: { [key: string]: unknown }
