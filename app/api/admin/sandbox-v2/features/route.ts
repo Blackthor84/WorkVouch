@@ -4,19 +4,28 @@ import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 
 export const dynamic = "force-dynamic";
 
-function structuredError(stage: string, error: string, details?: unknown) {
-  return { success: false, stage, error, ...(details != null && { details }) };
-}
-
 export async function GET(req: NextRequest) {
+  const sandboxId = req.nextUrl.searchParams.get("sandboxId");
+  console.log("QUERY:", sandboxId);
+
+  if (!sandboxId) {
+    return NextResponse.json({ success: false, error: "Missing sandboxId" }, { status: 400 });
+  }
+
   try {
     await requireSandboxV2Admin();
-    const sandboxId = req.nextUrl.searchParams.get("sandboxId")?.trim() ?? null;
+  } catch (authError) {
+    const err = authError as { message?: string };
+    console.error("FEATURE ROUTE ERROR", authError);
+    return NextResponse.json({
+      success: false,
+      stage: "features_route",
+      error: err?.message ?? "Unknown",
+      details: authError,
+    }, { status: 500 });
+  }
 
-    if (!sandboxId) {
-      return NextResponse.json(structuredError("validation", "Missing sandboxId"), { status: 400 });
-    }
-
+  try {
     const supabase = getSupabaseServer();
 
     const { data: flags, error: flagsErr } = await supabase
@@ -25,7 +34,12 @@ export async function GET(req: NextRequest) {
 
     if (flagsErr) {
       console.error("FEATURE ROUTE ERROR", flagsErr);
-      return NextResponse.json(structuredError("feature_flags", flagsErr.message, { code: flagsErr.code }), { status: 500 });
+      return NextResponse.json({
+        success: false,
+        stage: "features_route",
+        error: (flagsErr as { message?: string })?.message ?? "Unknown",
+        details: flagsErr,
+      }, { status: 500 });
     }
 
     const { data: overrides, error: overridesErr } = await supabase
@@ -35,11 +49,15 @@ export async function GET(req: NextRequest) {
 
     if (overridesErr) {
       console.error("FEATURE ROUTE ERROR", overridesErr);
-      return NextResponse.json(structuredError("sandbox_feature_overrides", overridesErr.message, { code: overridesErr.code }), { status: 500 });
+      return NextResponse.json({
+        success: false,
+        stage: "features_route",
+        error: (overridesErr as { message?: string })?.message ?? "Unknown",
+        details: overridesErr,
+      }, { status: 500 });
     }
 
     const overrideMap = new Map((overrides ?? []).map((o) => [o.feature_key, o.is_enabled]));
-
     const features = (flags ?? []).map((f) => ({
       feature_key: f.key,
       label: f.name,
@@ -47,40 +65,76 @@ export async function GET(req: NextRequest) {
     }));
 
     return NextResponse.json({ success: true, data: features, features });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    console.error("FEATURE ROUTE ERROR", e);
-    if (msg === "Unauthorized") return NextResponse.json(structuredError("auth", msg), { status: 401 });
-    if (msg.startsWith("Forbidden")) return NextResponse.json(structuredError("auth", msg), { status: 403 });
-    return NextResponse.json(structuredError("server", msg), { status: 500 });
+  } catch (error) {
+    const err = error as { message?: string };
+    console.error("FEATURE ROUTE ERROR", error);
+    return NextResponse.json({
+      success: false,
+      stage: "features_route",
+      error: err?.message ?? "Unknown",
+      details: error,
+    }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
+  let body: Record<string, unknown> = {};
   try {
-    await requireSandboxV2Admin();
-    const body = await req.json().catch(() => ({}));
-    const sandboxId = (body.sandbox_id ?? body.sandboxId) as string | undefined;
-    const feature_key = (body.feature_key ?? body.featureKey) as string | undefined;
-    const enabled = body.enabled === true || body.enabled === "true";
+    body = await req.json();
+  } catch {
+    // ignore
+  }
+  console.log("BODY:", body);
+  console.log("QUERY:", req.nextUrl.searchParams.get("sandboxId"));
 
-    if (!sandboxId || typeof sandboxId !== "string") {
-      return NextResponse.json(structuredError("validation", "Missing sandboxId"), { status: 400 });
-    }
-    if (!feature_key || typeof feature_key !== "string") {
-      return NextResponse.json(structuredError("validation", "Missing feature_key"), { status: 400 });
-    }
+  const sandboxId = body.sandboxId ?? body.sandbox_id ?? req.nextUrl.searchParams.get("sandboxId");
+  const feature_key = body.feature_key ?? body.featureKey;
+  const enabled = body.enabled === true || body.enabled === "true";
 
+  if (!sandboxId) {
+    return NextResponse.json({ success: false, error: "Missing sandboxId" }, { status: 400 });
+  }
+  if (!feature_key) {
+    return NextResponse.json({ success: false, error: "Missing feature_key" }, { status: 400 });
+  }
+
+  let user: { id: string };
+  try {
+    user = await requireSandboxV2Admin();
+  } catch (authError) {
+    const err = authError as { message?: string };
+    console.error("FEATURE ROUTE ERROR", authError);
+    return NextResponse.json({
+      success: false,
+      stage: "features_route",
+      error: err?.message ?? "Unknown",
+      details: authError,
+    }, { status: 500 });
+  }
+
+  try {
     const supabase = getSupabaseServer();
+    const payload: Record<string, unknown> = {
+      sandbox_id: sandboxId,
+      feature_key,
+      is_enabled: enabled,
+      created_by: user.id,
+    };
+
     const { data, error } = await supabase
       .from("sandbox_feature_overrides")
-      .upsert({ sandbox_id: sandboxId, feature_key, is_enabled: enabled }, { onConflict: "sandbox_id,feature_key" })
+      .upsert(payload, { onConflict: "sandbox_id,feature_key" })
       .select("sandbox_id, feature_key, is_enabled")
       .single();
 
     if (error) {
       console.error("FEATURE ROUTE ERROR", error);
-      return NextResponse.json(structuredError("supabase_upsert", error.message, { code: error.code }), { status: 500 });
+      return NextResponse.json({
+        success: false,
+        stage: "features_route",
+        error: (error as { message?: string })?.message ?? "Unknown",
+        details: error,
+      }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -88,11 +142,14 @@ export async function POST(req: NextRequest) {
       data: { feature_key: data.feature_key, label: data.feature_key, enabled: data.is_enabled },
       override: data,
     });
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    console.error("FEATURE ROUTE ERROR", e);
-    if (msg === "Unauthorized") return NextResponse.json(structuredError("auth", msg), { status: 401 });
-    if (msg.startsWith("Forbidden")) return NextResponse.json(structuredError("auth", msg), { status: 403 });
-    return NextResponse.json(structuredError("server", msg), { status: 500 });
+  } catch (error) {
+    const err = error as { message?: string };
+    console.error("FEATURE ROUTE ERROR", error);
+    return NextResponse.json({
+      success: false,
+      stage: "features_route",
+      error: err?.message ?? "Unknown",
+      details: error,
+    }, { status: 500 });
   }
 }
