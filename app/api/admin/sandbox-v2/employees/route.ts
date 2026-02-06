@@ -18,9 +18,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Missing sandboxId" }, { status: 400 });
   }
 
-  let user: { id: string };
   try {
-    user = await requireSandboxV2Admin();
+    await requireSandboxV2Admin();
   } catch (authError) {
     const err = authError as { message?: string };
     console.error("EMPLOYEES ROUTE ERROR", authError);
@@ -34,32 +33,30 @@ export async function POST(req: NextRequest) {
 
   try {
     const supabase = getServiceRoleClient();
-    const payload = {
-      sandbox_id: sandboxId,
-      first_name: body.first_name ?? "John",
-      last_name: body.last_name ?? "Doe",
-      job_title: body.job_title ?? "Security Officer",
-      industry: body.industry ?? "Security",
-      tenure_months: body.tenure_months ?? 24,
-      risk_score: 40,
-      profile_strength: 72,
-      career_health: 70,
-      network_density: 0.65,
-      created_by: user.id,
-    };
+    const sandbox_id = sandboxId;
+    const first = body.first_name ?? body.firstName;
+    const last = body.last_name ?? body.lastName;
+    const full_name =
+      body.full_name ?? body.fullName ??
+      (first != null && last != null ? `${first} ${last}` : "John Doe");
+    const industry = body.industry ?? "Security";
 
     const { data, error } = await supabase
       .from("sandbox_employees")
-      .insert(payload)
+      .insert({
+        sandbox_id,
+        full_name,
+        industry,
+      })
       .select()
       .single();
 
     if (error) {
-      console.error("EMPLOYEES POST ERROR", error);
+      console.error("Supabase error:", error);
       return NextResponse.json({
         success: false,
-        stage: "supabase_insert",
-        error: (error as { message?: string })?.message ?? "Unknown",
+        stage: "insert",
+        error: error?.message,
         details: error,
       }, { status: 500 });
     }
@@ -107,11 +104,11 @@ export async function GET(req: NextRequest) {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("EMPLOYEES GET ERROR", error);
+      console.error("Supabase error:", error);
       return NextResponse.json({
         success: false,
-        stage: "supabase_get",
-        error: (error as { message?: string })?.message ?? "Unknown",
+        stage: "get",
+        error: error?.message,
         details: error,
       }, { status: 500 });
     }

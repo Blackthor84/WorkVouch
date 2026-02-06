@@ -46,10 +46,10 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      console.error("Sessions POST failure:", { stage: "supabase_insert", error });
+      console.error("Supabase error:", error);
       return NextResponse.json({
         success: false,
-        stage: "supabase_insert",
+        stage: "insert",
         error: error?.message,
         details: error,
       }, { status: 500 });
@@ -95,10 +95,10 @@ export async function GET() {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Sessions GET failure:", { stage: "supabase_get", error });
+      console.error("Supabase error:", error);
       return NextResponse.json({
         success: false,
-        stage: "supabase_get",
+        stage: "get",
         error: error?.message,
         details: error,
       }, { status: 500 });

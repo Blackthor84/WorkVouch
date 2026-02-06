@@ -18,9 +18,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Missing sandboxId" }, { status: 400 });
   }
 
-  let user: { id: string };
   try {
-    user = await requireSandboxV2Admin();
+    await requireSandboxV2Admin();
   } catch (authError) {
     const err = authError as { message?: string };
     console.error("EMPLOYERS ROUTE ERROR", authError);
@@ -34,27 +33,28 @@ export async function POST(req: NextRequest) {
 
   try {
     const supabase = getServiceRoleClient();
-    const payload = {
-      sandbox_id: sandboxId,
-      company_name: body.company_name ?? "Test Company",
-      industry: body.industry ?? "Security",
-      team_size: body.team_size ?? 10,
-      plan_tier: body.plan_tier ?? "pro",
-      created_by: user.id,
-    };
+    const sandbox_id = sandboxId;
+    const company_name = body.company_name ?? "Test Company";
+    const industry = body.industry ?? "Security";
+    const plan_tier = body.plan_tier ?? "pro";
 
     const { data, error } = await supabase
       .from("sandbox_employers")
-      .insert(payload)
+      .insert({
+        sandbox_id,
+        company_name,
+        industry,
+        plan_tier,
+      })
       .select()
       .single();
 
     if (error) {
-      console.error("EMPLOYERS POST ERROR", error);
+      console.error("Supabase error:", error);
       return NextResponse.json({
         success: false,
-        stage: "supabase_insert",
-        error: (error as { message?: string })?.message ?? "Unknown",
+        stage: "insert",
+        error: error?.message,
         details: error,
       }, { status: 500 });
     }
@@ -102,11 +102,11 @@ export async function GET(req: NextRequest) {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("EMPLOYERS GET ERROR", error);
+      console.error("Supabase error:", error);
       return NextResponse.json({
         success: false,
-        stage: "supabase_get",
-        error: (error as { message?: string })?.message ?? "Unknown",
+        stage: "get",
+        error: error?.message,
         details: error,
       }, { status: 500 });
     }

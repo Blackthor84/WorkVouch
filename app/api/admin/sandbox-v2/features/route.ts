@@ -33,11 +33,11 @@ export async function GET(req: NextRequest) {
       .select("key, name");
 
     if (flagsErr) {
-      console.error("FEATURE ROUTE ERROR", flagsErr);
+      console.error("Supabase error:", flagsErr);
       return NextResponse.json({
         success: false,
-        stage: "features_route",
-        error: (flagsErr as { message?: string })?.message ?? "Unknown",
+        stage: "get",
+        error: flagsErr?.message,
         details: flagsErr,
       }, { status: 500 });
     }
@@ -48,11 +48,11 @@ export async function GET(req: NextRequest) {
       .eq("sandbox_id", sandboxId);
 
     if (overridesErr) {
-      console.error("FEATURE ROUTE ERROR", overridesErr);
+      console.error("Supabase error:", overridesErr);
       return NextResponse.json({
         success: false,
-        stage: "features_route",
-        error: (overridesErr as { message?: string })?.message ?? "Unknown",
+        stage: "get",
+        error: overridesErr?.message,
         details: overridesErr,
       }, { status: 500 });
     }
@@ -98,9 +98,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Missing feature_key" }, { status: 400 });
   }
 
-  let user: { id: string };
   try {
-    user = await requireSandboxV2Admin();
+    await requireSandboxV2Admin();
   } catch (authError) {
     const err = authError as { message?: string };
     console.error("FEATURE ROUTE ERROR", authError);
@@ -114,25 +113,25 @@ export async function POST(req: NextRequest) {
 
   try {
     const supabase = getServiceRoleClient();
-    const payload: Record<string, unknown> = {
-      sandbox_id: sandboxId,
-      feature_key,
-      is_enabled: enabled,
-      created_by: user.id,
-    };
-
     const { data, error } = await supabase
       .from("sandbox_feature_overrides")
-      .upsert(payload, { onConflict: "sandbox_id,feature_key" })
+      .upsert(
+        {
+          sandbox_id: sandboxId,
+          feature_key,
+          is_enabled: enabled,
+        },
+        { onConflict: "sandbox_id,feature_key" }
+      )
       .select("sandbox_id, feature_key, is_enabled")
       .single();
 
     if (error) {
-      console.error("FEATURE ROUTE ERROR", error);
+      console.error("Supabase error:", error);
       return NextResponse.json({
         success: false,
-        stage: "features_route",
-        error: (error as { message?: string })?.message ?? "Unknown",
+        stage: "insert",
+        error: error?.message,
         details: error,
       }, { status: 500 });
     }

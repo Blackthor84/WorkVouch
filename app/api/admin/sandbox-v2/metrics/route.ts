@@ -25,10 +25,10 @@ export async function GET(req: NextRequest) {
     ]);
 
     if (sessionRes.error) {
-      console.error("METRICS ROUTE ERROR", sessionRes.error);
+      console.error("Supabase error:", sessionRes.error);
       return NextResponse.json({
         success: false,
-        stage: "supabase_get",
+        stage: "get",
         error: sessionRes.error?.message,
         details: sessionRes.error,
       }, { status: 500 });
