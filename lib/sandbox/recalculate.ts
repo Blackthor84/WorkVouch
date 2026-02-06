@@ -26,6 +26,9 @@ function sentimentFromText(reviewText: string | null): number {
 }
 
 export async function runSandboxIntelligenceRecalculation(sandboxId: string): Promise<{ ok: boolean; error?: string }> {
+  if (typeof sandboxId !== "string") {
+    throw new Error("sandboxId must be a string");
+  }
   const supabase = getServiceRoleClient();
 
   const [employeesRes, reviewsRes, recordsRes] = await Promise.all([

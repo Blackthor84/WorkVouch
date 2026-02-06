@@ -8,6 +8,9 @@ import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 const PLAN_VALUE = 99;
 
 export async function calculateSandboxMetrics(sandboxId: string): Promise<{ ok: boolean; error?: string }> {
+  if (typeof sandboxId !== "string") {
+    throw new Error("sandboxId must be a string");
+  }
   const supabase = getServiceRoleClient();
 
   const [employeesRes, recordsRes, reviewsRes, intelRes, employersRes, revenueRes, adsRes] = await Promise.all([

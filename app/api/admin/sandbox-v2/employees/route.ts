@@ -10,18 +10,18 @@ import { pickFullName, pickIndustry } from "@/lib/sandbox/namePools";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  let body: Record<string, unknown> = {};
-  try {
-    body = await req.json();
-  } catch {
-    // ignore
-  }
+  const body = await req.json().catch(() => ({}));
   console.log("BODY:", body);
 
-  const sandboxId = body.sandboxId ?? body.sandbox_id;
-  if (!sandboxId) {
-    return NextResponse.json({ success: false, error: "Missing sandboxId" }, { status: 400 });
+  const sandboxIdRaw = body?.sandboxId ?? body?.sandbox_id;
+  if (!sandboxIdRaw) {
+    return NextResponse.json(
+      { success: false, error: "Missing sandboxId" },
+      { status: 400 }
+    );
   }
+
+  const sandboxId: string = String(sandboxIdRaw);
 
   try {
     await requireSandboxV2Admin();
@@ -75,8 +75,8 @@ export async function POST(req: NextRequest) {
     const employeePool = (allEmployees ?? []).map((e: { id: string }) => ({ id: e.id }));
     await generatePeerReviews({ sandboxId: String(sandboxId), employeeId: String(employeeId), employeePool });
 
-    await runSandboxIntelligenceRecalculation(sandboxId);
-    await calculateSandboxMetrics(sandboxId);
+    await (runSandboxIntelligenceRecalculation as any)(sandboxId);
+    await (calculateSandboxMetrics as any)(sandboxId);
 
     const data = { id: employeeId, full_name, industry, sandbox_id };
     return NextResponse.json({ success: true, data, employee: data });
