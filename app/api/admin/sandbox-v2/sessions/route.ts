@@ -1,18 +1,28 @@
 import { NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
+import { requireSandboxV2Admin, requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
 
 export const dynamic = "force-dynamic";
 
+const TABLE = "sandbox_sessions";
+
+function structuredError(success: false, error: string, details?: unknown) {
+  return { success, error, ...(details != null && { details }) };
+}
+
 export async function POST(req: Request) {
   try {
-    await requireSandboxV2Admin();
+    const { id: userId } = await requireSandboxV2Admin();
+    if (!userId) {
+      console.error("Sessions POST failure:", { stage: "auth", error: "No user id" });
+      return NextResponse.json(structuredError(false, "Not authenticated"), { status: 401 });
+    }
+
+    const supabase = await createServerSupabase();
     const body = await req.json().catch(() => ({}));
 
     console.log("=== SANDBOX CREATE REQUEST ===");
     console.log("Incoming body:", body);
-
-    const supabase = await createServerSupabase();
 
     const name = body?.name ?? "Sandbox Session";
     const starts_at = body?.starts_at ?? new Date().toISOString();
@@ -21,75 +31,83 @@ export async function POST(req: Request) {
 
     const insertPayload = {
       name,
+      status: "active",
       starts_at,
       ends_at,
-      status: "active",
+      created_by: userId,
     };
 
     console.log("Insert payload:", insertPayload);
 
     const { data, error } = await supabase
-      .from("sandbox_sessions")
+      .from(TABLE)
       .insert(insertPayload)
       .select()
       .single();
 
     if (error) {
-      console.error("Supabase insert error:", error);
+      console.error("Sessions POST failure:", { stage: "supabase_insert", error });
       return NextResponse.json(
-        {
-          success: false,
-          stage: "supabase_insert",
-          error: error.message,
-          details: { code: error.code, hint: error.hint, details: error.details },
-        },
+        structuredError(false, error.message, { code: error.code, hint: error.hint, details: error.details }),
         { status: 400 }
       );
     }
 
-    console.log("Sandbox created:", data);
+    console.log("Sandbox created:", data?.id);
 
     return NextResponse.json({
       success: true,
+      id: data?.id,
+      data: data,
       sandbox: data,
       session: data,
     });
   } catch (err: unknown) {
-    console.error("Sandbox route crash:", err);
+    console.error("Sessions POST failure:", { stage: "server_crash", err });
     const msg = err instanceof Error ? err.message : "Unknown error";
-    if (msg === "Unauthorized") return NextResponse.json({ success: false, error: msg }, { status: 401 });
-    if (msg.startsWith("Forbidden")) return NextResponse.json({ success: false, error: msg }, { status: 403 });
-    return NextResponse.json(
-      { success: false, stage: "server_crash", error: msg },
-      { status: 500 }
-    );
+    if (msg === "Unauthorized") return NextResponse.json(structuredError(false, msg), { status: 401 });
+    if (msg.startsWith("Forbidden")) return NextResponse.json(structuredError(false, msg), { status: 403 });
+    return NextResponse.json(structuredError(false, msg), { status: 500 });
   }
 }
 
 export async function GET() {
   try {
-    await requireSandboxV2Admin();
-    const supabase = await createServerSupabase();
-
-    const { data, error } = await supabase
-      .from("sandbox_sessions")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Sandbox GET error:", error);
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 400 }
-      );
+    const { id: userId, isSuperAdmin } = await requireSandboxV2AdminWithRole();
+    if (!userId) {
+      console.error("Sessions GET failure:", { stage: "auth", error: "No user id" });
+      return NextResponse.json(structuredError(false, "Not authenticated"), { status: 401 });
     }
 
-    return NextResponse.json({ success: true, data: data ?? [], sessions: data ?? [] });
+    const supabase = await createServerSupabase();
+    let query = supabase
+      .from(TABLE)
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(500);
+
+    if (!isSuperAdmin) {
+      query = query.eq("created_by", userId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Sessions GET failure:", { stage: "supabase_get", error });
+      return NextResponse.json(structuredError(false, error.message, { code: error.code }), { status: 400 });
+    }
+
+    const sessions = data ?? [];
+    return NextResponse.json({
+      success: true,
+      data: sessions,
+      sessions,
+    });
   } catch (err: unknown) {
-    console.error("Sandbox GET crash:", err);
+    console.error("Sessions GET failure:", { stage: "server_crash", err });
     const msg = err instanceof Error ? err.message : String(err);
-    if (msg === "Unauthorized") return NextResponse.json({ success: false, error: msg }, { status: 401 });
-    if (msg.startsWith("Forbidden")) return NextResponse.json({ success: false, error: msg }, { status: 403 });
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    if (msg === "Unauthorized") return NextResponse.json(structuredError(false, msg), { status: 401 });
+    if (msg.startsWith("Forbidden")) return NextResponse.json(structuredError(false, msg), { status: 403 });
+    return NextResponse.json(structuredError(false, msg), { status: 500 });
   }
 }

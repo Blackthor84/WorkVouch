@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 
 const API = "/api/admin/sandbox-v2";
 
-type Session = { id: string; name: string | null; starts_at: string; ends_at: string; status: string };
+type Session = { id: string; name: string | null; starts_at: string; ends_at: string; status: string; created_at?: string };
 type Employer = { id: string; company_name?: string; industry?: string; plan_tier?: string };
 type Employee = { id: string; full_name?: string; industry?: string };
 type IntelOutput = { employee_id: string; profile_strength?: number; career_health?: number; risk_index?: number; team_fit?: number; hiring_confidence?: number; network_density?: number };
@@ -178,7 +178,7 @@ export function SandboxV2Client() {
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Create failed");
-      const newId = j.session?.id;
+      const newId = j.id ?? j.session?.id ?? j.data?.id;
       if (newId) {
         setSandboxId(newId);
         await fetchSessions();
@@ -484,18 +484,38 @@ export function SandboxV2Client() {
   const employeeList: Employee[] = (metrics?.employeeIntelligence as { employees?: Employee[] })?.employees ?? [];
   const employerList = ea?.employers ?? [];
 
+  const activeSession = sandboxId ? sessions.find((s) => s.id === sandboxId) : null;
+  const now = typeof window !== "undefined" ? Date.now() : 0;
+  const sessionEnded = activeSession?.ends_at ? new Date(activeSession.ends_at).getTime() < now : false;
+  const sessionStatus: "no_session" | "expired" | "active" = !sandboxId
+    ? "no_session"
+    : sessionEnded
+      ? "expired"
+      : "active";
+
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      <header className="sticky top-0 z-10 border-b border-slate-700 bg-slate-950/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-10 border-b border-slate-600 bg-slate-950/98 backdrop-blur-sm">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-3">
           <span className="text-lg font-semibold text-white">Enterprise Simulation Environment</span>
           <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 text-sm text-slate-400">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-medium ${
+                sessionStatus === "active"
+                  ? "bg-emerald-500/20 text-emerald-300"
+                  : sessionStatus === "expired"
+                    ? "bg-amber-500/20 text-amber-300"
+                    : "bg-slate-600/50 text-slate-400"
+              }`}
+            >
+              {sessionStatus === "active" ? "Session active" : sessionStatus === "expired" ? "Session expired" : "No session"}
+            </span>
+            <label className="flex items-center gap-2 text-sm text-slate-300">
               <input type="checkbox" checked={executiveMode} onChange={(e) => setExecutiveMode(e.target.checked)} className="rounded" />
               Executive Mode
             </label>
             <Link href="/admin">
-              <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white">← Admin</Button>
+              <Button variant="ghost" size="sm" className="text-slate-200 hover:text-white">← Admin</Button>
             </Link>
           </div>
         </div>
@@ -503,53 +523,64 @@ export function SandboxV2Client() {
 
       <div className="mx-auto max-w-[1600px] space-y-6 p-6">
         {error && (
-          <div className="rounded-2xl border border-red-500/50 bg-red-500/10 px-4 py-2 text-red-400">{error}</div>
+          <div className="rounded-xl border border-red-500/60 bg-red-500/15 px-4 py-3 text-red-200">{error}</div>
         )}
 
         {/* No sandbox selected */}
         {!sandboxId && (
-          <div className="rounded-2xl border border-amber-600/50 bg-amber-500/10 px-4 py-6 text-amber-200">
+          <div className="rounded-2xl border border-amber-600/50 bg-amber-500/10 px-4 py-6 text-amber-100">
             <p className="font-medium">No sandbox selected</p>
-            <p className="mt-1 text-sm text-amber-200/80">Select a sandbox above to view aggregated metrics and generate employees, employers, peer reviews, or simulations. All values are derived from sandbox data.</p>
+            <p className="mt-1 text-sm text-amber-200/90">Select a sandbox above to view aggregated metrics and generate employees, employers, peer reviews, or simulations. All values are derived from sandbox data.</p>
           </div>
         )}
 
         {/* Executive Dashboard (boardroom ready) — only when sandbox selected */}
-        {sandboxId && executiveMode && exec && (
-          <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+        {sandboxId && executiveMode && (
+          <section className="rounded-2xl border border-slate-600 bg-slate-900 p-6 shadow-xl">
             <h2 className="text-lg font-semibold text-white">Executive Dashboard</h2>
-            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                <p className="text-sm uppercase tracking-wide text-slate-400">Total Sandbox MRR</p>
-                <p className="text-3xl font-bold text-cyan-400">{rev?.mrr != null ? rev.mrr : "—"}</p>
-              </div>
-              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                <p className="text-sm uppercase tracking-wide text-slate-400">Growth %</p>
-                <p className="text-3xl font-bold text-cyan-400">—</p>
-              </div>
-              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                <p className="text-sm uppercase tracking-wide text-slate-400">Avg Profile Strength</p>
-                <p className="text-3xl font-bold text-cyan-400">{exec.avgProfileStrength != null ? exec.avgProfileStrength.toFixed(1) : "—"}</p>
-              </div>
-              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                <p className="text-sm uppercase tracking-wide text-slate-400">Avg Hiring Confidence</p>
-                <p className="text-3xl font-bold text-cyan-400">{exec.avgHiringConfidence != null ? exec.avgHiringConfidence.toFixed(1) : "—"}</p>
-              </div>
-              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                <p className="text-sm uppercase tracking-wide text-slate-400">Ad ROI</p>
-                <p className="text-3xl font-bold text-cyan-400">{exec.adRoi != null ? exec.adRoi.toFixed(2) : "—"}</p>
-              </div>
-              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                <p className="text-sm uppercase tracking-wide text-slate-400">Data Density Index</p>
-                <p className="text-3xl font-bold text-cyan-400">{exec.dataDensityIndex != null ? exec.dataDensityIndex : "—"}</p>
-              </div>
+            <div className="mt-4 border-t border-slate-600 pt-4">
+              {loading ? (
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="h-24 animate-pulse rounded-xl border border-slate-600 bg-slate-800" />
+                  ))}
+                </div>
+              ) : exec ? (
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                  <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4 text-slate-100">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Total Sandbox MRR</p>
+                    <p className="mt-1 text-2xl font-bold text-cyan-300">{rev?.mrr != null ? rev.mrr : "—"}</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4 text-slate-100">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Growth %</p>
+                    <p className="mt-1 text-2xl font-bold text-cyan-300">—</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4 text-slate-100">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Avg Profile Strength</p>
+                    <p className="mt-1 text-2xl font-bold text-cyan-300">{exec.avgProfileStrength != null ? exec.avgProfileStrength.toFixed(1) : "—"}</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4 text-slate-100">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Avg Hiring Confidence</p>
+                    <p className="mt-1 text-2xl font-bold text-cyan-300">{exec.avgHiringConfidence != null ? exec.avgHiringConfidence.toFixed(1) : "—"}</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4 text-slate-100">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Ad ROI</p>
+                    <p className="mt-1 text-2xl font-bold text-cyan-300">{exec.adRoi != null ? exec.adRoi.toFixed(2) : "—"}</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4 text-slate-100">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Data Density Index</p>
+                    <p className="mt-1 text-2xl font-bold text-cyan-300">{exec.dataDensityIndex != null ? exec.dataDensityIndex : "—"}</p>
+                  </div>
+                </div>
+              ) : null}
             </div>
-          </div>
+          </section>
         )}
 
         {/* Sandbox Session Control */}
-        <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+        <section className="rounded-2xl border border-slate-600 bg-slate-900 p-6 shadow-xl">
           <h2 className="text-lg font-semibold text-white">Sandbox Session Control</h2>
+          <div className="mt-4 border-t border-slate-600 pt-4">
           <div className="mt-4 flex flex-wrap items-end gap-4">
             <div>
               <Label className="text-slate-400">Name</Label>
@@ -557,8 +588,8 @@ export function SandboxV2Client() {
             </div>
             <Button onClick={createSession} disabled={createLoading}>{createLoading ? "Creating…" : "Create session"}</Button>
             <div className="ml-4">
-              <Label className="text-slate-400">Active session</Label>
-              <select value={sandboxId ?? ""} onChange={(e) => setSandboxId(e.target.value || null)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
+              <Label className="text-slate-300">Active session</Label>
+              <select value={sandboxId ?? ""} onChange={(e) => setSandboxId(e.target.value || null)} className="mt-1 rounded border border-slate-600 bg-slate-800 px-3 py-2 text-slate-100">
                 <option value="">None</option>
                 {sessions.map((s) => (
                   <option key={s.id} value={s.id}>{s.name || s.id.slice(0, 8)} — {s.status}</option>
@@ -566,7 +597,8 @@ export function SandboxV2Client() {
               </select>
             </div>
           </div>
-        </div>
+          </div>
+        </section>
 
         {/* Auto Population Templates */}
         <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-900 to-slate-800 p-6 shadow-xl">
@@ -900,15 +932,17 @@ export function SandboxV2Client() {
         </div>
 
         {/* Console */}
-        <div className="rounded-xl border border-emerald-600 bg-black p-4 font-mono text-sm text-emerald-400 shadow-inner max-h-72 overflow-y-auto">
-          <p className="text-lg font-semibold text-white">Command Console</p>
-          <div className="mt-2 space-y-1">
-            {consoleLogs.length === 0 && <p className="text-slate-500">No output yet.</p>}
-            {consoleLogs.map((line, i) => (
-              <p key={i} className={line.startsWith("[ERR]") ? "text-red-400" : line.startsWith("[OK]") ? "text-green-400" : ""}>{line}</p>
-            ))}
+        <section className="rounded-2xl border border-slate-600 bg-slate-900 p-6 shadow-xl">
+          <h2 className="text-lg font-semibold text-white">Command Console</h2>
+          <div className="mt-4 border-t border-slate-600 pt-4">
+            <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-700 bg-slate-950 p-4 font-mono text-sm text-slate-200">
+              {consoleLogs.length === 0 && <p className="text-slate-500">No output yet.</p>}
+              {consoleLogs.map((line, i) => (
+                <p key={i} className={line.startsWith("[ERR]") ? "text-red-300" : line.startsWith("[OK]") ? "text-emerald-300" : "text-slate-300"}>{line}</p>
+              ))}
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
