@@ -1,12 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 
 export const dynamic = "force-dynamic";
 
-const TABLE = "sandbox_sessions";
-
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     await requireSandboxV2Admin();
     const body = await req.json().catch(() => ({}));
@@ -31,7 +29,7 @@ export async function POST(req: NextRequest) {
     console.log("Insert payload:", insertPayload);
 
     const { data, error } = await supabase
-      .from(TABLE)
+      .from("sandbox_sessions")
       .insert(insertPayload)
       .select()
       .single();
@@ -43,7 +41,7 @@ export async function POST(req: NextRequest) {
           success: false,
           stage: "supabase_insert",
           error: error.message,
-          details: { code: error.code, hint: error.hint },
+          details: { code: error.code, hint: error.hint, details: error.details },
         },
         { status: 400 }
       );
@@ -58,7 +56,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: unknown) {
     console.error("Sandbox route crash:", err);
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = err instanceof Error ? err.message : "Unknown error";
     if (msg === "Unauthorized") return NextResponse.json({ success: false, error: msg }, { status: 401 });
     if (msg.startsWith("Forbidden")) return NextResponse.json({ success: false, error: msg }, { status: 403 });
     return NextResponse.json(
@@ -74,20 +72,19 @@ export async function GET() {
     const supabase = await createServerSupabase();
 
     const { data, error } = await supabase
-      .from(TABLE)
+      .from("sandbox_sessions")
       .select("*")
-      .order("created_at", { ascending: false })
-      .limit(100);
+      .order("created_at", { ascending: false });
 
     if (error) {
       console.error("Sandbox GET error:", error);
       return NextResponse.json(
-        { success: false, stage: "supabase_get", error: error.message },
+        { success: false, error: error.message },
         { status: 400 }
       );
     }
 
-    return NextResponse.json({ success: true, sessions: data ?? [], data: data ?? [] });
+    return NextResponse.json({ success: true, data: data ?? [], sessions: data ?? [] });
   } catch (err: unknown) {
     console.error("Sandbox GET crash:", err);
     const msg = err instanceof Error ? err.message : String(err);
