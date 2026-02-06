@@ -119,7 +119,9 @@ export function SandboxV2Client() {
         setSessions([]);
         return;
       }
-      setSessions(Array.isArray(json.data) ? json.data : []);
+      if (json.success) {
+        setSessions(Array.isArray(json.data) ? json.data : []);
+      }
     } catch (err) {
       console.error("fetchSessions failed", err);
       setError(err instanceof Error ? err.message : "Error");
@@ -152,7 +154,9 @@ export function SandboxV2Client() {
         setEmployers([]);
         return;
       }
-      setEmployers(Array.isArray(json.data) ? json.data : []);
+      if (json.success) {
+        setEmployers(Array.isArray(json.data) ? json.data : []);
+      }
     } catch (err) {
       console.error("fetchEmployers failed", err);
       setError(err instanceof Error ? err.message : "Error");
@@ -218,7 +222,9 @@ export function SandboxV2Client() {
         setMetrics(null);
         return;
       }
-      setMetrics(json.data != null ? (json.data as Metrics) : null);
+      if (json.success) {
+        setMetrics((json.data ?? null) as Metrics | null);
+      }
     } catch (err) {
       console.error("fetchMetrics failed", err);
       setError(err instanceof Error ? err.message : "Error");
@@ -719,6 +725,9 @@ export function SandboxV2Client() {
                   <option key={s.id} value={s.id}>{s.name || s.id.slice(0, 8)} — {s.status}</option>
                 ))}
               </select>
+              {sessions.length === 0 && (
+                <div style={{ padding: 20, opacity: 0.6 }}>No sessions found</div>
+              )}
             </div>
           </div>
           </div>
@@ -759,7 +768,7 @@ export function SandboxV2Client() {
               </ul>
             </div>
           )}
-          {activeSandboxId && metrics?.sandbox_metrics && (
+          {activeSandboxId && metrics !== null && metrics.sandbox_metrics && (
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-xl border border-cyan-600/40 bg-slate-900/60 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-400">Avg Profile Strength</p>
@@ -982,51 +991,55 @@ export function SandboxV2Client() {
           </div>
         </div>
 
-        {/* Employee Intelligence + Employer Analytics */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
-            <h2 className="text-lg font-semibold text-white">Employee Intelligence</h2>
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                <p className="text-sm uppercase tracking-wide text-slate-400">Employees</p>
-                <p className="text-3xl font-bold text-cyan-400">{activeSandboxId && metrics ? (ei?.employeesCount ?? 0) : "—"}</p>
+        {/* Employee Intelligence + Employer Analytics — only when metrics loaded */}
+        {metrics !== null ? (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+              <h2 className="text-lg font-semibold text-white">Employee Intelligence</h2>
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                  <p className="text-sm uppercase tracking-wide text-slate-400">Employees</p>
+                  <p className="text-3xl font-bold text-cyan-400">{activeSandboxId ? (ei?.employeesCount ?? 0) : "—"}</p>
+                </div>
+                <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                  <p className="text-sm uppercase tracking-wide text-slate-400">Employment records</p>
+                  <p className="text-3xl font-bold text-cyan-400">{activeSandboxId ? (ei?.employmentRecordsCount ?? 0) : "—"}</p>
+                </div>
+                <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                  <p className="text-sm uppercase tracking-wide text-slate-400">Peer reviews</p>
+                  <p className="text-3xl font-bold text-cyan-400">{activeSandboxId ? (ei?.peerReviewsCount ?? 0) : "—"}</p>
+                </div>
+                <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
+                  <p className="text-sm uppercase tracking-wide text-slate-400">Avg hiring confidence</p>
+                  <p className="text-3xl font-bold text-cyan-400">{ei?.avgHiringConfidence != null ? ei.avgHiringConfidence.toFixed(1) : "—"}</p>
+                </div>
               </div>
-              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                <p className="text-sm uppercase tracking-wide text-slate-400">Employment records</p>
-                <p className="text-3xl font-bold text-cyan-400">{activeSandboxId && metrics ? (ei?.employmentRecordsCount ?? 0) : "—"}</p>
-              </div>
-              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                <p className="text-sm uppercase tracking-wide text-slate-400">Peer reviews</p>
-                <p className="text-3xl font-bold text-cyan-400">{activeSandboxId && metrics ? (ei?.peerReviewsCount ?? 0) : "—"}</p>
-              </div>
-              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                <p className="text-sm uppercase tracking-wide text-slate-400">Avg hiring confidence</p>
-                <p className="text-3xl font-bold text-cyan-400">{ei?.avgHiringConfidence != null ? ei.avgHiringConfidence.toFixed(1) : "—"}</p>
-              </div>
+              {employees.length === 0 && activeSandboxId && (
+                <div style={{ padding: 20, opacity: 0.6 }}>No employees found</div>
+              )}
+              <Button variant="secondary" className="mt-4" onClick={runRecalculate} disabled={loading || !activeSandboxId || recalcLoading}>{recalcLoading ? "…" : "Recalculate intelligence"}</Button>
             </div>
-            {employees?.length === 0 && activeSandboxId && (
-              <div style={{ padding: 20, opacity: 0.6 }}>No data found for this sandbox.</div>
-            )}
-            <Button variant="secondary" className="mt-4" onClick={runRecalculate} disabled={loading || !activeSandboxId || recalcLoading}>{recalcLoading ? "…" : "Recalculate intelligence"}</Button>
-          </div>
-          <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
-            <h2 className="text-lg font-semibold text-white">Employer Analytics</h2>
-            <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
-              <p className="text-sm uppercase tracking-wide text-slate-400">Employers</p>
-              <p className="text-3xl font-bold text-cyan-400">{activeSandboxId && metrics ? (ea?.employersCount ?? 0) : "—"}</p>
+            <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+              <h2 className="text-lg font-semibold text-white">Employer Analytics</h2>
+              <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
+                <p className="text-sm uppercase tracking-wide text-slate-400">Employers</p>
+                <p className="text-3xl font-bold text-cyan-400">{activeSandboxId ? (ea?.employersCount ?? 0) : "—"}</p>
+              </div>
+              {employers.length === 0 && activeSandboxId && (
+                <div style={{ padding: 20, opacity: 0.6 }}>No employers found</div>
+              )}
+              {employers.length > 0 && (
+                <ul className="mt-3 space-y-1 text-sm text-slate-300">
+                  {employers.slice(0, 10).map((e) => (
+                    <li key={e.id}>{e.company_name ?? e.id.slice(0, 8)}</li>
+                  ))}
+                </ul>
+              )}
             </div>
-            {employers?.length === 0 && activeSandboxId && (
-              <div style={{ padding: 20, opacity: 0.6 }}>No data found for this sandbox.</div>
-            )}
-            {employers?.length > 0 && (
-              <ul className="mt-3 space-y-1 text-sm text-slate-300">
-                {employers?.slice(0, 10).map((e) => (
-                  <li key={e.id}>{e.company_name ?? e.id.slice(0, 8)}</li>
-                ))}
-              </ul>
-            )}
           </div>
-        </div>
+        ) : activeSandboxId ? (
+          <div style={{ padding: 20, opacity: 0.6 }}>No metrics loaded. Select a sandbox and refresh.</div>
+        ) : null}
 
         {/* Feature Toggles */}
         <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
