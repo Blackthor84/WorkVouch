@@ -627,8 +627,8 @@ export function SandboxV2Client() {
     }
   };
 
-  const employers = dashboardData?.employerAnalytics?.employers ?? [];
-  const employees = dashboardData?.employeeIntelligence?.employees ?? [];
+  const employers = dashboardData?.employers ?? [];
+  const employees = dashboardData?.employees ?? [];
   const ei = dashboardData?.employeeIntelligence ?? null;
   const ea = dashboardData?.employerAnalytics ?? null;
   const rev = dashboardData?.revenueSimulation ?? null;
@@ -1037,7 +1037,7 @@ export function SandboxV2Client() {
               <div className="mt-4 grid grid-cols-2 gap-4">
                 <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                   <p className="text-sm uppercase tracking-wide text-slate-400">Employees</p>
-                  <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? (ei?.employeesCount ?? 0) : "—"}</p>
+                  <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? employees.length : "—"}</p>
                 </div>
                 <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                   <p className="text-sm uppercase tracking-wide text-slate-400">Employment records</p>
@@ -1061,7 +1061,7 @@ export function SandboxV2Client() {
               <h2 className="text-lg font-semibold text-white">Employer Analytics</h2>
               <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Employers</p>
-                <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? (ea?.employersCount ?? 0) : "—"}</p>
+                <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? employers.length : "—"}</p>
               </div>
               {employers.length === 0 && currentSandboxId && (
                 <div style={{ padding: 20, opacity: 0.6 }}>No employers found</div>
