@@ -251,6 +251,7 @@ export function SandboxV2Client() {
       });
       const j = await res.json().catch(() => ({}));
       console.log("After POST /employers", { ok: res.ok, status: res.status });
+      console.log("After POST /employers RESPONSE:", j);
       if (!res.ok) throw new Error((j as { error?: string }).error || "Generate failed");
       const data = (j as { data?: { id?: string } }).data;
       log("Employer created: " + (data?.id ?? "").slice(0, 8), "success");
@@ -550,7 +551,8 @@ export function SandboxV2Client() {
         body: JSON.stringify({ sandboxId }),
       });
       const j = await res.json().catch(() => ({}));
-      console.log("After POST /preset", { ok: res.ok, status: res.status, success: (j as { success?: boolean }).success });
+      console.log("After POST /preset", { ok: res.ok, status: res.status });
+      console.log("After POST /preset RESPONSE:", j);
       if (!res.ok) throw new Error((j as { error?: string }).error || "Preset failed");
       if (!(j as { success?: boolean }).success) throw new Error("Preset returned success: false");
       console.log("Before refresh");
