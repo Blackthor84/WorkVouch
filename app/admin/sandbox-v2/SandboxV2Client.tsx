@@ -151,6 +151,7 @@ export function SandboxV2Client() {
         setDashboardData(null);
         return;
       }
+      console.log("DASHBOARD RESPONSE:", json);
       if (json.success) {
         setDashboardData((json.data ?? null) as Metrics | null);
       } else {
