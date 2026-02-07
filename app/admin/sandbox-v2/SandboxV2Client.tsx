@@ -91,6 +91,9 @@ export function SandboxV2Client() {
   const [error, setError] = useState<string | null>(null);
   const [submittedReviews, setSubmittedReviews] = useState<{ id: string; reviewerName: string; reviewedName: string; rating: number; review_text: string | null }[]>([]);
   const [sentimentMultiplier, setSentimentMultiplier] = useState(1.0);
+  const [peerReviewerNameOverride, setPeerReviewerNameOverride] = useState("");
+  const [peerReviewedNameOverride, setPeerReviewedNameOverride] = useState("");
+  const [demoDataLoading, setDemoDataLoading] = useState(false);
 
   const log = useCallback((msg: string, type: "info" | "success" | "error" = "info") => {
     const prefix = type === "success" ? "[OK] " : type === "error" ? "[ERR] " : "> ";
@@ -322,12 +325,14 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Add peer review failed");
       log("Peer review added (sentiment auto-calculated)", "success");
+      const reviewerDisplay = peerReviewerNameOverride?.trim() || employees.find((e) => e.id === reviewerId)?.full_name ?? reviewerId?.slice(0, 8) ?? "";
+      const reviewedDisplay = peerReviewedNameOverride?.trim() || employees.find((e) => e.id === reviewedId)?.full_name ?? reviewedId?.slice(0, 8) ?? "";
       setSubmittedReviews((prev) => [
         ...prev,
         {
           id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `rev-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-          reviewerName: employees.find((e) => e.id === reviewerId)?.full_name ?? reviewerId?.slice(0, 8) ?? "",
-          reviewedName: employees.find((e) => e.id === reviewedId)?.full_name ?? reviewedId?.slice(0, 8) ?? "",
+          reviewerName: reviewerDisplay,
+          reviewedName: reviewedDisplay,
           rating: peerRating,
           review_text: peerReviewText?.trim() || null,
         },
@@ -642,6 +647,92 @@ export function SandboxV2Client() {
 
   const clearSubmittedReviews = () => setSubmittedReviews([]);
 
+  /** Reviewed dropdown: exclude selected reviewer to prevent self peer reviews */
+  const reviewedCandidates = employees.filter((e) => e.id !== peerReviewerId);
+
+  const generateDemoData = async () => {
+    const sandboxId = currentSandboxId?.trim() || null;
+    if (!sandboxId) return;
+    setDemoDataLoading(true);
+    setError(null);
+    try {
+      log("Generate Demo Data: creating 1 employer…", "info");
+      const empRes = await fetch(`${API}/employers`, { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ sandboxId }) });
+      const empJ = await empRes.json().catch(() => ({}));
+      if (!empRes.ok) throw new Error((empJ as { error?: string }).error || "Create employer failed");
+      const employerId = (empJ as { data?: { id?: string } }).data?.id;
+      if (!employerId) throw new Error("Employer created but no id returned");
+      await refreshSandbox(sandboxId);
+
+      log("Generate Demo Data: creating 3 employees…", "info");
+      const employeeIds: string[] = [];
+      for (let i = 0; i < 3; i++) {
+        const res = await fetch(`${API}/employees`, { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ sandboxId }) });
+        const j = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error((j as { error?: string }).error || "Create employee failed");
+        const id = (j as { data?: { id?: string } }).data?.id;
+        if (id) employeeIds.push(id);
+      }
+      if (employeeIds.length < 2) throw new Error("Need at least 2 employees for peer reviews");
+      await refreshSandbox(sandboxId);
+
+      log("Generate Demo Data: adding 5 peer reviews…", "info");
+      const pairs: [string, string][] = [];
+      for (let a = 0; a < employeeIds.length; a++) {
+        for (let b = 0; b < employeeIds.length; b++) {
+          if (a !== b) pairs.push([employeeIds[a], employeeIds[b]]);
+        }
+      }
+      for (let i = 0; i < Math.min(5, pairs.length); i++) {
+        const [reviewer_id, reviewed_id] = pairs[i % pairs.length];
+        const prRes = await fetch(`${API}/peer-reviews`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ sandbox_id: sandboxId, reviewer_id, reviewed_id, rating: 4, review_text: "Demo peer review." }),
+        });
+        if (!prRes.ok) throw new Error("Peer review failed");
+      }
+      await refreshSandbox(sandboxId);
+
+      const eid1 = employeeIds[0];
+      const eid2 = employeeIds[1];
+      if (eid1 && employerId) {
+        log("Generate Demo Data: adding employment record 1…", "info");
+        const er1 = await fetch(`${API}/employment-records`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ sandbox_id: sandboxId, employee_id: eid1, employer_id: employerId, role: "Engineer", tenure_months: 12, rehire_eligible: true }),
+        });
+        if (!er1.ok) throw new Error("Employment record 1 failed");
+      }
+      if (eid2 && employerId) {
+        log("Generate Demo Data: adding employment record 2…", "info");
+        const er2 = await fetch(`${API}/employment-records`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ sandbox_id: sandboxId, employee_id: eid2, employer_id: employerId, role: "Analyst", tenure_months: 6, rehire_eligible: true }),
+        });
+        if (!er2.ok) throw new Error("Employment record 2 failed");
+      }
+      await refreshSandbox(sandboxId);
+
+      log("Generate Demo Data: recalculating intelligence…", "info");
+      const recRes = await fetch(`${API}/recalculate`, { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ sandboxId }) });
+      if (!recRes.ok) throw new Error("Recalculate failed");
+      await refreshSandbox(sandboxId);
+      log("Generate Demo Data: done.", "success");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+    } finally {
+      setDemoDataLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
       <header className="sticky top-0 z-10 border-b border-slate-700 bg-slate-900/98 backdrop-blur-sm">
@@ -692,8 +783,8 @@ export function SandboxV2Client() {
 
         {/* Executive Dashboard (boardroom ready) — only when sandbox selected */}
         {currentSandboxId && executiveMode && (
-          <section className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
-            <h2 className="text-lg font-semibold text-slate-100">Executive Dashboard</h2>
+          <section className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
+            <h2 className="text-xl font-semibold text-slate-100">Executive Dashboard</h2>
             <div className="mt-4 border-t border-slate-600 pt-4">
               {loading ? (
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
@@ -734,8 +825,8 @@ export function SandboxV2Client() {
         )}
 
         {/* Sandbox Session Control */}
-        <section className="rounded-2xl border border-slate-600 bg-slate-800 p-6 shadow-xl">
-          <h2 className="text-lg font-semibold text-slate-100">Sandbox Session Control</h2>
+        <section className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
+          <h2 className="text-xl font-semibold text-slate-100">Sandbox Session Control</h2>
           <div className="mt-4 border-t border-slate-600 pt-4">
           <div className="mt-4 flex flex-wrap items-end gap-4">
             <div>
@@ -761,8 +852,8 @@ export function SandboxV2Client() {
         </section>
 
         {/* Auto Population Templates */}
-        <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-900 to-slate-800 p-6 shadow-xl">
-          <h2 className="text-lg font-semibold text-white">Auto Population Templates</h2>
+        <div className="rounded-2xl border-2 border-slate-600 bg-gradient-to-br from-slate-900 to-slate-800 p-8 shadow-xl">
+          <h2 className="text-xl font-semibold text-slate-100">Auto Population Templates</h2>
           <p className="mt-1 text-sm text-slate-400">One-click deploy: employees, reviews, intelligence, revenue, ads.</p>
           <div className="mt-4 flex flex-wrap items-end gap-4">
             <div>
@@ -845,8 +936,8 @@ export function SandboxV2Client() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Employer Generator */}
-          <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
-            <h2 className="text-lg font-semibold text-slate-100">Employer Generator</h2>
+          <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
+            <h2 className="text-xl font-semibold text-slate-100">Employer Generator</h2>
             <div className="mt-4 space-y-3">
               <div>
                 <Label className="text-slate-400">Company name</Label>
@@ -869,8 +960,8 @@ export function SandboxV2Client() {
           </div>
 
           {/* Employee Generator */}
-          <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
-            <h2 className="text-lg font-semibold text-slate-100">Employee Generator</h2>
+          <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
+            <h2 className="text-xl font-semibold text-slate-100">Employee Generator</h2>
             <div className="mt-4 space-y-3">
               <div>
                 <Label className="text-slate-400">Full name</Label>
@@ -885,29 +976,80 @@ export function SandboxV2Client() {
           </div>
         </div>
 
+        {/* Employees list (above Peer Review Builder) */}
+        <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-100">Employees</h2>
+              <p className="mt-1 text-sm text-slate-400">{employees.length} total</p>
+            </div>
+            <Button onClick={generateDemoData} disabled={!currentSandboxId || demoDataLoading || loading} variant="secondary">
+              {demoDataLoading ? "Generating…" : "Generate Demo Data"}
+            </Button>
+          </div>
+          <p className="mt-2 text-xs text-slate-500">Demo: 3 employees, 1 employer, 5 peer reviews, 2 employment records, then recalculate.</p>
+          <div className="mt-4 max-h-48 space-y-2 overflow-y-auto">
+            {employees.length === 0 && (
+              <p className="text-sm text-slate-500">No employees yet. Generate employees or use Generate Demo Data.</p>
+            )}
+            {employees.map((e) => (
+              <div key={e.id} className="flex items-center justify-between rounded-lg border border-slate-600 bg-slate-700/80 px-3 py-2">
+                <div>
+                  <span className="font-medium text-slate-100">{e.full_name ?? e.id.slice(0, 8)}</span>
+                  <span className="ml-2 text-sm text-slate-400">{e.industry ?? "—"}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-400 hover:text-red-300"
+                  disabled
+                  title="Delete employee (requires backend support)"
+                >
+                  Delete
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Peer Review Builder */}
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
-          <h2 className="text-lg font-semibold text-slate-100">Peer Review Builder</h2>
+        <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
+          <h2 className="text-xl font-semibold text-slate-100">Peer Review Builder</h2>
           <p className="mt-1 text-sm text-slate-400">Sentiment score auto-calculated. Submit multiple reviews.</p>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <Label className="text-slate-400">Reviewer</Label>
-              <select value={peerReviewerId} onChange={(e) => setPeerReviewerId(e.target.value)} className="mt-1 rounded border border-slate-600 bg-slate-700 px-3 py-2 text-base text-slate-100">
+              <select
+                value={peerReviewerId}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setPeerReviewerId(next);
+                  if (next && peerReviewedId === next) setPeerReviewedId("");
+                }}
+                className="mt-1 rounded border border-slate-600 bg-slate-700 px-3 py-2 text-base text-slate-100"
+              >
                 <option value="">Select employee</option>
                 {employees?.length === 0 && <option disabled>No employees yet</option>}
                 {employees?.map((e) => (
                   <option key={e.id} value={e.id}>{e.full_name ?? e.id.slice(0, 8)}</option>
                 ))}
               </select>
+              <Input value={peerReviewerNameOverride} onChange={(e) => setPeerReviewerNameOverride(e.target.value)} placeholder="Override display name (optional)" className="mt-1.5 border-slate-600 bg-slate-700/80 text-sm text-slate-100" />
             </div>
             <div>
               <Label className="text-slate-400">Reviewed</Label>
-              <select value={peerReviewedId} onChange={(e) => setPeerReviewedId(e.target.value)} className="mt-1 rounded border border-slate-600 bg-slate-700 px-3 py-2 text-base text-slate-100">
+              <select
+                value={peerReviewedId}
+                onChange={(e) => setPeerReviewedId(e.target.value)}
+                className="mt-1 rounded border border-slate-600 bg-slate-700 px-3 py-2 text-base text-slate-100"
+              >
                 <option value="">Select employee</option>
-                {employees?.map((e) => (
+                {reviewedCandidates.length === 0 && <option disabled>No other employees (or select reviewer first)</option>}
+                {reviewedCandidates.map((e) => (
                   <option key={e.id} value={e.id}>{e.full_name ?? e.id.slice(0, 8)}</option>
                 ))}
               </select>
+              <Input value={peerReviewedNameOverride} onChange={(e) => setPeerReviewedNameOverride(e.target.value)} placeholder="Override display name (optional)" className="mt-1.5 border-slate-600 bg-slate-700/80 text-sm text-slate-100" />
             </div>
             <div className="sm:col-span-2">
               <Label className="text-slate-400">Rating (1–5): {peerRating}</Label>
@@ -938,8 +1080,8 @@ export function SandboxV2Client() {
         </div>
 
         {/* Score simulation: sentiment multiplier */}
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
-          <h2 className="text-lg font-semibold text-slate-100">Score simulation</h2>
+        <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
+          <h2 className="text-xl font-semibold text-slate-100">Score simulation</h2>
           <p className="mt-1 text-sm text-slate-400">Sentiment multiplier (0.5–2.0). Click Recalculate to apply.</p>
           <div className="mt-4">
             <Label className="text-slate-400">Multiplier: {sentimentMultiplier.toFixed(1)}</Label>
@@ -994,8 +1136,8 @@ export function SandboxV2Client() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Ads Simulation */}
-          <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
-            <h2 className="text-lg font-semibold text-slate-100">Ads Simulation</h2>
+          <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
+            <h2 className="text-xl font-semibold text-slate-100">Ads Simulation</h2>
             <p className="mt-1 text-sm text-slate-400">ROI = (clicks × 150 − spend) / spend</p>
             <div className="mt-4 flex flex-wrap gap-4">
               <div>
@@ -1055,8 +1197,8 @@ export function SandboxV2Client() {
         {/* Employee Intelligence + Employer Analytics — only when dashboard loaded */}
         {dashboardData !== null ? (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
-              <h2 className="text-lg font-semibold text-slate-100">Employee Intelligence</h2>
+            <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
+              <h2 className="text-xl font-semibold text-slate-100">Employee Intelligence</h2>
               <div className="mt-4 grid grid-cols-2 gap-4">
                 <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
                   <p className="text-sm uppercase tracking-wide text-slate-400">Employees</p>
@@ -1086,8 +1228,8 @@ export function SandboxV2Client() {
               ))}
               <Button variant="secondary" className="mt-4" onClick={runRecalculate} disabled={loading || !currentSandboxId || recalcLoading}>{recalcLoading ? "…" : "Recalculate intelligence"}</Button>
             </div>
-            <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
-              <h2 className="text-lg font-semibold text-slate-100">Employer Analytics</h2>
+            <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
+              <h2 className="text-xl font-semibold text-slate-100">Employer Analytics</h2>
               <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
                 <p className="text-sm uppercase tracking-wide text-slate-400">Employers</p>
                 <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? employers.length : "—"}</p>
@@ -1110,8 +1252,8 @@ export function SandboxV2Client() {
         ) : null}
 
         {/* Feature Toggles */}
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
-          <h2 className="text-lg font-semibold text-slate-100">Feature Toggles</h2>
+        <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
+          <h2 className="text-xl font-semibold text-slate-100">Feature Toggles</h2>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button variant="secondary" size="sm" onClick={syncFeatures} disabled={syncFeaturesLoading}>{syncFeaturesLoading ? "…" : "Sync from production"}</Button>
           </div>
@@ -1127,8 +1269,8 @@ export function SandboxV2Client() {
         </div>
 
         {/* View-As Mode */}
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
-          <h2 className="text-lg font-semibold text-slate-100">View-As Mode</h2>
+        <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
+          <h2 className="text-xl font-semibold text-slate-100">View-As Mode</h2>
           <p className="mt-1 text-sm text-slate-400">Simulate plan gating, feature access, intelligence visibility (sandbox-only).</p>
           <div className="mt-4 flex gap-2">
             {(["Admin", "Employer", "Employee"] as const).map((mode) => (
@@ -1139,14 +1281,14 @@ export function SandboxV2Client() {
         </div>
 
         {/* Actions */}
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
-          <h2 className="text-lg font-semibold text-slate-100">Actions</h2>
+        <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
+          <h2 className="text-xl font-semibold text-slate-100">Actions</h2>
           <Button variant="secondary" className="mt-4" onClick={runCleanup} disabled={loading || cleanupLoading}>{cleanupLoading ? "…" : "Cleanup expired sessions"}</Button>
         </div>
 
         {/* Console */}
-        <section className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
-          <h2 className="text-lg font-semibold text-slate-100">Command Console</h2>
+        <section className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
+          <h2 className="text-xl font-semibold text-slate-100">Command Console</h2>
           <div className="mt-4 border-t border-slate-600 pt-4">
             <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-600 bg-slate-800/90 p-4 font-mono text-base text-slate-200">
               {consoleLogs.length === 0 && <p className="text-slate-500">No output yet.</p>}
@@ -1161,8 +1303,8 @@ export function SandboxV2Client() {
         {/* Right column: Generated lists + live metrics */}
         <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
           {/* Generated Employers */}
-          <div className="rounded-xl border border-slate-700 bg-slate-800 p-5">
-            <h2 className="mb-2 text-base font-semibold text-slate-100">Generated Employers</h2>
+          <div className="rounded-xl border-2 border-slate-600 bg-slate-800 p-6">
+            <h2 className="mb-2 text-xl font-semibold text-slate-100">Generated Employers</h2>
             <p className="mb-3 text-sm text-slate-400">{employers.length} total</p>
             <div className="max-h-56 overflow-y-auto space-y-2">
               {employers.length === 0 && (
@@ -1196,8 +1338,8 @@ export function SandboxV2Client() {
 
           {/* Live metrics */}
           {dashboardData && (
-            <div className="rounded-xl border border-slate-700 bg-slate-800 p-5">
-              <h2 className="mb-3 text-base font-semibold text-slate-100">Live metrics</h2>
+            <div className="rounded-xl border-2 border-slate-600 bg-slate-800 p-6">
+              <h2 className="mb-3 text-xl font-semibold text-slate-100">Live metrics</h2>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Employers</span>
