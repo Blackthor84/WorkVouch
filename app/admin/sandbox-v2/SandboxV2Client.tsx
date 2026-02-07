@@ -152,6 +152,8 @@ export function SandboxV2Client() {
         return;
       }
       console.log("DASHBOARD RESPONSE:", json);
+      console.log("DASHBOARD employers:", (json.data as { employers?: unknown })?.employers);
+      console.log("DASHBOARD employees:", (json.data as { employees?: unknown })?.employees);
       if (json.success) {
         setDashboardData((json.data ?? null) as Metrics | null);
       } else {
