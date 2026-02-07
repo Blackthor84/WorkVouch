@@ -15,6 +15,17 @@ export async function GET(req: NextRequest) {
     console.log("DASHBOARD QUERY sandboxId:", sandboxId);
 
     const supabase = getServiceRoleClient();
+    const { data: employers, error: employersError } = await supabase
+      .from("sandbox_employers")
+      .select("*")
+      .eq("sandbox_id", sandboxId);
+    const { data: employees, error: employeesError } = await supabase
+      .from("sandbox_employees")
+      .select("*")
+      .eq("sandbox_id", sandboxId);
+    console.log("DASHBOARD employers:", employers);
+    console.log("DASHBOARD employees:", employees);
+
     const [sessionRes, metricsRes, employersRes, employeesRes, recordsRes, reviewsRes, intelRes, revenueRes, adsRes] = await Promise.all([
       supabase.from("sandbox_sessions").select("id, name, starts_at, ends_at, status").eq("id", sandboxId).maybeSingle(),
       supabase.from("sandbox_metrics").select("*").eq("sandbox_id", sandboxId).maybeSingle(),
@@ -45,11 +56,8 @@ export async function GET(req: NextRequest) {
       metricsRow = refreshed ?? null;
     }
 
-    const employers = employersRes.data ?? [];
-    const employees = employeesRes.data ?? [];
-
-    console.log("DASHBOARD employers result:", employers);
-    console.log("DASHBOARD employees result:", employees);
+    const employersList = employers ?? [];
+    const employeesList = employees ?? [];
 
     const records = recordsRes.data ?? [];
     const reviews = reviewsRes.data ?? [];
@@ -71,7 +79,7 @@ export async function GET(req: NextRequest) {
       ad_roi?: number | null;
     } | null;
 
-    const profilesCount = m?.profiles_count ?? employees.length;
+    const profilesCount = m?.profiles_count ?? employeesList.length;
     const employmentRecordsCount = m?.employment_records_count ?? records.length;
     const referencesCount = m?.references_count ?? reviews.length;
     const avgProfileStrength = m?.avg_profile_strength ?? (intel.length > 0 ? intel.reduce<number>((s, r) => s + (r.profile_strength ?? 0), 0) / intel.length : null);
@@ -84,7 +92,7 @@ export async function GET(req: NextRequest) {
     const adRoi = m?.ad_roi ?? (totalSpend > 0 && totalClicks > 0 ? (totalClicks * 150 - totalSpend) / totalSpend : null);
     const dataDensityIndex = profilesCount + employmentRecordsCount + referencesCount;
 
-    const employersCount = employers.length;
+    const employersCount = employersList.length;
     const employeesCount = profilesCount;
     const peerReviewsCount = referencesCount;
     const totalAdSpend = totalSpend;
@@ -119,13 +127,15 @@ export async function GET(req: NextRequest) {
         avgHiringConfidence,
         avgProfileStrength,
         outputs: intel,
-        employees: employees.map((e) => ({ id: e.id, full_name: e.full_name ?? "", industry: e.industry ?? null })),
+        employees: employeesList.map((e) => ({ id: e.id, full_name: e.full_name ?? "", industry: e.industry ?? null })),
       },
       employerAnalytics: { employersCount: employers.length, employers: employers.map((e) => ({ id: e.id, company_name: e.company_name ?? "" })) },
       revenueSimulation: { mrr, churn_rate, revenueRows: revenue.length },
       adsSimulation: { campaignsCount: ads.length, totalSpend, totalImpressions, totalClicks, ads },
-      rawCounts: { profiles: profilesCount, employers: employers.length, employmentRecords: employmentRecordsCount, references: referencesCount },
+      rawCounts: { profiles: profilesCount, employers: employersList.length, employmentRecords: employmentRecordsCount, references: referencesCount },
       executive: { avgProfileStrength, avgHiringConfidence, totalSpend, adRoi, dataDensityIndex },
+      employers: employers ?? [],
+      employees: employees ?? [],
     };
     return NextResponse.json({ success: true, data: result });
   } catch (e: unknown) {
