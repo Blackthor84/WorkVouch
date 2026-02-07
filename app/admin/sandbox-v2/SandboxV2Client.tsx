@@ -325,8 +325,18 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Add peer review failed");
       log("Peer review added (sentiment auto-calculated)", "success");
-      const reviewerDisplay = peerReviewerNameOverride?.trim() || employees.find((e) => e.id === reviewerId)?.full_name ?? reviewerId?.slice(0, 8) ?? "";
-      const reviewedDisplay = peerReviewedNameOverride?.trim() || employees.find((e) => e.id === reviewedId)?.full_name ?? reviewedId?.slice(0, 8) ?? "";
+      const reviewerName =
+        employees.find((e) => e.id === reviewerId)?.full_name ??
+        reviewerId?.slice(0, 8) ??
+        "";
+      const reviewerDisplay =
+        peerReviewerNameOverride?.trim() || reviewerName;
+      const reviewedName =
+        employees.find((e) => e.id === reviewedId)?.full_name ??
+        reviewedId?.slice(0, 8) ??
+        "";
+      const reviewedDisplay =
+        peerReviewedNameOverride?.trim() || reviewedName;
       setSubmittedReviews((prev) => [
         ...prev,
         {
