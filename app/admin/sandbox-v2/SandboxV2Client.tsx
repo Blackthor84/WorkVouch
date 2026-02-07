@@ -153,9 +153,6 @@ export function SandboxV2Client() {
         setDashboardData(null);
         return;
       }
-      console.log("DASHBOARD RESPONSE:", json);
-      console.log("DASHBOARD employers:", (json.data as { employers?: unknown })?.employers);
-      console.log("DASHBOARD employees:", (json.data as { employees?: unknown })?.employees);
       if (json.success) {
         setDashboardData((json.data ?? null) as Metrics | null);
       } else {
@@ -247,7 +244,6 @@ export function SandboxV2Client() {
     setGenEmployerLoading(true);
     setError(null);
     try {
-      console.log("Calling employers endpoint with:", currentSandboxId);
       const res = await fetch("/api/admin/sandbox-v2/employers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -255,15 +251,11 @@ export function SandboxV2Client() {
         body: JSON.stringify({ sandboxId: currentSandboxId }),
       });
       const j = await res.json().catch(() => ({}));
-      console.log("After POST /employers", { ok: res.ok, status: res.status });
-      console.log("After POST /employers RESPONSE:", j);
       if (!res.ok) throw new Error((j as { error?: string }).error || "Generate failed");
       const data = (j as { data?: { id?: string } }).data;
       log("Employer created: " + (data?.id ?? "").slice(0, 8), "success");
       setEmployerName("");
-      console.log("Before refresh");
       await refreshSandbox(sandboxId);
-      console.log("After refresh");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -281,7 +273,6 @@ export function SandboxV2Client() {
     setGenEmployeeLoading(true);
     setError(null);
     try {
-      console.log("Calling employees endpoint with:", currentSandboxId);
       const res = await fetch("/api/admin/sandbox-v2/employees", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -289,14 +280,11 @@ export function SandboxV2Client() {
         body: JSON.stringify({ sandboxId: currentSandboxId }),
       });
       const j = await res.json().catch(() => ({}));
-      console.log("After POST /employees", { ok: res.ok, status: res.status });
       if (!res.ok) throw new Error((j as { error?: string }).error || "Generate failed");
       const data = (j as { data?: { id?: string } }).data;
       log("Employee created: " + (data?.id ?? "").slice(0, 8), "success");
       setEmployeeName("");
-      console.log("Before refresh");
       await refreshSandbox(sandboxId);
-      console.log("After refresh");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -542,13 +530,11 @@ export function SandboxV2Client() {
 
   const handleDeployTemplate = async () => {
     const sandboxId = currentSandboxId?.trim() || null;
-    console.log("DEPLOY CLICKED", "ACTIVE SANDBOX:", sandboxId);
     if (!sandboxId) {
       alert("No active sandbox selected");
       return;
     }
     try {
-      console.log("Before POST /preset", { sandboxId });
       const res = await fetch(`${API}/preset`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -556,13 +542,9 @@ export function SandboxV2Client() {
         body: JSON.stringify({ sandboxId }),
       });
       const j = await res.json().catch(() => ({}));
-      console.log("After POST /preset", { ok: res.ok, status: res.status });
-      console.log("After POST /preset RESPONSE:", j);
       if (!res.ok) throw new Error((j as { error?: string }).error || "Preset failed");
       if (!(j as { success?: boolean }).success) throw new Error("Preset returned success: false");
-      console.log("Before refresh");
       await refreshSandbox(sandboxId);
-      console.log("After refresh");
       log("Template deployed", "success");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
@@ -1054,9 +1036,15 @@ export function SandboxV2Client() {
                   <p className="text-3xl font-bold text-cyan-400">{ei?.avgHiringConfidence != null ? ei.avgHiringConfidence.toFixed(1) : "—"}</p>
                 </div>
               </div>
-              {employees.length === 0 && currentSandboxId && (
-                <div style={{ padding: 20, opacity: 0.6 }}>No employees found</div>
+              {employees.length === 0 && (
+                <p className="mt-4 text-sm text-slate-500">No employees yet</p>
               )}
+              {employees.map((e) => (
+                <div key={e.id} className="mt-2 rounded-md border border-slate-700 p-3">
+                  <div className="font-medium text-white">{e.full_name ?? e.id.slice(0, 8)}</div>
+                  <div className="text-sm text-slate-500">{e.industry ?? "—"}</div>
+                </div>
+              ))}
               <Button variant="secondary" className="mt-4" onClick={runRecalculate} disabled={loading || !currentSandboxId || recalcLoading}>{recalcLoading ? "…" : "Recalculate intelligence"}</Button>
             </div>
             <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
@@ -1065,16 +1053,15 @@ export function SandboxV2Client() {
                 <p className="text-sm uppercase tracking-wide text-slate-400">Employers</p>
                 <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? employers.length : "—"}</p>
               </div>
-              {employers.length === 0 && currentSandboxId && (
-                <div style={{ padding: 20, opacity: 0.6 }}>No employers found</div>
+              {employers.length === 0 && (
+                <p className="mt-4 text-sm text-slate-500">No employers yet</p>
               )}
-              {employers.length > 0 && (
-                <ul className="mt-3 space-y-1 text-sm text-slate-300">
-                  {employers.slice(0, 10).map((e) => (
-                    <li key={e.id}>{e.company_name ?? e.id.slice(0, 8)}</li>
-                  ))}
-                </ul>
-              )}
+              {employers.map((e) => (
+                <div key={e.id} className="mt-2 rounded-md border border-slate-700 p-3">
+                  <div className="font-medium text-white">{e.company_name ?? e.id.slice(0, 8)}</div>
+                  <div className="text-sm text-slate-500">{e.industry ?? "—"}</div>
+                </div>
+              ))}
             </div>
           </div>
         ) : currentSandboxId ? (
