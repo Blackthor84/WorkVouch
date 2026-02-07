@@ -1054,15 +1054,47 @@ export function SandboxV2Client() {
                 <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? employers.length : "—"}</p>
               </div>
               {employers.length === 0 && (
-                <p className="mt-4 text-sm text-slate-500">No employers yet</p>
+                <p className="mt-4 text-sm text-slate-400">No employers generated yet.</p>
               )}
               {employers.map((e) => (
-                <div key={e.id} className="mt-2 rounded-md border border-slate-700 p-3">
+                <div key={e.id} className="mb-3 rounded-lg border border-slate-700 bg-slate-700 p-3">
                   <div className="font-medium text-white">{e.company_name ?? e.id.slice(0, 8)}</div>
-                  <div className="text-sm text-slate-500">{e.industry ?? "—"}</div>
+                  <div className="text-sm text-slate-400">
+                    {e.industry ?? "—"} • {e.plan_tier ?? "—"}
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* === Generated Employers === */}
+          <div className="mt-8 rounded-xl border border-slate-700 bg-slate-800 p-6">
+            <h2 className="mb-4 text-lg font-semibold text-white">Generated Employers</h2>
+            {employers.length === 0 && (
+              <p className="text-sm text-slate-400">No employers generated yet.</p>
+            )}
+            {employers.map((e) => (
+              <div key={e.id} className="mb-3 rounded-lg border border-slate-600 bg-slate-700 p-3">
+                <div className="font-medium text-white">{e.company_name ?? e.id.slice(0, 8)}</div>
+                <div className="text-sm text-slate-400">
+                  {e.industry ?? "—"} • {e.plan_tier ?? "—"}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* === Generated Employees === */}
+          <div className="mt-6 rounded-xl border border-slate-700 bg-slate-800 p-6">
+            <h2 className="mb-4 text-lg font-semibold text-white">Generated Employees</h2>
+            {employees.length === 0 && (
+              <p className="text-sm text-slate-400">No employees generated yet.</p>
+            )}
+            {employees.map((e) => (
+              <div key={e.id} className="mb-3 rounded-lg border border-slate-600 bg-slate-700 p-3">
+                <div className="font-medium text-white">{e.full_name ?? e.id.slice(0, 8)}</div>
+                <div className="text-sm text-slate-400">{e.industry ?? "—"}</div>
+              </div>
+            ))}
           </div>
         ) : currentSandboxId ? (
           <div style={{ padding: 20, opacity: 0.6 }}>No metrics loaded. Select a sandbox and refresh.</div>
