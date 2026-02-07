@@ -35,6 +35,8 @@ type Metrics = {
   adsSimulation: { campaignsCount: number; totalSpend: number; totalImpressions: number; totalClicks: number };
   rawCounts: { profiles: number; employers: number; employmentRecords: number; references: number };
   executive?: Executive;
+  employers: Employer[];
+  employees: Employee[];
 };
 type FeatureItem = { id: string; feature_key: string; is_enabled: boolean };
 type TemplateItem = { id: string; template_key: string; display_name: string; industry: string; default_employee_count: number; description?: string | null };
