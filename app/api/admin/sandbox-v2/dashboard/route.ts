@@ -25,6 +25,8 @@ export async function GET(req: NextRequest) {
       .eq("sandbox_id", sandboxId);
     console.log("DASHBOARD employers:", employers);
     console.log("DASHBOARD employees:", employees);
+    const employersList = employers ?? [];
+    const employeesList = employees ?? [];
 
     const [sessionRes, metricsRes, employersRes, employeesRes, recordsRes, reviewsRes, intelRes, revenueRes, adsRes] = await Promise.all([
       supabase.from("sandbox_sessions").select("id, name, starts_at, ends_at, status").eq("id", sandboxId).maybeSingle(),
