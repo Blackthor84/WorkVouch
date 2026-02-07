@@ -56,9 +56,6 @@ export async function GET(req: NextRequest) {
       metricsRow = refreshed ?? null;
     }
 
-    const employersList = employers ?? [];
-    const employeesList = employees ?? [];
-
     const records = recordsRes.data ?? [];
     const reviews = reviewsRes.data ?? [];
     const intel = intelRes.data ?? [];
@@ -129,13 +126,13 @@ export async function GET(req: NextRequest) {
         outputs: intel,
         employees: employeesList.map((e) => ({ id: e.id, full_name: e.full_name ?? "", industry: e.industry ?? null })),
       },
-      employerAnalytics: { employersCount: employers.length, employers: employers.map((e) => ({ id: e.id, company_name: e.company_name ?? "" })) },
+      employerAnalytics: { employersCount: employersList.length, employers: employersList.map((e) => ({ id: e.id, company_name: e.company_name ?? "" })) },
       revenueSimulation: { mrr, churn_rate, revenueRows: revenue.length },
       adsSimulation: { campaignsCount: ads.length, totalSpend, totalImpressions, totalClicks, ads },
       rawCounts: { profiles: profilesCount, employers: employersList.length, employmentRecords: employmentRecordsCount, references: referencesCount },
       executive: { avgProfileStrength, avgHiringConfidence, totalSpend, adRoi, dataDensityIndex },
-      employers: employers ?? [],
-      employees: employees ?? [],
+      employers: employersList,
+      employees: employeesList,
     };
     return NextResponse.json({ success: true, data: result });
   } catch (e: unknown) {
