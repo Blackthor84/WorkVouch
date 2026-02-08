@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { EntitiesPanel } from "./EntitiesPanel";
+import { SimulationPanel } from "./SimulationPanel";
+import { ResultsPanel } from "./ResultsPanel";
 
 const API = "/api/admin/sandbox-v2";
 
@@ -94,6 +97,7 @@ export function SandboxV2Client() {
   const [peerReviewerNameOverride, setPeerReviewerNameOverride] = useState("");
   const [peerReviewedNameOverride, setPeerReviewedNameOverride] = useState("");
   const [demoDataLoading, setDemoDataLoading] = useState(false);
+  const [previousAvgHiringConfidence, setPreviousAvgHiringConfidence] = useState<number | null>(null);
 
   const log = useCallback((msg: string, type: "info" | "success" | "error" = "info") => {
     const prefix = type === "success" ? "[OK] " : type === "error" ? "[ERR] " : "> ";
@@ -468,7 +472,12 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Recalculate failed");
       log("Intelligence recalculated", "success");
-      if (currentSandboxId) await refreshSandbox(currentSandboxId);
+      if (currentSandboxId) {
+        await refreshSandbox(currentSandboxId);
+        const ei = dashboardData?.employeeIntelligence;
+        const avg = ei?.avgHiringConfidence ?? dashboardData?.sandbox_metrics?.avg_hiring_confidence;
+        if (avg != null) setPreviousAvgHiringConfidence(Number(avg));
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
       setError(msg);
@@ -649,6 +658,15 @@ export function SandboxV2Client() {
   const ads = dashboardData?.adsSimulation ?? null;
   const exec = dashboardData?.executive;
 
+  const intelByEmployeeId = useMemo(() => {
+    const map = new Map<string, { employee_id: string; profile_strength?: number | null }>();
+    const outputs = ei?.outputs ?? [];
+    for (const o of outputs) {
+      if (o?.employee_id) map.set(o.employee_id, o);
+    }
+    return map;
+  }, [ei?.outputs]);
+
   const activeSession = currentSandboxId ? sessions.find((s) => s.id === currentSandboxId) : null;
   const now = typeof window !== "undefined" ? Date.now() : 0;
   const sessionEnded = activeSession?.ends_at ? new Date(activeSession.ends_at).getTime() < now : false;
@@ -774,9 +792,37 @@ export function SandboxV2Client() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 p-6 lg:grid-cols-[1fr_400px]">
-        {/* Left column: Session control, generators, peer review */}
-        <div className="space-y-6">
+      <div
+        className="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 p-6 lg:grid-cols-[300px_1fr_350px]"
+        style={{ gridTemplateColumns: "minmax(0, 300px) minmax(0, 1fr) minmax(0, 350px)" } as React.CSSProperties}
+      >
+        {/* LEFT: Entities panel */}
+        <div className="min-h-0 lg:min-h-[calc(100vh-8rem)]">
+          <EntitiesPanel
+            employers={employers}
+            employees={employees}
+            intelByEmployeeId={intelByEmployeeId}
+            currentSandboxId={currentSandboxId}
+            loading={loading}
+            genEmployerLoading={genEmployerLoading}
+            genEmployeeLoading={genEmployeeLoading}
+            employerName={employerName}
+            setEmployerName={setEmployerName}
+            employerIndustry={employerIndustry}
+            setEmployerIndustry={setEmployerIndustry}
+            employerPlanTier={employerPlanTier}
+            setEmployerPlanTier={setEmployerPlanTier}
+            employeeName={employeeName}
+            setEmployeeName={setEmployeeName}
+            employeeIndustry={employeeIndustry}
+            setEmployeeIndustry={setEmployeeIndustry}
+            onGenerateEmployer={generateEmployer}
+            onGenerateEmployee={generateEmployee}
+          />
+        </div>
+
+        {/* CENTER: Simulation controls */}
+        <div className="min-w-0 space-y-4">
         {error && (
           <div className="rounded-xl border border-red-500/60 bg-red-500/15 px-4 py-3 text-red-200">{error}</div>
         )}
@@ -837,18 +883,27 @@ export function SandboxV2Client() {
           </section>
         )}
 
-        {/* Sandbox Session Control */}
-        <section className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
-          <h2 className="text-xl font-semibold text-slate-100">Sandbox Session Control</h2>
-          <div className="mt-4 border-t border-slate-600 pt-4">
-          <div className="mt-4 flex flex-wrap items-end gap-4">
+        <SimulationPanel
+          recalculateButton={
+            <Button variant="primary" size="sm" onClick={runRecalculate} disabled={loading || !currentSandboxId || recalcLoading}>
+              {recalcLoading ? "…" : "Recalculate"}
+            </Button>
+          }
+        >
+        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden" open>
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+            <span>Session Control</span>
+            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
+          </summary>
+          <div className="border-t border-slate-600 px-4 py-4">
+          <div className="flex flex-wrap items-end gap-4">
             <div>
-              <Label className="text-slate-400">Name</Label>
+              <Label className="font-medium text-slate-300">Name</Label>
               <Input value={createName} onChange={(e) => setCreateName(e.target.value)} placeholder="New session name" className="mt-1 w-48 border-slate-700 bg-slate-800 text-white" />
             </div>
             <Button onClick={createSession} disabled={loading || createLoading}>{createLoading ? "Creating…" : "Create session"}</Button>
             <div className="ml-4">
-              <Label className="text-slate-300">Active session</Label>
+              <Label className="font-medium text-slate-300">Active session</Label>
               <select value={currentSandboxId ?? ""} onChange={(e) => setCurrentSandboxId(e.target.value || null)} className="mt-1 rounded border border-slate-600 bg-slate-800 px-3 py-2 text-slate-100">
                 <option value="">None</option>
                 {sessions?.map((s) => (
@@ -862,15 +917,20 @@ export function SandboxV2Client() {
             </div>
           </div>
           </div>
-        </section>
+        </details>
 
-        {/* Auto Population Templates */}
-        <div className="rounded-2xl border-2 border-slate-600 bg-gradient-to-br from-slate-900 to-slate-800 p-8 shadow-xl">
-          <h2 className="text-xl font-semibold text-slate-100">Auto Population Templates</h2>
+        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+            <span>Auto Population Templates</span>
+            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
+          </summary>
+          <div className="border-t border-slate-600 px-4 py-4">
+        <div className="rounded-xl bg-slate-800/60 p-4">
+          <h3 className="text-lg font-semibold text-slate-100">Templates</h3>
           <p className="mt-1 text-sm text-slate-400">One-click deploy: employees, reviews, intelligence, revenue, ads.</p>
           <div className="mt-4 flex flex-wrap items-end gap-4">
             <div>
-              <Label className="text-slate-400">Select Template</Label>
+              <Label className="font-medium text-slate-300">Select Template</Label>
               <select value={selectedTemplateKey} onChange={(e) => setSelectedTemplateKey(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
                 <option value="">—</option>
                 {templates.map((t) => (
@@ -879,7 +939,7 @@ export function SandboxV2Client() {
               </select>
             </div>
             <div>
-              <Label className="text-slate-400">Override Employee Count (optional)</Label>
+              <Label className="font-medium text-slate-300">Override Employee Count (optional)</Label>
               <Input type="number" min={1} value={templateEmployeeOverride} onChange={(e) => setTemplateEmployeeOverride(e.target.value)} placeholder="Default" className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
             </div>
             <Button onClick={handlePreset}>Load Template</Button>
@@ -926,10 +986,17 @@ export function SandboxV2Client() {
             </div>
           )}
         </div>
+          </div>
+        </details>
 
-        {/* Preset Demo Modes */}
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
-          <h2 className="text-lg font-semibold text-slate-100">Preset Demo Modes</h2>
+        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+            <span>Preset Demo Modes</span>
+            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
+          </summary>
+          <div className="border-t border-slate-600 px-4 py-4">
+        <div className="rounded-xl bg-slate-800/60 p-4">
+          <h3 className="text-lg font-semibold text-slate-100">Demo Modes</h3>
           <p className="mt-1 text-sm text-slate-400">Alter display emphasis (review volume, sentiment, revenue, risk, churn, ad ROI) without regenerating data.</p>
           <div className="mt-4 flex flex-wrap gap-2">
             {[
@@ -946,92 +1013,21 @@ export function SandboxV2Client() {
             {demoMode && <span className="self-center text-sm text-slate-400">Active: {demoMode}</span>}
           </div>
         </div>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Employer Generator */}
-          <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
-            <h2 className="text-xl font-semibold text-slate-100">Employer Generator</h2>
-            <div className="mt-4 space-y-3">
-              <div>
-                <Label className="text-slate-400">Company name</Label>
-                <Input value={employerName} onChange={(e) => setEmployerName(e.target.value)} placeholder="Company name" className="mt-1 border-slate-700 bg-slate-800 text-white" />
-              </div>
-              <div>
-                <Label className="text-slate-400">Industry</Label>
-                <Input value={employerIndustry} onChange={(e) => setEmployerIndustry(e.target.value)} placeholder="Industry" className="mt-1 border-slate-700 bg-slate-800 text-white" />
-              </div>
-              <div>
-                <Label className="text-slate-400">Plan tier</Label>
-                <select value={employerPlanTier} onChange={(e) => setEmployerPlanTier(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
-                  <option value="starter">Starter</option>
-                  <option value="pro">Pro</option>
-                  <option value="enterprise">Enterprise</option>
-                </select>
-              </div>
-              <Button onClick={generateEmployer} disabled={loading || !currentSandboxId || genEmployerLoading}>{genEmployerLoading ? "…" : "Generate employer"}</Button>
-            </div>
           </div>
+        </details>
 
-          {/* Employee Generator */}
-          <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
-            <h2 className="text-xl font-semibold text-slate-100">Employee Generator</h2>
-            <div className="mt-4 space-y-3">
-              <div>
-                <Label className="text-slate-400">Full name</Label>
-                <Input value={employeeName} onChange={(e) => setEmployeeName(e.target.value)} placeholder="Full name" className="mt-1 border-slate-700 bg-slate-800 text-white" />
-              </div>
-              <div>
-                <Label className="text-slate-400">Industry</Label>
-                <Input value={employeeIndustry} onChange={(e) => setEmployeeIndustry(e.target.value)} placeholder="Industry" className="mt-1 border-slate-700 bg-slate-800 text-white" />
-              </div>
-              <Button onClick={generateEmployee} disabled={loading || !currentSandboxId || genEmployeeLoading}>{genEmployeeLoading ? "…" : "Generate employee"}</Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Employees list (above Peer Review Builder) */}
-        <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold text-slate-100">Employees</h2>
-              <p className="mt-1 text-sm text-slate-400">{employees.length} total</p>
-            </div>
-            <Button onClick={generateDemoData} disabled={!currentSandboxId || demoDataLoading || loading} variant="secondary">
-              {demoDataLoading ? "Generating…" : "Generate Demo Data"}
-            </Button>
-          </div>
-          <p className="mt-2 text-xs text-slate-500">Demo: 3 employees, 1 employer, 5 peer reviews, 2 employment records, then recalculate.</p>
-          <div className="mt-4 max-h-48 space-y-2 overflow-y-auto">
-            {employees.length === 0 && (
-              <p className="text-sm text-slate-500">No employees yet. Generate employees or use Generate Demo Data.</p>
-            )}
-            {employees.map((e) => (
-              <div key={e.id} className="flex items-center justify-between rounded-lg border border-slate-600 bg-slate-700/80 px-3 py-2">
-                <div>
-                  <span className="font-medium text-slate-100">{e.full_name ?? e.id.slice(0, 8)}</span>
-                  <span className="ml-2 text-sm text-slate-400">{e.industry ?? "—"}</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-400 hover:text-red-300"
-                  disabled
-                  title="Delete employee (requires backend support)"
-                >
-                  Delete
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Peer Review Builder */}
-        <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
-          <h2 className="text-xl font-semibold text-slate-100">Peer Review Builder</h2>
-          <p className="mt-1 text-sm text-slate-400">Sentiment score auto-calculated. Submit multiple reviews.</p>
+        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden" open>
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+            <span>Peer Review Builder</span>
+            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
+          </summary>
+          <div className="border-t border-slate-600 px-4 py-4">
+        <div className="rounded-xl bg-slate-800/90 p-4">
+          <h3 className="text-lg font-semibold text-slate-100">Peer Review</h3>
+          <p className="mt-1 text-sm text-slate-300">Sentiment score auto-calculated. Submit multiple reviews.</p>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <Label className="text-slate-400">Reviewer</Label>
+              <Label className="font-medium text-slate-300">Reviewer</Label>
               <select
                 value={peerReviewerId}
                 onChange={(e) => {
@@ -1050,7 +1046,7 @@ export function SandboxV2Client() {
               <Input value={peerReviewerNameOverride} onChange={(e) => setPeerReviewerNameOverride(e.target.value)} placeholder="Override display name (optional)" className="mt-1.5 border-slate-600 bg-slate-700/80 text-sm text-slate-100" />
             </div>
             <div>
-              <Label className="text-slate-400">Reviewed</Label>
+              <Label className="font-medium text-slate-300">Reviewed</Label>
               <select
                 value={peerReviewedId}
                 onChange={(e) => setPeerReviewedId(e.target.value)}
@@ -1064,12 +1060,24 @@ export function SandboxV2Client() {
               </select>
               <Input value={peerReviewedNameOverride} onChange={(e) => setPeerReviewedNameOverride(e.target.value)} placeholder="Override display name (optional)" className="mt-1.5 border-slate-600 bg-slate-700/80 text-sm text-slate-100" />
             </div>
+            {(peerReviewerId || peerReviewedId) && (
+              <div className="flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-700/50 px-3 py-2 text-sm sm:col-span-2">
+                <span className="font-medium text-slate-200">
+                  {employees.find((e) => e.id === peerReviewerId)?.full_name ?? peerReviewerId?.slice(0, 8) ?? "—"}
+                </span>
+                <span className="text-slate-400">→</span>
+                <span className="font-medium text-slate-200">
+                  {employees.find((e) => e.id === peerReviewedId)?.full_name ?? peerReviewedId?.slice(0, 8) ?? "—"}
+                </span>
+                <span className="text-slate-500">(reviewer → reviewed)</span>
+              </div>
+            )}
             <div className="sm:col-span-2">
-              <Label className="text-slate-400">Rating (1–5): {peerRating}</Label>
+              <Label className="font-medium text-slate-300">Rating (1–5): {peerRating}</Label>
               <input type="range" min={1} max={5} step={1} value={peerRating} onChange={(e) => setPeerRating(parseInt(e.target.value, 10))} className="mt-2 w-full accent-cyan-500" />
             </div>
             <div className="sm:col-span-2">
-              <Label className="text-slate-400">Review text</Label>
+              <Label className="font-medium text-slate-300">Review text</Label>
               <Input value={peerReviewText} onChange={(e) => setPeerReviewText(e.target.value)} placeholder="Review text (sentiment auto-calculated)" className="mt-1 border-slate-600 bg-slate-700 text-base text-slate-100" />
             </div>
             <div className="flex flex-wrap gap-2 sm:col-span-2">
@@ -1091,24 +1099,38 @@ export function SandboxV2Client() {
             </div>
           )}
         </div>
+          </div>
+        </details>
 
-        {/* Score simulation: sentiment multiplier */}
-        <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
-          <h2 className="text-xl font-semibold text-slate-100">Score simulation</h2>
+        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+            <span>Sentiment Multiplier</span>
+            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
+          </summary>
+          <div className="border-t border-slate-600 px-4 py-4">
+        <div className="rounded-xl bg-slate-800/90 p-4">
+          <h3 className="text-lg font-semibold text-slate-100">Score simulation</h3>
           <p className="mt-1 text-sm text-slate-400">Sentiment multiplier (0.5–2.0). Click Recalculate to apply.</p>
           <div className="mt-4">
-            <Label className="text-slate-400">Multiplier: {sentimentMultiplier.toFixed(1)}</Label>
+            <Label className="font-medium text-slate-300">Multiplier: {sentimentMultiplier.toFixed(1)}</Label>
             <input type="range" min={0.5} max={2} step={0.1} value={sentimentMultiplier} onChange={(e) => setSentimentMultiplier(parseFloat(e.target.value))} className="mt-2 w-full accent-cyan-500" />
           </div>
           <Button variant="secondary" className="mt-4" onClick={runRecalculate} disabled={loading || !currentSandboxId || recalcLoading}>{recalcLoading ? "…" : "Recalculate intelligence"}</Button>
         </div>
+          </div>
+        </details>
 
-        {/* Hiring Simulation */}
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-xl">
-          <h2 className="text-lg font-semibold text-slate-100">Hiring Simulation</h2>
+        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+            <span>Hiring Simulation</span>
+            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
+          </summary>
+          <div className="border-t border-slate-600 px-4 py-4">
+        <div className="rounded-xl bg-slate-800/90 p-4">
+          <h3 className="text-lg font-semibold text-slate-100">Employment</h3>
           <div className="mt-4 flex flex-wrap gap-4">
             <div>
-              <Label className="text-slate-400">Employee</Label>
+              <Label className="font-medium text-slate-300">Employee</Label>
               <select value={hireEmployeeId} onChange={(e) => setHireEmployeeId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
                 <option value="">Select employee</option>
                 {employees?.length === 0 && <option disabled>No employees yet</option>}
@@ -1118,7 +1140,7 @@ export function SandboxV2Client() {
               </select>
             </div>
             <div>
-              <Label className="text-slate-400">Employer</Label>
+              <Label className="font-medium text-slate-300">Employer</Label>
               <select value={hireEmployerId} onChange={(e) => setHireEmployerId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
                 <option value="">Select employer</option>
                 {employers?.map((e) => (
@@ -1131,14 +1153,14 @@ export function SandboxV2Client() {
               <Input value={hireRole} onChange={(e) => setHireRole(e.target.value)} placeholder="Role" className="mt-1 border-slate-700 bg-slate-800 text-white" />
             </div>
             <div>
-              <Label className="text-slate-400">Tenure (months)</Label>
+              <Label className="font-medium text-slate-300">Tenure (months)</Label>
               <Input type="number" value={hireTenureMonths} onChange={(e) => setHireTenureMonths(parseInt(e.target.value, 10) || 0)} className="mt-1 w-24 border-slate-700 bg-slate-800 text-white" />
             </div>
             <label className="flex items-center gap-2 text-slate-400">
               <input type="checkbox" checked={hireRehireEligible} onChange={(e) => setHireRehireEligible(e.target.checked)} className="rounded" />
               Rehire eligible
             </label>
-            <button
+              <button
                 onClick={handleAddEmployment}
                 className="px-4 py-2 bg-green-600 text-white rounded"
               >
@@ -1146,15 +1168,22 @@ export function SandboxV2Client() {
               </button>
           </div>
         </div>
+          </div>
+        </details>
 
+        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+            <span>Ads & Revenue Simulation</span>
+            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
+          </summary>
+          <div className="border-t border-slate-600 px-4 py-4">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Ads Simulation */}
-          <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
-            <h2 className="text-xl font-semibold text-slate-100">Ads Simulation</h2>
+          <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4">
+            <h3 className="text-lg font-semibold text-slate-100">Ads Simulation</h3>
             <p className="mt-1 text-sm text-slate-400">ROI = (clicks × 150 − spend) / spend</p>
             <div className="mt-4 flex flex-wrap gap-4">
               <div>
-                <Label className="text-slate-400">Employer</Label>
+                <Label className="font-medium text-slate-300">Employer</Label>
                 <select value={adsEmployerId} onChange={(e) => setAdsEmployerId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
                   <option value="">Optional</option>
                   {employers.map((e) => (
@@ -1163,15 +1192,15 @@ export function SandboxV2Client() {
                 </select>
               </div>
               <div>
-                <Label className="text-slate-400">Impressions</Label>
+                <Label className="font-medium text-slate-300">Impressions</Label>
                 <Input type="number" value={adsImpressions} onChange={(e) => setAdsImpressions(parseInt(e.target.value, 10) || 0)} className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
               </div>
               <div>
-                <Label className="text-slate-400">Clicks</Label>
+                <Label className="font-medium text-slate-300">Clicks</Label>
                 <Input type="number" value={adsClicks} onChange={(e) => setAdsClicks(parseInt(e.target.value, 10) || 0)} className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
               </div>
               <div>
-                <Label className="text-slate-400">Spend</Label>
+                <Label className="font-medium text-slate-300">Spend</Label>
                 <Input type="number" value={adsSpend} onChange={(e) => setAdsSpend(parseFloat(e.target.value) || 0)} className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
               </div>
               <Button onClick={addAds} disabled={loading || !currentSandboxId || adsLoading}>{adsLoading ? "…" : "Add ad campaign"}</Button>
@@ -1188,13 +1217,12 @@ export function SandboxV2Client() {
             </div>
           </div>
 
-          {/* Revenue Simulation */}
-          <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
-            <h2 className="text-lg font-semibold text-white">Revenue Simulation</h2>
+          <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4">
+            <h3 className="text-lg font-semibold text-slate-100">Revenue Simulation</h3>
             <p className="mt-1 text-sm text-slate-400">MRR = employer count × plan value. Churn adjustable.</p>
             <div className="mt-4 space-y-3">
               <div>
-                <Label className="text-slate-400">Churn rate (0–1)</Label>
+                <Label className="font-medium text-slate-300">Churn rate (0–1)</Label>
                 <input type="range" min="0" max="1" step="0.01" value={churnRate} onChange={(e) => setChurnRate(parseFloat(e.target.value))} className="w-full" />
                 <span className="ml-2 text-cyan-400">{(churnRate * 100).toFixed(0)}%</span>
               </div>
@@ -1206,67 +1234,17 @@ export function SandboxV2Client() {
             </div>
           </div>
         </div>
-
-        {/* Employee Intelligence + Employer Analytics — only when dashboard loaded */}
-        {dashboardData !== null ? (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
-              <h2 className="text-xl font-semibold text-slate-100">Employee Intelligence</h2>
-              <div className="mt-4 grid grid-cols-2 gap-4">
-                <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                  <p className="text-sm uppercase tracking-wide text-slate-400">Employees</p>
-                  <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? employees.length : "—"}</p>
-                </div>
-                <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                  <p className="text-sm uppercase tracking-wide text-slate-400">Employment records</p>
-                  <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? (ei?.employmentRecordsCount ?? 0) : "—"}</p>
-                </div>
-                <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                  <p className="text-sm uppercase tracking-wide text-slate-400">Peer reviews</p>
-                  <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? (ei?.peerReviewsCount ?? 0) : "—"}</p>
-                </div>
-                <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                  <p className="text-sm uppercase tracking-wide text-slate-400">Avg hiring confidence</p>
-                  <p className="text-3xl font-bold text-cyan-400">{ei?.avgHiringConfidence != null ? ei.avgHiringConfidence.toFixed(1) : "—"}</p>
-                </div>
-              </div>
-              {employees.length === 0 && (
-                <p className="mt-4 text-sm text-slate-500">No employees yet</p>
-              )}
-              {employees.map((e) => (
-                <div key={e.id} className="mt-2 rounded-md border border-slate-700 p-3">
-                  <div className="font-medium text-white">{e.full_name ?? e.id.slice(0, 8)}</div>
-                  <div className="text-sm text-slate-500">{e.industry ?? "—"}</div>
-                </div>
-              ))}
-              <Button variant="secondary" className="mt-4" onClick={runRecalculate} disabled={loading || !currentSandboxId || recalcLoading}>{recalcLoading ? "…" : "Recalculate intelligence"}</Button>
-            </div>
-            <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
-              <h2 className="text-xl font-semibold text-slate-100">Employer Analytics</h2>
-              <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
-                <p className="text-sm uppercase tracking-wide text-slate-400">Employers</p>
-                <p className="text-3xl font-bold text-cyan-400">{currentSandboxId ? employers.length : "—"}</p>
-              </div>
-              {employers.length === 0 && (
-                <p className="mt-4 text-sm text-slate-400">No employers generated yet.</p>
-              )}
-              {employers.map((e) => (
-                <div key={e.id} className="mb-3 rounded-lg border border-slate-700 bg-slate-700 p-3">
-                  <div className="font-medium text-white">{e.company_name ?? e.id.slice(0, 8)}</div>
-                  <div className="text-sm text-slate-400">
-                    {e.industry ?? "—"} • {e.plan_tier ?? "—"}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
-        ) : currentSandboxId ? (
-          <div style={{ padding: 20, opacity: 0.6 }}>No metrics loaded. Select a sandbox and refresh.</div>
-        ) : null}
+        </details>
 
-        {/* Feature Toggles */}
-        <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
-          <h2 className="text-xl font-semibold text-slate-100">Feature Toggles</h2>
+        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+            <span>Feature Toggles</span>
+            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
+          </summary>
+          <div className="border-t border-slate-600 px-4 py-4">
+        <div className="rounded-xl bg-slate-800/90 p-4">
+          <h3 className="text-lg font-semibold text-slate-100">Feature Toggles</h3>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button variant="secondary" size="sm" onClick={syncFeatures} disabled={syncFeaturesLoading}>{syncFeaturesLoading ? "…" : "Sync from production"}</Button>
           </div>
@@ -1292,17 +1270,28 @@ export function SandboxV2Client() {
           </div>
           <p className="mt-2 text-sm text-slate-500">Current: {viewAs}</p>
         </div>
+          </div>
+        </details>
 
-        {/* Actions */}
-        <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
-          <h2 className="text-xl font-semibold text-slate-100">Actions</h2>
+        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+            <span>Actions</span>
+            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
+          </summary>
+          <div className="border-t border-slate-600 px-4 py-4">
+        <div className="rounded-xl bg-slate-800/90 p-4">
+          <h3 className="text-lg font-semibold text-slate-100">Actions</h3>
           <Button variant="secondary" className="mt-4" onClick={runCleanup} disabled={loading || cleanupLoading}>{cleanupLoading ? "…" : "Cleanup expired sessions"}</Button>
         </div>
+          </div>
+        </details>
 
-        {/* Console */}
-        <section className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
-          <h2 className="text-xl font-semibold text-slate-100">Command Console</h2>
-          <div className="mt-4 border-t border-slate-600 pt-4">
+        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+            <span>Command Console</span>
+            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
+          </summary>
+          <div className="border-t border-slate-600 px-4 py-4">
             <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-600 bg-slate-800/90 p-4 font-mono text-base text-slate-200">
               {consoleLogs.length === 0 && <p className="text-slate-500">No output yet.</p>}
               {consoleLogs.map((line, i) => (
@@ -1310,84 +1299,16 @@ export function SandboxV2Client() {
               ))}
             </div>
           </div>
-        </section>
+        </details>
+        </SimulationPanel>
         </div>
 
-        {/* Right column: Generated lists + live metrics */}
-        <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
-          {/* Generated Employers */}
-          <div className="rounded-xl border-2 border-slate-600 bg-slate-800 p-6">
-            <h2 className="mb-2 text-xl font-semibold text-slate-100">Generated Employers</h2>
-            <p className="mb-3 text-sm text-slate-400">{employers.length} total</p>
-            <div className="max-h-56 overflow-y-auto space-y-2">
-              {employers.length === 0 && (
-                <p className="text-sm text-slate-500">No employers generated yet.</p>
-              )}
-              {employers.map((e) => (
-                <div key={e.id} className="rounded-lg border border-slate-600 bg-slate-700 p-2.5">
-                  <div className="font-medium text-slate-100">{e.company_name ?? e.id.slice(0, 8)}</div>
-                  <div className="text-sm text-slate-400">{e.industry ?? "—"} · {e.plan_tier ?? "—"}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Generated Employees */}
-          <div className="rounded-xl border border-slate-700 bg-slate-800 p-5">
-            <h2 className="mb-2 text-base font-semibold text-slate-100">Generated Employees</h2>
-            <p className="mb-3 text-sm text-slate-400">{employees.length} total</p>
-            <div className="max-h-56 overflow-y-auto space-y-2">
-              {employees.length === 0 && (
-                <p className="text-sm text-slate-500">No employees generated yet.</p>
-              )}
-              {employees.map((e) => (
-                <div key={e.id} className="rounded-lg border border-slate-600 bg-slate-700 p-2.5">
-                  <div className="font-medium text-slate-100">{e.full_name ?? e.id.slice(0, 8)}</div>
-                  <div className="text-sm text-slate-400">{e.industry ?? "—"}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Live metrics */}
-          {dashboardData && (
-            <div className="rounded-xl border-2 border-slate-600 bg-slate-800 p-6">
-              <h2 className="mb-3 text-xl font-semibold text-slate-100">Live metrics</h2>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Employers</span>
-                  <span className="font-medium text-slate-100">{employers.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Employees</span>
-                  <span className="font-medium text-slate-100">{employees.length}</span>
-                </div>
-                {ei != null && (
-                  <>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Employment records</span>
-                      <span className="font-medium text-slate-100">{ei.employmentRecordsCount ?? "—"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Peer reviews</span>
-                      <span className="font-medium text-slate-100">{ei.peerReviewsCount ?? "—"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Avg hiring confidence</span>
-                      <span className="font-medium text-slate-100">{ei.avgHiringConfidence != null ? ei.avgHiringConfidence.toFixed(1) : "—"}</span>
-                    </div>
-                  </>
-                )}
-                {rev != null && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">MRR</span>
-                    <span className="font-medium text-slate-100">{rev.mrr ?? "—"}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </aside>
+        {/* RIGHT: Results summary */}
+        <ResultsPanel
+          dashboardData={dashboardData}
+          previousAvgHiringConfidence={previousAvgHiringConfidence}
+          totalEmploymentRecords={ei?.employmentRecordsCount}
+        />
       </div>
     </div>
   );
