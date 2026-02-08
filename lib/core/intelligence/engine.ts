@@ -6,13 +6,11 @@
 
 import { calculateV1, calculateV1Breakdown } from "./v1";
 import type { ProfileInput } from "./types";
-import type { V1Breakdown } from "./v1";
 
 export type IntelligenceVersion = "v1";
 export { calculateV1, calculateV1Breakdown } from "./v1";
 export type { ProfileInput } from "./types";
 export type { V1Breakdown } from "./v1";
-import type { V1Breakdown } from "./v1";
 
 /**
  * Calculate profile strength (employment confidence score 0–100).
