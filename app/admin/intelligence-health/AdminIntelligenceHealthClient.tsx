@@ -59,7 +59,7 @@ export function AdminIntelligenceHealthClient() {
     return (
       <Card className="p-6 border-red-500/50">
         <p className="text-red-600 dark:text-red-400">{error}</p>
-        <Button variant="outline" className="mt-4" onClick={fetchHealth}>
+        <Button variant="ghost" className="mt-4" onClick={fetchHealth}>
           Retry
         </Button>
       </Card>
@@ -77,7 +77,7 @@ export function AdminIntelligenceHealthClient() {
         {[1, 7, 14, 30].map((n) => (
           <Button
             key={n}
-            variant={days === n ? "default" : "outline"}
+            variant={days === n ? "default" : "ghost"}
             size="sm"
             onClick={() => setDays(n)}
           >

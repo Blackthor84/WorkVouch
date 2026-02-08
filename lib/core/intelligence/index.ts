@@ -2,7 +2,6 @@ export {
   calculateProfileStrength,
   calculateV1,
   calculateV1Breakdown,
-  getScoreBreakdown,
   type IntelligenceVersion,
   type ProfileInput,
   type V1Breakdown,

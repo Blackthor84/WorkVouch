@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-import { getScoreBreakdown, buildProductionProfileInput } from "@/lib/core/intelligence";
+import { calculateV1Breakdown, buildProductionProfileInput } from "@/lib/core/intelligence";
 import { buildSandboxProfileInput } from "@/lib/sandbox/buildProfileInput";
 import { calculateSentimentFromText } from "@/lib/sandbox/enterpriseEngine";
 import { getSupabaseServer } from "@/lib/supabase/admin";
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
     if (userId) {
       const input = await buildProductionProfileInput(userId);
-      const breakdown = getScoreBreakdown("v1", input);
+      const breakdown = calculateV1Breakdown(input);
       return NextResponse.json({
         totalScore: breakdown.totalScore,
         components: breakdown.components,
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
         records as Parameters<typeof buildSandboxProfileInput>[1],
         calculateSentimentFromText
       );
-      const breakdown = getScoreBreakdown("v1", input);
+      const breakdown = calculateV1Breakdown(input);
       return NextResponse.json({
         totalScore: breakdown.totalScore,
         components: breakdown.components,
