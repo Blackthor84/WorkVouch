@@ -1,28 +1,16 @@
 /**
- * Intelligence engine auto-trigger. Aggregates peer review averages and employment data,
- * calculates profile_strength, career_health, risk_index, team_fit, hiring_confidence, network_density,
- * upserts into sandbox_intelligence_outputs. NO mocked numbers — all from sandbox tables.
+ * Sandbox intelligence recalculation — uses canonical v1 engine only.
+ * Loads sandbox data, builds ProfileInput, calls calculateProfileStrength("v1", input).
+ * No duplicate scoring logic. See docs/workvouch-intelligence-v1.md.
  */
 
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
-
-const POSITIVE_WORDS = new Set(["excellent", "great", "reliable", "team", "recommend", "strong", "positive", "professional", "trustworthy"]);
-const NEGATIVE_WORDS = new Set(["poor", "issues", "unreliable", "avoid", "weak", "negative", "unprofessional", "concerns"]);
+import { calculateProfileStrength } from "@/lib/intelligence/scoring";
+import { buildSandboxProfileInput } from "./buildProfileInput";
+import { calculateSentimentFromText } from "./enterpriseEngine";
 
 function clamp0_100(x: number): number {
   return Math.max(0, Math.min(100, Math.round(x * 10) / 10));
-}
-
-function sentimentFromText(reviewText: string | null): number {
-  if (!reviewText?.trim()) return 0.5;
-  const lower = reviewText.toLowerCase().split(/\s+/);
-  let score = 0;
-  for (const word of lower) {
-    const w = word.replace(/\W/g, "");
-    if (POSITIVE_WORDS.has(w)) score += 1;
-    if (NEGATIVE_WORDS.has(w)) score -= 1;
-  }
-  return Math.max(0, Math.min(1, 0.5 + score * 0.1));
 }
 
 export async function runSandboxIntelligenceRecalculation(sandboxId: string): Promise<{ ok: boolean; error?: string }> {
@@ -69,44 +57,14 @@ export async function runSandboxIntelligenceRecalculation(sandboxId: string): Pr
     const empReviews = reviewsByReviewed.get(empId) ?? [];
     const empRecords = recordsByEmployee.get(empId) ?? [];
 
-    const average_rating = empReviews.length > 0
-      ? empReviews.reduce((s, r) => s + (r.rating ?? 0), 0) / empReviews.length
-      : 0;
-    const rehire_count = empRecords.filter((r) => r.rehire_eligible === true).length;
-    const rehire_bonus = empRecords.length > 0 ? rehire_count / empRecords.length : 0;
-    const tenure_months = empRecords.length > 0
-      ? empRecords.reduce((s, r) => s + (r.tenure_months ?? 0), 0) / empRecords.length
-      : 0;
-    const tenure_score = Math.min(100, tenure_months * 2);
-    const review_volume_score = Math.min(10, empReviews.length * 2);
+    const input = buildSandboxProfileInput(empReviews, empRecords, calculateSentimentFromText);
+    const profile_strength = calculateProfileStrength("v1", input);
 
-    const sentimentScores = empReviews.map((r) => {
-      const fromCols = [r.reliability_score, r.teamwork_score, r.leadership_score, r.stress_performance_score].filter((x) => x != null) as number[];
-      if (fromCols.length > 0) return fromCols.reduce((a, b) => a + b, 0) / fromCols.length;
-      return r.sentiment_score ?? sentimentFromText(r.review_text);
-    });
-    const avg_sentiment = sentimentScores.length > 0 ? sentimentScores.reduce((a, b) => a + b, 0) / sentimentScores.length : 0.5;
-    const negative_sentiment_weight = (1 - avg_sentiment) * 15;
-    const employment_gaps_penalty = empRecords.length === 0 ? 10 : 0;
-
-    const profile_strength = clamp0_100(
-      (average_rating * 20) + (rehire_bonus * 15) + (tenure_score * 0.4) + (review_volume_score * 10)
-    );
-    const low_dispute_bonus = avg_sentiment > 0.5 ? 1 : 0.5;
-    const career_health = clamp0_100(
-      (tenure_score * 0.5) + (networkDensityScore * 0.3) + (low_dispute_bonus * 20)
-    );
-    const risk_index = clamp0_100(
-      100 - profile_strength + employment_gaps_penalty + negative_sentiment_weight
-    );
     const network_density = networkDensityScore;
-    const rehire_eligible_bonus = rehire_bonus * 15;
-    const team_fit = clamp0_100(
-      (emp.industry ? 20 : 0) + (average_rating * 10) + rehire_eligible_bonus
-    );
-    const hiring_confidence = clamp0_100(
-      (profile_strength * 0.4) + (team_fit * 0.3) + (100 - risk_index) * 0.3
-    );
+    const career_health = profile_strength;
+    const risk_index = 100 - profile_strength;
+    const team_fit = profile_strength;
+    const hiring_confidence = profile_strength;
 
     const payload = {
       sandbox_id: sandboxId,

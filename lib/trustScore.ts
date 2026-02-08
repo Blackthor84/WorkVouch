@@ -161,7 +161,7 @@ export async function getTrustScoreComponents(
 
 /**
  * Calculate the core trust score for a user and persist to trust_scores.
- * One stored score per user (portable core score). Recalculation triggers:
+ * Uses canonical v1 intelligence engine only. Recalculation triggers:
  * match confirmation, reference submission, fraud flag add/remove, dispute resolution.
  */
 export async function calculateCoreTrustScore(userId: string): Promise<{
@@ -169,7 +169,10 @@ export async function calculateCoreTrustScore(userId: string): Promise<{
   components: TrustScoreComponents;
 }> {
   const components = await getTrustScoreComponents(userId);
-  const score = computeWeightedTrustScore(components, coreWeights);
+  const { buildProductionProfileInput } = await import("@/lib/intelligence/scoring/adapters/production");
+  const { calculateProfileStrength } = await import("@/lib/intelligence/scoring");
+  const input = await buildProductionProfileInput(userId);
+  const score = calculateProfileStrength("v1", input);
 
   const sb = getSupabaseServer();
   const { error } = await sb.from("trust_scores").upsert(

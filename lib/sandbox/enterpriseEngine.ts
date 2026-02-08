@@ -1,11 +1,14 @@
 /**
- * Enterprise Simulation Intelligence Engine — real math, sandbox_* tables only.
- * Persists to sandbox_intelligence_outputs. Never touches production.
+ * Sandbox enterprise engine — uses canonical v1 intelligence engine only.
+ * Loads sandbox data, builds ProfileInput, calls calculateProfileStrength("v1", input).
+ * Sentiment-from-text remains for input derivation only; no scoring formulas here.
  */
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { calculateProfileStrength } from "@/lib/intelligence/scoring";
+import { buildSandboxProfileInput } from "./buildProfileInput";
 
-/** Positive/negative words for sentiment: +1 / -1 */
+/** Positive/negative words for sentiment: +1 / -1. Used only to derive input for v1 engine. */
 const POSITIVE_WORDS = new Set(["excellent", "great", "reliable", "team", "recommend", "strong", "positive", "professional", "trustworthy"]);
 const NEGATIVE_WORDS = new Set(["poor", "issues", "unreliable", "avoid", "weak", "negative", "unprofessional", "concerns"]);
 
@@ -13,7 +16,7 @@ function clamp0_100(x: number): number {
   return Math.max(0, Math.min(100, Math.round(x * 10) / 10));
 }
 
-/** Sentiment from review text: positive +1, negative -1, normalized to 0–1 */
+/** Sentiment from review text: 0–1. Used only to build ProfileInput; scoring is v1 engine. */
 export function calculateSentimentFromText(reviewText: string | null): number {
   if (!reviewText?.trim()) return 0.5;
   const lower = reviewText.toLowerCase().split(/\s+/);
@@ -28,14 +31,7 @@ export function calculateSentimentFromText(reviewText: string | null): number {
 }
 
 /**
- * Run enterprise scoring and persist to sandbox_intelligence_outputs.
- * Formulas:
- * - Profile Strength: (average_rating * 20) + (rehire_bonus * 15) + (tenure_score * 0.4) + (review_volume_score * 10), clamp 0–100
- * - Career Health: (tenure_score * 0.5) + (network_density * 30) + (low_dispute_bonus * 20)
- * - Risk Index: 100 - profile_strength + employment_gaps_penalty + negative_sentiment_weight
- * - Network Density: unique_review_connections / total_employees (scale to 0–100)
- * - Team Fit: industry_match ? 20 : 0 + average_rating * 10 + rehire_eligible_bonus
- * - Hiring Confidence: (profile_strength * 0.4) + (team_fit * 0.3) + (100 - risk_index) * 0.3
+ * Run sandbox scoring using canonical v1 engine only. Persist to sandbox_intelligence_outputs.
  */
 export async function runEnterpriseEngine(sandboxId: string): Promise<{ ok: boolean; error?: string }> {
   const supabase = getSupabaseServer();
@@ -79,50 +75,14 @@ export async function runEnterpriseEngine(sandboxId: string): Promise<{ ok: bool
     const empReviews = reviewsByReviewed.get(empId) ?? [];
     const empRecords = recordsByEmployee.get(empId) ?? [];
 
-    const average_rating = empReviews.length > 0
-      ? empReviews.reduce((s, r) => s + (r.rating ?? 0), 0) / empReviews.length
-      : 0;
-    const rehire_count = empRecords.filter((r) => r.rehire_eligible === true).length;
-    const rehire_bonus = empRecords.length > 0 ? rehire_count / empRecords.length : 0;
-    const tenure_months = empRecords.length > 0
-      ? empRecords.reduce((s, r) => s + (r.tenure_months ?? 0), 0) / empRecords.length
-      : 0;
-    const tenure_score = Math.min(100, tenure_months * 2);
-    const review_volume_score = Math.min(10, empReviews.length * 2);
-    const sentimentScores = empReviews.map((r) => r.sentiment_score ?? calculateSentimentFromText(r.review_text));
-    const avg_sentiment = sentimentScores.length > 0 ? sentimentScores.reduce((a, b) => a + (b ?? 0.5), 0) / sentimentScores.length : 0.5;
-    const negative_sentiment_weight = (1 - avg_sentiment) * 15;
-    const employment_gaps_penalty = empRecords.length === 0 ? 10 : 0;
+    const input = buildSandboxProfileInput(empReviews, empRecords, calculateSentimentFromText);
+    const profile_strength = calculateProfileStrength("v1", input);
 
-    // Profile Strength: (average_rating * 20) + (rehire_bonus * 15) + (tenure_score * 0.4) + (review_volume_score * 10), clamp 0–100
-    const profile_strength = clamp0_100(
-      (average_rating * 20) + (rehire_bonus * 15) + (tenure_score * 0.4) + (review_volume_score * 10)
-    );
-
-    // Career Health: (tenure_score * 0.5) + (network_density * 30) + (low_dispute_bonus * 20)
-    const low_dispute_bonus = avg_sentiment > 0.5 ? 1 : 0.5;
-    const career_health = clamp0_100(
-      (tenure_score * 0.5) + (networkDensityScore * 0.3) + (low_dispute_bonus * 20)
-    );
-
-    // Risk Index: 100 - profile_strength + employment_gaps_penalty + negative_sentiment_weight
-    const risk_index = clamp0_100(
-      100 - profile_strength + employment_gaps_penalty + negative_sentiment_weight
-    );
-
-    // Network Density: unique_review_connections / total_employees (already computed as networkDensityScore for this employee's context we use global)
     const network_density = networkDensityScore;
-
-    // Team Fit: industry_match ? 20 : 0 + average_rating * 10 + rehire_eligible_bonus
-    const rehire_eligible_bonus = rehire_bonus * 15;
-    const team_fit = clamp0_100(
-      (emp.industry ? 20 : 0) + (average_rating * 10) + rehire_eligible_bonus
-    );
-
-    // Hiring Confidence: (profile_strength * 0.4) + (team_fit * 0.3) + (100 - risk_index) * 0.3
-    const hiring_confidence = clamp0_100(
-      (profile_strength * 0.4) + (team_fit * 0.3) + (100 - risk_index) * 0.3
-    );
+    const career_health = profile_strength;
+    const risk_index = 100 - profile_strength;
+    const team_fit = profile_strength;
+    const hiring_confidence = profile_strength;
 
     const payload = {
       sandbox_id: sandboxId,
