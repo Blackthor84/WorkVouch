@@ -77,7 +77,7 @@ export function AdminIntelligenceHealthClient() {
         {[1, 7, 14, 30].map((n) => (
           <Button
             key={n}
-            variant={days === n ? "default" : "ghost"}
+            variant={days === n ? "primary" : "ghost"}
             size="sm"
             onClick={() => setDays(n)}
           >
