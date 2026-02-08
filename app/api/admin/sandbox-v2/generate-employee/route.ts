@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
+import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,6 @@ export async function POST(req: NextRequest) {
     const full_name = `${first_name} ${last_name}`;
     const job_title = pick(JOB_TITLES);
     const tenure_months = randomInt(6, 60);
-    const reference_score = randomInt(50, 100);
 
     const { data: employee, error: empError } = await supabase
       .from("sandbox_employees")
@@ -59,31 +59,6 @@ export async function POST(req: NextRequest) {
 
     if (empError) {
       return NextResponse.json({ success: false, error: empError.message }, { status: 500 });
-    }
-
-    const profile_strength = Math.round(reference_score * 0.8 * 10) / 10;
-    const career_health = Math.min(100, Math.round(tenure_months * 1.2 * 10) / 10);
-    const risk_index = Math.round((100 - reference_score) * 10) / 10;
-    const team_fit = randomInt(60, 95);
-    const hiring_confidence = Math.round((profile_strength + team_fit) / 2 * 10) / 10;
-    const network_density = randomInt(40, 90);
-
-    const { error: intelError } = await supabase.from("sandbox_intelligence_outputs").upsert(
-      {
-        sandbox_id: sandboxId,
-        employee_id: employee.id,
-        profile_strength,
-        career_health,
-        risk_index,
-        team_fit,
-        hiring_confidence,
-        network_density,
-      },
-      { onConflict: "sandbox_id,employee_id" }
-    );
-
-    if (intelError) {
-      return NextResponse.json({ success: false, error: intelError.message }, { status: 500 });
     }
 
     if (employers?.length && employers.length > 0) {
@@ -98,16 +73,32 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const intelligence = {
-      profile_strength,
-      career_health,
-      risk_index,
-      team_fit,
-      hiring_confidence,
-      network_density,
-    };
+    const recalc = await runSandboxIntelligenceRecalculation(sandboxId);
+    if (!recalc.ok) {
+      return NextResponse.json(
+        { success: false, error: recalc.error ?? "Recalculation failed" },
+        { status: 500 }
+      );
+    }
 
-    console.log("Sandbox employee generated:", employee?.id);
+    const { data: intelRow } = await supabase
+      .from("sandbox_intelligence_outputs")
+      .select("profile_strength, career_health, risk_index, team_fit, hiring_confidence, network_density")
+      .eq("sandbox_id", sandboxId)
+      .eq("employee_id", employee.id)
+      .maybeSingle();
+
+    const intelligence = intelRow
+      ? {
+          profile_strength: intelRow.profile_strength ?? 0,
+          career_health: intelRow.career_health ?? 0,
+          risk_index: intelRow.risk_index ?? 0,
+          team_fit: intelRow.team_fit ?? 0,
+          hiring_confidence: intelRow.hiring_confidence ?? 0,
+          network_density: intelRow.network_density ?? 0,
+        }
+      : null;
+
     return NextResponse.json({ success: true, employee, intelligence });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

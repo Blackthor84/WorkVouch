@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { calculateV1 } from "@/lib/intelligence/scoring/v1";
-import type { ProfileInput } from "@/lib/intelligence/scoring/types";
+import { calculateV1 } from "@/lib/core/intelligence";
+import type { ProfileInput } from "@/lib/core/intelligence";
 
 function input(overrides: Partial<ProfileInput> = {}): ProfileInput {
   return {

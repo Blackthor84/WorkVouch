@@ -5,7 +5,11 @@
  */
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { calculateProfileStrength } from "@/lib/intelligence/scoring";
+import {
+  calculateProfileStrength,
+  logIntel,
+  LOG_TAGS,
+} from "@/lib/core/intelligence";
 import { buildSandboxProfileInput } from "./buildProfileInput";
 
 /** Positive/negative words for sentiment: +1 / -1. Used only to derive input for v1 engine. */
@@ -33,7 +37,16 @@ export function calculateSentimentFromText(reviewText: string | null): number {
 /**
  * Run sandbox scoring using canonical v1 engine only. Persist to sandbox_intelligence_outputs.
  */
-export async function runEnterpriseEngine(sandboxId: string): Promise<{ ok: boolean; error?: string }> {
+export async function runEnterpriseEngine(sandboxId: string): Promise<{
+  ok: boolean;
+  error?: string;
+}> {
+  const startMs = Date.now();
+  logIntel({
+    tag: LOG_TAGS.INTEL_START,
+    context: "sandbox_enterprise",
+    sandboxId,
+  });
   const supabase = getSupabaseServer();
 
   const [employeesRes, reviewsRes, recordsRes] = await Promise.all([
@@ -94,10 +107,27 @@ export async function runEnterpriseEngine(sandboxId: string): Promise<{ ok: bool
       hiring_confidence,
       network_density,
     };
-    const { error } = await supabase.from("sandbox_intelligence_outputs").upsert(payload, { onConflict: "sandbox_id,employee_id" });
-    if (error) return { ok: false, error: error.message };
+    const { error } = await supabase
+      .from("sandbox_intelligence_outputs")
+      .upsert(payload, { onConflict: "sandbox_id,employee_id" });
+    if (error) {
+      logIntel({
+        tag: LOG_TAGS.INTEL_FAIL,
+        context: "sandbox_enterprise_write",
+        sandboxId,
+        error: error.message,
+        durationMs: Date.now() - startMs,
+      });
+      return { ok: false, error: error.message };
+    }
   }
 
+  logIntel({
+    tag: LOG_TAGS.INTEL_SUCCESS,
+    context: "sandbox_enterprise",
+    sandboxId,
+    durationMs: Date.now() - startMs,
+  });
   return { ok: true };
 }
 

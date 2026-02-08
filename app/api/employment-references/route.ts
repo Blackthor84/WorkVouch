@@ -132,7 +132,18 @@ export async function POST(req: NextRequest) {
 
     await recalculateTrustScore(reviewedUserId);
 
-    processReviewIntelligence(ref?.id ?? "").catch(() => {});
+    const intelResult = await processReviewIntelligence(ref?.id ?? "");
+    if (!intelResult.ok) {
+      console.error("[employment-references] processReviewIntelligence failed:", intelResult.error);
+      return NextResponse.json(
+        {
+          error: "Reference saved but intelligence processing failed",
+          warning: "Score update may be delayed; retry later.",
+          id: ref?.id,
+        },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ id: ref?.id, success: true });
   } catch (e) {

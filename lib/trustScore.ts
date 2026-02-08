@@ -1,16 +1,23 @@
 /**
  * Trust Score Engine — server-side only. Never calculate on frontend.
  * Single portable core score per user (0–100). Stored in trust_scores.
- * Industry weighting is internal/UI-only; no per-industry score persistence.
+ * All scoring uses @/lib/core/intelligence only. No duplicate math.
  */
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { coreWeights, type IndustryWeights } from "@/lib/trustScoreWeights";
+import {
+  buildProductionProfileInput,
+  calculateProfileStrength,
+  logIntel,
+  LOG_TAGS,
+  insertScoreHistory,
+  insertHealthEvent,
+} from "@/lib/core/intelligence";
 
 const MAX_SCORE = 100;
 const MIN_SCORE = 0;
 
-/** Raw component values fetched from DB (before normalization). */
+/** Raw component values fetched from DB (for display only; scoring is in core/intelligence). */
 export interface TrustScoreComponents {
   verifiedEmployments: number;
   totalVerifiedYears: number;
@@ -18,76 +25,6 @@ export interface TrustScoreComponents {
   referenceCount: number;
   uniqueEmployersWithReferences: number;
   fraudFlagsCount: number;
-}
-
-/** Legacy shape for backward compatibility. */
-export interface TrustScoreInputs {
-  employmentVerifiedCount: number;
-  averageReferenceRating: number;
-  referenceCount: number;
-  fraudFlagsCount: number;
-}
-
-/**
- * Normalize components to 0–100 range:
- * employment_score = min(verified_employments * 10, 40)
- * tenure_score = min(total_verified_years * 3, 30)
- * rating_score = avg_rating * 20
- * distribution_score = min(unique_employers_with_references * 10, 30)
- * reference_volume_score = min(reference_count * 5, 30)
- */
-function normalizeScores(c: TrustScoreComponents): {
-  employment: number;
-  tenure: number;
-  rating: number;
-  distribution: number;
-  referenceVolume: number;
-} {
-  return {
-    employment: Math.min(c.verifiedEmployments * 10, 40),
-    tenure: Math.min(c.totalVerifiedYears * 3, 30),
-    rating: c.averageReferenceRating * 20,
-    distribution: Math.min(c.uniqueEmployersWithReferences * 10, 30),
-    referenceVolume: Math.min(c.referenceCount * 5, 30),
-  };
-}
-
-/**
- * Compute weighted score from normalized components and fraud penalty.
- * fraud_penalty = fraud_flags * 25
- * final_score = clamp(weighted_sum - fraud_penalty, 0, 100)
- */
-export function computeWeightedTrustScore(
-  components: TrustScoreComponents,
-  weights: IndustryWeights
-): number {
-  const n = normalizeScores(components);
-  const weighted =
-    n.employment * weights.employment +
-    n.tenure * weights.tenure +
-    n.rating * weights.rating +
-    n.distribution * weights.distribution +
-    n.referenceVolume * weights.referenceVolume;
-  const fraudPenalty = components.fraudFlagsCount * 25;
-  return Math.max(
-    MIN_SCORE,
-    Math.min(MAX_SCORE, Math.round(weighted - fraudPenalty))
-  );
-}
-
-/**
- * Compute raw score from legacy inputs (0–100). Backward compatibility.
- */
-export function computeTrustScore(inputs: TrustScoreInputs): number {
-  const c: TrustScoreComponents = {
-    verifiedEmployments: inputs.employmentVerifiedCount,
-    totalVerifiedYears: 0,
-    averageReferenceRating: inputs.averageReferenceRating,
-    referenceCount: inputs.referenceCount,
-    uniqueEmployersWithReferences: 0,
-    fraudFlagsCount: inputs.fraudFlagsCount,
-  };
-  return computeWeightedTrustScore(c, coreWeights);
 }
 
 /**
@@ -103,14 +40,18 @@ export async function getTrustScoreComponents(
     .select("start_date, end_date")
     .eq("user_id", userId)
     .eq("verification_status", "verified");
-  const verifiedList = (records ?? []) as { start_date: string; end_date: string | null }[];
+  const verifiedList = (records ?? []) as {
+    start_date: string;
+    end_date: string | null;
+  }[];
   const verifiedEmployments = verifiedList.length;
   const now = new Date();
   let totalVerifiedYears = 0;
   for (const r of verifiedList) {
     const start = new Date(r.start_date);
     const end = r.end_date ? new Date(r.end_date) : now;
-    totalVerifiedYears += (end.getTime() - start.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+    totalVerifiedYears +=
+      (end.getTime() - start.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
   }
 
   const { data: refs } = await sb
@@ -161,51 +102,166 @@ export async function getTrustScoreComponents(
 
 /**
  * Calculate the core trust score for a user and persist to trust_scores.
- * Uses canonical v1 intelligence engine only. Recalculation triggers:
- * match confirmation, reference submission, fraud flag add/remove, dispute resolution.
+ * Uses canonical v1 intelligence engine only. Concurrency: re-fetch version, update only if match, retry once on conflict.
  */
 export async function calculateCoreTrustScore(userId: string): Promise<{
   score: number;
   components: TrustScoreComponents;
+  previousScore: number | null;
 }> {
-  const components = await getTrustScoreComponents(userId);
-  const { buildProductionProfileInput } = await import("@/lib/intelligence/scoring/adapters/production");
-  const { calculateProfileStrength } = await import("@/lib/intelligence/scoring");
-  const input = await buildProductionProfileInput(userId);
-  const score = calculateProfileStrength("v1", input);
+  const startMs = Date.now();
+  logIntel({
+    tag: LOG_TAGS.INTEL_START,
+    context: "trust_score",
+    userId,
+  });
 
-  const sb = getSupabaseServer();
-  const { error } = await sb.from("trust_scores").upsert(
-    {
-      user_id: userId,
-      score,
-      job_count: components.verifiedEmployments,
-      reference_count: components.referenceCount,
-      average_rating: components.averageReferenceRating,
-      calculated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id" }
+  const components = await getTrustScoreComponents(userId);
+  const input = await buildProductionProfileInput(userId);
+  const score = Math.max(
+    MIN_SCORE,
+    Math.min(MAX_SCORE, calculateProfileStrength("v1", input))
   );
 
-  if (error) {
-    console.error("[trustScore] upsert error:", error);
+  const sb = getSupabaseServer();
+  const newVersion = crypto.randomUUID();
+
+  const { data: existing } = await sb
+    .from("trust_scores")
+    .select("version, score")
+    .eq("user_id", userId)
+    .maybeSingle();
+  const existingRow = existing as { version?: string; score?: number } | null;
+  const currentVersion = existingRow?.version ?? null;
+  const previousScore =
+    existingRow?.score != null ? Number(existingRow.score) : null;
+
+  const payload = {
+    user_id: userId,
+    score,
+    job_count: components.verifiedEmployments,
+    reference_count: components.referenceCount,
+    average_rating: components.averageReferenceRating,
+    calculated_at: new Date().toISOString(),
+    version: newVersion,
+  };
+
+  const tryWrite = async (): Promise<boolean> => {
+    if (currentVersion === null) {
+      const { error } = await sb
+        .from("trust_scores")
+        .upsert(payload, { onConflict: "user_id" });
+      if (error) {
+        logIntel({
+          tag: LOG_TAGS.INTEL_FAIL,
+          context: "trust_score_upsert",
+          userId,
+          error: String(error),
+          durationMs: Date.now() - startMs,
+        });
+        throw new Error(`Trust score write failed: ${error.message}`);
+      }
+      return true;
+    }
+    const { data: updated, error } = await sb
+      .from("trust_scores")
+      .update(payload)
+      .eq("user_id", userId)
+      .eq("version", currentVersion)
+      .select("user_id")
+      .maybeSingle();
+    if (error) {
+      logIntel({
+        tag: LOG_TAGS.INTEL_FAIL,
+        context: "trust_score_update",
+        userId,
+        error: String(error),
+        durationMs: Date.now() - startMs,
+      });
+      insertHealthEvent({
+        event_type: "recalc_fail",
+        payload: { userId, error: String(error), context: "trust_score_update" },
+      }).catch(() => {});
+      throw new Error(`Trust score write failed: ${error.message}`);
+    }
+    return !!updated;
+  };
+
+  let written = await tryWrite();
+  if (!written && currentVersion !== null) {
+    const { data: refetched } = await sb
+      .from("trust_scores")
+      .select("version")
+      .eq("user_id", userId)
+      .maybeSingle();
+    const refetchedVersion = (refetched as { version?: string } | null)?.version ?? null;
+    if (refetchedVersion !== null && refetchedVersion !== currentVersion) {
+      const retryPayload = {
+        ...payload,
+        version: crypto.randomUUID(),
+      };
+      const { error } = await sb
+        .from("trust_scores")
+        .update(retryPayload)
+        .eq("user_id", userId)
+        .eq("version", refetchedVersion);
+      if (error) {
+        logIntel({
+          tag: LOG_TAGS.INTEL_FAIL,
+          context: "trust_score_retry",
+          userId,
+          error: String(error),
+          durationMs: Date.now() - startMs,
+        });
+        throw new Error(`Trust score write failed: ${error.message}`);
+      }
+      written = true;
+    }
+  }
+  if (!written && currentVersion !== null) {
+    logIntel({
+      tag: LOG_TAGS.INTEL_FAIL,
+      context: "trust_score_concurrent",
+      userId,
+      durationMs: Date.now() - startMs,
+    });
+    insertHealthEvent({
+      event_type: "recalc_fail",
+      payload: {
+        userId,
+        error: "concurrent update",
+        context: "trust_score_concurrent",
+      },
+    }).catch(() => {});
+    throw new Error("Trust score write skipped due to concurrent update; retry later.");
   }
 
-  return { score, components };
+  logIntel({
+    tag: LOG_TAGS.INTEL_SUCCESS,
+    context: "trust_score",
+    userId,
+    durationMs: Date.now() - startMs,
+  });
+
+  return { score, components, previousScore };
 }
 
 /**
- * Recalculate and persist core trust score; log to audit_logs.
+ * Recalculate and persist core trust score; log to audit_logs and intelligence_score_history.
  * Call after: match confirmation, reference submission, fraud flag change, dispute resolution.
  */
-export async function recalculateTrustScore(userId: string): Promise<{ score: number }> {
-  const { score, components } = await calculateCoreTrustScore(userId);
+export async function recalculateTrustScore(
+  userId: string,
+  triggeredBy?: string | null
+): Promise<{ score: number }> {
+  const { score, components, previousScore } =
+    await calculateCoreTrustScore(userId);
 
   const sb = getSupabaseServer();
   await sb.from("audit_logs").insert({
     entity_type: "trust_score",
     entity_id: userId,
-    changed_by: userId,
+    changed_by: triggeredBy ?? userId,
     new_value: {
       score,
       verified_employments: components.verifiedEmployments,
@@ -213,6 +269,25 @@ export async function recalculateTrustScore(userId: string): Promise<{ score: nu
     },
     change_reason: "trust_score_recalculation",
   });
+
+  await insertScoreHistory({
+    entity_type: "trust_score",
+    user_id: userId,
+    previous_score: previousScore,
+    new_score: score,
+    reason: "trust_score_recalculation",
+    triggered_by: triggeredBy ?? userId,
+  }).catch(() => {});
+
+  await insertHealthEvent({
+    event_type: "recalc_success",
+    payload: {
+      userId,
+      previousScore,
+      newScore: score,
+      context: "trust_score",
+    },
+  }).catch(() => {});
 
   return { score };
 }

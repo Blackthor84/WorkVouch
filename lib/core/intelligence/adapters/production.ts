@@ -12,7 +12,9 @@ const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
  * Build ProfileInput for a user from production employment_records, employment_references,
  * review_intelligence, and rehire_registry. Used by trust score and intelligence snapshot.
  */
-export async function buildProductionProfileInput(userId: string): Promise<ProfileInput> {
+export async function buildProductionProfileInput(
+  userId: string
+): Promise<ProfileInput> {
   const sb = getSupabaseServer();
 
   const { data: records } = await sb
@@ -20,7 +22,10 @@ export async function buildProductionProfileInput(userId: string): Promise<Profi
     .select("start_date, end_date")
     .eq("user_id", userId)
     .eq("verification_status", "verified");
-  const verifiedList = (records ?? []) as { start_date: string; end_date: string | null }[];
+  const verifiedList = (records ?? []) as {
+    start_date: string;
+    end_date: string | null;
+  }[];
   const now = new Date();
   let totalMonths = 0;
   for (const r of verifiedList) {
@@ -50,7 +55,9 @@ export async function buildProductionProfileInput(userId: string): Promise<Profi
       .in("review_id", refIds);
     const intelList = (revIntel ?? []) as { sentiment_score?: number | null }[];
     if (intelList.length > 0) {
-      const avg100 = intelList.reduce((s, r) => s + (r.sentiment_score ?? 50), 0) / intelList.length;
+      const avg100 =
+        intelList.reduce((s, r) => s + (r.sentiment_score ?? 50), 0) /
+        intelList.length;
       sentimentAverage = Math.max(-1, Math.min(1, (avg100 / 100 - 0.5) * 2));
     }
   }

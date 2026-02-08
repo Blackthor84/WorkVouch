@@ -1,9 +1,9 @@
 /**
  * Build canonical ProfileInput from sandbox tables for the v1 intelligence engine.
- * No scoring logic here — only data shaping. See lib/intelligence/scoring.
+ * No scoring logic here — only data shaping. See lib/core/intelligence.
  */
 
-import type { ProfileInput } from "@/lib/intelligence/scoring";
+import type { ProfileInput } from "@/lib/core/intelligence";
 
 /** Sandbox peer review row shape */
 interface SandboxReview {

@@ -460,7 +460,10 @@ export function SandboxV2Client() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandbox_id: currentSandboxId }),
+        body: JSON.stringify({
+          sandbox_id: currentSandboxId,
+          sentimentMultiplier: sentimentMultiplier,
+        }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Recalculate failed");

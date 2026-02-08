@@ -23,48 +23,27 @@ function clamp(x: number, min: number, max: number): number {
   return x;
 }
 
-/**
- * Tenure Strength: log(total_months + 1) * 10, cap at 30.
- */
 function tenureStrength(totalMonths: number): number {
   const raw = Math.log(totalMonths + 1) * 10;
   return Math.min(raw, TS_CAP);
 }
 
-/**
- * Review Volume Strength: min(review_count * 3, 25).
- */
 function reviewVolumeStrength(reviewCount: number): number {
   return Math.min(reviewCount * 3, RVS_CAP);
 }
 
-/**
- * Sentiment Strength: sentiment_average * 20, range -20 to +20.
- */
 function sentimentStrength(sentimentAverage: number): number {
   return sentimentAverage * SS_SCALE;
 }
 
-/**
- * Rating Strength: ((average_rating - 3) / 2) * 15, range -15 to +15.
- */
 function ratingStrength(averageRating: number): number {
   return ((averageRating - RS_NEUTRAL) / RS_DIVISOR) * RS_SCALE;
 }
 
-/**
- * Rehire Multiplier: 1.1 if rehire_eligible else 0.9.
- */
 function rehireMultiplier(rehireEligible: boolean): number {
   return rehireEligible ? RM_ELIGIBLE : RM_NOT_ELIGIBLE;
 }
 
-/**
- * Calculate v1 employment confidence score (0–100).
- * RawScore = TS + RVS + SS + RS
- * FinalScore = clamp(RawScore * RM, 0, 100)
- * Returns rounded integer.
- */
 export function calculateV1(input: ProfileInput): number {
   const ts = tenureStrength(input.totalMonths);
   const rvs = reviewVolumeStrength(input.reviewCount);
@@ -74,4 +53,38 @@ export function calculateV1(input: ProfileInput): number {
   const rm = rehireMultiplier(input.rehireEligible);
   const finalScore = clamp(rawScore * rm, MIN_SCORE, MAX_SCORE);
   return Math.round(finalScore);
+}
+
+/** Component breakdown for defensibility (admin-only). Same math as calculateV1. */
+export interface V1Breakdown {
+  totalScore: number;
+  components: {
+    tenure: number;
+    reviewVolume: number;
+    sentiment: number;
+    rating: number;
+    rehireMultiplier: number;
+  };
+}
+
+export function calculateV1Breakdown(input: ProfileInput): V1Breakdown {
+  const tenure = tenureStrength(input.totalMonths);
+  const reviewVolume = reviewVolumeStrength(input.reviewCount);
+  const sentiment = sentimentStrength(input.sentimentAverage);
+  const rating = ratingStrength(input.averageRating);
+  const rm = rehireMultiplier(input.rehireEligible);
+  const rawScore = tenure + reviewVolume + sentiment + rating;
+  const totalScore = Math.round(
+    clamp(rawScore * rm, MIN_SCORE, MAX_SCORE)
+  );
+  return {
+    totalScore,
+    components: {
+      tenure: Math.round(tenure * 100) / 100,
+      reviewVolume: Math.round(reviewVolume * 100) / 100,
+      sentiment: Math.round(sentiment * 100) / 100,
+      rating: Math.round(rating * 100) / 100,
+      rehireMultiplier: Math.round(rm * 100) / 100,
+    },
+  };
 }

@@ -199,6 +199,17 @@ export default async function AdminPanel() {
             </Link>
           </Card>
 
+          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-amber-500/80">
+            <Link href="/admin/intelligence-health" className="block">
+              <h2 className="text-xl font-semibold text-amber-600 dark:text-amber-400 mb-2">
+                Integrity Health Dashboard
+              </h2>
+              <p className="text-sm text-grey-medium dark:text-gray-400">
+                % recalc success, fraud blocks/day, sentiment shift, overlap failures. Monitoring. Admin only.
+              </p>
+            </Link>
+          </Card>
+
           <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-emerald-500/80">
             <Link href="/admin/sandbox-v2" className="block">
               <h2 className="text-xl font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
