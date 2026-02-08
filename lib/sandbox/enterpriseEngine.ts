@@ -50,7 +50,7 @@ export async function runEnterpriseEngine(sandboxId: string): Promise<{
   const supabase = getSupabaseServer();
 
   const [employeesRes, reviewsRes, recordsRes] = await Promise.all([
-    supabase.from("sandbox_employees").select("id, industry").eq("sandbox_id", sandboxId),
+    supabase.from("sandbox_employees").select("id, industry, vertical").eq("sandbox_id", sandboxId),
     supabase.from("sandbox_peer_reviews").select("reviewer_id, reviewed_id, rating, review_text, sentiment_score").eq("sandbox_id", sandboxId),
     supabase.from("sandbox_employment_records").select("employee_id, tenure_months, rehire_eligible").eq("sandbox_id", sandboxId),
   ]);
@@ -89,7 +89,8 @@ export async function runEnterpriseEngine(sandboxId: string): Promise<{
     const empRecords = recordsByEmployee.get(empId) ?? [];
 
     const input = buildSandboxProfileInput(empReviews, empRecords, calculateSentimentFromText);
-    const profile_strength = calculateProfileStrength("v1", input);
+    const vertical = (emp as { vertical?: string | null }).vertical ?? "default";
+    const profile_strength = calculateProfileStrength("v1", input, { vertical });
 
     const network_density = networkDensityScore;
     const career_health = profile_strength;

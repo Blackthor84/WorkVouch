@@ -150,6 +150,27 @@ export interface Database {
         }
         Relationships: []
       }
+      platform_verticals: {
+        Row: {
+          id: string
+          name: string
+          enabled: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          enabled?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          enabled?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           id: string
@@ -169,6 +190,8 @@ export interface Database {
           simulation_session_id?: string | null
           expires_at?: string | null
           sandbox_id?: string | null
+          vertical?: string | null
+          vertical_metadata?: Json | null
         }
         Insert: {
           id: string
@@ -188,6 +211,8 @@ export interface Database {
           simulation_session_id?: string | null
           expires_at?: string | null
           sandbox_id?: string | null
+          vertical?: string | null
+          vertical_metadata?: Json | null
         }
         Update: {
           id?: string
@@ -207,6 +232,8 @@ export interface Database {
           simulation_session_id?: string | null
           expires_at?: string | null
           sandbox_id?: string | null
+          vertical?: string | null
+          vertical_metadata?: Json | null
         }
         Relationships: []
       }
@@ -1363,13 +1390,13 @@ export interface Database {
         Relationships: []
       }
       sandbox_employees: {
-        Row: { id: string; sandbox_id: string; full_name: string | null; industry: string | null; created_at: string }
+        Row: { id: string; sandbox_id: string; full_name: string | null; industry: string | null; created_at: string; vertical: string | null; vertical_metadata: Json | null }
         Insert: { [key: string]: unknown }
         Update: { [key: string]: unknown }
         Relationships: []
       }
       sandbox_employers: {
-        Row: { id: string; sandbox_id: string; company_name: string | null; industry: string | null; plan_tier: string | null; created_at: string }
+        Row: { id: string; sandbox_id: string; company_name: string | null; industry: string | null; plan_tier: string | null; created_at: string; vertical: string | null; vertical_metadata: Json | null }
         Insert: { [key: string]: unknown }
         Update: { [key: string]: unknown }
         Relationships: []

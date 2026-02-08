@@ -53,7 +53,7 @@ export async function runSandboxIntelligenceRecalculation(
       : 1;
 
   const [employeesRes, reviewsRes, recordsRes] = await Promise.all([
-    supabase.from("sandbox_employees").select("id, industry").eq("sandbox_id", sandboxId),
+    supabase.from("sandbox_employees").select("id, industry, vertical").eq("sandbox_id", sandboxId),
     supabase.from("sandbox_peer_reviews").select("reviewer_id, reviewed_id, rating, review_text, sentiment_score, reliability_score, teamwork_score, leadership_score, stress_performance_score").eq("sandbox_id", sandboxId),
     supabase.from("sandbox_employment_records").select("employee_id, tenure_months, rehire_eligible").eq("sandbox_id", sandboxId),
   ]);
@@ -142,7 +142,8 @@ export async function runSandboxIntelligenceRecalculation(
     const previousScore = previousByEmployee.get(empId) ?? null;
 
     const input = buildSandboxProfileInput(empReviews, empRecords, calculateSentimentFromText);
-    let profile_strength = calculateProfileStrength("v1", input);
+    const vertical = (emp as { vertical?: string | null }).vertical ?? "default";
+    let profile_strength = calculateProfileStrength("v1", input, { vertical });
     if (isSandbox && multiplier !== 1) {
       profile_strength = Math.round(clamp(profile_strength * multiplier, 0, 100));
     }
