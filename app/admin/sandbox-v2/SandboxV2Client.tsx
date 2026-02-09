@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -351,75 +352,25 @@ export function SandboxV2Client() {
     }
   };
 
-  const runSignupFlowEmployee = async () => {
+  const router = useRouter();
+
+  const runSignupFlowEmployee = () => {
     const sandboxId = currentSandboxId?.trim() || null;
-    if (!sandboxId || !signupFlowEmployeeIndustry) return;
-    setSignupFlowEmployeeLoading(true);
-    setError(null);
-    try {
-      const body: Record<string, unknown> = {
-        sandboxId,
-        industry: signupFlowEmployeeIndustry,
-        experience_level: signupFlowExperienceLevel,
-        review_volume_template: signupFlowReviewVolume,
-        risk_profile: signupFlowRiskProfile,
-      };
-      const res = await fetch("/api/admin/sandbox-v2/employees", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(body),
-      });
-      const j = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((j as { error?: string }).error || "Generate failed");
-      log("Employee created (signup flow), switching to Employee view", "success");
-      setViewAs("Employee");
-      await refreshSandbox(sandboxId);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Error";
-      setError(msg);
-      log(msg, "error");
-    } finally {
-      setSignupFlowEmployeeLoading(false);
-    }
+    if (!sandboxId) return;
+    log("Opening employee signup flow (same UI as production)", "info");
+    const params = new URLSearchParams({ sandbox: "true", sandboxId });
+    if (signupFlowEmployeeIndustry) params.set("industry", signupFlowEmployeeIndustry);
+    router.push(`/signup/employee?${params.toString()}`);
   };
 
-  const runSignupFlowEmployer = async () => {
+  const runSignupFlowEmployer = () => {
     const sandboxId = currentSandboxId?.trim() || null;
-    if (!sandboxId || !signupFlowEmployerIndustry) return;
-    setSignupFlowEmployerLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/sandbox-v2/employers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          sandboxId,
-          industry: signupFlowEmployerIndustry,
-          plan_tier: signupFlowTier,
-        }),
-      });
-      const j = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((j as { error?: string }).error || "Generate failed");
-      log("Employer created (signup flow), recalculating…", "info");
-      const recRes = await fetch(`${API}/recalculate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ sandboxId }),
-      });
-      if (!recRes.ok) log("Recalc request failed", "error");
-      else log("Intelligence recalculated", "success");
-      setViewAs("Employer");
-      await refreshSandbox(sandboxId);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Error";
-      setError(msg);
-      log(msg, "error");
-    } finally {
-      setSignupFlowEmployerLoading(false);
-    }
+    if (!sandboxId) return;
+    log("Opening employer signup flow (same UI as production)", "info");
+    const params = new URLSearchParams({ sandbox: "true", sandboxId });
+    if (signupFlowEmployerIndustry) params.set("industry", signupFlowEmployerIndustry);
+    if (signupFlowTier) params.set("plan_tier", signupFlowTier);
+    router.push(`/signup/employer?${params.toString()}`);
   };
 
   const addPeerReview = async () => {

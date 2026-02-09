@@ -1,47 +1,80 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { getCurrentUser, hasRole, getCurrentUserRoles } from "@/lib/auth";
 import { EmployerHeader } from "@/components/employer/employer-header";
 import { EmployerSidebar } from "@/components/employer/employer-sidebar";
 import { EmployerDashboardClient } from "@/components/employer/EmployerDashboardClient";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { getAppModeFromHeaders, getSandboxIdFromHeaders } from "@/lib/app-mode";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 // Mark as dynamic
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function EmployerDashboardPage() {
-  const user = await getCurrentUser();
+  const headersList = await headers();
+  const isSandbox = getAppModeFromHeaders(headersList) === "sandbox";
+  const sandboxId = getSandboxIdFromHeaders(headersList);
 
-  if (!user) {
-    console.log("REDIRECT TRIGGERED IN: app/employer/dashboard/page.tsx");
+  if (!isSandbox) {
+    const user = await getCurrentUser();
+    if (!user) {
+      console.log("REDIRECT TRIGGERED IN: app/employer/dashboard/page.tsx");
+      redirect("/login");
+    }
+    const isEmployer = await hasRole("employer");
+    const isSuperAdmin = await hasRole("superadmin");
+    if (!isEmployer && !isSuperAdmin) {
+      redirect("/dashboard");
+    }
+    const supabase = await createServerSupabase();
+    const supabaseAny = supabase as any;
+    type EmployerAccountRow = { id: string; plan_tier: string; industry_type?: string | null };
+    const { data: employerAccount } = await supabaseAny
+      .from("employer_accounts")
+      .select("id, plan_tier, industry_type")
+      .eq("user_id", user.id)
+      .single();
+    const planTier = (employerAccount as EmployerAccountRow | null)?.plan_tier || "free";
+    const employerId = (employerAccount as EmployerAccountRow | null)?.id;
+    const employerIndustry = (employerAccount as EmployerAccountRow | null)?.industry_type ?? null;
+    const roles = await getCurrentUserRoles();
+    const userRole = roles.includes("superadmin") ? "superadmin" : roles.includes("admin") ? "admin" : roles.includes("employer") ? "employer" : "user";
+
+    return (
+      <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
+        <EmployerSidebar />
+        <div className="flex-1 flex flex-col">
+          <EmployerHeader />
+          <main className="flex-1 flex flex-col px-6 py-8 md:py-12 lg:py-16">
+            <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
+              <EmployerDashboardClient
+                userRole={userRole}
+                planTier={planTier}
+                employerId={employerId}
+                employerIndustry={employerIndustry}
+              />
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sandboxId) {
     redirect("/login");
   }
-
-  const isEmployer = await hasRole("employer");
-  const isSuperAdmin = await hasRole("superadmin");
-
-  // Allow superadmin to access employer dashboard
-  if (!isEmployer && !isSuperAdmin) {
-    redirect("/dashboard");
-  }
-
-  // Get employer plan tier and account ID
-  const supabase = await createServerSupabase();
-  const supabaseAny = supabase as any;
-  type EmployerAccountRow = { id: string; plan_tier: string; industry_type?: string | null };
-  const { data: employerAccount } = await supabaseAny
-    .from("employer_accounts")
-    .select("id, plan_tier, industry_type")
-    .eq("user_id", user.id)
-    .single();
-
-  const planTier =
-    (employerAccount as EmployerAccountRow | null)?.plan_tier || "free";
-  const employerId = (employerAccount as EmployerAccountRow | null)?.id;
-  const employerIndustry =
-    (employerAccount as EmployerAccountRow | null)?.industry_type ?? null;
-  const roles = await getCurrentUserRoles();
-  const userRole = roles.includes("superadmin") ? "superadmin" : roles.includes("admin") ? "admin" : roles.includes("employer") ? "employer" : "user";
+  const supabase = getServiceRoleClient();
+  const { data: employers } = await supabase
+    .from("sandbox_employers")
+    .select("id, plan_tier, industry")
+    .eq("sandbox_id", sandboxId)
+    .limit(1);
+  const first = Array.isArray(employers) ? employers[0] : null;
+  const planTier = (first as { plan_tier?: string } | null)?.plan_tier ?? "pro";
+  const employerId = (first as { id?: string } | null)?.id ?? null;
+  const employerIndustry = (first as { industry?: string } | null)?.industry ?? null;
 
   return (
     <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
@@ -51,10 +84,12 @@ export default async function EmployerDashboardPage() {
         <main className="flex-1 flex flex-col px-6 py-8 md:py-12 lg:py-16">
           <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
             <EmployerDashboardClient
-              userRole={userRole}
+              userRole="employer"
               planTier={planTier}
-              employerId={employerId}
-              employerIndustry={employerIndustry}
+              employerId={employerId ?? undefined}
+              employerIndustry={employerIndustry ?? null}
+              sandboxMode={true}
+              sandboxId={sandboxId}
             />
           </div>
         </main>
