@@ -93,7 +93,7 @@ export function VerticalControlClient() {
               </Label>
               <Button
                 size="sm"
-                variant={v.enabled ? "destructive" : "default"}
+                variant={v.enabled ? "danger" : "secondary"}
                 disabled={toggling === v.name}
                 onClick={() => toggle(v.name, v.enabled)}
               >
