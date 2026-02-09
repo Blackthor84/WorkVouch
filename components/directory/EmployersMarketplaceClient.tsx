@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { INDUSTRIES_OPTIONS } from "@/lib/constants/industries";
 
 interface EmployerRow {
   employer_id: string;
@@ -44,13 +45,18 @@ export function EmployersMarketplaceClient() {
     <Card className="overflow-hidden">
       <div className="p-3 border-b border-grey-background dark:border-[#374151] flex gap-2 items-center">
         <label className="text-sm text-grey-dark dark:text-gray-200">Industry:</label>
-        <input
-          type="text"
+        <select
           value={industry}
           onChange={(e) => setIndustry(e.target.value)}
-          placeholder="Filter by industry"
           className="rounded border border-grey-background dark:border-[#374151] bg-white dark:bg-[#0D1117] px-2 py-1 text-sm text-grey-dark dark:text-gray-200 w-48"
-        />
+        >
+          <option value="">All industries</option>
+          {INDUSTRIES_OPTIONS.map((ind) => (
+            <option key={ind} value={ind}>
+              {ind}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">

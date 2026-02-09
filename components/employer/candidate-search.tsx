@@ -6,6 +6,7 @@ import {
   getCandidateProfileForEmployer,
   type CandidateSearchResult,
 } from "@/lib/actions/employer/candidate-search";
+import { INDUSTRIES_OPTIONS } from "@/lib/constants/industries";
 import {
   saveCandidate,
   isCandidateSaved,
@@ -93,11 +94,11 @@ export function CandidateSearch() {
               className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
             >
               <option value="">All Industries</option>
-              <option value="law_enforcement">Law Enforcement</option>
-              <option value="security">Security</option>
-              <option value="hospitality">Hospitality</option>
-              <option value="retail">Retail</option>
-              <option value="warehousing">Warehousing & Logistics</option>
+              {INDUSTRIES_OPTIONS.map((ind) => (
+                <option key={ind} value={ind}>
+                  {ind}
+                </option>
+              ))}
             </select>
           </div>
           <div>

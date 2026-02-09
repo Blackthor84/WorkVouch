@@ -1,8 +1,24 @@
 /**
- * Industry configuration for onboarding
- * Defines roles and settings for each industry
+ * Industry configuration for onboarding and shared dropdowns.
+ * INDUSTRIES_OPTIONS: display names for dropdowns and API validation (sandbox + production).
+ * INDUSTRIES + Industry: onboarding route keys and role/setting config.
  */
 
+/** Shared industry options for dropdowns and API validation (display names). */
+export const INDUSTRIES_OPTIONS = [
+  "Healthcare",
+  "Law Enforcement",
+  "Security",
+  "Retail",
+  "Hospitality",
+  "Warehouse and Logistics",
+  "Education",
+  "Construction",
+] as const;
+
+export type IndustryOption = typeof INDUSTRIES_OPTIONS[number];
+
+/** Onboarding industry keys (route params, role/setting config). */
 export const INDUSTRIES = [
   'law_enforcement',
   'security',

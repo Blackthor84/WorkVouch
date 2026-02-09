@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
+import { INDUSTRIES_OPTIONS } from "@/lib/constants/industries";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +9,6 @@ const COMPANY_NAMES = [
   "Acme Corp", "Beta Industries", "Gamma Labs", "Delta Solutions", "Epsilon Tech",
   "Zenith Partners", "Apex Consulting", "Nova Systems", "Prime Holdings", "Summit Group",
 ];
-const INDUSTRIES = ["Technology", "Healthcare", "Finance", "Retail", "Manufacturing", "Education", "Energy", "Media"];
 const PLAN_TIERS = ["starter", "pro", "custom"] as const;
 
 function pick<T>(arr: readonly T[]): T {
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     }
 
     const company_name = pick(COMPANY_NAMES);
-    const industry = pick(INDUSTRIES);
+    const industry = pick(INDUSTRIES_OPTIONS);
     const plan_tier = pick(PLAN_TIERS);
 
     const { data, error } = await supabase

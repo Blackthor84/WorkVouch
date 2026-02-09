@@ -3,6 +3,7 @@
 import { createServerSupabase } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
+import { INDUSTRIES_OPTIONS } from '@/lib/constants/industries'
 
 export interface JobPosting {
   id: string
@@ -87,6 +88,10 @@ export async function updateJobPosting(id: string, input: Partial<CreateJobPosti
 
   if (!posting || (posting as any).employer_id !== user.id) {
     throw new Error('Unauthorized')
+  }
+
+  if (input.industry != null && input.industry !== '' && !INDUSTRIES_OPTIONS.includes(input.industry as any)) {
+    throw new Error('Invalid industry')
   }
 
   const { data, error } = await supabaseAny

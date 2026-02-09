@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { INDUSTRIES_OPTIONS } from "@/lib/constants/industries";
 
 type Employer = { id: string; company_name?: string; industry?: string; plan_tier?: string };
 type Employee = { id: string; full_name?: string; industry?: string };
@@ -225,14 +226,14 @@ export function ControlPanel(props: ControlPanelProps) {
                 <select
                   value={employerIndustry}
                   onChange={(e) => setEmployerIndustry(e.target.value)}
-                  className={`mt-1 w-full ${inputClass} px-3 py-2`}
+                  className="mt-1 w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-white"
                 >
-                  <option value="">—</option>
-                  <option value="Technology">Technology</option>
-                  <option value="Healthcare">Healthcare</option>
-                  <option value="Construction">Construction</option>
-                  {teachersMode && <option value="Education">Education</option>}
-                  <option value="Other">Other</option>
+                  <option value="">Select industry</option>
+                  {INDUSTRIES_OPTIONS.map((ind) => (
+                    <option key={ind} value={ind}>
+                      {ind}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -280,14 +281,14 @@ export function ControlPanel(props: ControlPanelProps) {
                 <select
                   value={employeeIndustry}
                   onChange={(e) => setEmployeeIndustry(e.target.value)}
-                  className={`mt-1 w-full ${inputClass} px-3 py-2`}
+                  className="mt-1 w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-white"
                 >
-                  <option value="">—</option>
-                  <option value="Technology">Technology</option>
-                  <option value="Healthcare">Healthcare</option>
-                  <option value="Construction">Construction</option>
-                  {teachersMode && <option value="Education">Education</option>}
-                  <option value="Other">Other</option>
+                  <option value="">Select industry</option>
+                  {INDUSTRIES_OPTIONS.map((ind) => (
+                    <option key={ind} value={ind}>
+                      {ind}
+                    </option>
+                  ))}
                 </select>
               </div>
               <Button

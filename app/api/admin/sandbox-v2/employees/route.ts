@@ -5,7 +5,8 @@ import { linkEmployeeToRandomEmployer } from "@/lib/sandbox/employmentGenerator"
 import { generatePeerReviews } from "@/lib/sandbox/peerReviewGenerator";
 import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";
 import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
-import { pickFullName, pickIndustry } from "@/lib/sandbox/namePools";
+import { pickFullName } from "@/lib/sandbox/namePools";
+import { INDUSTRIES_OPTIONS } from "@/lib/constants/industries";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +45,17 @@ export async function POST(req: NextRequest) {
     const full_name =
       body.full_name ?? body.fullName ??
       (first != null && last != null ? `${first} ${last}` : pickFullName());
-    const industry = body.industry ?? pickIndustry();
+    const rawIndustry = body.industry ?? "";
+    const industry =
+      typeof rawIndustry === "string" && rawIndustry !== "" && INDUSTRIES_OPTIONS.includes(rawIndustry as any)
+        ? rawIndustry
+        : INDUSTRIES_OPTIONS[Math.floor(Math.random() * INDUSTRIES_OPTIONS.length)];
+    if (body.industry != null && body.industry !== "" && !INDUSTRIES_OPTIONS.includes(body.industry as any)) {
+      return NextResponse.json(
+        { error: "Invalid industry" },
+        { status: 400 }
+      );
+    }
 
     const payload = { sandbox_id, full_name, industry };
 

@@ -14,15 +14,7 @@ export function SignUpForm() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [userType, setUserType] = useState<"employee" | "employer">("employee");
-  const [industry, setIndustry] = useState<
-    | "law_enforcement"
-    | "security"
-    | "hospitality"
-    | "retail"
-    | "warehousing"
-    | "healthcare"
-    | ""
-  >("");
+  const [industry, setIndustry] = useState<string>("");
   const [companyName, setCompanyName] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -239,18 +231,15 @@ export function SignUpForm() {
             id="industry"
             required={userType === "employee"}
             value={industry}
-            onChange={(e) => setIndustry(e.target.value as any)}
+            onChange={(e) => setIndustry(e.target.value)}
             className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
           >
             <option value="">Select your industry</option>
-            <option value="law_enforcement">Law Enforcement</option>
-            <option value="security">Security</option>
-            <option value="hospitality">
-              Hospitality (Hotels + Restaurants)
-            </option>
-            <option value="retail">Retail</option>
-            <option value="warehousing">Warehousing & Logistics</option>
-            <option value="healthcare">Healthcare</option>
+            {INDUSTRIES.map((key) => (
+              <option key={key} value={key}>
+                {INDUSTRY_DISPLAY_NAMES[key]}
+              </option>
+            ))}
           </select>
         </div>
       )}

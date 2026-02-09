@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
-import { pickCompany, pickIndustry } from "@/lib/sandbox/namePools";
+import { pickCompany } from "@/lib/sandbox/namePools";
+import { INDUSTRIES_OPTIONS } from "@/lib/constants/industries";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +43,17 @@ export async function POST(req: NextRequest) {
     const supabase = getServiceRoleClient();
     const sandbox_id = sandboxId;
     const company_name = body.company_name ?? pickCompany();
-    const industry = body.industry ?? pickIndustry();
+    const rawIndustry = body.industry ?? "";
+    const industry =
+      typeof rawIndustry === "string" && rawIndustry !== "" && INDUSTRIES_OPTIONS.includes(rawIndustry as any)
+        ? rawIndustry
+        : INDUSTRIES_OPTIONS[Math.floor(Math.random() * INDUSTRIES_OPTIONS.length)];
+    if (body.industry != null && body.industry !== "" && !INDUSTRIES_OPTIONS.includes(body.industry as any)) {
+      return NextResponse.json(
+        { error: "Invalid industry" },
+        { status: 400 }
+      );
+    }
     const plan_tier = body.plan_tier ?? "pro";
 
     console.log("=== EMPLOYER INSERT START ===");

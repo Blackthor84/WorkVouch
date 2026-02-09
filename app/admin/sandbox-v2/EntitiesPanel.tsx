@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { INDUSTRIES_OPTIONS } from "@/lib/constants/industries";
 
 type Employer = { id: string; company_name?: string; industry?: string; plan_tier?: string };
 type Employee = { id: string; full_name?: string; industry?: string };
@@ -120,12 +121,18 @@ export function EntitiesPanel({
             </div>
             <div>
               <Label className="text-xs font-medium text-slate-300">Industry</Label>
-              <Input
+              <select
                 value={employerIndustry}
                 onChange={(e) => setEmployerIndustry(e.target.value)}
-                placeholder="Industry"
-                className="mt-0.5 h-8 border-slate-600 bg-slate-800 text-slate-100 text-sm"
-              />
+                className="mt-0.5 h-8 w-full rounded border border-slate-600 bg-slate-800 px-2 text-sm text-white"
+              >
+                <option value="">Select industry</option>
+                {INDUSTRIES_OPTIONS.map((ind) => (
+                  <option key={ind} value={ind}>
+                    {ind}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <Label className="text-xs font-medium text-slate-300">Plan tier</Label>
@@ -217,12 +224,18 @@ export function EntitiesPanel({
             </div>
             <div>
               <Label className="text-xs font-medium text-slate-300">Industry</Label>
-              <Input
+              <select
                 value={employeeIndustry}
                 onChange={(e) => setEmployeeIndustry(e.target.value)}
-                placeholder="Industry"
-                className="mt-0.5 h-8 border-slate-600 bg-slate-800 text-slate-100 text-sm"
-              />
+                className="mt-0.5 h-8 w-full rounded border border-slate-600 bg-slate-800 px-2 text-sm text-white"
+              >
+                <option value="">Select industry</option>
+                {INDUSTRIES_OPTIONS.map((ind) => (
+                  <option key={ind} value={ind}>
+                    {ind}
+                  </option>
+                ))}
+              </select>
             </div>
             <Button
               size="sm"
