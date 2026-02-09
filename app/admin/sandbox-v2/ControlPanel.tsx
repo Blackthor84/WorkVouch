@@ -3,8 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ENABLED_VERTICALS, industryToVerticalName } from "@/lib/config/verticals";
 import { INDUSTRIES } from "@/lib/constants/industries";
-import { industryToVerticalName } from "@/lib/verticals/activation";
 import { VerticalOnboardingFields, type VerticalFieldValues } from "@/components/verticals/VerticalOnboardingFields";
 
 type Employer = { id: string; company_name?: string; industry?: string; plan_tier?: string };
@@ -156,6 +156,8 @@ export function ControlPanel(props: ControlPanelProps) {
     revenueLoading,
     onUpdateRevenue,
   } = props;
+
+  const enabledVerticalNames = ENABLED_VERTICALS;
 
   const cardBase = "rounded-xl border border-slate-700 bg-slate-900 overflow-hidden shadow-xl";
   const cardHead = "flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 font-semibold text-white bg-slate-900 border-b border-slate-700 hover:bg-slate-800/90";
