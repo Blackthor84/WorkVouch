@@ -812,7 +812,25 @@ export function SandboxV2Client() {
   const inputClass = "rounded border border-slate-600 bg-slate-800 text-white placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 
   return (
-    <div className="sandbox-root bg-slate-950 min-h-screen text-white [&_*]:text-white">
+    <div className="sandbox-contrast min-h-screen bg-slate-950">
+      <style jsx global>{`
+        .sandbox-contrast * {
+          color: #ffffff !important;
+        }
+
+        .sandbox-contrast input,
+        .sandbox-contrast select,
+        .sandbox-contrast textarea {
+          background-color: #1e293b !important;
+          color: #ffffff !important;
+          border: 1px solid #475569 !important;
+        }
+
+        .sandbox-contrast input::placeholder,
+        .sandbox-contrast textarea::placeholder {
+          color: #cbd5e1 !important;
+        }
+      `}</style>
       <header className="sticky top-0 z-10 border-b border-slate-700 bg-slate-950 backdrop-blur-sm">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-6 py-4">
           <span className="text-xl font-bold text-white">Simulation Command Center</span>
@@ -833,7 +851,7 @@ export function SandboxV2Client() {
               Executive Mode
             </label>
             <Link href="/admin">
-              <Button variant="ghost" size="sm" className="text-white hover:text-white hover:bg-[#0f172a]">← Admin</Button>
+              <Button variant="ghost" size="sm" className="text-white hover:text-white hover:bg-[#0b1220]">← Admin</Button>
             </Link>
           </div>
         </div>
@@ -925,7 +943,7 @@ export function SandboxV2Client() {
           )}
 
           {currentSandboxId && !dashboardData && (
-            <div className="rounded-xl border border-slate-700 bg-[#0f172a] px-6 py-12 text-center text-white">Loading...</div>
+            <div className="rounded-xl border border-slate-700 bg-[#0b1220] px-6 py-12 text-center text-white">Loading...</div>
           )}
 
           {currentSandboxId && dashboardData && (
@@ -946,38 +964,38 @@ export function SandboxV2Client() {
           )}
 
           {currentSandboxId && executiveMode && (
-            <section className="rounded-xl border border-slate-700 bg-[#0f172a] p-6 shadow-xl">
-              <h2 className="text-lg font-bold text-white tracking-wide">Executive Dashboard</h2>
+            <section className="rounded-xl border border-slate-700 bg-[#0b1220] p-6 shadow-xl">
+              <h2 className="text-xl font-bold tracking-wide">Executive Dashboard</h2>
               <div className="mt-4 border-t border-slate-700 pt-4">
                 {loading ? (
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <div key={i} className="h-24 animate-pulse rounded-xl border border-slate-700 bg-[#0f172a]" />
+                      <div key={i} className="h-24 animate-pulse rounded-xl border border-slate-700 bg-[#0b1220]" />
                     ))}
                   </div>
                 ) : exec ? (
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-                    <div className="rounded-xl border border-slate-700 bg-[#0f172a] p-4 text-white">
+                    <div className="rounded-xl border border-slate-700 bg-[#0b1220] p-4 text-white">
                       <p className="text-xs font-medium uppercase tracking-wide text-white">Total Sandbox MRR</p>
                       <p className="mt-1 text-2xl font-bold text-blue-400">{rev?.mrr != null ? rev.mrr : "—"}</p>
                     </div>
-                    <div className="rounded-xl border border-slate-700 bg-[#0f172a] p-4 text-white">
+                    <div className="rounded-xl border border-slate-700 bg-[#0b1220] p-4 text-white">
                       <p className="text-xs font-medium uppercase tracking-wide text-white">Growth %</p>
                       <p className="mt-1 text-2xl font-bold text-blue-400">—</p>
                     </div>
-                    <div className="rounded-xl border border-slate-700 bg-[#0f172a] p-4 text-white">
+                    <div className="rounded-xl border border-slate-700 bg-[#0b1220] p-4 text-white">
                       <p className="text-xs font-medium uppercase tracking-wide text-white">Avg Profile Strength</p>
                       <p className="mt-1 text-2xl font-bold text-blue-400">{exec.avgProfileStrength != null ? exec.avgProfileStrength.toFixed(1) : "—"}</p>
                     </div>
-                    <div className="rounded-xl border border-slate-700 bg-[#0f172a] p-4 text-white">
+                    <div className="rounded-xl border border-slate-700 bg-[#0b1220] p-4 text-white">
                       <p className="text-xs font-medium uppercase tracking-wide text-white">Avg Hiring Confidence</p>
                       <p className="mt-1 text-2xl font-bold text-blue-400">{exec.avgHiringConfidence != null ? exec.avgHiringConfidence.toFixed(1) : "—"}</p>
                     </div>
-                    <div className="rounded-xl border border-slate-700 bg-[#0f172a] p-4 text-white">
+                    <div className="rounded-xl border border-slate-700 bg-[#0b1220] p-4 text-white">
                       <p className="text-xs font-medium uppercase tracking-wide text-white">Ad ROI</p>
                       <p className="mt-1 text-2xl font-bold text-blue-400">{exec.adRoi != null ? exec.adRoi.toFixed(2) : "—"}</p>
                     </div>
-                    <div className="rounded-xl border border-slate-700 bg-[#0f172a] p-4 text-white">
+                    <div className="rounded-xl border border-slate-700 bg-[#0b1220] p-4 text-white">
                       <p className="text-xs font-medium uppercase tracking-wide text-white">Data Density Index</p>
                       <p className="mt-1 text-2xl font-bold text-blue-400">{exec.dataDensityIndex != null ? exec.dataDensityIndex : "—"}</p>
                     </div>
@@ -988,13 +1006,13 @@ export function SandboxV2Client() {
           )}
 
           <div className="space-y-4">
-        <details className="group rounded-xl border border-slate-700 bg-[#0f172a] overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0f172a] hover:bg-slate-700">
+        <details className="group rounded-xl border border-slate-700 bg-[#0b1220] overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0b1220] hover:bg-slate-700">
             <span>Auto Population Templates</span>
-            <span className="text-slate-200 transition group-open:rotate-180">▼</span>
+            <span className="text-white transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-700 px-4 py-4 bg-[#0f172a]">
-            <h3 className="text-base font-bold text-white tracking-wide">Templates</h3>
+          <div className="border-t border-slate-700 px-4 py-4 bg-[#0b1220]">
+            <h3 className="text-xl font-bold tracking-wide">Templates</h3>
             <p className="mt-1 text-sm text-white">One-click deploy: employees, reviews, intelligence, revenue, ads.</p>
             <div className="mt-4 flex flex-wrap items-end gap-4">
               <div>
@@ -1023,10 +1041,10 @@ export function SandboxV2Client() {
           {deployProgress.length > 0 && (
             <div className="mt-4 space-y-1">
               <p className="text-sm font-medium text-white">Progress</p>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-[#0f172a]">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-[#0b1220]">
                 <div className="h-full bg-cyan-500 transition-all" style={{ width: deployProgress.length >= 5 ? "100%" : `${(deployProgress.length / 5) * 100}%` }} />
               </div>
-              <ul className="mt-2 space-y-1 text-sm text-slate-200">
+              <ul className="mt-2 space-y-1 text-sm text-white">
                 {deployProgress.map((line, i) => (
                   <li key={i}>{line}</li>
                 ))}
@@ -1035,20 +1053,20 @@ export function SandboxV2Client() {
           )}
           {currentSandboxId && dashboardData !== null && dashboardData.sandbox_metrics && (
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-xl border border-cyan-600/40 bg-[#0f172a]/60 p-3">
-                <p className="text-xs uppercase tracking-wide text-slate-200">Avg Profile Strength</p>
+              <div className="rounded-xl border border-cyan-600/40 bg-[#0b1220]/60 p-3">
+                <p className="text-xs uppercase tracking-wide text-white">Avg Profile Strength</p>
                 <p className="text-2xl font-bold text-cyan-400">{dashboardData.sandbox_metrics.avg_profile_strength != null ? Number(dashboardData.sandbox_metrics.avg_profile_strength).toFixed(1) : "—"}</p>
               </div>
-              <div className="rounded-xl border border-cyan-600/40 bg-[#0f172a]/60 p-3">
-                <p className="text-xs uppercase tracking-wide text-slate-200">Hiring Confidence</p>
+              <div className="rounded-xl border border-cyan-600/40 bg-[#0b1220]/60 p-3">
+                <p className="text-xs uppercase tracking-wide text-white">Hiring Confidence</p>
                 <p className="text-2xl font-bold text-cyan-400">{dashboardData.sandbox_metrics.avg_hiring_confidence != null ? Number(dashboardData.sandbox_metrics.avg_hiring_confidence).toFixed(1) : "—"}</p>
               </div>
-              <div className="rounded-xl border border-cyan-600/40 bg-[#0f172a]/60 p-3">
-                <p className="text-xs uppercase tracking-wide text-slate-200">MRR</p>
+              <div className="rounded-xl border border-cyan-600/40 bg-[#0b1220]/60 p-3">
+                <p className="text-xs uppercase tracking-wide text-white">MRR</p>
                 <p className="text-2xl font-bold text-cyan-400">{dashboardData.sandbox_metrics.mrr != null ? Number(dashboardData.sandbox_metrics.mrr) : "—"}</p>
               </div>
-              <div className="rounded-xl border border-cyan-600/40 bg-[#0f172a]/60 p-3">
-                <p className="text-xs uppercase tracking-wide text-slate-200">Ad ROI</p>
+              <div className="rounded-xl border border-cyan-600/40 bg-[#0b1220]/60 p-3">
+                <p className="text-xs uppercase tracking-wide text-white">Ad ROI</p>
                 <p className="text-2xl font-bold text-cyan-400">{dashboardData.sandbox_metrics.ad_roi != null ? Number(dashboardData.sandbox_metrics.ad_roi).toFixed(2) : "—"}</p>
               </div>
             </div>
@@ -1056,12 +1074,12 @@ export function SandboxV2Client() {
           </div>
         </details>
 
-        <details className="group rounded-xl border border-slate-700 bg-[#0f172a] overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0f172a] hover:bg-slate-700">
+        <details className="group rounded-xl border border-slate-700 bg-[#0b1220] overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0b1220] hover:bg-slate-700">
             <span>Preset Demo Modes</span>
-            <span className="text-slate-200 transition group-open:rotate-180">▼</span>
+            <span className="text-white transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-700 px-4 py-4 bg-[#0f172a]">
+          <div className="border-t border-slate-700 px-4 py-4 bg-[#0b1220]">
             <h3 className="text-base font-bold text-white tracking-wide">Demo Modes</h3>
             <p className="mt-1 text-sm text-white">Alter display emphasis without regenerating data.</p>
             <div className="mt-4 flex flex-wrap gap-2">
@@ -1072,66 +1090,66 @@ export function SandboxV2Client() {
                 { key: "investor_pitch", label: "Investor Pitch Mode" },
                 { key: "ad_explosion", label: "Ad Explosion Mode" },
               ].map(({ key, label }) => (
-                <Button key={key} variant={demoMode === key ? "primary" : "secondary"} size="sm" onClick={() => setDemoModePreset(demoMode === key ? null : key)} disabled={!currentSandboxId || demoModeLoading} className={demoMode === key ? "bg-blue-600 hover:bg-blue-500" : "bg-slate-700 text-slate-200 hover:bg-slate-600"}>
+                <Button key={key} variant={demoMode === key ? "primary" : "secondary"} size="sm" onClick={() => setDemoModePreset(demoMode === key ? null : key)} disabled={!currentSandboxId || demoModeLoading} className={demoMode === key ? "bg-blue-600 hover:bg-blue-500" : "bg-slate-700 text-white hover:bg-slate-600"}>
                   {label}
                 </Button>
               ))}
-              {demoMode && <span className="self-center text-sm text-slate-200">Active: {demoMode}</span>}
+              {demoMode && <span className="self-center text-sm text-white">Active: {demoMode}</span>}
             </div>
           </div>
         </details>
 
-        <details className="group rounded-xl border border-slate-700 bg-[#0f172a] overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0f172a] hover:bg-slate-700">
+        <details className="group rounded-xl border border-slate-700 bg-[#0b1220] overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0b1220] hover:bg-slate-700">
             <span>Feature Toggles</span>
-            <span className="text-slate-200 transition group-open:rotate-180">▼</span>
+            <span className="text-white transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-700 px-4 py-4 bg-[#0f172a]">
-            <h3 className="text-base font-bold text-white tracking-wide">Feature Toggles</h3>
+          <div className="border-t border-slate-700 px-4 py-4 bg-[#0b1220]">
+            <h3 className="text-xl font-bold tracking-wide">Feature Toggles</h3>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button variant="secondary" size="sm" onClick={syncFeatures} disabled={syncFeaturesLoading} className="bg-[#0f172a] text-slate-200 hover:bg-slate-700">{syncFeaturesLoading ? "…" : "Sync from production"}</Button>
+              <Button variant="secondary" size="sm" onClick={syncFeatures} disabled={syncFeaturesLoading} className="bg-[#0b1220] text-white hover:bg-slate-700">{syncFeaturesLoading ? "…" : "Sync from production"}</Button>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {features.map((f) => (
-                <label key={f.id} className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-[#0f172a] px-3 py-2 hover:bg-slate-700">
+                <label key={f.id} className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-[#0b1220] px-3 py-2 hover:bg-slate-700">
                   <input type="checkbox" checked={overrides[f.feature_key] ?? f.is_enabled} onChange={(e) => currentSandboxId && setFeatureOverride(f.feature_key, e.target.checked)} className="rounded" />
                   <span className="text-sm text-white">{f.feature_key}</span>
                 </label>
               ))}
-              {features.length === 0 && <p className="text-sm text-slate-200">Sync from production to see flags.</p>}
+              {features.length === 0 && <p className="text-sm text-white">Sync from production to see flags.</p>}
             </div>
-            <div className="mt-4 rounded-xl border border-slate-700 bg-[#0f172a] p-4">
+            <div className="mt-4 rounded-xl border border-slate-700 bg-[#0b1220] p-4">
               <h3 className="text-base font-bold text-white tracking-wide">View-As Mode</h3>
               <p className="mt-1 text-sm text-white">Simulate plan gating, feature access (sandbox-only).</p>
               <div className="mt-3 flex gap-2">
                 {(["Admin", "Employer", "Employee"] as const).map((mode) => (
-                  <Button key={mode} variant={viewAs === mode ? "primary" : "secondary"} onClick={() => setViewAs(mode)} className={viewAs === mode ? "bg-blue-600 hover:bg-blue-500" : "bg-slate-700 text-slate-200 hover:bg-slate-600"}>View as {mode}</Button>
+                  <Button key={mode} variant={viewAs === mode ? "primary" : "secondary"} onClick={() => setViewAs(mode)} className={viewAs === mode ? "bg-blue-600 hover:bg-blue-500" : "bg-slate-700 text-white hover:bg-slate-600"}>View as {mode}</Button>
                 ))}
               </div>
-              <p className="mt-2 text-sm text-slate-200">Current: {viewAs}</p>
+              <p className="mt-2 text-sm text-white">Current: {viewAs}</p>
             </div>
           </div>
         </details>
 
-        <details className="group rounded-xl border border-slate-700 bg-[#0f172a] overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0f172a] hover:bg-slate-700">
+        <details className="group rounded-xl border border-slate-700 bg-[#0b1220] overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0b1220] hover:bg-slate-700">
             <span>Actions</span>
-            <span className="text-slate-200 transition group-open:rotate-180">▼</span>
+            <span className="text-white transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-700 px-4 py-4 bg-[#0f172a]">
+          <div className="border-t border-slate-700 px-4 py-4 bg-[#0b1220]">
             <Button onClick={runCleanup} disabled={loading || cleanupLoading} className="w-full bg-red-600 py-2 font-semibold text-white hover:bg-red-500">
               {cleanupLoading ? "…" : "Cleanup expired sessions"}
             </Button>
           </div>
         </details>
 
-        <details className="group rounded-xl border border-slate-700 bg-[#0f172a] overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0f172a] hover:bg-slate-700">
+        <details className="group rounded-xl border border-slate-700 bg-[#0b1220] overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0b1220] hover:bg-slate-700">
             <span>Command Console</span>
-            <span className="text-slate-200 transition group-open:rotate-180">▼</span>
+            <span className="text-white transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-700 px-4 py-4 bg-[#0f172a]">
-            <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-700 bg-[#0f172a] p-4 font-mono text-sm text-slate-200">
+          <div className="border-t border-slate-700 px-4 py-4 bg-[#0b1220]">
+            <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-700 bg-[#0b1220] p-4 font-mono text-sm text-white">
               {consoleLogs.length === 0 && <p className="text-white">No output yet.</p>}
               {consoleLogs.map((line, i) => (
                 <p key={i} className={line.startsWith("[ERR]") ? "text-red-400" : line.startsWith("[OK]") ? "text-emerald-400" : "text-white"}>{line}</p>
