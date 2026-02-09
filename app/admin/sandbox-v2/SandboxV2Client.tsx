@@ -5,11 +5,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { EntitiesPanel } from "./EntitiesPanel";
-import { SimulationPanel } from "./SimulationPanel";
-import { ResultsPanel } from "./ResultsPanel";
+import { ControlPanel } from "./ControlPanel";
+import { SimulationCoreCard } from "./SimulationCoreCard";
+import type { V1BreakdownComponents } from "./SimulationCoreCard";
+import { LiveResultsPanel } from "./LiveResultsPanel";
 
 const API = "/api/admin/sandbox-v2";
+
+const FEATURE_TEACHERS_MODE = typeof process !== "undefined" && process.env.NEXT_PUBLIC_FEATURE_TEACHERS_MODE === "true";
 
 type Session = { id: string; name: string | null; starts_at: string; ends_at: string; status: string; created_at?: string };
 type Employer = { id: string; company_name?: string; industry?: string; plan_tier?: string };
@@ -98,6 +101,10 @@ export function SandboxV2Client() {
   const [peerReviewedNameOverride, setPeerReviewedNameOverride] = useState("");
   const [demoDataLoading, setDemoDataLoading] = useState(false);
   const [previousAvgHiringConfidence, setPreviousAvgHiringConfidence] = useState<number | null>(null);
+  const [lastScoreDelta, setLastScoreDelta] = useState<number | null>(null);
+  const [showDeltaUntil, setShowDeltaUntil] = useState(0);
+  const [breakdown, setBreakdown] = useState<V1BreakdownComponents | null>(null);
+  const teachersMode = FEATURE_TEACHERS_MODE;
 
   const log = useCallback((msg: string, type: "info" | "success" | "error" = "info") => {
     const prefix = type === "success" ? "[OK] " : type === "error" ? "[ERR] " : "> ";
@@ -215,6 +222,28 @@ export function SandboxV2Client() {
     }
     fetchDashboard(currentSandboxId);
   }, [currentSandboxId]);
+
+  useEffect(() => {
+    if (showDeltaUntil <= 0 || lastScoreDelta == null) return;
+    const t = setTimeout(() => setShowDeltaUntil(0), Math.max(0, showDeltaUntil - Date.now()));
+    return () => clearTimeout(t);
+  }, [showDeltaUntil, lastScoreDelta]);
+
+  useEffect(() => {
+    if (!currentSandboxId || !dashboardData?.employees?.length) {
+      setBreakdown(null);
+      return;
+    }
+    const firstId = dashboardData.employees[0]?.id;
+    if (!firstId) return;
+    fetch(`/api/admin/intelligence/breakdown?sandboxId=${encodeURIComponent(currentSandboxId)}&employeeId=${encodeURIComponent(firstId)}`, { credentials: "include" })
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.components) setBreakdown(j.components as V1BreakdownComponents);
+        else setBreakdown(null);
+      })
+      .catch(() => setBreakdown(null));
+  }, [currentSandboxId, dashboardData?.employees]);
 
   const createSession = async () => {
     setLoading(true);
@@ -456,6 +485,7 @@ export function SandboxV2Client() {
 
   const runRecalculate = async () => {
     if (!currentSandboxId) return;
+    const prevAvg = previousAvgHiringConfidence;
     setLoading(true);
     setRecalcLoading(true);
     setError(null);
@@ -472,11 +502,21 @@ export function SandboxV2Client() {
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || "Recalculate failed");
       log("Intelligence recalculated", "success");
-      if (currentSandboxId) {
-        await refreshSandbox(currentSandboxId);
-        const ei = dashboardData?.employeeIntelligence;
-        const avg = ei?.avgHiringConfidence ?? dashboardData?.sandbox_metrics?.avg_hiring_confidence;
-        if (avg != null) setPreviousAvgHiringConfidence(Number(avg));
+      await refreshSandbox(currentSandboxId);
+      const dashRes = await fetch(`${API}/dashboard?sandboxId=${encodeURIComponent(currentSandboxId)}`, { credentials: "include" });
+      const dashJson = await dashRes.json().catch(() => ({}));
+      if (dashJson.success && dashJson.data) {
+        const data = dashJson.data as Metrics;
+        const newAvg = data?.employeeIntelligence?.avgHiringConfidence ?? data?.sandbox_metrics?.avg_hiring_confidence;
+        if (newAvg != null) {
+          const numNew = Number(newAvg);
+          setPreviousAvgHiringConfidence(numNew);
+          if (prevAvg != null) {
+            const delta = numNew - prevAvg;
+            setLastScoreDelta(delta);
+            setShowDeltaUntil(Date.now() + 4000);
+          }
+        }
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
@@ -764,19 +804,24 @@ export function SandboxV2Client() {
     }
   };
 
+  const avgScore = dashboardData?.employeeIntelligence?.avgProfileStrength ?? dashboardData?.sandbox_metrics?.avg_profile_strength ?? null;
+  const isAdmin = viewAs === "Admin";
+  const industryModifiers: string[] = isAdmin ? ["Construction (+3 Risk Adjustment)", "Education (+2 Stability Boost)"] : [];
+  const showDeltaBadge = showDeltaUntil > 0 && lastScoreDelta != null;
+
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100">
-      <header className="sticky top-0 z-10 border-b border-slate-700 bg-slate-900/98 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-3">
-          <span className="text-xl font-semibold text-slate-100">Enterprise Simulation Environment</span>
+    <div className="min-h-screen bg-slate-950 text-white">
+      <header className="sticky top-0 z-10 border-b border-slate-700 bg-slate-950 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-6 py-4">
+          <span className="text-xl font-bold text-white">Simulation Command Center</span>
           <div className="flex items-center gap-4">
             <span
-              className={`rounded-full px-3 py-1 text-xs font-medium ${
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                 sessionStatus === "active"
-                  ? "bg-emerald-500/20 text-emerald-300"
+                  ? "bg-emerald-600/30 text-emerald-300"
                   : sessionStatus === "expired"
-                    ? "bg-amber-500/20 text-amber-300"
-                    : "bg-slate-600/50 text-slate-400"
+                    ? "bg-amber-500/30 text-amber-300"
+                    : "bg-slate-700 text-slate-300"
               }`}
             >
               {sessionStatus === "active" ? "Session active" : sessionStatus === "expired" ? "Session expired" : "No session"}
@@ -786,26 +831,27 @@ export function SandboxV2Client() {
               Executive Mode
             </label>
             <Link href="/admin">
-              <Button variant="ghost" size="sm" className="text-slate-200 hover:text-white">← Admin</Button>
+              <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white hover:bg-slate-800">← Admin</Button>
             </Link>
           </div>
         </div>
       </header>
 
-      <div
-        className="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 p-6 lg:grid-cols-[300px_1fr_350px]"
-        style={{ gridTemplateColumns: "minmax(0, 300px) minmax(0, 1fr) minmax(0, 350px)" } as React.CSSProperties}
-      >
-        {/* LEFT: Entities panel */}
-        <div className="min-h-0 lg:min-h-[calc(100vh-8rem)]">
-          <EntitiesPanel
+      <div className="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 p-6 lg:grid-cols-[1fr_1.2fr_1fr]">
+        {/* LEFT: Control Panel (30%) */}
+        <div className="min-w-0 space-y-4">
+          <ControlPanel
+            currentSandboxId={currentSandboxId}
+            loading={loading}
+            createName={createName}
+            setCreateName={setCreateName}
+            createLoading={createLoading}
+            sessions={sessions}
+            onCreateSession={createSession}
+            onSessionChange={setCurrentSandboxId}
             employers={employers}
             employees={employees}
             intelByEmployeeId={intelByEmployeeId}
-            currentSandboxId={currentSandboxId}
-            loading={loading}
-            genEmployerLoading={genEmployerLoading}
-            genEmployeeLoading={genEmployeeLoading}
             employerName={employerName}
             setEmployerName={setEmployerName}
             employerIndustry={employerIndustry}
@@ -816,122 +862,142 @@ export function SandboxV2Client() {
             setEmployeeName={setEmployeeName}
             employeeIndustry={employeeIndustry}
             setEmployeeIndustry={setEmployeeIndustry}
+            genEmployerLoading={genEmployerLoading}
+            genEmployeeLoading={genEmployeeLoading}
             onGenerateEmployer={generateEmployer}
             onGenerateEmployee={generateEmployee}
+            teachersMode={teachersMode}
+            peerReviewerId={peerReviewerId}
+            setPeerReviewerId={setPeerReviewerId}
+            peerReviewedId={peerReviewedId}
+            setPeerReviewedId={setPeerReviewedId}
+            peerRating={peerRating}
+            setPeerRating={setPeerRating}
+            peerReviewText={peerReviewText}
+            setPeerReviewText={setPeerReviewText}
+            peerReviewLoading={peerReviewLoading}
+            reviewedCandidates={reviewedCandidates}
+            submittedReviews={submittedReviews}
+            onAddPeerReview={addPeerReview}
+            onClearSubmittedReviews={clearSubmittedReviews}
+            hireEmployeeId={hireEmployeeId}
+            setHireEmployeeId={setHireEmployeeId}
+            hireEmployerId={hireEmployerId}
+            setHireEmployerId={setHireEmployerId}
+            hireRole={hireRole}
+            setHireRole={setHireRole}
+            hireTenureMonths={hireTenureMonths}
+            setHireTenureMonths={setHireTenureMonths}
+            hireRehireEligible={hireRehireEligible}
+            setHireRehireEligible={setHireRehireEligible}
+            hireLoading={hireLoading}
+            onAddEmployment={handleAddEmployment}
+            adsEmployerId={adsEmployerId}
+            setAdsEmployerId={setAdsEmployerId}
+            adsImpressions={adsImpressions}
+            setAdsImpressions={setAdsImpressions}
+            adsClicks={adsClicks}
+            setAdsClicks={setAdsClicks}
+            adsSpend={adsSpend}
+            setAdsSpend={setAdsSpend}
+            adsLoading={adsLoading}
+            onAddAds={addAds}
+            churnRate={churnRate}
+            setChurnRate={setChurnRate}
+            revenueLoading={revenueLoading}
+            onUpdateRevenue={updateRevenue}
           />
         </div>
 
-        {/* CENTER: Simulation controls */}
-        <div className="min-w-0 space-y-4">
-        {error && (
-          <div className="rounded-xl border border-red-500/60 bg-red-500/15 px-4 py-3 text-red-200">{error}</div>
-        )}
+        {/* CENTER: Simulation Core (40%) */}
+        <div className="min-w-0 space-y-6">
+          {error && (
+            <div className="rounded-xl border border-red-600 bg-red-600/20 px-4 py-3 text-red-200 font-medium">{error}</div>
+          )}
 
-        {/* No sandbox selected */}
-        {!currentSandboxId && (
-          <div className="rounded-2xl border border-amber-600/50 bg-amber-500/10 px-4 py-6 text-amber-100">
-            <p className="font-medium">No sandbox selected</p>
-            <p className="mt-1 text-sm text-amber-200/90">Select a sandbox above to view aggregated metrics and generate employees, employers, peer reviews, or simulations. All values are derived from sandbox data.</p>
-          </div>
-        )}
-
-        {/* Loading when sandbox selected but dashboard not yet loaded */}
-        {currentSandboxId && !dashboardData && (
-          <div className="rounded-2xl border border-slate-700 bg-slate-800 px-4 py-8 text-center text-base text-slate-400">Loading...</div>
-        )}
-
-        {/* Executive Dashboard (boardroom ready) — only when sandbox selected */}
-        {currentSandboxId && executiveMode && (
-          <section className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
-            <h2 className="text-xl font-semibold text-slate-100">Executive Dashboard</h2>
-            <div className="mt-4 border-t border-slate-600 pt-4">
-              {loading ? (
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-                  {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div key={i} className="h-24 animate-pulse rounded-xl border border-slate-600 bg-slate-800" />
-                  ))}
-                </div>
-              ) : exec ? (
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-                  <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4 text-slate-100">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Total Sandbox MRR</p>
-                    <p className="mt-1 text-2xl font-bold text-cyan-300">{rev?.mrr != null ? rev.mrr : "—"}</p>
-                  </div>
-                  <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4 text-slate-100">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Growth %</p>
-                    <p className="mt-1 text-2xl font-bold text-cyan-300">—</p>
-                  </div>
-                  <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4 text-slate-100">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Avg Profile Strength</p>
-                    <p className="mt-1 text-2xl font-bold text-cyan-300">{exec.avgProfileStrength != null ? exec.avgProfileStrength.toFixed(1) : "—"}</p>
-                  </div>
-                  <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4 text-slate-100">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Avg Hiring Confidence</p>
-                    <p className="mt-1 text-2xl font-bold text-cyan-300">{exec.avgHiringConfidence != null ? exec.avgHiringConfidence.toFixed(1) : "—"}</p>
-                  </div>
-                  <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4 text-slate-100">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Ad ROI</p>
-                    <p className="mt-1 text-2xl font-bold text-cyan-300">{exec.adRoi != null ? exec.adRoi.toFixed(2) : "—"}</p>
-                  </div>
-                  <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4 text-slate-100">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Data Density Index</p>
-                    <p className="mt-1 text-2xl font-bold text-cyan-300">{exec.dataDensityIndex != null ? exec.dataDensityIndex : "—"}</p>
-                  </div>
-                </div>
-              ) : null}
+          {!currentSandboxId && (
+            <div className="rounded-xl border border-amber-600 bg-amber-500/10 px-6 py-6 text-amber-100">
+              <p className="font-semibold">No sandbox selected</p>
+              <p className="mt-2 text-sm text-slate-300">Select or create a session in the left panel to run simulations.</p>
             </div>
-          </section>
-        )}
+          )}
 
-        <SimulationPanel
-          recalculateButton={
-            <Button variant="primary" size="sm" onClick={runRecalculate} disabled={loading || !currentSandboxId || recalcLoading}>
-              {recalcLoading ? "…" : "Recalculate"}
-            </Button>
-          }
-        >
-        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden" open>
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
-            <span>Session Control</span>
-            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
-          </summary>
-          <div className="border-t border-slate-600 px-4 py-4">
-          <div className="flex flex-wrap items-end gap-4">
-            <div>
-              <Label className="font-medium text-slate-300">Name</Label>
-              <Input value={createName} onChange={(e) => setCreateName(e.target.value)} placeholder="New session name" className="mt-1 w-48 border-slate-700 bg-slate-800 text-white" />
-            </div>
-            <Button onClick={createSession} disabled={loading || createLoading}>{createLoading ? "Creating…" : "Create session"}</Button>
-            <div className="ml-4">
-              <Label className="font-medium text-slate-300">Active session</Label>
-              <select value={currentSandboxId ?? ""} onChange={(e) => setCurrentSandboxId(e.target.value || null)} className="mt-1 rounded border border-slate-600 bg-slate-800 px-3 py-2 text-slate-100">
-                <option value="">None</option>
-                {sessions?.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name || s.id.slice(0, 8)} — {s.status}</option>
-                ))}
-              </select>
-              <p className="mt-1 text-sm text-slate-400">Active Sandbox: {currentSandboxId ?? "—"}</p>
-              {sessions.length === 0 && (
-                <div style={{ padding: 20, opacity: 0.6 }}>No sessions found</div>
-              )}
-            </div>
-          </div>
-          </div>
-        </details>
+          {currentSandboxId && !dashboardData && (
+            <div className="rounded-xl border border-slate-700 bg-slate-900 px-6 py-12 text-center text-slate-300">Loading...</div>
+          )}
 
-        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+          {currentSandboxId && dashboardData && (
+            <SimulationCoreCard
+              avgScore={avgScore}
+              breakdown={breakdown}
+              isAdmin={isAdmin}
+              recalcLoading={recalcLoading}
+              currentSandboxId={currentSandboxId}
+              loading={loading}
+              onRecalculate={runRecalculate}
+              sentimentMultiplier={sentimentMultiplier}
+              setSentimentMultiplier={setSentimentMultiplier}
+              industryModifiers={industryModifiers}
+              lastScoreDelta={lastScoreDelta}
+              showDeltaBadge={showDeltaBadge}
+            />
+          )}
+
+          {currentSandboxId && executiveMode && (
+            <section className="rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-xl">
+              <h2 className="text-lg font-bold text-white">Executive Dashboard</h2>
+              <div className="mt-4 border-t border-slate-700 pt-4">
+                {loading ? (
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <div key={i} className="h-24 animate-pulse rounded-xl border border-slate-700 bg-slate-800" />
+                    ))}
+                  </div>
+                ) : exec ? (
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                    <div className="rounded-xl border border-slate-700 bg-slate-800 p-4 text-white">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-300">Total Sandbox MRR</p>
+                      <p className="mt-1 text-2xl font-bold text-blue-400">{rev?.mrr != null ? rev.mrr : "—"}</p>
+                    </div>
+                    <div className="rounded-xl border border-slate-700 bg-slate-800 p-4 text-white">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-300">Growth %</p>
+                      <p className="mt-1 text-2xl font-bold text-blue-400">—</p>
+                    </div>
+                    <div className="rounded-xl border border-slate-700 bg-slate-800 p-4 text-white">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-300">Avg Profile Strength</p>
+                      <p className="mt-1 text-2xl font-bold text-blue-400">{exec.avgProfileStrength != null ? exec.avgProfileStrength.toFixed(1) : "—"}</p>
+                    </div>
+                    <div className="rounded-xl border border-slate-700 bg-slate-800 p-4 text-white">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-300">Avg Hiring Confidence</p>
+                      <p className="mt-1 text-2xl font-bold text-blue-400">{exec.avgHiringConfidence != null ? exec.avgHiringConfidence.toFixed(1) : "—"}</p>
+                    </div>
+                    <div className="rounded-xl border border-slate-700 bg-slate-800 p-4 text-white">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-300">Ad ROI</p>
+                      <p className="mt-1 text-2xl font-bold text-blue-400">{exec.adRoi != null ? exec.adRoi.toFixed(2) : "—"}</p>
+                    </div>
+                    <div className="rounded-xl border border-slate-700 bg-slate-800 p-4 text-white">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-300">Data Density Index</p>
+                      <p className="mt-1 text-2xl font-bold text-blue-400">{exec.dataDensityIndex != null ? exec.dataDensityIndex : "—"}</p>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          )}
+
+          <div className="space-y-4">
+        <details className="group rounded-xl border border-slate-700 bg-slate-900 overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white hover:bg-slate-800">
             <span>Auto Population Templates</span>
             <span className="text-slate-400 transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-600 px-4 py-4">
-        <div className="rounded-xl bg-slate-800/60 p-4">
-          <h3 className="text-lg font-semibold text-slate-100">Templates</h3>
-          <p className="mt-1 text-sm text-slate-400">One-click deploy: employees, reviews, intelligence, revenue, ads.</p>
-          <div className="mt-4 flex flex-wrap items-end gap-4">
-            <div>
-              <Label className="font-medium text-slate-300">Select Template</Label>
-              <select value={selectedTemplateKey} onChange={(e) => setSelectedTemplateKey(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
+          <div className="border-t border-slate-700 px-4 py-4 bg-slate-900">
+            <h3 className="text-base font-semibold text-white">Templates</h3>
+            <p className="mt-1 text-sm text-slate-300">One-click deploy: employees, reviews, intelligence, revenue, ads.</p>
+            <div className="mt-4 flex flex-wrap items-end gap-4">
+              <div>
+                <Label className="font-medium text-slate-300">Select Template</Label>
+                <select value={selectedTemplateKey} onChange={(e) => setSelectedTemplateKey(e.target.value)} className="mt-1 rounded border border-slate-600 bg-slate-800 px-3 py-2 text-white focus:ring-2 focus:ring-blue-500">
                 <option value="">—</option>
                 {templates.map((t) => (
                   <option key={t.id} value={t.template_key}>{t.display_name} ({t.default_employee_count})</option>
@@ -989,325 +1055,99 @@ export function SandboxV2Client() {
           </div>
         </details>
 
-        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+        <details className="group rounded-xl border border-slate-700 bg-slate-900 overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white hover:bg-slate-800">
             <span>Preset Demo Modes</span>
             <span className="text-slate-400 transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-600 px-4 py-4">
-        <div className="rounded-xl bg-slate-800/60 p-4">
-          <h3 className="text-lg font-semibold text-slate-100">Demo Modes</h3>
-          <p className="mt-1 text-sm text-slate-400">Alter display emphasis (review volume, sentiment, revenue, risk, churn, ad ROI) without regenerating data.</p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {[
-              { key: "boardroom", label: "Boardroom Mode" },
-              { key: "high_risk", label: "High Risk Scenario" },
-              { key: "rapid_growth", label: "Rapid Growth Scenario" },
-              { key: "investor_pitch", label: "Investor Pitch Mode" },
-              { key: "ad_explosion", label: "Ad Explosion Mode" },
-            ].map(({ key, label }) => (
-              <Button key={key} variant={demoMode === key ? "primary" : "secondary"} size="sm" onClick={() => setDemoModePreset(demoMode === key ? null : key)} disabled={!currentSandboxId || demoModeLoading}>
-                {label}
-              </Button>
-            ))}
-            {demoMode && <span className="self-center text-sm text-slate-400">Active: {demoMode}</span>}
-          </div>
-        </div>
+          <div className="border-t border-slate-700 px-4 py-4 bg-slate-900">
+            <h3 className="text-base font-semibold text-white">Demo Modes</h3>
+            <p className="mt-1 text-sm text-slate-300">Alter display emphasis without regenerating data.</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {[
+                { key: "boardroom", label: "Boardroom Mode" },
+                { key: "high_risk", label: "High Risk Scenario" },
+                { key: "rapid_growth", label: "Rapid Growth Scenario" },
+                { key: "investor_pitch", label: "Investor Pitch Mode" },
+                { key: "ad_explosion", label: "Ad Explosion Mode" },
+              ].map(({ key, label }) => (
+                <Button key={key} variant={demoMode === key ? "primary" : "secondary"} size="sm" onClick={() => setDemoModePreset(demoMode === key ? null : key)} disabled={!currentSandboxId || demoModeLoading} className={demoMode === key ? "bg-blue-600 hover:bg-blue-500" : "bg-slate-700 text-slate-200 hover:bg-slate-600"}>
+                  {label}
+                </Button>
+              ))}
+              {demoMode && <span className="self-center text-sm text-slate-400">Active: {demoMode}</span>}
+            </div>
           </div>
         </details>
 
-        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden" open>
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
-            <span>Peer Review Builder</span>
-            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
-          </summary>
-          <div className="border-t border-slate-600 px-4 py-4">
-        <div className="rounded-xl bg-slate-800/90 p-4">
-          <h3 className="text-lg font-semibold text-slate-100">Peer Review</h3>
-          <p className="mt-1 text-sm text-slate-300">Sentiment score auto-calculated. Submit multiple reviews.</p>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <Label className="font-medium text-slate-300">Reviewer</Label>
-              <select
-                value={peerReviewerId}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  setPeerReviewerId(next);
-                  if (next && peerReviewedId === next) setPeerReviewedId("");
-                }}
-                className="mt-1 rounded border border-slate-600 bg-slate-700 px-3 py-2 text-base text-slate-100"
-              >
-                <option value="">Select employee</option>
-                {employees?.length === 0 && <option disabled>No employees yet</option>}
-                {employees?.map((e) => (
-                  <option key={e.id} value={e.id}>{e.full_name ?? e.id.slice(0, 8)}</option>
-                ))}
-              </select>
-              <Input value={peerReviewerNameOverride} onChange={(e) => setPeerReviewerNameOverride(e.target.value)} placeholder="Override display name (optional)" className="mt-1.5 border-slate-600 bg-slate-700/80 text-sm text-slate-100" />
-            </div>
-            <div>
-              <Label className="font-medium text-slate-300">Reviewed</Label>
-              <select
-                value={peerReviewedId}
-                onChange={(e) => setPeerReviewedId(e.target.value)}
-                className="mt-1 rounded border border-slate-600 bg-slate-700 px-3 py-2 text-base text-slate-100"
-              >
-                <option value="">Select employee</option>
-                {reviewedCandidates.length === 0 && <option disabled>No other employees (or select reviewer first)</option>}
-                {reviewedCandidates.map((e) => (
-                  <option key={e.id} value={e.id}>{e.full_name ?? e.id.slice(0, 8)}</option>
-                ))}
-              </select>
-              <Input value={peerReviewedNameOverride} onChange={(e) => setPeerReviewedNameOverride(e.target.value)} placeholder="Override display name (optional)" className="mt-1.5 border-slate-600 bg-slate-700/80 text-sm text-slate-100" />
-            </div>
-            {(peerReviewerId || peerReviewedId) && (
-              <div className="flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-700/50 px-3 py-2 text-sm sm:col-span-2">
-                <span className="font-medium text-slate-200">
-                  {employees.find((e) => e.id === peerReviewerId)?.full_name ?? peerReviewerId?.slice(0, 8) ?? "—"}
-                </span>
-                <span className="text-slate-400">→</span>
-                <span className="font-medium text-slate-200">
-                  {employees.find((e) => e.id === peerReviewedId)?.full_name ?? peerReviewedId?.slice(0, 8) ?? "—"}
-                </span>
-                <span className="text-slate-500">(reviewer → reviewed)</span>
-              </div>
-            )}
-            <div className="sm:col-span-2">
-              <Label className="font-medium text-slate-300">Rating (1–5): {peerRating}</Label>
-              <input type="range" min={1} max={5} step={1} value={peerRating} onChange={(e) => setPeerRating(parseInt(e.target.value, 10))} className="mt-2 w-full accent-cyan-500" />
-            </div>
-            <div className="sm:col-span-2">
-              <Label className="font-medium text-slate-300">Review text</Label>
-              <Input value={peerReviewText} onChange={(e) => setPeerReviewText(e.target.value)} placeholder="Review text (sentiment auto-calculated)" className="mt-1 border-slate-600 bg-slate-700 text-base text-slate-100" />
-            </div>
-            <div className="flex flex-wrap gap-2 sm:col-span-2">
-              <Button onClick={addPeerReview} disabled={loading || !currentSandboxId || !peerReviewerId || !peerReviewedId || peerReviewLoading}>{peerReviewLoading ? "…" : "Add peer review"}</Button>
-              <Button variant="secondary" onClick={clearSubmittedReviews} disabled={submittedReviews.length === 0}>Clear Reviews</Button>
-            </div>
-          </div>
-          {submittedReviews.length > 0 && (
-            <div className="mt-4 rounded-lg border border-slate-600 bg-slate-700/50 p-3">
-              <p className="mb-2 text-sm font-medium text-slate-300">Submitted reviews ({submittedReviews.length})</p>
-              <ul className="max-h-40 space-y-2 overflow-y-auto text-sm text-slate-200">
-                {submittedReviews.map((r) => (
-                  <li key={r.id} className="rounded border border-slate-600 bg-slate-700/80 p-2">
-                    <span className="font-medium">{r.reviewerName}</span> → <span className="font-medium">{r.reviewedName}</span> · {r.rating}/5
-                    {r.review_text && <p className="mt-1 truncate text-slate-400">{r.review_text}</p>}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-          </div>
-        </details>
-
-        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
-            <span>Sentiment Multiplier</span>
-            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
-          </summary>
-          <div className="border-t border-slate-600 px-4 py-4">
-        <div className="rounded-xl bg-slate-800/90 p-4">
-          <h3 className="text-lg font-semibold text-slate-100">Score simulation</h3>
-          <p className="mt-1 text-sm text-slate-400">Sentiment multiplier (0.5–2.0). Click Recalculate to apply.</p>
-          <div className="mt-4">
-            <Label className="font-medium text-slate-300">Multiplier: {sentimentMultiplier.toFixed(1)}</Label>
-            <input type="range" min={0.5} max={2} step={0.1} value={sentimentMultiplier} onChange={(e) => setSentimentMultiplier(parseFloat(e.target.value))} className="mt-2 w-full accent-cyan-500" />
-          </div>
-          <Button variant="secondary" className="mt-4" onClick={runRecalculate} disabled={loading || !currentSandboxId || recalcLoading}>{recalcLoading ? "…" : "Recalculate intelligence"}</Button>
-        </div>
-          </div>
-        </details>
-
-        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
-            <span>Hiring Simulation</span>
-            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
-          </summary>
-          <div className="border-t border-slate-600 px-4 py-4">
-        <div className="rounded-xl bg-slate-800/90 p-4">
-          <h3 className="text-lg font-semibold text-slate-100">Employment</h3>
-          <div className="mt-4 flex flex-wrap gap-4">
-            <div>
-              <Label className="font-medium text-slate-300">Employee</Label>
-              <select value={hireEmployeeId} onChange={(e) => setHireEmployeeId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
-                <option value="">Select employee</option>
-                {employees?.length === 0 && <option disabled>No employees yet</option>}
-                {employees?.map((e) => (
-                  <option key={e.id} value={e.id}>{e.full_name ?? e.id.slice(0, 8)}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <Label className="font-medium text-slate-300">Employer</Label>
-              <select value={hireEmployerId} onChange={(e) => setHireEmployerId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
-                <option value="">Select employer</option>
-                {employers?.map((e) => (
-                  <option key={e.id} value={e.id}>{e.company_name ?? e.id.slice(0, 8)}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <Label className="text-slate-400">Role</Label>
-              <Input value={hireRole} onChange={(e) => setHireRole(e.target.value)} placeholder="Role" className="mt-1 border-slate-700 bg-slate-800 text-white" />
-            </div>
-            <div>
-              <Label className="font-medium text-slate-300">Tenure (months)</Label>
-              <Input type="number" value={hireTenureMonths} onChange={(e) => setHireTenureMonths(parseInt(e.target.value, 10) || 0)} className="mt-1 w-24 border-slate-700 bg-slate-800 text-white" />
-            </div>
-            <label className="flex items-center gap-2 text-slate-400">
-              <input type="checkbox" checked={hireRehireEligible} onChange={(e) => setHireRehireEligible(e.target.checked)} className="rounded" />
-              Rehire eligible
-            </label>
-              <button
-                onClick={handleAddEmployment}
-                className="px-4 py-2 bg-green-600 text-white rounded"
-              >
-                Add Employment
-              </button>
-          </div>
-        </div>
-          </div>
-        </details>
-
-        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
-            <span>Ads & Revenue Simulation</span>
-            <span className="text-slate-400 transition group-open:rotate-180">▼</span>
-          </summary>
-          <div className="border-t border-slate-600 px-4 py-4">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4">
-            <h3 className="text-lg font-semibold text-slate-100">Ads Simulation</h3>
-            <p className="mt-1 text-sm text-slate-400">ROI = (clicks × 150 − spend) / spend</p>
-            <div className="mt-4 flex flex-wrap gap-4">
-              <div>
-                <Label className="font-medium text-slate-300">Employer</Label>
-                <select value={adsEmployerId} onChange={(e) => setAdsEmployerId(e.target.value)} className="mt-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-white">
-                  <option value="">Optional</option>
-                  {employers.map((e) => (
-                    <option key={e.id} value={e.id}>{e.company_name ?? e.id.slice(0, 8)}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <Label className="font-medium text-slate-300">Impressions</Label>
-                <Input type="number" value={adsImpressions} onChange={(e) => setAdsImpressions(parseInt(e.target.value, 10) || 0)} className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
-              </div>
-              <div>
-                <Label className="font-medium text-slate-300">Clicks</Label>
-                <Input type="number" value={adsClicks} onChange={(e) => setAdsClicks(parseInt(e.target.value, 10) || 0)} className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
-              </div>
-              <div>
-                <Label className="font-medium text-slate-300">Spend</Label>
-                <Input type="number" value={adsSpend} onChange={(e) => setAdsSpend(parseFloat(e.target.value) || 0)} className="mt-1 w-28 border-slate-700 bg-slate-800 text-white" />
-              </div>
-              <Button onClick={addAds} disabled={loading || !currentSandboxId || adsLoading}>{adsLoading ? "…" : "Add ad campaign"}</Button>
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                <p className="text-sm uppercase tracking-wide text-slate-400">Total spend</p>
-                <p className="text-3xl font-bold text-cyan-400">{currentSandboxId && dashboardData ? (ads?.totalSpend ?? "—") : "—"}</p>
-              </div>
-              <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
-                <p className="text-sm uppercase tracking-wide text-slate-400">Campaigns</p>
-                <p className="text-3xl font-bold text-cyan-400">{currentSandboxId && dashboardData ? (ads?.campaignsCount ?? 0) : "—"}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-slate-600 bg-slate-800/90 p-4">
-            <h3 className="text-lg font-semibold text-slate-100">Revenue Simulation</h3>
-            <p className="mt-1 text-sm text-slate-400">MRR = employer count × plan value. Churn adjustable.</p>
-            <div className="mt-4 space-y-3">
-              <div>
-                <Label className="font-medium text-slate-300">Churn rate (0–1)</Label>
-                <input type="range" min="0" max="1" step="0.01" value={churnRate} onChange={(e) => setChurnRate(parseFloat(e.target.value))} className="w-full" />
-                <span className="ml-2 text-cyan-400">{(churnRate * 100).toFixed(0)}%</span>
-              </div>
-              <Button onClick={updateRevenue} disabled={loading || !currentSandboxId || revenueLoading}>{revenueLoading ? "…" : "Update revenue"}</Button>
-            </div>
-            <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
-              <p className="text-sm uppercase tracking-wide text-slate-400">Sandbox MRR</p>
-              <p className="text-3xl font-bold text-cyan-400">{currentSandboxId && dashboardData && rev?.mrr != null ? rev.mrr : "—"}</p>
-            </div>
-          </div>
-        </div>
-          </div>
-        </details>
-
-        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+        <details className="group rounded-xl border border-slate-700 bg-slate-900 overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white hover:bg-slate-800">
             <span>Feature Toggles</span>
             <span className="text-slate-400 transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-600 px-4 py-4">
-        <div className="rounded-xl bg-slate-800/90 p-4">
-          <h3 className="text-lg font-semibold text-slate-100">Feature Toggles</h3>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button variant="secondary" size="sm" onClick={syncFeatures} disabled={syncFeaturesLoading}>{syncFeaturesLoading ? "…" : "Sync from production"}</Button>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {features.map((f) => (
-              <label key={f.id} className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2">
-                <input type="checkbox" checked={overrides[f.feature_key] ?? f.is_enabled} onChange={(e) => currentSandboxId && setFeatureOverride(f.feature_key, e.target.checked)} className="rounded" />
-                <span className="text-sm text-slate-300">{f.feature_key}</span>
-              </label>
-            ))}
-            {features.length === 0 && <p className="text-sm text-slate-500">Sync from production to see flags.</p>}
-          </div>
-        </div>
-
-        {/* View-As Mode */}
-        <div className="rounded-2xl border-2 border-slate-600 bg-slate-800 p-8 shadow-xl">
-          <h2 className="text-xl font-semibold text-slate-100">View-As Mode</h2>
-          <p className="mt-1 text-sm text-slate-400">Simulate plan gating, feature access, intelligence visibility (sandbox-only).</p>
-          <div className="mt-4 flex gap-2">
-            {(["Admin", "Employer", "Employee"] as const).map((mode) => (
-              <Button key={mode} variant={viewAs === mode ? "primary" : "secondary"} onClick={() => setViewAs(mode)}>View as {mode}</Button>
-            ))}
-          </div>
-          <p className="mt-2 text-sm text-slate-500">Current: {viewAs}</p>
-        </div>
+          <div className="border-t border-slate-700 px-4 py-4 bg-slate-900">
+            <h3 className="text-base font-semibold text-white">Feature Toggles</h3>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button variant="secondary" size="sm" onClick={syncFeatures} disabled={syncFeaturesLoading} className="bg-slate-800 text-slate-200 hover:bg-slate-700">{syncFeaturesLoading ? "…" : "Sync from production"}</Button>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {features.map((f) => (
+                <label key={f.id} className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 hover:bg-slate-700">
+                  <input type="checkbox" checked={overrides[f.feature_key] ?? f.is_enabled} onChange={(e) => currentSandboxId && setFeatureOverride(f.feature_key, e.target.checked)} className="rounded" />
+                  <span className="text-sm text-slate-300">{f.feature_key}</span>
+                </label>
+              ))}
+              {features.length === 0 && <p className="text-sm text-slate-400">Sync from production to see flags.</p>}
+            </div>
+            <div className="mt-4 rounded-xl border border-slate-700 bg-slate-800 p-4">
+              <h3 className="text-base font-semibold text-white">View-As Mode</h3>
+              <p className="mt-1 text-sm text-slate-300">Simulate plan gating, feature access (sandbox-only).</p>
+              <div className="mt-3 flex gap-2">
+                {(["Admin", "Employer", "Employee"] as const).map((mode) => (
+                  <Button key={mode} variant={viewAs === mode ? "primary" : "secondary"} onClick={() => setViewAs(mode)} className={viewAs === mode ? "bg-blue-600 hover:bg-blue-500" : "bg-slate-700 text-slate-200 hover:bg-slate-600"}>View as {mode}</Button>
+                ))}
+              </div>
+              <p className="mt-2 text-sm text-slate-400">Current: {viewAs}</p>
+            </div>
           </div>
         </details>
 
-        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+        <details className="group rounded-xl border border-slate-700 bg-slate-900 overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white hover:bg-slate-800">
             <span>Actions</span>
             <span className="text-slate-400 transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-600 px-4 py-4">
-        <div className="rounded-xl bg-slate-800/90 p-4">
-          <h3 className="text-lg font-semibold text-slate-100">Actions</h3>
-          <Button variant="secondary" className="mt-4" onClick={runCleanup} disabled={loading || cleanupLoading}>{cleanupLoading ? "…" : "Cleanup expired sessions"}</Button>
-        </div>
+          <div className="border-t border-slate-700 px-4 py-4 bg-slate-900">
+            <Button onClick={runCleanup} disabled={loading || cleanupLoading} className="w-full bg-red-600 py-2 font-semibold text-white hover:bg-red-500">
+              {cleanupLoading ? "…" : "Cleanup expired sessions"}
+            </Button>
           </div>
         </details>
 
-        <details className="group rounded-xl border border-slate-600 bg-slate-800/80 overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-medium text-slate-200 hover:bg-slate-700/50">
+        <details className="group rounded-xl border border-slate-700 bg-slate-900 overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white hover:bg-slate-800">
             <span>Command Console</span>
             <span className="text-slate-400 transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-600 px-4 py-4">
-            <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-600 bg-slate-800/90 p-4 font-mono text-base text-slate-200">
+          <div className="border-t border-slate-700 px-4 py-4 bg-slate-900">
+            <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-700 bg-slate-800 p-4 font-mono text-sm text-slate-200">
               {consoleLogs.length === 0 && <p className="text-slate-500">No output yet.</p>}
               {consoleLogs.map((line, i) => (
-                <p key={i} className={line.startsWith("[ERR]") ? "text-red-300" : line.startsWith("[OK]") ? "text-emerald-300" : "text-slate-300"}>{line}</p>
+                <p key={i} className={line.startsWith("[ERR]") ? "text-red-400" : line.startsWith("[OK]") ? "text-emerald-400" : "text-slate-300"}>{line}</p>
               ))}
             </div>
           </div>
         </details>
-        </SimulationPanel>
+          </div>
         </div>
 
-        {/* RIGHT: Results summary */}
-        <ResultsPanel
+        {/* RIGHT: Live Results (30%) */}
+        <LiveResultsPanel
           dashboardData={dashboardData}
+          intelByEmployeeId={intelByEmployeeId}
           previousAvgHiringConfidence={previousAvgHiringConfidence}
           totalEmploymentRecords={ei?.employmentRecordsCount}
+          consoleLogs={consoleLogs}
         />
       </div>
     </div>
