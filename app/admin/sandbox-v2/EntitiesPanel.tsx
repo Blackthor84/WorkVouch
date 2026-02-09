@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { INDUSTRIES_OPTIONS } from "@/lib/constants/industries";
+import { INDUSTRIES } from "@/lib/constants/industries";
 
 type Employer = { id: string; company_name?: string; industry?: string; plan_tier?: string };
 type Employee = { id: string; full_name?: string; industry?: string };
@@ -127,7 +127,7 @@ export function EntitiesPanel({
                 className="mt-0.5 h-8 w-full rounded border border-slate-600 bg-slate-800 px-2 text-sm text-white"
               >
                 <option value="">Select industry</option>
-                {INDUSTRIES_OPTIONS.map((ind) => (
+                {INDUSTRIES.map((ind) => (
                   <option key={ind} value={ind}>
                     {ind}
                   </option>
@@ -230,7 +230,7 @@ export function EntitiesPanel({
                 className="mt-0.5 h-8 w-full rounded border border-slate-600 bg-slate-800 px-2 text-sm text-white"
               >
                 <option value="">Select industry</option>
-                {INDUSTRIES_OPTIONS.map((ind) => (
+                {INDUSTRIES.map((ind) => (
                   <option key={ind} value={ind}>
                     {ind}
                   </option>

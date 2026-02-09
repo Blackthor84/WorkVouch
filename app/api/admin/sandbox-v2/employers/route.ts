@@ -3,7 +3,7 @@ import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
 import { pickCompany } from "@/lib/sandbox/namePools";
-import { INDUSTRIES_OPTIONS } from "@/lib/constants/industries";
+import { INDUSTRIES } from "@/lib/constants/industries";
 
 export const dynamic = "force-dynamic";
 
@@ -45,10 +45,10 @@ export async function POST(req: NextRequest) {
     const company_name = body.company_name ?? pickCompany();
     const rawIndustry = body.industry ?? "";
     const industry =
-      typeof rawIndustry === "string" && rawIndustry !== "" && INDUSTRIES_OPTIONS.includes(rawIndustry as any)
+      typeof rawIndustry === "string" && rawIndustry !== "" && INDUSTRIES.includes(rawIndustry as any)
         ? rawIndustry
-        : INDUSTRIES_OPTIONS[Math.floor(Math.random() * INDUSTRIES_OPTIONS.length)];
-    if (body.industry != null && body.industry !== "" && !INDUSTRIES_OPTIONS.includes(body.industry as any)) {
+        : INDUSTRIES[Math.floor(Math.random() * INDUSTRIES.length)];
+    if (body.industry != null && body.industry !== "" && !INDUSTRIES.includes(body.industry as any)) {
       return NextResponse.json(
         { error: "Invalid industry" },
         { status: 400 }

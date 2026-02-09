@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button";
 import {
   SETTING_OPTIONS,
   INDUSTRY_DISPLAY_NAMES,
-  type Industry,
+  type OnboardingIndustry,
 } from "@/lib/constants/industries";
 
 interface SettingFormClientProps {
-  industry: Industry;
+  industry: OnboardingIndustry;
 }
 
 export function SettingFormClient({ industry }: SettingFormClientProps) {

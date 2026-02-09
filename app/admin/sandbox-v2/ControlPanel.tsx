@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { INDUSTRIES_OPTIONS } from "@/lib/constants/industries";
+import { INDUSTRIES } from "@/lib/constants/industries";
 
 type Employer = { id: string; company_name?: string; industry?: string; plan_tier?: string };
 type Employee = { id: string; full_name?: string; industry?: string };
@@ -229,7 +229,7 @@ export function ControlPanel(props: ControlPanelProps) {
                   className="mt-1 w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-white"
                 >
                   <option value="">Select industry</option>
-                  {INDUSTRIES_OPTIONS.map((ind) => (
+                  {INDUSTRIES.map((ind) => (
                     <option key={ind} value={ind}>
                       {ind}
                     </option>
@@ -284,7 +284,7 @@ export function ControlPanel(props: ControlPanelProps) {
                   className="mt-1 w-full rounded border border-slate-600 bg-slate-800 px-3 py-2 text-white"
                 >
                   <option value="">Select industry</option>
-                  {INDUSTRIES_OPTIONS.map((ind) => (
+                  {INDUSTRIES.map((ind) => (
                     <option key={ind} value={ind}>
                       {ind}
                     </option>

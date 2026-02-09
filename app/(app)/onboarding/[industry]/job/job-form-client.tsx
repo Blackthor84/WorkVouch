@@ -9,11 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   INDUSTRY_DISPLAY_NAMES,
-  type Industry,
+  type OnboardingIndustry,
 } from "@/lib/constants/industries";
 
 interface JobFormClientProps {
-  industry: Industry;
+  industry: OnboardingIndustry;
 }
 
 export function JobFormClient({ industry }: JobFormClientProps) {

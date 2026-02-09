@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
+import { INDUSTRIES, INDUSTRY_TO_ONBOARDING_KEY } from "@/lib/constants/industries";
 
 export function SignUpForm() {
   const router = useRouter();
@@ -69,15 +70,16 @@ export function SignUpForm() {
         if (data.session) {
           // User is automatically signed in with Supabase; establish NextAuth session so dashboard doesn't redirect to login
           console.log("Signup successful, signing in with NextAuth...");
+          const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
           const callbackUrl =
             userType === "employer"
               ? "/employer/dashboard"
-              : industry === "warehousing"
+              : key === "warehousing"
                 ? "/onboarding/warehouse"
-                : industry === "healthcare"
+                : key === "healthcare"
                   ? "/onboarding/healthcare/role"
-                  : industry === "law_enforcement" || industry === "security" || industry === "hospitality" || industry === "retail"
-                    ? `/onboarding/${industry}/role`
+                  : key
+                    ? `/onboarding/${key}/role`
                     : "/dashboard";
           const result = await signIn("credentials", {
             email: email.trim().toLowerCase(),
@@ -107,15 +109,16 @@ export function SignUpForm() {
             );
           } else if (signInData.session) {
             console.log("Signed in with Supabase, signing in with NextAuth...");
+            const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
             const callbackUrl =
               userType === "employer"
                 ? "/employer/dashboard"
-                : industry === "warehousing"
+                : key === "warehousing"
                   ? "/onboarding/warehouse"
-                  : industry === "healthcare"
+                  : key === "healthcare"
                     ? "/onboarding/healthcare/role"
-                    : industry === "law_enforcement" || industry === "security" || industry === "hospitality" || industry === "retail"
-                      ? `/onboarding/${industry}/role`
+                    : key
+                      ? `/onboarding/${key}/role`
                       : "/dashboard";
             const result = await signIn("credentials", {
               email: email.trim().toLowerCase(),
@@ -235,9 +238,9 @@ export function SignUpForm() {
             className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
           >
             <option value="">Select your industry</option>
-            {INDUSTRIES.map((key) => (
-              <option key={key} value={key}>
-                {INDUSTRY_DISPLAY_NAMES[key]}
+            {INDUSTRIES.map((ind) => (
+              <option key={ind} value={ind}>
+                {ind}
               </option>
             ))}
           </select>

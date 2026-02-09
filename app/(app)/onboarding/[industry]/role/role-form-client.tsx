@@ -9,11 +9,11 @@ import {
   ROLE_OPTIONS,
   LOGISTICS_ROLES,
   INDUSTRY_DISPLAY_NAMES,
-  type Industry,
+  type OnboardingIndustry,
 } from "@/lib/constants/industries";
 
 interface RoleFormClientProps {
-  industry: Industry;
+  industry: OnboardingIndustry;
 }
 
 export function RoleFormClient({ industry }: RoleFormClientProps) {

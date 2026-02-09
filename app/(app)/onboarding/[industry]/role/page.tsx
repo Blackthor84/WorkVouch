@@ -1,5 +1,5 @@
 import { RoleFormClient } from "./role-form-client";
-import { type Industry } from "@/lib/constants/industries";
+import { type OnboardingIndustry } from "@/lib/constants/industries";
 
 // Mark as dynamic to prevent build-time prerendering
 export const dynamic = "force-dynamic";

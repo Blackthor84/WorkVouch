@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { INDUSTRIES_OPTIONS } from "@/lib/constants/industries";
+import { INDUSTRIES } from "@/lib/constants/industries";
 
 interface EmployerRow {
   employer_id: string;
@@ -51,7 +51,7 @@ export function EmployersMarketplaceClient() {
           className="rounded border border-grey-background dark:border-[#374151] bg-white dark:bg-[#0D1117] px-2 py-1 text-sm text-grey-dark dark:text-gray-200 w-48"
         >
           <option value="">All industries</option>
-          {INDUSTRIES_OPTIONS.map((ind) => (
+          {INDUSTRIES.map((ind) => (
             <option key={ind} value={ind}>
               {ind}
             </option>

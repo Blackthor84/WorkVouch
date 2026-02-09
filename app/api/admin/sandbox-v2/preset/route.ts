@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
-import { pickCompany, pickIndustry, pickFullName, pickFrom, INDUSTRIES } from "@/lib/sandbox/namePools";
+import { pickCompany, pickFullName, pickFrom } from "@/lib/sandbox/namePools";
+import { INDUSTRIES } from "@/lib/constants/industries";
 import { linkEmployeeToRandomEmployer } from "@/lib/sandbox/employmentGenerator";
 import { generatePeerReviews } from "@/lib/sandbox/peerReviewGenerator";
 import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
       .insert({
         sandbox_id: sandboxId,
         company_name: pickCompany(),
-        industry: pickIndustry(),
+        industry: pickFrom(INDUSTRIES),
         plan_tier: "pro",
       })
       .select("id")

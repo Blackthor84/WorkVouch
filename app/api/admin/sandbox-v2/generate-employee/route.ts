@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";
-import { INDUSTRIES_OPTIONS } from "@/lib/constants/industries";
+import { INDUSTRIES } from "@/lib/constants/industries";
 
 export const dynamic = "force-dynamic";
 
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     const { data: employee, error: empError } = await supabase
       .from("sandbox_employees")
-      .insert({ sandbox_id: sandboxId, full_name, industry: pick(INDUSTRIES_OPTIONS) })
+      .insert({ sandbox_id: sandboxId, full_name, industry: pick(INDUSTRIES) })
       .select("id, full_name, industry")
       .single();
 

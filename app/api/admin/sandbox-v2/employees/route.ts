@@ -6,7 +6,7 @@ import { generatePeerReviews } from "@/lib/sandbox/peerReviewGenerator";
 import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";
 import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
 import { pickFullName } from "@/lib/sandbox/namePools";
-import { INDUSTRIES_OPTIONS } from "@/lib/constants/industries";
+import { INDUSTRIES } from "@/lib/constants/industries";
 
 export const dynamic = "force-dynamic";
 
@@ -47,10 +47,10 @@ export async function POST(req: NextRequest) {
       (first != null && last != null ? `${first} ${last}` : pickFullName());
     const rawIndustry = body.industry ?? "";
     const industry =
-      typeof rawIndustry === "string" && rawIndustry !== "" && INDUSTRIES_OPTIONS.includes(rawIndustry as any)
+      typeof rawIndustry === "string" && rawIndustry !== "" && INDUSTRIES.includes(rawIndustry as any)
         ? rawIndustry
-        : INDUSTRIES_OPTIONS[Math.floor(Math.random() * INDUSTRIES_OPTIONS.length)];
-    if (body.industry != null && body.industry !== "" && !INDUSTRIES_OPTIONS.includes(body.industry as any)) {
+        : INDUSTRIES[Math.floor(Math.random() * INDUSTRIES.length)];
+    if (body.industry != null && body.industry !== "" && !INDUSTRIES.includes(body.industry as any)) {
       return NextResponse.json(
         { error: "Invalid industry" },
         { status: 400 }

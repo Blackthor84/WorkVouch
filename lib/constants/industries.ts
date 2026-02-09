@@ -1,11 +1,11 @@
 /**
- * Industry configuration for onboarding and shared dropdowns.
- * INDUSTRIES_OPTIONS: display names for dropdowns and API validation (sandbox + production).
- * INDUSTRIES + Industry: onboarding route keys and role/setting config.
+ * Single source of truth for industry.
+ * INDUSTRIES: display names for dropdowns, API validation, sandbox + production.
+ * ONBOARDING_KEYS + Industry (key type): onboarding route params and role/setting config.
  */
 
-/** Shared industry options for dropdowns and API validation (display names). */
-export const INDUSTRIES_OPTIONS = [
+/** Shared industry options (display names) — use everywhere for dropdowns and validation. */
+export const INDUSTRIES = [
   "Healthcare",
   "Law Enforcement",
   "Security",
@@ -16,20 +16,30 @@ export const INDUSTRIES_OPTIONS = [
   "Construction",
 ] as const;
 
-export type IndustryOption = typeof INDUSTRIES_OPTIONS[number];
+export type Industry = typeof INDUSTRIES[number];
+
+/** Map display name → onboarding route key (for sign-up redirect). */
+export const INDUSTRY_TO_ONBOARDING_KEY: Partial<Record<Industry, string>> = {
+  "Healthcare": "healthcare",
+  "Law Enforcement": "law_enforcement",
+  "Security": "security",
+  "Retail": "retail",
+  "Hospitality": "hospitality",
+  "Warehouse and Logistics": "warehousing",
+};
 
 /** Onboarding industry keys (route params, role/setting config). */
-export const INDUSTRIES = [
+export const ONBOARDING_KEYS = [
   'law_enforcement',
   'security',
   'hospitality',
   'retail',
   'warehousing'
-] as const
+] as const;
 
-export type Industry = typeof INDUSTRIES[number]
+export type OnboardingIndustry = typeof ONBOARDING_KEYS[number];
 
-export const INDUSTRY_DISPLAY_NAMES: Record<Industry, string> = {
+export const INDUSTRY_DISPLAY_NAMES: Record<OnboardingIndustry, string> = {
   law_enforcement: 'Law Enforcement',
   security: 'Security',
   hospitality: 'Hospitality',
@@ -37,7 +47,7 @@ export const INDUSTRY_DISPLAY_NAMES: Record<Industry, string> = {
   warehousing: 'Warehousing & Logistics'
 }
 
-export const ROLE_OPTIONS: Record<Industry, string[]> = {
+export const ROLE_OPTIONS: Record<OnboardingIndustry, string[]> = {
   law_enforcement: [
     'Officer',
     'Detective',
@@ -105,7 +115,7 @@ export const LOGISTICS_ROLES = [
   'Inventory Planner'
 ]
 
-export const SETTING_OPTIONS: Record<Industry, string[]> = {
+export const SETTING_OPTIONS: Record<OnboardingIndustry, string[]> = {
   law_enforcement: [
     'Police Department',
     'Sheriff Office',
