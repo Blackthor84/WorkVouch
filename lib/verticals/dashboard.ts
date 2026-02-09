@@ -4,6 +4,8 @@
  * Profile shape: { tenure_months?, sentiment_average?, profile_strength?, vertical_metadata?, ... }
  */
 
+import type { Json } from "@/types/database";
+
 export type VerticalDashboardMetric = {
   key: string;
   label: string;
@@ -15,7 +17,7 @@ export type VerticalDashboardProfile = {
   tenure_months?: number | null;
   sentiment_average?: number | null;
   profile_strength?: number | null;
-  vertical_metadata?: Record<string, unknown> | null;
+  vertical_metadata?: Record<string, unknown> | Json | null;
   [key: string]: unknown;
 };
 

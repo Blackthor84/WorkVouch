@@ -41,6 +41,7 @@
   "exclude": [
     "node_modules",
     "mobile",
-    "types/database.generated.ts"
+    "types/database.generated.ts",
+    "vitest.config.ts"
   ]
 }

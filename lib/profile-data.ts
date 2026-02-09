@@ -23,14 +23,12 @@ export async function getProfileData(): Promise<ProfileDataResult | null> {
   try {
     const user = await requireAuth();
     const supabase = await createServerSupabase();
-    const supabaseAny = supabase as {
-      from: (t: string) => { select: (s: string) => { eq: (k: string, v: string) => Promise<{ data: unknown; error: unknown }> } };
-    };
 
-    const { data: profile, error: profileError } = await supabaseAny
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("id, industry, vertical, vertical_metadata")
-      .eq("id", user.id) as { data: { id: string; industry?: string | null; vertical?: string | null; vertical_metadata?: Record<string, unknown> | null } | null; error: unknown };
+      .eq("id", user.id)
+      .maybeSingle();
 
     if (profileError || !profile) {
       return null;

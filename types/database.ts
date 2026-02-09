@@ -186,6 +186,7 @@ export interface Database {
           updated_at: string
           guard_credential_score: number | null
           role: string | null
+          industry: string | null
           is_simulation?: boolean
           simulation_session_id?: string | null
           expires_at?: string | null
@@ -207,6 +208,7 @@ export interface Database {
           updated_at?: string
           guard_credential_score?: number | null
           role?: string | null
+          industry?: string | null
           is_simulation?: boolean
           simulation_session_id?: string | null
           expires_at?: string | null
@@ -228,6 +230,7 @@ export interface Database {
           updated_at?: string
           guard_credential_score?: number | null
           role?: string | null
+          industry?: string | null
           is_simulation?: boolean
           simulation_session_id?: string | null
           expires_at?: string | null
