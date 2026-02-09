@@ -33,6 +33,7 @@ interface EmployerDashboardClientProps {
   userRole: string;
   planTier?: string;
   employerId?: string;
+  employerIndustry?: string | null;
 }
 
 export function EmployerDashboardClient({
