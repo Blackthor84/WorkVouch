@@ -62,12 +62,20 @@ function ProgressBar({
   );
 }
 
-export function UsagePanel() {
+interface UsagePanelProps {
+  apiBaseUrl?: string;
+  sandboxId?: string;
+}
+
+export function UsagePanel({ apiBaseUrl, sandboxId }: UsagePanelProps = {}) {
   const [data, setData] = useState<UsageData | null>(null);
   const [loading, setLoading] = useState(true);
+  const url = apiBaseUrl && sandboxId
+    ? `${apiBaseUrl}/usage?sandboxId=${encodeURIComponent(sandboxId)}`
+    : "/api/employer/usage";
 
   useEffect(() => {
-    fetch("/api/employer/usage")
+    fetch(url)
       .then((r) => r.json())
       .then((d) => {
         if (d.error) return;
@@ -84,7 +92,7 @@ export function UsagePanel() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [url]);
 
   if (loading) {
     return (

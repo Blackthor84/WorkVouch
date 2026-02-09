@@ -9,6 +9,7 @@ import { ControlPanel } from "./ControlPanel";
 import { SimulationCoreCard } from "./SimulationCoreCard";
 import type { V1BreakdownComponents } from "./SimulationCoreCard";
 import { LiveResultsPanel } from "./LiveResultsPanel";
+import { EmployerDashboardClient } from "@/components/employer/EmployerDashboardClient";
 import { getVerticalConfig } from "@/lib/verticals/config";
 
 const API = "/api/admin/sandbox-v2";
@@ -1055,7 +1056,20 @@ export function SandboxV2Client() {
             <div className="rounded-xl border border-slate-700 bg-[#0b1220] px-6 py-12 text-center text-white">Loading...</div>
           )}
 
-          {currentSandboxId && dashboardData && (
+          {viewAs === "Employer" && currentSandboxId && dashboardData && (
+            <div className="rounded-xl border border-slate-700 bg-[#0b1220] p-6 overflow-auto max-h-[80vh]">
+              <EmployerDashboardClient
+                userRole="admin"
+                planTier={employers[0]?.plan_tier ?? "pro"}
+                employerId={employers[0]?.id}
+                employerIndustry={employers[0]?.industry ?? null}
+                sandboxMode={true}
+                sandboxId={currentSandboxId}
+              />
+            </div>
+          )}
+
+          {viewAs !== "Employer" && currentSandboxId && dashboardData && (
             <SimulationCoreCard
               avgScore={avgScore}
               breakdown={breakdown}
@@ -1072,7 +1086,7 @@ export function SandboxV2Client() {
             />
           )}
 
-          {currentSandboxId && dashboardData && (() => {
+          {viewAs !== "Employer" && currentSandboxId && dashboardData && (() => {
             const employerIndustry = employers[0]?.industry;
             const vertical = getVerticalConfig(employerIndustry);
             return vertical ? (
@@ -1103,7 +1117,7 @@ export function SandboxV2Client() {
             ) : null;
           })()}
 
-          {currentSandboxId && executiveMode && (
+          {viewAs !== "Employer" && currentSandboxId && executiveMode && (
             <section className="rounded-xl border border-slate-700 bg-[#0b1220] p-6 shadow-xl">
               <h2 className="text-xl font-bold tracking-wide">Executive Dashboard</h2>
               <div className="mt-4 border-t border-slate-700 pt-4">
@@ -1145,6 +1159,7 @@ export function SandboxV2Client() {
             </section>
           )}
 
+          {viewAs !== "Employer" && (
           <div className="space-y-4">
         <details className="group rounded-xl border border-slate-700 bg-[#0b1220] overflow-hidden">
           <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0b1220] hover:bg-slate-700">
@@ -1298,6 +1313,7 @@ export function SandboxV2Client() {
           </div>
         </details>
           </div>
+          )}
         </div>
 
         {/* RIGHT: Live Results (30%) */}

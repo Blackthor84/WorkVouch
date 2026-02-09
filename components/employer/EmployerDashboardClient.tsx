@@ -34,6 +34,9 @@ interface EmployerDashboardClientProps {
   planTier?: string;
   employerId?: string;
   employerIndustry?: string | null;
+  /** When true, fetch from sandbox employer-dashboard APIs instead of production. */
+  sandboxMode?: boolean;
+  sandboxId?: string | null;
 }
 
 export function EmployerDashboardClient({
@@ -41,8 +44,14 @@ export function EmployerDashboardClient({
   planTier,
   employerId,
   employerIndustry,
+  sandboxMode = false,
+  sandboxId = null,
 }: EmployerDashboardClientProps) {
   const vertical = getVerticalConfig(employerIndustry ?? undefined);
+  const apiBaseUrl = sandboxMode && sandboxId
+    ? `/api/admin/sandbox-v2/employer-dashboard`
+    : "/api/employer";
+  const sandboxQuery = sandboxMode && sandboxId ? `?sandboxId=${encodeURIComponent(sandboxId)}` : "";
   const { enabled: analyticsEnabled } = useFeatureFlag("advanced_analytics");
   const { enabled: rehireWidgetEnabled } = useFeatureFlag("rehire_probability_index");
   const { enabled: workforceRiskEnabled } = useFeatureFlag("workforce_risk_indicator");
@@ -153,7 +162,10 @@ export function EmployerDashboardClient({
 
   useEffect(() => {
     setWorkforceStatsLoading(true);
-    fetch("/api/employer/dashboard-stats", { credentials: "include" })
+    const url = sandboxMode && sandboxId
+      ? `${apiBaseUrl}/dashboard-stats${sandboxQuery}`
+      : "/api/employer/dashboard-stats";
+    fetch(url, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
         if (data.error) {
@@ -169,7 +181,7 @@ export function EmployerDashboardClient({
       })
       .catch(() => setWorkforceStats(null))
       .finally(() => setWorkforceStatsLoading(false));
-  }, []);
+  }, [apiBaseUrl, sandboxMode, sandboxId, sandboxQuery]);
 
   const isFreePlan = planTier === "free" || !planTier;
   const isBasicPlan = planTier === "free" || planTier === "basic" || planTier === "lite" || !planTier;
@@ -233,7 +245,7 @@ export function EmployerDashboardClient({
         </div>
 
         {/* Plan & Usage */}
-        <UsagePanel />
+        <UsagePanel apiBaseUrl={sandboxMode ? apiBaseUrl : undefined} sandboxId={sandboxMode ? sandboxId ?? undefined : undefined} />
 
         {/* Vertical Intelligence (display only) */}
         {vertical && (
@@ -265,7 +277,7 @@ export function EmployerDashboardClient({
 
         {/* Employees Who Listed You */}
         <div className="mt-6">
-          <ListedEmployeesCard />
+          <ListedEmployeesCard apiBaseUrl={sandboxMode ? apiBaseUrl : undefined} sandboxId={sandboxMode ? sandboxId ?? undefined : undefined} />
         </div>
 
         {/* Workforce Integrity Dashboard: hidden enterprise — admin/superadmin or enterprise_intelligence_hidden only */}

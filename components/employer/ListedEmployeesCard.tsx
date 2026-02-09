@@ -14,19 +14,27 @@ interface ListingSummary {
   average_profile_strength?: number;
 }
 
-export function ListedEmployeesCard() {
+interface ListedEmployeesCardProps {
+  apiBaseUrl?: string;
+  sandboxId?: string;
+}
+
+export function ListedEmployeesCard({ apiBaseUrl, sandboxId }: ListedEmployeesCardProps = {}) {
   const [summary, setSummary] = useState<ListingSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const url = apiBaseUrl && sandboxId
+    ? `${apiBaseUrl}/listing-summary?sandboxId=${encodeURIComponent(sandboxId)}`
+    : "/api/employer/listing-summary";
 
   useEffect(() => {
-    fetch("/api/employer/listing-summary", { credentials: "include" })
+    fetch(url, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
         if (data.total_listed != null) setSummary(data);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [url]);
 
   if (loading) {
     return (

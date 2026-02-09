@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 
 interface SecurityDashboardProps {
   employerId?: string | null;
+  apiBaseUrl?: string;
+  sandboxId?: string;
 }
 
 interface SecuritySummary {
@@ -23,14 +25,16 @@ interface SecuritySummary {
   topCredentialScores: { user_id: string; full_name: string | null; guard_credential_score: number }[];
 }
 
-export function SecurityDashboard({ employerId: _employerId }: SecurityDashboardProps) {
+export function SecurityDashboard({ employerId: _employerId, apiBaseUrl, sandboxId }: SecurityDashboardProps) {
   const [summary, setSummary] = useState<SecuritySummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const usageUrl = apiBaseUrl && sandboxId ? `${apiBaseUrl}/usage?sandboxId=${encodeURIComponent(sandboxId)}` : "/api/employer/usage";
+  const summaryUrl = apiBaseUrl && sandboxId ? `${apiBaseUrl}/security-summary?sandboxId=${encodeURIComponent(sandboxId)}` : "/api/employer/security-summary";
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/employer/usage", { credentials: "include" }).then((r) => r.json()),
-      fetch("/api/employer/security-summary", { credentials: "include" }).then((r) => r.json()).catch(() => ({})),
+      fetch(usageUrl, { credentials: "include" }).then((r) => r.json()),
+      fetch(summaryUrl, { credentials: "include" }).then((r) => r.json()).catch(() => ({})),
     ])
       .then(([usage, security]) => {
         setSummary({
@@ -50,7 +54,7 @@ export function SecurityDashboard({ employerId: _employerId }: SecurityDashboard
       })
       .catch(() => setSummary(null))
       .finally(() => setLoading(false));
-  }, []);
+  }, [usageUrl, summaryUrl]);
 
   if (loading) {
     return (
