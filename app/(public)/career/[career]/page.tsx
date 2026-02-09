@@ -1,22 +1,36 @@
-import { createServerSupabase } from "@/lib/supabase/server";
+import { careers } from "@/data/careers";
+import { notFound } from "next/navigation";
 
-export default async function CareerPage(props: any) {
-  const { career } = await props.params;
+export default async function CareerPage(props: { params: Promise<{ career: string }> }) {
+  const { career: careerSlug } = await props.params;
 
-  const supabase = await createServerSupabase();
+  const career = careers.find(
+    (c) => c.id === careerSlug || c.id.replace(/-/g, "_") === careerSlug.replace(/-/g, "_")
+  );
 
-  const { data, error } = await supabase
-    .from("careers")
-    .select("*")
-    .eq("slug", career)
-    .single();
-
-  if (error) return <div>Error loading career: {error.message}</div>;
+  if (!career) {
+    notFound();
+  }
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>{(data as { title?: string; name?: string } | null)?.title ?? (data as { title?: string; name?: string } | null)?.name}</h1>
-      <p>{(data as { description?: string | null } | null)?.description}</p>
+    <div className="max-w-3xl mx-auto py-10">
+      <h1 className="text-3xl font-bold mb-6">{career.name}</h1>
+
+      <p className="mb-4">{career.heroText}</p>
+
+      <h2 className="text-xl font-semibold mt-6 mb-2">Why EMPLOYERS Use WorkVouch</h2>
+      <ul className="list-disc ml-6 space-y-2">
+        {career.whyForEmployers.map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
+      </ul>
+
+      <h2 className="text-xl font-semibold mt-6 mb-2">Why EMPLOYEES Use WorkVouch</h2>
+      <ul className="list-disc ml-6 space-y-2">
+        {career.whyForEmployees.map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -164,35 +164,8 @@ export async function getCareerBySlug(slug: string): Promise<CareerData | null> 
 }
 
 /**
- * Fetch career data by slug (can use database or static data)
+ * Fetch career data by slug (static content only, no database)
  */
 export async function fetchCareerData(slug: string): Promise<CareerData | null> {
-  // Try Supabase first, fallback to static data
-  try {
-    const { createServerSupabase } = await import('@/lib/supabase/server');
-    const supabase = await createServerSupabase();
-    const { data, error } = await supabase
-      .from('careers')
-      .select('*')
-      .eq('slug', slug)
-      .single();
-
-    if (!error && data) {
-      const row = data as { slug?: string; name?: string; description?: string | null; image?: string | null; employers?: number | null; employees?: number | null };
-      return {
-        slug: row.slug || slug,
-        name: row.name ?? "",
-        description: row.description ?? undefined,
-        image: row.image ?? undefined,
-        employers: undefined,
-        employees: undefined,
-      };
-    }
-  } catch (error) {
-    // Fallback to static data if Supabase fails
-    console.error('Error fetching from Supabase, using static data:', error);
-  }
-
-  // Fallback to static data
   return getCareerBySlug(slug);
 }
