@@ -1,6 +1,7 @@
 import { createServerSupabase } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import VerticalBadges from "@/components/VerticalBadges";
 
 export default async function EmployeePage(props: any) {
   const { employeeId } = await props.params;
@@ -79,9 +80,8 @@ export default async function EmployeePage(props: any) {
                 profile={{
                   industry: profile.industry,
                   vertical: profile.vertical,
-                  vertical_metadata: profile.vertical_metadata,
+                  role: profile.role,
                 }}
-                className="mt-2"
               />
             </div>
           </div>

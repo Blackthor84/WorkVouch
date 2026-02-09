@@ -1,28 +1,25 @@
-interface ProfileVerticalData {
-  industry?: string | null;
-  vertical?: string | null;
-}
-
-interface Props {
-  profile: ProfileVerticalData;
-}
-
-export default function VerticalBadges({ profile }: Props) {
-  const { industry, vertical } = profile;
-
-  if (!industry && !vertical) return null;
-
+export default function VerticalBadges({ profile }: {
+  profile: {
+    industry?: string | null;
+    vertical?: string | null;
+    role?: string | null;
+  };
+}) {
   return (
-    <div className="flex flex-wrap gap-2 mt-3">
-      {industry && (
-        <span className="px-3 py-1 rounded-full bg-blue-600 text-white text-xs font-medium">
-          {industry}
+    <div className="flex flex-wrap gap-2 mt-2">
+      {profile.industry && (
+        <span className="px-2 py-1 text-xs rounded-md bg-blue-600 text-white">
+          {profile.industry}
         </span>
       )}
-
-      {vertical && (
-        <span className="px-3 py-1 rounded-full bg-indigo-600 text-white text-xs font-medium">
-          {vertical}
+      {profile.vertical && (
+        <span className="px-2 py-1 text-xs rounded-md bg-purple-600 text-white">
+          {profile.vertical}
+        </span>
+      )}
+      {profile.role && (
+        <span className="px-2 py-1 text-xs rounded-md bg-green-600 text-white">
+          {profile.role}
         </span>
       )}
     </div>
