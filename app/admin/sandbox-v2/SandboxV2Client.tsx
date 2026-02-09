@@ -810,7 +810,8 @@ export function SandboxV2Client() {
   const showDeltaBadge = showDeltaUntil > 0 && lastScoreDelta != null;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="sandbox-root text-white [&_*]:text-white">
+      <div className="min-h-screen bg-slate-950">
       <header className="sticky top-0 z-10 border-b border-slate-700 bg-slate-950 backdrop-blur-sm">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-6 py-4">
           <span className="text-xl font-bold text-white">Simulation Command Center</span>
@@ -987,7 +988,7 @@ export function SandboxV2Client() {
 
           <div className="space-y-4">
         <details className="group rounded-xl border border-slate-700 bg-slate-900 overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white hover:bg-slate-800">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-slate-800 hover:bg-slate-700">
             <span>Auto Population Templates</span>
             <span className="text-slate-400 transition group-open:rotate-180">▼</span>
           </summary>
@@ -1055,7 +1056,7 @@ export function SandboxV2Client() {
         </details>
 
         <details className="group rounded-xl border border-slate-700 bg-slate-900 overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white hover:bg-slate-800">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-slate-800 hover:bg-slate-700">
             <span>Preset Demo Modes</span>
             <span className="text-slate-400 transition group-open:rotate-180">▼</span>
           </summary>
@@ -1080,7 +1081,7 @@ export function SandboxV2Client() {
         </details>
 
         <details className="group rounded-xl border border-slate-700 bg-slate-900 overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white hover:bg-slate-800">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-slate-800 hover:bg-slate-700">
             <span>Feature Toggles</span>
             <span className="text-slate-400 transition group-open:rotate-180">▼</span>
           </summary>
@@ -1112,7 +1113,7 @@ export function SandboxV2Client() {
         </details>
 
         <details className="group rounded-xl border border-slate-700 bg-slate-900 overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white hover:bg-slate-800">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-slate-800 hover:bg-slate-700">
             <span>Actions</span>
             <span className="text-slate-400 transition group-open:rotate-180">▼</span>
           </summary>
@@ -1124,13 +1125,13 @@ export function SandboxV2Client() {
         </details>
 
         <details className="group rounded-xl border border-slate-700 bg-slate-900 overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white hover:bg-slate-800">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-slate-800 hover:bg-slate-700">
             <span>Command Console</span>
             <span className="text-slate-400 transition group-open:rotate-180">▼</span>
           </summary>
           <div className="border-t border-slate-700 px-4 py-4 bg-slate-900">
             <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-700 bg-slate-800 p-4 font-mono text-sm text-slate-200">
-              {consoleLogs.length === 0 && <p className="text-slate-500">No output yet.</p>}
+              {consoleLogs.length === 0 && <p className="text-white">No output yet.</p>}
               {consoleLogs.map((line, i) => (
                 <p key={i} className={line.startsWith("[ERR]") ? "text-red-400" : line.startsWith("[OK]") ? "text-emerald-400" : "text-slate-300"}>{line}</p>
               ))}
@@ -1148,6 +1149,7 @@ export function SandboxV2Client() {
           totalEmploymentRecords={ei?.employmentRecordsCount}
           consoleLogs={consoleLogs}
         />
+      </div>
       </div>
     </div>
   );
