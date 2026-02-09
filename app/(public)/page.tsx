@@ -1,4 +1,5 @@
 import ActiveAds from "@/components/ActiveAds";
+import BuiltForHighTrustProfessions from "@/components/marketing/BuiltForHighTrustProfessions";
 import HeroInteractive, { type HeroIndustry } from "@/components/public/HeroInteractive";
 import HowWorkVouchWorks from "@/components/public/HowWorkVouchWorks";
 import HowItWorksDual from "@/components/public/HowItWorksDual";
