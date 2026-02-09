@@ -2,23 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { careers } from '../data/careers';
-
-// Map career IDs to image paths. Education/Construction use /images/industries/; others use /images/careers/
-const getImagePath = (careerId: string, careerImage?: string): string => {
-  if (careerImage) return careerImage;
-  if (careerId === 'education') return '/images/industries/education.jpg';
-  if (careerId === 'construction') return '/images/industries/construction.jpg';
-  const careersBase: Record<string, string> = {
-    'healthcare': 'healthcare',
-    'warehouse-logistics': 'warehouse',
-    'security': 'security',
-    'retail': 'retail',
-    'law-enforcement': 'law',
-    'hospitality': 'hospitality',
-  };
-  const baseName = careersBase[careerId] || careerId;
-  return `/images/careers/${baseName}.jpg`;
-};
+import { getIndustryImage } from '@/lib/constants/industries';
 
 export default function CareersGrid() {
   return (
@@ -31,7 +15,7 @@ export default function CareersGrid() {
         >
           <div className="w-full h-40 sm:h-48 md:h-56 bg-gray-50 flex items-center justify-center">
             <Image
-              src={getImagePath(career.id, career.image)}
+              src={career.image ?? getIndustryImage(career.id)}
               alt={career.name}
               width={400}
               height={300}

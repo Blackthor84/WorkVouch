@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { careers } from '../data/careers';
 import Image from 'next/image';
+import { getIndustryImage } from '@/lib/constants/industries';
 
 type ViewMode = 'employee' | 'employer' | 'onboarding';
 type CareerId = typeof careers[number]['id'];
@@ -11,20 +12,6 @@ export default function AdminPreview() {
   const [viewMode, setViewMode] = useState<ViewMode>('employee');
 
   const currentCareer = careers.find(c => c.id === selectedCareer);
-
-  // Map career IDs to image filenames
-  const getImagePath = (careerId: string): string => {
-    const imageMap: Record<string, string> = {
-      'healthcare': 'healthcare',
-      'warehouse-logistics': 'warehouse',
-      'security': 'security',
-      'retail': 'retail',
-      'law-enforcement': 'law',
-      'hospitality': 'hospitality',
-    };
-    const baseName = imageMap[careerId] || careerId;
-    return `/images/careers/${baseName}.jpg`;
-  };
 
   return (
     <div className="space-y-6">
@@ -87,7 +74,7 @@ export default function AdminPreview() {
           <div>
             <h2 className="text-2xl font-bold mb-4">Employee Career Preview: {currentCareer.name}</h2>
             <Image
-              src={getImagePath(currentCareer.id)}
+              src={currentCareer.image ?? getIndustryImage(currentCareer.id)}
               alt={currentCareer.name}
               width={800}
               height={400}
@@ -110,7 +97,7 @@ export default function AdminPreview() {
           <div>
             <h2 className="text-2xl font-bold mb-4">Employer Career Preview: {currentCareer.name}</h2>
             <Image
-              src={getImagePath(currentCareer.id)}
+              src={currentCareer.image ?? getIndustryImage(currentCareer.id)}
               alt={currentCareer.name}
               width={800}
               height={400}

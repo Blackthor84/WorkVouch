@@ -2,6 +2,8 @@
 // Career data and helper functions
 // Can be easily replaced with database queries later
 
+import { getIndustryImage } from "@/lib/constants/industries";
+
 export interface CareerData {
   slug: string;
   name: string;
@@ -12,12 +14,12 @@ export interface CareerData {
 }
 
 // Static career data (can be replaced with database query)
-// Image paths: /images/careers/ (files live in public/images/careers/)
+// Image paths from INDUSTRY_IMAGES (lib/constants/industries.ts)
 const careersData: CareerData[] = [
   {
     slug: "education",
     name: "Education",
-    image: "/images/careers/Education.png",
+    image: getIndustryImage("education"),
     description: "Verified employment for educators",
     employers: [
       "Hire teachers with verified classroom experience.",
@@ -33,7 +35,7 @@ const careersData: CareerData[] = [
   {
     slug: "construction",
     name: "Construction",
-    image: "/images/careers/Construction.png",
+    image: getIndustryImage("construction"),
     description: "Verified employment for construction and trades",
     employers: [
       "Hire crew with verified work history and safety signals.",
@@ -49,7 +51,7 @@ const careersData: CareerData[] = [
   {
     slug: "healthcare",
     name: "Healthcare",
-    image: "/images/careers/healthcare.jpg",
+    image: getIndustryImage("healthcare"),
     description: "Verified employment for healthcare professionals",
     employers: [
       "Hire qualified healthcare staff quickly.",
@@ -65,7 +67,7 @@ const careersData: CareerData[] = [
   {
     slug: "security",
     name: "Security",
-    image: "/images/careers/security.jpg",
+    image: getIndustryImage("security"),
     description: "Trusted profiles for security professionals",
     employers: [
       "Hire reliable security personnel with verified backgrounds.",
@@ -81,7 +83,7 @@ const careersData: CareerData[] = [
   {
     slug: "law-enforcement",
     name: "Law Enforcement",
-    image: "/images/careers/law.jpg",
+    image: getIndustryImage("law-enforcement"),
     description: "Verified employment for law enforcement",
     employers: [
       "Hire officers with verified service records.",
@@ -97,7 +99,7 @@ const careersData: CareerData[] = [
   {
     slug: "warehouse",
     name: "Warehouse & Logistics",
-    image: "/images/careers/warehouse.jpg",
+    image: getIndustryImage("warehouse"),
     description: "Verified employment for warehouse & logistics",
     employers: [
       "Hire reliable warehouse staff fast.",
@@ -113,7 +115,7 @@ const careersData: CareerData[] = [
   {
     slug: "hospitality",
     name: "Hospitality",
-    image: "/images/careers/hospitality.jpg",
+    image: getIndustryImage("hospitality"),
     description: "Build credibility in hospitality careers",
     employers: [
       "Hire staff with verified customer service experience.",
@@ -129,7 +131,7 @@ const careersData: CareerData[] = [
   {
     slug: "retail",
     name: "Retail",
-    image: "/images/careers/retail.jpg",
+    image: getIndustryImage("retail"),
     description: "Trusted profiles for retail professionals",
     employers: [
       "Quickly hire trusted retail staff.",

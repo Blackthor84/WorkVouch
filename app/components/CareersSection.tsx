@@ -4,12 +4,13 @@
 import { useState } from "react";
 import FixedImage from "@/components/FixedImage";
 import CareerModal, { CareerData } from "@/components/CareerModal";
+import { getIndustryImageByName } from "@/lib/constants/industries";
 
-// Define your WorkVouch careers with realistic benefits
+// Define your WorkVouch careers with realistic benefits (images from INDUSTRY_IMAGES)
 const careers: CareerData[] = [
   {
     name: "Healthcare",
-    image: "/images/healthcare.png",
+    image: getIndustryImageByName("Healthcare"),
     employerBenefits: [
       "Quickly verify past employee performance",
       "Reduce hiring risks and turnover",
@@ -37,7 +38,7 @@ const careers: CareerData[] = [
   },
   {
     name: "Security",
-    image: "/images/security.png",
+    image: getIndustryImageByName("Security"),
     employerBenefits: [
       "Hire guards with confirmed credentials",
       "Reduce incidents of unverified hires",
@@ -51,7 +52,7 @@ const careers: CareerData[] = [
   },
   {
     name: "Warehouse & Logistics",
-    image: "/images/warehouse.png",
+    image: getIndustryImageByName("Warehouse & Logistics"),
     employerBenefits: [
       "Find workers with proven reliability",
       "Minimize costly turnover",
@@ -79,7 +80,7 @@ const careers: CareerData[] = [
   },
   {
     name: "Retail",
-    image: "/images/retail.png",
+    image: getIndustryImageByName("Retail"),
     employerBenefits: [
       "Hire dependable retail staff",
       "Reduce training costs",

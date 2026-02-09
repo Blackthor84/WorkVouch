@@ -4,6 +4,58 @@
  * ONBOARDING_KEYS + Industry (key type): onboarding route params and role/setting config.
  */
 
+/** Single source for industry/career image paths. Use with getIndustryImage() so keys never mismatch. */
+export const INDUSTRY_IMAGES: Record<string, string> = {
+  healthcare: "/images/careers/healthcare.jpg",
+  hospitality: "/images/careers/hospitality.jpg",
+  retail: "/images/careers/retail.jpg",
+  security: "/images/careers/security.jpg",
+  warehouse: "/images/careers/warehouse.jpg",
+  education: "/images/careers/Education.png",
+  construction: "/images/careers/Construction.png",
+  law_enforcement: "/images/careers/law.jpg",
+};
+
+/** Career id / slug → INDUSTRY_IMAGES key (e.g. "law-enforcement" → "law_enforcement", "warehouse-logistics" → "warehouse"). */
+const CAREER_ID_TO_IMAGE_KEY: Record<string, string> = {
+  "law-enforcement": "law_enforcement",
+  "warehouse-logistics": "warehouse",
+  healthcare: "healthcare",
+  hospitality: "hospitality",
+  retail: "retail",
+  security: "security",
+  warehouse: "warehouse",
+  education: "education",
+  construction: "construction",
+};
+
+/**
+ * Resolve industry image path from career id, slug, or industry key.
+ * Use everywhere instead of hardcoding paths.
+ */
+export function getIndustryImage(industryOrCareerId: string): string {
+  const key = CAREER_ID_TO_IMAGE_KEY[industryOrCareerId] ?? industryOrCareerId.replace(/-/g, "_");
+  return INDUSTRY_IMAGES[key] ?? INDUSTRY_IMAGES.healthcare;
+}
+
+/** Display name (e.g. "Healthcare", "Law Enforcement") → INDUSTRY_IMAGES key. */
+const DISPLAY_NAME_TO_IMAGE_KEY: Record<string, string> = {
+  Healthcare: "healthcare",
+  "Law Enforcement": "law_enforcement",
+  Security: "security",
+  Retail: "retail",
+  Hospitality: "hospitality",
+  "Warehouse & Logistics": "warehouse",
+  Education: "education",
+  Construction: "construction",
+};
+
+/** Resolve industry image from display name (e.g. career.name). */
+export function getIndustryImageByName(displayName: string): string {
+  const key = DISPLAY_NAME_TO_IMAGE_KEY[displayName];
+  return key ? INDUSTRY_IMAGES[key] ?? INDUSTRY_IMAGES.healthcare : INDUSTRY_IMAGES.healthcare;
+}
+
 /** Shared industry options (display names) — use everywhere for dropdowns and validation. */
 export const INDUSTRIES = [
   "Healthcare",

@@ -1,8 +1,10 @@
+import { getIndustryImage } from "@/lib/constants/industries";
+
 export const careers = [
   {
     id: 'education',
     name: 'Education',
-    image: '/images/industries/education.jpg',
+    image: getIndustryImage('education'),
     heroText: 'Verify teaching and education experience. Build trust with schools and districts.',
     whyForEmployees: [
       'Showcase verified classroom experience and credentials.',
@@ -18,7 +20,7 @@ export const careers = [
   {
     id: 'construction',
     name: 'Construction',
-    image: '/images/industries/construction.jpg',
+    image: getIndustryImage('construction'),
     heroText: 'Verify trade experience and certifications. Hire crew you can trust.',
     whyForEmployees: [
       'Showcase your trade experience and certifications.',
@@ -34,7 +36,7 @@ export const careers = [
   {
     id: 'healthcare',
     name: 'Healthcare',
-    image: '/images/healthcare-placeholder.png',
+    image: getIndustryImage('healthcare'),
     heroText: 'Verified healthcare experience at your fingertips. Build trust, prove your skills, and open doors to higher-paying opportunities.',
     whyForEmployees: [
       'Instantly verify your nursing, medical, or administrative experience to stand out.',
@@ -56,7 +58,7 @@ export const careers = [
   {
     id: 'warehouse-logistics',
     name: 'Warehouse & Logistics',
-    image: '/images/warehouse-placeholder.png',
+    image: getIndustryImage('warehouse-logistics'),
     heroText: 'Hire and get hired with confidence in warehouse and logistics roles. Verify skills, reduce risk, and streamline operations.',
     whyForEmployees: [
       'Verify your forklift operation, inventory, and logistics experience instantly.',
@@ -77,7 +79,7 @@ export const careers = [
   {
     id: 'security',
     name: 'Security',
-    image: '/images/security-placeholder.png',
+    image: getIndustryImage('security'),
     heroText: 'Build trust in security roles. Prove your certifications, training, and past deployments to unlock premium opportunities.',
     whyForEmployees: [
       'Showcase verified training, certifications, and prior deployments.',
@@ -98,7 +100,7 @@ export const careers = [
   {
     id: 'retail',
     name: 'Retail',
-    image: '/images/retail-placeholder.png',
+    image: getIndustryImage('retail'),
     heroText: 'Stand out in retail or hire trusted, skilled employees. WorkVouch proves experience, builds trust, and drives results.',
     whyForEmployees: [
       'Demonstrate verified sales, customer service, and managerial experience.',
@@ -118,7 +120,7 @@ export const careers = [
   {
     id: 'law-enforcement',
     name: 'Law Enforcement',
-    image: '/images/law-enforcement-placeholder.png',
+    image: getIndustryImage('law-enforcement'),
     heroText: 'Verify and highlight your law enforcement experience, or hire trusted officers quickly and confidently.',
     whyForEmployees: [
       'Showcase verified patrol, investigative, or leadership experience.',
@@ -138,7 +140,7 @@ export const careers = [
   {
     id: 'hospitality',
     name: 'Hospitality',
-    image: '/images/hospitality-placeholder.png',
+    image: getIndustryImage('hospitality'),
     heroText: 'Deliver exceptional guest experiences. Prove your hospitality skills or hire trusted staff with WorkVouch.',
     whyForEmployees: [
       'Show proven experience in hotels, restaurants, or event management.',
