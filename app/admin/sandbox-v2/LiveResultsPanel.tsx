@@ -111,7 +111,7 @@ export function LiveResultsPanel({
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">Generated Employers</h3>
         <div className="mt-3 max-h-48 overflow-y-auto">
           {employers.length === 0 ? (
-            <p className="text-sm text-slate-400">None yet</p>
+            <p className="text-sm text-slate-200">None yet</p>
           ) : (
             <ul className="space-y-1">
               {employers.map((e) => (
@@ -121,8 +121,8 @@ export function LiveResultsPanel({
                 >
                   <div>
                     <span className="font-medium text-white">{e.company_name ?? e.id.slice(0, 8)}</span>
-                    <span className="ml-2 text-slate-400">{e.industry ?? "—"}</span>
-                    <span className="ml-2 text-slate-400">· {e.plan_tier ?? "—"}</span>
+                    <span className="ml-2 text-slate-200">{e.industry ?? "—"}</span>
+                    <span className="ml-2 text-slate-200">· {e.plan_tier ?? "—"}</span>
                   </div>
                   <button
                     type="button"
@@ -144,7 +144,7 @@ export function LiveResultsPanel({
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">Generated Employees</h3>
         <div className="mt-3 max-h-48 overflow-y-auto">
           {employees.length === 0 ? (
-            <p className="text-sm text-slate-400">None yet</p>
+            <p className="text-sm text-slate-200">None yet</p>
           ) : (
             <ul className="space-y-1">
               {employees.map((e) => {
@@ -157,7 +157,7 @@ export function LiveResultsPanel({
                   >
                     <div>
                       <span className="font-medium text-white">{e.full_name ?? e.id.slice(0, 8)}</span>
-                      <span className="ml-2 text-slate-400">{e.industry ?? "—"}</span>
+                      <span className="ml-2 text-slate-200">{e.industry ?? "—"}</span>
                       <span className="ml-2 text-slate-300">Score: {score}</span>
                     </div>
                     <button
@@ -189,7 +189,7 @@ export function LiveResultsPanel({
         <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">Recent Actions Log</h3>
         <div className="mt-3 max-h-40 overflow-y-auto rounded-lg border border-slate-700 bg-slate-800 p-3 font-mono text-xs">
           {consoleLogs.length === 0 ? (
-            <p className="text-slate-500">No output yet.</p>
+            <p className="text-slate-300">No output yet.</p>
           ) : (
             consoleLogs.slice(-20).map((line, i) => (
               <p

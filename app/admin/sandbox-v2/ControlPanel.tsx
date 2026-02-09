@@ -84,6 +84,25 @@ interface ControlPanelProps {
   setChurnRate: (v: number) => void;
   revenueLoading: boolean;
   onUpdateRevenue: () => void;
+  /** Signup Flow Simulator (additive) */
+  signupFlowEmployeeIndustry?: string;
+  setSignupFlowEmployeeIndustry?: (v: string) => void;
+  signupFlowExperienceLevel?: string;
+  setSignupFlowExperienceLevel?: (v: string) => void;
+  signupFlowReviewVolume?: string;
+  setSignupFlowReviewVolume?: (v: string) => void;
+  signupFlowRiskProfile?: string;
+  setSignupFlowRiskProfile?: (v: string) => void;
+  onSignupFlowEmployee?: () => void;
+  signupFlowEmployeeLoading?: boolean;
+  signupFlowEmployerIndustry?: string;
+  setSignupFlowEmployerIndustry?: (v: string) => void;
+  signupFlowTier?: string;
+  setSignupFlowTier?: (v: string) => void;
+  signupFlowCompanySize?: string;
+  setSignupFlowCompanySize?: (v: string) => void;
+  onSignupFlowEmployer?: () => void;
+  signupFlowEmployerLoading?: boolean;
 }
 
 export function ControlPanel(props: ControlPanelProps) {
@@ -155,6 +174,24 @@ export function ControlPanel(props: ControlPanelProps) {
     setChurnRate,
     revenueLoading,
     onUpdateRevenue,
+    signupFlowEmployeeIndustry = "",
+    setSignupFlowEmployeeIndustry,
+    signupFlowExperienceLevel = "Mid",
+    setSignupFlowExperienceLevel,
+    signupFlowReviewVolume = "Medium",
+    setSignupFlowReviewVolume,
+    signupFlowRiskProfile = "Clean",
+    setSignupFlowRiskProfile,
+    onSignupFlowEmployee,
+    signupFlowEmployeeLoading = false,
+    signupFlowEmployerIndustry = "",
+    setSignupFlowEmployerIndustry,
+    signupFlowTier = "Pro",
+    setSignupFlowTier,
+    signupFlowCompanySize = "Medium",
+    setSignupFlowCompanySize,
+    onSignupFlowEmployer,
+    signupFlowEmployerLoading = false,
   } = props;
 
   const enabledVerticalNames = ENABLED_VERTICALS;
@@ -163,7 +200,7 @@ export function ControlPanel(props: ControlPanelProps) {
   const cardHead = "flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 font-semibold text-white bg-slate-900 border-b border-slate-700 hover:bg-slate-800/90";
   const cardBody = "border-t border-slate-700 bg-slate-900/95 px-4 py-4 space-y-3";
   const inputClass = "rounded border border-slate-600 bg-slate-800 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
-  const labelClass = "text-slate-300 font-medium";
+  const labelClass = "text-white font-medium";
 
   return (
     <aside className="flex flex-col gap-4 overflow-y-auto">
@@ -175,7 +212,7 @@ export function ControlPanel(props: ControlPanelProps) {
               <span className="text-blue-400">{COLLAPSE_ICON_OPEN}</span>
               Session Control
             </span>
-            <span className="text-slate-400 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
+            <span className="text-slate-200 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
           </summary>
           <div className={cardBody}>
             <div className="flex flex-wrap items-end gap-3">
@@ -223,7 +260,7 @@ export function ControlPanel(props: ControlPanelProps) {
               <span className="text-blue-400">{COLLAPSE_ICON}</span>
               Employer Generator
             </span>
-            <span className="text-slate-400 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
+            <span className="text-slate-200 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
           </summary>
           <div className={cardBody}>
             <div className="space-y-2">
@@ -278,7 +315,7 @@ export function ControlPanel(props: ControlPanelProps) {
               <span className="text-blue-400">{COLLAPSE_ICON}</span>
               Employee Generator
             </span>
-            <span className="text-slate-400 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
+            <span className="text-slate-200 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
           </summary>
           <div className={cardBody}>
             <div className="space-y-2">
@@ -324,6 +361,96 @@ export function ControlPanel(props: ControlPanelProps) {
         </details>
       </section>
 
+      {/* Signup Flow Simulator */}
+      {typeof onSignupFlowEmployee === "function" && typeof onSignupFlowEmployer === "function" && (
+        <section className={cardBase}>
+          <details className="group">
+            <summary className={cardHead}>
+              <span className="flex items-center gap-2">
+                <span className="text-blue-400">{COLLAPSE_ICON}</span>
+                Signup Flow Simulator
+              </span>
+              <span className="text-slate-200 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
+            </summary>
+            <div className={cardBody}>
+              <p className="text-xs text-slate-300 mb-4">Simulate full signup flows. Uses same create + recalc as manual generators. Additive.</p>
+              {/* Employee simulation */}
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-white mb-2">Employee simulation</h3>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <div>
+                    <Label className={labelClass}>Industry</Label>
+                    <select value={signupFlowEmployeeIndustry} onChange={(e) => setSignupFlowEmployeeIndustry?.(e.target.value)} className={`mt-1 w-full ${inputClass} px-3 py-2`}>
+                      <option value="">Select</option>
+                      {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <Label className={labelClass}>Experience level</Label>
+                    <select value={signupFlowExperienceLevel} onChange={(e) => setSignupFlowExperienceLevel?.(e.target.value)} className={`mt-1 w-full ${inputClass} px-3 py-2`}>
+                      <option value="Entry">Entry</option>
+                      <option value="Mid">Mid</option>
+                      <option value="Senior">Senior</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label className={labelClass}>Review volume</Label>
+                    <select value={signupFlowReviewVolume} onChange={(e) => setSignupFlowReviewVolume?.(e.target.value)} className={`mt-1 w-full ${inputClass} px-3 py-2`}>
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label className={labelClass}>Risk profile</Label>
+                    <select value={signupFlowRiskProfile} onChange={(e) => setSignupFlowRiskProfile?.(e.target.value)} className={`mt-1 w-full ${inputClass} px-3 py-2`}>
+                      <option value="Clean">Clean</option>
+                      <option value="Mixed">Mixed</option>
+                      <option value="Risky">Risky</option>
+                    </select>
+                  </div>
+                </div>
+                <Button onClick={onSignupFlowEmployee} disabled={loading || !currentSandboxId || signupFlowEmployeeLoading || !signupFlowEmployeeIndustry} className="mt-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white">
+                  {signupFlowEmployeeLoading ? "…" : "Generate employee (signup flow)"}
+                </Button>
+              </div>
+              {/* Employer simulation */}
+              <div>
+                <h3 className="text-sm font-semibold text-white mb-2">Employer simulation</h3>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <div>
+                    <Label className={labelClass}>Industry</Label>
+                    <select value={signupFlowEmployerIndustry} onChange={(e) => setSignupFlowEmployerIndustry?.(e.target.value)} className={`mt-1 w-full ${inputClass} px-3 py-2`}>
+                      <option value="">Select</option>
+                      {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <Label className={labelClass}>Tier</Label>
+                    <select value={signupFlowTier} onChange={(e) => setSignupFlowTier?.(e.target.value)} className={`mt-1 w-full ${inputClass} px-3 py-2`}>
+                      <option value="starter">Starter</option>
+                      <option value="pro">Pro</option>
+                      <option value="enterprise">Enterprise</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label className={labelClass}>Company size</Label>
+                    <select value={signupFlowCompanySize} onChange={(e) => setSignupFlowCompanySize?.(e.target.value)} className={`mt-1 w-full ${inputClass} px-3 py-2`}>
+                      <option value="Small">Small</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Large">Large</option>
+                    </select>
+                  </div>
+                </div>
+                <Button onClick={onSignupFlowEmployer} disabled={loading || !currentSandboxId || signupFlowEmployerLoading || !signupFlowEmployerIndustry} className="mt-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white">
+                  {signupFlowEmployerLoading ? "…" : "Generate employer (signup flow)"}
+                </Button>
+              </div>
+            </div>
+          </details>
+        </section>
+      )}
+
       {/* Peer Review Builder */}
       <section className={cardBase}>
         <details open className="group">
@@ -332,10 +459,10 @@ export function ControlPanel(props: ControlPanelProps) {
               <span className="text-blue-400">{COLLAPSE_ICON}</span>
               Peer Review Builder
             </span>
-            <span className="text-slate-400 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
+            <span className="text-slate-200 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
           </summary>
           <div className={cardBody}>
-            <p className="text-xs text-slate-400">✔ Verified overlap required. Self-review blocked.</p>
+            <p className="text-xs text-slate-200">✔ Verified overlap required. Self-review blocked.</p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <Label className={labelClass}>Reviewer (Gives feedback)</Label>
@@ -413,7 +540,7 @@ export function ControlPanel(props: ControlPanelProps) {
                   {submittedReviews.map((r) => (
                     <li key={r.id} className="rounded border border-slate-600 bg-slate-800 p-2">
                       <span className="font-medium">{r.reviewerName}</span> → <span className="font-medium">{r.reviewedName}</span> · {r.rating}/5
-                      {r.review_text && <p className="mt-1 truncate text-slate-400">{r.review_text}</p>}
+                      {r.review_text && <p className="mt-1 truncate text-slate-200">{r.review_text}</p>}
                     </li>
                   ))}
                 </ul>
@@ -431,7 +558,7 @@ export function ControlPanel(props: ControlPanelProps) {
               <span className="text-blue-400">{COLLAPSE_ICON}</span>
               Hiring Simulation
             </span>
-            <span className="text-slate-400 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
+            <span className="text-slate-200 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
           </summary>
           <div className={cardBody}>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -493,7 +620,7 @@ export function ControlPanel(props: ControlPanelProps) {
               <span className="text-blue-400">{COLLAPSE_ICON}</span>
               Ads Simulation
             </span>
-            <span className="text-slate-400 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
+            <span className="text-slate-200 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
           </summary>
           <div className={cardBody}>
             <div className="flex flex-wrap gap-3">
@@ -534,7 +661,7 @@ export function ControlPanel(props: ControlPanelProps) {
               <span className="text-blue-400">{COLLAPSE_ICON}</span>
               Revenue Simulation
             </span>
-            <span className="text-slate-400 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
+            <span className="text-slate-200 text-sm group-open:rotate-180">{COLLAPSE_ICON}</span>
           </summary>
           <div className={cardBody}>
             <div>

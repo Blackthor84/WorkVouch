@@ -43,7 +43,7 @@ export function SimulationCoreCard({
   const score = avgScore != null ? Math.round(Number(avgScore)) : null;
   const scoreColor =
     score == null
-      ? "text-slate-400"
+      ? "text-slate-200"
       : score < 40
         ? "text-red-400"
         : score < 70
@@ -67,7 +67,7 @@ export function SimulationCoreCard({
         )}
         <p className="text-sm font-medium uppercase tracking-wide text-slate-300">Profile Confidence Score</p>
         <p className={`mt-2 text-5xl font-bold ${scoreColor}`}>{score != null ? score : "—"}</p>
-        <p className="mt-1 text-xs text-slate-400">0–100 · Sandbox average</p>
+        <p className="mt-1 text-xs text-slate-200">0–100 · Sandbox average</p>
       </div>
 
       {/* B) Score Breakdown (Admin only) */}
@@ -98,7 +98,7 @@ export function SimulationCoreCard({
               </li>
             </ul>
           ) : (
-            <p className="mt-2 text-sm text-slate-400">Add employees and recalculate to see breakdown.</p>
+            <p className="mt-2 text-sm text-slate-200">Add employees and recalculate to see breakdown.</p>
           )}
         </div>
       )}
@@ -138,7 +138,7 @@ export function SimulationCoreCard({
           onChange={(e) => setSentimentMultiplier(parseFloat(e.target.value))}
           className="mt-2 w-full accent-blue-500"
         />
-        <p className="mt-2 text-xs text-slate-400">Sandbox only. Does not affect production.</p>
+        <p className="mt-2 text-xs text-slate-200">Sandbox only. Does not affect production.</p>
       </div>
     </section>
   );

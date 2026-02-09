@@ -55,6 +55,8 @@ export const INDUSTRY_TO_ONBOARDING_KEY: Partial<Record<Industry, string>> = {
   "Retail": "retail",
   "Hospitality": "hospitality",
   "Warehouse and Logistics": "warehousing",
+  "Education": "education",
+  "Construction": "construction",
 };
 
 /** Onboarding industry keys (route params, role/setting config). */
@@ -63,7 +65,9 @@ export const ONBOARDING_KEYS = [
   'security',
   'hospitality',
   'retail',
-  'warehousing'
+  'warehousing',
+  'education',
+  'construction',
 ] as const;
 
 export type OnboardingIndustry = typeof ONBOARDING_KEYS[number];
@@ -73,8 +77,10 @@ export const ONBOARDING_DISPLAY_NAMES: Record<OnboardingIndustry, string> = {
   security: 'Security',
   hospitality: 'Hospitality',
   retail: 'Retail',
-  warehousing: 'Warehousing & Logistics'
-}
+  warehousing: 'Warehousing & Logistics',
+  education: 'Education',
+  construction: 'Construction',
+};
 
 export const ROLE_OPTIONS: Record<OnboardingIndustry, string[]> = {
   law_enforcement: [
@@ -128,8 +134,32 @@ export const ROLE_OPTIONS: Record<OnboardingIndustry, string[]> = {
     'Order Fulfillment Associate',
     'Logistics Coordinator',
     'Warehouse Technician'
-  ]
-}
+  ],
+  education: [
+    'Teacher',
+    'Substitute Teacher',
+    'Paraprofessional',
+    'School Counselor',
+    'Administrator',
+    'Principal',
+    'Librarian',
+    'Special Education',
+    'ESL Teacher',
+    'Coach',
+  ],
+  construction: [
+    'Laborer',
+    'Carpenter',
+    'Electrician',
+    'Plumber',
+    'HVAC',
+    'Welder',
+    'Foreman',
+    'Supervisor',
+    'Project Manager',
+    'Equipment Operator',
+  ],
+};
 
 // Additional roles for Logistics (can be used as a sub-industry or separate)
 export const LOGISTICS_ROLES = [
@@ -191,5 +221,21 @@ export const SETTING_OPTIONS: Record<OnboardingIndustry, string[]> = {
     'Logistics',
     '3PL Warehouse',
     'Cross-Dock Facility'
-  ]
-}
+  ],
+  education: [
+    'Public School',
+    'Charter School',
+    'Private School',
+    'District Office',
+    'Higher Education',
+    'Early Childhood',
+  ],
+  construction: [
+    'Residential',
+    'Commercial',
+    'Industrial',
+    'Infrastructure',
+    'Renovation',
+    'General Contractor',
+  ],
+};

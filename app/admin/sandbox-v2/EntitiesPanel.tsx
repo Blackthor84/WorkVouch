@@ -56,7 +56,7 @@ export function EntitiesPanel({
     <aside className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-600 bg-slate-800/70">
       <div className="flex-none border-b border-slate-600 px-3 py-2">
         <h2 className="text-sm font-semibold text-slate-200">Entities</h2>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-200">
           {employers.length} employers · {employees.length} employees
         </p>
       </div>
@@ -81,7 +81,7 @@ export function EntitiesPanel({
               <tbody>
                 {employers.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-2 py-3 text-slate-500">
+                    <td colSpan={4} className="px-2 py-3 text-slate-300">
                       No employers yet
                     </td>
                   </tr>
@@ -97,7 +97,7 @@ export function EntitiesPanel({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-1.5 text-slate-400 hover:text-red-300"
+                        className="h-7 px-1.5 text-slate-200 hover:text-red-300"
                         disabled
                         title="Delete employer (requires backend support)"
                       >
@@ -177,7 +177,7 @@ export function EntitiesPanel({
               <tbody>
                 {employees.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-2 py-3 text-slate-500">
+                    <td colSpan={4} className="px-2 py-3 text-slate-300">
                       No employees yet
                     </td>
                   </tr>
@@ -199,7 +199,7 @@ export function EntitiesPanel({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 px-1.5 text-slate-400 hover:text-red-300"
+                          className="h-7 px-1.5 text-slate-200 hover:text-red-300"
                           disabled
                           title="Delete employee (requires backend support)"
                         >

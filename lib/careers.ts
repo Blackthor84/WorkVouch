@@ -97,7 +97,7 @@ const careersData: CareerData[] = [
   {
     slug: "warehouse",
     name: "Warehouse & Logistics",
-    image: "/careers/warehouse.jpg",
+    image: "/images/careers/warehouse.jpg",
     description: "Verified employment for warehouse & logistics",
     employers: [
       "Hire reliable warehouse staff fast.",

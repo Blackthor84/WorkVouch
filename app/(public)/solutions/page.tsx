@@ -7,7 +7,6 @@ export const metadata = {
 };
 
 const SOLUTIONS = [
-  { slug: "security-agencies", label: "Security Agencies", href: "/security-agencies", description: "Credential-driven hiring, guard licenses, and structured verification." },
   { slug: "healthcare", label: "Healthcare Staffing", href: "/solutions/healthcare", description: "Verify clinical roles, credentials, and employment history." },
   { slug: "logistics", label: "Logistics & Transportation", href: "/solutions/logistics", description: "Driver and warehouse verification, safety records, tenure." },
   { slug: "construction", label: "Construction", href: "/solutions/construction", description: "Trade experience, certifications, and project history verification." },

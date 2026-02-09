@@ -40,7 +40,6 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold mb-4 text-lg">Industry Solutions</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/security-agencies" className="hover:underline opacity-90 hover:opacity-100">Security Agencies</Link></li>
               <li><Link href="/solutions" className="hover:underline opacity-90 hover:opacity-100">All Solutions</Link></li>
             </ul>
           </div>

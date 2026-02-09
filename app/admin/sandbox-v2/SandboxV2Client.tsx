@@ -107,6 +107,15 @@ export function SandboxV2Client() {
   const [showDeltaUntil, setShowDeltaUntil] = useState(0);
   const [breakdown, setBreakdown] = useState<V1BreakdownComponents | null>(null);
   const [enabledVerticalNames, setEnabledVerticalNames] = useState<string[]>([]);
+  const [signupFlowEmployeeIndustry, setSignupFlowEmployeeIndustry] = useState("");
+  const [signupFlowExperienceLevel, setSignupFlowExperienceLevel] = useState("Mid");
+  const [signupFlowReviewVolume, setSignupFlowReviewVolume] = useState("Medium");
+  const [signupFlowRiskProfile, setSignupFlowRiskProfile] = useState("Clean");
+  const [signupFlowEmployeeLoading, setSignupFlowEmployeeLoading] = useState(false);
+  const [signupFlowEmployerIndustry, setSignupFlowEmployerIndustry] = useState("");
+  const [signupFlowTier, setSignupFlowTier] = useState("pro");
+  const [signupFlowCompanySize, setSignupFlowCompanySize] = useState("Medium");
+  const [signupFlowEmployerLoading, setSignupFlowEmployerLoading] = useState(false);
   const teachersMode = FEATURE_TEACHERS_MODE;
 
   const log = useCallback((msg: string, type: "info" | "success" | "error" = "info") => {
@@ -338,6 +347,77 @@ export function SandboxV2Client() {
     } finally {
       setGenEmployeeLoading(false);
       setLoading(false);
+    }
+  };
+
+  const runSignupFlowEmployee = async () => {
+    const sandboxId = currentSandboxId?.trim() || null;
+    if (!sandboxId || !signupFlowEmployeeIndustry) return;
+    setSignupFlowEmployeeLoading(true);
+    setError(null);
+    try {
+      const body: Record<string, unknown> = {
+        sandboxId,
+        industry: signupFlowEmployeeIndustry,
+        experience_level: signupFlowExperienceLevel,
+        review_volume_template: signupFlowReviewVolume,
+        risk_profile: signupFlowRiskProfile,
+      };
+      const res = await fetch("/api/admin/sandbox-v2/employees", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(body),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((j as { error?: string }).error || "Generate failed");
+      log("Employee created (signup flow), switching to Employee view", "success");
+      setViewAs("Employee");
+      await refreshSandbox(sandboxId);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+    } finally {
+      setSignupFlowEmployeeLoading(false);
+    }
+  };
+
+  const runSignupFlowEmployer = async () => {
+    const sandboxId = currentSandboxId?.trim() || null;
+    if (!sandboxId || !signupFlowEmployerIndustry) return;
+    setSignupFlowEmployerLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/sandbox-v2/employers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          sandboxId,
+          industry: signupFlowEmployerIndustry,
+          plan_tier: signupFlowTier,
+        }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((j as { error?: string }).error || "Generate failed");
+      log("Employer created (signup flow), recalculating…", "info");
+      const recRes = await fetch(`${API}/recalculate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ sandboxId }),
+      });
+      if (!recRes.ok) log("Recalc request failed", "error");
+      else log("Intelligence recalculated", "success");
+      setViewAs("Employer");
+      await refreshSandbox(sandboxId);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Error";
+      setError(msg);
+      log(msg, "error");
+    } finally {
+      setSignupFlowEmployerLoading(false);
     }
   };
 
@@ -937,6 +1017,24 @@ export function SandboxV2Client() {
             setChurnRate={setChurnRate}
             revenueLoading={revenueLoading}
             onUpdateRevenue={updateRevenue}
+            signupFlowEmployeeIndustry={signupFlowEmployeeIndustry}
+            setSignupFlowEmployeeIndustry={setSignupFlowEmployeeIndustry}
+            signupFlowExperienceLevel={signupFlowExperienceLevel}
+            setSignupFlowExperienceLevel={setSignupFlowExperienceLevel}
+            signupFlowReviewVolume={signupFlowReviewVolume}
+            setSignupFlowReviewVolume={setSignupFlowReviewVolume}
+            signupFlowRiskProfile={signupFlowRiskProfile}
+            setSignupFlowRiskProfile={setSignupFlowRiskProfile}
+            onSignupFlowEmployee={runSignupFlowEmployee}
+            signupFlowEmployeeLoading={signupFlowEmployeeLoading}
+            signupFlowEmployerIndustry={signupFlowEmployerIndustry}
+            setSignupFlowEmployerIndustry={setSignupFlowEmployerIndustry}
+            signupFlowTier={signupFlowTier}
+            setSignupFlowTier={setSignupFlowTier}
+            signupFlowCompanySize={signupFlowCompanySize}
+            setSignupFlowCompanySize={setSignupFlowCompanySize}
+            onSignupFlowEmployer={runSignupFlowEmployer}
+            signupFlowEmployerLoading={signupFlowEmployerLoading}
           />
         </div>
 

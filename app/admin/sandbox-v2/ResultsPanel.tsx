@@ -40,7 +40,7 @@ export function ResultsPanel({
     return (
       <aside className="rounded-xl border border-slate-600 bg-slate-800/70 p-4">
         <h2 className="text-sm font-semibold text-slate-300">Results</h2>
-        <p className="mt-2 text-sm text-slate-500">Select a sandbox to see summary.</p>
+        <p className="mt-2 text-sm text-slate-300">Select a sandbox to see summary.</p>
       </aside>
     );
   }

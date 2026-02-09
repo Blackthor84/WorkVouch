@@ -1,5 +1,37 @@
 export const careers = [
   {
+    id: 'education',
+    name: 'Education',
+    image: '/images/industries/education.jpg',
+    heroText: 'Verify teaching and education experience. Build trust with schools and districts.',
+    whyForEmployees: [
+      'Showcase verified classroom experience and credentials.',
+      'Build credibility with peer-verified references.',
+      'Open opportunities at schools and districts.',
+    ],
+    whyForEmployers: [
+      'Hire teachers with verified classroom experience.',
+      'Check tenure, peer sentiment, and rehire signals.',
+      'Reduce turnover with verified educator profiles.',
+    ],
+  },
+  {
+    id: 'construction',
+    name: 'Construction',
+    image: '/images/industries/construction.jpg',
+    heroText: 'Verify trade experience and certifications. Hire crew you can trust.',
+    whyForEmployees: [
+      'Showcase your trade experience and certifications.',
+      'Build credibility with verified employer endorsements.',
+      'Access opportunities at top construction firms.',
+    ],
+    whyForEmployers: [
+      'Hire crew with verified work history and safety signals.',
+      'Check certifications and job-site reliability.',
+      'Reduce risk with peer-verified references.',
+    ],
+  },
+  {
     id: 'healthcare',
     name: 'Healthcare',
     image: '/images/healthcare-placeholder.png',

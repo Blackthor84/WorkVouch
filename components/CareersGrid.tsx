@@ -3,11 +3,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { careers } from '../data/careers';
 
-// Map career IDs to actual image filenames
-// Handles naming differences (e.g., 'law-enforcement' -> 'law', 'warehouse-logistics' -> 'warehouse')
-// Note: Files are currently .jpg, but can be renamed to .png if desired
-const getImagePath = (careerId: string): string => {
-  const imageMap: Record<string, string> = {
+// Map career IDs to image paths. Education/Construction use /images/industries/; others use /images/careers/
+const getImagePath = (careerId: string, careerImage?: string): string => {
+  if (careerImage) return careerImage;
+  if (careerId === 'education') return '/images/industries/education.jpg';
+  if (careerId === 'construction') return '/images/industries/construction.jpg';
+  const careersBase: Record<string, string> = {
     'healthcare': 'healthcare',
     'warehouse-logistics': 'warehouse',
     'security': 'security',
@@ -15,9 +16,7 @@ const getImagePath = (careerId: string): string => {
     'law-enforcement': 'law',
     'hospitality': 'hospitality',
   };
-  
-  const baseName = imageMap[careerId] || careerId;
-  // Using .jpg for now (actual files), change to .png if files are renamed
+  const baseName = careersBase[careerId] || careerId;
   return `/images/careers/${baseName}.jpg`;
 };
 
@@ -32,7 +31,7 @@ export default function CareersGrid() {
         >
           <div className="w-full h-40 sm:h-48 md:h-56 bg-gray-50 flex items-center justify-center">
             <Image
-              src={getImagePath(career.id)}
+              src={getImagePath(career.id, career.image)}
               alt={career.name}
               width={400}
               height={300}
