@@ -20,6 +20,7 @@ import { WorkHistoryViewer } from "./work-history-viewer";
 import { ReferenceViewer } from "./reference-viewer";
 import { WorkVouchInsightsSection } from "./workvouch-insights-section";
 import EmployerRiskOverlay from "@/components/employer/EmployerRiskOverlay";
+import { VerticalBadges } from "@/components/verticals/VerticalBadges";
 
 interface CandidateProfileViewerProps {
   candidateData: any;
@@ -132,6 +133,14 @@ export function CandidateProfileViewer({
                 {safeProfile.industry.replace("_", " ")}
               </p>
             )}
+            <VerticalBadges
+              profile={{
+                industry: safeProfile.industry,
+                vertical: (safeProfile as any).vertical,
+                vertical_metadata: (safeProfile as any).vertical_metadata,
+              }}
+              className="mt-2"
+            />
           </div>
         </div>
         <div className="flex gap-2">

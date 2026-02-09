@@ -12,11 +12,44 @@ export interface CareerData {
 }
 
 // Static career data (can be replaced with database query)
+// Image paths: /images/careers/ (files live in public/images/careers/)
 const careersData: CareerData[] = [
+  {
+    slug: "education",
+    name: "Education",
+    image: "/images/careers/Education.png",
+    description: "Verified employment for educators",
+    employers: [
+      "Hire teachers with verified classroom experience.",
+      "Check tenure, peer sentiment, and rehire signals.",
+      "Reduce turnover with verified educator profiles.",
+    ],
+    employees: [
+      "Showcase your teaching experience and credentials.",
+      "Build credibility with verified peer references.",
+      "Open opportunities at schools and districts.",
+    ],
+  },
+  {
+    slug: "construction",
+    name: "Construction",
+    image: "/images/careers/Construction.png",
+    description: "Verified employment for construction and trades",
+    employers: [
+      "Hire crew with verified work history and safety signals.",
+      "Check certifications and job-site reliability.",
+      "Reduce risk with peer-verified references.",
+    ],
+    employees: [
+      "Showcase your trade experience and certifications.",
+      "Build credibility with verified employer endorsements.",
+      "Access opportunities at top construction firms.",
+    ],
+  },
   {
     slug: "healthcare",
     name: "Healthcare",
-    image: "/careers/healthcare.jpg",
+    image: "/images/careers/healthcare.jpg",
     description: "Verified employment for healthcare professionals",
     employers: [
       "Hire qualified healthcare staff quickly.",
@@ -32,7 +65,7 @@ const careersData: CareerData[] = [
   {
     slug: "security",
     name: "Security",
-    image: "/careers/security.jpg",
+    image: "/images/careers/security.jpg",
     description: "Trusted profiles for security professionals",
     employers: [
       "Hire reliable security personnel with verified backgrounds.",
@@ -48,7 +81,7 @@ const careersData: CareerData[] = [
   {
     slug: "law-enforcement",
     name: "Law Enforcement",
-    image: "/careers/law.jpg",
+    image: "/images/careers/law.jpg",
     description: "Verified employment for law enforcement",
     employers: [
       "Hire officers with verified service records.",
@@ -80,7 +113,7 @@ const careersData: CareerData[] = [
   {
     slug: "hospitality",
     name: "Hospitality",
-    image: "/careers/hospitality.jpg",
+    image: "/images/careers/hospitality.jpg",
     description: "Build credibility in hospitality careers",
     employers: [
       "Hire staff with verified customer service experience.",
@@ -96,7 +129,7 @@ const careersData: CareerData[] = [
   {
     slug: "retail",
     name: "Retail",
-    image: "/careers/retail.jpg",
+    image: "/images/careers/retail.jpg",
     description: "Trusted profiles for retail professionals",
     employers: [
       "Quickly hire trusted retail staff.",

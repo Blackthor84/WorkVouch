@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
-import { INDUSTRIES, INDUSTRY_TO_ONBOARDING_KEY } from "@/lib/constants/industries";
+import { getIndustriesForSignup, INDUSTRY_TO_ONBOARDING_KEY } from "@/lib/constants/industries";
 
 export function SignUpForm() {
   const router = useRouter();
@@ -238,7 +238,7 @@ export function SignUpForm() {
             className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
           >
             <option value="">Select your industry</option>
-            {INDUSTRIES.map((ind) => (
+            {getIndustriesForSignup().map((ind) => (
               <option key={ind} value={ind}>
                 {ind}
               </option>

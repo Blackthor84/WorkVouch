@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   ROLE_OPTIONS,
   LOGISTICS_ROLES,
-  INDUSTRY_DISPLAY_NAMES,
+  ONBOARDING_DISPLAY_NAMES,
   type OnboardingIndustry,
 } from "@/lib/constants/industries";
 
@@ -111,7 +111,7 @@ export function RoleFormClient({ industry }: RoleFormClientProps) {
   } else {
     roles = ROLE_OPTIONS[industry] || [];
   }
-  const industryName = INDUSTRY_DISPLAY_NAMES[industry] || industry;
+  const industryName = ONBOARDING_DISPLAY_NAMES[industry] || industry;
 
   return (
     <Card className="p-8">

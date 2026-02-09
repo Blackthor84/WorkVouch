@@ -16,8 +16,8 @@ CREATE INDEX IF NOT EXISTS idx_platform_verticals_name ON public.platform_vertic
 
 INSERT INTO public.platform_verticals (name, enabled) VALUES
   ('default', true),
-  ('education', false),
-  ('construction', false)
+  ('education', true),
+  ('construction', true)
 ON CONFLICT (name) DO NOTHING;
 
 -- 2. Sandbox employers: vertical + optional vertical metadata (education/construction)

@@ -18,6 +18,35 @@ export const INDUSTRIES = [
 
 export type Industry = typeof INDUSTRIES[number];
 
+/** Whether Education/Construction are shown in public onboarding (env; default true). */
+export function isEducationIndustryEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_ENABLE_EDUCATION_INDUSTRY !== "false";
+}
+export function isConstructionIndustryEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_ENABLE_CONSTRUCTION_INDUSTRY !== "false";
+}
+
+/** Industries to show in sign-up (filters by ENABLE_EDUCATION/CONSTRUCTION env when false). */
+export function getIndustriesForSignup(): readonly Industry[] {
+  return INDUSTRIES.filter(
+    (i) =>
+      (i !== "Education" || isEducationIndustryEnabled()) &&
+      (i !== "Construction" || isConstructionIndustryEnabled())
+  );
+}
+
+/** Display labels for UI (e.g. "Warehouse and Logistics" → "Warehouse & Logistics"). */
+export const INDUSTRY_DISPLAY_NAMES: Record<Industry, string> = {
+  Healthcare: "Healthcare",
+  "Law Enforcement": "Law Enforcement",
+  Security: "Security",
+  Retail: "Retail",
+  Hospitality: "Hospitality",
+  "Warehouse and Logistics": "Warehouse & Logistics",
+  Education: "Education",
+  Construction: "Construction",
+};
+
 /** Map display name → onboarding route key (for sign-up redirect). */
 export const INDUSTRY_TO_ONBOARDING_KEY: Partial<Record<Industry, string>> = {
   "Healthcare": "healthcare",
@@ -39,7 +68,7 @@ export const ONBOARDING_KEYS = [
 
 export type OnboardingIndustry = typeof ONBOARDING_KEYS[number];
 
-export const INDUSTRY_DISPLAY_NAMES: Record<OnboardingIndustry, string> = {
+export const ONBOARDING_DISPLAY_NAMES: Record<OnboardingIndustry, string> = {
   law_enforcement: 'Law Enforcement',
   security: 'Security',
   hospitality: 'Hospitality',

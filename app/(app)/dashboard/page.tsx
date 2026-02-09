@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, getCurrentUserProfile, isEmployer } from "@/lib/auth";
+import { getVerticalDashboardConfig } from "@/lib/verticals/dashboard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +88,17 @@ export default async function UserDashboardPage() {
       color:
         "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400",
     },
+    ...(safeProfile?.industry && getVerticalDashboardConfig(safeProfile.industry)
+      ? [
+          {
+            href: `/dashboard/vertical/${encodeURIComponent(safeProfile.industry)}`,
+            label: `${safeProfile.industry} Intelligence`,
+            icon: BriefcaseIcon,
+            color:
+              "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400",
+          },
+        ]
+      : []),
   ];
 
   const activityFeed = [

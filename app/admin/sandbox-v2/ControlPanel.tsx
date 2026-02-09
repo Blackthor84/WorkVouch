@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { INDUSTRIES } from "@/lib/constants/industries";
+import { industryToVerticalName } from "@/lib/verticals/activation";
+import { VerticalOnboardingFields, type VerticalFieldValues } from "@/components/verticals/VerticalOnboardingFields";
 
 type Employer = { id: string; company_name?: string; industry?: string; plan_tier?: string };
 type Employee = { id: string; full_name?: string; industry?: string };
@@ -34,6 +36,10 @@ interface ControlPanelProps {
   setEmployeeName: (v: string) => void;
   employeeIndustry: string;
   setEmployeeIndustry: (v: string) => void;
+  employeeVerticalMetadata: Record<string, unknown>;
+  setEmployeeVerticalMetadata: (v: Record<string, unknown>) => void;
+  /** Vertical names enabled in platform_verticals (e.g. education, construction). When set, vertical onboarding is only shown when selected industry maps to an enabled vertical. */
+  enabledVerticalNames?: string[];
   genEmployerLoading: boolean;
   genEmployeeLoading: boolean;
   onGenerateEmployer: () => void;
@@ -103,6 +109,8 @@ export function ControlPanel(props: ControlPanelProps) {
     setEmployeeName,
     employeeIndustry,
     setEmployeeIndustry,
+    employeeVerticalMetadata,
+    setEmployeeVerticalMetadata,
     genEmployerLoading,
     genEmployeeLoading,
     onGenerateEmployer,
@@ -291,6 +299,17 @@ export function ControlPanel(props: ControlPanelProps) {
                   ))}
                 </select>
               </div>
+              {employeeIndustry &&
+              (enabledVerticalNames.length === 0 ||
+                enabledVerticalNames.includes(industryToVerticalName(employeeIndustry))) ? (
+                <VerticalOnboardingFields
+                  industry={employeeIndustry}
+                  value={(employeeVerticalMetadata || {}) as VerticalFieldValues}
+                  onChange={(v) => setEmployeeVerticalMetadata(v)}
+                  mode="employee"
+                  className="mt-2"
+                />
+              ) : null}
               <Button
                 onClick={onGenerateEmployee}
                 disabled={loading || !currentSandboxId || genEmployeeLoading}

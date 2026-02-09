@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  INDUSTRY_DISPLAY_NAMES,
+  ONBOARDING_DISPLAY_NAMES,
   type OnboardingIndustry,
 } from "@/lib/constants/industries";
 
@@ -107,7 +107,7 @@ export function JobFormClient({ industry }: JobFormClientProps) {
     );
   }
 
-  const industryName = INDUSTRY_DISPLAY_NAMES[industry] || industry;
+  const industryName = ONBOARDING_DISPLAY_NAMES[industry] || industry;
 
   return (
     <Card className="p-8">

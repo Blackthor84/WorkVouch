@@ -34,6 +34,8 @@ const CORE_FEATURE_FLAGS = [
   { name: "Rehire Probability Engine", key: "rehire_probability_engine", description: "Rehire probability scoring (backend only; UI gated)", visibility_type: "ui" as const, is_globally_enabled: false },
   { name: "Industry Normalized Scoring", key: "industry_normalized_scoring", description: "Industry-normalized trust, stability, workforce metrics (backend computes; UI gated)", visibility_type: "ui" as const, is_globally_enabled: false },
   { name: "Risk Model Visible", key: "risk_model_visible", description: "When enabled, UI may read risk_score on verification reports (future)", visibility_type: "ui" as const, is_globally_enabled: false },
+  { name: "Education Industry", key: "enable_education_industry", description: "Show Education in public onboarding and industry dropdowns. DB always supports.", visibility_type: "ui" as const, is_globally_enabled: true },
+  { name: "Construction Industry", key: "enable_construction_industry", description: "Show Construction in public onboarding and industry dropdowns. DB always supports.", visibility_type: "ui" as const, is_globally_enabled: true },
 ];
 
 /**

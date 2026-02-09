@@ -28,16 +28,18 @@ export default async function EmployerDashboardPage() {
   // Get employer plan tier and account ID
   const supabase = await createServerSupabase();
   const supabaseAny = supabase as any;
-  type EmployerAccountRow = { id: string; plan_tier: string };
+  type EmployerAccountRow = { id: string; plan_tier: string; industry_type?: string | null };
   const { data: employerAccount } = await supabaseAny
     .from("employer_accounts")
-    .select("id, plan_tier")
+    .select("id, plan_tier, industry_type")
     .eq("user_id", user.id)
     .single();
 
   const planTier =
     (employerAccount as EmployerAccountRow | null)?.plan_tier || "free";
   const employerId = (employerAccount as EmployerAccountRow | null)?.id;
+  const employerIndustry =
+    (employerAccount as EmployerAccountRow | null)?.industry_type ?? null;
   const roles = await getCurrentUserRoles();
   const userRole = roles.includes("superadmin") ? "superadmin" : roles.includes("admin") ? "admin" : roles.includes("employer") ? "employer" : "user";
 
@@ -52,6 +54,7 @@ export default async function EmployerDashboardPage() {
               userRole={userRole}
               planTier={planTier}
               employerId={employerId}
+              employerIndustry={employerIndustry}
             />
           </div>
         </main>

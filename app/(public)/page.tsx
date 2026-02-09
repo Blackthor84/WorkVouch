@@ -33,6 +33,7 @@ export default async function Home(props: HomeProps) {
   return (
     <div className="min-h-screen">
       <HeroInteractive industry={industry} />
+      <BuiltForHighTrustProfessions />
       <IndustryPositioning />
       <HowWorkVouchWorks />
       <TrustClarificationStrip />

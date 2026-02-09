@@ -188,6 +188,17 @@ export default async function AdminPanel() {
             </Link>
           </Card>
 
+          <Card className="p-6 hover:shadow-lg transition-shadow">
+            <Link href="/admin/vertical-control" className="block">
+              <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+                Vertical Control
+              </h2>
+              <p className="text-sm text-grey-medium dark:text-gray-400">
+                Enable or disable verticals (Education, Construction, Security, etc.). When disabled, onboarding fields, badges, and monetization for that vertical are hidden.
+              </p>
+            </Link>
+          </Card>
+
           <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-cyan-500/80">
             <Link href="/admin/intelligence-dashboard" className="block">
               <h2 className="text-xl font-semibold text-cyan-600 dark:text-cyan-400 mb-2">

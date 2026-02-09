@@ -20,6 +20,7 @@ import { UpgradeBanner } from "@/components/employer/UpgradeBanner";
 import { UpgradeGate } from "@/components/employer/UpgradeGate";
 import { ListedEmployeesCard } from "@/components/employer/ListedEmployeesCard";
 import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
+import { getVerticalConfig } from "@/lib/verticals/config";
 import { runSimulation } from "@/lib/simulation/engine";
 import type { PlanTier, SimulationOutput } from "@/lib/simulation/types";
 import {
@@ -38,7 +39,9 @@ export function EmployerDashboardClient({
   userRole,
   planTier,
   employerId,
+  employerIndustry,
 }: EmployerDashboardClientProps) {
+  const vertical = getVerticalConfig(employerIndustry ?? undefined);
   const { enabled: analyticsEnabled } = useFeatureFlag("advanced_analytics");
   const { enabled: rehireWidgetEnabled } = useFeatureFlag("rehire_probability_index");
   const { enabled: workforceRiskEnabled } = useFeatureFlag("workforce_risk_indicator");
@@ -230,6 +233,34 @@ export function EmployerDashboardClient({
 
         {/* Plan & Usage */}
         <UsagePanel />
+
+        {/* Vertical Intelligence (display only) */}
+        {vertical && (
+          <Card className="mt-6 border border-blue-500/40 bg-slate-900 dark:bg-slate-800">
+            <h2 className="text-lg font-semibold text-white">
+              {vertical.label}
+            </h2>
+            <p className="mt-2 text-sm text-slate-200">
+              {vertical.description}
+            </p>
+            <div className="mt-4">
+              <p className="font-medium text-blue-400">Highlighted Metrics</p>
+              <ul className="mt-1 list-disc pl-6 text-sm text-white">
+                {vertical.highlightMetrics.map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="mt-4">
+              <p className="font-medium text-red-400">Risk Signals</p>
+              <ul className="mt-1 list-disc pl-6 text-sm text-white">
+                {vertical.riskSignals.map((r) => (
+                  <li key={r}>{r}</li>
+                ))}
+              </ul>
+            </div>
+          </Card>
+        )}
 
         {/* Employees Who Listed You */}
         <div className="mt-6">

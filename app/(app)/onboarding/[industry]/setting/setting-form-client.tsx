@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   SETTING_OPTIONS,
-  INDUSTRY_DISPLAY_NAMES,
+  ONBOARDING_DISPLAY_NAMES,
   type OnboardingIndustry,
 } from "@/lib/constants/industries";
 
@@ -81,7 +81,7 @@ export function SettingFormClient({ industry }: SettingFormClientProps) {
   }
 
   const settings = SETTING_OPTIONS[industry] || [];
-  const industryName = INDUSTRY_DISPLAY_NAMES[industry] || industry;
+  const industryName = ONBOARDING_DISPLAY_NAMES[industry] || industry;
 
   return (
     <Card className="p-8">

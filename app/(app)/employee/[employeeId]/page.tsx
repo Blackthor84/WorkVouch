@@ -75,6 +75,14 @@ export default async function EmployeePage(props: any) {
               {profile.industry && (
                 <p className="text-sm text-gray-500 mt-1">Industry: {profile.industry}</p>
               )}
+              <VerticalBadges
+                profile={{
+                  industry: profile.industry,
+                  vertical: profile.vertical,
+                  vertical_metadata: profile.vertical_metadata,
+                }}
+                className="mt-2"
+              />
             </div>
           </div>
 

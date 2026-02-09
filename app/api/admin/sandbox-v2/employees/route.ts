@@ -57,14 +57,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const payload = { sandbox_id, full_name, industry };
+    const vertical_metadata =
+      body.vertical_metadata != null && typeof body.vertical_metadata === "object"
+        ? body.vertical_metadata
+        : undefined;
+    const payload: Record<string, unknown> = { sandbox_id, full_name, industry };
+    if (vertical_metadata) payload.vertical_metadata = vertical_metadata;
 
     console.log("=== EMPLOYEE INSERT START ===");
     console.log("INSERT sandboxId:", sandboxId);
 
     const { data, error } = await supabase
       .from("sandbox_employees")
-      .insert(payload)
+      .insert(payload as Record<string, unknown>)
       .select()
       .single();
 

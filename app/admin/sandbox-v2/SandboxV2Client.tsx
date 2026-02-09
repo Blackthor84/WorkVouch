@@ -9,6 +9,7 @@ import { ControlPanel } from "./ControlPanel";
 import { SimulationCoreCard } from "./SimulationCoreCard";
 import type { V1BreakdownComponents } from "./SimulationCoreCard";
 import { LiveResultsPanel } from "./LiveResultsPanel";
+import { getVerticalConfig } from "@/lib/verticals/config";
 
 const API = "/api/admin/sandbox-v2";
 
@@ -62,6 +63,7 @@ export function SandboxV2Client() {
   const [employerPlanTier, setEmployerPlanTier] = useState("pro");
   const [employeeName, setEmployeeName] = useState("");
   const [employeeIndustry, setEmployeeIndustry] = useState("");
+  const [employeeVerticalMetadata, setEmployeeVerticalMetadata] = useState<Record<string, unknown>>({});
   const [peerReviewerId, setPeerReviewerId] = useState("");
   const [peerReviewedId, setPeerReviewedId] = useState("");
   const [peerRating, setPeerRating] = useState(3);
@@ -104,6 +106,7 @@ export function SandboxV2Client() {
   const [lastScoreDelta, setLastScoreDelta] = useState<number | null>(null);
   const [showDeltaUntil, setShowDeltaUntil] = useState(0);
   const [breakdown, setBreakdown] = useState<V1BreakdownComponents | null>(null);
+  const [enabledVerticalNames, setEnabledVerticalNames] = useState<string[]>([]);
   const teachersMode = FEATURE_TEACHERS_MODE;
 
   const log = useCallback((msg: string, type: "info" | "success" | "error" = "info") => {
@@ -311,17 +314,22 @@ export function SandboxV2Client() {
     setGenEmployeeLoading(true);
     setError(null);
     try {
+      const body: Record<string, unknown> = { sandboxId: currentSandboxId };
+      if (employeeName?.trim()) body.full_name = employeeName.trim();
+      if (employeeIndustry?.trim()) body.industry = employeeIndustry.trim();
+      if (Object.keys(employeeVerticalMetadata).length > 0) body.vertical_metadata = employeeVerticalMetadata;
       const res = await fetch("/api/admin/sandbox-v2/employees", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ sandboxId: currentSandboxId }),
+        body: JSON.stringify(body),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((j as { error?: string }).error || "Generate failed");
       const data = (j as { data?: { id?: string } }).data;
       log("Employee created: " + (data?.id ?? "").slice(0, 8), "success");
       setEmployeeName("");
+      setEmployeeVerticalMetadata({});
       await refreshSandbox(sandboxId);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Error";
@@ -882,6 +890,9 @@ export function SandboxV2Client() {
             setEmployeeName={setEmployeeName}
             employeeIndustry={employeeIndustry}
             setEmployeeIndustry={setEmployeeIndustry}
+            employeeVerticalMetadata={employeeVerticalMetadata}
+            setEmployeeVerticalMetadata={setEmployeeVerticalMetadata}
+            enabledVerticalNames={enabledVerticalNames}
             genEmployerLoading={genEmployerLoading}
             genEmployeeLoading={genEmployeeLoading}
             onGenerateEmployer={generateEmployer}
@@ -962,6 +973,37 @@ export function SandboxV2Client() {
               showDeltaBadge={showDeltaBadge}
             />
           )}
+
+          {currentSandboxId && dashboardData && (() => {
+            const employerIndustry = employers[0]?.industry;
+            const vertical = getVerticalConfig(employerIndustry);
+            return vertical ? (
+              <div className="mt-6 rounded-xl border border-blue-500/40 bg-slate-800 p-4">
+                <h2 className="text-lg font-semibold text-white">
+                  {vertical.label}
+                </h2>
+                <p className="mt-2 text-sm text-slate-200">
+                  {vertical.description}
+                </p>
+                <div className="mt-4">
+                  <p className="font-medium text-blue-400">Highlighted Metrics</p>
+                  <ul className="mt-1 list-disc pl-6 text-sm text-white">
+                    {vertical.highlightMetrics.map((m) => (
+                      <li key={m}>{m}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-4">
+                  <p className="font-medium text-red-400">Risk Signals</p>
+                  <ul className="mt-1 list-disc pl-6 text-sm text-white">
+                    {vertical.riskSignals.map((r) => (
+                      <li key={r}>{r}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : null;
+          })()}
 
           {currentSandboxId && executiveMode && (
             <section className="rounded-xl border border-slate-700 bg-[#0b1220] p-6 shadow-xl">
