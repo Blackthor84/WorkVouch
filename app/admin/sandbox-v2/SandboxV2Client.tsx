@@ -1051,7 +1051,6 @@ export function SandboxV2Client() {
               </div>
             </div>
           )}
-        </div>
           </div>
         </details>
 
