@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireAdmin, assertAdminCanModify } from "@/lib/admin/requireAdmin";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
+import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
 
 export const dynamic = "force-dynamic";
 
@@ -38,12 +39,15 @@ export async function POST(
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
+    const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await insertAdminAuditLog({
       adminId: admin.userId,
       targetUserId,
       action: "suspend",
       oldValue: oldRow as Record<string, unknown>,
       newValue: { status: "suspended" },
+      ipAddress,
+      userAgent,
     });
 
     return NextResponse.json({ success: true });

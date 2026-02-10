@@ -39,6 +39,7 @@ export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserF
   const [auditLog, setAuditLog] = useState<unknown[]>([]);
   const [activity, setActivity] = useState<unknown[]>([]);
   const [breakdown, setBreakdown] = useState<Record<string, unknown> | null>(null);
+  const [scoreHistory, setScoreHistory] = useState<unknown[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
 
   useEffect(() => {
@@ -67,10 +68,12 @@ export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserF
       Promise.all([
         fetch(`/api/admin/users/${userId}`).then((r) => r.json()),
         fetch(`/api/admin/users/${userId}/intelligence-breakdown`).then((r) => r.json()),
+        fetch(`/api/admin/users/${userId}/score-history`).then((r) => r.json()),
       ])
-        .then(([userData, breakdownData]) => {
+        .then(([userData, breakdownData, historyData]) => {
           setIntelligence(userData);
           setBreakdown(breakdownData.breakdown ?? null);
+          setScoreHistory(Array.isArray(historyData) ? historyData : []);
         })
         .finally(() => setLoading(null));
     }
@@ -206,6 +209,22 @@ export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserF
                     <div><dt className="text-grey-medium dark:text-gray-400">Final score</dt><dd className="font-medium">{String(breakdown.finalScore ?? "—")}</dd></div>
                     <div><dt className="text-grey-medium dark:text-gray-400">Version used</dt><dd className="font-medium">{String(breakdown.versionUsed ?? "—")}</dd></div>
                   </dl>
+                </div>
+              )}
+              {scoreHistory.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-grey-background dark:border-[#374151]">
+                  <h4 className="text-sm font-semibold text-grey-dark dark:text-gray-200 mb-2">Score diff history</h4>
+                  <ul className="space-y-2 text-sm">
+                    {scoreHistory.map((h: Record<string, unknown>, i) => (
+                      <li key={(h.id as string) ?? i} className="flex flex-wrap gap-x-2 gap-y-1 border-b border-grey-background/50 dark:border-[#374151]/50 pb-2">
+                        <span className="text-grey-medium dark:text-gray-400">Old: {h.previous_score != null ? String(h.previous_score) : "—"}</span>
+                        <span className="text-grey-medium dark:text-gray-400">→ New: {String(h.new_score ?? "—")}</span>
+                        {h.delta != null && <span className="text-grey-medium dark:text-gray-400">(Δ {String(h.delta)})</span>}
+                        <span className="font-medium text-grey-dark dark:text-gray-200">{String(h.reason ?? "—")}</span>
+                        <span className="text-grey-medium dark:text-gray-400">{h.created_at ? new Date(h.created_at as string).toLocaleString() : ""}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
             </>

@@ -98,10 +98,17 @@ New routes:
 
 ---
 
-## Optional next steps (not implemented)
+## Phases 8, 10, 11, 12 (completed)
 
-- **Phase 8 (Employer admin)** — Override subscription tier, billing cycle, reset usage, add/remove credit, revenue simulation: API stub at `PATCH /api/admin/employers/[id]/overrides` (plan_tier, billing_cycle_*, usage counters). UI can be added on employer-usage or a dedicated employer detail page.
-- **Phase 10 (Diff history)** — Old score / new score / trigger / timestamp: would require intelligence_score_history or similar; currently only current breakdown is shown.
-- **Phase 11 (Anomaly engine)** — Conditions (>10 reviews in 5 min, etc.): call insertAnomalyAlert() from review/employment endpoints or a cron when conditions are detected.
-- **Phase 12 (Rate limits, CSRF)** — Rate limit review/employment creation and CSRF validation in forms; IP logging pattern is in place for audit.
+- **Phase 8 (Employer admin)** — Employer Usage page: superadmin sees plan tier override, billing cycle start/end, reset usage, add/remove credit (+10/-10 reports or searches). Calls `PATCH /api/admin/employers/[id]/overrides`. Revenue simulation: note to use Stripe dashboard.
+- **Phase 10 (Diff history)** — `GET /api/admin/users/[id]/score-history` returns intelligence_score_history (old score, new score, delta, reason, timestamp). User forensics Intelligence tab shows "Score diff history" section.
+- **Phase 11 (Anomaly engine)** — `runAnomalyChecksAfterReview(reviewedUserId)` runs after each reference creation: if >10 reviews in 5 min, inserts anomaly_alert + fraud_signal (rapid_velocity). Wired in `POST /api/employment-references`. `runAnomalyChecksOverlapFailure(userId)` available for overlap flows.
+- **Phase 12 (Security)** — All admin routes that call `insertAdminAuditLog` now pass `getAuditRequestMeta(req)` (ipAddress, userAgent). Review creation already rate-limited in employment-references (10/hour).
+
+---
+
+## Optional next steps
+
 - **Maintenance mode enforcement** — Call `GET /api/admin/maintenance` from signup, review creation, and employment creation flows (and optionally middleware) to block when enabled.
+- **CSRF** — Add token validation for admin mutation forms if required.
+- **Rate limit employment creation** — Apply same pattern as employment-references to any public employment-record create endpoint.

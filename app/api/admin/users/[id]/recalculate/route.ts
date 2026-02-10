@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/admin/requireAdmin";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
+import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
 import { buildProductionProfileInput } from "@/lib/core/intelligence/adapters/production";
 import { calculateProfileStrength } from "@/lib/core/intelligence";
 
@@ -63,12 +64,15 @@ export async function POST(
       return NextResponse.json({ success: false, error: upsertError.message }, { status: 500 });
     }
 
+    const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await insertAdminAuditLog({
       adminId: admin.userId,
       targetUserId,
       action: "recalculate",
       oldValue: oldStrength != null ? { profile_strength: oldStrength } : null,
       newValue: { profile_strength: profileStrength },
+      ipAddress,
+      userAgent,
     });
 
     return NextResponse.json({ success: true, profile_strength: profileStrength });

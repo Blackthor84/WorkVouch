@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/admin/requireAdmin";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
+import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
 import { calculateUserIntelligence } from "@/lib/intelligence/calculateUserIntelligence";
 
 export const dynamic = "force-dynamic";
@@ -42,12 +43,15 @@ export async function DELETE(
 
     await calculateUserIntelligence(targetUserId);
 
+    const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await insertAdminAuditLog({
       adminId: admin.userId,
       targetUserId,
       action: "employment_record_delete",
       oldValue: row as Record<string, unknown>,
       newValue: null,
+      ipAddress,
+      userAgent,
     });
 
     return NextResponse.json({ success: true });

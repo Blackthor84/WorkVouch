@@ -11,6 +11,7 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { recalculateTrustScore } from "@/lib/trustScore";
 import { logAudit } from "@/lib/dispute-audit";
 import { processReviewIntelligence } from "@/lib/intelligence/processReviewIntelligence";
+import { runAnomalyChecksAfterReview } from "@/lib/admin/runAnomalyChecks";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -144,6 +145,8 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    await runAnomalyChecksAfterReview(reviewedUserId);
 
     return NextResponse.json({ id: ref?.id, success: true });
   } catch (e) {
