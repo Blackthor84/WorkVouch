@@ -16,6 +16,10 @@ interface HealthData {
   overlapValidationFailures: number;
   overlapValidationFailuresPerDay: number;
   averageSentimentShift: number | null;
+  intelligenceVersion?: string;
+  avgSentimentDriftLast7Days?: number | null;
+  concurrentRecalcCollisions?: number | null;
+  rehireFlagChangeFrequency?: number | null;
 }
 
 export function AdminIntelligenceHealthClient() {
@@ -139,6 +143,15 @@ export function AdminIntelligenceHealthClient() {
           </p>
           <p className="text-xs text-grey-medium dark:text-gray-400 mt-2">
             {d.overlapValidationFailuresPerDay}/day (last {d.days}d)
+          </p>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-sm font-medium text-grey-medium dark:text-gray-400 mb-1">
+            Intelligence version in use
+          </h3>
+          <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">
+            {d.intelligenceVersion ?? "v1"}
           </p>
         </Card>
       </div>

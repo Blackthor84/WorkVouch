@@ -67,6 +67,14 @@ export async function GET(req: NextRequest) {
         ? Math.round((sentiments.reduce((a, b) => a + b, 0) / sentiments.length) * 100) / 100
         : null;
 
+    let intelligenceVersion = "v1";
+    try {
+      const { data: sysSettings } = await sb.from("system_settings").select("value").eq("key", "intelligence_version").maybeSingle();
+      intelligenceVersion = (sysSettings as { value?: { version?: string } } | null)?.value?.version ?? "v1";
+    } catch {
+      // system_settings may not exist before migration
+    }
+
     return NextResponse.json({
       days,
       since: sinceIso,
@@ -79,6 +87,10 @@ export async function GET(req: NextRequest) {
       overlapValidationFailures: overlapFailures,
       overlapValidationFailuresPerDay: overlapFailuresPerDay,
       averageSentimentShift,
+      intelligenceVersion,
+      avgSentimentDriftLast7Days: averageSentimentShift,
+      concurrentRecalcCollisions: null,
+      rehireFlagChangeFrequency: null,
     });
   } catch (e) {
     console.error("[admin intelligence-health]", e);

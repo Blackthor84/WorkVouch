@@ -85,7 +85,10 @@ export function AdminUsersList() {
               <td className="px-4 py-3 text-sm text-grey-medium dark:text-gray-400">
                 {new Date(user.created_at).toLocaleDateString()}
               </td>
-              <td className="px-4 py-3 text-right">
+              <td className="px-4 py-3 text-right space-x-2">
+                <Button variant="secondary" size="sm" href={`/admin/users/${user.id}`}>
+                  Manage
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"

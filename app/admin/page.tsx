@@ -84,20 +84,36 @@ export default async function AdminPanel() {
         </p>
       </div>
 
-      {/* 1. Moderation */}
+      {/* 1. Users */}
       <section className="mb-8">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Moderation</h2>
+        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Users</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <SectionCard href="/admin/users" title="Manage Users" description="View and manage all user accounts" />
-          <SectionCard href="/admin/disputes" title="Disputes Queue" description="Review and resolve employer disputes" />
-          <SectionCard href="/admin/verifications" title="Verification Requests" description="Approve or reject verification requests" />
-          <SectionCard href="/admin/claim-requests" title="Employer Claim Requests" description="Approve or reject company claim requests" />
+          <SectionCard href="/admin/users" title="Manage Users" description="View and manage all user accounts (forensics, tabs)" />
+          <SectionCard href="/admin/signups" title="Signups" description="View all signups" />
         </div>
       </section>
 
-      {/* 2. Intelligence Center — single tile to hub, with sub-links */}
+      {/* 2. Employers */}
       <section className="mb-8">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Intelligence Center</h2>
+        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Employers</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SectionCard href="/admin/claim-requests" title="Employer Claim Requests" description="Approve or reject company claim requests" />
+          <SectionCard href="/admin/employer-usage" title="Employer Usage" description="Plan, Stripe IDs, usage, overages, manual override" />
+        </div>
+      </section>
+
+      {/* 3. Fraud */}
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Fraud</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SectionCard href="/admin/fraud" title="Fraud Detection Dashboard" description="Self-review blocks, duplicate reviews, velocity, multi-account, sentiment spikes" />
+          <SectionCard href="/admin/fraud-workflow" title="Fraud Workflow" description="Fraud workflow and review" />
+        </div>
+      </section>
+
+      {/* 4. Intelligence */}
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Intelligence</h2>
         <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-cyan-500/80">
           <Link href="/admin/intelligence-dashboard" className="block mb-4">
             <h3 className="text-xl font-semibold text-cyan-600 dark:text-cyan-400">Enterprise Intelligence</h3>
@@ -114,9 +130,9 @@ export default async function AdminPanel() {
         </Card>
       </section>
 
-      {/* 3. Simulation Lab — includes preview, preview-control, sandbox-v2, beta, investor (superadmin only) */}
+      {/* 5. Simulation */}
       <section className="mb-8">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Simulation Lab</h2>
+        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Simulation</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <SectionCard
             href="/admin/sandbox-v2"
@@ -138,25 +154,34 @@ export default async function AdminPanel() {
         </div>
       </section>
 
-      {/* 4. Revenue & Plans */}
+      {/* 6. Billing */}
       <section className="mb-8">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Revenue & Plans</h2>
+        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Billing</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SectionCard href="/admin/employer-usage" title="Employer Usage" description="Plan, Stripe IDs, usage this cycle, overages, manual override" />
           <SectionCard href="/admin/ads" title="Ads Manager" description="Create and manage career-targeted advertisements" />
         </div>
       </section>
 
-      {/* 5. System Controls — vertical-control for all; hidden-features, superadmin, signups for superadmin only */}
+      {/* 7. Compliance */}
       <section className="mb-8">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">System Controls</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <SectionCard href="/admin/vertical-control" title="Vertical Control" description="Enable or disable verticals (Education, Construction, Security, etc.)." />
+        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Compliance</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <SectionCard href="/admin/disputes" title="Disputes Queue" description="Review and resolve employer disputes" />
+          <SectionCard href="/admin/verifications" title="Verification Requests" description="Approve or reject verification requests" />
+          <SectionCard href="/admin/export" title="Data Export" description="Export users, peer reviews, fraud flags, employment, audit logs (CSV)" />
+        </div>
+      </section>
+
+      {/* 8. System */}
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">System</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <SectionCard href="/admin/vertical-control" title="Vertical Control" description="Enable or disable verticals (Education, Construction, etc.)." />
           {isSuperAdmin && (
             <>
-              <SectionCard href="/admin/hidden-features" title="Hidden Features" description="Manage feature flags. Enable globally or assign to users/employers." borderClass="border-2 border-amber-500" />
-              <SectionCard href="/admin/superadmin" title="Superadmin Control" description="Full system access and management" borderClass="border-2 border-red-500" />
-              <SectionCard href="/admin/signups" title="All Signups" description="View complete list of all user signups" borderClass="border-2 border-red-500" />
+              <SectionCard href="/admin/system" title="System Panel" description="Maintenance mode, intelligence version, parity validator" borderClass="border-2 border-red-500" />
+              <SectionCard href="/admin/hidden-features" title="Hidden Features" description="Feature flags. Enable globally or assign to users/employers." borderClass="border-2 border-amber-500" />
+              <SectionCard href="/admin/superadmin" title="Superadmin Control" description="Full system access" borderClass="border-2 border-red-500" />
             </>
           )}
         </div>
