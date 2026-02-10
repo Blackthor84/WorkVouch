@@ -8,10 +8,6 @@ import { UserForensicsTabs } from "@/components/admin/user-forensics-tabs";
 
 export const dynamic = "force-dynamic";
 
-interface PageProps {
-  params: { id: string };
-}
-
 type ProfileRow = {
   id: string;
   full_name: string | null;
@@ -25,8 +21,12 @@ type ProfileRow = {
   created_at?: string | null;
 };
 
-export default async function AdminUserPage({ params }: PageProps) {
-  const { id } = params;
+export default async function AdminUserPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/login");
   const roles = (session.user as { roles?: string[] }).roles ?? [];
