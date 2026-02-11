@@ -855,7 +855,7 @@ export function SandboxV2Client() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <header className="sticky top-0 z-10 border-b border-[#E2E8F0] bg-white shadow-sm">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-6 py-4">
-          <span className="text-xl font-bold text-[#0F172A]>Simulation Command Center</span>
+          <span className="text-xl font-bold text-[#0F172A]">Simulation Command Center</span>
           <div className="flex items-center gap-4">
             <span
               className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
