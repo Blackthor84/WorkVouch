@@ -2,31 +2,35 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
+import { auditLog, getAuditMetaFromRequest } from "@/lib/auditLogger";
 
-export async function GET() {
+/**
+ * GET /api/admin/users — list all users (admin/superadmin only).
+ * Hardened: try/catch, typed error, structured 500, audit log.
+ */
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const roles = session.user.roles || [];
+    const roles = (session.user as { roles?: string[] }).roles ?? [];
     const isAdmin = roles.includes("admin") || roles.includes("superadmin");
     if (!isAdmin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
 
     const supabase = getSupabaseServer();
-
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("id, email, full_name, created_at")
       .order("created_at", { ascending: false });
 
     if (profilesError) {
-      console.error("Error fetching profiles:", profilesError);
+      console.error("[ADMIN_API_ERROR] GET /api/admin/users profiles", profilesError.message);
       return NextResponse.json(
-        { error: profilesError.message },
+        { success: false, error: "Internal server error" },
         { status: 500 }
       );
     }
@@ -36,27 +40,22 @@ export async function GET() {
       .select("user_id, role");
 
     if (rolesError) {
-      console.error("Error fetching user_roles:", rolesError);
+      console.error("[ADMIN_API_ERROR] GET /api/admin/users user_roles", rolesError.message);
       return NextResponse.json(
-        { error: rolesError.message },
+        { success: false, error: "Internal server error" },
         { status: 500 }
       );
     }
 
-    type RoleRow = {
-      user_id: string;
-      role: string;
-    };
-
-    const rolesByUserId = ((rolesData || []) as RoleRow[]).reduce<
-      Record<string, string[]>
-    >((acc, row) => {
-      if (!acc[row.user_id]) {
-        acc[row.user_id] = [];
-      }
-      acc[row.user_id].push(row.role);
-      return acc;
-    }, {});
+    type RoleRow = { user_id: string; role: string };
+    const rolesByUserId = ((rolesData ?? []) as RoleRow[]).reduce<Record<string, string[]>>(
+      (acc, row) => {
+        if (!acc[row.user_id]) acc[row.user_id] = [];
+        acc[row.user_id].push(row.role);
+        return acc;
+      },
+      {}
+    );
 
     type ProfileRow = {
       id: string;
@@ -64,8 +63,7 @@ export async function GET() {
       full_name: string | null;
       created_at: string;
     };
-
-    const users = ((profiles || []) as ProfileRow[]).map((p) => ({
+    const users = ((profiles ?? []) as ProfileRow[]).map((p) => ({
       id: p.id,
       email: p.email ?? "",
       full_name: p.full_name ?? "",
@@ -73,14 +71,27 @@ export async function GET() {
       created_at: p.created_at,
     }));
 
+    const { ipAddress, userAgent } = getAuditMetaFromRequest(request);
+    await auditLog({
+      actorUserId: session.user.id,
+      actorRole: roles.includes("superadmin") ? "superadmin" : "admin",
+      action: "admin_list_users",
+      metadata: { count: users.length },
+      ipAddress,
+      userAgent,
+    }).catch((err: unknown) => {
+      console.error("[ADMIN_API_ERROR] auditLog", err instanceof Error ? err.message : err);
+    });
+
     return NextResponse.json(users);
   } catch (error: unknown) {
-    console.error("API error:", error);
+    if (error instanceof Error) {
+      console.error("[ADMIN_API_ERROR] GET /api/admin/users", error.message);
+    } else {
+      console.error("[ADMIN_API_UNKNOWN_ERROR] GET /api/admin/users");
+    }
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Internal server error",
-      },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }

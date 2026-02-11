@@ -7,6 +7,7 @@
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 export type AuditAction =
+  | "admin_list_users"
   | "admin_user_edit"
   | "role_change"
   | "email_change"
