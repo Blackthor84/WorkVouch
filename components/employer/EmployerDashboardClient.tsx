@@ -20,6 +20,7 @@ import { UsagePanel } from "@/components/employer/UsagePanel";
 import { UpgradeBanner } from "@/components/employer/UpgradeBanner";
 import { UpgradeGate } from "@/components/employer/UpgradeGate";
 import { ListedEmployeesCard } from "@/components/employer/ListedEmployeesCard";
+import { EditCompanyInfo } from "@/components/employer/EditCompanyInfo";
 import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
 import { getVerticalConfig } from "@/lib/verticals/config";
 import { runSimulation } from "@/lib/simulation/engine";
@@ -243,12 +244,14 @@ export function EmployerDashboardClient({
           <p className="text-grey-medium dark:text-gray-400 mt-1">
             Welcome back. Manage candidates, verifications, and your subscription.
           </p>
-          {planTier && (
-            <div className="mt-2 flex items-center gap-2">
-              <span className="text-sm font-medium text-grey-medium dark:text-gray-400">
-                Current Plan:
-              </span>
-              <Badge
+          <div className="mt-2 flex items-center gap-3 flex-wrap">
+            <EditCompanyInfo />
+            {planTier && (
+              <>
+                <span className="text-sm font-medium text-grey-medium dark:text-gray-400">
+                  Current Plan:
+                </span>
+                <Badge
                 variant="primary"
                 className={
                   planTier === "custom"
@@ -265,9 +268,10 @@ export function EmployerDashboardClient({
                   : planTier === "pro"
                   ? "PRO"
                   : "STARTER"}
-              </Badge>
-            </div>
-          )}
+                </Badge>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Plan & Usage */}

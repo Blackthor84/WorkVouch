@@ -97,7 +97,7 @@ export default async function AdminUserPage({
                 <div><dt className="text-[#64748B]">Profile Strength</dt><dd className="font-medium text-[#0F172A]">{profileStrength != null ? `${Number(profileStrength).toFixed(1)}` : "—"}</dd></div>
                 {row.flagged_for_fraud && <div className="sm:col-span-2"><span className="inline-flex items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-800">Flagged for fraud</span></div>}
               </dl>
-              <UserDetailActions userId={id} currentStatus={status} currentRole={row.role ?? ""} isSuperAdmin={isSuperAdmin} fullName={row.full_name ?? ""} industry={row.industry ?? ""} />
+              <UserDetailActions userId={id} currentStatus={status} currentRole={row.role ?? ""} isSuperAdmin={isSuperAdmin} fullName={row.full_name ?? ""} email={row.email ?? ""} industry={row.industry ?? ""} />
             </div>
           </>
         }

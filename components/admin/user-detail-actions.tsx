@@ -16,6 +16,7 @@ type Props = {
   currentRole: string;
   isSuperAdmin: boolean;
   fullName: string;
+  email: string;
   industry: string;
 };
 
@@ -25,6 +26,7 @@ export function UserDetailActions({
   currentRole,
   isSuperAdmin,
   fullName,
+  email,
   industry,
 }: Props) {
   const router = useRouter();
@@ -32,6 +34,7 @@ export function UserDetailActions({
   const [roleOpen, setRoleOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
   const [editName, setEditName] = useState(fullName);
+  const [editEmail, setEditEmail] = useState(email);
   const [editIndustry, setEditIndustry] = useState(industry);
   const [editRole, setEditRole] = useState(currentRole || "candidate");
 
@@ -145,6 +148,15 @@ export function UserDetailActions({
               />
             </div>
             <div>
+              <label className="block text-sm font-medium text-grey-dark dark:text-gray-300 mb-1">Email</label>
+              <input
+                type="email"
+                className="w-full rounded-lg border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] px-3 py-2 text-grey-dark dark:text-gray-200"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+              />
+            </div>
+            <div>
               <label className="block text-sm font-medium text-grey-dark dark:text-gray-300 mb-1">Industry</label>
               <input
                 type="text"
@@ -161,12 +173,35 @@ export function UserDetailActions({
                 variant="primary"
                 size="sm"
                 disabled={loading === "Edit"}
-                onClick={() =>
-                  run("Edit", "PATCH", `/api/admin/users/${userId}`, {
-                    full_name: editName,
-                    industry: editIndustry,
-                  })
-                }
+                onClick={async () => {
+                  setLoading("Edit");
+                  try {
+                    const res1 = await fetch(`/api/admin/users/${userId}/update`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ full_name: editName, email: editEmail }),
+                    });
+                    const data1 = await res1.json().catch(() => ({}));
+                    if (!res1.ok) {
+                      alert(data1?.error ?? "Update failed");
+                      return;
+                    }
+                    const res2 = await fetch(`/api/admin/users/${userId}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ full_name: editName, industry: editIndustry }),
+                    });
+                    const data2 = await res2.json().catch(() => ({}));
+                    if (!res2.ok) {
+                      alert(data2?.error ?? "Profile update failed");
+                      return;
+                    }
+                    router.refresh();
+                    setEditOpen(false);
+                  } finally {
+                    setLoading(null);
+                  }
+                }}
               >
                 Save
               </Button>

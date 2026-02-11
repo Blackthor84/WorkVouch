@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
     type EmployerAccountRow = {
       id: string;
       company_name: string;
+      contact_email: string | null;
       plan_tier: string;
       stripe_customer_id: string | null;
       created_at: string;
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
     const supabaseAny = supabase as any;
     const { data: employerAccount, error } = await supabaseAny
       .from("employer_accounts")
-      .select("*")
+      .select("id, company_name, contact_email, plan_tier, stripe_customer_id, created_at")
       .eq("user_id", user.id)
       .single();
 
@@ -49,6 +50,7 @@ export async function GET(req: NextRequest) {
       employer: {
         id: employerAccountTyped.id,
         companyName: employerAccountTyped.company_name,
+        contactEmail: employerAccountTyped.contact_email ?? null,
         email: user.email,
         planTier: employerAccountTyped.plan_tier,
         stripeCustomerId: employerAccountTyped.stripe_customer_id,

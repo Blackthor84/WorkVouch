@@ -15,7 +15,10 @@ export type AuditAction =
   | "hard_delete"
   | "recalculate"
   | "peer_review_delete"
-  | "employment_record_delete";
+  | "employment_record_delete"
+  | "user_email_change"
+  | "admin_update_profile"
+  | "employer_update_company";
 
 export async function insertAdminAuditLog(params: {
   adminId: string;

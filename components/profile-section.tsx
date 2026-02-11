@@ -5,6 +5,12 @@ import { updateProfile } from "@/lib/actions/profile";
 import { ProfileVisibility } from "@/types/database";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 import { UserCircleIcon, PencilIcon } from "@heroicons/react/24/outline";
 
 interface Profile {
@@ -20,6 +26,10 @@ interface Profile {
 
 export function ProfileSection({ profile }: { profile: Profile }) {
   const [editing, setEditing] = useState(false);
+  const [accountEditOpen, setAccountEditOpen] = useState(false);
+  const [accountLoading, setAccountLoading] = useState(false);
+  const [accountError, setAccountError] = useState<string | null>(null);
+  const [accountForm, setAccountForm] = useState({ full_name: profile.full_name, email: profile.email, current_password: "" });
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: profile.full_name,
@@ -41,6 +51,47 @@ export function ProfileSection({ profile }: { profile: Profile }) {
       alert(error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAccountEditOpen = (open: boolean) => {
+    setAccountEditOpen(open);
+    if (open) {
+      setAccountForm({ full_name: profile.full_name, email: profile.email, current_password: "" });
+      setAccountError(null);
+    }
+  };
+
+  const handleAccountSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAccountError(null);
+    const emailChanging = accountForm.email.trim().toLowerCase() !== (profile.email ?? "").trim().toLowerCase();
+    if (emailChanging && !accountForm.current_password) {
+      setAccountError("Current password is required to change email.");
+      return;
+    }
+    setAccountLoading(true);
+    try {
+      const res = await fetch("/api/account/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: accountForm.full_name.trim(),
+          email: accountForm.email.trim().toLowerCase(),
+          ...(emailChanging ? { current_password: accountForm.current_password } : {}),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAccountError(data?.error ?? "Update failed");
+        return;
+      }
+      setAccountEditOpen(false);
+      window.location.reload();
+    } catch {
+      setAccountError("An error occurred");
+    } finally {
+      setAccountLoading(false);
     }
   };
 
@@ -184,12 +235,65 @@ export function ProfileSection({ profile }: { profile: Profile }) {
               </div>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
-            <PencilIcon className="h-4 w-4 mr-2" />
-            Edit
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => handleAccountEditOpen(true)}>
+              <PencilIcon className="h-4 w-4 mr-2" />
+              Edit Profile
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
+              <PencilIcon className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+          </div>
         </div>
       </CardHeader>
+      <Dialog open={accountEditOpen} onOpenChange={handleAccountEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAccountSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-grey-dark dark:text-gray-200 mb-2">Name</label>
+              <input
+                type="text"
+                required
+                minLength={2}
+                className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3"
+                value={accountForm.full_name}
+                onChange={(e) => setAccountForm((f) => ({ ...f, full_name: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-grey-dark dark:text-gray-200 mb-2">Email</label>
+              <input
+                type="email"
+                required
+                className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3"
+                value={accountForm.email}
+                onChange={(e) => setAccountForm((f) => ({ ...f, email: e.target.value }))}
+              />
+            </div>
+            {accountForm.email.trim().toLowerCase() !== (profile.email ?? "").trim().toLowerCase() && (
+              <div>
+                <label className="block text-sm font-semibold text-grey-dark dark:text-gray-200 mb-2">Current password (required to change email)</label>
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3"
+                  value={accountForm.current_password}
+                  onChange={(e) => setAccountForm((f) => ({ ...f, current_password: e.target.value }))}
+                />
+              </div>
+            )}
+            {accountError && <p className="text-sm text-red-600 dark:text-red-400">{accountError}</p>}
+            <div className="flex gap-2 pt-2">
+              <Button type="submit" disabled={accountLoading}>{accountLoading ? "Saving..." : "Save"}</Button>
+              <Button type="button" variant="ghost" onClick={() => handleAccountEditOpen(false)}>Cancel</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
       <CardContent>
         <div className="space-y-4">
           {(profile.city || profile.state) && (
