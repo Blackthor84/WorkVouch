@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ type HistoryEntry = {
 };
 
 export function ChangeEmailSettings() {
+  const searchParams = useSearchParams();
   const [newEmail, setNewEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -21,67 +22,88 @@ export function ChangeEmailSettings() {
   const [historyLoading, setHistoryLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     fetch("/api/account/email-change-history")
       .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setHistory(data);
+      .then((data: unknown) => {
+        if (!cancelled && Array.isArray(data)) setHistory(data as HistoryEntry[]);
       })
-      .catch(() => setHistory([]))
-      .finally(() => setHistoryLoading(false));
+      .catch((err: unknown) => {
+        if (!cancelled) setHistory([]);
+        console.error("[ChangeEmailSettings] email-change-history", { err });
+      })
+      .finally(() => {
+        if (!cancelled) setHistoryLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
-    const confirmToken = params.get("confirm-email-change");
-    const revokeToken = params.get("revoke-email-change");
+    const confirmToken = searchParams.get("confirm-email-change");
+    const revokeToken = searchParams.get("revoke-email-change");
+    if (!confirmToken && !revokeToken) return;
+
     if (confirmToken) {
       setMessage({ type: "success", text: "Confirming email change..." });
-      fetch("/api/account/confirm-email-change", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: confirmToken }),
-      })
-        .then((r) => r.json())
-        .then((data) => {
+      (async () => {
+        try {
+          const r = await fetch("/api/account/confirm-email-change", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: confirmToken }),
+          });
+          const data = (await r.json().catch(() => ({}))) as { success?: boolean; error?: string };
           if (data.success) {
             setMessage({ type: "success", text: "Email changed successfully. You can sign in with your new email." });
             setHistoryLoading(true);
-            fetch("/api/account/email-change-history").then((res) => res.json()).then((d) => Array.isArray(d) && setHistory(d)).finally(() => setHistoryLoading(false));
-            window.history.replaceState({}, "", window.location.pathname);
+            try {
+              const histRes = await fetch("/api/account/email-change-history");
+              const d = (await histRes.json().catch(() => null)) as unknown;
+              if (Array.isArray(d)) setHistory(d as HistoryEntry[]);
+            } finally {
+              setHistoryLoading(false);
+            }
+            if (typeof window !== "undefined") window.history.replaceState({}, "", window.location.pathname);
           } else {
-            setMessage({ type: "error", text: data.error || "Confirmation failed." });
+            setMessage({ type: "error", text: data.error ?? "Confirmation failed." });
           }
-        })
-        .catch((err) => {
-          console.error("[SYSTEM_FAIL]", err);
+        } catch (err: unknown) {
+          console.error("[ChangeEmailSettings] confirm-email-change", { err });
           setMessage({ type: "error", text: "Confirmation failed." });
-        });
+        }
+      })();
+      return;
     }
+
     if (revokeToken) {
       setMessage({ type: "success", text: "Revoking..." });
-      fetch("/api/account/revoke-email-change", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: revokeToken }),
-      })
-        .then((r) => r.json())
-        .then((data) => {
+      (async () => {
+        try {
+          const r = await fetch("/api/account/revoke-email-change", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: revokeToken }),
+          });
+          const data = (await r.json().catch(() => ({}))) as { success?: boolean; error?: string };
           if (data.success) {
             setMessage({ type: "success", text: "Email change request revoked." });
-            window.history.replaceState({}, "", window.location.pathname);
+            if (typeof window !== "undefined") window.history.replaceState({}, "", window.location.pathname);
           } else {
-            setMessage({ type: "error", text: data.error || "Revoke failed." });
+            setMessage({ type: "error", text: data.error ?? "Revoke failed." });
           }
-        })
-        .catch((err) => {
-          console.error("[SYSTEM_FAIL]", err);
+        } catch (err: unknown) {
+          console.error("[ChangeEmailSettings] revoke-email-change", { err });
           setMessage({ type: "error", text: "Revoke failed." });
-        });
+        }
+      })();
     }
-  }, [searchParams]);
+  }, [searchParams.toString()]);
 
-  const handleSendVerification = async (e: React.FormEvent) => {
+  const handleSendVerification = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     const email = newEmail.trim().toLowerCase();
     if (!email) {
       setMessage({ type: "error", text: "Enter a new email address." });
@@ -95,9 +117,9 @@ export function ChangeEmailSettings() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ new_email: email }),
       });
-      const data = await res.json().catch(() => ({}));
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        setMessage({ type: "error", text: data.error || "Request failed." });
+        setMessage({ type: "error", text: data.error ?? "Request failed." });
         return;
       }
       setMessage({
@@ -105,12 +127,13 @@ export function ChangeEmailSettings() {
         text: "We sent a confirmation link to your new email. Your current email remains active until confirmed.",
       });
       setNewEmail("");
-    } catch {
+    } catch (err: unknown) {
+      console.error("[ChangeEmailSettings] request-email-change", { err });
       setMessage({ type: "error", text: "An error occurred." });
     } finally {
       setLoading(false);
     }
-  };
+  }, [loading, newEmail]);
 
   return (
     <Card>
