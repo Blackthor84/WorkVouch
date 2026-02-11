@@ -1,8 +1,16 @@
-# PWA / App Store Icons
+# WorkVouch WV monogram icons (PWA, Android, iOS, favicon)
 
-For best results on App Store and Google Play, add:
+All icons use the same design: white background, bold geometric “WV” monogram (W: #2563EB, V: #10B981). No gradients, shadows, or distortion. Content fills ~75% of canvas for Android adaptive icon safe zone (no edge touching).
 
-- **icon-192.png** – 192×192 px (PWA, Android)
-- **icon-512.png** – 512×512 px (PWA splash, Android)
+| File | Size | Use |
+|------|------|-----|
+| icon-1024.png | 1024×1024 | High-DPI / App Store |
+| icon-512.png | 512×512 | PWA splash, maskable |
+| icon-192.png | 192×192 | PWA, Android home screen |
+| apple-touch-icon.png | 180×180 | iOS Add to Home Screen |
+| favicon-32.png | 32×32 | Browser tab (primary favicon) |
+| favicon-16.png | 16×16 | Browser tab (small) |
 
-The app currently uses the main logo for all icon sizes. Replace with square assets and update `public/manifest.json` to reference `/icons/icon-192.png` and `/icons/icon-512.png` when ready.
+**References:** `public/manifest.json` (192, 512); `app/layout.tsx` (favicon-32, apple-touch-icon). Next.js injects `<link rel="manifest" href="/manifest.json" />` from metadata.
+
+**After changing icons:** Clear service worker cache and force PWA refresh (e.g. unregister SW, hard reload, or reinstall PWA) so Android install preview and iOS Add to Home Screen show the WV icon correctly.

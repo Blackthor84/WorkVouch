@@ -12,12 +12,9 @@ export const metadata: Metadata = {
   description:
     "Build your professional reputation through verified peer references. Trusted by security, law enforcement & professionals.",
   icons: {
-    icon: [
-      { url: "/images/workvouch-logo.png.png", sizes: "any" },
-      { url: "/images/workvouch-logo.png.png", sizes: "192x192", type: "image/png" },
-      { url: "/images/workvouch-logo.png.png", sizes: "512x512", type: "image/png" },
-    ],
-    apple: "/images/workvouch-logo.png.png",
+    icon: "/icons/favicon-32.png",
+    shortcut: "/icons/favicon-32.png",
+    apple: "/icons/apple-touch-icon.png",
   },
   manifest: "/manifest.json",
   themeColor: "#2563EB",
