@@ -24,11 +24,11 @@ export default async function AdminSystemPage() {
         <Button variant="ghost" size="sm" href="/admin">← Admin</Button>
       </div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">System Panel</h1>
-        <p className="text-slate-300">Superadmin only: intelligence version, maintenance, DB health, jobs, parity.</p>
+        <h1 className="text-3xl font-bold text-[#0F172A] mb-2">System Panel</h1>
+        <p className="text-[#334155]">Superadmin only: intelligence version, maintenance, DB health, jobs, parity.</p>
       </div>
       <Card className="p-6 mb-6">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">Quick links</h2>
+        <h2 className="text-lg font-semibold text-[#0F172A] mb-4">Quick links</h2>
         <div className="flex flex-wrap gap-3">
           <Button variant="secondary" size="sm" href="/admin/system/parity" asChild>
             <Link href="/admin/system/parity">Sandbox vs production parity</Link>

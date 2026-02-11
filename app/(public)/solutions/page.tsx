@@ -18,14 +18,14 @@ export default function SolutionsPage() {
   return (
     <div className="min-h-screen bg-background dark:bg-[#0D1117]">
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-24">
-        <h1 className="text-3xl font-bold tracking-tight text-grey-dark dark:text-gray-200 sm:text-4xl text-center">
+        <h1 className="text-3xl font-bold tracking-tight text-grey-dark dark:text-gray-200 md:text-4xl text-center">
           Industry-Tailored Verification Workflows
         </h1>
-        <p className="mt-4 text-center text-grey-medium dark:text-gray-400 max-w-2xl mx-auto">
+        <p className="mt-4 text-center text-base text-grey-medium dark:text-gray-400 max-w-2xl mx-auto">
           WorkVouch provides verification and trust scoring tailored to your industry. Same plan enforcement, certification uploads, and risk engine—different workflow framing.
         </p>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {SOLUTIONS.map((s) => (
             <Link key={s.slug} href={s.href}>
               <Card className="p-6 h-full hover:shadow-lg transition-shadow border-grey-background dark:border-[#374151]">

@@ -10,6 +10,9 @@ import ForEmployeesSection from "@/components/public/ForEmployeesSection";
 import EnterpriseSection from "@/components/public/EnterpriseSection";
 import TestimonialsSection from "@/components/public/TestimonialsSection";
 import FinalCTA from "@/components/public/FinalCTA";
+import TrustedBySection from "@/components/public/TrustedBySection";
+import HowWePreventFraud from "@/components/public/HowWePreventFraud";
+import ComplianceSecuritySection from "@/components/public/ComplianceSecuritySection";
 
 const VALID_INDUSTRIES: readonly HeroIndustry[] = [
   "healthcare",
@@ -35,15 +38,18 @@ export default async function Home(props: HomeProps) {
   const industry = parseIndustry(resolved.industry);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#F8FAFC] overflow-x-hidden">
       <HeroInteractive industry={industry} />
       <TheProblemSection />
       <HowWorkVouchWorks />
       <RealExampleSection />
       <BuiltForHighTrustProfessions />
+      <TrustedBySection />
       <WhyWorkVouch />
       <ForEmployersSection />
       <ForEmployeesSection />
+      <HowWePreventFraud />
+      <ComplianceSecuritySection />
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <ActiveAds />
       </div>

@@ -60,12 +60,12 @@ export default async function AdminSignupsPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-white mb-2">All Signups</h1>
-          <p className="text-slate-300">Complete list of all user signups and accounts</p>
+          <h1 className="text-3xl font-bold text-[#0F172A] mb-2">All Signups</h1>
+          <p className="text-[#334155]">Complete list of all user signups and accounts</p>
         </div>
 
-        <div className="mb-4 p-4 bg-[#1f2937] rounded-xl border border-slate-600">
-          <p className="text-sm text-slate-200">
+        <div className="mb-4 p-4 bg-white rounded-xl border border-[#E2E8F0]">
+          <p className="text-sm text-[#334155]">
             <strong>Total Signups:</strong> {signups.length} |
             <strong> Email Confirmed:</strong>{" "}
             {signups.filter((s) => s.emailConfirmed).length} |
@@ -76,11 +76,11 @@ export default async function AdminSignupsPage() {
 
         <div className="space-y-4">
           {signups.map((signup) => (
-            <Card key={signup.id} className="p-6 bg-[#111827] border border-slate-700">
+            <Card key={signup.id} className="p-6 bg-white border border-[#E2E8F0]">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-white">
+                    <h3 className="text-lg font-semibold text-[#0F172A]">
                       {signup.fullName || "No Name"}
                     </h3>
                     {signup.emailConfirmed ? (
@@ -103,7 +103,7 @@ export default async function AdminSignupsPage() {
                           <Badge
                             key={role}
                             variant="info"
-                            className="text-xs bg-purple-100 dark:bg-purple-900/30"
+                            className="text-xs bg-purple-100"
                           >
                             {role}
                           </Badge>
@@ -123,7 +123,7 @@ export default async function AdminSignupsPage() {
                     </p>
                   )}
 
-                  <div className="flex gap-4 text-xs text-slate-300 mt-3">
+                  <div className="flex gap-4 text-xs text-[#64748B] mt-3">
                     <span>
                       <strong>Signed Up:</strong>{" "}
                       {signup.createdAt

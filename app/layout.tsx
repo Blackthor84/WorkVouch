@@ -12,9 +12,17 @@ export const metadata: Metadata = {
   description:
     "Build your professional reputation through verified peer references. Trusted by security, law enforcement & professionals.",
   icons: {
-    icon: "/images/workvouch-logo.png.png",
+    icon: [
+      { url: "/images/workvouch-logo.png.png", sizes: "any" },
+      { url: "/images/workvouch-logo.png.png", sizes: "192x192", type: "image/png" },
+      { url: "/images/workvouch-logo.png.png", sizes: "512x512", type: "image/png" },
+    ],
     apple: "/images/workvouch-logo.png.png",
   },
+  manifest: "/manifest.json",
+  themeColor: "#2563EB",
+  viewport: { width: "device-width", initialScale: 1, maximumScale: 5 },
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "WorkVouch" },
 };
 
 export default async function RootLayout({
@@ -34,7 +42,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <body className="bg-background dark:bg-[#0D1117] flex flex-col min-h-screen antialiased transition-colors">
+      <body className="bg-[#F8FAFC] flex flex-col min-h-screen antialiased transition-colors overflow-x-hidden">
         <Providers>
           <PreviewProvider>
             <SimulationBanner />

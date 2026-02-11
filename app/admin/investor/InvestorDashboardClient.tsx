@@ -81,52 +81,52 @@ export default function InvestorDashboardClient({ realCounts }: { realCounts: Re
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">Investor Dashboard</h1>
         <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border border-slate-600 bg-slate-800/80 p-1">
+          <div className="flex rounded-lg border border-[#E2E8F0] bg-slate-100 p-1">
             <button
               type="button"
               onClick={() => setMode("real")}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium ${!simulated ? "bg-slate-600 text-white" : "text-slate-300 hover:text-white"}`}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium ${!simulated ? "bg-[#2563EB] text-white" : "text-[#334155] hover:text-[#0F172A]"}`}
             >
               Real Data
             </button>
             <button
               type="button"
               onClick={() => setMode("simulated")}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium ${simulated ? "bg-slate-600 text-white" : "text-slate-300 hover:text-white"}`}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium ${simulated ? "bg-[#2563EB] text-white" : "text-[#334155] hover:text-[#0F172A]"}`}
             >
               Simulated Growth
             </button>
           </div>
           <Link href="/admin">
-            <Button variant="secondary" className="bg-slate-800 text-slate-200 hover:bg-slate-700">Back to Admin</Button>
+            <Button variant="secondary" variant="secondary">Back to Admin</Button>
           </Link>
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-200">Platform users</CardHeader>
+        <Card className="border border-[#E2E8F0] bg-white rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-[#64748B]">Platform users</CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-white">{metrics.totalUsers.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-[#0F172A]">{metrics.totalUsers.toLocaleString()}</p>
             {simulated && <p className="text-xs text-slate-300 mt-1">Projected</p>}
           </CardContent>
         </Card>
-        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-200">Employers</CardHeader>
+        <Card className="border border-[#E2E8F0] bg-white rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-[#64748B]">Employers</CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-white">{metrics.totalEmployers.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-[#0F172A]">{metrics.totalEmployers.toLocaleString()}</p>
             {simulated && <p className="text-xs text-slate-300 mt-1">Projected</p>}
           </CardContent>
         </Card>
-        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-200">Verification volume</CardHeader>
+        <Card className="border border-[#E2E8F0] bg-white rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-[#64748B]">Verification volume</CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-white">{metrics.verificationVolume.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-[#0F172A]">{metrics.verificationVolume.toLocaleString()}</p>
             {simulated && <p className="text-xs text-slate-300 mt-1">Trend</p>}
           </CardContent>
         </Card>
-        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-200">MRR</CardHeader>
+        <Card className="border border-[#E2E8F0] bg-white rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-[#64748B]">MRR</CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-emerald-400">${Math.round(metrics.mrr).toLocaleString()}</p>
             {simulated && <p className="text-xs text-slate-300 mt-1">Simulated</p>}
@@ -135,52 +135,52 @@ export default function InvestorDashboardClient({ realCounts }: { realCounts: Re
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-200">Risk intelligence adoption %</CardHeader>
+        <Card className="border border-[#E2E8F0] bg-white rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-[#64748B]">Risk intelligence adoption %</CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-white">{Math.round(metrics.riskAdoptionPercent)}%</p>
+            <p className="text-2xl font-bold text-[#0F172A]">{Math.round(metrics.riskAdoptionPercent)}%</p>
           </CardContent>
         </Card>
-        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-200">Enterprise pipeline value</CardHeader>
+        <Card className="border border-[#E2E8F0] bg-white rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-[#64748B]">Enterprise pipeline value</CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-white">${metrics.enterprisePipeline.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-[#0F172A]">${metrics.enterprisePipeline.toLocaleString()}</p>
           </CardContent>
         </Card>
-        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-200">LTV</CardHeader>
+        <Card className="border border-[#E2E8F0] bg-white rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-[#64748B]">LTV</CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-white">${Math.round(metrics.ltv).toLocaleString()}</p>
+            <p className="text-2xl font-bold text-[#0F172A]">${Math.round(metrics.ltv).toLocaleString()}</p>
           </CardContent>
         </Card>
-        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-200">CAC</CardHeader>
+        <Card className="border border-[#E2E8F0] bg-white rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-[#64748B]">CAC</CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-white">${Math.round(metrics.cac).toLocaleString()}</p>
+            <p className="text-2xl font-bold text-[#0F172A]">${Math.round(metrics.cac).toLocaleString()}</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-200">Churn (simulated)</CardHeader>
+        <Card className="border border-[#E2E8F0] bg-white rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-[#64748B]">Churn (simulated)</CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-white">{metrics.churnPercent.toFixed(1)}%</p>
+            <p className="text-2xl font-bold text-[#0F172A]">{metrics.churnPercent.toFixed(1)}%</p>
           </CardContent>
         </Card>
-        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-200">Network effect index</CardHeader>
+        <Card className="border border-[#E2E8F0] bg-white rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-[#64748B]">Network effect index</CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-white">{metrics.networkEffect.toFixed(2)}x</p>
+            <p className="text-2xl font-bold text-[#0F172A]">{metrics.networkEffect.toFixed(2)}x</p>
             <p className="text-xs text-slate-300 mt-1">Growth multiplier</p>
           </CardContent>
         </Card>
       </div>
 
       {simulated && metrics.projectedMonths.length > 0 && (
-        <Card className="mt-6 border-slate-700 bg-slate-900/80">
+        <Card className="mt-6 border-[#E2E8F0] bg-white">
           <CardHeader>
-            <h2 className="text-lg font-semibold text-slate-200">Projected revenue (12–36 months)</h2>
+            <h2 className="text-lg font-semibold text-[#0F172A]">Projected revenue (12–36 months)</h2>
             <p className="text-sm text-slate-300">Simulated growth curve. No DB changes.</p>
           </CardHeader>
           <CardContent>
@@ -203,9 +203,9 @@ export default function InvestorDashboardClient({ realCounts }: { realCounts: Re
       )}
 
       {simulated && (
-        <Card className="mt-6 border-slate-700 bg-slate-900/80">
+        <Card className="mt-6 border-[#E2E8F0] bg-white">
           <CardHeader>
-            <h2 className="text-lg font-semibold text-slate-200">Enterprise upgrade conversion (simulated)</h2>
+            <h2 className="text-lg font-semibold text-[#0F172A]">Enterprise upgrade conversion (simulated)</h2>
           </CardHeader>
           <CardContent>
             <p className="text-slate-300">~18% of employers projected to enterprise tier in growth model.</p>

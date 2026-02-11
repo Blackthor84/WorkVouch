@@ -9,6 +9,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 const SIGNUP_CREDENTIALS_KEY = "workvouch_signup_credentials";
+const SIGNUP_PLAN_KEY = "workvouch_signup_plan";
 
 /** Minimal user shape for role selection (id for updates; email optional for company name). */
 type UserOrId = User | { id: string; email?: string };
@@ -72,13 +73,25 @@ export default function SelectRolePage() {
         return;
       }
 
+      let employerPlanTier: string | undefined;
       if (role === "employer") {
+        try {
+          const planRaw = sessionStorage.getItem(SIGNUP_PLAN_KEY);
+          if (planRaw) {
+            const plan = JSON.parse(planRaw) as { plan_tier?: string };
+            if (plan?.plan_tier && ["starter", "pro", "custom"].includes(plan.plan_tier)) {
+              employerPlanTier = plan.plan_tier;
+            }
+          }
+        } catch {
+          /* ignore */
+        }
         const { error: employerError } = await supabaseBrowser
           .from("employer_accounts")
           .insert({
             user_id: user.id,
             company_name: user.email?.split("@")[0] ?? "New Company",
-            plan_tier: "free",
+            plan_tier: employerPlanTier ?? "free",
           });
 
         if (employerError) {
@@ -88,9 +101,25 @@ export default function SelectRolePage() {
         }
       }
 
-      const callbackUrl = role === "employer" ? "/employer/dashboard" : "/dashboard";
+      // Redirect to onboarding: employee → profile (add first job); employer → dashboard with welcome
+      const employeeOnboardingUrl = "/profile";
+      let employerUrl = "/employer/dashboard?welcome=1";
+      if (employerPlanTier && employerPlanTier !== "free" && employerPlanTier !== "custom") {
+        try {
+          const planRaw = sessionStorage.getItem(SIGNUP_PLAN_KEY);
+          const interval = planRaw ? (JSON.parse(planRaw) as { interval?: string })?.interval : undefined;
+          const q = new URLSearchParams({ plan_tier: employerPlanTier, welcome: "1" });
+          if (interval === "yearly" || interval === "monthly") q.set("interval", interval);
+          employerUrl = `/employer/upgrade?${q.toString()}`;
+          sessionStorage.removeItem(SIGNUP_PLAN_KEY);
+        } catch {
+          // keep employerUrl as dashboard
+        }
+      }
 
-      // If we have stored signup credentials, sign in with NextAuth and go straight to dashboard (no second login)
+      let callbackUrl = role === "employer" ? employerUrl : employeeOnboardingUrl;
+
+      // Sign in with NextAuth so session is preserved (no logout); then redirect to onboarding
       let stored: { email?: string; password?: string } | null = null;
       try {
         const raw = sessionStorage.getItem(SIGNUP_CREDENTIALS_KEY);
@@ -112,14 +141,16 @@ export default function SelectRolePage() {
         });
         if (result?.ok && result?.url) {
           router.push(result.url);
-          router.refresh();
+          return;
+        }
+        if (result?.error) {
+          setError(result.error === "CredentialsSignin" ? "Invalid credentials. Please try again or log in." : String(result.error));
+          setSelecting(null);
           return;
         }
       }
 
-      // No stored credentials (e.g. arrived from email link): redirect to login with callback
       router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
-      router.refresh();
     } catch (err) {
       console.error("Select role error:", err);
       setError("An unexpected error occurred. Please try again.");
@@ -140,7 +171,7 @@ export default function SelectRolePage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 px-4 overflow-x-hidden">
       <Link href="/" className="mb-6">
         <Image
           src="/images/workvouch-logo.png.png"
@@ -153,11 +184,14 @@ export default function SelectRolePage() {
         />
       </Link>
       <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200 dark:border-gray-700">
+        <p className="text-xs font-semibold uppercase tracking-wide text-[#64748B] mb-2 text-center">
+          Step 2 of 3
+        </p>
         <h1 className="text-2xl font-bold mb-2 text-center text-gray-900 dark:text-white">
           I am a:
         </h1>
         <p className="text-gray-600 dark:text-gray-400 text-sm text-center mb-6">
-          Choose how you&apos;ll use WorkVouch. You&apos;ll go straight to your dashboard.
+          You&apos;ll go straight to setup. No extra steps.
         </p>
 
         {error && (
@@ -173,7 +207,7 @@ export default function SelectRolePage() {
             disabled={!!selecting}
             className="w-full p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {selecting === "user" ? "Setting up..." : "Employee"}
+            {selecting === "user" ? "Setting up…" : "Employee"}
           </button>
           <button
             type="button"
@@ -181,7 +215,7 @@ export default function SelectRolePage() {
             disabled={!!selecting}
             className="w-full p-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {selecting === "employer" ? "Setting up..." : "Employer"}
+            {selecting === "employer" ? "Setting up…" : "Employer"}
           </button>
         </div>
 

@@ -17,6 +17,8 @@ export interface EmployerPlan {
   cta: string;
   ctaHref?: string;
   badge?: string;
+  /** One-line "Who this plan is for" for conversion copy. */
+  whoIsFor?: string;
 }
 
 export const EMPLOYER_PLANS: EmployerPlan[] = [
@@ -26,12 +28,13 @@ export const EMPLOYER_PLANS: EmployerPlan[] = [
     priceMonthly: 49,
     priceYearly: 490,
     description: "For small hiring teams.",
+    whoIsFor: "Small businesses hiring occasionally",
     features: [
-      "25 worker searches per month",
-      "15 verification reports per month",
-      "Verified work history visibility",
-      "Contact confirmed coworkers",
-      "Email support",
+      "View 25 verified candidate profiles per month",
+      "Run 15 verification reports per month",
+      "See verified work history and employment dates",
+      "Contact confirmed coworkers for references",
+      "Email support when you need it",
     ],
     stripePriceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY,
     stripePriceIdYearly: process.env.NEXT_PUBLIC_STRIPE_STARTER_YEARLY,
@@ -43,12 +46,13 @@ export const EMPLOYER_PLANS: EmployerPlan[] = [
     priceMonthly: 149,
     priceYearly: 1490,
     description: "For growing teams hiring consistently.",
+    whoIsFor: "Scaling teams hiring regularly",
     features: [
-      "100 worker searches per month",
-      "75 verification reports per month",
-      "Team visibility tools",
-      "Priority email support",
-      "Role-based access controls",
+      "View 100 verified candidate profiles per month",
+      "Run 75 verification reports per month",
+      "Share team visibility and hiring confidence across your org",
+      "Priority email support and faster response",
+      "Role-based access so the right people see the right data",
     ],
     stripePriceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY,
     stripePriceIdYearly: process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY,
@@ -61,12 +65,13 @@ export const EMPLOYER_PLANS: EmployerPlan[] = [
     priceMonthly: 399,
     priceYearly: 3990,
     description: "For high-volume hiring teams.",
+    whoIsFor: "Large organizations with compliance needs",
     features: [
-      "Unlimited worker searches",
+      "Unlimited verified candidate profile views",
       "Unlimited verification reports",
-      "Multi-location account management",
-      "Dedicated support contact",
-      "Custom onboarding assistance",
+      "Multi-location account management and consolidated billing",
+      "Dedicated support contact and SLAs",
+      "Custom onboarding and compliance documentation",
     ],
     cta: "Contact Sales",
     ctaHref: "/contact",

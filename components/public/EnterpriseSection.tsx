@@ -10,24 +10,24 @@ const BULLETS = [
 
 export default function EnterpriseSection() {
   return (
-    <section className="bg-slate-50 dark:bg-slate-800/30 border-y border-slate-200 dark:border-slate-700/80 py-20" id="enterprise">
+    <section className="bg-white border-y border-[#E2E8F0] py-16 md:py-20 overflow-x-hidden" id="enterprise">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+        <h2 className="text-3xl font-bold tracking-tight text-[#0F172A] md:text-4xl">
           Enterprise Employment Intelligence
         </h2>
-        <p className="mt-6 max-w-3xl text-lg text-slate-600 dark:text-slate-200 leading-relaxed">
+        <p className="mt-6 max-w-3xl text-base text-[#334155] leading-relaxed md:text-lg">
           For large organizations, WorkVouch delivers:
         </p>
-        <ul className="mt-4 grid sm:grid-cols-2 gap-2 list-disc list-inside text-slate-600 dark:text-slate-300">
+        <ul className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 list-disc list-inside text-[#334155]">
           {BULLETS.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
-        <p className="mt-8 text-slate-700 dark:text-slate-300 font-medium">
+        <p className="mt-8 text-base text-[#334155] font-medium">
           This is employment infrastructure. Not a review platform.
         </p>
         <div className="mt-10">
-          <Button href="/signup" variant="primary" size="lg">
+          <Button href="/signup" variant="primary" size="lg" className="w-full md:w-auto">
             Explore Employer Tools
           </Button>
         </div>

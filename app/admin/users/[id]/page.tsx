@@ -72,10 +72,10 @@ export default async function AdminUserPage({
         </Button>
       </div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white mb-2">
+        <h1 className="text-3xl font-bold text-[#0F172A] mb-2">
           User: {row.full_name || row.email || id}
         </h1>
-        <p className="text-slate-300">
+        <p className="text-[#334155]">
           Manage account and view profile
         </p>
       </div>
@@ -85,17 +85,17 @@ export default async function AdminUserPage({
         isEmployer={row.role === "employer" || userRoles.includes("employer")}
         overviewContent={
           <>
-            <div className="rounded-xl border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] p-6 mb-4">
-              <h2 className="text-lg font-semibold text-white mb-4">Profile Overview</h2>
+            <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 mb-4">
+              <h2 className="text-lg font-semibold text-[#0F172A] mb-4">Profile Overview</h2>
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div><dt className="text-slate-300">Name</dt><dd className="font-medium text-white">{row.full_name || "—"}</dd></div>
-                <div><dt className="text-slate-300">Email</dt><dd className="font-medium text-white">{row.email || "—"}</dd></div>
-                <div><dt className="text-slate-300">Role</dt><dd className="font-medium text-white">{row.role || "—"}</dd></div>
-                <div><dt className="text-slate-300">Industry</dt><dd className="font-medium text-white">{row.industry || "—"}</dd></div>
-                <div><dt className="text-slate-300">Status</dt><dd className="font-medium text-white capitalize">{status}</dd></div>
-                <div><dt className="text-slate-300">Risk Level</dt><dd className="font-medium text-white capitalize">{riskLevel}</dd></div>
-                <div><dt className="text-slate-300">Profile Strength</dt><dd className="font-medium text-white">{profileStrength != null ? `${Number(profileStrength).toFixed(1)}` : "—"}</dd></div>
-                {row.flagged_for_fraud && <div className="sm:col-span-2"><span className="inline-flex items-center rounded-md bg-red-100 dark:bg-red-900/30 px-2 py-1 text-xs font-medium text-red-800 dark:text-red-400">Flagged for fraud</span></div>}
+                <div><dt className="text-[#64748B]">Name</dt><dd className="font-medium text-[#0F172A]">{row.full_name || "—"}</dd></div>
+                <div><dt className="text-[#64748B]">Email</dt><dd className="font-medium text-[#0F172A]">{row.email || "—"}</dd></div>
+                <div><dt className="text-[#64748B]">Role</dt><dd className="font-medium text-[#0F172A]">{row.role || "—"}</dd></div>
+                <div><dt className="text-[#64748B]">Industry</dt><dd className="font-medium text-[#0F172A]">{row.industry || "—"}</dd></div>
+                <div><dt className="text-[#64748B]">Status</dt><dd className="font-medium text-[#0F172A] capitalize">{status}</dd></div>
+                <div><dt className="text-[#64748B]">Risk Level</dt><dd className="font-medium text-[#0F172A] capitalize">{riskLevel}</dd></div>
+                <div><dt className="text-[#64748B]">Profile Strength</dt><dd className="font-medium text-[#0F172A]">{profileStrength != null ? `${Number(profileStrength).toFixed(1)}` : "—"}</dd></div>
+                {row.flagged_for_fraud && <div className="sm:col-span-2"><span className="inline-flex items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-800">Flagged for fraud</span></div>}
               </dl>
               <UserDetailActions userId={id} currentStatus={status} currentRole={row.role ?? ""} isSuperAdmin={isSuperAdmin} fullName={row.full_name ?? ""} industry={row.industry ?? ""} />
             </div>

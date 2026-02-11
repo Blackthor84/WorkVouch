@@ -10,22 +10,31 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        /* Accessibility-first palette (WCAG AA) */
+        page: '#F8FAFC',
+        card: '#FFFFFF',
+        'card-border': '#E2E8F0',
+        heading: '#0F172A',
+        body: '#334155',
+        muted: '#64748B',
+        'btn-primary': '#2563EB',
+        'btn-primary-hover': '#1D4ED8',
         primary: {
-          DEFAULT: '#0A84FF',
-          dark: '#1E3A8A',
+          DEFAULT: '#2563EB',
+          dark: '#1D4ED8',
           light: '#E0F2FE',
         },
         accent: {
           DEFAULT: '#3B82F6',
         },
         background: {
-          DEFAULT: '#F3F4F6',
+          DEFAULT: '#F8FAFC',
           white: '#FFFFFF',
         },
-        'grey-dark': '#1F2937',
-        'grey-medium': '#4B5563',
-        'grey-light': '#9CA3AF',
-        'grey-background': '#F3F4F6',
+        'grey-dark': '#334155',
+        'grey-medium': '#64748B',
+        'grey-light': '#94A3B8',
+        'grey-background': '#F8FAFC',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

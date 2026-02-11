@@ -3,6 +3,8 @@
 import Layout from "./Layout";
 import { Providers } from "./providers";
 import { DemoModeActivator } from "./DemoModeActivator";
+import { RegisterSW } from "./pwa/RegisterSW";
+import { PWAInstallPrompt } from "./pwa/PWAInstallPrompt";
 
 export function LayoutWrapper({
   children,
@@ -15,6 +17,8 @@ export function LayoutWrapper({
 }) {
   return (
     <Providers>
+      <RegisterSW />
+      <PWAInstallPrompt />
       <DemoModeActivator />
       <Layout>{children}</Layout>
     </Providers>

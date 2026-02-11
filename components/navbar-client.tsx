@@ -46,7 +46,7 @@ export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp 
   }, [isEmployerArea, user?.id, roles]);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-grey-background dark:border-[#374151] bg-white dark:bg-[#0D1117] shadow-sm py-2">
+    <nav className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white shadow-sm py-2">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-24 items-center justify-between">
           <div className="flex items-center gap-2">
@@ -74,7 +74,7 @@ export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp 
             <ThemeToggle />
 
             {status === "loading" ? (
-              <span className="text-sm text-grey-medium dark:text-gray-400">Loading...</span>
+              <span className="text-sm text-[#64748B]">Loading...</span>
             ) : user ? (
               <div className="flex items-center gap-3">
                 <Button

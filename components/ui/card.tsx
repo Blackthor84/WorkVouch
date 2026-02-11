@@ -12,7 +12,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          "bg-white dark:bg-[#1A1F2B] rounded-2xl shadow-md p-6 border border-grey-background dark:border-[#374151]",
+          "bg-white rounded-2xl shadow-md p-6 border border-[#E2E8F0]",
           hover && "hover:shadow-lg transition-shadow duration-300",
           className,
         )}
@@ -60,7 +60,7 @@ interface CardContentProps {
 
 export function CardContent({ children, className }: CardContentProps) {
   return (
-    <div className={cn("text-grey-dark dark:text-gray-300", className)}>
+    <div className={cn("text-[#334155]", className)}>
       {children}
     </div>
   );

@@ -31,7 +31,7 @@ export default function TrustCredibility() {
         <h2 className="text-center text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
           Built for Modern Workforces
         </h2>
-        <ul className="mt-12 grid gap-6 sm:grid-cols-2">
+        <ul className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
           {items.map(({ icon: Icon, label }) => (
             <li
               key={label}

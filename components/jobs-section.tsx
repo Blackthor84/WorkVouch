@@ -32,6 +32,7 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     company_name: "",
@@ -55,6 +56,7 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
         end_date: formData.is_current ? null : formData.end_date || null,
       });
       setShowForm(false);
+      setSuccess(true);
       setFormData({
         company_name: "",
         job_title: "",
@@ -100,6 +102,21 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
         </div>
       </CardHeader>
       <CardContent>
+        {success && (
+          <div className="mb-4 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200">
+            <p className="font-semibold">Job added successfully.</p>
+            <Button
+              variant="default"
+              className="mt-3"
+              onClick={() => {
+                setSuccess(false);
+                router.push("/dashboard");
+              }}
+            >
+              Go to dashboard
+            </Button>
+          </div>
+        )}
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 text-sm">
             {error}
@@ -121,7 +138,7 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
                 onChange={(e) =>
                   setFormData({ ...formData, company_name: e.target.value })
                 }
-                className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full rounded-xl border bg-white text-[#334155] border-[#E2E8F0] px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
             </div>
 
@@ -136,11 +153,11 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
                 onChange={(e) =>
                   setFormData({ ...formData, job_title: e.target.value })
                 }
-                className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full rounded-xl border bg-white text-[#334155] border-[#E2E8F0] px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Employment Type *
@@ -154,7 +171,7 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
                       employment_type: e.target.value as EmploymentType,
                     })
                   }
-                  className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  className="w-full rounded-xl border bg-white text-[#334155] border-[#E2E8F0] px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 >
                   <option value="full_time">Full Time</option>
                   <option value="part_time">Part Time</option>
@@ -174,12 +191,12 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
                   onChange={(e) =>
                     setFormData({ ...formData, location: e.target.value })
                   }
-                  className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  className="w-full rounded-xl border bg-white text-[#334155] border-[#E2E8F0] px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Start Date *
@@ -191,7 +208,7 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
                   onChange={(e) =>
                     setFormData({ ...formData, start_date: e.target.value })
                   }
-                  className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  className="w-full rounded-xl border bg-white text-[#334155] border-[#E2E8F0] px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 />
               </div>
               <div>
@@ -205,7 +222,7 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
                     setFormData({ ...formData, end_date: e.target.value })
                   }
                   disabled={formData.is_current}
-                  className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="w-full rounded-xl border bg-white text-[#334155] border-[#E2E8F0] px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -240,7 +257,7 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
             </div>
 
             <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Adding..." : "Add Job"}
+              {loading ? "Adding job…" : "Add Job"}
             </Button>
           </form>
         )}

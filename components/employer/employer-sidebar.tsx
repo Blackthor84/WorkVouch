@@ -38,7 +38,7 @@ export function EmployerSidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-white dark:bg-[#111827] border-r border-grey-background dark:border-[#374151] min-h-screen p-4">
+    <aside className="w-64 bg-white border-r border-[#E2E8F0] min-h-screen p-4">
       <div className="mb-6">
         <h2 className="text-lg font-bold text-grey-dark dark:text-gray-200">
           Employer Panel

@@ -31,7 +31,7 @@ export default async function AdminLayout({
   return (
     <>
       <NavbarServer />
-      <div className="min-h-screen bg-[#0b1220] text-white flex">
+      <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex">
         <AdminSidebar isSuperAdmin={superAdmin} />
         <main className="flex-1 min-h-screen overflow-auto">
           {children}

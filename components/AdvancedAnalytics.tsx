@@ -16,7 +16,7 @@ export function AdvancedAnalytics({ simulation }: AdvancedAnalyticsProps) {
         This feature is controlled by the feature flag system.
       </p>
       {simulation && (
-        <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div>
             <span className="text-grey-medium dark:text-gray-400">Rehire probability</span>
             <p className="font-semibold text-grey-dark dark:text-gray-200">{simulation.rehireProbability}%</p>

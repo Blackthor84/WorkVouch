@@ -52,41 +52,37 @@ export default async function UserDashboardPage() {
       href: "/upload-resume",
       label: "Upload Resume",
       icon: DocumentArrowUpIcon,
-      color: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
+      color:     "bg-blue-100 text-blue-600",
     },
     {
       href: "/profile",
       label: "Profile",
       icon: UserCircleIcon,
-      color: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
+      color: "bg-blue-100 text-blue-600",
     },
     {
       href: "/my-jobs",
       label: "Job History",
       icon: BriefcaseIcon,
-      color:
-        "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400",
+      color: "bg-purple-100 text-purple-600",
     },
     {
       href: "/coworker-matches",
       label: "Coworker Matches",
       icon: UserGroupIcon,
-      color:
-        "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400",
+      color: "bg-orange-100 text-orange-600",
     },
     {
       href: "/messages",
       label: "Messages",
       icon: ChatBubbleLeftRightIcon,
-      color:
-        "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400",
+      color: "bg-green-100 text-green-600",
     },
     {
       href: "/jobs",
       label: "Browse Jobs",
       icon: JobsIcon,
-      color:
-        "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400",
+      color: "bg-indigo-100 text-indigo-600",
     },
     ...(safeProfile?.industry && getVerticalDashboardConfig(safeProfile.industry)
       ? [
@@ -94,8 +90,7 @@ export default async function UserDashboardPage() {
             href: `/dashboard/vertical/${encodeURIComponent(safeProfile.industry)}`,
             label: `${safeProfile.industry} Intelligence`,
             icon: BriefcaseIcon,
-            color:
-              "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400",
+            color: "bg-cyan-100 text-cyan-600",
           },
         ]
       : []),
@@ -123,27 +118,27 @@ export default async function UserDashboardPage() {
   ];
 
   return (
-    <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-background dark:bg-[#0D1117]">
-      <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
+    <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-[#F8FAFC] min-w-0 overflow-x-hidden">
+      <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20 min-w-0">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
+          <h1 className="text-3xl font-bold text-[#0F172A]">
             Dashboard
           </h1>
-          <p className="text-grey-medium dark:text-gray-400 mt-1">
+          <p className="text-base text-[#64748B] mt-1">
             Welcome back, {safeProfile?.full_name || user.email}
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
-          <div className="lg:col-span-2 flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
+          <div className="lg:col-span-2 flex flex-col space-y-12 md:space-y-16 lg:space-y-20 min-w-0">
             {/* Shortcuts */}
             <Card className="p-6">
-              <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
+              <h2 className="text-xl font-semibold text-[#0F172A] mb-4">
                 Quick Actions
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {shortcuts.map((shortcut) => {
                   const Icon = shortcut.icon;
                   const isCoworker = shortcut.href === "/coworker-matches";
@@ -169,7 +164,7 @@ export default async function UserDashboardPage() {
             {/* Activity Feed */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200">
+                <h2 className="text-xl font-semibold text-[#0F172A]">
                   Recent Activity
                 </h2>
                 <Button variant="ghost" size="sm">
@@ -180,14 +175,14 @@ export default async function UserDashboardPage() {
                 {activityFeed.map((activity) => (
                   <div
                     key={activity.id}
-                    className="flex items-start gap-3 p-3 rounded-xl bg-grey-background dark:bg-[#1A1F2B]"
+                    className="flex items-start gap-3 p-3 rounded-xl bg-slate-50"
                   >
-                    <div className="h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400 mt-2" />
+                    <div className="h-2 w-2 rounded-full bg-[#2563EB] mt-2" />
                     <div className="flex-1">
-                      <p className="text-sm text-grey-dark dark:text-gray-200">
+                      <p className="text-sm text-[#334155]">
                         {activity.message}
                       </p>
-                      <p className="text-xs text-grey-medium dark:text-gray-400 mt-1">
+                      <p className="text-xs text-[#64748B] mt-1">
                         {activity.time}
                       </p>
                     </div>
@@ -243,7 +238,7 @@ export default async function UserDashboardPage() {
 
             {/* Action buttons — growth-focused */}
             <Card className="p-6">
-              <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
+              <h3 className="text-lg font-semibold text-[#0F172A] mb-4">
                 Next steps
               </h3>
               <div className="space-y-3">

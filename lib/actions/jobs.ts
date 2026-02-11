@@ -50,6 +50,7 @@ export async function createJob(input: CreateJobInput) {
   }
 
   revalidatePath('/dashboard')
+  revalidatePath('/profile')
   return job
 }
 

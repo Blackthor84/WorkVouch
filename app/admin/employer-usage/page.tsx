@@ -31,12 +31,12 @@ export default async function AdminEmployerUsagePage() {
         </Link>
       </div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white mb-2">Employer Usage</h1>
-        <p className="text-slate-300">
+        <h1 className="text-3xl font-bold text-[#0F172A] mb-2">Employer Usage</h1>
+        <p className="text-[#334155]">
           Current plan, Stripe IDs, usage this cycle, overages. Manual override available. Superadmin: override tier, billing cycle, reset usage, add/remove credit.
         </p>
       </div>
-      <Card className="p-6 bg-[#111827] border border-slate-700">
+      <Card className="p-6 bg-white border border-[#E2E8F0]">
         <EmployerUsageClient isSuperAdmin={isSuperAdmin} />
       </Card>
     </div>

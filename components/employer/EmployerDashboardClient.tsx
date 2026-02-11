@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +38,8 @@ interface EmployerDashboardClientProps {
   /** When true, fetch from sandbox employer-dashboard APIs instead of production. */
   sandboxMode?: boolean;
   sandboxId?: string | null;
+  /** Show "Account created successfully" confirmation (e.g. after signup). */
+  showWelcome?: boolean;
 }
 
 export function EmployerDashboardClient({
@@ -46,7 +49,10 @@ export function EmployerDashboardClient({
   employerIndustry,
   sandboxMode = false,
   sandboxId = null,
+  showWelcome = false,
 }: EmployerDashboardClientProps) {
+  const router = useRouter();
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const vertical = getVerticalConfig(employerIndustry ?? undefined);
   const apiBaseUrl = sandboxMode && sandboxId
     ? `/api/admin/sandbox-v2/employer-dashboard`
@@ -207,6 +213,26 @@ export function EmployerDashboardClient({
       )}
 
       <div className="max-w-7xl mx-auto space-y-6">
+        {showWelcome && !welcomeDismissed && (
+          <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4 flex items-center justify-between gap-4">
+            <p className="font-semibold text-green-800 dark:text-green-200">Account created successfully. You're all set.</p>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  setWelcomeDismissed(true);
+                  router.replace("/employer/dashboard", { scroll: false });
+                }}
+              >
+                Dismiss
+              </Button>
+              <Button size="sm" asChild>
+                <Link href="/employer/profile">Complete company profile</Link>
+              </Button>
+            </div>
+          </div>
+        )}
         {isFreePlan && <UpgradeBanner />}
 
         {/* Header */}

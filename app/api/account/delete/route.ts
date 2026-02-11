@@ -1,84 +1,50 @@
-/**
- * POST /api/account/delete
- * User-initiated soft delete. Requires auth.
- * Sets is_deleted = true, deleted_at = now(), revokes effective session, logs audit.
- * Data purged after 30 days by CRON /api/cron/purge-deleted-users.
- */
-
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
-export const dynamic = "force-dynamic";
+/**
+ * POST /api/account/delete
+ * Deletes the current user's account (soft-delete profile + remove auth user).
+ * Required for App Store / Google Play.
+ */
+export async function POST() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-export async function POST(req: NextRequest) {
+  const userId = session.user.id as string;
+
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const supabase = getServiceRoleClient();
+    const supabaseAny = supabase as any;
 
-    const userId = session.user.id;
-    const sb = getSupabaseServer();
-
-    const { data: profile } = await sb
+    // 1) Soft-delete profile (deleted_at)
+    const { error: profileError } = await supabaseAny
       .from("profiles")
-      .select("id, is_deleted, deleted_at, status")
-      .eq("id", userId)
-      .single();
-
-    if (!profile) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-    }
-
-    if ((profile as { is_deleted?: boolean }).is_deleted) {
-      return NextResponse.json(
-        { error: "Account is already marked for deletion" },
-        { status: 400 }
-      );
-    }
-
-    const now = new Date().toISOString();
-    const updatePayload: Record<string, unknown> = {
-      is_deleted: true,
-      deleted_at: now,
-    };
-    const { data: statusCol } = await sb
-      .from("profiles")
-      .select("status")
-      .eq("id", userId)
-      .single();
-    if (statusCol && "status" in statusCol) {
-      updatePayload.status = "deleted";
-    }
-
-    const { error: updateError } = await sb
-      .from("profiles")
-      .update(updatePayload)
+      .update({ deleted_at: new Date().toISOString() })
       .eq("id", userId);
 
-    if (updateError) {
-      console.error("Account delete update error:", updateError);
+    if (profileError) {
+      console.error("[account/delete] Profile soft-delete error:", profileError);
+    }
+
+    // 2) Delete auth user (Supabase Admin API)
+    const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+    if (authError) {
+      console.error("[account/delete] Auth delete error:", authError);
       return NextResponse.json(
-        { error: "Failed to update account" },
+        { error: "Failed to delete account. Please contact support." },
         { status: 500 }
       );
     }
 
-    await sb.from("audit_logs").insert({
-      entity_type: "account",
-      entity_id: userId,
-      changed_by: userId,
-      new_value: { is_deleted: true, deleted_at: now },
-      change_reason: "user_initiated_delete",
-    });
-
     return NextResponse.json({ success: true });
-  } catch (e) {
-    console.error("Account delete error:", e);
+  } catch (err) {
+    console.error("[account/delete]", err);
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Internal error" },
+      { error: "An error occurred. Please try again or contact support." },
       { status: 500 }
     );
   }

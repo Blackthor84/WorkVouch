@@ -849,49 +849,31 @@ export function SandboxV2Client() {
   const industryModifiers: string[] = isAdmin ? ["Construction (+3 Risk Adjustment)", "Education (+2 Stability Boost)"] : [];
   const showDeltaBadge = showDeltaUntil > 0 && lastScoreDelta != null;
 
-  const inputClass = "rounded border border-slate-600 bg-slate-800 text-white placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
+  const inputClass = "rounded border border-[#E2E8F0] bg-white text-[#0F172A] placeholder-[#94A3B8] focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]";
 
   return (
-    <div className="sandbox-contrast min-h-screen bg-[#0b1220]">
-      <style jsx global>{`
-        .sandbox-contrast * {
-          color: #ffffff !important;
-        }
-
-        .sandbox-contrast input,
-        .sandbox-contrast select,
-        .sandbox-contrast textarea {
-          background-color: #1e293b !important;
-          color: #ffffff !important;
-          border: 1px solid #475569 !important;
-        }
-
-        .sandbox-contrast input::placeholder,
-        .sandbox-contrast textarea::placeholder {
-          color: #cbd5e1 !important;
-        }
-      `}</style>
-      <header className="sticky top-0 z-10 border-b border-slate-700 bg-[#0b1220] backdrop-blur-sm">
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <header className="sticky top-0 z-10 border-b border-[#E2E8F0] bg-white shadow-sm">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-6 py-4">
-          <span className="text-xl font-bold text-white">Simulation Command Center</span>
+          <span className="text-xl font-bold text-[#0F172A]>Simulation Command Center</span>
           <div className="flex items-center gap-4">
             <span
               className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
                 sessionStatus === "active"
-                  ? "bg-emerald-600/30 text-emerald-300"
+                  ? "bg-emerald-100 text-emerald-800"
                   : sessionStatus === "expired"
-                    ? "bg-amber-500/30 text-amber-300"
-                    : "bg-slate-700 text-white"
+                    ? "bg-amber-100 text-amber-800"
+                    : "bg-slate-200 text-[#334155]"
               }`}
             >
               {sessionStatus === "active" ? "Session active" : sessionStatus === "expired" ? "Session expired" : "No session"}
             </span>
-            <label className="flex items-center gap-2 text-sm text-white">
+            <label className="flex items-center gap-2 text-sm text-[#334155]">
               <input type="checkbox" checked={executiveMode} onChange={(e) => setExecutiveMode(e.target.checked)} className="rounded" />
               Executive Mode
             </label>
             <Link href="/admin">
-              <Button variant="ghost" size="sm" className="text-white hover:text-white hover:bg-[#0b1220]">← Admin</Button>
+              <Button variant="ghost" size="sm">← Admin</Button>
             </Link>
           </div>
         </div>
@@ -999,16 +981,16 @@ export function SandboxV2Client() {
           {!currentSandboxId && (
             <div className="rounded-xl border border-amber-600 bg-amber-500/10 px-6 py-6 text-amber-100">
               <p className="font-semibold">No sandbox selected</p>
-              <p className="mt-2 text-sm text-white">Select or create a session in the left panel to run simulations.</p>
+              <p className="mt-2 text-sm text-[#0F172A]">Select or create a session in the left panel to run simulations.</p>
             </div>
           )}
 
           {currentSandboxId && !dashboardData && (
-            <div className="rounded-xl border border-slate-700 bg-[#0b1220] px-6 py-12 text-center text-white">Loading...</div>
+            <div className="rounded-xl border border-[#E2E8F0] bg-white px-6 py-12 text-center text-[#0F172A]">Loading...</div>
           )}
 
           {viewAs === "Employer" && currentSandboxId && dashboardData && (
-            <div className="rounded-xl border border-slate-700 bg-[#0b1220] p-6 overflow-auto max-h-[80vh]">
+            <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 overflow-auto max-h-[80vh]">
               <EmployerDashboardClient
                 userRole="admin"
                 planTier={employers[0]?.plan_tier ?? "pro"}
@@ -1042,15 +1024,15 @@ export function SandboxV2Client() {
             const vertical = getVerticalConfig(employerIndustry);
             return vertical ? (
               <div className="mt-6 rounded-xl border border-blue-500/40 bg-slate-800 p-4">
-                <h2 className="text-lg font-semibold text-white">
+                <h2 className="text-lg font-semibold text-[#0F172A]">
                   {vertical.label}
                 </h2>
-                <p className="mt-2 text-sm text-slate-200">
+                <p className="mt-2 text-sm text-[#334155]">
                   {vertical.description}
                 </p>
                 <div className="mt-4">
                   <p className="font-medium text-blue-400">Highlighted Metrics</p>
-                  <ul className="mt-1 list-disc pl-6 text-sm text-white">
+                  <ul className="mt-1 list-disc pl-6 text-sm text-[#0F172A]">
                     {vertical.highlightMetrics.map((m) => (
                       <li key={m}>{m}</li>
                     ))}
@@ -1058,7 +1040,7 @@ export function SandboxV2Client() {
                 </div>
                 <div className="mt-4">
                   <p className="font-medium text-red-400">Risk Signals</p>
-                  <ul className="mt-1 list-disc pl-6 text-sm text-white">
+                  <ul className="mt-1 list-disc pl-6 text-sm text-[#0F172A]">
                     {vertical.riskSignals.map((r) => (
                       <li key={r}>{r}</li>
                     ))}
@@ -1069,39 +1051,39 @@ export function SandboxV2Client() {
           })()}
 
           {viewAs !== "Employer" && currentSandboxId && executiveMode && (
-            <section className="rounded-xl border border-slate-700 bg-[#0b1220] p-6 shadow-xl">
+            <section className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-xl">
               <h2 className="text-xl font-bold tracking-wide">Executive Dashboard</h2>
-              <div className="mt-4 border-t border-slate-700 pt-4">
+              <div className="mt-4 border-t border-[#E2E8F0] pt-4">
                 {loading ? (
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <div key={i} className="h-24 animate-pulse rounded-xl border border-slate-700 bg-[#0b1220]" />
+                      <div key={i} className="h-24 animate-pulse rounded-xl border border-[#E2E8F0] bg-white" />
                     ))}
                   </div>
                 ) : exec ? (
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-                    <div className="rounded-xl border border-slate-700 bg-[#0b1220] p-4 text-white">
-                      <p className="text-xs font-medium uppercase tracking-wide text-white">Total Sandbox MRR</p>
+                    <div className="rounded-xl border border-[#E2E8F0] bg-white p-4 text-[#0F172A]">
+                      <p className="text-xs font-medium uppercase tracking-wide text-[#0F172A]">Total Sandbox MRR</p>
                       <p className="mt-1 text-2xl font-bold text-blue-400">{rev?.mrr != null ? rev.mrr : "—"}</p>
                     </div>
-                    <div className="rounded-xl border border-slate-700 bg-[#0b1220] p-4 text-white">
-                      <p className="text-xs font-medium uppercase tracking-wide text-white">Growth %</p>
+                    <div className="rounded-xl border border-[#E2E8F0] bg-white p-4 text-[#0F172A]">
+                      <p className="text-xs font-medium uppercase tracking-wide text-[#0F172A]">Growth %</p>
                       <p className="mt-1 text-2xl font-bold text-blue-400">—</p>
                     </div>
-                    <div className="rounded-xl border border-slate-700 bg-[#0b1220] p-4 text-white">
-                      <p className="text-xs font-medium uppercase tracking-wide text-white">Avg Profile Strength</p>
+                    <div className="rounded-xl border border-[#E2E8F0] bg-white p-4 text-[#0F172A]">
+                      <p className="text-xs font-medium uppercase tracking-wide text-[#0F172A]">Avg Profile Strength</p>
                       <p className="mt-1 text-2xl font-bold text-blue-400">{exec.avgProfileStrength != null ? exec.avgProfileStrength.toFixed(1) : "—"}</p>
                     </div>
-                    <div className="rounded-xl border border-slate-700 bg-[#0b1220] p-4 text-white">
-                      <p className="text-xs font-medium uppercase tracking-wide text-white">Avg Hiring Confidence</p>
+                    <div className="rounded-xl border border-[#E2E8F0] bg-white p-4 text-[#0F172A]">
+                      <p className="text-xs font-medium uppercase tracking-wide text-[#0F172A]">Avg Hiring Confidence</p>
                       <p className="mt-1 text-2xl font-bold text-blue-400">{exec.avgHiringConfidence != null ? exec.avgHiringConfidence.toFixed(1) : "—"}</p>
                     </div>
-                    <div className="rounded-xl border border-slate-700 bg-[#0b1220] p-4 text-white">
-                      <p className="text-xs font-medium uppercase tracking-wide text-white">Ad ROI</p>
+                    <div className="rounded-xl border border-[#E2E8F0] bg-white p-4 text-[#0F172A]">
+                      <p className="text-xs font-medium uppercase tracking-wide text-[#0F172A]">Ad ROI</p>
                       <p className="mt-1 text-2xl font-bold text-blue-400">{exec.adRoi != null ? exec.adRoi.toFixed(2) : "—"}</p>
                     </div>
-                    <div className="rounded-xl border border-slate-700 bg-[#0b1220] p-4 text-white">
-                      <p className="text-xs font-medium uppercase tracking-wide text-white">Data Density Index</p>
+                    <div className="rounded-xl border border-[#E2E8F0] bg-white p-4 text-[#0F172A]">
+                      <p className="text-xs font-medium uppercase tracking-wide text-[#0F172A]">Data Density Index</p>
                       <p className="mt-1 text-2xl font-bold text-blue-400">{exec.dataDensityIndex != null ? exec.dataDensityIndex : "—"}</p>
                     </div>
                   </div>
@@ -1112,17 +1094,17 @@ export function SandboxV2Client() {
 
           {viewAs !== "Employer" && (
           <div className="space-y-4">
-        <details className="group rounded-xl border border-slate-700 bg-[#0b1220] overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0b1220] hover:bg-slate-700">
+        <details className="group rounded-xl border border-[#E2E8F0] bg-white overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-[#0F172A] bg-white hover:bg-slate-50">
             <span>Auto Population Templates</span>
-            <span className="text-white transition group-open:rotate-180">▼</span>
+            <span className="text-[#0F172A] transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-700 px-4 py-4 bg-[#0b1220]">
+          <div className="border-t border-[#E2E8F0] px-4 py-4 bg-white">
             <h3 className="text-xl font-bold tracking-wide">Templates</h3>
-            <p className="mt-1 text-sm text-white">One-click deploy: employees, reviews, intelligence, revenue, ads.</p>
+            <p className="mt-1 text-sm text-[#0F172A]">One-click deploy: employees, reviews, intelligence, revenue, ads.</p>
             <div className="mt-4 flex flex-wrap items-end gap-4">
               <div>
-                <Label className="font-medium text-white">Select Template</Label>
+                <Label className="font-medium text-[#0F172A]">Select Template</Label>
                 <select value={selectedTemplateKey} onChange={(e) => setSelectedTemplateKey(e.target.value)} className={`mt-1 px-3 py-2 ${inputClass}`}>
                 <option value="">—</option>
                 {templates.map((t) => (
@@ -1131,14 +1113,14 @@ export function SandboxV2Client() {
               </select>
             </div>
             <div>
-              <Label className="font-medium text-white">Override Employee Count (optional)</Label>
+              <Label className="font-medium text-[#0F172A]">Override Employee Count (optional)</Label>
               <Input type="number" min={1} value={templateEmployeeOverride} onChange={(e) => setTemplateEmployeeOverride(e.target.value)} placeholder="Default" className={`mt-1 w-28 ${inputClass}`} />
             </div>
             <Button onClick={handlePreset}>Load Template</Button>
             <div style={{ position: "relative", zIndex: 1000 }}>
               <button
                 onClick={handleDeployTemplate}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
+                className="px-4 py-2 bg-[#2563EB] text-white rounded"
               >
                 Deploy Template
               </button>
@@ -1146,11 +1128,11 @@ export function SandboxV2Client() {
           </div>
           {deployProgress.length > 0 && (
             <div className="mt-4 space-y-1">
-              <p className="text-sm font-medium text-white">Progress</p>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-[#0b1220]">
+              <p className="text-sm font-medium text-[#0F172A]">Progress</p>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
                 <div className="h-full bg-cyan-500 transition-all" style={{ width: deployProgress.length >= 5 ? "100%" : `${(deployProgress.length / 5) * 100}%` }} />
               </div>
-              <ul className="mt-2 space-y-1 text-sm text-white">
+              <ul className="mt-2 space-y-1 text-sm text-[#0F172A]">
                 {deployProgress.map((line, i) => (
                   <li key={i}>{line}</li>
                 ))}
@@ -1159,35 +1141,35 @@ export function SandboxV2Client() {
           )}
           {currentSandboxId && dashboardData !== null && dashboardData.sandbox_metrics && (
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-xl border border-cyan-600/40 bg-[#0b1220]/60 p-3">
-                <p className="text-xs uppercase tracking-wide text-white">Avg Profile Strength</p>
-                <p className="text-2xl font-bold text-cyan-400">{dashboardData.sandbox_metrics.avg_profile_strength != null ? Number(dashboardData.sandbox_metrics.avg_profile_strength).toFixed(1) : "—"}</p>
+              <div className="rounded-xl border border-[#E2E8F0] bg-slate-50 p-3">
+                <p className="text-xs uppercase tracking-wide text-[#0F172A]">Avg Profile Strength</p>
+                <p className="text-2xl font-bold text-[#0F172A]">{dashboardData.sandbox_metrics.avg_profile_strength != null ? Number(dashboardData.sandbox_metrics.avg_profile_strength).toFixed(1) : "—"}</p>
               </div>
-              <div className="rounded-xl border border-cyan-600/40 bg-[#0b1220]/60 p-3">
-                <p className="text-xs uppercase tracking-wide text-white">Hiring Confidence</p>
-                <p className="text-2xl font-bold text-cyan-400">{dashboardData.sandbox_metrics.avg_hiring_confidence != null ? Number(dashboardData.sandbox_metrics.avg_hiring_confidence).toFixed(1) : "—"}</p>
+              <div className="rounded-xl border border-[#E2E8F0] bg-slate-50 p-3">
+                <p className="text-xs uppercase tracking-wide text-[#0F172A]">Hiring Confidence</p>
+                <p className="text-2xl font-bold text-[#0F172A]">{dashboardData.sandbox_metrics.avg_hiring_confidence != null ? Number(dashboardData.sandbox_metrics.avg_hiring_confidence).toFixed(1) : "—"}</p>
               </div>
-              <div className="rounded-xl border border-cyan-600/40 bg-[#0b1220]/60 p-3">
-                <p className="text-xs uppercase tracking-wide text-white">MRR</p>
-                <p className="text-2xl font-bold text-cyan-400">{dashboardData.sandbox_metrics.mrr != null ? Number(dashboardData.sandbox_metrics.mrr) : "—"}</p>
+              <div className="rounded-xl border border-[#E2E8F0] bg-slate-50 p-3">
+                <p className="text-xs uppercase tracking-wide text-[#0F172A]">MRR</p>
+                <p className="text-2xl font-bold text-[#0F172A]">{dashboardData.sandbox_metrics.mrr != null ? Number(dashboardData.sandbox_metrics.mrr) : "—"}</p>
               </div>
-              <div className="rounded-xl border border-cyan-600/40 bg-[#0b1220]/60 p-3">
-                <p className="text-xs uppercase tracking-wide text-white">Ad ROI</p>
-                <p className="text-2xl font-bold text-cyan-400">{dashboardData.sandbox_metrics.ad_roi != null ? Number(dashboardData.sandbox_metrics.ad_roi).toFixed(2) : "—"}</p>
+              <div className="rounded-xl border border-[#E2E8F0] bg-slate-50 p-3">
+                <p className="text-xs uppercase tracking-wide text-[#0F172A]">Ad ROI</p>
+                <p className="text-2xl font-bold text-[#0F172A]">{dashboardData.sandbox_metrics.ad_roi != null ? Number(dashboardData.sandbox_metrics.ad_roi).toFixed(2) : "—"}</p>
               </div>
             </div>
           )}
           </div>
         </details>
 
-        <details className="group rounded-xl border border-slate-700 bg-[#0b1220] overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0b1220] hover:bg-slate-700">
+        <details className="group rounded-xl border border-[#E2E8F0] bg-white overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-[#0F172A] bg-white hover:bg-slate-50">
             <span>Preset Demo Modes</span>
-            <span className="text-white transition group-open:rotate-180">▼</span>
+            <span className="text-[#0F172A] transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-700 px-4 py-4 bg-[#0b1220]">
-            <h3 className="text-base font-bold text-white tracking-wide">Demo Modes</h3>
-            <p className="mt-1 text-sm text-white">Alter display emphasis without regenerating data.</p>
+          <div className="border-t border-[#E2E8F0] px-4 py-4 bg-white">
+            <h3 className="text-base font-bold text-[#0F172A] tracking-wide">Demo Modes</h3>
+            <p className="mt-1 text-sm text-[#0F172A]">Alter display emphasis without regenerating data.</p>
             <div className="mt-4 flex flex-wrap gap-2">
               {[
                 { key: "boardroom", label: "Boardroom Mode" },
@@ -1196,69 +1178,69 @@ export function SandboxV2Client() {
                 { key: "investor_pitch", label: "Investor Pitch Mode" },
                 { key: "ad_explosion", label: "Ad Explosion Mode" },
               ].map(({ key, label }) => (
-                <Button key={key} variant={demoMode === key ? "primary" : "secondary"} size="sm" onClick={() => setDemoModePreset(demoMode === key ? null : key)} disabled={!currentSandboxId || demoModeLoading} className={demoMode === key ? "bg-blue-600 hover:bg-blue-500" : "bg-slate-700 text-white hover:bg-slate-600"}>
+                <Button key={key} variant={demoMode === key ? "primary" : "secondary"} size="sm" onClick={() => setDemoModePreset(demoMode === key ? null : key)} disabled={!currentSandboxId || demoModeLoading} className={demoMode === key ? "bg-[#2563EB] hover:bg-[#1D4ED8]" : ""}>
                   {label}
                 </Button>
               ))}
-              {demoMode && <span className="self-center text-sm text-white">Active: {demoMode}</span>}
+              {demoMode && <span className="self-center text-sm text-[#0F172A]">Active: {demoMode}</span>}
             </div>
           </div>
         </details>
 
-        <details className="group rounded-xl border border-slate-700 bg-[#0b1220] overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0b1220] hover:bg-slate-700">
+        <details className="group rounded-xl border border-[#E2E8F0] bg-white overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-[#0F172A] bg-white hover:bg-slate-50">
             <span>Feature Toggles</span>
-            <span className="text-white transition group-open:rotate-180">▼</span>
+            <span className="text-[#0F172A] transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-700 px-4 py-4 bg-[#0b1220]">
+          <div className="border-t border-[#E2E8F0] px-4 py-4 bg-white">
             <h3 className="text-xl font-bold tracking-wide">Feature Toggles</h3>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button variant="secondary" size="sm" onClick={syncFeatures} disabled={syncFeaturesLoading} className="bg-[#0b1220] text-white hover:bg-slate-700">{syncFeaturesLoading ? "…" : "Sync from production"}</Button>
+              <Button variant="secondary" size="sm" onClick={syncFeatures} disabled={syncFeaturesLoading} className="bg-white text-[#0F172A] hover:bg-slate-50">{syncFeaturesLoading ? "…" : "Sync from production"}</Button>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {features.map((f) => (
-                <label key={f.id} className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-[#0b1220] px-3 py-2 hover:bg-slate-700">
+                <label key={f.id} className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 hover:bg-slate-50">
                   <input type="checkbox" checked={overrides[f.feature_key] ?? f.is_enabled} onChange={(e) => currentSandboxId && setFeatureOverride(f.feature_key, e.target.checked)} className="rounded" />
-                  <span className="text-sm text-white">{f.feature_key}</span>
+                  <span className="text-sm text-[#0F172A]">{f.feature_key}</span>
                 </label>
               ))}
-              {features.length === 0 && <p className="text-sm text-white">Sync from production to see flags.</p>}
+              {features.length === 0 && <p className="text-sm text-[#0F172A]">Sync from production to see flags.</p>}
             </div>
-            <div className="mt-4 rounded-xl border border-slate-700 bg-[#0b1220] p-4">
-              <h3 className="text-base font-bold text-white tracking-wide">View-As Mode</h3>
-              <p className="mt-1 text-sm text-white">Simulate plan gating, feature access (sandbox-only).</p>
+            <div className="mt-4 rounded-xl border border-[#E2E8F0] bg-white p-4">
+              <h3 className="text-base font-bold text-[#0F172A] tracking-wide">View-As Mode</h3>
+              <p className="mt-1 text-sm text-[#0F172A]">Simulate plan gating, feature access (sandbox-only).</p>
               <div className="mt-3 flex gap-2">
                 {(["Admin", "Employer", "Employee"] as const).map((mode) => (
-                  <Button key={mode} variant={viewAs === mode ? "primary" : "secondary"} onClick={() => setViewAs(mode)} className={viewAs === mode ? "bg-blue-600 hover:bg-blue-500" : "bg-slate-700 text-white hover:bg-slate-600"}>View as {mode}</Button>
+                  <Button key={mode} variant={viewAs === mode ? "primary" : "secondary"} onClick={() => setViewAs(mode)} className={viewAs === mode ? "bg-[#2563EB] hover:bg-[#1D4ED8]" : ""}>View as {mode}</Button>
                 ))}
               </div>
-              <p className="mt-2 text-sm text-white">Current: {viewAs}</p>
+              <p className="mt-2 text-sm text-[#0F172A]">Current: {viewAs}</p>
             </div>
           </div>
         </details>
 
-        <details className="group rounded-xl border border-slate-700 bg-[#0b1220] overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0b1220] hover:bg-slate-700">
+        <details className="group rounded-xl border border-[#E2E8F0] bg-white overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-[#0F172A] bg-white hover:bg-slate-50">
             <span>Actions</span>
-            <span className="text-white transition group-open:rotate-180">▼</span>
+            <span className="text-[#0F172A] transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-700 px-4 py-4 bg-[#0b1220]">
+          <div className="border-t border-[#E2E8F0] px-4 py-4 bg-white">
             <Button onClick={runCleanup} disabled={loading || cleanupLoading} className="w-full bg-red-600 py-2 font-semibold text-white hover:bg-red-500">
               {cleanupLoading ? "…" : "Cleanup expired sessions"}
             </Button>
           </div>
         </details>
 
-        <details className="group rounded-xl border border-slate-700 bg-[#0b1220] overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-white bg-[#0b1220] hover:bg-slate-700">
+        <details className="group rounded-xl border border-[#E2E8F0] bg-white overflow-hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-[#0F172A] bg-white hover:bg-slate-50">
             <span>Command Console</span>
-            <span className="text-white transition group-open:rotate-180">▼</span>
+            <span className="text-[#0F172A] transition group-open:rotate-180">▼</span>
           </summary>
-          <div className="border-t border-slate-700 px-4 py-4 bg-[#0b1220]">
-            <div className="max-h-72 overflow-y-auto rounded-lg border border-slate-700 bg-[#0b1220] p-4 font-mono text-sm text-white">
-              {consoleLogs.length === 0 && <p className="text-white">No output yet.</p>}
+          <div className="border-t border-[#E2E8F0] px-4 py-4 bg-white">
+            <div className="max-h-72 overflow-y-auto rounded-lg border border-[#E2E8F0] bg-white p-4 font-mono text-sm text-[#0F172A]">
+              {consoleLogs.length === 0 && <p className="text-[#0F172A]">No output yet.</p>}
               {consoleLogs.map((line, i) => (
-                <p key={i} className={line.startsWith("[ERR]") ? "text-red-400" : line.startsWith("[OK]") ? "text-emerald-400" : "text-white"}>{line}</p>
+                <p key={i} className={line.startsWith("[ERR]") ? "text-red-400" : line.startsWith("[OK]") ? "text-emerald-400" : "text-[#0F172A]"}>{line}</p>
               ))}
             </div>
           </div>

@@ -12,10 +12,16 @@ import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export default async function EmployerDashboardPage() {
+export default async function EmployerDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ welcome?: string }>;
+}) {
   const headersList = await headers();
   const isSandbox = getAppModeFromHeaders(headersList) === "sandbox";
   const sandboxId = getSandboxIdFromHeaders(headersList);
+  const params = await searchParams;
+  const showWelcome = params.welcome === "1";
 
   if (!isSandbox) {
     const user = await getCurrentUser();
@@ -47,13 +53,14 @@ export default async function EmployerDashboardPage() {
         <EmployerSidebar />
         <div className="flex-1 flex flex-col">
           <EmployerHeader />
-          <main className="flex-1 flex flex-col px-6 py-8 md:py-12 lg:py-16">
+          <main className="flex-1 flex flex-col px-4 py-8 md:px-6 md:py-12 lg:py-16 min-w-0 overflow-x-hidden">
             <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
               <EmployerDashboardClient
                 userRole={userRole}
                 planTier={planTier}
                 employerId={employerId}
                 employerIndustry={employerIndustry}
+                showWelcome={showWelcome}
               />
             </div>
           </main>
@@ -81,7 +88,7 @@ export default async function EmployerDashboardPage() {
       <EmployerSidebar />
       <div className="flex-1 flex flex-col">
         <EmployerHeader />
-        <main className="flex-1 flex flex-col px-6 py-8 md:py-12 lg:py-16">
+        <main className="flex-1 flex flex-col px-4 py-8 md:px-6 md:py-12 lg:py-16 min-w-0 overflow-x-hidden">
           <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
             <EmployerDashboardClient
               userRole="employer"

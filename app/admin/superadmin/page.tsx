@@ -20,16 +20,16 @@ export default async function SuperAdminPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-white mb-2">Superadmin Control Panel</h1>
-          <p className="text-slate-300">Full system access and management</p>
+          <h1 className="text-3xl font-bold text-[#0F172A] mb-2">Superadmin Control Panel</h1>
+          <p className="text-[#334155]">Full system access and management</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-red-500 bg-[#111827] border-slate-700">
+          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-red-500 bg-white border-[#E2E8F0]">
             <Link href="/admin/signups" className="block">
-              <UserGroupIcon className="h-10 w-10 text-red-400 mb-4" />
-              <h2 className="text-xl font-semibold text-white mb-2">All Signups</h2>
-              <p className="text-sm text-slate-300">
+              <UserGroupIcon className="h-10 w-10 text-red-600 mb-4" />
+              <h2 className="text-xl font-semibold text-[#0F172A] mb-2">All Signups</h2>
+              <p className="text-sm text-[#334155]">
                 View complete list of all user signups and accounts
               </p>
             </Link>
@@ -38,7 +38,7 @@ export default async function SuperAdminPage() {
           <Card className="p-6 hover:shadow-lg transition-shadow bg-[#111827] border border-slate-700">
             <Link href="/admin/users" className="block">
               <UserGroupIcon className="h-10 w-10 text-blue-600 dark:text-blue-400 mb-4" />
-              <h2 className="text-xl font-semibold text-white mb-2">
+              <h2 className="text-xl font-semibold text-[#0F172A] mb-2">
                 Manage Users
               </h2>
               <p className="text-sm text-slate-300">
@@ -47,25 +47,25 @@ export default async function SuperAdminPage() {
             </Link>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-shadow bg-[#111827] border border-slate-700">
+          <Card className="p-6 hover:shadow-lg transition-shadow bg-white border border-[#E2E8F0]">
             <Link href="/admin" className="block">
-              <ShieldCheckIcon className="h-10 w-10 text-green-600 dark:text-green-400 mb-4" />
-              <h2 className="text-xl font-semibold text-white mb-2">
+              <ShieldCheckIcon className="h-10 w-10 text-green-600 mb-4" />
+              <h2 className="text-xl font-semibold text-[#0F172A] mb-2">
                 Admin Dashboard
               </h2>
-              <p className="text-sm text-slate-300">
+              <p className="text-sm text-[#334155]">
                 Standard admin functions and controls
               </p>
             </Link>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-shadow bg-[#111827] border border-slate-700">
+          <Card className="p-6 hover:shadow-lg transition-shadow bg-white border border-[#E2E8F0]">
             <Link href="/employer/dashboard" className="block">
-              <ChartBarIcon className="h-10 w-10 text-purple-600 dark:text-purple-400 mb-4" />
-              <h2 className="text-xl font-semibold text-white mb-2">
+              <ChartBarIcon className="h-10 w-10 text-purple-600 mb-4" />
+              <h2 className="text-xl font-semibold text-[#0F172A] mb-2">
                 Employer Dashboard
               </h2>
-              <p className="text-sm text-slate-300">
+              <p className="text-sm text-[#334155]">
                 Access employer features and tools
               </p>
             </Link>
@@ -73,22 +73,22 @@ export default async function SuperAdminPage() {
 
           <Card className="p-6 hover:shadow-lg transition-shadow bg-[#111827] border border-slate-700">
             <Link href="/dashboard" className="block">
-              <Cog6ToothIcon className="h-10 w-10 text-slate-300 mb-4" />
-              <h2 className="text-xl font-semibold text-white mb-2">
+              <Cog6ToothIcon className="h-10 w-10 text-[#64748B] mb-4" />
+              <h2 className="text-xl font-semibold text-[#0F172A] mb-2">
                 User Dashboard
               </h2>
-              <p className="text-sm text-slate-300">
+              <p className="text-sm text-[#334155]">
                 Standard user dashboard and features
               </p>
             </Link>
           </Card>
         </div>
 
-        <div className="mt-8 p-6 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-          <h3 className="text-lg font-semibold text-red-900 dark:text-red-200 mb-2">
+        <div className="mt-8 p-6 bg-red-50 rounded-lg border border-red-200">
+          <h3 className="text-lg font-semibold text-red-900 mb-2">
             Superadmin Access
           </h3>
-          <p className="text-sm text-red-800 dark:text-red-300">
+          <p className="text-sm text-red-800">
             As a superadmin, you have full access to all features, screens, and
             data in the system. You can view all signups, manage users, access
             employer features, and perform all administrative functions.

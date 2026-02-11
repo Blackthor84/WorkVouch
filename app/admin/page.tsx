@@ -23,12 +23,12 @@ function MetricCard({
 }) {
   const content = (
     <div className="p-4">
-      <p className="text-slate-200 text-sm font-medium">{label}</p>
-      <p className="text-white font-bold text-2xl mt-1">{value}</p>
+      <p className="text-[#64748B] text-sm font-medium">{label}</p>
+      <p className="text-[#0F172A] font-bold text-2xl mt-1">{value}</p>
     </div>
   );
   const cardClass =
-    "bg-[#111827] border border-slate-700 rounded-2xl shadow-lg hover:shadow-xl transition-shadow";
+    "bg-white border border-[#E2E8F0] rounded-2xl shadow-lg hover:shadow-xl transition-shadow";
   if (href) {
     return (
       <Link href={href} className={`block ${cardClass}`}>
@@ -51,10 +51,10 @@ function QuickActionCard({
   return (
     <Link
       href={href}
-      className="block p-4 bg-[#1f2937] border border-slate-600 rounded-xl hover:bg-[#374151] transition-colors"
+      className="block p-4 bg-white border border-[#E2E8F0] rounded-xl hover:shadow-md transition-shadow"
     >
-      <h3 className="font-semibold text-white">{title}</h3>
-      <p className="text-slate-300 text-sm mt-0.5">{description}</p>
+      <h3 className="font-semibold text-[#0F172A]">{title}</h3>
+      <p className="text-[#334155] text-sm mt-0.5">{description}</p>
     </Link>
   );
 }
@@ -111,15 +111,15 @@ export default async function AdminPanel() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Admin Overview</h1>
-        <p className="text-slate-300">
+        <h1 className="text-3xl font-bold text-[#0F172A] mb-2">Admin Overview</h1>
+        <p className="text-[#334155]">
           Command center: metrics, recent users, alerts, and quick actions. Use the sidebar for full navigation.
         </p>
       </div>
 
       {/* Overview metrics */}
       <section className="mb-8">
-        <h2 className="text-lg font-semibold text-white mb-4">Overview</h2>
+        <h2 className="text-lg font-semibold text-[#0F172A] mb-4">Overview</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard label="Total users" value={totalUsers.toLocaleString()} href="/admin/users" />
           <MetricCard label="Employers" value={totalEmployers.toLocaleString()} href="/admin/employer-usage" />
@@ -131,23 +131,23 @@ export default async function AdminPanel() {
       {/* Alerts */}
       {(pendingClaims > 0 || openDisputes > 0) && (
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-white mb-4">Alerts</h2>
+          <h2 className="text-lg font-semibold text-[#0F172A] mb-4">Alerts</h2>
           <div className="flex flex-wrap gap-3">
             {pendingClaims > 0 && (
               <Link
                 href="/admin/claim-requests"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/20 border border-amber-500/50 rounded-xl text-amber-200 hover:bg-amber-500/30 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-300 rounded-xl text-amber-800 hover:bg-amber-100 transition-colors"
               >
-                <span className="font-bold text-white">{pendingClaims}</span>
+                <span className="font-bold">{pendingClaims}</span>
                 <span>pending claim request{pendingClaims !== 1 ? "s" : ""}</span>
               </Link>
             )}
             {openDisputes > 0 && (
               <Link
                 href="/admin/disputes"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 border border-red-500/50 rounded-xl text-red-200 hover:bg-red-500/30 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-300 rounded-xl text-red-800 hover:bg-red-100 transition-colors"
               >
-                <span className="font-bold text-white">{openDisputes}</span>
+                <span className="font-bold">{openDisputes}</span>
                 <span>open dispute{openDisputes !== 1 ? "s" : ""}</span>
               </Link>
             )}
@@ -157,7 +157,7 @@ export default async function AdminPanel() {
 
       {/* Quick actions */}
       <section className="mb-8">
-        <h2 className="text-lg font-semibold text-white mb-4">Quick actions</h2>
+        <h2 className="text-lg font-semibold text-[#0F172A] mb-4">Quick actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <QuickActionCard href="/admin/users" title="Manage Users" description="View and manage all user accounts" />
           <QuickActionCard href="/admin/claim-requests" title="Claim Requests" description="Approve or reject company claims" />
@@ -167,18 +167,18 @@ export default async function AdminPanel() {
       </section>
 
       {/* Recent users */}
-      <Card className="p-6 bg-[#111827] border border-slate-700 rounded-2xl shadow-lg">
-        <h2 className="text-xl font-semibold text-white mb-4">
+      <Card className="p-6 bg-white border border-[#E2E8F0] rounded-2xl shadow-lg">
+        <h2 className="text-xl font-semibold text-[#0F172A] mb-4">
           Recent Users ({profiles?.length ?? 0})
         </h2>
         <div className="overflow-x-auto">
           <table className="min-w-full rounded-xl overflow-hidden">
-            <thead className="bg-[#1f2937]">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="py-3 px-4 text-left text-sm font-semibold text-slate-200">Email</th>
-                <th className="py-3 px-4 text-left text-sm font-semibold text-slate-200">Name</th>
-                <th className="py-3 px-4 text-left text-sm font-semibold text-slate-200">Roles</th>
-                <th className="py-3 px-4 text-left text-sm font-semibold text-slate-200">Joined</th>
+                <th className="py-3 px-4 text-left text-sm font-semibold text-[#0F172A]">Email</th>
+                <th className="py-3 px-4 text-left text-sm font-semibold text-[#0F172A]">Name</th>
+                <th className="py-3 px-4 text-left text-sm font-semibold text-[#0F172A]">Roles</th>
+                <th className="py-3 px-4 text-left text-sm font-semibold text-[#0F172A]">Joined</th>
               </tr>
             </thead>
             <tbody>
@@ -188,10 +188,10 @@ export default async function AdminPanel() {
                   return (
                     <tr
                       key={profile.id}
-                      className="border-b border-slate-700 hover:bg-[#1f2937] transition-colors"
+                      className="border-b border-[#E2E8F0] hover:bg-slate-50 transition-colors"
                     >
-                      <td className="py-3 px-4 text-sm text-slate-200">{profile.email || "N/A"}</td>
-                      <td className="py-3 px-4 text-sm text-slate-200">{profile.full_name || "N/A"}</td>
+                      <td className="py-3 px-4 text-sm text-[#334155]">{profile.email || "N/A"}</td>
+                      <td className="py-3 px-4 text-sm text-[#334155]">{profile.full_name || "N/A"}</td>
                       <td className="py-3 px-4 text-sm">
                         <div className="flex flex-wrap gap-1">
                           {userRolesList.length > 0 ? (
@@ -210,7 +210,7 @@ export default async function AdminPanel() {
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-sm text-slate-300">
+                      <td className="py-3 px-4 text-sm text-[#64748B]">
                         {new Date(profile.created_at).toLocaleDateString()}
                       </td>
                     </tr>
@@ -218,7 +218,7 @@ export default async function AdminPanel() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={4} className="py-8 text-center text-slate-300">
+                  <td colSpan={4} className="py-8 text-center text-[#64748B]">
                     No users found
                   </td>
                 </tr>
@@ -228,7 +228,7 @@ export default async function AdminPanel() {
         </div>
         <div className="mt-4">
           <Link href="/admin/users">
-            <Button variant="secondary" className="bg-[#1f2937] text-slate-200 border-slate-600 hover:bg-[#374151]">
+            <Button variant="secondary">
               View All Users
             </Button>
           </Link>

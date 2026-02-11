@@ -16,13 +16,13 @@ export default async function ContactPage() {
   console.log("  rsc:", rsc);
 
   return (
-    <div className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-background dark:bg-[#0D1117]">
-        <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20 max-w-4xl mx-auto">
+    <div className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-background dark:bg-[#0D1117] min-w-0 overflow-x-hidden">
+        <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20 max-w-4xl mx-auto min-w-0">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-grey-dark dark:text-gray-200 mb-4">
+            <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-4 md:text-4xl">
               Contact Us
             </h1>
-            <p className="text-lg text-grey-medium dark:text-gray-400">
+            <p className="text-base text-grey-medium dark:text-gray-400 md:text-lg">
               We&apos;re here to help. Get in touch with our team.
             </p>
             <p className="mt-2 text-grey-medium dark:text-gray-400">

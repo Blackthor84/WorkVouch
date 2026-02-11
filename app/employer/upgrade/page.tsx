@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,9 +10,15 @@ import Link from "next/link";
 import { EMPLOYER_PLANS, type EmployerPlanId } from "@/lib/pricing/employer-plans";
 
 export default function UpgradePage() {
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState<EmployerPlanId | null>(null);
   const [currentPlan, setCurrentPlan] = useState<string>("");
   const [loadingPlan, setLoadingPlan] = useState(true);
+  const preselectedPlan = (() => {
+    const t = searchParams.get("plan_tier")?.trim();
+    if (t && ["starter", "pro", "custom"].includes(t)) return t as EmployerPlanId;
+    return null;
+  })();
 
   useEffect(() => {
     async function fetchPlan() {
@@ -67,26 +74,41 @@ export default function UpgradePage() {
     (planId === "custom" && (cur === "custom" || cur === "enterprise"));
 
   return (
-    <div className="min-h-screen bg-background dark:bg-[#0D1117] p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-background dark:bg-[#0D1117] px-4 py-8 md:p-8 overflow-x-hidden">
+      <div className="max-w-4xl mx-auto min-w-0">
         <h1 className="text-3xl font-bold mb-2 text-grey-dark dark:text-gray-200">
           Choose your plan
         </h1>
-        <p className="text-grey-medium dark:text-gray-400 mb-8">
+        <p className="text-base text-grey-medium dark:text-gray-400 mb-8">
           Unlock verification reports and workforce intelligence.
         </p>
+
+        {preselectedPlan && preselectedPlan !== "custom" && (
+          <p className="mb-6 rounded-xl bg-blue-50 border border-[#E2E8F0] px-4 py-3 text-sm text-[#334155]">
+            You chose <strong>{preselectedPlan === "pro" ? "Pro" : "Starter"}</strong>. Click the button below that plan to continue to payment.
+          </p>
+        )}
 
         {loadingPlan ? (
           <Card className="p-8 text-center">
             <p className="text-grey-medium dark:text-gray-400">Loading...</p>
           </Card>
         ) : (
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {EMPLOYER_PLANS.map((plan) => {
               const current = isCurrentPlan(plan.id);
               const isCustom = plan.id === "custom";
+              const isPreselected = preselectedPlan === plan.id;
               return (
-                <Card key={plan.id} className="p-8 relative">
+                <Card
+                  key={plan.id}
+                  className={`p-8 relative transition-all duration-200 ${
+                    isPreselected ? "ring-2 ring-[#2563EB] shadow-lg" : ""
+                  }`}
+                >
+                  {isPreselected && !current && (
+                    <Badge className="absolute top-4 right-4 bg-[#2563EB]">Your selection</Badge>
+                  )}
                   {current && (
                     <Badge variant="success" className="absolute top-4 right-4">
                       Current Plan

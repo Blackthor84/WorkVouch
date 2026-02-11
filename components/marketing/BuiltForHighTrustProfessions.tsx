@@ -36,12 +36,12 @@ const INDUSTRY_TAGLINES: Record<Industry, string> = {
 
 export default function BuiltForHighTrustProfessions() {
   return (
-    <section className="bg-slate-950 text-white py-20" id="industries">
-      <div className="max-w-6xl mx-auto px-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+    <section className="bg-[#F8FAFC] py-16 md:py-20" id="industries">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 overflow-x-hidden">
+        <h2 className="text-3xl font-bold text-[#0F172A] mb-6 md:text-4xl">
           Built for High-Trust Industries
         </h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
           {INDUSTRIES.map((key) => {
             const Icon = INDUSTRY_ICONS[key];
             const label = INDUSTRY_DISPLAY_NAMES[key];
@@ -49,15 +49,15 @@ export default function BuiltForHighTrustProfessions() {
             return (
               <div
                 key={key}
-                className="bg-[#1F2937] border border-[#334155] rounded-xl p-6 flex flex-col transition-[background-color,border-color] hover:bg-[#374151] hover:border-slate-500"
+                className="bg-white border border-[#E2E8F0] rounded-xl p-6 flex flex-col transition-shadow hover:shadow-md"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#334155] text-slate-200 mb-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-[#334155] mb-4">
                   <SafeIcon icon={Icon} className="h-5 w-5" aria-hidden />
                 </span>
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 className="text-lg font-semibold text-[#0F172A] mb-2">
                   {label}
                 </h3>
-                <p className="text-sm text-slate-200 flex-1">
+                <p className="text-sm text-[#334155] flex-1">
                   {tagline}
                 </p>
               </div>

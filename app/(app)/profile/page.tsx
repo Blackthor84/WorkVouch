@@ -47,22 +47,29 @@ export default async function ProfilePage() {
       : [];
 
   return (
-    <div className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-background dark:bg-[#0D1117]">
+    <div className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-background dark:bg-[#0D1117] min-w-0 overflow-x-hidden">
       <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
         {/* Page Header */}
         <div>
+          {safeJobs && safeJobs.length === 0 && (
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#64748B] mb-2">
+              Step 3 of 3
+            </p>
+          )}
           <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
             My Profile
           </h1>
           <p className="text-grey-medium dark:text-gray-400 mt-1">
-            Manage your profile, job history, and references
+            {safeJobs && safeJobs.length === 0
+              ? "Add your first job to complete setup"
+              : "Manage your profile, job history, and references"}
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
             {safeProfile && <ProfileSection profile={safeProfile} />}
-            {safeJobs && safeJobs.length > 0 && <JobsSection jobs={safeJobs} />}
+            <JobsSection jobs={safeJobs ?? []} />
 
             {/* Peer References */}
             <Card className="p-6">

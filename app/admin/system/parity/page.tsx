@@ -26,8 +26,8 @@ export default async function AdminSystemParityPage() {
         </Button>
       </div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white mb-2">Production Parity Validator</h1>
-        <p className="text-slate-300">Compare sandbox scoring vs production scoring; version mismatch detection; report drift.</p>
+        <h1 className="text-3xl font-bold text-[#0F172A] mb-2">Production Parity Validator</h1>
+        <p className="text-[#334155]">Compare sandbox scoring vs production scoring; version mismatch detection; report drift.</p>
       </div>
       <ParityReportClient />
     </div>

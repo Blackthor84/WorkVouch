@@ -43,7 +43,7 @@ export function Logo({
         />
       </div>
       {showText && (
-        <span className="ml-3 text-2xl font-bold bg-gradient-to-br from-blue-600 to-green-500 bg-clip-text text-transparent dark:from-blue-400 dark:to-green-400">
+        <span className="ml-3 text-2xl font-bold text-[#0F172A]">
           WorkVouch
         </span>
       )}

@@ -49,10 +49,10 @@ export function Sidebar({ roles }: SidebarProps) {
   }
 
   return (
-    <div className="flex h-screen w-64 flex-col bg-white dark:bg-[#0D1117] border-r border-grey-background dark:border-[#374151] shadow-sm">
-      <div className="flex h-16 items-center border-b border-grey-background dark:border-[#374151] px-6">
+    <div className="flex h-screen w-64 flex-col bg-white border-r border-[#E2E8F0] shadow-sm">
+      <div className="flex h-16 items-center border-b border-[#E2E8F0] px-6">
         <Link href="/" className="flex items-center">
-          <span className="text-2xl font-bold text-primary dark:text-blue-400">
+          <span className="text-2xl font-bold text-[#0F172A]">
             WorkVouch
           </span>
         </Link>
@@ -68,8 +68,8 @@ export function Sidebar({ roles }: SidebarProps) {
               className={cn(
                 "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-blue-600 dark:bg-blue-500 text-white shadow-md"
-                  : "text-grey-dark dark:text-gray-300 font-medium hover:bg-blue-50 dark:hover:bg-[#1A1F2B] hover:text-blue-600 dark:hover:text-blue-400",
+                  ? "bg-[#2563EB] text-white shadow-md"
+                  : "text-[#334155] font-medium hover:bg-blue-50 hover:text-[#2563EB]",
               )}
             >
               <item.icon
@@ -77,7 +77,7 @@ export function Sidebar({ roles }: SidebarProps) {
                   "h-5 w-5 transition-transform duration-200",
                   isActive
                     ? "text-white"
-                    : "text-grey-medium dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400",
+                    : "text-[#64748B] group-hover:text-[#2563EB]",
                   "group-hover:scale-110",
                 )}
               />

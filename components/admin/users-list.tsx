@@ -40,59 +40,59 @@ export function AdminUsersList() {
   if (loading) {
     return (
       <div className="p-8">
-        <p className="text-slate-300">Loading users...</p>
+        <p className="text-[#334155]">Loading users...</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-700 bg-[#111827] shadow-lg">
-      <table className="min-w-full divide-y divide-slate-700">
-        <thead className="bg-[#1f2937]">
+    <div className="overflow-x-auto rounded-2xl border border-[#E2E8F0] bg-white shadow-lg">
+      <table className="min-w-full divide-y divide-[#E2E8F0]">
+        <thead className="bg-slate-50">
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-[#0F172A] uppercase tracking-wider">
               Email
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-[#0F172A] uppercase tracking-wider">
               Full name
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-[#0F172A] uppercase tracking-wider">
               Roles
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-200 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-[#0F172A] uppercase tracking-wider">
               Created
             </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold text-slate-200 uppercase tracking-wider">
+            <th className="px-4 py-3 text-right text-xs font-semibold text-[#0F172A] uppercase tracking-wider">
               Actions
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-700">
+        <tbody className="divide-y divide-[#E2E8F0]">
           {users.map((user) => (
             <tr
               key={user.id}
-              className="hover:bg-[#1f2937] transition-colors"
+              className="hover:bg-slate-50 transition-colors"
             >
-              <td className="px-4 py-3 text-sm text-slate-200">
+              <td className="px-4 py-3 text-sm text-[#334155]">
                 {user.email}
               </td>
-              <td className="px-4 py-3 text-sm text-slate-200">
+              <td className="px-4 py-3 text-sm text-[#334155]">
                 {user.full_name || "—"}
               </td>
-              <td className="px-4 py-3 text-sm text-slate-300">
+              <td className="px-4 py-3 text-sm text-[#334155]">
                 {user.roles.length ? user.roles.join(", ") : "—"}
               </td>
-              <td className="px-4 py-3 text-sm text-slate-300">
+              <td className="px-4 py-3 text-sm text-[#64748B]">
                 {new Date(user.created_at).toLocaleDateString()}
               </td>
               <td className="px-4 py-3 text-right space-x-2">
-                <Button variant="secondary" size="sm" href={`/admin/users/${user.id}`} className="bg-[#1f2937] text-slate-200 border-slate-600 hover:bg-[#374151]">
+                <Button variant="secondary" size="sm" href={`/admin/users/${user.id}`}>
                   Manage
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="hover:bg-[#1f2937] text-slate-200"
+                  className="hover:bg-slate-50 text-[#334155]"
                   onClick={async () => {
                     try {
                       const res = await fetch("/api/admin/impersonate", {

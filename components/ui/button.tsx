@@ -24,14 +24,14 @@ export function Button({
 
   const variants = {
     primary:
-      "bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-400 dark:text-white dark:shadow-[0_0_12px_rgba(59,130,246,0.5)] shadow-md hover:shadow-lg",
+      "bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-md hover:shadow-lg",
     secondary:
-      "bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 dark:bg-[#111827] dark:text-gray-300 dark:border-[#374151] dark:hover:bg-[#1A1F2B]",
+      "bg-white text-[#334155] border border-[#E2E8F0] hover:bg-gray-50",
     ghost:
-      "text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-[#1A1F2B] dark:hover:text-blue-300 rounded-lg",
+      "text-[#2563EB] hover:text-[#1D4ED8] hover:bg-blue-50 rounded-lg",
     danger:
-      "bg-red-600 hover:bg-red-700 text-white dark:bg-red-500 dark:hover:bg-red-400",
-    info: "bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400",
+      "bg-red-600 hover:bg-red-700 text-white",
+    info: "bg-blue-100 hover:bg-blue-200 text-[#1E40AF]",
   };
 
   const sizes = {

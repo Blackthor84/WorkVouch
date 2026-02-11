@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const SIDEBAR_BG = "bg-[#111827]";
-const BORDER = "border-slate-700";
-const LINK_ACTIVE = "bg-[#1f2937] text-white border-l-2 border-slate-400";
-const LINK_INACTIVE = "text-slate-200 hover:bg-[#1f2937] hover:text-white border-l-2 border-transparent";
-const SECTION_TITLE = "text-slate-300 text-xs font-semibold uppercase tracking-wider";
+const SIDEBAR_BG = "bg-white";
+const BORDER = "border-[#E2E8F0]";
+const LINK_ACTIVE = "bg-slate-100 text-[#0F172A] border-l-2 border-[#2563EB]";
+const LINK_INACTIVE = "text-[#334155] hover:bg-slate-50 hover:text-[#0F172A] border-l-2 border-transparent";
+const SECTION_TITLE = "text-[#64748B] text-xs font-semibold uppercase tracking-wider";
 
 function isActive(pathname: string, href: string): boolean {
   if (pathname === href) return true;
@@ -82,7 +82,7 @@ export function AdminSidebar({ isSuperAdmin }: AdminSidebarProps) {
         <Link
           href="/admin"
           className={`px-4 py-2 mx-2 rounded-lg font-semibold border-l-2 border-transparent ${
-            pathname === "/admin" ? LINK_ACTIVE : "text-slate-200 hover:bg-[#1f2937]"
+            pathname === "/admin" ? LINK_ACTIVE : "text-[#334155] hover:bg-slate-50"
           }`}
         >
           Admin Overview

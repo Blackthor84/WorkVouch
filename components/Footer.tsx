@@ -3,9 +3,9 @@ import { INFO_EMAIL, SUPPORT_EMAIL, LEGAL_EMAIL, SALES_EMAIL } from "@/lib/const
 
 export default function Footer() {
   return (
-    <footer className="bg-blue-700 text-white py-12 px-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-5 gap-8">
+    <footer className="bg-blue-700 text-white py-12 px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto overflow-x-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           <div>
             <h3 className="font-semibold mb-4 text-lg">WorkVouch</h3>
             <p className="text-sm text-blue-100 mb-4">

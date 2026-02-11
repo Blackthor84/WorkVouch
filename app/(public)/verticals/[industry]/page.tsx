@@ -28,10 +28,10 @@ export default async function VerticalLandingPage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-8 sm:p-12">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold mb-4">{config.headline}</h1>
-        <p className="text-xl text-slate-400 mb-8">{config.subheadline}</p>
+    <div className="min-h-screen bg-slate-950 text-white px-4 py-8 sm:px-6 sm:py-12 overflow-x-hidden">
+      <div className="max-w-3xl mx-auto min-w-0">
+        <h1 className="text-3xl font-bold mb-4 md:text-4xl">{config.headline}</h1>
+        <p className="text-base text-slate-400 mb-8 md:text-xl">{config.subheadline}</p>
 
         <ul className="mb-10 space-y-2">
           {config.painPoints.map((p, i) => (
@@ -43,7 +43,7 @@ export default async function VerticalLandingPage({ params }: Props) {
 
         <Link
           href="/signup"
-          className="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold transition-colors"
+          className="inline-block w-full sm:w-auto text-center px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold transition-colors"
         >
           {config.cta}
         </Link>

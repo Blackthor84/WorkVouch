@@ -1,18 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+
+const SIGNUP_PLAN_KEY = "workvouch_signup_plan";
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const planTier = searchParams.get("plan_tier")?.trim();
+    const interval = searchParams.get("interval")?.trim();
+    if (planTier || interval) {
+      try {
+        sessionStorage.setItem(
+          SIGNUP_PLAN_KEY,
+          JSON.stringify({
+            plan_tier: planTier && ["starter", "pro", "custom"].includes(planTier) ? planTier : undefined,
+            interval: interval === "yearly" || interval === "monthly" ? interval : undefined,
+          })
+        );
+      } catch {
+        // ignore
+      }
+    }
+  }, [searchParams]);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
@@ -78,7 +99,6 @@ export default function SignupPage() {
       }
 
       router.push("/select-role");
-      router.refresh();
     } catch (err) {
       console.error("Signup error:", err);
       setError("An unexpected error occurred. Please try again.");
@@ -87,7 +107,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 px-4 overflow-x-hidden">
       <Link href="/" className="mb-6">
         <Image
           src="/images/workvouch-logo.png.png"
@@ -100,11 +120,14 @@ export default function SignupPage() {
         />
       </Link>
       <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200 dark:border-gray-700">
+        <p className="text-xs font-semibold uppercase tracking-wide text-[#64748B] mb-2 text-center">
+          Step 1 of 3
+        </p>
         <h1 className="text-3xl font-bold mb-2 text-center text-gray-900 dark:text-white">
           Create account
         </h1>
         <p className="text-gray-600 dark:text-gray-400 text-sm text-center mb-6">
-          Full name, email, and password. You&apos;ll choose your role next.
+          Full name, email, and password. Next you&apos;ll choose your role and complete setup.
         </p>
         <form onSubmit={handleSignup} className="space-y-4">
           <input
@@ -145,7 +168,7 @@ export default function SignupPage() {
             disabled={loading}
             className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Creating account..." : "Sign up"}
+            {loading ? "Creating account…" : "Continue"}
           </button>
         </form>
         <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">

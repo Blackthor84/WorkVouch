@@ -28,27 +28,27 @@ const steps = [
 
 export default function HowWorkVouchWorks() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20" id="how-it-works">
-      <h2 className="text-center text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+    <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20 overflow-x-hidden" id="how-it-works">
+      <h2 className="text-center text-2xl font-bold tracking-tight text-[#0F172A] md:text-3xl">
         How It Works
       </h2>
-      <div className="mt-12 grid gap-6 sm:grid-cols-3">
+      <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
         {steps.map(({ step, title, description, Icon }) => (
           <Card
             key={step}
-            className="border-slate-200 dark:border-slate-700 flex flex-col"
+            className="border-[#E2E8F0] flex flex-col"
           >
             <CardContent className="flex flex-1 flex-col pt-6">
-              <div className="mb-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-[#334155] text-slate-600 dark:text-slate-200">
+              <div className="mb-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[#334155]">
                 <Icon className="h-5 w-5" aria-hidden />
               </div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-200">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#64748B]">
                 Step {step}
               </p>
-              <h3 className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
+              <h3 className="mt-1 text-lg font-semibold text-[#0F172A]">
                 {title}
               </h3>
-              <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-[#334155]">
                 {description}
               </p>
             </CardContent>
