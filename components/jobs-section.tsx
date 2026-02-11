@@ -106,7 +106,7 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
           <div className="mb-4 p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200">
             <p className="font-semibold">Job added successfully.</p>
             <Button
-              variant="default"
+              variant="primary"
               className="mt-3"
               onClick={() => {
                 setSuccess(false);

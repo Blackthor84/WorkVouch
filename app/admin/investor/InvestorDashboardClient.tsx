@@ -98,7 +98,7 @@ export default function InvestorDashboardClient({ realCounts }: { realCounts: Re
             </button>
           </div>
           <Link href="/admin">
-            <Button variant="secondary" variant="secondary">Back to Admin</Button>
+            <Button variant="secondary">Back to Admin</Button>
           </Link>
         </div>
       </div>
