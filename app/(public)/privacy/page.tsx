@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CONTACT_EMAILS } from "@/lib/contact";
 
 export default function PrivacyPage() {
   return (
@@ -125,10 +126,10 @@ export default function PrivacyPage() {
                 <p className="mt-4">
                   To exercise your rights, contact us at{" "}
                   <a
-                    href={"mailto:" + LEGAL_EMAIL}
+                    href={`mailto:${CONTACT_EMAILS.legal}`}
                     className="text-primary hover:underline"
                   >
-                    {LEGAL_EMAIL}
+                    {CONTACT_EMAILS.legal}
                   </a>
                 </p>
               </section>
@@ -160,10 +161,10 @@ export default function PrivacyPage() {
                       Email:
                     </strong>{" "}
                     <a
-                      href={"mailto:" + LEGAL_EMAIL}
+                      href={`mailto:${CONTACT_EMAILS.legal}`}
                       className="text-primary hover:underline"
                     >
-                      {LEGAL_EMAIL}
+                      {CONTACT_EMAILS.legal}
                     </a>
                   </li>
                   <li>
@@ -171,10 +172,10 @@ export default function PrivacyPage() {
                       Support:
                     </strong>{" "}
                     <a
-                      href={"mailto:" + SUPPORT_EMAIL}
+                      href={`mailto:${CONTACT_EMAILS.support}`}
                       className="text-primary hover:underline"
                     >
-                      {SUPPORT_EMAIL}
+                      {CONTACT_EMAILS.support}
                     </a>
                   </li>
                 </ul>

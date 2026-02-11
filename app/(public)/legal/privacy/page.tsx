@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPageLayout } from "@/components/legal-page-layout";
+import { CONTACT_EMAILS } from "@/lib/contact";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | WorkVouch",
@@ -107,8 +108,8 @@ export default function LegalPrivacyPage() {
         <p className="mb-4">
           You may request access, correction, or deletion of your personal data.
           Contact{" "}
-          <a href={"mailto:" + LEGAL_EMAIL} className="text-primary hover:underline">
-            {LEGAL_EMAIL}
+          <a href={`mailto:${CONTACT_EMAILS.legal}`} className="text-primary hover:underline">
+            {CONTACT_EMAILS.legal}
           </a>
           . GDPR and CCPA rights apply where applicable. WorkVouch may retain certain
           data for compliance, legal, or audit reasons as described in our Data
