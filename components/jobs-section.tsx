@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createJob, deleteJob } from "@/lib/actions/jobs";
 import { EmploymentType } from "@/types/database";
 import Link from "next/link";
@@ -28,8 +29,10 @@ interface Job {
 }
 
 export function JobsSection({ jobs }: { jobs: Job[] }) {
+  const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     company_name: "",
     job_title: "",
@@ -44,6 +47,7 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     try {
       await createJob({
@@ -61,9 +65,10 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
         location: "",
         is_private: false,
       });
-      window.location.reload();
-    } catch (error: any) {
-      alert(error.message);
+      router.refresh();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -74,9 +79,10 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
 
     try {
       await deleteJob(jobId);
-      window.location.reload();
-    } catch (error: any) {
-      alert(error.message);
+      router.refresh();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Could not delete. Please try again.";
+      setError(message);
     }
   };
 
@@ -94,6 +100,11 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
         </div>
       </CardHeader>
       <CardContent>
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 text-sm">
+            {error}
+          </div>
+        )}
         {showForm && (
           <form
             onSubmit={handleSubmit}

@@ -14,18 +14,18 @@ export default function ForEmployeesSection() {
         <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
           Turn Your Work History Into Proof
         </h2>
-        <p className="mt-6 max-w-3xl text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+        <p className="mt-6 max-w-3xl text-lg text-slate-600 dark:text-slate-200 leading-relaxed">
           Your work speaks louder when it&apos;s verified.
         </p>
-        <p className="mt-4 text-slate-600 dark:text-slate-400">
+        <p className="mt-4 text-slate-600 dark:text-slate-300">
           Build a profile backed by:
         </p>
-        <ul className="mt-4 space-y-2 list-disc list-inside text-slate-600 dark:text-slate-400">
+        <ul className="mt-4 space-y-2 list-disc list-inside text-slate-600 dark:text-slate-300">
           {BULLETS.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
-        <p className="mt-6 text-slate-600 dark:text-slate-400">
+        <p className="mt-6 text-slate-600 dark:text-slate-300">
           Your profile evolves as your career grows.
         </p>
         <p className="mt-2 text-slate-800 dark:text-slate-200 font-medium">

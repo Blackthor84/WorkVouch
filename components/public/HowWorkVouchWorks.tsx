@@ -1,6 +1,6 @@
 import {
+  BriefcaseIcon,
   UserGroupIcon,
-  CpuChipIcon,
   ChartBarIcon,
 } from "@heroicons/react/24/outline";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,23 +8,20 @@ import { Card, CardContent } from "@/components/ui/card";
 const steps = [
   {
     step: 1,
-    title: "Verified Overlap",
-    description:
-      "Coworkers can only leave reviews if employment overlap is confirmed. No overlap. No review.",
-    Icon: UserGroupIcon,
+    title: "Employees add their job history",
+    description: "Add past employers and roles. Only real jobs, verified later by coworkers.",
+    Icon: BriefcaseIcon,
   },
   {
     step: 2,
-    title: "Behavioral Intelligence",
-    description:
-      "Reviews are analyzed for sentiment, consistency, and credibility. Manual manipulation is blocked.",
-    Icon: CpuChipIcon,
+    title: "Coworkers verify and can leave references",
+    description: "People who worked at the same company confirm employment and can leave a reference.",
+    Icon: UserGroupIcon,
   },
   {
     step: 3,
-    title: "Confidence Scoring",
-    description:
-      "Your profile strength dynamically updates using tenure, review volume, rating distribution, and fraud safeguards. Scores are capped, normalized, and versioned for integrity.",
+    title: "WorkVouch calculates a Reputation Score",
+    description: "Based on verified data: overlap, peer confirmation, reference quality, and profile strength.",
     Icon: ChartBarIcon,
   },
 ];
@@ -42,16 +39,16 @@ export default function HowWorkVouchWorks() {
             className="border-slate-200 dark:border-slate-700 flex flex-col"
           >
             <CardContent className="flex flex-1 flex-col pt-6">
-              <div className="mb-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300">
+              <div className="mb-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-[#334155] text-slate-600 dark:text-slate-200">
                 <Icon className="h-5 w-5" aria-hidden />
               </div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-200">
                 Step {step}
               </p>
               <h3 className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
                 {title}
               </h3>
-              <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                 {description}
               </p>
             </CardContent>

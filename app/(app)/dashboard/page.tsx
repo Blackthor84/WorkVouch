@@ -247,7 +247,7 @@ export default async function UserDashboardPage() {
                 Next steps
               </h3>
               <div className="space-y-3">
-                <Button href="/dashboard/worker/jobs/add" variant="secondary" className="w-full justify-start">
+                <Button href="/profile" variant="secondary" className="w-full justify-start">
                   Add job
                 </Button>
                 <Button href="/coworker-matches" variant="secondary" className="w-full justify-start">

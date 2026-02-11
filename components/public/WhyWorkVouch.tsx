@@ -27,7 +27,7 @@ export default function WhyWorkVouch() {
           ))}
         </ul>
         <p className="mt-10 text-xl font-semibold text-white">
-          We don&apos;t rely on trust.<br />We engineer it.
+          Trust should be verified.
         </p>
       </div>
     </section>

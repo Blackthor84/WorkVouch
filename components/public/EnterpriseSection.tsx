@@ -15,16 +15,16 @@ export default function EnterpriseSection() {
         <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
           Enterprise Employment Intelligence
         </h2>
-        <p className="mt-6 max-w-3xl text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+        <p className="mt-6 max-w-3xl text-lg text-slate-600 dark:text-slate-200 leading-relaxed">
           For large organizations, WorkVouch delivers:
         </p>
-        <ul className="mt-4 grid sm:grid-cols-2 gap-2 list-disc list-inside text-slate-600 dark:text-slate-400">
+        <ul className="mt-4 grid sm:grid-cols-2 gap-2 list-disc list-inside text-slate-600 dark:text-slate-300">
           {BULLETS.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
         <p className="mt-8 text-slate-700 dark:text-slate-300 font-medium">
-          This is employment infrastructure — not a review platform.
+          This is employment infrastructure. Not a review platform.
         </p>
         <div className="mt-10">
           <Button href="/signup" variant="primary" size="lg">

@@ -22,14 +22,14 @@ export function Sidebar({ roles }: SidebarProps) {
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
-    { name: "Job History", href: "/dashboard/jobs", icon: BriefcaseIcon },
+    { name: "Job History", href: "/profile", icon: BriefcaseIcon },
     {
       name: "Connections",
-      href: "/dashboard/connections",
+      href: "/coworker-matches",
       icon: UserGroupIcon,
     },
     { name: "References", href: "/references/request", icon: DocumentTextIcon },
-    { name: "Settings", href: "/dashboard/settings", icon: Cog6ToothIcon },
+    { name: "Settings", href: "/settings", icon: Cog6ToothIcon },
   ];
 
   if (roles.includes("employer")) {

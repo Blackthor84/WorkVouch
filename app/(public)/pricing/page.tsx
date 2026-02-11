@@ -74,7 +74,7 @@ export default function PricingPage() {
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl">
           Verification + trusted work history
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600 dark:text-slate-400">
+        <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600 dark:text-slate-300">
           Choose the plan that fits your hiring team. Simple, transparent pricing.
         </p>
 
@@ -124,7 +124,7 @@ export default function PricingPage() {
             return (
               <Card
                 key={plan.id}
-                className={`relative flex flex-col border-slate-200 dark:border-slate-700 ${
+                className={`relative flex flex-col border-slate-200 dark:border-slate-700 cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-500 hover:-translate-y-0.5 ${
                   isPro
                     ? "ring-2 ring-blue-500/50 shadow-xl scale-[1.02] lg:scale-[1.03] bg-slate-50/50 dark:bg-slate-800/30"
                     : ""
@@ -141,19 +141,19 @@ export default function PricingPage() {
                   <CardTitle className="text-xl text-slate-900 dark:text-white">
                     {plan.name}
                   </CardTitle>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
                     {plan.description}
                   </p>
                   {!isCustom && (
                     <p className="text-2xl font-bold text-slate-900 dark:text-white">
                       ${amount}
-                      <span className="text-base font-normal text-slate-600 dark:text-slate-400">
+                      <span className="text-base font-normal text-slate-600 dark:text-slate-300">
                         {isYearly ? "/year" : "/month"}
                       </span>
                     </p>
                   )}
                   {isYearly && !isCustom && (
-                    <p className="text-xs text-slate-500 dark:text-slate-500">
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
                       Save 2 months annually
                     </p>
                   )}
@@ -261,7 +261,7 @@ export default function PricingPage() {
       {/* Trust strip */}
       <section className="border-y border-slate-200 dark:border-slate-700/80 bg-slate-50/50 dark:bg-slate-800/30">
         <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
-          <p className="text-center text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+          <p className="text-center text-sm leading-relaxed text-slate-600 dark:text-slate-300">
             WorkVouch provides verified employment and peer confirmation data.
             We do not provide background checks or criminal history reports.
           </p>
@@ -273,7 +273,7 @@ export default function PricingPage() {
         <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
           Get started with verified work history
         </h2>
-        <p className="mt-4 text-base text-slate-600 dark:text-slate-400">
+        <p className="mt-4 text-base text-slate-600 dark:text-slate-300">
           Create your account first. Choose a plan after signup.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
