@@ -13,7 +13,7 @@ export async function DELETE(
 ) {
   try {
     const admin = await requireSuperAdmin();
-    const { id: targetUserId } = await params();
+    const { id: targetUserId } = await params;
     if (!targetUserId) {
       return NextResponse.json({ success: false, error: "Missing user id" }, { status: 400 });
     }

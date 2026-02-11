@@ -14,7 +14,7 @@ export async function PATCH(
 ) {
   try {
     await requireSuperAdmin();
-    const { id: employerId } = await params();
+    const { id: employerId } = await params;
     if (!employerId) return NextResponse.json({ success: false, error: "Missing employer id" }, { status: 400 });
     const body = await req.json().catch(() => ({})) as Record<string, unknown>;
     const supabase = getSupabaseServer();

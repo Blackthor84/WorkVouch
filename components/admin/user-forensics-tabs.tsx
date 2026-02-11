@@ -32,14 +32,14 @@ interface UserForensicsTabsProps {
 
 export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserForensicsTabsProps) {
   const [tab, setTab] = useState<ForensicsTabId>("overview");
-  const [employment, setEmployment] = useState<unknown[]>([]);
-  const [peerReviews, setPeerReviews] = useState<unknown[]>([]);
+  const [employment, setEmployment] = useState<Record<string, unknown>[]>([]);
+  const [peerReviews, setPeerReviews] = useState<Record<string, unknown>[]>([]);
   const [intelligence, setIntelligence] = useState<unknown>(null);
-  const [fraudSignals, setFraudSignals] = useState<unknown[]>([]);
-  const [auditLog, setAuditLog] = useState<unknown[]>([]);
-  const [activity, setActivity] = useState<unknown[]>([]);
+  const [fraudSignals, setFraudSignals] = useState<Record<string, unknown>[]>([]);
+  const [auditLog, setAuditLog] = useState<Record<string, unknown>[]>([]);
+  const [activity, setActivity] = useState<Record<string, unknown>[]>([]);
   const [breakdown, setBreakdown] = useState<Record<string, unknown> | null>(null);
-  const [scoreHistory, setScoreHistory] = useState<unknown[]>([]);
+  const [scoreHistory, setScoreHistory] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserF
       setLoading("employment");
       fetch(`/api/admin/users/${userId}/employment`)
         .then((r) => r.json())
-        .then((d) => setEmployment(Array.isArray(d) ? d : []))
+        .then((d) => setEmployment(Array.isArray(d) ? (d as Record<string, unknown>[]) : []))
         .finally(() => setLoading(null));
     }
   }, [tab, userId]);
@@ -73,7 +73,7 @@ export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserF
         .then(([userData, breakdownData, historyData]) => {
           setIntelligence(userData);
           setBreakdown(breakdownData.breakdown ?? null);
-          setScoreHistory(Array.isArray(historyData) ? historyData : []);
+          setScoreHistory(Array.isArray(historyData) ? (historyData as Record<string, unknown>[]) : []);
         })
         .finally(() => setLoading(null));
     }
@@ -84,7 +84,7 @@ export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserF
       setLoading("fraud");
       fetch(`/api/admin/users/${userId}/fraud-signals`)
         .then((r) => r.json())
-        .then((d) => setFraudSignals(Array.isArray(d) ? d : []))
+        .then((d) => setFraudSignals(Array.isArray(d) ? (d as Record<string, unknown>[]) : []))
         .finally(() => setLoading(null));
     }
   }, [tab, userId]);
@@ -105,7 +105,7 @@ export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserF
         setLoading("activity");
         fetch(`/api/admin/users/${userId}/activity`)
           .then((r) => r.json())
-          .then((d) => setActivity(Array.isArray(d) ? d : []))
+          .then((d) => setActivity(Array.isArray(d) ? (d as Record<string, unknown>[]) : []))
           .finally(() => setLoading(null));
       }
     }
@@ -173,10 +173,10 @@ export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserF
             <p className="text-grey-medium dark:text-gray-400">No peer reviews.</p>
           ) : (
             <ul className="space-y-3">
-              {peerReviews.map((r: Record<string, unknown>, i) => (
+              {peerReviews.map((r, i) => (
                 <li key={(r.id as string) ?? i} className="text-sm border-b border-grey-background/50 dark:border-[#374151]/50 pb-2">
                   Rating: <strong>{String(r.rating)}</strong>
-                  {r.comment && ` · ${String(r.comment).slice(0, 80)}${String(r.comment).length > 80 ? "…" : ""}`}
+                  {r.comment ? ` · ${String(r.comment).slice(0, 80)}${String(r.comment).length > 80 ? "…" : ""}` : null}
                   {" · "}
                   <span className="text-grey-medium dark:text-gray-400">{r.created_at ? new Date(r.created_at as string).toLocaleString() : ""}</span>
                 </li>
@@ -243,14 +243,14 @@ export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserF
             <p className="text-grey-medium dark:text-gray-400">No fraud signals.</p>
           ) : (
             <ul className="space-y-2">
-              {fraudSignals.map((s: Record<string, unknown>, i) => (
+              {fraudSignals.map((s, i) => (
                 <li key={(s.id as string) ?? i} className="text-sm">
                   <span className="font-medium text-red-600 dark:text-red-400">{String(s.signal_type)}</span>
                   {" · "}
                   <span className="text-grey-medium dark:text-gray-400">{s.created_at ? new Date(s.created_at as string).toLocaleString() : ""}</span>
-                  {s.metadata && typeof s.metadata === "object" && (
+                  {s.metadata && typeof s.metadata === "object" ? (
                     <pre className="mt-1 text-xs bg-grey-background/50 dark:bg-[#1A1F2B] p-2 rounded overflow-auto">{JSON.stringify(s.metadata, null, 2)}</pre>
-                  )}
+                  ) : null}
                 </li>
               ))}
             </ul>
@@ -288,13 +288,13 @@ export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserF
             <p className="text-grey-medium dark:text-gray-400">No activity logged yet.</p>
           ) : (
             <ul className="space-y-2 text-sm">
-              {activity.map((e: Record<string, unknown>, i) => (
+              {activity.map((e, i) => (
                 <li key={(e.id as string) ?? i} className="flex gap-2 border-b border-grey-background/50 dark:border-[#374151]/50 pb-2">
                   <span className="font-medium shrink-0">{String(e.type)}</span>
                   <span className="text-grey-medium dark:text-gray-400 shrink-0">{e.created_at ? new Date(e.created_at as string).toLocaleString() : ""}</span>
-                  {e.metadata && typeof e.metadata === "object" && Object.keys(e.metadata as object).length > 0 && (
+                  {e.metadata && typeof e.metadata === "object" && Object.keys(e.metadata as object).length > 0 ? (
                     <span className="text-grey-medium dark:text-gray-400 truncate">{JSON.stringify(e.metadata)}</span>
-                  )}
+                  ) : null}
                 </li>
               ))}
             </ul>

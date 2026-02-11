@@ -11,7 +11,7 @@ export async function GET(
 ) {
   try {
     await requireAdmin();
-    const { id: userId } = await params();
+    const { id: userId } = await params;
     if (!userId) {
       return NextResponse.json({ error: "Missing user id" }, { status: 400 });
     }

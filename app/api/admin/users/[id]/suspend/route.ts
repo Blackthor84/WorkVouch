@@ -12,7 +12,7 @@ export async function POST(
 ) {
   try {
     const admin = await requireAdmin();
-    const { id: targetUserId } = await params();
+    const { id: targetUserId } = await params;
     if (!targetUserId) {
       return NextResponse.json({ success: false, error: "Missing user id" }, { status: 400 });
     }

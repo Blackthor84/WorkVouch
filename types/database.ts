@@ -1,9 +1,10 @@
 /**
- * Database type definitions for Supabase
- * Manual types aligned with schema; used for createClient<Database> and typed payloads.
+ * Database type definitions for Supabase (single source of truth).
+ * Used by createClient<Database> and typed payloads.
  *
- * For full Supabase client inference (no @ts-expect-error at call sites), generate from CLI:
+ * To regenerate from Supabase schema (fix type drift):
  *   npx supabase gen types typescript --project-id <project-id> > types/database.ts
+ * Or output to lib/database.types.ts and update imports to "@/lib/database.types".
  */
 
 export type Json =
@@ -193,6 +194,10 @@ export interface Database {
           sandbox_id?: string | null
           vertical?: string | null
           vertical_metadata?: Json | null
+          status: string | null
+          risk_level: string | null
+          flagged_for_fraud: boolean
+          deleted_at: string | null
         }
         Insert: {
           id: string
@@ -215,6 +220,10 @@ export interface Database {
           sandbox_id?: string | null
           vertical?: string | null
           vertical_metadata?: Json | null
+          status?: string | null
+          risk_level?: string | null
+          flagged_for_fraud?: boolean
+          deleted_at?: string | null
         }
         Update: {
           id?: string
@@ -237,6 +246,10 @@ export interface Database {
           sandbox_id?: string | null
           vertical?: string | null
           vertical_metadata?: Json | null
+          status?: string | null
+          risk_level?: string | null
+          flagged_for_fraud?: boolean
+          deleted_at?: string | null
         }
         Relationships: []
       }

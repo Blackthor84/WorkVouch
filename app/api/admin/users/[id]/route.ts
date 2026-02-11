@@ -13,7 +13,7 @@ export async function GET(
 ) {
   try {
     await requireAdmin();
-    const { id } = await params();
+    const { id } = await params;
     if (!id) {
       return NextResponse.json({ error: "Missing user id" }, { status: 400 });
     }
@@ -62,7 +62,7 @@ export async function PATCH(
 ) {
   try {
     const admin = await requireAdmin();
-    const { id: targetUserId } = await params();
+    const { id: targetUserId } = await params;
     if (!targetUserId) {
       return NextResponse.json({ success: false, error: "Missing user id" }, { status: 400 });
     }

@@ -14,7 +14,7 @@ export async function DELETE(
 ) {
   try {
     const admin = await requireAdmin();
-    const { id: reviewId } = await params();
+    const { id: reviewId } = await params;
     if (!reviewId) {
       return NextResponse.json({ success: false, error: "Missing review id" }, { status: 400 });
     }
@@ -43,7 +43,7 @@ export async function DELETE(
 
     await calculateUserIntelligence(targetUserId);
 
-    const { ipAddress, userAgent } = getAuditRequestMeta(req);
+    const { ipAddress, userAgent } = getAuditRequestMeta(_req);
     await insertAdminAuditLog({
       adminId: admin.userId,
       targetUserId,

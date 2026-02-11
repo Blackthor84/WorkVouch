@@ -15,7 +15,7 @@ export async function POST(
 ) {
   try {
     const admin = await requireAdmin();
-    const { id: targetUserId } = await params();
+    const { id: targetUserId } = await params;
     if (!targetUserId) {
       return NextResponse.json({ success: false, error: "Missing user id" }, { status: 400 });
     }
@@ -64,7 +64,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: upsertError.message }, { status: 500 });
     }
 
-    const { ipAddress, userAgent } = getAuditRequestMeta(req);
+    const { ipAddress, userAgent } = getAuditRequestMeta(_req);
     await insertAdminAuditLog({
       adminId: admin.userId,
       targetUserId,
