@@ -310,7 +310,7 @@ export async function searchPassport(params: {
       profileId: p.id,
       slug,
       status: "private",
-      message: "This professional has not made their Work Passport publicly searchable.",
+      message: "This professional has not made their Verified Work Profile publicly searchable.",
       inviteOption: true,
     });
   }
@@ -404,7 +404,7 @@ export async function getPassportViewBySlug(slug: string): Promise<SinglePasspor
 
   return {
     status: "private",
-    message: "This professional has not made their Work Passport publicly searchable.",
+    message: "This professional has not made their Verified Work Profile publicly searchable.",
     inviteOption: true,
   };
 }

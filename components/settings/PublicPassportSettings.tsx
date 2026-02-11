@@ -87,7 +87,7 @@ export function PublicPassportSettings() {
     return (
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
-          Work Passport Visibility
+          Verified Work Profile Visibility
         </h2>
         <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
       </Card>
@@ -98,13 +98,13 @@ export function PublicPassportSettings() {
     { value: "private", label: "Private (default)", description: "Not searchable. Only you control who sees your passport." },
     { value: "shared_network", label: "Visible to Shared Network Only", description: "Employers at companies you’ve worked at can see a limited view." },
     { value: "verified_employers", label: "Visible to Verified Employers", description: "Any verified employer can see a limited view when searching." },
-    { value: "public", label: "Fully Public Passport", description: "Your Work Passport is visible at your shareable link. Requires Enterprise." },
+    { value: "public", label: "Fully Public Profile", description: "Your Verified Work Profile is visible at your shareable link. Requires Enterprise." },
   ];
 
   return (
     <Card className="p-6">
       <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
-        Work Passport Visibility
+        Verified Work Profile Visibility
       </h2>
       <p className="text-sm text-grey-medium dark:text-gray-400 mb-4">
         Control who can discover and view your verified employment and credentials. All accounts are private by default.

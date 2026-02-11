@@ -1,11 +1,11 @@
 import ActiveAds from "@/components/ActiveAds";
 import BuiltForHighTrustProfessions from "@/components/marketing/BuiltForHighTrustProfessions";
 import HeroInteractive, { type HeroIndustry } from "@/components/public/HeroInteractive";
+import ForEmployersSection from "@/components/public/ForEmployersSection";
+import ForEmployeesSection from "@/components/public/ForEmployeesSection";
 import HowWorkVouchWorks from "@/components/public/HowWorkVouchWorks";
-import HowItWorksDual from "@/components/public/HowItWorksDual";
-import TrustClarificationStrip from "@/components/public/TrustClarificationStrip";
-import IndustryPositioning from "@/components/public/IndustryPositioning";
-import PreviewCards from "@/components/public/PreviewCards";
+import WhyWorkVouch from "@/components/public/WhyWorkVouch";
+import EnterpriseSection from "@/components/public/EnterpriseSection";
 import FinalCTA from "@/components/public/FinalCTA";
 
 const VALID_INDUSTRIES: readonly HeroIndustry[] = [
@@ -34,15 +34,15 @@ export default async function Home(props: HomeProps) {
   return (
     <div className="min-h-screen">
       <HeroInteractive industry={industry} />
-      <BuiltForHighTrustProfessions />
-      <IndustryPositioning />
+      <ForEmployersSection />
+      <ForEmployeesSection />
       <HowWorkVouchWorks />
-      <TrustClarificationStrip />
+      <WhyWorkVouch />
+      <BuiltForHighTrustProfessions />
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <ActiveAds />
       </div>
-      <HowItWorksDual />
-      <PreviewCards />
+      <EnterpriseSection />
       <FinalCTA />
     </div>
   );

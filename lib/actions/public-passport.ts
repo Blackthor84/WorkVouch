@@ -53,7 +53,7 @@ export type PassportPageData =
   | { kind: "not_found" };
 
 /**
- * Get passport page data for /passport/[username]. Returns public data, private (show Passport Protected card), or not_found.
+ * Get passport page data for /passport/[username]. Returns public data, private (show Profile Protected card), or not_found.
  */
 export async function getPassportPageData(slug: string): Promise<PassportPageData> {
   const supabase = await createServerSupabase();

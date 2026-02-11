@@ -1,6 +1,6 @@
 /**
  * PATCH /api/user/passport-visibility
- * Set Work Passport visibility. Body: { visibility: "private" | "verified_employers" | "shared_network" | "public" }
+ * Set Verified Work Profile visibility. Body: { visibility: "private" | "verified_employers" | "shared_network" | "public" }
  * Maps to: is_public_passport, searchable_by_verified_employers, searchable_by_shared_employers.
  * Tier gating: Lite = private or shared_network only; Pro = + verified_employers; Enterprise (when flag) = + public.
  */

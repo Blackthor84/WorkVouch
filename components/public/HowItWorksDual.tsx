@@ -6,10 +6,10 @@ export default function HowItWorksDual() {
     "Verify past roles",
     "Collect coworker references",
     "Build reputation score",
-    "Control who sees your Work Passport",
+    "Control who sees your Verified Work Profile",
   ];
   const employerItems = [
-    "Request a Work Passport",
+    "Request a Verified Work Profile",
     "Verify before you hire",
     "Structured, privacy-first verification",
     "No public job board—verified identity only",
@@ -52,7 +52,7 @@ export default function HowItWorksDual() {
               ))}
             </ul>
             <Button href="/signup" variant="secondary" size="md" className="mt-4">
-              Request a Work Passport
+              Explore Employer Tools
             </Button>
           </CardContent>
         </Card>

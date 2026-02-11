@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { LockClosedIcon } from "@heroicons/react/24/outline";
 
 export const metadata = {
-  title: "Work Passport",
-  description: "Verified Work Passport on WorkVouch",
+  title: "Verified Work Profile",
+  description: "Verified Work Profile on WorkVouch",
 };
 
 export default async function PassportPage({
@@ -28,18 +28,18 @@ export default async function PassportPage({
               <LockClosedIcon className="h-7 w-7 text-slate-600 dark:text-slate-400" aria-hidden />
             </div>
             <h1 className="mt-6 text-xl font-semibold text-slate-900 dark:text-white">
-              Passport Protected
+              Profile Protected
             </h1>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              This professional has not made their Work Passport searchable.
+              This professional has not made their Verified Work Profile searchable.
             </p>
             <div className="mt-8">
               <Button asChild variant="primary" size="lg" className="w-full sm:w-auto">
-                <Link href="/login">Invite to Share Passport</Link>
+                <Link href="/login">Invite to Share Profile</Link>
               </Button>
             </div>
             <p className="mt-6 text-xs text-slate-500 dark:text-slate-500">
-              Work Passport is a privacy-first verification platform. Professionals control who can see their verified employment and credentials.
+              WorkVouch is a privacy-first verification platform. Professionals control who can see their verified employment and credentials.
             </p>
           </div>
           <div className="mt-6 text-center">
@@ -82,7 +82,7 @@ export default async function PassportPage({
               ) : null}
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                  Verified Work Passport
+                  Verified Work Profile
                 </span>
                 {industryBadge ? (
                   <span className="inline-flex items-center rounded-full bg-slate-200 px-3 py-1 text-sm font-medium text-slate-700 dark:bg-slate-700 dark:text-slate-300">
