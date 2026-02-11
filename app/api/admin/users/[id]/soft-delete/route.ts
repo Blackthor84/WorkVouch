@@ -33,7 +33,11 @@ export async function POST(
     const now = new Date().toISOString();
     const { error } = await supabase
       .from("profiles")
-      .update({ status: "deleted", deleted_at: now })
+      .update({
+        status: "deleted",
+        deleted_at: now,
+        is_deleted: true,
+      })
       .eq("id", targetUserId);
 
     if (error) {

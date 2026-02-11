@@ -54,6 +54,7 @@ export default function Footer() {
               <li><Link href="/how-disputes-work" className="hover:underline opacity-90 hover:opacity-100">How Disputes Work</Link></li>
               <li><Link href="/compliance" className="hover:underline opacity-90 hover:opacity-100">Compliance</Link></li>
               <li><Link href="/security" className="hover:underline opacity-90 hover:opacity-100">Trust &amp; Compliance</Link></li>
+              <li><Link href="/scoring-methodology" className="hover:underline opacity-90 hover:opacity-100">Trust &amp; Methodology</Link></li>
             </ul>
           </div>
         </div>

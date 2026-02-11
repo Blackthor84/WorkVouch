@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { calculateV1 } from "@/lib/core/intelligence";
+import { calculateV1, calculateV1Breakdown } from "@/lib/core/intelligence";
 import type { ProfileInput } from "@/lib/core/intelligence";
 
 function input(overrides: Partial<ProfileInput> = {}): ProfileInput {
@@ -14,6 +14,7 @@ function input(overrides: Partial<ProfileInput> = {}): ProfileInput {
     sentimentAverage: 0.5,
     averageRating: 4,
     rehireEligible: true,
+    fraudScore: undefined,
     ...overrides,
   };
 }
@@ -111,5 +112,55 @@ describe("Intelligence Engine v1", () => {
     const s2000 = calculateV1(input({ totalMonths: 2000, reviewCount: 0, sentimentAverage: 0, averageRating: 3, rehireEligible: false }));
     expect(s600).toBeGreaterThan(s12);
     expect(s2000).toBeLessThanOrEqual(s600 + 1);
+  });
+
+  describe("Fraud penalty (FP)", () => {
+    it("High fraud lowers score", () => {
+      const noFraud = calculateV1(input({ fraudScore: 0 }));
+      const highFraud = calculateV1(input({ fraudScore: 1 }));
+      expect(highFraud).toBeLessThan(noFraud);
+      expect(noFraud).toBeGreaterThanOrEqual(0);
+      expect(noFraud).toBeLessThanOrEqual(100);
+      expect(highFraud).toBeGreaterThanOrEqual(0);
+      expect(highFraud).toBeLessThanOrEqual(100);
+    });
+
+    it("Score never < 0 with high fraud", () => {
+      const score = calculateV1(
+        input({
+          totalMonths: 0,
+          reviewCount: 0,
+          sentimentAverage: -1,
+          averageRating: 1,
+          rehireEligible: false,
+          fraudScore: 1,
+        })
+      );
+      expect(score).toBeGreaterThanOrEqual(0);
+      expect(score).toBeLessThanOrEqual(100);
+    });
+
+    it("Fraud cap works — FP max 15 points", () => {
+      const fpCap = calculateV1(input({ fraudScore: 1 }));
+      const fpOverCap = calculateV1(input({ fraudScore: 2 }));
+      expect(fpOverCap).toBe(fpCap);
+    });
+
+    it("fraud_score undefined treated as 0", () => {
+      const withZero = calculateV1(input({ fraudScore: 0 }));
+      const withUndefined = calculateV1(input({ fraudScore: undefined }));
+      expect(withUndefined).toBe(withZero);
+    });
+
+    it("breakdown includes fraudPenalty component", () => {
+      const withFraud = calculateV1Breakdown(input({ fraudScore: 0.5 }));
+      const noFraud = calculateV1Breakdown(input({ fraudScore: 0 }));
+      expect(withFraud.components).toHaveProperty("fraudPenalty");
+      expect(typeof withFraud.components.fraudPenalty).toBe("number");
+      expect(withFraud.components.fraudPenalty).toBeGreaterThanOrEqual(0);
+      expect(noFraud.components.fraudPenalty).toBe(0);
+      expect(withFraud.totalScore).toBeLessThanOrEqual(100);
+      expect(withFraud.totalScore).toBeGreaterThanOrEqual(0);
+    });
   });
 });

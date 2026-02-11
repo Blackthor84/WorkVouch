@@ -30,7 +30,7 @@ export default function HelpPage() {
         },
         {
           q: "How is my Reputation Score calculated?",
-          a: "Scores are calculated from verified jobs, peer references, reference quality, and profile completeness. Scores update nightly.",
+          a: "Scores are calculated from verified jobs, peer references, reference quality, and profile completeness. Scores update when you add or verify jobs, add references, or when we recalculate (e.g. after dispute resolution).",
         },
         {
           q: "How can I improve my Reputation Score?",
@@ -85,7 +85,7 @@ export default function HelpPage() {
         },
         {
           q: "Can I delete my account?",
-          a: "Yes. Go to Settings > Data > Delete Account. Your data will be removed within 30 days.",
+          a: "Yes. You can request account deletion. Contact support for full data removal and timing. Admin can soft-delete accounts; data retention policies apply.",
         },
       ],
     },
@@ -98,7 +98,7 @@ export default function HelpPage() {
         },
         {
           q: "My Reputation Score isn't updating. Why?",
-          a: "Reputation Scores update nightly. Wait 24 hours after adding jobs/references. Ensure jobs are verified and references are approved.",
+          a: "Reputation Scores update when jobs or references are added or verified, or after dispute resolution. If your score hasn't changed, ensure jobs are verified and references are approved, then try again or contact support.",
         },
         {
           q: "I'm not receiving verification emails.",

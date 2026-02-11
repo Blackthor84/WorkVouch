@@ -98,8 +98,8 @@ export async function POST(req: NextRequest) {
     });
 
     if (status === "confirmed") {
-      await recalculateTrustScore(recordOwnerId);
-      await recalculateTrustScore(matchedUserId);
+      await recalculateTrustScore(recordOwnerId, { reason: "employment_verified" });
+      await recalculateTrustScore(matchedUserId, { reason: "employment_verified" });
     }
 
     return NextResponse.json({ success: true, status });

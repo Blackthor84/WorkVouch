@@ -63,3 +63,36 @@ export async function insertHealthEvent(
     payload: params.payload ?? {},
   });
 }
+
+/** Reason for trust score recalculation (intelligence_history.reason). */
+export type IntelligenceHistoryReason =
+  | "peer_review_added"
+  | "employment_verified"
+  | "dispute_resolved"
+  | "cron_recalc"
+  | "manual_admin";
+
+export interface InsertIntelligenceHistoryParams {
+  user_id: string;
+  previous_score: number | null;
+  new_score: number;
+  version: string;
+  reason: IntelligenceHistoryReason;
+}
+
+/** Insert one row into intelligence_history per recalculation. No silent failures. */
+export async function insertIntelligenceHistory(
+  params: InsertIntelligenceHistoryParams
+): Promise<void> {
+  const sb = getSupabaseServer();
+  const { error } = await sb.from("intelligence_history").insert({
+    user_id: params.user_id,
+    previous_score: params.previous_score,
+    new_score: params.new_score,
+    version: params.version,
+    reason: params.reason,
+  });
+  if (error) {
+    throw new Error(`intelligence_history insert failed: ${error.message}`);
+  }
+}

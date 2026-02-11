@@ -76,12 +76,12 @@ export async function POST(req: NextRequest) {
     const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
     const { calculateUserIntelligence } = await import("@/lib/intelligence/calculateUserIntelligence");
     const { recalculateMatchConfidence } = await import("@/lib/employment/matchConfidence");
-    triggerProfileIntelligence(row.user_id).catch(() => {});
-    calculateUserIntelligence(row.user_id).catch(() => {});
-    recalculateMatchConfidence(parsed.data.record_id).catch(() => {});
+    triggerProfileIntelligence(row.user_id).catch((e) => console.error("[dispute-employment] triggerProfileIntelligence:", e));
+    calculateUserIntelligence(row.user_id).catch((e) => console.error("[dispute-employment] calculateUserIntelligence:", e));
+    recalculateMatchConfidence(parsed.data.record_id).catch((e) => console.error("[dispute-employment] recalculateMatchConfidence:", e));
 
     const { triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
-    triggerEmployerIntelligence(employerId).catch(() => {});
+    triggerEmployerIntelligence(employerId).catch((e) => console.error("[dispute-employment] triggerEmployerIntelligence:", e));
 
     await adminSupabase.from("employer_notifications").insert({
       employer_id: employerId,

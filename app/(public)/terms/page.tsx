@@ -76,7 +76,7 @@ export default function TermsPage() {
                 <p className="mb-4">
                   Reputation Scores range from 0-100 and are calculated based on
                   verified jobs, peer references, and reference quality. Scores
-                  are recalculated nightly. Reputation Scores are indicators, not
+                  are recalculated when jobs or references are added or verified, or after dispute resolution. Reputation Scores are indicators, not
                   guarantees of job performance.
                 </p>
                 <p>

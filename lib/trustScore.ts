@@ -12,7 +12,9 @@ import {
   LOG_TAGS,
   insertScoreHistory,
   insertHealthEvent,
+  insertIntelligenceHistory,
 } from "@/lib/core/intelligence";
+import type { IntelligenceHistoryReason } from "@/lib/core/intelligence";
 
 const MAX_SCORE = 100;
 const MIN_SCORE = 0;
@@ -108,6 +110,7 @@ export async function calculateCoreTrustScore(userId: string): Promise<{
   score: number;
   components: TrustScoreComponents;
   previousScore: number | null;
+  version: string;
 }> {
   const startMs = Date.now();
   logIntel({
@@ -188,6 +191,7 @@ export async function calculateCoreTrustScore(userId: string): Promise<{
   };
 
   let written = await tryWrite();
+  let writtenVersion = newVersion;
   if (!written && currentVersion !== null) {
     const { data: refetched } = await sb
       .from("trust_scores")
@@ -216,6 +220,7 @@ export async function calculateCoreTrustScore(userId: string): Promise<{
         throw new Error(`Trust score write failed: ${error.message}`);
       }
       written = true;
+      writtenVersion = retryPayload.version;
     }
   }
   if (!written && currentVersion !== null) {
@@ -243,25 +248,32 @@ export async function calculateCoreTrustScore(userId: string): Promise<{
     durationMs: Date.now() - startMs,
   });
 
-  return { score, components, previousScore };
+  return { score, components, previousScore, version: writtenVersion };
 }
 
 /**
- * Recalculate and persist core trust score; log to audit_logs and intelligence_score_history.
+ * Recalculate and persist core trust score; log to audit_logs, intelligence_score_history, and intelligence_history.
  * Call after: match confirmation, reference submission, fraud flag change, dispute resolution.
+ * reason: required for intelligence_history audit.
  */
 export async function recalculateTrustScore(
   userId: string,
-  triggeredBy?: string | null
+  options?: {
+    triggeredBy?: string | null;
+    reason: IntelligenceHistoryReason;
+  }
 ): Promise<{ score: number }> {
-  const { score, components, previousScore } =
+  const triggeredBy = options?.triggeredBy ?? userId;
+  const reason = options?.reason ?? "manual_admin";
+
+  const { score, components, previousScore, version } =
     await calculateCoreTrustScore(userId);
 
   const sb = getSupabaseServer();
   await sb.from("audit_logs").insert({
     entity_type: "trust_score",
     entity_id: userId,
-    changed_by: triggeredBy ?? userId,
+    changed_by: triggeredBy,
     new_value: {
       score,
       verified_employments: components.verifiedEmployments,
@@ -276,8 +288,16 @@ export async function recalculateTrustScore(
     previous_score: previousScore,
     new_score: score,
     reason: "trust_score_recalculation",
-    triggered_by: triggeredBy ?? userId,
+    triggered_by: triggeredBy,
   }).catch(() => {});
+
+  await insertIntelligenceHistory({
+    user_id: userId,
+    previous_score: previousScore,
+    new_score: score,
+    version,
+    reason,
+  });
 
   await insertHealthEvent({
     event_type: "recalc_success",

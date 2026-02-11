@@ -50,7 +50,7 @@ export async function onDisputeResolvedAffectsTrust(params: {
     disputeType === "fraud_flag" ||
     disputeType === "trust_score";
   if (affectsScore) {
-    await recalculateTrustScore(userId);
+    await recalculateTrustScore(userId, { reason: "dispute_resolved" });
   }
 }
 

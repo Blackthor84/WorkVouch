@@ -131,7 +131,10 @@ export async function POST(req: NextRequest) {
       changeReason: "Reference submitted for confirmed match",
     });
 
-    await recalculateTrustScore(reviewedUserId);
+    await recalculateTrustScore(reviewedUserId, {
+      triggeredBy: session.user.id,
+      reason: "peer_review_added",
+    });
 
     const intelResult = await processReviewIntelligence(ref?.id ?? "");
     if (!intelResult.ok) {

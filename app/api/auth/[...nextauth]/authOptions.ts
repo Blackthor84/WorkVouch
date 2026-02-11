@@ -212,6 +212,22 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
+      // Block soft-deleted users: no session so they cannot use the app
+      if (token?.id && session?.user) {
+        try {
+          const supabaseAdmin = getSupabaseAdmin();
+          const { data: profile } = await supabaseAdmin
+            .from("profiles")
+            .select("is_deleted")
+            .eq("id", token.id)
+            .single();
+          if ((profile as { is_deleted?: boolean } | null)?.is_deleted) {
+            return { ...session, user: null as any };
+          }
+        } catch {
+          // On DB error, allow session; do not block on transient errors
+        }
+      }
       // Ensure session and user exist before accessing
       if (session?.user && token?.sub) {
         session.user.id = token.id as string;

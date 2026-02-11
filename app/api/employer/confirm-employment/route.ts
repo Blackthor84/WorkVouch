@@ -82,12 +82,12 @@ export async function POST(req: NextRequest) {
     const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
     const { calculateUserIntelligence } = await import("@/lib/intelligence/calculateUserIntelligence");
     const { recalculateMatchConfidence } = await import("@/lib/employment/matchConfidence");
-    triggerProfileIntelligence(row.user_id).catch(() => {});
-    calculateUserIntelligence(row.user_id).catch(() => {});
-    recalculateMatchConfidence(parsed.data.record_id).catch(() => {});
+    triggerProfileIntelligence(row.user_id).catch((e) => console.error("[confirm-employment] triggerProfileIntelligence:", e));
+    calculateUserIntelligence(row.user_id).catch((e) => console.error("[confirm-employment] calculateUserIntelligence:", e));
+    recalculateMatchConfidence(parsed.data.record_id).catch((e) => console.error("[confirm-employment] recalculateMatchConfidence:", e));
 
     const { triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
-    triggerEmployerIntelligence(employerId).catch(() => {});
+    triggerEmployerIntelligence(employerId).catch((e) => console.error("[confirm-employment] triggerEmployerIntelligence:", e));
 
     return NextResponse.json({ success: true, verification_status: "verified" });
   } catch (e) {

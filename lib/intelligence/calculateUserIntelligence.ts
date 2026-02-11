@@ -118,7 +118,7 @@ export async function calculateUserIntelligence(
         await supabase.from("intelligence_snapshots").insert(insertRow as Record<string, unknown>);
       }
     }
-  } catch (_e) {
-    // silent
+  } catch (e) {
+    console.error("[calculateUserIntelligence] FAIL:", userId, e);
   }
 }

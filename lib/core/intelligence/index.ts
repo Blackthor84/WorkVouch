@@ -16,11 +16,14 @@ export type { IntelLogPayload, LogTag } from "./logging";
 export {
   insertScoreHistory,
   insertHealthEvent,
+  insertIntelligenceHistory,
   scoreHistoryDelta,
 } from "./history";
 export type {
   InsertScoreHistoryParams,
   InsertHealthEventParams,
+  InsertIntelligenceHistoryParams,
+  IntelligenceHistoryReason,
   HealthEventType,
   ScoreHistoryEntity,
 } from "./history";

@@ -127,9 +127,9 @@ export async function POST(req: NextRequest) {
             const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
             const { calculateUserIntelligence } = await import("@/lib/intelligence/calculateUserIntelligence");
             const { updateConfirmationLevel } = await import("@/lib/employment/confirmationLevel");
-            triggerProfileIntelligence(matchedUserId).catch(() => {});
-            calculateUserIntelligence(matchedUserId).catch(() => {});
-            updateConfirmationLevel(er.id).catch(() => {});
+            triggerProfileIntelligence(matchedUserId).catch((e) => console.error("[roster-upload] triggerProfileIntelligence:", e));
+            calculateUserIntelligence(matchedUserId).catch((e) => console.error("[roster-upload] calculateUserIntelligence:", e));
+            updateConfirmationLevel(er.id).catch((e) => console.error("[roster-upload] updateConfirmationLevel:", e));
           } else {
             await adminSupabase.from("employer_roster_upload").update({ status: "matched" }).eq("id", rosterId);
           }

@@ -69,11 +69,20 @@ export async function buildProductionProfileInput(
     .limit(1);
   const rehireEligible = Array.isArray(rehireRows) && rehireRows.length > 0;
 
+  const { count: fraudCount } = await sb
+    .from("fraud_flags")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
+  const fraudFlagsCount = fraudCount ?? 0;
+  const fraudScore =
+    fraudFlagsCount <= 0 ? 0 : Math.min(1, fraudFlagsCount / 5);
+
   return {
     totalMonths,
     reviewCount,
     sentimentAverage,
     averageRating: Math.max(1, Math.min(5, averageRating)),
     rehireEligible,
+    fraudScore,
   };
 }
