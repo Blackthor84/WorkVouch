@@ -19,15 +19,15 @@ export default async function AdminSystemParityPage() {
   if (!isSuperAdmin(role) && !roles.includes("superadmin")) redirect("/dashboard");
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 ">
       <div className="mb-6 flex items-center gap-4">
         <Button variant="ghost" size="sm" href="/admin/system" asChild>
           <Link href="/admin/system">← System</Link>
         </Button>
       </div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">Production Parity Validator</h1>
-        <p className="text-grey-medium dark:text-gray-400">Compare sandbox scoring vs production scoring; version mismatch detection; report drift.</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Production Parity Validator</h1>
+        <p className="text-slate-300">Compare sandbox scoring vs production scoring; version mismatch detection; report drift.</p>
       </div>
       <ParityReportClient />
     </div>

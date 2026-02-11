@@ -104,57 +104,57 @@ export default function InvestorDashboardClient({ realCounts }: { realCounts: Re
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-slate-700 bg-slate-900/80">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-400">Platform users</CardHeader>
+        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-slate-200">Platform users</CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-white">{metrics.totalUsers.toLocaleString()}</p>
-            {simulated && <p className="text-xs text-slate-500 mt-1">Projected</p>}
+            {simulated && <p className="text-xs text-slate-300 mt-1">Projected</p>}
           </CardContent>
         </Card>
-        <Card className="border-slate-700 bg-slate-900/80">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-400">Employers</CardHeader>
+        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-slate-200">Employers</CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-white">{metrics.totalEmployers.toLocaleString()}</p>
-            {simulated && <p className="text-xs text-slate-500 mt-1">Projected</p>}
+            {simulated && <p className="text-xs text-slate-300 mt-1">Projected</p>}
           </CardContent>
         </Card>
-        <Card className="border-slate-700 bg-slate-900/80">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-400">Verification volume</CardHeader>
+        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-slate-200">Verification volume</CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-white">{metrics.verificationVolume.toLocaleString()}</p>
-            {simulated && <p className="text-xs text-slate-500 mt-1">Trend</p>}
+            {simulated && <p className="text-xs text-slate-300 mt-1">Trend</p>}
           </CardContent>
         </Card>
-        <Card className="border-slate-700 bg-slate-900/80">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-400">MRR</CardHeader>
+        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-slate-200">MRR</CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-emerald-400">${Math.round(metrics.mrr).toLocaleString()}</p>
-            {simulated && <p className="text-xs text-slate-500 mt-1">Simulated</p>}
+            {simulated && <p className="text-xs text-slate-300 mt-1">Simulated</p>}
           </CardContent>
         </Card>
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-slate-700 bg-slate-900/80">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-400">Risk intelligence adoption %</CardHeader>
+        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-slate-200">Risk intelligence adoption %</CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-white">{Math.round(metrics.riskAdoptionPercent)}%</p>
           </CardContent>
         </Card>
-        <Card className="border-slate-700 bg-slate-900/80">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-400">Enterprise pipeline value</CardHeader>
+        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-slate-200">Enterprise pipeline value</CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-white">${metrics.enterprisePipeline.toLocaleString()}</p>
           </CardContent>
         </Card>
-        <Card className="border-slate-700 bg-slate-900/80">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-400">LTV</CardHeader>
+        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-slate-200">LTV</CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-white">${Math.round(metrics.ltv).toLocaleString()}</p>
           </CardContent>
         </Card>
-        <Card className="border-slate-700 bg-slate-900/80">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-400">CAC</CardHeader>
+        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-slate-200">CAC</CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-white">${Math.round(metrics.cac).toLocaleString()}</p>
           </CardContent>
@@ -162,17 +162,17 @@ export default function InvestorDashboardClient({ realCounts }: { realCounts: Re
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <Card className="border-slate-700 bg-slate-900/80">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-400">Churn (simulated)</CardHeader>
+        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-slate-200">Churn (simulated)</CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-white">{metrics.churnPercent.toFixed(1)}%</p>
           </CardContent>
         </Card>
-        <Card className="border-slate-700 bg-slate-900/80">
-          <CardHeader className="pb-1 text-sm font-medium text-slate-400">Network effect index</CardHeader>
+        <Card className="border border-slate-700 bg-[#111827] rounded-2xl shadow-lg">
+          <CardHeader className="pb-1 text-sm font-medium text-slate-200">Network effect index</CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-white">{metrics.networkEffect.toFixed(2)}x</p>
-            <p className="text-xs text-slate-500 mt-1">Growth multiplier</p>
+            <p className="text-xs text-slate-300 mt-1">Growth multiplier</p>
           </CardContent>
         </Card>
       </div>
@@ -181,7 +181,7 @@ export default function InvestorDashboardClient({ realCounts }: { realCounts: Re
         <Card className="mt-6 border-slate-700 bg-slate-900/80">
           <CardHeader>
             <h2 className="text-lg font-semibold text-slate-200">Projected revenue (12–36 months)</h2>
-            <p className="text-sm text-slate-400">Simulated growth curve. No DB changes.</p>
+            <p className="text-sm text-slate-300">Simulated growth curve. No DB changes.</p>
           </CardHeader>
           <CardContent>
             <div className="h-64 flex items-end gap-0.5">
@@ -194,7 +194,7 @@ export default function InvestorDashboardClient({ realCounts }: { realCounts: Re
                 />
               ))}
             </div>
-            <div className="mt-2 flex justify-between text-xs text-slate-500">
+            <div className="mt-2 flex justify-between text-xs text-slate-300">
               <span>Now</span>
               <span>36 mo: ${(metrics.projectedMonths[metrics.projectedMonths.length - 1]?.arr ?? 0).toLocaleString()} ARR</span>
             </div>

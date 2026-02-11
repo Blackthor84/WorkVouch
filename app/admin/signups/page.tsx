@@ -58,18 +58,14 @@ export default async function AdminSignupsPage() {
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">
-            All Signups
-          </h1>
-          <p className="text-grey-medium dark:text-gray-400">
-            Complete list of all user signups and accounts
-          </p>
+          <h1 className="text-3xl font-bold text-white mb-2">All Signups</h1>
+          <p className="text-slate-300">Complete list of all user signups and accounts</p>
         </div>
 
-        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <p className="text-sm text-blue-900 dark:text-blue-200">
+        <div className="mb-4 p-4 bg-[#1f2937] rounded-xl border border-slate-600">
+          <p className="text-sm text-slate-200">
             <strong>Total Signups:</strong> {signups.length} |
             <strong> Email Confirmed:</strong>{" "}
             {signups.filter((s) => s.emailConfirmed).length} |
@@ -80,11 +76,11 @@ export default async function AdminSignupsPage() {
 
         <div className="space-y-4">
           {signups.map((signup) => (
-            <Card key={signup.id} className="p-6">
+            <Card key={signup.id} className="p-6 bg-[#111827] border border-slate-700">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200">
+                    <h3 className="text-lg font-semibold text-white">
                       {signup.fullName || "No Name"}
                     </h3>
                     {signup.emailConfirmed ? (
@@ -116,18 +112,18 @@ export default async function AdminSignupsPage() {
                     )}
                   </div>
 
-                  <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">
+                  <p className="text-sm text-slate-300 mb-2">
                     {signup.email}
                   </p>
 
                   {signup.industry && (
-                    <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">
+                    <p className="text-sm text-slate-300 mb-2">
                       Industry:{" "}
                       <span className="font-medium">{signup.industry}</span>
                     </p>
                   )}
 
-                  <div className="flex gap-4 text-xs text-grey-medium dark:text-gray-400 mt-3">
+                  <div className="flex gap-4 text-xs text-slate-300 mt-3">
                     <span>
                       <strong>Signed Up:</strong>{" "}
                       {signup.createdAt
@@ -153,10 +149,8 @@ export default async function AdminSignupsPage() {
         </div>
 
         {signups.length === 0 && (
-          <Card className="p-8 text-center">
-            <p className="text-grey-medium dark:text-gray-400">
-              No signups found.
-            </p>
+          <Card className="p-8 text-center bg-[#111827] border border-slate-700">
+            <p className="text-slate-300">No signups found.</p>
           </Card>
         )}
     </div>

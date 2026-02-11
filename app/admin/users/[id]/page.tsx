@@ -65,17 +65,17 @@ export default async function AdminUserPage({
   const isSuperAdmin = roles.includes("superadmin");
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 flex items-center gap-4">
         <Button variant="ghost" size="sm" href="/admin/users">
           ← Back to users
         </Button>
       </div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">
+        <h1 className="text-3xl font-bold text-white mb-2">
           User: {row.full_name || row.email || id}
         </h1>
-        <p className="text-grey-medium dark:text-gray-400">
+        <p className="text-slate-300">
           Manage account and view profile
         </p>
       </div>
@@ -86,15 +86,15 @@ export default async function AdminUserPage({
         overviewContent={
           <>
             <div className="rounded-xl border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] p-6 mb-4">
-              <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">Profile Overview</h2>
+              <h2 className="text-lg font-semibold text-white mb-4">Profile Overview</h2>
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div><dt className="text-grey-medium dark:text-gray-400">Name</dt><dd className="font-medium text-grey-dark dark:text-gray-200">{row.full_name || "—"}</dd></div>
-                <div><dt className="text-grey-medium dark:text-gray-400">Email</dt><dd className="font-medium text-grey-dark dark:text-gray-200">{row.email || "—"}</dd></div>
-                <div><dt className="text-grey-medium dark:text-gray-400">Role</dt><dd className="font-medium text-grey-dark dark:text-gray-200">{row.role || "—"}</dd></div>
-                <div><dt className="text-grey-medium dark:text-gray-400">Industry</dt><dd className="font-medium text-grey-dark dark:text-gray-200">{row.industry || "—"}</dd></div>
-                <div><dt className="text-grey-medium dark:text-gray-400">Status</dt><dd className="font-medium text-grey-dark dark:text-gray-200 capitalize">{status}</dd></div>
-                <div><dt className="text-grey-medium dark:text-gray-400">Risk Level</dt><dd className="font-medium text-grey-dark dark:text-gray-200 capitalize">{riskLevel}</dd></div>
-                <div><dt className="text-grey-medium dark:text-gray-400">Profile Strength</dt><dd className="font-medium text-grey-dark dark:text-gray-200">{profileStrength != null ? `${Number(profileStrength).toFixed(1)}` : "—"}</dd></div>
+                <div><dt className="text-slate-300">Name</dt><dd className="font-medium text-white">{row.full_name || "—"}</dd></div>
+                <div><dt className="text-slate-300">Email</dt><dd className="font-medium text-white">{row.email || "—"}</dd></div>
+                <div><dt className="text-slate-300">Role</dt><dd className="font-medium text-white">{row.role || "—"}</dd></div>
+                <div><dt className="text-slate-300">Industry</dt><dd className="font-medium text-white">{row.industry || "—"}</dd></div>
+                <div><dt className="text-slate-300">Status</dt><dd className="font-medium text-white capitalize">{status}</dd></div>
+                <div><dt className="text-slate-300">Risk Level</dt><dd className="font-medium text-white capitalize">{riskLevel}</dd></div>
+                <div><dt className="text-slate-300">Profile Strength</dt><dd className="font-medium text-white">{profileStrength != null ? `${Number(profileStrength).toFixed(1)}` : "—"}</dd></div>
                 {row.flagged_for_fraud && <div className="sm:col-span-2"><span className="inline-flex items-center rounded-md bg-red-100 dark:bg-red-900/30 px-2 py-1 text-xs font-medium text-red-800 dark:text-red-400">Flagged for fraud</span></div>}
               </dl>
               <UserDetailActions userId={id} currentStatus={status} currentRole={row.role ?? ""} isSuperAdmin={isSuperAdmin} fullName={row.full_name ?? ""} industry={row.industry ?? ""} />

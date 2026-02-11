@@ -852,7 +852,7 @@ export function SandboxV2Client() {
   const inputClass = "rounded border border-slate-600 bg-slate-800 text-white placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 
   return (
-    <div className="sandbox-contrast min-h-screen bg-slate-950">
+    <div className="sandbox-contrast min-h-screen bg-[#0b1220]">
       <style jsx global>{`
         .sandbox-contrast * {
           color: #ffffff !important;
@@ -871,7 +871,7 @@ export function SandboxV2Client() {
           color: #cbd5e1 !important;
         }
       `}</style>
-      <header className="sticky top-0 z-10 border-b border-slate-700 bg-slate-950 backdrop-blur-sm">
+      <header className="sticky top-0 z-10 border-b border-slate-700 bg-[#0b1220] backdrop-blur-sm">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-6 py-4">
           <span className="text-xl font-bold text-white">Simulation Command Center</span>
           <div className="flex items-center gap-4">

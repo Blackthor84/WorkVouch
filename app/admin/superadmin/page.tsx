@@ -18,72 +18,66 @@ export default async function SuperAdminPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">
-            Superadmin Control Panel
-          </h1>
-          <p className="text-grey-medium dark:text-gray-400">
-            Full system access and management
-          </p>
+          <h1 className="text-3xl font-bold text-white mb-2">Superadmin Control Panel</h1>
+          <p className="text-slate-300">Full system access and management</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-red-500">
+          <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-red-500 bg-[#111827] border-slate-700">
             <Link href="/admin/signups" className="block">
-              <UserGroupIcon className="h-10 w-10 text-red-600 dark:text-red-400 mb-4" />
-              <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
-                All Signups
-              </h2>
-              <p className="text-sm text-grey-medium dark:text-gray-400">
+              <UserGroupIcon className="h-10 w-10 text-red-400 mb-4" />
+              <h2 className="text-xl font-semibold text-white mb-2">All Signups</h2>
+              <p className="text-sm text-slate-300">
                 View complete list of all user signups and accounts
               </p>
             </Link>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-shadow">
+          <Card className="p-6 hover:shadow-lg transition-shadow bg-[#111827] border border-slate-700">
             <Link href="/admin/users" className="block">
               <UserGroupIcon className="h-10 w-10 text-blue-600 dark:text-blue-400 mb-4" />
-              <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+              <h2 className="text-xl font-semibold text-white mb-2">
                 Manage Users
               </h2>
-              <p className="text-sm text-grey-medium dark:text-gray-400">
+              <p className="text-sm text-slate-300">
                 View and manage all user accounts and profiles
               </p>
             </Link>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-shadow">
+          <Card className="p-6 hover:shadow-lg transition-shadow bg-[#111827] border border-slate-700">
             <Link href="/admin" className="block">
               <ShieldCheckIcon className="h-10 w-10 text-green-600 dark:text-green-400 mb-4" />
-              <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+              <h2 className="text-xl font-semibold text-white mb-2">
                 Admin Dashboard
               </h2>
-              <p className="text-sm text-grey-medium dark:text-gray-400">
+              <p className="text-sm text-slate-300">
                 Standard admin functions and controls
               </p>
             </Link>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-shadow">
+          <Card className="p-6 hover:shadow-lg transition-shadow bg-[#111827] border border-slate-700">
             <Link href="/employer/dashboard" className="block">
               <ChartBarIcon className="h-10 w-10 text-purple-600 dark:text-purple-400 mb-4" />
-              <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+              <h2 className="text-xl font-semibold text-white mb-2">
                 Employer Dashboard
               </h2>
-              <p className="text-sm text-grey-medium dark:text-gray-400">
+              <p className="text-sm text-slate-300">
                 Access employer features and tools
               </p>
             </Link>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-shadow">
+          <Card className="p-6 hover:shadow-lg transition-shadow bg-[#111827] border border-slate-700">
             <Link href="/dashboard" className="block">
-              <Cog6ToothIcon className="h-10 w-10 text-gray-600 dark:text-gray-400 mb-4" />
-              <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+              <Cog6ToothIcon className="h-10 w-10 text-slate-300 mb-4" />
+              <h2 className="text-xl font-semibold text-white mb-2">
                 User Dashboard
               </h2>
-              <p className="text-sm text-grey-medium dark:text-gray-400">
+              <p className="text-sm text-slate-300">
                 Standard user dashboard and features
               </p>
             </Link>

@@ -3,34 +3,59 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getCurrentUserProfile, getCurrentUserRoles } from "@/lib/auth";
-import { isAdmin as isAdminRole, isSuperAdmin as isSuperAdminRole } from "@/lib/roles";
+import { isAdmin as isAdminRole } from "@/lib/roles";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
-// Mark as dynamic
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-function SectionCard({
+function MetricCard({
+  label,
+  value,
+  href,
+}: {
+  label: string;
+  value: string | number;
+  href?: string;
+}) {
+  const content = (
+    <div className="p-4">
+      <p className="text-slate-200 text-sm font-medium">{label}</p>
+      <p className="text-white font-bold text-2xl mt-1">{value}</p>
+    </div>
+  );
+  const cardClass =
+    "bg-[#111827] border border-slate-700 rounded-2xl shadow-lg hover:shadow-xl transition-shadow";
+  if (href) {
+    return (
+      <Link href={href} className={`block ${cardClass}`}>
+        {content}
+      </Link>
+    );
+  }
+  return <div className={cardClass}>{content}</div>;
+}
+
+function QuickActionCard({
   href,
   title,
   description,
-  borderClass = "",
 }: {
   href: string;
   title: string;
   description: string;
-  borderClass?: string;
 }) {
   return (
-    <Card className={`p-4 hover:shadow-lg transition-shadow ${borderClass}`}>
-      <Link href={href} className="block">
-        <h3 className="font-semibold text-grey-dark dark:text-gray-200">{title}</h3>
-        <p className="text-sm text-grey-medium dark:text-gray-400 mt-0.5">{description}</p>
-      </Link>
-    </Card>
+    <Link
+      href={href}
+      className="block p-4 bg-[#1f2937] border border-slate-600 rounded-xl hover:bg-[#374151] transition-colors"
+    >
+      <h3 className="font-semibold text-white">{title}</h3>
+      <p className="text-slate-300 text-sm mt-0.5">{description}</p>
+    </Link>
   );
 }
 
@@ -48,8 +73,6 @@ export default async function AdminPanel() {
     redirect("/dashboard");
   }
 
-  const isSuperAdmin = isSuperAdminRole(role) || roles.includes("superadmin");
-
   const supabase = getSupabaseServer();
 
   const { data: profiles } = await supabase
@@ -62,194 +85,132 @@ export default async function AdminPanel() {
     .from("user_roles")
     .select("user_id, role");
 
+  const [profilesCount, employersCount, claimRequestsData, disputesData] = await Promise.all([
+    supabase.from("profiles").select("id", { count: "exact", head: true }),
+    supabase.from("employer_accounts").select("id", { count: "exact", head: true }),
+    supabase.from("employer_claim_requests").select("id").eq("status", "pending"),
+    supabase.from("employer_disputes").select("id").neq("status", "resolved"),
+  ]);
+
+  const totalUsers =
+    typeof profilesCount.count === "number" ? profilesCount.count : (profiles?.length ?? 0);
+  const totalEmployers =
+    typeof employersCount.count === "number" ? employersCount.count : 0;
+  const pendingClaims = Array.isArray(claimRequestsData.data) ? claimRequestsData.data.length : 0;
+  const openDisputes = Array.isArray(disputesData.data) ? disputesData.data.length : 0;
+
   const rolesMap = new Map<string, string[]>();
   if (userRoles) {
-    for (const ur of userRoles as any[]) {
+    for (const ur of userRoles as { user_id: string; role: string }[]) {
       const userId = ur.user_id;
-      if (!rolesMap.has(userId)) {
-        rolesMap.set(userId, []);
-      }
+      if (!rolesMap.has(userId)) rolesMap.set(userId, []);
       rolesMap.get(userId)!.push(ur.role);
     }
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">
-          Admin Panel
-        </h1>
-        <p className="text-grey-medium dark:text-gray-400">
-          Manage users, disputes, and verification requests
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white mb-2">Admin Overview</h1>
+        <p className="text-slate-300">
+          Command center: metrics, recent users, alerts, and quick actions. Use the sidebar for full navigation.
         </p>
       </div>
 
-      {/* 1. Users */}
+      {/* Overview metrics */}
       <section className="mb-8">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Users</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <SectionCard href="/admin/users" title="Manage Users" description="View and manage all user accounts (forensics, tabs)" />
-          <SectionCard href="/admin/signups" title="Signups" description="View all signups" />
+        <h2 className="text-lg font-semibold text-white mb-4">Overview</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricCard label="Total users" value={totalUsers.toLocaleString()} href="/admin/users" />
+          <MetricCard label="Employers" value={totalEmployers.toLocaleString()} href="/admin/employer-usage" />
+          <MetricCard label="Pending claim requests" value={pendingClaims} href="/admin/claim-requests" />
+          <MetricCard label="Open disputes" value={openDisputes} href="/admin/disputes" />
         </div>
       </section>
 
-      {/* 2. Employers */}
-      <section className="mb-8">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Employers</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SectionCard href="/admin/claim-requests" title="Employer Claim Requests" description="Approve or reject company claim requests" />
-          <SectionCard href="/admin/employer-usage" title="Employer Usage" description="Plan, Stripe IDs, usage, overages, manual override" />
-        </div>
-      </section>
-
-      {/* 3. Fraud */}
-      <section className="mb-8">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Fraud</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SectionCard href="/admin/fraud" title="Fraud Detection Dashboard" description="Self-review blocks, duplicate reviews, velocity, multi-account, sentiment spikes" />
-          <SectionCard href="/admin/fraud-workflow" title="Fraud Workflow" description="Fraud workflow and review" />
-        </div>
-      </section>
-
-      {/* 4. Intelligence */}
-      <section className="mb-8">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Intelligence</h2>
-        <Card className="p-6 hover:shadow-lg transition-shadow border-2 border-cyan-500/80">
-          <Link href="/admin/intelligence-dashboard" className="block mb-4">
-            <h3 className="text-xl font-semibold text-cyan-600 dark:text-cyan-400">Enterprise Intelligence</h3>
-            <p className="text-sm text-grey-medium dark:text-gray-400 mt-1">
-              Profile strength, career health, risk, fraud, team fit, hiring confidence. Admin/SuperAdmin only.
-            </p>
-          </Link>
-          <div className="flex flex-wrap gap-3 text-sm">
-            <Link href="/admin/intelligence-dashboard" className="text-cyan-600 dark:text-cyan-400 hover:underline">Intelligence Dashboard</Link>
-            <Link href="/admin/intelligence-preview" className="text-cyan-600 dark:text-cyan-400 hover:underline">Intelligence Preview</Link>
-            <Link href="/admin/intelligence-health" className="text-cyan-600 dark:text-cyan-400 hover:underline">Integrity Health</Link>
-            <Link href="/admin/employer-reputation-preview" className="text-cyan-600 dark:text-cyan-400 hover:underline">Employer Reputation Preview</Link>
+      {/* Alerts */}
+      {(pendingClaims > 0 || openDisputes > 0) && (
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-white mb-4">Alerts</h2>
+          <div className="flex flex-wrap gap-3">
+            {pendingClaims > 0 && (
+              <Link
+                href="/admin/claim-requests"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/20 border border-amber-500/50 rounded-xl text-amber-200 hover:bg-amber-500/30 transition-colors"
+              >
+                <span className="font-bold text-white">{pendingClaims}</span>
+                <span>pending claim request{pendingClaims !== 1 ? "s" : ""}</span>
+              </Link>
+            )}
+            {openDisputes > 0 && (
+              <Link
+                href="/admin/disputes"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 border border-red-500/50 rounded-xl text-red-200 hover:bg-red-500/30 transition-colors"
+              >
+                <span className="font-bold text-white">{openDisputes}</span>
+                <span>open dispute{openDisputes !== 1 ? "s" : ""}</span>
+              </Link>
+            )}
           </div>
-        </Card>
-      </section>
+        </section>
+      )}
 
-      {/* 5. Simulation */}
+      {/* Quick actions */}
       <section className="mb-8">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Simulation</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <SectionCard
-            href="/admin/sandbox-v2"
-            title="Enterprise Simulation Environment"
-            description="Fully isolated sandbox: sessions, employers, employees, peer reviews, intelligence, ads, revenue."
-            borderClass="border-2 border-emerald-500/80"
-          />
-          <SectionCard href="/admin/preview" title="Preview Panel" description="Preview career pages and onboarding flows" />
-          <SectionCard href="/admin/preview-control" title="Preview & Simulation Control" description="Simulate roles, plans, features, limits. Client-side only." />
-          <SectionCard href="/admin/beta" title="Beta Access Manager" description="Create temporary preview access with one-click login" borderClass="border-2 border-blue-500" />
-          {isSuperAdmin && (
-            <SectionCard
-              href="/admin/investor"
-              title="Investor Dashboard"
-              description="Private metrics, real + simulated growth. Superadmin only."
-              borderClass="border-2 border-red-500"
-            />
-          )}
-        </div>
-      </section>
-
-      {/* 6. Billing */}
-      <section className="mb-8">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Billing</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SectionCard href="/admin/ads" title="Ads Manager" description="Create and manage career-targeted advertisements" />
-        </div>
-      </section>
-
-      {/* 7. Compliance */}
-      <section className="mb-8">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">Compliance</h2>
+        <h2 className="text-lg font-semibold text-white mb-4">Quick actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <SectionCard href="/admin/disputes" title="Disputes Queue" description="Review and resolve employer disputes" />
-          <SectionCard href="/admin/verifications" title="Verification Requests" description="Approve or reject verification requests" />
-          <SectionCard href="/admin/export" title="Data Export" description="Export users, peer reviews, fraud flags, employment, audit logs (CSV)" />
+          <QuickActionCard href="/admin/users" title="Manage Users" description="View and manage all user accounts" />
+          <QuickActionCard href="/admin/claim-requests" title="Claim Requests" description="Approve or reject company claims" />
+          <QuickActionCard href="/admin/intelligence-dashboard" title="Intelligence" description="Profile strength, risk, hiring confidence" />
+          <QuickActionCard href="/admin/sandbox-v2" title="Sandbox" description="Enterprise simulation environment" />
         </div>
       </section>
 
-      {/* 8. System */}
-      <section className="mb-8">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">System</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <SectionCard href="/admin/vertical-control" title="Vertical Control" description="Enable or disable verticals (Education, Construction, etc.)." />
-          {isSuperAdmin && (
-            <>
-              <SectionCard href="/admin/system" title="System Panel" description="Maintenance mode, intelligence version, parity validator" borderClass="border-2 border-red-500" />
-              <SectionCard href="/admin/hidden-features" title="Hidden Features" description="Feature flags. Enable globally or assign to users/employers." borderClass="border-2 border-amber-500" />
-              <SectionCard href="/admin/superadmin" title="Superadmin Control" description="Full system access" borderClass="border-2 border-red-500" />
-            </>
-          )}
-        </div>
-      </section>
-
-      {/* Recent Users — unchanged */}
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
-          Recent Users ({profiles?.length || 0})
+      {/* Recent users */}
+      <Card className="p-6 bg-[#111827] border border-slate-700 rounded-2xl shadow-lg">
+        <h2 className="text-xl font-semibold text-white mb-4">
+          Recent Users ({profiles?.length ?? 0})
         </h2>
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white dark:bg-[#1A1F2B] rounded-xl shadow overflow-hidden">
-            <thead className="bg-gray-100 dark:bg-[#0D1117]">
+          <table className="min-w-full rounded-xl overflow-hidden">
+            <thead className="bg-[#1f2937]">
               <tr>
-                <th className="py-3 px-4 text-left text-sm font-semibold text-grey-dark dark:text-gray-200">
-                  Email
-                </th>
-                <th className="py-3 px-4 text-left text-sm font-semibold text-grey-dark dark:text-gray-200">
-                  Name
-                </th>
-                <th className="py-3 px-4 text-left text-sm font-semibold text-grey-dark dark:text-gray-200">
-                  Roles
-                </th>
-                <th className="py-3 px-4 text-left text-sm font-semibold text-grey-dark dark:text-gray-200">
-                  Joined
-                </th>
+                <th className="py-3 px-4 text-left text-sm font-semibold text-slate-200">Email</th>
+                <th className="py-3 px-4 text-left text-sm font-semibold text-slate-200">Name</th>
+                <th className="py-3 px-4 text-left text-sm font-semibold text-slate-200">Roles</th>
+                <th className="py-3 px-4 text-left text-sm font-semibold text-slate-200">Joined</th>
               </tr>
             </thead>
             <tbody>
               {profiles && profiles.length > 0 ? (
-                (profiles as any[]).map((profile) => {
-                  const roles = rolesMap.get(profile.id) || [];
+                (profiles as { id: string; email?: string; full_name?: string; created_at: string }[]).map((profile) => {
+                  const userRolesList = rolesMap.get(profile.id) || [];
                   return (
                     <tr
                       key={profile.id}
-                      className="border-b border-grey-background dark:border-[#374151] hover:bg-gray-50 dark:hover:bg-[#0D1117] transition-colors"
+                      className="border-b border-slate-700 hover:bg-[#1f2937] transition-colors"
                     >
-                      <td className="py-3 px-4 text-sm text-grey-dark dark:text-gray-200">
-                        {profile.email || "N/A"}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-grey-dark dark:text-gray-200">
-                        {profile.full_name || "N/A"}
-                      </td>
+                      <td className="py-3 px-4 text-sm text-slate-200">{profile.email || "N/A"}</td>
+                      <td className="py-3 px-4 text-sm text-slate-200">{profile.full_name || "N/A"}</td>
                       <td className="py-3 px-4 text-sm">
                         <div className="flex flex-wrap gap-1">
-                          {roles.length > 0 ? (
-                            roles.map((role) => (
+                          {userRolesList.length > 0 ? (
+                            userRolesList.map((r) => (
                               <Badge
-                                key={role}
+                                key={r}
                                 variant={
-                                  role === "superadmin"
-                                    ? "destructive"
-                                    : role === "admin"
-                                      ? "warning"
-                                      : role === "employer"
-                                        ? "info"
-                                        : "default"
+                                  r === "superadmin" ? "destructive" : r === "admin" ? "warning" : r === "employer" ? "info" : "default"
                                 }
                               >
-                                {role}
+                                {r}
                               </Badge>
                             ))
                           ) : (
-                            <Badge variant="primary">user</Badge>
+                            <Badge variant="secondary">user</Badge>
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-sm text-grey-medium dark:text-gray-400">
+                      <td className="py-3 px-4 text-sm text-slate-300">
                         {new Date(profile.created_at).toLocaleDateString()}
                       </td>
                     </tr>
@@ -257,10 +218,7 @@ export default async function AdminPanel() {
                 })
               ) : (
                 <tr>
-                  <td
-                    colSpan={4}
-                    className="py-8 text-center text-grey-medium dark:text-gray-400"
-                  >
+                  <td colSpan={4} className="py-8 text-center text-slate-300">
                     No users found
                   </td>
                 </tr>
@@ -270,7 +228,9 @@ export default async function AdminPanel() {
         </div>
         <div className="mt-4">
           <Link href="/admin/users">
-            <Button variant="secondary">View All Users</Button>
+            <Button variant="secondary" className="bg-[#1f2937] text-slate-200 border-slate-600 hover:bg-[#374151]">
+              View All Users
+            </Button>
           </Link>
         </div>
       </Card>

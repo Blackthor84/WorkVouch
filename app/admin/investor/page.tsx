@@ -53,15 +53,13 @@ export default async function AdminInvestorPage() {
   const realCounts = await getRealCounts();
 
   return (
-    <div className="min-h-screen bg-[#0a0e14] text-slate-200">
-      <div className="sticky top-0 z-50 border-b border-amber-500/40 bg-amber-500/10 px-4 py-3 text-center">
-        <span className="text-sm font-semibold uppercase tracking-wider text-amber-400">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="sticky top-0 z-10 border-b border-amber-500/40 bg-amber-500/10 px-4 py-3 rounded-xl mb-6">
+        <span className="text-sm font-semibold uppercase tracking-wider text-amber-200">
           Investor Dashboard — Private. Not in navbar. Simulation-safe.
         </span>
       </div>
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <InvestorDashboardClient realCounts={realCounts} />
-      </div>
+      <InvestorDashboardClient realCounts={realCounts} />
     </div>
   );
 }

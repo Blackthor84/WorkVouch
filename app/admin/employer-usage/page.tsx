@@ -24,21 +24,19 @@ export default async function AdminEmployerUsagePage() {
   const isSuperAdmin = roles.includes("superadmin");
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 flex items-center gap-4">
         <Link href="/admin">
           <Button variant="ghost" size="sm">← Back to Admin</Button>
         </Link>
       </div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">
-          Employer Usage
-        </h1>
-        <p className="text-grey-medium dark:text-gray-400">
+        <h1 className="text-3xl font-bold text-white mb-2">Employer Usage</h1>
+        <p className="text-slate-300">
           Current plan, Stripe IDs, usage this cycle, overages. Manual override available. Superadmin: override tier, billing cycle, reset usage, add/remove credit.
         </p>
       </div>
-      <Card className="p-6">
+      <Card className="p-6 bg-[#111827] border border-slate-700">
         <EmployerUsageClient isSuperAdmin={isSuperAdmin} />
       </Card>
     </div>

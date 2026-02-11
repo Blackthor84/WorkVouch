@@ -20,14 +20,10 @@ export default async function AdminUsers() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">
-          All Users
-        </h1>
-        <p className="text-grey-medium dark:text-gray-400">
-          View and manage all user accounts
-        </p>
+        <h1 className="text-3xl font-bold text-white mb-2">All Users</h1>
+        <p className="text-slate-300">View and manage all user accounts</p>
       </div>
 
       <AdminUsersList />

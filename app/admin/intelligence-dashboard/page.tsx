@@ -34,8 +34,8 @@ export default async function AdminIntelligenceDashboardPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-bold text-grey-dark dark:text-gray-200 mb-2">Intelligence Dashboard</h1>
-      <p className="text-grey-medium dark:text-gray-400 mb-6">
+      <h1 className="text-2xl font-bold text-white mb-2">Intelligence Dashboard</h1>
+      <p className="text-slate-300 mb-6">
         Full enterprise intelligence breakdown: profile strength, career health, risk, fraud confidence, team fit, hiring confidence. Admin/superadmin only.
       </p>
       <AdminIntelligenceDashboardClient userList={userList} employerList={employerList} />

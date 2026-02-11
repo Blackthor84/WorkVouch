@@ -19,13 +19,13 @@ export default async function AdminSystemPage() {
   if (!isSuperAdmin(role) && !roles.includes("superadmin")) redirect("/dashboard");
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 ">
       <div className="mb-6 flex items-center gap-4">
         <Button variant="ghost" size="sm" href="/admin">← Admin</Button>
       </div>
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">System Panel</h1>
-        <p className="text-grey-medium dark:text-gray-400">Superadmin only: intelligence version, maintenance, DB health, jobs, parity.</p>
+        <p className="text-slate-300">Superadmin only: intelligence version, maintenance, DB health, jobs, parity.</p>
       </div>
       <Card className="p-6 mb-6">
         <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">Quick links</h2>

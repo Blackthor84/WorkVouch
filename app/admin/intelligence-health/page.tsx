@@ -18,10 +18,8 @@ export default async function AdminIntelligenceHealthPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-bold text-grey-dark dark:text-gray-200 mb-2">
-        Integrity Health Dashboard
-      </h1>
-      <p className="text-grey-medium dark:text-gray-400 mb-6">
+      <h1 className="text-2xl font-bold text-white mb-2">Integrity Health Dashboard</h1>
+      <p className="text-slate-300 mb-6">
         Monitoring: % profiles recalculated successfully, fraud blocks per day,
         average sentiment shift, overlap validation failures.
       </p>

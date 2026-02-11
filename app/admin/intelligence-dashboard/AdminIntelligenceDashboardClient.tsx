@@ -101,7 +101,7 @@ export function AdminIntelligenceDashboardClient({
         <select
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
-          className="rounded-xl border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] px-4 py-2 text-grey-dark dark:text-gray-200 min-w-[200px]"
+          className="rounded-xl border border-slate-600 bg-[#111827] px-4 py-2 text-slate-200 min-w-[200px]"
         >
           <option value="">Select user</option>
           {userList.map((u) => (
@@ -113,7 +113,7 @@ export function AdminIntelligenceDashboardClient({
         <select
           value={employerId}
           onChange={(e) => setEmployerId(e.target.value)}
-          className="rounded-xl border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] px-4 py-2 text-grey-dark dark:text-gray-200 min-w-[200px]"
+          className="rounded-xl border border-slate-600 bg-[#111827] px-4 py-2 text-slate-200 min-w-[200px]"
         >
           <option value="">No employer (team fit off)</option>
           {employerList.map((e) => (
@@ -134,11 +134,11 @@ export function AdminIntelligenceDashboardClient({
       {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
       {data && (
         <div className="grid gap-6">
-          <Card>
+          <Card className="bg-[#111827] border border-slate-700">
             <CardHeader>
-              <CardTitle>Canonical metrics</CardTitle>
+              <CardTitle className="text-white">Canonical metrics</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
+            <CardContent className="space-y-2 text-sm text-slate-300">
               <p>Model version: {data.model_version}</p>
               <p>Last calculated: {data.last_calculated_at ?? "—"}</p>
               <p>Profile strength: {data.profile_strength}</p>
@@ -150,15 +150,15 @@ export function AdminIntelligenceDashboardClient({
               {data.hiring_confidence_score != null && <p>Hiring confidence score: {data.hiring_confidence_score}</p>}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-[#111827] border border-slate-700">
             <CardHeader>
-              <CardTitle>Behavioral Intelligence</CardTitle>
+              <CardTitle className="text-white">Behavioral Intelligence</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm">
+            <CardContent className="space-y-4 text-sm text-slate-300">
               {data.behavioral_vector != null && (
                 <div>
-                  <p className="font-medium text-grey-dark dark:text-gray-200 mb-2">Aggregated vector</p>
-                  <pre className="text-xs overflow-auto max-h-[200px] bg-slate-100 dark:bg-slate-800 p-3 rounded">
+                  <p className="font-medium text-slate-200 mb-2">Aggregated vector</p>
+                  <pre className="text-xs overflow-auto max-h-[200px] bg-[#1f2937] text-slate-300 p-3 rounded border border-slate-600">
                     {JSON.stringify(data.behavioral_vector, null, 2)}
                   </pre>
                 </div>
@@ -171,44 +171,44 @@ export function AdminIntelligenceDashboardClient({
               )}
               {data.behavioral_raw_scores != null && data.behavioral_raw_scores.length > 0 && (
                 <div>
-                  <p className="font-medium text-grey-dark dark:text-gray-200 mb-2">
+                  <p className="font-medium text-slate-200 mb-2">
                     Raw extracted scores ({data.behavioral_raw_scores.length} reviews)
                   </p>
-                  <pre className="text-xs overflow-auto max-h-[300px] bg-slate-100 dark:bg-slate-800 p-3 rounded">
+                  <pre className="text-xs overflow-auto max-h-[300px] bg-[#1f2937] text-slate-300 p-3 rounded border border-slate-600">
                     {JSON.stringify(data.behavioral_raw_scores, null, 2)}
                   </pre>
                 </div>
               )}
               {!data.behavioral_vector && (!data.behavioral_raw_scores?.length) && (
-                <p className="text-grey-medium dark:text-gray-400">No behavioral data for this user.</p>
+                <p className="text-slate-300">No behavioral data for this user.</p>
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-[#111827] border border-slate-700">
             <CardHeader>
-              <CardTitle>Hybrid Behavioral Baseline</CardTitle>
+              <CardTitle className="text-white">Hybrid Behavioral Baseline</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm">
+            <CardContent className="space-y-4 text-sm text-slate-300">
               {data.industry_baseline != null && (
                 <div>
-                  <p className="font-medium text-grey-dark dark:text-gray-200 mb-2">Industry baseline (sample_size: {(data.industry_baseline as { sample_size?: number }).sample_size ?? "—"})</p>
-                  <pre className="text-xs overflow-auto max-h-[180px] bg-slate-100 dark:bg-slate-800 p-3 rounded">
+                  <p className="font-medium text-slate-200 mb-2">Industry baseline (sample_size: {(data.industry_baseline as { sample_size?: number }).sample_size ?? "—"})</p>
+                  <pre className="text-xs overflow-auto max-h-[180px] bg-[#1f2937] text-slate-300 p-3 rounded border border-slate-600">
                     {JSON.stringify(data.industry_baseline, null, 2)}
                   </pre>
                 </div>
               )}
               {data.employer_baseline != null && (
                 <div>
-                  <p className="font-medium text-grey-dark dark:text-gray-200 mb-2">Employer baseline (employee_sample_size: {(data.employer_baseline as { employee_sample_size?: number }).employee_sample_size ?? "—"})</p>
-                  <pre className="text-xs overflow-auto max-h-[180px] bg-slate-100 dark:bg-slate-800 p-3 rounded">
+                  <p className="font-medium text-slate-200 mb-2">Employer baseline (employee_sample_size: {(data.employer_baseline as { employee_sample_size?: number }).employee_sample_size ?? "—"})</p>
+                  <pre className="text-xs overflow-auto max-h-[180px] bg-[#1f2937] text-slate-300 p-3 rounded border border-slate-600">
                     {JSON.stringify(data.employer_baseline, null, 2)}
                   </pre>
                 </div>
               )}
               {data.hybrid_baseline != null && (
                 <div>
-                  <p className="font-medium text-grey-dark dark:text-gray-200 mb-2">Blended hybrid baseline (employer_weight / industry_weight)</p>
-                  <pre className="text-xs overflow-auto max-h-[200px] bg-slate-100 dark:bg-slate-800 p-3 rounded">
+                  <p className="font-medium text-slate-200 mb-2">Blended hybrid baseline (employer_weight / industry_weight)</p>
+                  <pre className="text-xs overflow-auto max-h-[200px] bg-[#1f2937] text-slate-300 p-3 rounded border border-slate-600">
                     {JSON.stringify(data.hybrid_baseline, null, 2)}
                   </pre>
                 </div>
@@ -217,16 +217,16 @@ export function AdminIntelligenceDashboardClient({
                 <p>Behavioral alignment vs baseline: {data.behavioral_alignment_score}</p>
               )}
               {!data.industry_baseline && !data.employer_baseline && !data.hybrid_baseline && (
-                <p className="text-grey-medium dark:text-gray-400">No hybrid baseline data (select employer for employer/hybrid).</p>
+                <p className="text-slate-300">No hybrid baseline data (select employer for employer/hybrid).</p>
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-[#111827] border border-slate-700">
             <CardHeader>
-              <CardTitle>Full breakdown JSON</CardTitle>
+              <CardTitle className="text-white">Full breakdown JSON</CardTitle>
             </CardHeader>
             <CardContent>
-              <pre className="text-xs overflow-auto max-h-[400px] bg-slate-100 dark:bg-slate-800 p-4 rounded">
+              <pre className="text-xs overflow-auto max-h-[400px] bg-[#1f2937] text-slate-300 p-4 rounded border border-slate-600">
                 {JSON.stringify(
                   {
                     snapshot_row: data.snapshot_row,
