@@ -217,8 +217,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    await calculateAndStoreRisk(profileId).catch(() => {});
-    await calculateEmployerWorkforceRisk(employerAccountId).catch(() => {});
+    await calculateAndStoreRisk(profileId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    await calculateEmployerWorkforceRisk(employerAccountId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
 
     return NextResponse.json({ ok: true });
   } catch (e) {
@@ -441,8 +441,8 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: String(error) }, { status: 500 });
     }
 
-    await calculateAndStoreRisk(profileId).catch(() => {});
-    await calculateEmployerWorkforceRisk(employerAccountId).catch(() => {});
+    await calculateAndStoreRisk(profileId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    await calculateEmployerWorkforceRisk(employerAccountId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
 
     return NextResponse.json({ ok: true });
   } catch (e) {

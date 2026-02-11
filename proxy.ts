@@ -10,12 +10,26 @@ import { updateSession } from "@/lib/supabase/middleware";
  * Only redirect when: no auth token AND route is protected.
  * /admin: any authenticated user can reach /admin; role (admin/superadmin) is enforced in admin layout.
  * Public routes (/, /pricing, /passport, /about, /contact, /login, /signup, etc.) pass through.
+ * [PWA] Do not intercept: manifest.json, favicon.ico, robots.txt, sitemap.xml, /images/*, /icons/*, /_next/*
  */
 export default async function proxy(req: NextRequest) {
   const url = req.nextUrl;
   const pathname = url.pathname;
 
-  console.log("PROXY CHECK:", pathname);
+  // [MIDDLEWARE] [PWA] Skip public assets and static files — ensure manifest.json returns 200
+  if (
+    pathname === "/manifest.json" ||
+    pathname === "/favicon.ico" ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml" ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/images") ||
+    pathname.startsWith("/icons")
+  ) {
+    const res = NextResponse.next();
+    addSecurityHeaders(res);
+    return res;
+  }
 
   // Sandbox bypass: /employer with sandbox=true&sandboxId allows access without auth
   const sandbox = url.searchParams.get("sandbox") === "true";
@@ -24,7 +38,9 @@ export default async function proxy(req: NextRequest) {
     const requestHeaders = new Headers(req.headers);
     requestHeaders.set("x-sandbox-mode", "true");
     requestHeaders.set("x-sandbox-id", sandboxId);
-    return NextResponse.next({ request: { headers: requestHeaders } });
+    const res = NextResponse.next({ request: { headers: requestHeaders } });
+    addSecurityHeaders(res);
+    return res;
   }
 
   const response = await updateSession(req);
@@ -41,6 +57,7 @@ export default async function proxy(req: NextRequest) {
   const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
 
   if (!isProtected) {
+    addSecurityHeaders(response);
     return response;
   }
 
@@ -52,15 +69,38 @@ export default async function proxy(req: NextRequest) {
   if (!token) {
     const signIn = new URL("/login", req.url);
     signIn.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(signIn);
+    const redirectRes = NextResponse.redirect(signIn);
+    addSecurityHeaders(redirectRes);
+    return redirectRes;
   }
 
+  addSecurityHeaders(response);
   return response;
+}
+
+/** Security headers. Do not break Supabase or Stripe (CSP allows their domains). */
+function addSecurityHeaders(res: NextResponse): void {
+  res.headers.set("X-Frame-Options", "DENY");
+  res.headers.set("X-Content-Type-Options", "nosniff");
+  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  if (process.env.NODE_ENV === "production") {
+    res.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  }
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://*.stripe.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: https: blob:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.stripe.com",
+    "frame-src 'self' https://*.stripe.com https://js.stripe.com",
+  ].join("; ");
+  res.headers.set("Content-Security-Policy", csp);
 }
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next|manifest\\.json|favicon\\.ico|robots\\.txt|sitemap\\.xml|images|icons).*)",
     "/admin",
     "/admin/:path*",
     "/employer",

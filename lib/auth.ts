@@ -24,11 +24,19 @@ export interface UserProfile {
 
 /**
  * Get current authenticated user from NextAuth session.
- * Supabase is used only for database queries, not session validation.
+ * Returns null if session missing or profile is soft-deleted (deleted_at set).
  */
 export async function getCurrentUser(): Promise<User | null> {
   const session = await getServerSession(authOptions)
-  if (!session?.user) return null
+  if (!session?.user?.id) return null
+  const supabase = await createServerSupabase()
+  const supabaseAny = supabase as any
+  const { data: row } = await supabaseAny
+    .from('profiles')
+    .select('deleted_at')
+    .eq('id', session.user.id)
+    .single()
+  if (row?.deleted_at) return null
   return {
     id: session.user.id,
     email: session.user.email ?? undefined,

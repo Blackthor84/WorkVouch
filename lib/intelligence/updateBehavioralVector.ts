@@ -117,7 +117,7 @@ export async function updateBehavioralVector(candidateId: string): Promise<void>
       await supabase.from("behavioral_profile_vector").insert(payload);
     }
 
-    triggerBaselineRecalc(candidateId).catch(() => {});
+    triggerBaselineRecalc(candidateId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
   } catch (e) {
     safeLog(e);
   }

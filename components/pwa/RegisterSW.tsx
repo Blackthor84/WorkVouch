@@ -11,7 +11,7 @@ export function RegisterSW() {
         .then((reg) => {
           if (reg.installing) reg.installing.addEventListener("statechange", () => {});
         })
-        .catch(() => {});
+        .catch((error) => { console.error("[SYSTEM_FAIL]", error); });
     });
   }, []);
   return null;

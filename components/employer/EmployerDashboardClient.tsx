@@ -147,7 +147,7 @@ export function EmployerDashboardClient({
       .then((data) => {
         if (data.error == null) setRiskOverview(data);
       })
-      .catch(() => {})
+      .catch((error) => { console.error("[SYSTEM_FAIL]", error); })
       .finally(() => setRiskOverviewLoading(false));
   }, [riskSnapshotEnabled, workforceDashboardEnabled]);
 
@@ -158,7 +158,7 @@ export function EmployerDashboardClient({
       .then((data) => {
         if (Array.isArray(data?.data)) setRehireList(data.data);
       })
-      .catch(() => {})
+      .catch((error) => { console.error("[SYSTEM_FAIL]", error); })
       .finally(() => setRehireListLoading(false));
   }, []);
 

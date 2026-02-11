@@ -89,14 +89,14 @@ export async function POST(req: NextRequest) {
       if (userId) {
         await calculateUserScore(userId, "rehire");
         const { calculateAndStoreRisk } = await import("@/lib/risk/calculateAndPersist");
-        await calculateAndStoreRisk(userId).catch(() => {});
+        await calculateAndStoreRisk(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
         const { calculateCredentialScore } = await import("@/lib/security/credentialScore");
-        await calculateCredentialScore(userId).catch(() => {});
+        await calculateCredentialScore(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
         const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
-        triggerProfileIntelligence(userId).catch(() => {});
+        triggerProfileIntelligence(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
         const adminSupabase = getSupabaseServer() as any;
         const score = data.resolution === "resolved" ? 100 : 0;
-        (getSupabaseServer() as any).from("employer_disputes").update({ dispute_resolution_score: score }).eq("id", data.disputeId).then(() => {}).catch(() => {});
+        (getSupabaseServer() as any).from("employer_disputes").update({ dispute_resolution_score: score }).eq("id", data.disputeId).then(() => {}).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
       }
     } catch (err) {
       console.error("Scoring engine (rehire) failed:", err);

@@ -12,24 +12,10 @@ import { recalculateTrustScore } from "@/lib/trustScore";
 import { logAudit } from "@/lib/dispute-audit";
 import { processReviewIntelligence } from "@/lib/intelligence/processReviewIntelligence";
 import { runAnomalyChecksAfterReview } from "@/lib/admin/runAnomalyChecks";
+import { withRateLimit, RATE_LIMITS } from "@/lib/rateLimit";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
-
-const REFERENCE_RATE_LIMIT = 10;
-const REFERENCE_RATE_WINDOW_MS = 60 * 60 * 1000;
-const rateMap = new Map<string, number[]>();
-
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now();
-  const times = rateMap.get(userId) ?? [];
-  const windowStart = now - REFERENCE_RATE_WINDOW_MS;
-  const recent = times.filter((t) => t > windowStart);
-  if (recent.length >= REFERENCE_RATE_LIMIT) return false;
-  recent.push(now);
-  rateMap.set(userId, recent);
-  return true;
-}
 
 const bodySchema = z.object({
   employment_match_id: z.string().uuid(),
@@ -43,13 +29,12 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    if (!checkRateLimit(session.user.id)) {
-      return NextResponse.json(
-        { error: "Too many reference submissions. Try again later." },
-        { status: 429 }
-      );
-    }
+    const rl = withRateLimit(req, {
+      userId: session.user.id,
+      ...RATE_LIMITS.employmentReferences,
+      prefix: "rl:ref:",
+    });
+    if (!rl.allowed) return rl.response;
 
     const body = await req.json().catch(() => ({}));
     const parsed = bodySchema.safeParse(body);

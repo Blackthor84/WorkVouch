@@ -153,7 +153,7 @@ export async function processReviewIntelligence(
       return { ok: false, error: vectorResult.error };
     }
 
-    scheduleBaselineRecalcForCandidate(candidateId).catch(() => {});
+    scheduleBaselineRecalcForCandidate(candidateId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
 
     logIntel({
       tag: LOG_TAGS.INTEL_SUCCESS,

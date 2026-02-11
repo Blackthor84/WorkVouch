@@ -34,7 +34,7 @@ export function ListedEmployeesPageClient({ employerId, planTier }: ListedEmploy
       .then((data) => {
         if (Array.isArray(data.employees)) setEmployees(data.employees);
       })
-      .catch(() => {});
+      .catch((error) => { console.error("[SYSTEM_FAIL]", error); });
   };
 
   useEffect(() => {

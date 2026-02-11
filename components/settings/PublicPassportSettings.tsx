@@ -42,7 +42,7 @@ export function PublicPassportSettings() {
           else setVisibility("private");
         }
       })
-      .catch(() => {})
+      .catch((error) => { console.error("[SYSTEM_FAIL]", error); })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });

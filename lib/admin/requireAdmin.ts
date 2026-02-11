@@ -42,6 +42,28 @@ export async function requireSuperAdmin(): Promise<AdminSession> {
 }
 
 /**
+ * Require one of the given roles (server-side). Use for route guards.
+ * Returns session info; throws "Unauthorized" or "Forbidden" if not allowed.
+ */
+export async function requireRole(allowedRoles: string[]): Promise<AdminSession> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+  const roles = (session.user as { roles?: string[] }).roles ?? [];
+  const hasRole = allowedRoles.some((r) => roles.includes(r));
+  if (!hasRole) {
+    throw new Error("Forbidden");
+  }
+  const role = roles.includes("superadmin") ? "superadmin" : roles.includes("admin") ? "admin" : roles[0] ?? "user";
+  return {
+    userId: session.user.id,
+    role,
+    isSuperAdmin: roles.includes("superadmin"),
+  };
+}
+
+/**
  * Enforce: admin cannot modify superadmin; admin cannot escalate own role.
  * Call after requireAdmin() and after fetching target profile.
  * @param admin - from requireAdmin()

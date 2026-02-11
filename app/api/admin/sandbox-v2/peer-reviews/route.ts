@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
           reviewerId: reviewer_id,
           reviewedId: reviewed_id,
         },
-      }).catch(() => {});
+      }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
       return NextResponse.json(
         { error: "Self-review is not allowed" },
         { status: 400 }
@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
           reviewerId: reviewer_id,
           reviewedId: reviewed_id,
         },
-      }).catch(() => {});
+      }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
       return NextResponse.json(
         {
           error: `Overlap of at least ${MIN_OVERLAP_MONTHS} month(s) at same employer required`,

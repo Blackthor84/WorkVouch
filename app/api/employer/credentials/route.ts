@@ -54,12 +54,12 @@ export async function POST(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     const credentialId = (inserted as { id: string }).id;
 
-    await updateCredentialStatus(credentialId).catch(() => {});
-    await generateComplianceAlerts({ employerId }).catch(() => {});
+    await updateCredentialStatus(credentialId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    await generateComplianceAlerts({ employerId }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
 
     const { triggerProfileIntelligence, triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
-    triggerProfileIntelligence(userId).catch(() => {});
-    triggerEmployerIntelligence(employerId).catch(() => {});
+    triggerProfileIntelligence(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    triggerEmployerIntelligence(employerId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
 
     return NextResponse.json({ id: credentialId });
   } catch (e) {

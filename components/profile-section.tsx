@@ -29,7 +29,7 @@ export function ProfileSection({ profile }: { profile: Profile }) {
   const [accountEditOpen, setAccountEditOpen] = useState(false);
   const [accountLoading, setAccountLoading] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
-  const [accountForm, setAccountForm] = useState({ full_name: profile.full_name, email: profile.email, current_password: "" });
+  const [accountForm, setAccountForm] = useState({ full_name: profile.full_name });
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: profile.full_name,
@@ -57,7 +57,7 @@ export function ProfileSection({ profile }: { profile: Profile }) {
   const handleAccountEditOpen = (open: boolean) => {
     setAccountEditOpen(open);
     if (open) {
-      setAccountForm({ full_name: profile.full_name, email: profile.email, current_password: "" });
+      setAccountForm({ full_name: profile.full_name });
       setAccountError(null);
     }
   };
@@ -65,21 +65,12 @@ export function ProfileSection({ profile }: { profile: Profile }) {
   const handleAccountSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAccountError(null);
-    const emailChanging = accountForm.email.trim().toLowerCase() !== (profile.email ?? "").trim().toLowerCase();
-    if (emailChanging && !accountForm.current_password) {
-      setAccountError("Current password is required to change email.");
-      return;
-    }
     setAccountLoading(true);
     try {
       const res = await fetch("/api/account/update-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          full_name: accountForm.full_name.trim(),
-          email: accountForm.email.trim().toLowerCase(),
-          ...(emailChanging ? { current_password: accountForm.current_password } : {}),
-        }),
+        body: JSON.stringify({ full_name: accountForm.full_name.trim() }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -264,28 +255,9 @@ export function ProfileSection({ profile }: { profile: Profile }) {
                 onChange={(e) => setAccountForm((f) => ({ ...f, full_name: e.target.value }))}
               />
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-grey-dark dark:text-gray-200 mb-2">Email</label>
-              <input
-                type="email"
-                required
-                className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3"
-                value={accountForm.email}
-                onChange={(e) => setAccountForm((f) => ({ ...f, email: e.target.value }))}
-              />
-            </div>
-            {accountForm.email.trim().toLowerCase() !== (profile.email ?? "").trim().toLowerCase() && (
-              <div>
-                <label className="block text-sm font-semibold text-grey-dark dark:text-gray-200 mb-2">Current password (required to change email)</label>
-                <input
-                  type="password"
-                  autoComplete="current-password"
-                  className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3"
-                  value={accountForm.current_password}
-                  onChange={(e) => setAccountForm((f) => ({ ...f, current_password: e.target.value }))}
-                />
-              </div>
-            )}
+            <p className="text-sm text-grey-medium dark:text-gray-400">
+              To change your email, go to <a href="/settings" className="text-primary underline">Settings → Change Email</a>.
+            </p>
             {accountError && <p className="text-sm text-red-600 dark:text-red-400">{accountError}</p>}
             <div className="flex gap-2 pt-2">
               <Button type="submit" disabled={accountLoading}>{accountLoading ? "Saving..." : "Save"}</Button>

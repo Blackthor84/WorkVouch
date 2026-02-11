@@ -90,13 +90,13 @@ export async function POST(req: NextRequest) {
       if (userId) {
         await calculateUserScore(userId, "rehire");
         const { calculateAndStoreRisk } = await import("@/lib/risk/calculateAndPersist");
-        await calculateAndStoreRisk(userId).catch(() => {});
+        await calculateAndStoreRisk(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
         const { calculateCredentialScore } = await import("@/lib/security/credentialScore");
-        await calculateCredentialScore(userId).catch(() => {});
+        await calculateCredentialScore(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
         const { triggerProfileIntelligence, triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
-        triggerProfileIntelligence(userId).catch(() => {});
+        triggerProfileIntelligence(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
         const vr = verificationRequest as { requested_by_id?: string };
-        if (vr?.requested_by_id) triggerEmployerIntelligence(vr.requested_by_id).catch(() => {});
+        if (vr?.requested_by_id) triggerEmployerIntelligence(vr.requested_by_id).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
       }
     } catch (err) {
       console.error("Scoring engine (rehire) failed:", err);

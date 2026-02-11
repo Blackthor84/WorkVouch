@@ -93,11 +93,11 @@ export async function recordReport(employerId: string, workerId: string, reportT
 
   try {
     const { triggerProfileIntelligence, triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
-    triggerProfileIntelligence(workerId).catch(() => {});
-    triggerEmployerIntelligence(employerId).catch(() => {});
+    triggerProfileIntelligence(workerId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    triggerEmployerIntelligence(employerId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
     const { updateRiskForVerificationReport } = await import("@/lib/risk-engine");
-    updateRiskForVerificationReport(employerId, workerId).catch(() => {});
-  } catch {
-    // silent
+    updateRiskForVerificationReport(employerId, workerId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+  } catch (err) {
+    console.error("[SYSTEM_FAIL]", err);
   }
 }

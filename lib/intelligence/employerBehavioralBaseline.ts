@@ -206,5 +206,5 @@ export async function recalculateEmployerBaseline(
  * Does not block. Call from API after employment_records insert/update/delete with marked_by_employer_id.
  */
 export function scheduleEmployerBaselineRecalc(employerId: string): void {
-  recalculateEmployerBaseline(employerId).catch(() => {});
+  recalculateEmployerBaseline(employerId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
 }

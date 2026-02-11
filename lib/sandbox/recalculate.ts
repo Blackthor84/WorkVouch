@@ -69,7 +69,7 @@ export async function runSandboxIntelligenceRecalculation(
     insertHealthEvent({
       event_type: "recalc_fail",
       payload: { sandboxId, error: employeesRes.error.message, context: "sandbox_recalc" },
-    }).catch(() => {});
+    }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
     return { ok: false, error: employeesRes.error.message };
   }
   if (reviewsRes.error) {
@@ -83,7 +83,7 @@ export async function runSandboxIntelligenceRecalculation(
     insertHealthEvent({
       event_type: "recalc_fail",
       payload: { sandboxId, error: reviewsRes.error.message, context: "sandbox_recalc" },
-    }).catch(() => {});
+    }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
     return { ok: false, error: reviewsRes.error.message };
   }
   if (recordsRes.error) {
@@ -97,7 +97,7 @@ export async function runSandboxIntelligenceRecalculation(
     insertHealthEvent({
       event_type: "recalc_fail",
       payload: { sandboxId, error: recordsRes.error.message, context: "sandbox_recalc" },
-    }).catch(() => {});
+    }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
     return { ok: false, error: recordsRes.error.message };
   }
 
@@ -178,7 +178,7 @@ export async function runSandboxIntelligenceRecalculation(
       insertHealthEvent({
         event_type: "recalc_fail",
         payload: { sandboxId, error: error.message, context: "sandbox_recalc_write" },
-      }).catch(() => {});
+      }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
       return { ok: false, error: error.message };
     }
 
@@ -190,7 +190,7 @@ export async function runSandboxIntelligenceRecalculation(
       new_score: profile_strength,
       reason: "sandbox_recalculation",
       triggered_by: null,
-    }).catch(() => {});
+    }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
   }
 
   logIntel({
@@ -202,6 +202,6 @@ export async function runSandboxIntelligenceRecalculation(
   insertHealthEvent({
     event_type: "recalc_success",
     payload: { sandboxId, employeeCount: employees.length },
-  }).catch(() => {});
+  }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
   return { ok: true };
 }

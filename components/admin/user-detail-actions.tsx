@@ -32,9 +32,11 @@ export function UserDetailActions({
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [roleOpen, setRoleOpen] = useState(false);
+  const [forceEmailOpen, setForceEmailOpen] = useState(false);
+  const [forceEmail, setForceEmail] = useState("");
+  const [forceReason, setForceReason] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
   const [editName, setEditName] = useState(fullName);
-  const [editEmail, setEditEmail] = useState(email);
   const [editIndustry, setEditIndustry] = useState(industry);
   const [editRole, setEditRole] = useState(currentRole || "candidate");
 
@@ -73,6 +75,11 @@ export function UserDetailActions({
       <Button variant="secondary" size="sm" onClick={() => setRoleOpen(true)}>
         Change Role
       </Button>
+      {isSuperAdmin && (
+        <Button variant="secondary" size="sm" onClick={() => { setForceEmailOpen(true); setForceEmail(""); setForceReason(""); }}>
+          Force Email Change
+        </Button>
+      )}
       {currentStatus === "suspended" ? (
         <Button
           variant="info"
@@ -147,15 +154,7 @@ export function UserDetailActions({
                 onChange={(e) => setEditName(e.target.value)}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-grey-dark dark:text-gray-300 mb-1">Email</label>
-              <input
-                type="email"
-                className="w-full rounded-lg border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] px-3 py-2 text-grey-dark dark:text-gray-200"
-                value={editEmail}
-                onChange={(e) => setEditEmail(e.target.value)}
-              />
-            </div>
+            <p className="text-xs text-grey-medium dark:text-gray-400">Email: {email}. Superadmin can use Force Email Change with reason.</p>
             <div>
               <label className="block text-sm font-medium text-grey-dark dark:text-gray-300 mb-1">Industry</label>
               <input
@@ -179,7 +178,7 @@ export function UserDetailActions({
                     const res1 = await fetch(`/api/admin/users/${userId}/update`, {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ full_name: editName, email: editEmail }),
+                      body: JSON.stringify({ full_name: editName }),
                     });
                     const data1 = await res1.json().catch(() => ({}));
                     if (!res1.ok) {
@@ -247,6 +246,68 @@ export function UserDetailActions({
           </div>
         </DialogContent>
       </Dialog>
+
+      {isSuperAdmin && (
+        <Dialog open={forceEmailOpen} onOpenChange={setForceEmailOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Force Email Change (Superadmin)</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <p className="text-sm text-grey-medium dark:text-gray-400">Current: {email}. Both old and new email will receive a notification.</p>
+              <div>
+                <label className="block text-sm font-medium text-grey-dark dark:text-gray-300 mb-1">New email</label>
+                <input
+                  type="email"
+                  className="w-full rounded-lg border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] px-3 py-2 text-grey-dark dark:text-gray-200"
+                  value={forceEmail}
+                  onChange={(e) => setForceEmail(e.target.value)}
+                  placeholder="new@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-grey-dark dark:text-gray-300 mb-1">Reason (min 10 characters)</label>
+                <textarea
+                  className="w-full rounded-lg border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] px-3 py-2 text-grey-dark dark:text-gray-200"
+                  value={forceReason}
+                  onChange={(e) => setForceReason(e.target.value)}
+                  rows={3}
+                  placeholder="e.g. Legal name change, support ticket #123"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="secondary" size="sm" onClick={() => setForceEmailOpen(false)}>Cancel</Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  disabled={loading === "ForceEmail" || !forceEmail.trim() || forceReason.trim().length < 10}
+                  onClick={async () => {
+                    setLoading("ForceEmail");
+                    try {
+                      const res = await fetch(`/api/admin/users/${userId}/force-email-change`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ new_email: forceEmail.trim().toLowerCase(), reason: forceReason.trim() }),
+                      });
+                      const data = await res.json().catch(() => ({}));
+                      if (!res.ok) {
+                        alert(data?.error ?? "Request failed");
+                        return;
+                      }
+                      setForceEmailOpen(false);
+                      router.refresh();
+                    } finally {
+                      setLoading(null);
+                    }
+                  }}
+                >
+                  Force Change
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

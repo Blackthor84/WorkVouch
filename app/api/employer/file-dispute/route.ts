@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
     const userId = (job as { user_id?: string } | null)?.user_id;
     if (userId) {
       const { calculateCredentialScore } = await import("@/lib/security/credentialScore");
-      await calculateCredentialScore(userId).catch(() => {});
+      await calculateCredentialScore(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
     }
 
     return NextResponse.json({ success: true, dispute });

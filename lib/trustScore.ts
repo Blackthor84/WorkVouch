@@ -184,7 +184,7 @@ export async function calculateCoreTrustScore(userId: string): Promise<{
       insertHealthEvent({
         event_type: "recalc_fail",
         payload: { userId, error: String(error), context: "trust_score_update" },
-      }).catch(() => {});
+      }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
       throw new Error(`Trust score write failed: ${error.message}`);
     }
     return !!updated;
@@ -237,7 +237,7 @@ export async function calculateCoreTrustScore(userId: string): Promise<{
         error: "concurrent update",
         context: "trust_score_concurrent",
       },
-    }).catch(() => {});
+    }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
     throw new Error("Trust score write skipped due to concurrent update; retry later.");
   }
 
@@ -289,7 +289,7 @@ export async function recalculateTrustScore(
     new_score: score,
     reason: "trust_score_recalculation",
     triggered_by: triggeredBy,
-  }).catch(() => {});
+  }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
 
   await insertIntelligenceHistory({
     user_id: userId,
@@ -307,7 +307,7 @@ export async function recalculateTrustScore(
       newScore: score,
       context: "trust_score",
     },
-  }).catch(() => {});
+  }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
 
   return { score };
 }

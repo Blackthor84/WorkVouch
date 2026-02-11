@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
     });
 
     const { updateConfirmationLevel } = await import("@/lib/employment/confirmationLevel");
-    updateConfirmationLevel(parsed.data.record_id).catch(() => {});
+    updateConfirmationLevel(parsed.data.record_id).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
 
     const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
     const { calculateUserIntelligence } = await import("@/lib/intelligence/calculateUserIntelligence");

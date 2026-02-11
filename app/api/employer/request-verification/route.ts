@@ -161,8 +161,8 @@ export async function POST(req: NextRequest) {
           });
         }
         const { triggerProfileIntelligence, triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
-        triggerProfileIntelligence(jobUserId).catch(() => {});
-        triggerEmployerIntelligence(employerAccountTyped.id).catch(() => {});
+        triggerProfileIntelligence(jobUserId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+        triggerEmployerIntelligence(employerAccountTyped.id).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
       }
     } catch (err) {
       console.error("Silent enterprise calculation failed:", err);

@@ -32,7 +32,7 @@ export function ListedEmployeesCard({ apiBaseUrl, sandboxId }: ListedEmployeesCa
       .then((data) => {
         if (data.total_listed != null) setSummary(data);
       })
-      .catch(() => {})
+      .catch((error) => { console.error("[SYSTEM_FAIL]", error); })
       .finally(() => setLoading(false));
   }, [url]);
 

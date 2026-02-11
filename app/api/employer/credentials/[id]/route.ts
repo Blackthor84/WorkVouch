@@ -58,8 +58,8 @@ export async function PATCH(
 
     if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
 
-    await updateCredentialStatus(credentialId).catch(() => {});
-    await generateComplianceAlerts({ employerId }).catch(() => {});
+    await updateCredentialStatus(credentialId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    await generateComplianceAlerts({ employerId }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
 
     return NextResponse.json({ ok: true });
   } catch (e) {

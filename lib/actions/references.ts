@@ -80,7 +80,7 @@ export async function createReference(input: CreateReferenceInput) {
     throw new Error(`Failed to create reference: ${error.message}`)
   }
 
-  await calculateAndStoreRisk(input.to_user_id).catch(() => {})
+  await calculateAndStoreRisk(input.to_user_id).catch((error) => { console.error("[SYSTEM_FAIL]", error); })
 
   revalidatePath('/dashboard')
   return reference

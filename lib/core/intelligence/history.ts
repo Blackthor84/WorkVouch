@@ -78,19 +78,22 @@ export interface InsertIntelligenceHistoryParams {
   new_score: number;
   version: string;
   reason: IntelligenceHistoryReason;
+  /** Optional component breakdown for graphs and transparency. */
+  breakdown_json?: Record<string, unknown> | null;
 }
 
-/** Insert one row into intelligence_history per recalculation. No silent failures. */
+/** Insert one row into intelligence_history per recalculation. No silent failures. [INTEL_SUCCESS] */
 export async function insertIntelligenceHistory(
   params: InsertIntelligenceHistoryParams
 ): Promise<void> {
   const sb = getSupabaseServer();
-  const { error } = await sb.from("intelligence_history").insert({
+  const { error } = await (sb as any).from("intelligence_history").insert({
     user_id: params.user_id,
     previous_score: params.previous_score,
     new_score: params.new_score,
     version: params.version,
     reason: params.reason,
+    breakdown_json: params.breakdown_json ?? null,
   });
   if (error) {
     throw new Error(`intelligence_history insert failed: ${error.message}`);

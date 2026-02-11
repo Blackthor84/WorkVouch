@@ -90,7 +90,7 @@ export function UsagePanel({ apiBaseUrl, sandboxId }: UsagePanelProps = {}) {
           billingCycleEnd: d.billingCycleEnd ?? null,
         });
       })
-      .catch(() => {})
+      .catch((error) => { console.error("[SYSTEM_FAIL]", error); })
       .finally(() => setLoading(false));
   }, [url]);
 

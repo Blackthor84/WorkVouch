@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     });
 
     const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
-    triggerProfileIntelligence(row.user_id).catch(() => {});
+    triggerProfileIntelligence(row.user_id).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
 
     return NextResponse.json({ success: true });
   } catch (e) {

@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { UserSettings } from "@/components/settings/user-settings";
 import { PublicPassportSettings } from "@/components/settings/PublicPassportSettings";
+import { ChangeEmailSettings } from "@/components/settings/ChangeEmailSettings";
 
 // Ensure runtime rendering - prevents build-time prerendering
 export const revalidate = 0;
@@ -29,6 +31,9 @@ export default async function SettingsPage() {
         </div>
         {/* Settings Content */}
         <div className="space-y-8">
+          <Suspense fallback={<div className="text-grey-medium dark:text-gray-400">Loading…</div>}>
+            <ChangeEmailSettings />
+          </Suspense>
           <PublicPassportSettings />
           <UserSettings />
         </div>

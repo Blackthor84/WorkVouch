@@ -85,8 +85,8 @@ export async function POST(req: NextRequest) {
       details: JSON.stringify({ license_id: licenseId, license_number: licenseNumber, state }),
     });
 
-    await generateComplianceAlerts(employerId).catch(() => {});
-    if (guardUserId) await calculateCredentialScore(guardUserId).catch(() => {});
+    await generateComplianceAlerts(employerId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    if (guardUserId) await calculateCredentialScore(guardUserId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
 
     return NextResponse.json({
       success: true,

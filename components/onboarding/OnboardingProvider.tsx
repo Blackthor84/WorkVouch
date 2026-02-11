@@ -27,7 +27,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
   const completeOnboarding = () => {
     setShowOverlay(false);
-    fetch("/api/onboarding/complete", { method: "POST" }).catch(() => {});
+    fetch("/api/onboarding/complete", { method: "POST" }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
   };
 
   const steps = status?.steps ?? [];

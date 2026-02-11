@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
-    triggerEmployerIntelligence(employerId).catch(() => {});
+    triggerEmployerIntelligence(employerId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
 
     return NextResponse.json({
       success: true,
