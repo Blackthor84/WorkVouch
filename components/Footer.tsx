@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { INFO_EMAIL, SUPPORT_EMAIL, LEGAL_EMAIL, SALES_EMAIL } from "@/lib/constants/contact";
 
 export default function Footer() {
   return (
@@ -10,12 +11,12 @@ export default function Footer() {
             <p className="text-sm opacity-90 mb-4">
               Verified work history for real careers. Build trust, verify experience, and hire with confidence.
             </p>
-            <p className="text-sm">
-              <strong>Support:</strong>{" "}
-              <a href="mailto:support@workvouch.com" className="hover:underline">
-                support@workvouch.com
-              </a>
-            </p>
+            <div className="text-sm space-y-1">
+              <p><strong>General Inquiries:</strong>{" "}<a href={"mailto:" + INFO_EMAIL} className="hover:underline">{INFO_EMAIL}</a></p>
+              <p><strong>Support:</strong>{" "}<a href={"mailto:" + SUPPORT_EMAIL} className="hover:underline">{SUPPORT_EMAIL}</a></p>
+              <p><strong>Legal:</strong>{" "}<a href={"mailto:" + LEGAL_EMAIL} className="hover:underline">{LEGAL_EMAIL}</a></p>
+              <p><strong>Sales:</strong>{" "}<a href={"mailto:" + SALES_EMAIL} className="hover:underline">{SALES_EMAIL}</a></p>
+            </div>
           </div>
           
           <div>

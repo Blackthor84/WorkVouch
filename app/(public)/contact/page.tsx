@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { CONTACT_EMAIL, SUPPORT_EMAIL, LEGAL_EMAIL, SALES_EMAIL } from "@/lib/constants/contact";
 
 export default async function ContactPage() {
   const h = await headers();
@@ -22,7 +23,13 @@ export default async function ContactPage() {
               Contact Us
             </h1>
             <p className="text-lg text-grey-medium dark:text-gray-400">
-              We're here to help. Get in touch with our team.
+              We&apos;re here to help. Get in touch with our team.
+            </p>
+            <p className="mt-2 text-grey-medium dark:text-gray-400">
+              Primary:{" "}
+              <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline font-semibold">
+                {CONTACT_EMAIL}
+              </a>
             </p>
           </div>
 
@@ -36,10 +43,10 @@ export default async function ContactPage() {
                 WorkVouch.
               </p>
               <a
-                href="mailto:support@workvouch.com"
+                href={`mailto:${SUPPORT_EMAIL}`}
                 className="text-primary hover:underline font-semibold"
               >
-                support@workvouch.com
+                {SUPPORT_EMAIL}
               </a>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-2">
                 Response time: 24-48 hours
@@ -55,10 +62,10 @@ export default async function ContactPage() {
                 requests.
               </p>
               <a
-                href="mailto:privacy@workvouch.com"
+                href={`mailto:${LEGAL_EMAIL}`}
                 className="text-primary hover:underline font-semibold"
               >
-                privacy@workvouch.com
+                {LEGAL_EMAIL}
               </a>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-2">
                 Response time: 30 business days for legal requests
@@ -73,10 +80,10 @@ export default async function ContactPage() {
                 To report security vulnerabilities or security concerns.
               </p>
               <a
-                href="mailto:security@workvouch.com"
+                href={`mailto:${SUPPORT_EMAIL}`}
                 className="text-primary hover:underline font-semibold"
               >
-                security@workvouch.com
+                {SUPPORT_EMAIL}
               </a>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-2">
                 We appreciate responsible disclosure
@@ -85,16 +92,16 @@ export default async function ContactPage() {
 
             <Card className="p-8">
               <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
-                Employer Inquiries
+                Sales & Employer Inquiries
               </h2>
               <p className="text-grey-medium dark:text-gray-400 mb-4">
-                For employers interested in using WorkVouch for hiring.
+                For employers interested in using WorkVouch, pricing, demos, or enterprise.
               </p>
               <a
-                href="mailto:employers@workvouch.com"
+                href={`mailto:${SALES_EMAIL}`}
                 className="text-primary hover:underline font-semibold"
               >
-                employers@workvouch.com
+                {SALES_EMAIL}
               </a>
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-2">
                 Response time: 24-48 hours

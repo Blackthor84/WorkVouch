@@ -4,6 +4,7 @@
  */
 
 import sgMail from '@sendgrid/mail'
+import { NOREPLY_EMAIL } from '@/lib/constants/contact'
 
 // Set API key from environment variable
 if (process.env.SENDGRID_API_KEY) {
@@ -17,13 +18,13 @@ if (process.env.SENDGRID_API_KEY) {
  * @param to - Recipient email address
  * @param subject - Email subject
  * @param html - HTML content of the email
- * @param from - Sender email address (defaults to noreply@workvouch.com)
+ * @param from - Sender email address (defaults to NOREPLY_EMAIL)
  */
 export async function sendEmail(
   to: string,
   subject: string,
   html: string,
-  from: string = 'noreply@workvouch.com'
+  from: string = NOREPLY_EMAIL
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
     if (!process.env.SENDGRID_API_KEY) {

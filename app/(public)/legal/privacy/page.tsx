@@ -107,8 +107,8 @@ export default function LegalPrivacyPage() {
         <p className="mb-4">
           You may request access, correction, or deletion of your personal data.
           Contact{" "}
-          <a href="mailto:privacy@workvouch.com" className="text-primary hover:underline">
-            privacy@workvouch.com
+          <a href={"mailto:" + LEGAL_EMAIL} className="text-primary hover:underline">
+            {LEGAL_EMAIL}
           </a>
           . GDPR and CCPA rights apply where applicable. WorkVouch may retain certain
           data for compliance, legal, or audit reasons as described in our Data

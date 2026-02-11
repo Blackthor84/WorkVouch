@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LEGAL_EMAIL, SUPPORT_EMAIL } from "@/lib/constants/contact";
 
 export default function TermsPage() {
   return (
@@ -181,10 +182,10 @@ export default function TermsPage() {
                       Email:
                     </strong>{" "}
                     <a
-                      href="mailto:legal@workvouch.com"
+                      href={"mailto:" + LEGAL_EMAIL}
                       className="text-primary hover:underline"
                     >
-                      legal@workvouch.com
+                      {LEGAL_EMAIL}
                     </a>
                   </li>
                   <li>
@@ -192,10 +193,10 @@ export default function TermsPage() {
                       Support:
                     </strong>{" "}
                     <a
-                      href="mailto:support@workvouch.com"
+                      href={"mailto:" + SUPPORT_EMAIL}
                       className="text-primary hover:underline"
                     >
-                      support@workvouch.com
+                      {SUPPORT_EMAIL}
                     </a>
                   </li>
                 </ul>

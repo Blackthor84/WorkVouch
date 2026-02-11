@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
+import { SUPPORT_EMAIL } from "@/lib/constants/contact";
 
 export default function HelpPage() {
   const faqCategories = [
@@ -146,8 +147,9 @@ export default function HelpPage() {
               Still Need Help?
             </h2>
             <p className="text-grey-medium dark:text-gray-400 mb-6">
-              Can't find what you're looking for? Contact our support team and
-              we'll get back to you within 24-48 hours.
+              Can&apos;t find what you&apos;re looking for? Contact our support team at{" "}
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary hover:underline font-medium">{SUPPORT_EMAIL}</a>
+              {" "}and we&apos;ll get back to you within 24-48 hours.
             </p>
             <div className="flex gap-4">
               <Link href="/contact" className="inline-block">

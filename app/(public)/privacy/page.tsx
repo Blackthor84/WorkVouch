@@ -125,10 +125,10 @@ export default function PrivacyPage() {
                 <p className="mt-4">
                   To exercise your rights, contact us at{" "}
                   <a
-                    href="mailto:privacy@workvouch.com"
+                    href={"mailto:" + LEGAL_EMAIL}
                     className="text-primary hover:underline"
                   >
-                    privacy@workvouch.com
+                    {LEGAL_EMAIL}
                   </a>
                 </p>
               </section>
@@ -160,10 +160,10 @@ export default function PrivacyPage() {
                       Email:
                     </strong>{" "}
                     <a
-                      href="mailto:privacy@workvouch.com"
+                      href={"mailto:" + LEGAL_EMAIL}
                       className="text-primary hover:underline"
                     >
-                      privacy@workvouch.com
+                      {LEGAL_EMAIL}
                     </a>
                   </li>
                   <li>
@@ -171,10 +171,10 @@ export default function PrivacyPage() {
                       Support:
                     </strong>{" "}
                     <a
-                      href="mailto:support@workvouch.com"
+                      href={"mailto:" + SUPPORT_EMAIL}
                       className="text-primary hover:underline"
                     >
-                      support@workvouch.com
+                      {SUPPORT_EMAIL}
                     </a>
                   </li>
                 </ul>

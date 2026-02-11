@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPageLayout } from "@/components/legal-page-layout";
+import { LEGAL_EMAIL, SUPPORT_EMAIL } from "@/lib/constants/contact";
 
 export const metadata: Metadata = {
   title: "Dispute Resolution Policy | WorkVouch",
@@ -70,12 +71,12 @@ export default function DisputeResolutionPolicyPage() {
         </h2>
         <p>
           For dispute-related questions:{" "}
-          <a href="mailto:support@workvouch.com" className="text-primary hover:underline">
-            support@workvouch.com
+          <a href={"mailto:" + SUPPORT_EMAIL} className="text-primary hover:underline">
+            {SUPPORT_EMAIL}
           </a>
           . Legal:{" "}
-          <a href="mailto:legal@workvouch.com" className="text-primary hover:underline">
-            legal@workvouch.com
+          <a href={"mailto:" + LEGAL_EMAIL} className="text-primary hover:underline">
+            {LEGAL_EMAIL}
           </a>
           .
         </p>

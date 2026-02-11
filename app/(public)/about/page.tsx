@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { INFO_EMAIL } from "@/lib/constants/contact";
 
 export default function About() {
   return (
@@ -96,6 +97,10 @@ export default function About() {
               Create Free Account
             </Button>
           </div>
+          <p className="mt-6 text-sm text-slate-600 dark:text-slate-400">
+            General questions?{" "}
+            <a href={"mailto:" + INFO_EMAIL} className="text-primary hover:underline">{INFO_EMAIL}</a>
+          </p>
         </div>
       </section>
     </div>

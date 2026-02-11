@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPageLayout } from "@/components/legal-page-layout";
+import { LEGAL_EMAIL } from "@/lib/constants/contact";
 
 export const metadata: Metadata = {
   title: "Data Retention Policy | WorkVouch",
@@ -37,8 +38,8 @@ export default function DataRetentionPolicyPage() {
           Data deletion requests require identity confirmation. We will not process
           deletion requests without verifying that the requester is the account holder
           or an authorized representative. Contact{" "}
-          <a href="mailto:privacy@workvouch.com" className="text-primary hover:underline">
-            privacy@workvouch.com
+          <a href={"mailto:" + LEGAL_EMAIL} className="text-primary hover:underline">
+            {LEGAL_EMAIL}
           </a>{" "}
           for deletion requests.
         </p>
@@ -63,8 +64,8 @@ export default function DataRetentionPolicyPage() {
         </h2>
         <p>
           For questions about data retention:{" "}
-          <a href="mailto:privacy@workvouch.com" className="text-primary hover:underline">
-            privacy@workvouch.com
+          <a href={"mailto:" + LEGAL_EMAIL} className="text-primary hover:underline">
+            {LEGAL_EMAIL}
           </a>
           .
         </p>

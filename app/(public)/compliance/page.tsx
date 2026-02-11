@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { LEGAL_EMAIL } from "@/lib/constants/contact";
 
 export const metadata: Metadata = {
   title: "Compliance & Investor Readiness | WorkVouch",
@@ -113,8 +114,8 @@ export default function CompliancePage() {
         <div className="border-t border-grey-background dark:border-[#374151] pt-8 text-center text-sm text-grey-medium dark:text-gray-400">
           <p>
             For investor or compliance inquiries:{" "}
-            <a href="mailto:legal@workvouch.com" className="text-primary hover:underline">
-              legal@workvouch.com
+            <a href={"mailto:" + LEGAL_EMAIL} className="text-primary hover:underline">
+              {LEGAL_EMAIL}
             </a>
           </p>
         </div>
