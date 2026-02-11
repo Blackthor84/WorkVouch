@@ -127,9 +127,13 @@ export async function POST(req: NextRequest) {
             const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
             const { calculateUserIntelligence } = await import("@/lib/intelligence/calculateUserIntelligence");
             const { updateConfirmationLevel } = await import("@/lib/employment/confirmationLevel");
-            triggerProfileIntelligence(matchedUserId).catch((e) => console.error("[roster-upload] triggerProfileIntelligence:", e));
-            calculateUserIntelligence(matchedUserId).catch((e) => console.error("[roster-upload] calculateUserIntelligence:", e));
-            updateConfirmationLevel(er.id).catch((e) => console.error("[roster-upload] updateConfirmationLevel:", e));
+            try {
+              await triggerProfileIntelligence(matchedUserId);
+              await calculateUserIntelligence(matchedUserId);
+              await updateConfirmationLevel(er.id);
+            } catch (err: unknown) {
+              console.error("[API][roster-upload] post-confirm intelligence", { matchedUserId, recordId: er.id, err });
+            }
           } else {
             await adminSupabase.from("employer_roster_upload").update({ status: "matched" }).eq("id", rosterId);
           }
@@ -146,7 +150,11 @@ export async function POST(req: NextRequest) {
     }
 
     const { triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
-    triggerEmployerIntelligence(employerId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    try {
+      await triggerEmployerIntelligence(employerId);
+    } catch (err: unknown) {
+      console.error("[API][roster-upload] triggerEmployerIntelligence", { employerId, err });
+    }
 
     return NextResponse.json({
       success: true,
@@ -154,8 +162,8 @@ export async function POST(req: NextRequest) {
       rows_uploaded: inserted.length,
       rows: inserted,
     });
-  } catch (e) {
-    console.error("[employer/roster-upload]", e);
+  } catch (err: unknown) {
+    console.error("[API][roster-upload]", { err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

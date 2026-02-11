@@ -58,12 +58,16 @@ export async function PATCH(
 
     if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
 
-    await updateCredentialStatus(credentialId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
-    await generateComplianceAlerts({ employerId }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    try {
+      await updateCredentialStatus(credentialId);
+      await generateComplianceAlerts({ employerId });
+    } catch (err: unknown) {
+      console.error("[API][employer/credentials/[id]]", { credentialId, employerId, err });
+    }
 
     return NextResponse.json({ ok: true });
-  } catch (e) {
-    console.error("Update credential error:", e);
+  } catch (err: unknown) {
+    console.error("[API][employer/credentials/[id]]", { err });
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

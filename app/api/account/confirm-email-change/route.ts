@@ -116,18 +116,27 @@ export async function POST(request: Request) {
     });
     console.info("[SECURITY][EMAIL_CHANGE_CONFIRMED]", { user_id: userId, ip: ipAddress, timestamp: new Date().toISOString() });
 
-    await supabaseAny.from("fraud_signals").insert({
-      user_id: userId,
-      signal_type: "email_change_completed",
-      metadata: { previous_email: row.old_email, new_email },
-    }).then(() => {}).catch((err: unknown) => console.error("[SYSTEM_FAIL] fraud_signals insert", err));
+    try {
+      const { error: fraudErr } = await supabaseAny.from("fraud_signals").insert({
+        user_id: userId,
+        signal_type: "email_change_completed",
+        metadata: { previous_email: row.old_email, new_email },
+      });
+      if (fraudErr) console.error("[API][confirm-email-change] fraud_signals insert", { err: fraudErr });
+    } catch (err: unknown) {
+      console.error("[API][confirm-email-change] fraud_signals insert", { err });
+    }
 
-    const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
-    triggerProfileIntelligence(userId).catch((err: unknown) => console.error("[SYSTEM_FAIL] triggerProfileIntelligence", err));
+    try {
+      const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
+      await triggerProfileIntelligence(userId);
+    } catch (err: unknown) {
+      console.error("[API][confirm-email-change] triggerProfileIntelligence", { userId, err });
+    }
 
     return NextResponse.json({ success: true });
-  } catch (e) {
-    console.error("[SECURITY][EMAIL_CHANGE_CONFIRMED] FAIL:", e);
+  } catch (err: unknown) {
+    console.error("[API][confirm-email-change] FAIL", { err });
     return NextResponse.json({ error: "An error occurred" }, { status: 500 });
   }
 }

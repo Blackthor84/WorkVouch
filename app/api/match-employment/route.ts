@@ -113,11 +113,13 @@ export async function POST(req: NextRequest) {
       }
       employmentRecordId = inserted.id;
       const { autoMatchEmployerAfterEmployment } = await import("@/lib/employment/autoMatchEmployer");
-      autoMatchEmployerAfterEmployment(employmentRecordId, company_name.trim(), user_id).catch((e) =>
-        console.error("[match-employment] autoMatchEmployer:", e)
-      );
       const { recalculateMatchConfidence } = await import("@/lib/employment/matchConfidence");
-      recalculateMatchConfidence(employmentRecordId).catch((e) => console.error("[match-employment] recalculateMatchConfidence:", e));
+      try {
+        await autoMatchEmployerAfterEmployment(employmentRecordId, company_name.trim(), user_id);
+        await recalculateMatchConfidence(employmentRecordId);
+      } catch (err: unknown) {
+        console.error("[API][match-employment] autoMatch/recalculate", { employmentRecordId, err });
+      }
     }
 
     const { data: myRecord } = await sb
@@ -188,8 +190,8 @@ export async function POST(req: NextRequest) {
       matches_created: created.length,
       matches: created,
     });
-  } catch (e) {
-    console.error("[match-employment] error:", e);
+  } catch (err: unknown) {
+    console.error("[API][match-employment]", { err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

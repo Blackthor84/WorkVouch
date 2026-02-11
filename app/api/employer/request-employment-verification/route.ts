@@ -58,11 +58,15 @@ export async function POST(req: NextRequest) {
     });
 
     const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
-    triggerProfileIntelligence(row.user_id).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    try {
+      await triggerProfileIntelligence(row.user_id);
+    } catch (err: unknown) {
+      console.error("[API][request-employment-verification] triggerProfileIntelligence", { userId: row.user_id, err });
+    }
 
     return NextResponse.json({ success: true });
-  } catch (e) {
-    console.error("[employer/request-employment-verification]", e);
+  } catch (err: unknown) {
+    console.error("[API][request-employment-verification]", { err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -89,29 +89,41 @@ export async function POST(req: NextRequest) {
       if (userId) {
         await calculateUserScore(userId, "rehire");
         const { calculateAndStoreRisk } = await import("@/lib/risk/calculateAndPersist");
-        await calculateAndStoreRisk(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+        try {
+          await calculateAndStoreRisk(userId);
+        } catch (err: unknown) {
+          console.error("[API][resolve-dispute] calculateAndStoreRisk", { userId, err });
+        }
         const { calculateCredentialScore } = await import("@/lib/security/credentialScore");
-        await calculateCredentialScore(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+        try {
+          await calculateCredentialScore(userId);
+        } catch (err: unknown) {
+          console.error("[API][resolve-dispute] calculateCredentialScore", { userId, err });
+        }
         const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
-        triggerProfileIntelligence(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
-        const adminSupabase = getSupabaseServer() as any;
+        try {
+          await triggerProfileIntelligence(userId);
+        } catch (err: unknown) {
+          console.error("[API][resolve-dispute] triggerProfileIntelligence", { userId, err });
+        }
         const score = data.resolution === "resolved" ? 100 : 0;
-        (getSupabaseServer() as any).from("employer_disputes").update({ dispute_resolution_score: score }).eq("id", data.disputeId).then(() => {}).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+        const adminSupabase = getSupabaseServer() as any;
+        const { error: disputeScoreErr } = await adminSupabase.from("employer_disputes").update({ dispute_resolution_score: score }).eq("id", data.disputeId);
+        if (disputeScoreErr) console.error("[API][resolve-dispute] employer_disputes dispute_resolution_score", { err: disputeScoreErr });
       }
-    } catch (err) {
-      console.error("Scoring engine (rehire) failed:", err);
+    } catch (err: unknown) {
+      console.error("[API][resolve-dispute] scoring/rehire", { err });
     }
 
     return NextResponse.json({ success: true, dispute: updatedDispute });
-  } catch (error: any) {
-    if (error instanceof z.ZodError) {
+  } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid input", details: error.issues },
+        { error: "Invalid input", details: err.issues },
         { status: 400 },
       );
     }
-
-    console.error("Resolve dispute error:", error);
+    console.error("[API][resolve-dispute]", { err });
     return NextResponse.json(
       { error: "Failed to resolve dispute" },
       { status: 500 },

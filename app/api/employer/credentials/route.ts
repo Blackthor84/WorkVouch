@@ -54,16 +54,28 @@ export async function POST(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     const credentialId = (inserted as { id: string }).id;
 
-    await updateCredentialStatus(credentialId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
-    await generateComplianceAlerts({ employerId }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    try {
+      await updateCredentialStatus(credentialId);
+    } catch (err: unknown) {
+      console.error("[API][employer/credentials] updateCredentialStatus", { credentialId, err });
+    }
+    try {
+      await generateComplianceAlerts({ employerId });
+    } catch (err: unknown) {
+      console.error("[API][employer/credentials] generateComplianceAlerts", { employerId, err });
+    }
 
     const { triggerProfileIntelligence, triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
-    triggerProfileIntelligence(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
-    triggerEmployerIntelligence(employerId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    try {
+      await triggerProfileIntelligence(userId);
+      await triggerEmployerIntelligence(employerId);
+    } catch (err: unknown) {
+      console.error("[API][employer/credentials] intelligence", { userId, employerId, err });
+    }
 
     return NextResponse.json({ id: credentialId });
-  } catch (e) {
-    console.error("Create credential error:", e);
+  } catch (err: unknown) {
+    console.error("[API][employer/credentials]", { err });
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

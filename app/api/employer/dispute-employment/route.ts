@@ -73,15 +73,17 @@ export async function POST(req: NextRequest) {
       changeReason: parsed.data.reason ?? "Employer disputed employment",
     });
 
-    const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
+    const { triggerProfileIntelligence, triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
     const { calculateUserIntelligence } = await import("@/lib/intelligence/calculateUserIntelligence");
     const { recalculateMatchConfidence } = await import("@/lib/employment/matchConfidence");
-    triggerProfileIntelligence(row.user_id).catch((e) => console.error("[dispute-employment] triggerProfileIntelligence:", e));
-    calculateUserIntelligence(row.user_id).catch((e) => console.error("[dispute-employment] calculateUserIntelligence:", e));
-    recalculateMatchConfidence(parsed.data.record_id).catch((e) => console.error("[dispute-employment] recalculateMatchConfidence:", e));
-
-    const { triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
-    triggerEmployerIntelligence(employerId).catch((e) => console.error("[dispute-employment] triggerEmployerIntelligence:", e));
+    try {
+      await triggerProfileIntelligence(row.user_id);
+      await calculateUserIntelligence(row.user_id);
+      await recalculateMatchConfidence(parsed.data.record_id);
+      await triggerEmployerIntelligence(employerId);
+    } catch (err: unknown) {
+      console.error("[API][dispute-employment] intelligence", { userId: row.user_id, recordId: parsed.data.record_id, employerId, err });
+    }
 
     await adminSupabase.from("employer_notifications").insert({
       employer_id: employerId,
@@ -92,8 +94,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true, verification_status: "flagged" });
-  } catch (e) {
-    console.error("[employer/dispute-employment]", e);
+  } catch (err: unknown) {
+    console.error("[API][dispute-employment]", { err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

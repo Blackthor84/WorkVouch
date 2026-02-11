@@ -103,13 +103,14 @@ export async function GET() {
     let reportsUsed = 0;
     let reportsLimit = 80;
     try {
-      const usage = await import("@/lib/usage").then((m) => m.getUsageForEmployer(eid));
+      const usageMod = await import("@/lib/usage");
+      const usage = await usageMod.getUsageForEmployer(eid);
       if (usage) {
         reportsUsed = usage.reportsUsed;
         reportsLimit = usage.limits?.reports === -1 ? 999 : usage.limits?.reports ?? 80;
       }
-    } catch {
-      // ignore
+    } catch (err: unknown) {
+      console.error("[API][security-summary] getUsageForEmployer", { eid, err });
     }
 
     return NextResponse.json({

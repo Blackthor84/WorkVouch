@@ -126,19 +126,22 @@ export async function POST(req: NextRequest) {
     const userId = (job as { user_id?: string } | null)?.user_id;
     if (userId) {
       const { calculateCredentialScore } = await import("@/lib/security/credentialScore");
-      await calculateCredentialScore(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+      try {
+        await calculateCredentialScore(userId);
+      } catch (err: unknown) {
+        console.error("[API][file-dispute] calculateCredentialScore", { userId, err });
+      }
     }
 
     return NextResponse.json({ success: true, dispute });
-  } catch (error: any) {
-    if (error instanceof z.ZodError) {
+  } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid input", details: error.issues },
+        { error: "Invalid input", details: err.issues },
         { status: 400 },
       );
     }
-
-    console.error("File dispute error:", error);
+    console.error("[API][file-dispute]", { err });
     return NextResponse.json(
       { error: "Failed to file dispute" },
       { status: 500 },

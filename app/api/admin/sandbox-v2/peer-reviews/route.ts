@@ -63,15 +63,19 @@ export async function POST(req: NextRequest) {
         reviewerId: reviewer_id,
         reviewedId: reviewed_id,
       });
-      await insertHealthEvent({
-        event_type: "fraud_block",
-        payload: {
-          context: "sandbox_peer_review_self",
-          sandboxId: sandbox_id,
-          reviewerId: reviewer_id,
-          reviewedId: reviewed_id,
-        },
-      }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+      try {
+        await insertHealthEvent({
+          event_type: "fraud_block",
+          payload: {
+            context: "sandbox_peer_review_self",
+            sandboxId: sandbox_id,
+            reviewerId: reviewer_id,
+            reviewedId: reviewed_id,
+          },
+        });
+      } catch (err: unknown) {
+        console.error("[API][sandbox-v2/peer-reviews] insertHealthEvent fraud_block", { err });
+      }
       return NextResponse.json(
         { error: "Self-review is not allowed" },
         { status: 400 }
@@ -171,15 +175,19 @@ export async function POST(req: NextRequest) {
         reviewerId: reviewer_id,
         reviewedId: reviewed_id,
       });
-      await insertHealthEvent({
-        event_type: "overlap_failure",
-        payload: {
-          context: "sandbox_peer_review_no_overlap",
-          sandboxId: sandbox_id,
-          reviewerId: reviewer_id,
-          reviewedId: reviewed_id,
-        },
-      }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+      try {
+        await insertHealthEvent({
+          event_type: "overlap_failure",
+          payload: {
+            context: "sandbox_peer_review_no_overlap",
+            sandboxId: sandbox_id,
+            reviewerId: reviewer_id,
+            reviewedId: reviewed_id,
+          },
+        });
+      } catch (err: unknown) {
+        console.error("[API][sandbox-v2/peer-reviews] insertHealthEvent overlap_failure", { err });
+      }
       return NextResponse.json(
         {
           error: `Overlap of at least ${MIN_OVERLAP_MONTHS} month(s) at same employer required`,

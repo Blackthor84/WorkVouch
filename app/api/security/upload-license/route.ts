@@ -85,8 +85,12 @@ export async function POST(req: NextRequest) {
       details: JSON.stringify({ license_id: licenseId, license_number: licenseNumber, state }),
     });
 
-    await generateComplianceAlerts(employerId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
-    if (guardUserId) await calculateCredentialScore(guardUserId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    try {
+      await generateComplianceAlerts(employerId);
+      if (guardUserId) await calculateCredentialScore(guardUserId);
+    } catch (err: unknown) {
+      console.error("[API][upload-license] compliance/credentialScore", { employerId, guardUserId, err });
+    }
 
     return NextResponse.json({
       success: true,
@@ -101,8 +105,8 @@ export async function POST(req: NextRequest) {
         uploaded_document_url: uploadedDocumentUrl,
       },
     });
-  } catch (e) {
-    console.error("License upload error:", e);
+  } catch (err: unknown) {
+    console.error("[API][upload-license]", { err });
     return NextResponse.json(
       { error: "Failed to upload license" },
       { status: 500 }

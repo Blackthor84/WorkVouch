@@ -77,21 +77,39 @@ export async function POST(req: NextRequest) {
     });
 
     const { updateConfirmationLevel } = await import("@/lib/employment/confirmationLevel");
-    updateConfirmationLevel(parsed.data.record_id).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    try {
+      await updateConfirmationLevel(parsed.data.record_id);
+    } catch (err: unknown) {
+      console.error("[API][confirm-employment] updateConfirmationLevel", { recordId: parsed.data.record_id, err });
+    }
 
-    const { triggerProfileIntelligence } = await import("@/lib/intelligence/engines");
+    const { triggerProfileIntelligence, triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
     const { calculateUserIntelligence } = await import("@/lib/intelligence/calculateUserIntelligence");
     const { recalculateMatchConfidence } = await import("@/lib/employment/matchConfidence");
-    triggerProfileIntelligence(row.user_id).catch((e) => console.error("[confirm-employment] triggerProfileIntelligence:", e));
-    calculateUserIntelligence(row.user_id).catch((e) => console.error("[confirm-employment] calculateUserIntelligence:", e));
-    recalculateMatchConfidence(parsed.data.record_id).catch((e) => console.error("[confirm-employment] recalculateMatchConfidence:", e));
-
-    const { triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
-    triggerEmployerIntelligence(employerId).catch((e) => console.error("[confirm-employment] triggerEmployerIntelligence:", e));
+    try {
+      await triggerProfileIntelligence(row.user_id);
+    } catch (err: unknown) {
+      console.error("[API][confirm-employment] triggerProfileIntelligence", { userId: row.user_id, err });
+    }
+    try {
+      await calculateUserIntelligence(row.user_id);
+    } catch (err: unknown) {
+      console.error("[API][confirm-employment] calculateUserIntelligence", { userId: row.user_id, err });
+    }
+    try {
+      await recalculateMatchConfidence(parsed.data.record_id);
+    } catch (err: unknown) {
+      console.error("[API][confirm-employment] recalculateMatchConfidence", { recordId: parsed.data.record_id, err });
+    }
+    try {
+      await triggerEmployerIntelligence(employerId);
+    } catch (err: unknown) {
+      console.error("[API][confirm-employment] triggerEmployerIntelligence", { employerId, err });
+    }
 
     return NextResponse.json({ success: true, verification_status: "verified" });
-  } catch (e) {
-    console.error("[employer/confirm-employment]", e);
+  } catch (err: unknown) {
+    console.error("[API][confirm-employment]", { err });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -161,11 +161,15 @@ export async function POST(req: NextRequest) {
           });
         }
         const { triggerProfileIntelligence, triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
-        triggerProfileIntelligence(jobUserId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
-        triggerEmployerIntelligence(employerAccountTyped.id).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+        try {
+          await triggerProfileIntelligence(jobUserId);
+          await triggerEmployerIntelligence(employerAccountTyped.id);
+        } catch (err: unknown) {
+          console.error("[API][request-verification] enterprise intelligence", { jobUserId, employerId: employerAccountTyped.id, err });
+        }
       }
-    } catch (err) {
-      console.error("Silent enterprise calculation failed:", err);
+    } catch (err: unknown) {
+      console.error("[API][request-verification] enterprise calculation", { err });
     }
 
     // Update job history to make it visible and set status to pending

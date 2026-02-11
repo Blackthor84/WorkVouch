@@ -90,31 +90,48 @@ export async function POST(req: NextRequest) {
       if (userId) {
         await calculateUserScore(userId, "rehire");
         const { calculateAndStoreRisk } = await import("@/lib/risk/calculateAndPersist");
-        await calculateAndStoreRisk(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+        try {
+          await calculateAndStoreRisk(userId);
+        } catch (err: unknown) {
+          console.error("[API][approve-verification] calculateAndStoreRisk", { userId, err });
+        }
         const { calculateCredentialScore } = await import("@/lib/security/credentialScore");
-        await calculateCredentialScore(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+        try {
+          await calculateCredentialScore(userId);
+        } catch (err: unknown) {
+          console.error("[API][approve-verification] calculateCredentialScore", { userId, err });
+        }
         const { triggerProfileIntelligence, triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
-        triggerProfileIntelligence(userId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+        try {
+          await triggerProfileIntelligence(userId);
+        } catch (err: unknown) {
+          console.error("[API][approve-verification] triggerProfileIntelligence", { userId, err });
+        }
         const vr = verificationRequest as { requested_by_id?: string };
-        if (vr?.requested_by_id) triggerEmployerIntelligence(vr.requested_by_id).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+        if (vr?.requested_by_id) {
+          try {
+            await triggerEmployerIntelligence(vr.requested_by_id);
+          } catch (err: unknown) {
+            console.error("[API][approve-verification] triggerEmployerIntelligence", { requestedById: vr.requested_by_id, err });
+          }
+        }
       }
-    } catch (err) {
-      console.error("Scoring engine (rehire) failed:", err);
+    } catch (err: unknown) {
+      console.error("[API][approve-verification] scoring/rehire", { err });
     }
 
     return NextResponse.json({
       success: true,
       verificationRequest: updatedRequest,
     });
-  } catch (error: any) {
-    if (error instanceof z.ZodError) {
+  } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid input", details: error.issues },
+        { error: "Invalid input", details: err.issues },
         { status: 400 },
       );
     }
-
-    console.error("Approve verification error:", error);
+    console.error("[API][approve-verification]", { err });
     return NextResponse.json(
       { error: "Failed to approve verification" },
       { status: 500 },

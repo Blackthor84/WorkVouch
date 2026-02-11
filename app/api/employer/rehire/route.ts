@@ -217,12 +217,16 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    await calculateAndStoreRisk(profileId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
-    await calculateEmployerWorkforceRisk(employerAccountId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    try {
+      await calculateAndStoreRisk(profileId);
+      await calculateEmployerWorkforceRisk(employerAccountId);
+    } catch (err: unknown) {
+      console.error("[API][employer/rehire] POST risk/intelligence", { profileId, employerAccountId, err });
+    }
 
     return NextResponse.json({ ok: true });
-  } catch (e) {
-    console.error("Rehire API error:", e);
+  } catch (err: unknown) {
+    console.error("[API][employer/rehire] POST", { err });
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
@@ -292,8 +296,8 @@ export async function GET() {
     }));
 
     return NextResponse.json({ data: dataWithNames });
-  } catch (e) {
-    console.error("Rehire GET error:", e);
+  } catch (err: unknown) {
+    console.error("[API][employer/rehire] GET", { err });
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
@@ -441,12 +445,16 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: String(error) }, { status: 500 });
     }
 
-    await calculateAndStoreRisk(profileId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
-    await calculateEmployerWorkforceRisk(employerAccountId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+    try {
+      await calculateAndStoreRisk(profileId);
+      await calculateEmployerWorkforceRisk(employerAccountId);
+    } catch (err: unknown) {
+      console.error("[API][employer/rehire] PATCH risk/intelligence", { profileId, employerAccountId, err });
+    }
 
     return NextResponse.json({ ok: true });
-  } catch (e) {
-    console.error("Rehire PATCH error:", e);
+  } catch (err: unknown) {
+    console.error("[API][employer/rehire] PATCH", { err });
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
