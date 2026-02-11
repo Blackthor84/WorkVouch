@@ -4,7 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { updateSession } from "@/lib/supabase/middleware";
 
 /**
- * Next.js middleware (invoked via middleware.ts): refresh Supabase session, then enforce protected routes.
+ * Next.js 16 middleware (single file: proxy.ts). Refresh Supabase session, then enforce protected routes.
  * [PWA] Public paths (manifest, icons, static) are never blocked — prevents 401 on manifest.json.
  * Admin: requires admin or superadmin role; logs IP + timestamp on unauthorized.
  * Employer: requires employer role. Dashboard/employee: requires any authenticated session.
@@ -40,7 +40,7 @@ function getClientIp(req: NextRequest): string {
   return req.headers.get("x-real-ip")?.trim() ?? "unknown";
 }
 
-export default async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const url = req.nextUrl;
   const pathname = url.pathname;
 
