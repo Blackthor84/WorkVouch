@@ -1,3 +1,0 @@
-// This file has been replaced by proxy.ts for Next.js 14+
-// Paywall protection is now handled in proxy.ts
-export {}
