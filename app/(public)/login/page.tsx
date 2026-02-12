@@ -16,7 +16,6 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log("[LOGIN] Submit fired");
     setError("");
     setLoading(true);
 
@@ -24,39 +23,26 @@ function LoginForm() {
       email: email.trim().toLowerCase(),
       password,
       redirect: false,
+      callbackUrl: "/dashboard",
     });
 
-    console.log("[LOGIN] Result:", JSON.stringify(result, null, 2));
+    console.log("[LOGIN] Result:", result);
 
     if (!result) {
-      console.error("[LOGIN] No result returned");
-      setError("Login failed. Try again.");
+      setError("Login failed.");
       setLoading(false);
       return;
     }
 
     if (result.error) {
-      console.error("[LOGIN] Error:", result.error);
       setError("Invalid email or password");
       setLoading(false);
       return;
     }
 
     if (result.ok) {
-      console.log("[LOGIN] Success. Checking session...");
-
-      const sessionCheck = await fetch("/api/auth/session");
-      const sessionData = await sessionCheck.json();
-
-      console.log("[LOGIN] Session:", sessionData);
-
-      if (sessionData?.user) {
-        router.push("/dashboard");
-        router.refresh();
-      } else {
-        console.error("[LOGIN] Session not established");
-        setError("Login succeeded but session failed.");
-      }
+      router.push("/dashboard");
+      router.refresh();
     }
 
     setLoading(false);
