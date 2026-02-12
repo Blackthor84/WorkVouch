@@ -4,24 +4,25 @@ import type { NextRequest } from "next/server";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow static & public assets
+  // 🔓 Always allow public files and static assets
   if (
+    pathname === "/manifest.json" ||
+    pathname === "/favicon.ico" ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/images") ||
     pathname.startsWith("/icons") ||
     pathname.startsWith("/public") ||
-    pathname.startsWith("/favicon") ||
-    pathname.startsWith("/manifest") ||
     pathname.endsWith(".png") ||
     pathname.endsWith(".jpg") ||
     pathname.endsWith(".jpeg") ||
     pathname.endsWith(".svg") ||
-    pathname.endsWith(".webp")
+    pathname.endsWith(".webp") ||
+    pathname.endsWith(".ico")
   ) {
     return NextResponse.next();
   }
 
-  // Allow public routes
+  // 🔓 Public routes
   if (
     pathname === "/" ||
     pathname.startsWith("/login") ||
@@ -36,15 +37,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check Supabase session cookie presence
+  // 🔐 Check for Supabase session cookie
   const hasSession = request.cookies
     .getAll()
     .some((cookie) => cookie.name.includes("sb-"));
 
-  if (pathname.startsWith("/admin") || pathname.startsWith("/employer")) {
-    if (!hasSession) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
+  if (!hasSession) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   return NextResponse.next();
