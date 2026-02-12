@@ -15,6 +15,7 @@ function validateEmail(email: string): boolean {
 /**
  * POST /api/admin/users/[id]/force-email-change
  * Admin or Superadmin. Force change user email with required reason; notify both old and new.
+ * Uses @/lib/supabase/admin (service role) — auth.admin is not available on @/lib/supabase/server.
  * No raw errors leaked to frontend.
  */
 export async function POST(
@@ -25,7 +26,7 @@ export async function POST(
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
       console.error("[ADMIN_FORCE_EMAIL_CHANGE_ERROR] SUPABASE_SERVICE_ROLE_KEY is not set");
       return NextResponse.json(
-        { success: false, error: "Internal server error" },
+        { success: false, error: "Server configuration error" },
         { status: 500 }
       );
     }
@@ -65,7 +66,7 @@ export async function POST(
     }
     if (!reason || reason.length < 10) {
       return NextResponse.json(
-        { success: false, error: "Reason is required (min 10 characters)" },
+        { success: false, error: "Reason must be at least 10 characters" },
         { status: 400 }
       );
     }
