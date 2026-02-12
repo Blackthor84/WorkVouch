@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseServer } from "@/lib/supabase/server";
 import { NavbarServer } from "@/components/navbar-server";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { getAppModeFromHeaders } from "@/lib/app-mode";
@@ -15,11 +14,11 @@ export default async function EmployerLayout({
   const isSandbox = getAppModeFromHeaders(headersList) === "sandbox";
 
   if (!isSandbox) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      console.log("REDIRECT TRIGGERED IN: app/employer/layout.tsx");
-      redirect("/login");
-    }
+    const supabase = await getSupabaseServer();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) redirect("/login");
   }
 
   return (

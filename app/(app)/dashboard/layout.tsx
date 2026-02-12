@@ -1,18 +1,17 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseServer } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const supabase = await getSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session?.user) {
-    console.log("REDIRECT TRIGGERED IN: app/(app)/dashboard/layout.tsx");
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
 
   return <>{children}</>;
 }

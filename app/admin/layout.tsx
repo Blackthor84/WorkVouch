@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseServer } from "@/lib/supabase/server";
 import { NavbarServer } from "@/components/navbar-server";
 import { getCurrentUserProfile, getCurrentUserRoles } from "@/lib/auth";
 import { isAdmin, isSuperAdmin } from "@/lib/roles";
@@ -13,11 +12,12 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const supabase = await getSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session?.user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
 
   const profile = await getCurrentUserProfile();
   const roles = await getCurrentUserRoles();

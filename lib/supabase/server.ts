@@ -2,6 +2,11 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/types/database";
 
+/** Alias for layout auth: returns server Supabase client (use in server components). */
+export async function getSupabaseServer() {
+  return createServerSupabase();
+}
+
 export async function createServerSupabase() {
   const cookieStore = await cookies();
 
