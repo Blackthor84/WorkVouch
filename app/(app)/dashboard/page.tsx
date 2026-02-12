@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { getCurrentUser, getCurrentUserProfile, isEmployer } from "@/lib/auth";
 import { getVerticalDashboardConfig } from "@/lib/verticals/dashboard";
 import { Card } from "@/components/ui/card";
@@ -16,6 +15,8 @@ import {
   BriefcaseIcon as JobsIcon,
   DocumentArrowUpIcon,
 } from "@heroicons/react/24/outline";
+import { DashboardAuthGuard } from "@/components/dashboard/DashboardAuthGuard";
+import { redirect } from "next/navigation";
 
 // Ensure runtime rendering - prevents build-time prerendering
 export const revalidate = 0;
@@ -24,15 +25,21 @@ export const dynamic = "force-dynamic";
 export default async function UserDashboardPage() {
   const user = await getCurrentUser();
 
-  if (!user) {
-    console.log("REDIRECT TRIGGERED IN: app/(app)/dashboard/page.tsx");
-    redirect("/login");
+  // Check if user is an employer and redirect them (server-side, no auth redirect)
+  if (user) {
+    const userIsEmployer = await isEmployer();
+    if (userIsEmployer) {
+      redirect("/employer/dashboard");
+    }
   }
 
-  // Check if user is an employer and redirect them
-  const userIsEmployer = await isEmployer();
-  if (userIsEmployer) {
-    redirect("/employer/dashboard");
+  // No server-side auth redirect: client guard handles it (avoids cookie race)
+  if (!user) {
+    return (
+      <DashboardAuthGuard>
+        <div className="flex items-center justify-center min-h-[40vh]">Loading...</div>
+      </DashboardAuthGuard>
+    );
   }
 
   const profile = await getCurrentUserProfile();
@@ -118,6 +125,7 @@ export default async function UserDashboardPage() {
   ];
 
   return (
+    <DashboardAuthGuard>
     <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-[#F8FAFC] min-w-0 overflow-x-hidden">
       <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20 min-w-0">
         {/* Page Header */}
@@ -257,5 +265,6 @@ export default async function UserDashboardPage() {
         </div>
       </div>
     </main>
+    </DashboardAuthGuard>
   );
 }
