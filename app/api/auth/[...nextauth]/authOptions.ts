@@ -30,7 +30,7 @@ const getSupabaseAdmin = () => {
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 if (!process.env.NEXTAUTH_SECRET) {
-  console.log("⚠️ NEXTAUTH_SECRET is missing");
+  console.error("[auth] NEXTAUTH_SECRET is missing — sessions will not work. Set a stable secret (do not regenerate).");
 }
 
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -45,6 +45,7 @@ const getSupabaseAuth = () => {
 };
 
 export const authOptions: NextAuthOptions = {
+  trustHost: true, // Let NextAuth auto-detect host (Vercel, preview URLs). Do not require NEXTAUTH_URL.
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -167,8 +168,7 @@ export const authOptions: NextAuthOptions = {
             roles: userRoles,
           };
         } catch (error) {
-          console.log("=== AUTH EXCEPTION ===");
-          console.log(error);
+          console.error("[auth] Login failed:", error instanceof Error ? error.message : error);
           return null;
         }
       },
@@ -222,6 +222,7 @@ export const authOptions: NextAuthOptions = {
             .eq("id", token.id)
             .single();
           if ((profile as { is_deleted?: boolean } | null)?.is_deleted) {
+            console.log("[auth] Session stripped: profile is_deleted=true for user", token.id);
             return { ...session, user: null as any };
           }
         } catch {
