@@ -4,25 +4,28 @@ import type { NextRequest } from "next/server";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 🔓 Always allow public files and static assets
+  // 🔓 Allow ALL static assets
   if (
     pathname === "/manifest.json" ||
+    pathname === "/sw.js" ||
     pathname === "/favicon.ico" ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/images") ||
     pathname.startsWith("/icons") ||
     pathname.startsWith("/public") ||
+    pathname.startsWith("/api/auth") || // NextAuth must NEVER be blocked
     pathname.endsWith(".png") ||
     pathname.endsWith(".jpg") ||
     pathname.endsWith(".jpeg") ||
     pathname.endsWith(".svg") ||
     pathname.endsWith(".webp") ||
-    pathname.endsWith(".ico")
+    pathname.endsWith(".ico") ||
+    pathname.endsWith(".json")
   ) {
     return NextResponse.next();
   }
 
-  // 🔓 Public routes
+  // 🔓 Public pages
   if (
     pathname === "/" ||
     pathname.startsWith("/login") ||
