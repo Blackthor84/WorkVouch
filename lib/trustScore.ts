@@ -13,6 +13,7 @@ import {
   insertScoreHistory,
   insertHealthEvent,
   insertIntelligenceHistory,
+  upsertOrganizationIntelligence,
 } from "@/lib/core/intelligence";
 import type { IntelligenceHistoryReason } from "@/lib/core/intelligence";
 
@@ -248,7 +249,13 @@ export async function calculateCoreTrustScore(userId: string): Promise<{
     durationMs: Date.now() - startMs,
   });
 
-  return { score, components, previousScore, version: writtenVersion };
+  return {
+    score,
+    components,
+    previousScore,
+    version: writtenVersion,
+    organizationId: input.organization_id ?? null,
+  };
 }
 
 /**
@@ -297,7 +304,13 @@ export async function recalculateTrustScore(
     new_score: score,
     version,
     reason,
+    organization_id: organizationId ?? undefined,
   });
+  if (organizationId) {
+    upsertOrganizationIntelligence(organizationId).catch((err) =>
+      console.error("[SYSTEM_FAIL] upsertOrganizationIntelligence", err)
+    );
+  }
 
   await insertHealthEvent({
     event_type: "recalc_success",

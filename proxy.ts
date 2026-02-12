@@ -50,7 +50,19 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  return NextResponse.next();
+  const env =
+    request.nextUrl.searchParams.get("sandbox") === "true" ||
+    request.nextUrl.searchParams.get("environment") === "sandbox"
+      ? "sandbox"
+      : request.cookies.get("app_environment")?.value === "sandbox"
+        ? "sandbox"
+        : "production";
+
+  const nextRes = NextResponse.next();
+  nextRes.headers.set("x-app-environment", env);
+  nextRes.headers.set("x-sandbox-mode", env === "sandbox" ? "true" : "false");
+  nextRes.cookies.set("app_environment", env, { path: "/", sameSite: "lax", maxAge: 60 * 60 * 24 * 7 });
+  return nextRes;
 }
 
 // 🎯 CRITICAL: Only match protected routes
@@ -61,5 +73,6 @@ export const config = {
     "/employer/:path*",
     "/profile/:path*",
     "/settings/:path*",
+    "/enterprise/:path*",
   ],
 };

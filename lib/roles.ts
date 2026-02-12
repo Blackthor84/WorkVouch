@@ -1,6 +1,7 @@
 /**
  * Centralized role checks and hierarchy.
  * Source of truth: profiles.role and user_roles table (server-side).
+ * Enterprise roles: tenant_memberships (enterprise_owner, location_admin, recruiter).
  *
  * Role hierarchy (strict):
  * - user (lowest)
@@ -13,6 +14,9 @@
 export type AssignableRole = "user" | "employer" | "admin" | "superadmin";
 export type SystemRole = "system";
 export type UserRole = AssignableRole | SystemRole;
+
+/** Enterprise tenant roles (from tenant_memberships). */
+export type EnterpriseRole = "enterprise_owner" | "location_admin" | "recruiter";
 
 /** Order: lower index = lower privilege. Admin cannot modify anyone at or above their level. */
 const ROLE_ORDER: Record<string, number> = {
@@ -68,4 +72,21 @@ export function canAssignRole(actorRole: string, newRole: string, isSelf: boolea
     return true;
   }
   return false;
+}
+
+/** Enterprise role checks (tenant_memberships). */
+export function isEnterpriseOwner(role: string): boolean {
+  return role === "enterprise_owner";
+}
+
+export function isLocationAdmin(role: string): boolean {
+  return role === "location_admin";
+}
+
+export function isRecruiter(role: string): boolean {
+  return role === "recruiter";
+}
+
+export function isEnterpriseRole(role: string): boolean {
+  return role === "enterprise_owner" || role === "location_admin" || role === "recruiter";
 }

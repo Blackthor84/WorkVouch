@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { requireAdmin, assertAdminCanModify } from "@/lib/admin/requireAdmin";
+import { insertAdminAuditLog, getClientIpFromHeaders } from "@/lib/admin/audit";
 import { auditLog, getAuditMetaFromRequest } from "@/lib/auditLogger";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rateLimit";
 
@@ -92,13 +93,15 @@ export async function PATCH(
       role: role ?? targetProfile.role,
       status: status ?? targetProfile.status,
     };
-    await supabaseAny.from("admin_audit_logs").insert({
-      admin_id: admin.userId,
-      target_user_id: targetUserId,
+    await insertAdminAuditLog({
+      adminId: admin.userId,
+      targetUserId,
       action: "admin_update_profile",
-      old_value: previous_value,
-      new_value,
+      oldValue: previous_value,
+      newValue: new_value,
       reason: "Admin profile edit",
+      ipAddress: getClientIpFromHeaders(request.headers),
+      userAgent: request.headers.get("user-agent") ?? null,
     });
     const { ipAddress, userAgent } = getAuditMetaFromRequest(request);
     await auditLog({

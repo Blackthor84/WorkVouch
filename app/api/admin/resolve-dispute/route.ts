@@ -3,6 +3,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { calculateUserScore } from "@/lib/scoring/engine";
+import { insertAdminAuditLog, getClientIpFromHeaders } from "@/lib/admin/audit";
 import { z } from "zod";
 
 const resolveDisputeSchema = z.object({
@@ -110,6 +111,19 @@ export async function POST(req: NextRequest) {
         const adminSupabase = getSupabaseServer() as any;
         const { error: disputeScoreErr } = await adminSupabase.from("employer_disputes").update({ dispute_resolution_score: score }).eq("id", data.disputeId);
         if (disputeScoreErr) console.error("[API][resolve-dispute] employer_disputes dispute_resolution_score", { err: disputeScoreErr });
+        try {
+          await insertAdminAuditLog({
+            adminId: user.id,
+            targetUserId: userId,
+            action: "dispute_resolution",
+            oldValue: { disputeId: data.disputeId, status: dispute?.status },
+            newValue: { disputeId: data.disputeId, resolution: data.resolution, verificationStatus: data.verificationStatus },
+            reason: "Dispute resolved via admin",
+            ipAddress: getClientIpFromHeaders(req.headers),
+          });
+        } catch (e) {
+          console.error("[API][resolve-dispute] insertAdminAuditLog", e);
+        }
       }
     } catch (err: unknown) {
       console.error("[API][resolve-dispute] scoring/rehire", { err });

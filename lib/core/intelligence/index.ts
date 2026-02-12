@@ -17,12 +17,14 @@ export {
   insertScoreHistory,
   insertHealthEvent,
   insertIntelligenceHistory,
+  upsertOrganizationIntelligence,
   scoreHistoryDelta,
 } from "./history";
 export type {
   InsertScoreHistoryParams,
   InsertHealthEventParams,
   InsertIntelligenceHistoryParams,
+  OrganizationIntelligenceMetrics,
   IntelligenceHistoryReason,
   HealthEventType,
   ScoreHistoryEntity,

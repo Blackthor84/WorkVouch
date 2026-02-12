@@ -46,8 +46,14 @@ function rehireMultiplier(rehireEligible: boolean): number {
   return rehireEligible ? RM_ELIGIBLE : RM_NOT_ELIGIBLE;
 }
 
-/** Fraud penalty: min(fraud_score * 10, 15). fraud_score undefined → 0. */
-function fraudPenalty(fraudScore: number | undefined): number {
+/** Fraud penalty: when fraud_count provided use min(fraud_count*5, 15); else min(fraud_score*10, 15). */
+function fraudPenalty(
+  fraudScore: number | undefined,
+  fraudCount: number | undefined
+): number {
+  if (fraudCount !== undefined && fraudCount !== null) {
+    return Math.min(fraudCount * 5, FP_CAP);
+  }
   const raw = (fraudScore ?? 0) * FP_SCALE;
   return Math.min(raw, FP_CAP);
 }
@@ -82,7 +88,7 @@ export function calculateV1Breakdown(input: ProfileInput): V1Breakdown {
   const reviewVolume = reviewVolumeStrength(input.reviewCount);
   const sentiment = sentimentStrength(input.sentimentAverage);
   const rating = ratingStrength(input.averageRating);
-  const fp = fraudPenalty(input.fraudScore);
+  const fp = fraudPenalty(input.fraudScore, input.fraud_count);
   const rm = rehireMultiplier(input.rehireEligible);
   const rawScore = tenure + reviewVolume + sentiment + rating - fp;
   const totalScore = Math.round(

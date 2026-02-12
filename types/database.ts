@@ -1540,8 +1540,70 @@ export interface Database {
         Update: { [key: string]: unknown }
         Relationships: []
       }
+      organizations: {
+        Row: { id: string; name: string; slug: string; billing_tier: string; created_at: string; updated_at: string }
+        Insert: { id?: string; name: string; slug: string; billing_tier?: string; created_at?: string; updated_at?: string }
+        Update: { id?: string; name?: string; slug?: string; billing_tier?: string; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      locations: {
+        Row: { id: string; organization_id: string; name: string; slug: string; created_at: string; updated_at: string }
+        Insert: { id?: string; organization_id: string; name: string; slug: string; created_at?: string; updated_at?: string }
+        Update: { id?: string; organization_id?: string; name?: string; slug?: string; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      departments: {
+        Row: { id: string; location_id: string; name: string; created_at: string; updated_at: string }
+        Insert: { id?: string; location_id: string; name: string; created_at?: string; updated_at?: string }
+        Update: { id?: string; location_id?: string; name?: string; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      tenant_memberships: {
+        Row: { id: string; user_id: string; organization_id: string; location_id: string | null; role: string; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; organization_id: string; location_id?: string | null; role: string; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; organization_id?: string; location_id?: string | null; role?: string; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      location_usage: {
+        Row: { id: string; location_id: string; period_date: string; metric_name: string; metric_value: number; created_at: string; environment?: string }
+        Insert: { id?: string; location_id: string; period_date: string; metric_name: string; metric_value?: number; created_at?: string; environment?: string }
+        Update: { id?: string; location_id?: string; period_date?: string; metric_name?: string; metric_value?: number; created_at?: string; environment?: string }
+        Relationships: []
+      }
+      workforce_employees: {
+        Row: { id: string; organization_id: string; location_id: string; department_id: string | null; full_name: string; email: string; profile_id: string | null; resume_id: string | null; invite_status: string; environment: string; created_at: string; updated_at: string }
+        Insert: { id?: string; organization_id: string; location_id: string; department_id?: string | null; full_name: string; email: string; profile_id?: string | null; resume_id?: string | null; invite_status?: string; environment?: string; created_at?: string; updated_at?: string }
+        Update: { id?: string; organization_id?: string; location_id?: string; department_id?: string | null; full_name?: string; email?: string; profile_id?: string | null; resume_id?: string | null; invite_status?: string; environment?: string; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      workforce_resumes: {
+        Row: { id: string; employee_id: string; raw_file_url: string | null; parsed_json: unknown; parsing_status: string; parsing_error: string | null; environment: string; created_at: string; updated_at: string }
+        Insert: { id?: string; employee_id: string; raw_file_url?: string | null; parsed_json?: unknown; parsing_status?: string; parsing_error?: string | null; environment?: string; created_at?: string; updated_at?: string }
+        Update: { id?: string; employee_id?: string; raw_file_url?: string | null; parsed_json?: unknown; parsing_status?: string; parsing_error?: string | null; environment?: string; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      peer_match_suggestions: {
+        Row: { id: string; organization_id: string; employee_id: string; suggested_employee_id: string; company_normalized: string; overlap_start: string; overlap_end: string; source_resume_id: string | null; status: string; environment: string; created_at: string; updated_at: string }
+        Insert: { id?: string; organization_id: string; employee_id: string; suggested_employee_id: string; company_normalized: string; overlap_start: string; overlap_end: string; source_resume_id?: string | null; status?: string; environment?: string; created_at?: string; updated_at?: string }
+        Update: { id?: string; organization_id?: string; employee_id?: string; suggested_employee_id?: string; company_normalized?: string; overlap_start?: string; overlap_end?: string; source_resume_id?: string | null; status?: string; environment?: string; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      workforce_peer_references: {
+        Row: { id: string; employee_id: string; reviewer_employee_id: string; rating: number; written_feedback: string | null; visibility_flag: string; environment: string; created_at: string; updated_at: string }
+        Insert: { id?: string; employee_id: string; reviewer_employee_id: string; rating: number; written_feedback?: string | null; visibility_flag?: string; environment?: string; created_at?: string; updated_at?: string }
+        Update: { id?: string; employee_id?: string; reviewer_employee_id?: string; rating?: number; written_feedback?: string | null; visibility_flag?: string; environment?: string; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      workforce_audit_logs: {
+        Row: { id: string; organization_id: string; user_id: string | null; action: string; metadata: unknown; environment: string; created_at: string }
+        Insert: { id?: string; organization_id: string; user_id?: string | null; action: string; metadata?: unknown; environment?: string; created_at?: string }
+        Update: { id?: string; organization_id?: string; user_id?: string | null; action?: string; metadata?: unknown; environment?: string; created_at?: string }
+        Relationships: []
+      }
     }
-    Views: Record<string, never>
+    Views: Record<string, never> & {
+      organization_usage_rollup: { Row: { organization_id: string; period_date: string; metric_name: string; total_value: number; location_count: number } }
+    }
     Functions: {
       calculate_trust_score_v1: {
         Args: {

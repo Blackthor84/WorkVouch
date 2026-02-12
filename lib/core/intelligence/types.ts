@@ -19,4 +19,15 @@ export interface ProfileInput {
    * Used to compute FraudPenalty: min(fraud_score * 10, 15) subtracted from raw score.
    */
   fraudScore?: number;
+  /**
+   * When set, FR = min(fraud_count * 5, 15) is used instead of fraudScore-based penalty.
+   * Cross-location / org fraud flags count.
+   */
+  fraud_count?: number;
+  /** Optional org context for persistence to organization_intelligence and intelligence_history. */
+  organization_id?: string | null;
+  /** Optional location context. */
+  location_id?: string | null;
+  /** Prior rehire flags across org (for display/analytics; rehireEligible still drives multiplier). */
+  prior_rehire_flags?: number | boolean[] | null;
 }

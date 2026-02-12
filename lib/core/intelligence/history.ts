@@ -80,6 +80,8 @@ export interface InsertIntelligenceHistoryParams {
   reason: IntelligenceHistoryReason;
   /** Optional component breakdown for graphs and transparency. */
   breakdown_json?: Record<string, unknown> | null;
+  /** Optional org context for cross-location intelligence. */
+  organization_id?: string | null;
 }
 
 /** Insert one row into intelligence_history per recalculation. No silent failures. [INTEL_SUCCESS] */
@@ -94,8 +96,47 @@ export async function insertIntelligenceHistory(
     version: params.version,
     reason: params.reason,
     breakdown_json: params.breakdown_json ?? null,
+    organization_id: params.organization_id ?? null,
   });
   if (error) {
     throw new Error(`intelligence_history insert failed: ${error.message}`);
   }
+}
+
+export interface OrganizationIntelligenceMetrics {
+  avg_hiring_confidence?: number | null;
+  fraud_density?: number | null;
+  dispute_rate?: number | null;
+  rehire_rate?: number | null;
+}
+
+/** Upsert organization_intelligence for an org. Pass metrics or leave null to compute avg from recent intelligence_history. */
+export async function upsertOrganizationIntelligence(
+  organizationId: string,
+  metrics?: OrganizationIntelligenceMetrics
+): Promise<void> {
+  const sb = getSupabaseServer();
+  const payload: Record<string, unknown> = {
+    organization_id: organizationId,
+    updated_at: new Date().toISOString(),
+  };
+  if (metrics) {
+    if (metrics.avg_hiring_confidence != null) payload.avg_hiring_confidence = metrics.avg_hiring_confidence;
+    if (metrics.fraud_density != null) payload.fraud_density = metrics.fraud_density;
+    if (metrics.dispute_rate != null) payload.dispute_rate = metrics.dispute_rate;
+    if (metrics.rehire_rate != null) payload.rehire_rate = metrics.rehire_rate;
+  }
+  const { data: recent } = await (sb as any)
+    .from("intelligence_history")
+    .select("new_score")
+    .eq("organization_id", organizationId)
+    .order("created_at", { ascending: false })
+    .limit(500);
+  if (Array.isArray(recent) && recent.length > 0 && (payload.avg_hiring_confidence === undefined || payload.avg_hiring_confidence === null)) {
+    const sum = (recent as { new_score: number }[]).reduce((a, r) => a + Number(r.new_score), 0);
+    payload.avg_hiring_confidence = Math.round((sum / recent.length) * 100) / 100;
+  }
+  await (sb as any)
+    .from("organization_intelligence")
+    .upsert(payload, { onConflict: "organization_id" });
 }

@@ -11,9 +11,11 @@ const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
 /**
  * Build ProfileInput for a user from production employment_records, employment_references,
  * review_intelligence, and rehire_registry. Used by trust score and intelligence snapshot.
+ * Optional organization_id/location_id for org-scoped recalc and persistence to organization_intelligence.
  */
 export async function buildProductionProfileInput(
-  userId: string
+  userId: string,
+  options?: { organizationId?: string | null; locationId?: string | null }
 ): Promise<ProfileInput> {
   const sb = getSupabaseServer();
 
@@ -84,5 +86,8 @@ export async function buildProductionProfileInput(
     averageRating: Math.max(1, Math.min(5, averageRating)),
     rehireEligible,
     fraudScore,
+    fraud_count: fraudFlagsCount,
+    organization_id: options?.organizationId ?? null,
+    location_id: options?.locationId ?? null,
   };
 }

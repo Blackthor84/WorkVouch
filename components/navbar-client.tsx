@@ -12,10 +12,19 @@ import { User } from "@/lib/auth";
 import { usePreview } from "@/lib/preview-context";
 import { isAdmin } from "@/lib/roles";
 
+export interface OrgSwitcherItem {
+  id: string;
+  name: string;
+  type: "organization" | "location";
+  organizationId?: string;
+}
+
 interface NavbarClientProps {
   user?: User | null;
   roles?: string[];
   role?: string | null;
+  /** When org_admin/enterprise_owner: list of orgs/locations for switcher dropdown. */
+  orgSwitcherItems?: OrgSwitcherItem[] | null;
 }
 
 export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp }: NavbarClientProps = {}) {
@@ -30,7 +39,6 @@ export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp 
     (session as { impersonating?: boolean })?.impersonating
   );
   const eliteDemo = Boolean(preview?.demoActive);
-  const pathname = usePathname();
   const isEmployerArea = pathname?.startsWith("/employer");
   const [complianceCount, setComplianceCount] = useState(0);
 
@@ -97,6 +105,26 @@ export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp 
                 <Button variant="ghost" size="sm" href="/pricing" className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]">
                   Pricing
                 </Button>
+                {showOrgSwitcher && (
+                  <select
+                    className="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white px-2 py-1"
+                    value=""
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v) router.push(v);
+                    }}
+                  >
+                    <option value="">Organization / Location</option>
+                    {orgSwitcherItems!.map((item) => (
+                      <option
+                        key={item.type === "organization" ? item.id : `${item.organizationId}-${item.id}`}
+                        value={item.type === "organization" ? `/admin/organization/${item.id}` : `/enterprise/${item.organizationId}/locations/${item.id}`}
+                      >
+                        {item.name} {item.type === "location" ? "(location)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 {showAdmin && (
                   <>
                     <Button

@@ -18,7 +18,11 @@ export type AuditAction =
   | "employment_record_delete"
   | "user_email_change"
   | "admin_update_profile"
-  | "employer_update_company";
+  | "employer_update_company"
+  | "rehire_status_change"
+  | "dispute_resolution"
+  | "fraud_override"
+  | "location_reassignment";
 
 export async function insertAdminAuditLog(params: {
   adminId: string;
@@ -29,9 +33,10 @@ export async function insertAdminAuditLog(params: {
   reason?: string | null;
   ipAddress?: string | null;
   userAgent?: string | null;
+  organizationId?: string | null;
 }): Promise<void> {
   const supabase = getServiceRoleClient();
-  await supabase.from("admin_audit_logs").insert({
+  await (supabase as any).from("admin_audit_logs").insert({
     admin_id: params.adminId,
     target_user_id: params.targetUserId,
     action: params.action,
@@ -40,5 +45,15 @@ export async function insertAdminAuditLog(params: {
     reason: params.reason ?? null,
     ip_address: params.ipAddress ?? null,
     user_agent: params.userAgent ?? null,
+    organization_id: params.organizationId ?? null,
   });
+}
+
+/** Get client IP from Next request headers (for audit). */
+export function getClientIpFromHeaders(headers: Headers): string | null {
+  return (
+    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    headers.get("x-real-ip") ??
+    null
+  );
 }

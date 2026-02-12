@@ -162,5 +162,69 @@ describe("Intelligence Engine v1", () => {
       expect(withFraud.totalScore).toBeLessThanOrEqual(100);
       expect(withFraud.totalScore).toBeGreaterThanOrEqual(0);
     });
+
+    it("fraud_count applies FR = min(fraud_count * 5, 15)", () => {
+      const base = input({ totalMonths: 24, reviewCount: 5, sentimentAverage: 0.5, averageRating: 4, rehireEligible: true });
+      const noFraud = calculateV1({ ...base, fraud_count: 0 });
+      const oneFraud = calculateV1({ ...base, fraud_count: 1 });
+      const threeFraud = calculateV1({ ...base, fraud_count: 3 });
+      const fiveFraud = calculateV1({ ...base, fraud_count: 5 });
+      expect(oneFraud).toBeLessThan(noFraud);
+      expect(threeFraud).toBeLessThan(oneFraud);
+      expect(fiveFraud).toBeLessThanOrEqual(threeFraud);
+      expect(noFraud).toBeGreaterThanOrEqual(0);
+      expect(noFraud).toBeLessThanOrEqual(100);
+      expect(fiveFraud).toBeGreaterThanOrEqual(0);
+      expect(fiveFraud).toBeLessThanOrEqual(100);
+    });
+
+    it("Score never < 0 with fraud_count", () => {
+      const score = calculateV1(
+        input({
+          totalMonths: 0,
+          reviewCount: 0,
+          sentimentAverage: -1,
+          averageRating: 1,
+          rehireEligible: false,
+          fraud_count: 10,
+        })
+      );
+      expect(score).toBeGreaterThanOrEqual(0);
+      expect(score).toBeLessThanOrEqual(100);
+    });
+
+    it("Score never > 100 with all max inputs", () => {
+      const score = calculateV1(
+        input({
+          totalMonths: 9999,
+          reviewCount: 99,
+          sentimentAverage: 1,
+          averageRating: 5,
+          rehireEligible: true,
+          fraud_count: 0,
+        })
+      );
+      expect(score).toBeLessThanOrEqual(100);
+    });
+  });
+
+  describe("Multi-location / org context (input shape only)", () => {
+    it("organization_id and location_id do not affect score (optional metadata)", () => {
+      const base = input({});
+      const withOrg = calculateV1({ ...base, organization_id: "org-1", location_id: "loc-1" });
+      const withoutOrg = calculateV1(base);
+      expect(withOrg).toBe(withoutOrg);
+      expect(withOrg).toBeGreaterThanOrEqual(0);
+      expect(withOrg).toBeLessThanOrEqual(100);
+    });
+
+    it("prior_rehire_flags does not break score (rehireEligible drives multiplier)", () => {
+      const withFlags = calculateV1(input({ prior_rehire_flags: 2 }));
+      const withoutFlags = calculateV1(input({}));
+      expect(withFlags).toBeGreaterThanOrEqual(0);
+      expect(withFlags).toBeLessThanOrEqual(100);
+      expect(withoutFlags).toBeGreaterThanOrEqual(0);
+      expect(withoutFlags).toBeLessThanOrEqual(100);
+    });
   });
 });
