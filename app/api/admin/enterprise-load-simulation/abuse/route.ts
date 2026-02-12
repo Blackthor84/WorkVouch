@@ -32,27 +32,28 @@ export async function POST(req: NextRequest) {
 
     const results: { test: string; expected: string; got: string; passed: boolean }[] = [];
 
+    const planType = (org as { plan_type?: string }).plan_type;
+    const isEnterprise = planType === "enterprise";
+
     const addLocationCheck = await checkOrgLimits({ organizationId: orgId }, "add_location");
-    const locationPass =
-      (org as { plan_type?: string }).plan_type === "enterprise"
-        ? addLocationCheck.allowed
-        : !addLocationCheck.allowed || addLocationCheck.requiresUpgrade;
+    const locationPass: boolean = isEnterprise
+      ? addLocationCheck?.allowed === true
+      : (addLocationCheck?.allowed === false || addLocationCheck?.requiresUpgrade === true);
     results.push({
       test: "add_location limit check",
       expected: "enterprise: allowed; starter/growth: 403 when at limit",
-      got: addLocationCheck.allowed ? "allowed" : `403 ${addLocationCheck.error ?? ""}`,
+      got: addLocationCheck?.allowed === true ? "allowed" : `403 ${addLocationCheck?.error ?? ""}`,
       passed: locationPass,
     });
 
     const addAdminCheck = await checkOrgLimits({ organizationId: orgId }, "add_admin");
-    const adminPass =
-      (org as { plan_type?: string }).plan_type === "enterprise"
-        ? addAdminCheck.allowed
-        : !addAdminCheck.allowed || addAdminCheck.requiresUpgrade;
+    const adminPass: boolean = isEnterprise
+      ? addAdminCheck?.allowed === true
+      : (addAdminCheck?.allowed === false || addAdminCheck?.requiresUpgrade === true);
     results.push({
       test: "add_admin limit check",
       expected: "enterprise: allowed; starter/growth: 403 when at limit",
-      got: addAdminCheck.allowed ? "allowed" : `403 ${addAdminCheck.error ?? ""}`,
+      got: addAdminCheck?.allowed === true ? "allowed" : `403 ${addAdminCheck?.error ?? ""}`,
       passed: adminPass,
     });
 
@@ -60,14 +61,15 @@ export async function POST(req: NextRequest) {
       { organizationId: orgId, month: new Date().toISOString().slice(0, 7) },
       "unlock"
     );
+    const unlockPass: boolean = true;
     results.push({
       test: "unlock limit check",
       expected: "enterprise: allowed; starter/growth: 403 when over monthly cap",
-      got: unlockCheck.allowed ? "allowed" : `403 ${unlockCheck.error ?? ""}`,
-      passed: true,
+      got: unlockCheck?.allowed === true ? "allowed" : `403 ${unlockCheck?.error ?? ""}`,
+      passed: unlockPass,
     });
 
-    const allPassed = results.every((r) => r.passed);
+    const allPassed: boolean = results.every((r) => r.passed === true);
     return NextResponse.json({
       ok: true,
       integrity_results: {
