@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Always allow static + PWA assets
+  // Allow static & public assets
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/images") ||
@@ -21,7 +21,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Always allow public routes
+  // Allow public routes
   if (
     pathname === "/" ||
     pathname.startsWith("/login") ||
@@ -36,18 +36,13 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Protect Admin
-  if (pathname.startsWith("/admin")) {
-    const token = request.cookies.get("sb-access-token");
-    if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-  }
+  // Check Supabase session cookie presence
+  const hasSession = request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.includes("sb-"));
 
-  // Protect Employer
-  if (pathname.startsWith("/employer")) {
-    const token = request.cookies.get("sb-access-token");
-    if (!token) {
+  if (pathname.startsWith("/admin") || pathname.startsWith("/employer")) {
+    if (!hasSession) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }
