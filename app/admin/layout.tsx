@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { getSupabaseServer } from "@/lib/supabase/server";
 import { NavbarServer } from "@/components/navbar-server";
 import { getCurrentUserProfile, getCurrentUserRoles } from "@/lib/auth";
 import { isAdmin, isSuperAdmin } from "@/lib/roles";
@@ -12,13 +11,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await getSupabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
+  // No login redirect here — proxy protects /admin. Role check only.
   const profile = await getCurrentUserProfile();
   const roles = await getCurrentUserRoles();
   const role = profile?.role ?? roles[0] ?? null;

@@ -1,26 +1,11 @@
-import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { getSupabaseServer } from "@/lib/supabase/server";
 import { NavbarServer } from "@/components/navbar-server";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
-import { getAppModeFromHeaders } from "@/lib/app-mode";
 
-export default async function EmployerLayout({
+export default function EmployerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const headersList = await headers();
-  const isSandbox = getAppModeFromHeaders(headersList) === "sandbox";
-
-  if (!isSandbox) {
-    const supabase = await getSupabaseServer();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) redirect("/login");
-  }
-
   return (
     <>
       <NavbarServer />

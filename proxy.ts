@@ -41,10 +41,10 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ✅ Check Supabase session cookie
+  // ✅ Session: next-auth or Supabase cookie (proxy is the only route guard)
   const hasSession = request.cookies
     .getAll()
-    .some((cookie) => cookie.name.includes("sb-"));
+    .some((c) => c.name.includes("next-auth") || c.name.includes("sb-"));
 
   if (!hasSession) {
     return NextResponse.redirect(new URL("/login", request.url));

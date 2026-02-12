@@ -15,7 +15,6 @@ import {
   BriefcaseIcon as JobsIcon,
   DocumentArrowUpIcon,
 } from "@heroicons/react/24/outline";
-import { DashboardAuthGuard } from "@/components/dashboard/DashboardAuthGuard";
 import { redirect } from "next/navigation";
 
 // Ensure runtime rendering - prevents build-time prerendering
@@ -33,12 +32,10 @@ export default async function UserDashboardPage() {
     }
   }
 
-  // No server-side auth redirect: client guard handles it (avoids cookie race)
+  // No server-side auth redirect — proxy protects /dashboard
   if (!user) {
     return (
-      <DashboardAuthGuard>
-        <div className="flex items-center justify-center min-h-[40vh]">Loading...</div>
-      </DashboardAuthGuard>
+      <div className="flex items-center justify-center min-h-[40vh]">Loading...</div>
     );
   }
 
@@ -125,7 +122,6 @@ export default async function UserDashboardPage() {
   ];
 
   return (
-    <DashboardAuthGuard>
     <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-[#F8FAFC] min-w-0 overflow-x-hidden">
       <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20 min-w-0">
         {/* Page Header */}
@@ -265,6 +261,5 @@ export default async function UserDashboardPage() {
         </div>
       </div>
     </main>
-    </DashboardAuthGuard>
   );
 }
