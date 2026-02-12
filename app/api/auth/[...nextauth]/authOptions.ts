@@ -34,6 +34,10 @@ if (!process.env.NEXTAUTH_SECRET) {
   console.error("[auth] NEXTAUTH_SECRET is missing — sessions will not work. Set a stable secret (do not regenerate).");
 }
 
+if (!process.env.NEXTAUTH_URL) {
+  console.error("[auth] NEXTAUTH_URL is missing in environment variables. Set to https://tryworkvouch.com in production.");
+}
+
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
   console.log("⚠️ SUPABASE_SERVICE_ROLE_KEY is missing");
 }
@@ -99,6 +103,10 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
+    async signIn({ user }) {
+      console.log("[auth] SIGNIN SUCCESS:", user?.email);
+      return true;
+    },
     async jwt({ token, user, trigger, session }) {
       // Initial sign in
       if (user) {
@@ -130,6 +138,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
+      console.log("[auth] SESSION ACTIVE:", session?.user?.email);
       // Block soft-deleted users: no session so they cannot use the app
       if (token?.id && session?.user) {
         try {

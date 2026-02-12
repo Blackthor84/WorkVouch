@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function proxy(request: NextRequest) {
+  if (request.method === "OPTIONS") {
+    return NextResponse.next();
+  }
+
   const { pathname } = request.nextUrl;
 
   // 🚫 NEVER touch auth or public files

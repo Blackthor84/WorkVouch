@@ -2,13 +2,14 @@
 
 import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
 function LoginForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || undefined;
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,20 +25,24 @@ function LoginForm() {
     const result = await signIn("credentials", {
       email: email.trim().toLowerCase(),
       password,
-      callbackUrl: callbackUrl || "/dashboard",
       redirect: false,
     });
 
     console.log("[LOGIN] Result:", result);
 
-    if (!result || result.error) {
-      setError(result?.error === "CredentialsSignin" ? "Invalid email or password." : result?.error ?? "Invalid email or password");
+    if (result?.error) {
+      setError("Invalid credentials");
       setLoading(false);
       return;
     }
 
-    // Manual redirect so form never silently fails
-    window.location.href = result.url ?? "/dashboard";
+    if (result?.ok) {
+      router.push(callbackUrl);
+      return;
+    }
+
+    setError("Invalid credentials");
+    setLoading(false);
   }
 
   return (
