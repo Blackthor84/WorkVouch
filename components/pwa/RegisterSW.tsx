@@ -6,12 +6,7 @@ export function RegisterSW() {
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
     window.addEventListener("load", () => {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((reg) => {
-          if (reg.installing) reg.installing.addEventListener("statechange", () => {});
-        })
-        .catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
     });
   }, []);
   return null;

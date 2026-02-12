@@ -1,25 +1,24 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export async function proxy(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 🔓 Always allow static & public files
+  // ✅ Always allow static + public assets
   if (
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/api/auth") ||
-    pathname === "/favicon.ico" ||
-    pathname === "/manifest.json" ||
-    pathname === "/sw.js" ||
     pathname.startsWith("/images") ||
     pathname.startsWith("/icons") ||
-    pathname.startsWith("/public")
+    pathname === "/manifest.json" ||
+    pathname === "/sw.js" ||
+    pathname === "/favicon.ico" ||
+    pathname.startsWith("/api/auth")
   ) {
     return NextResponse.next();
   }
 
-  // 🔒 Protected routes only
-  const protectedPaths = [
+  // Only protect true application routes
+  const protectedRoutes = [
     "/dashboard",
     "/admin",
     "/employer",
@@ -27,19 +26,19 @@ export async function proxy(request: NextRequest) {
     "/settings",
   ];
 
-  const isProtected = protectedPaths.some((path) =>
-    pathname.startsWith(path)
+  const isProtected = protectedRoutes.some((route) =>
+    pathname.startsWith(route)
   );
 
   if (!isProtected) {
     return NextResponse.next();
   }
 
-  const hasSession = request.cookies
+  const sessionCookie = request.cookies
     .getAll()
-    .some((cookie) => cookie.name.includes("sb-"));
+    .find((c) => c.name.includes("sb-"));
 
-  if (!hasSession) {
+  if (!sessionCookie) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
