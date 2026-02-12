@@ -48,10 +48,19 @@ export async function requireActiveSubscription(
   if (row.organization_id) {
     const { data: org } = await supabaseAny
       .from("organizations")
-      .select("id, enterprise_plan")
+      .select("id, enterprise_plan, is_simulation")
       .eq("id", row.organization_id)
       .single();
-    const enterprisePlan = (org as { enterprise_plan?: string | null } | null)?.enterprise_plan;
+    const orgRow = org as { enterprise_plan?: string | null; is_simulation?: boolean } | null;
+    if (orgRow?.is_simulation === true) {
+      return {
+        allowed: true,
+        employerId: row.id,
+        planTier: row.plan_tier ?? undefined,
+        organizationId: row.organization_id,
+      };
+    }
+    const enterprisePlan = orgRow?.enterprise_plan;
     if (enterprisePlan && ENTERPRISE_PLAN_EMPLOYEE_LIMITS[enterprisePlan] !== undefined) {
       const limit = ENTERPRISE_PLAN_EMPLOYEE_LIMITS[enterprisePlan];
       const { count } = await supabaseAny

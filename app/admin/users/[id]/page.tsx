@@ -1,7 +1,5 @@
-import { redirect, notFound } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { notFound } from "next/navigation";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { Button } from "@/components/ui/button";
 import { UserDetailActions } from "@/components/admin/user-detail-actions";
 import { UserForensicsTabs } from "@/components/admin/user-forensics-tabs";
@@ -27,32 +25,27 @@ export default async function AdminUserPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/login");
-  const roles = (session.user as { roles?: string[] }).roles ?? [];
-  const isAdmin = roles.includes("admin") || roles.includes("superadmin");
-  if (!isAdmin) redirect("/dashboard");
+  const { supabase, profile } = await requireAdmin();
+  const supabaseAny = supabase as any;
 
-  const supabase = getSupabaseServer();
-
-  const { data: profile, error } = await supabase
+  const { data: targetProfile, error } = await supabaseAny
     .from("profiles")
     .select("id, full_name, email, role, industry, status, risk_level, flagged_for_fraud, deleted_at, created_at")
     .eq("id", id)
     .single();
 
-  if (error || !profile) {
+  if (error || !targetProfile) {
     notFound();
   }
 
-  const row = profile as unknown as ProfileRow;
-  const { data: rolesData } = await supabase
+  const row = targetProfile as unknown as ProfileRow;
+  const { data: rolesData } = await supabaseAny
     .from("user_roles")
     .select("role")
     .eq("user_id", id);
   const userRoles = ((rolesData ?? []) as { role: string }[]).map((r) => r.role);
 
-  const { data: snapshot } = await supabase
+  const { data: snapshot } = await supabaseAny
     .from("intelligence_snapshots")
     .select("profile_strength")
     .eq("user_id", id)
@@ -62,7 +55,7 @@ export default async function AdminUserPage({
 
   const status = row.status ?? "active";
   const riskLevel = row.risk_level ?? "low";
-  const isSuperAdmin = roles.includes("superadmin");
+  const isSuperAdmin = profile.role === "superadmin";
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">

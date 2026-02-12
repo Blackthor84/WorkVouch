@@ -1,8 +1,5 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-import { getEffectiveRoles } from "@/lib/permissions/requireRole";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -12,36 +9,30 @@ export default async function AdminOrganizationPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { supabase, user, profile } = await requireAdmin();
   const { id: orgId } = await params;
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.id;
-  if (!userId) {
-    redirect("/dashboard");
-  }
 
-  const effectiveRoles = await getEffectiveRoles(userId);
-  const isSuperAdmin = effectiveRoles.includes("superadmin");
-  const isOrgAdmin = effectiveRoles.includes("org_admin") || effectiveRoles.includes("enterprise_owner");
-
-  if (!isSuperAdmin) {
-    const { data: myOrgs } = await supabase
+  if (profile.role !== "superadmin") {
+    const supabaseAny = supabase as any;
+    const { data: myOrgs } = await supabaseAny
       .from("employer_users")
       .select("organization_id")
-      .eq("profile_id", userId);
-    const orgIds = [...new Set((myOrgs ?? []).map((r) => r.organization_id))];
-    const { data: tenantOrgs } = await supabase
+      .eq("profile_id", user.id);
+    const orgIds = [...new Set((myOrgs ?? []).map((r: { organization_id: string }) => r.organization_id))];
+    const { data: tenantOrgs } = await supabaseAny
       .from("tenant_memberships")
       .select("organization_id")
-      .eq("user_id", userId)
+      .eq("user_id", user.id)
       .in("role", ["enterprise_owner", "location_admin"]);
-    (tenantOrgs ?? []).forEach((r) => orgIds.push(r.organization_id));
+    (tenantOrgs ?? []).forEach((r: { organization_id: string }) => orgIds.push(r.organization_id));
     const allowedOrgIds = [...new Set(orgIds)];
     if (!allowedOrgIds.includes(orgId)) {
       redirect("/admin");
     }
   }
 
-  const { data: org } = await supabase
+  const supabaseAny = supabase as any;
+  const { data: org } = await supabaseAny
     .from("organizations")
     .select("id, name, industry, enterprise_plan, billing_contact_email")
     .eq("id", orgId)
@@ -50,13 +41,13 @@ export default async function AdminOrganizationPage({
     redirect("/admin");
   }
 
-  const { data: locations } = await supabase
+  const { data: locations } = await supabaseAny
     .from("locations")
     .select("id, name, address, city, state, status")
     .eq("organization_id", orgId)
     .order("name");
 
-  const { data: orgIntel } = await supabase
+  const { data: orgIntel } = await supabaseAny
     .from("organization_intelligence")
     .select("avg_hiring_confidence, fraud_density, dispute_rate, rehire_rate, updated_at")
     .eq("organization_id", orgId)
@@ -64,21 +55,21 @@ export default async function AdminOrganizationPage({
 
   const employeesByLocation: { locationId: string; count: number }[] = [];
   for (const loc of locations ?? []) {
-    const { count } = await supabase
+    const { count } = await supabaseAny
       .from("workforce_employees")
       .select("id", { count: "exact", head: true })
       .eq("location_id", loc.id);
     employeesByLocation.push({ locationId: loc.id, count: count ?? 0 });
   }
 
-  const { data: historyRows } = await supabase
+  const { data: historyRows } = await supabaseAny
     .from("intelligence_history")
     .select("new_score, created_at")
     .eq("organization_id", orgId)
     .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
     .order("created_at", { ascending: true });
 
-  const trendData = (historyRows ?? []).map((r) => ({
+  const trendData = (historyRows ?? []).map((r: { new_score: number; created_at: string }) => ({
     score: Number(r.new_score),
     date: r.created_at,
   }));
@@ -139,7 +130,7 @@ export default async function AdminOrganizationPage({
           Locations
         </h2>
         <ul className="space-y-2">
-          {(locations ?? []).map((loc) => {
+          {(locations ?? []).map((loc: { id: string; name: string; city?: string; state?: string; status?: string }) => {
             const count = employeesByLocation.find((e) => e.locationId === loc.id)?.count ?? 0;
             return (
               <li
@@ -177,7 +168,7 @@ export default async function AdminOrganizationPage({
         </h2>
         {trendData.length > 0 ? (
           <div className="h-48 flex items-end gap-0.5">
-            {trendData.map((d, i) => (
+            {trendData.map((d: { score: number; date: string }, i: number) => (
               <div
                 key={i}
                 className="flex-1 min-w-0 bg-blue-500 rounded-t"

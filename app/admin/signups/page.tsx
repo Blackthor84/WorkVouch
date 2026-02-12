@@ -1,6 +1,4 @@
-import { redirect } from "next/navigation";
-import { isSuperAdmin } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { requireSuperAdmin } from "@/lib/auth/requireSuperAdmin";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDateLong } from "@/lib/utils/date";
@@ -13,22 +11,17 @@ type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type UserRole = Database["public"]["Tables"]["user_roles"]["Row"];
 
 export default async function AdminSignupsPage() {
-  const isSuper = await isSuperAdmin();
-
-  if (!isSuper) {
-    redirect("/admin");
-  }
-
-  const supabase = await createServerSupabase();
+  const { supabase } = await requireSuperAdmin();
+  const supabaseAny = supabase as any;
 
   // Get all profiles (which includes user IDs)
-  const { data: profiles, error: profilesError } = await supabase
+  const { data: profiles, error: profilesError } = await supabaseAny
     .from("profiles")
     .select("*")
     .order("created_at", { ascending: false });
 
   // Get all user roles
-  const { data: userRoles, error: rolesError } = await supabase
+  const { data: userRoles, error: rolesError } = await supabaseAny
     .from("user_roles")
     .select("*");
 

@@ -1,31 +1,19 @@
-import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-import { getCurrentUserProfile, getCurrentUserRoles } from "@/lib/auth";
-import { isAdmin } from "@/lib/roles";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { AdminIntelligenceDashboardClient } from "./AdminIntelligenceDashboardClient";
-import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminIntelligenceDashboardPage() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/login");
-
-  const profile = await getCurrentUserProfile();
-  const roles = await getCurrentUserRoles();
-  const role = profile?.role ?? roles[0] ?? null;
-  if (!isAdmin(role) && !roles.some((r) => isAdmin(r))) redirect("/dashboard");
-
-  const supabase = getSupabaseServer();
-  const { data: profiles } = await supabase
+  const { supabase } = await requireAdmin();
+  const supabaseAny = supabase as any;
+  const { data: profiles } = await supabaseAny
     .from("profiles")
     .select("id, email, full_name")
     .order("created_at", { ascending: false })
     .limit(200);
   const userList = (profiles ?? []) as { id: string; email?: string; full_name?: string }[];
 
-  const { data: employers } = await supabase
+  const { data: employers } = await supabaseAny
     .from("employer_accounts")
     .select("id, company_name")
     .order("company_name")

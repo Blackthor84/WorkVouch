@@ -1,6 +1,4 @@
-import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,18 +8,8 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function AdminEmployerUsagePage() {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  const roles = (session.user as { roles?: string[] }).roles || [];
-  const isAdmin = roles.includes("admin") || roles.includes("superadmin");
-  if (!isAdmin) {
-    redirect("/dashboard");
-  }
-  const isSuperAdmin = roles.includes("superadmin");
+  const { profile } = await requireAdmin();
+  const isSuperAdmin = profile.role === "superadmin";
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

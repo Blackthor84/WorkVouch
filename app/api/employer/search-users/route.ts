@@ -4,6 +4,7 @@ import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { enforceLimit } from "@/lib/enforceLimit";
 import { incrementUsage } from "@/lib/usage";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
+import { checkOrgLimits, incrementOrgUnlockCount } from "@/lib/enterprise/enforceOrgLimits";
 
 const MAX_RESULTS = 50;
 
@@ -48,6 +49,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (subCheck.organizationId) {
+      const month = new Date().toISOString().slice(0, 7);
+      const orgCheck = await checkOrgLimits(
+        { organizationId: subCheck.organizationId, month },
+        "unlock"
+      );
+      if (!orgCheck.allowed) {
+        return NextResponse.json(
+          { error: orgCheck.error ?? "Organization plan limit reached.", requiresUpgrade: orgCheck.requiresUpgrade },
+          { status: 403 },
+        );
+      }
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("query")?.trim();
 
@@ -88,6 +103,9 @@ export async function GET(request: NextRequest) {
     }
 
     await incrementUsage(employerAccount.id, "search", 1);
+    if (subCheck.organizationId) {
+      incrementOrgUnlockCount(subCheck.organizationId).catch(() => {});
+    }
 
     const userIds = (candidates as { user_id: string }[]).map((c) => c.user_id);
 

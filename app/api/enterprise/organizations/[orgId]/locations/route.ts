@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireEnterpriseOwner } from "@/lib/enterprise/requireEnterprise";
+import { checkOrgLimits } from "@/lib/enterprise/enforceOrgLimits";
 
 /**
  * GET /api/enterprise/organizations/[orgId]/locations
@@ -70,6 +71,14 @@ export async function POST(
       );
     }
 
+    const orgLimit = await checkOrgLimits({ organizationId: orgId }, "add_location");
+    if (!orgLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: orgLimit.error ?? "Location limit reached. Upgrade to add more locations.", requiresUpgrade: true },
+        { status: 403 }
+      );
+    }
+
     const supabase = getSupabaseServer();
     const { data: existing } = await supabase
       .from("locations")
@@ -100,6 +109,10 @@ export async function POST(
         { success: false, error: "Failed to create location" },
         { status: 500 }
       );
+    }
+    const { count } = await supabase.from("locations").select("id", { count: "exact", head: true }).eq("organization_id", orgId);
+    if (typeof count === "number") {
+      await (supabase as any).from("organizations").update({ number_of_locations: count }).eq("id", orgId);
     }
     return NextResponse.json({ success: true, location: inserted });
   } catch (e) {

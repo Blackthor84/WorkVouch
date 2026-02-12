@@ -1,18 +1,11 @@
-import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 import AdminAdsPanel from "@/components/AdminAdsPanel";
 import { AdminAdsGate } from "@/components/AdminAdsGate";
 import { AD_PRICING } from "@/lib/ads/pricing";
 import Link from "next/link";
 
 export default async function AdminAdsPage() {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) redirect("/login");
-  const roles = session.user.roles || [];
-  const isAdmin = roles.includes("admin") || roles.includes("superadmin");
-  if (!isAdmin) redirect("/dashboard");
+  await requireAdmin();
 
   return (
     <AdminAdsGate>

@@ -1,21 +1,12 @@
-import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { AdminIntelligencePreviewClient } from "./AdminIntelligencePreviewClient";
-import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminIntelligencePreviewPage() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/login");
-
-  const roles = (session.user as { roles?: string[] }).roles ?? [];
-  const isAdmin = roles.includes("admin") || roles.includes("superadmin");
-  if (!isAdmin) redirect("/dashboard");
-
-  const supabase = getSupabaseServer() as any;
-  const { data: profiles } = await supabase.from("profiles").select("id, email, full_name").order("created_at", { ascending: false }).limit(100);
+  const { supabase } = await requireAdmin();
+  const supabaseAny = supabase as any;
+  const { data: profiles } = await supabaseAny.from("profiles").select("id, email, full_name").order("created_at", { ascending: false }).limit(100);
   const candidateList = (profiles ?? []) as { id: string; email?: string; full_name?: string }[];
 
   return (

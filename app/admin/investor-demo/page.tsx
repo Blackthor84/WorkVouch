@@ -1,6 +1,4 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 import InvestorLayout from "@/components/investor/InvestorLayout";
 import InvestorDemoClient from "@/components/investor/InvestorDemoClient";
 
@@ -16,19 +14,7 @@ export const metadata = {
 };
 
 export default async function AdminInvestorDemoPage() {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  const roles = (session.user as { roles?: string[] })?.roles ?? [];
-  const isAdmin = roles.includes("admin") || roles.includes("superadmin");
-
-  if (!isAdmin) {
-    redirect("/dashboard");
-  }
-
+  await requireAdmin();
   return (
     <InvestorLayout>
       <InvestorDemoClient />

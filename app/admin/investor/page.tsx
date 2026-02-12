@@ -1,8 +1,5 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-import { redirect } from "next/navigation";
+import { requireSuperAdmin } from "@/lib/auth/requireSuperAdmin";
 import InvestorDashboardClient from "./InvestorDashboardClient";
-import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +9,7 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-async function getRealCounts() {
-  const supabase = getSupabaseServer() as any;
+async function getRealCounts(supabase: any) {
   const count = async (table: string): Promise<number> => {
     try {
       const { count: c, error } = await supabase.from(table).select("*", { count: "exact", head: true });
@@ -44,13 +40,8 @@ async function getRealCounts() {
 }
 
 export default async function AdminInvestorPage() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) redirect("/login");
-
-  const roles = (session.user as { roles?: string[] })?.roles ?? [];
-  if (!roles.includes("superadmin")) redirect("/dashboard");
-
-  const realCounts = await getRealCounts();
+  const { supabase } = await requireSuperAdmin();
+  const realCounts = await getRealCounts(supabase);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">

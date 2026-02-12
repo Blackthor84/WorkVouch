@@ -1,9 +1,4 @@
-import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-import { getCurrentUserProfile, getCurrentUserRoles } from "@/lib/auth";
-import { isAdmin as isAdminRole } from "@/lib/roles";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -60,36 +55,24 @@ function QuickActionCard({
 }
 
 export default async function AdminPanel() {
-  const session = await getServerSession(authOptions);
+  const { supabase } = await requireAdmin();
 
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  const profile = await getCurrentUserProfile();
-  const roles = await getCurrentUserRoles();
-  const role = profile?.role ?? roles[0] ?? null;
-  if (!isAdminRole(role) && !roles.some((r) => isAdminRole(r))) {
-    redirect("/dashboard");
-  }
-
-  const supabase = getSupabaseServer();
-
-  const { data: profiles } = await supabase
+  const supabaseAny = supabase as any;
+  const { data: profiles } = await supabaseAny
     .from("profiles")
     .select("id, email, full_name, created_at")
     .order("created_at", { ascending: false })
     .limit(100);
 
-  const { data: userRoles } = await supabase
+  const { data: userRoles } = await supabaseAny
     .from("user_roles")
     .select("user_id, role");
 
   const [profilesCount, employersCount, claimRequestsData, disputesData] = await Promise.all([
-    supabase.from("profiles").select("id", { count: "exact", head: true }),
-    supabase.from("employer_accounts").select("id", { count: "exact", head: true }),
-    supabase.from("employer_claim_requests").select("id").eq("status", "pending"),
-    supabase.from("employer_disputes").select("id").neq("status", "resolved"),
+    supabaseAny.from("profiles").select("id", { count: "exact", head: true }),
+    supabaseAny.from("employer_accounts").select("id", { count: "exact", head: true }),
+    supabaseAny.from("employer_claim_requests").select("id").eq("status", "pending"),
+    supabaseAny.from("employer_disputes").select("id").neq("status", "resolved"),
   ]);
 
   const totalUsers =

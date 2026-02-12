@@ -1,7 +1,5 @@
-import { redirect } from "next/navigation";
 import { NavbarServer } from "@/components/navbar-server";
-import { getCurrentUserProfile, getCurrentUserRoles } from "@/lib/auth";
-import { isAdmin, isSuperAdmin } from "@/lib/roles";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 
 export const dynamic = "force-dynamic";
@@ -11,15 +9,8 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // No login redirect here — proxy protects /admin. Role check only.
-  const profile = await getCurrentUserProfile();
-  const roles = await getCurrentUserRoles();
-  const role = profile?.role ?? roles[0] ?? null;
-  if (!isAdmin(role) && !roles.some((r) => isAdmin(r))) {
-    redirect("/dashboard");
-  }
-
-  const superAdmin = isSuperAdmin(role) || roles.includes("superadmin");
+  const { profile } = await requireAdmin();
+  const superAdmin = profile.role === "superadmin";
 
   return (
     <>

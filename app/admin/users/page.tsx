@@ -1,23 +1,10 @@
-import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { AdminUsersList } from "@/components/admin/users-list";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminUsers() {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    redirect("/login");
-  }
-
-  const roles = session.user.roles || [];
-  const isAdmin = roles.includes("admin") || roles.includes("superadmin");
-
-  if (!isAdmin) {
-    redirect("/dashboard");
-  }
+  await requireAdmin();
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
