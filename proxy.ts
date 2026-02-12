@@ -4,7 +4,21 @@ import type { NextRequest } from "next/server";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Only protect protected routes
+  // 🔓 Always allow static & public files
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api/auth") ||
+    pathname === "/favicon.ico" ||
+    pathname === "/manifest.json" ||
+    pathname === "/sw.js" ||
+    pathname.startsWith("/images") ||
+    pathname.startsWith("/icons") ||
+    pathname.startsWith("/public")
+  ) {
+    return NextResponse.next();
+  }
+
+  // 🔒 Protected routes only
   const protectedPaths = [
     "/dashboard",
     "/admin",
@@ -33,11 +47,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/admin/:path*",
-    "/employer/:path*",
-    "/profile/:path*",
-    "/settings/:path*",
-  ],
+  matcher: ["/:path*"],
 };
