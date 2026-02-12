@@ -4,30 +4,23 @@ import type { NextRequest } from "next/server";
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 🚨 HARD ALLOW ALL STATIC FILES FIRST
+  // 🚫 NEVER touch auth or public files
   if (
+    pathname.startsWith("/api/auth") ||
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/icons") ||
     pathname.startsWith("/images") ||
-    pathname.startsWith("/fonts") ||
+    pathname.startsWith("/icons") ||
     pathname === "/manifest.json" ||
     pathname === "/sw.js" ||
-    pathname === "/favicon.ico"
-  ) {
-    return NextResponse.next();
-  }
-
-  // 🚨 ALWAYS ALLOW PUBLIC ROUTES
-  if (
+    pathname === "/favicon.ico" ||
     pathname === "/" ||
     pathname.startsWith("/login") ||
-    pathname.startsWith("/signup") ||
-    pathname.startsWith("/api/auth")
+    pathname.startsWith("/signup")
   ) {
     return NextResponse.next();
   }
 
-  // 🔐 Protected routes ONLY
+  // 🔒 Only protect real private routes
   const protectedRoutes = [
     "/dashboard",
     "/admin",
@@ -44,6 +37,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // ✅ Check Supabase session cookie
   const hasSession = request.cookies
     .getAll()
     .some((cookie) => cookie.name.includes("sb-"));
@@ -55,8 +49,13 @@ export function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
+// 🎯 CRITICAL: Only match protected routes
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/dashboard/:path*",
+    "/admin/:path*",
+    "/employer/:path*",
+    "/profile/:path*",
+    "/settings/:path*",
   ],
 };
