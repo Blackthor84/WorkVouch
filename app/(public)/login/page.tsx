@@ -2,12 +2,11 @@
 
 import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || undefined;
   const [email, setEmail] = useState("");
@@ -17,6 +16,8 @@ function LoginForm() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+    console.log("[LOGIN] Submit fired");
+
     setError("");
     setLoading(true);
 
@@ -27,20 +28,16 @@ function LoginForm() {
       redirect: false,
     });
 
-    if (result?.error) {
-      setError(result.error === "CredentialsSignin" ? "Invalid email or password." : result.error);
+    console.log("[LOGIN] Result:", result);
+
+    if (!result || result.error) {
+      setError(result?.error === "CredentialsSignin" ? "Invalid email or password." : result?.error ?? "Invalid email or password");
       setLoading(false);
       return;
     }
 
-    if (result?.ok && result?.url) {
-      router.push(result.url);
-      router.refresh();
-      return;
-    }
-
-    setError("Sign in failed. Please try again.");
-    setLoading(false);
+    // Manual redirect so form never silently fails
+    window.location.href = result.url ?? "/dashboard";
   }
 
   return (
