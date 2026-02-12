@@ -4,14 +4,20 @@ import type { NextRequest } from "next/server";
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // ✅ Allow ALL public assets and static files
+  /**
+   * ==========================================================
+   * ALWAYS ALLOW STATIC + PUBLIC FILES
+   * ==========================================================
+   * These must NEVER require authentication.
+   * This fixes 401 errors for manifest.json and sw.js.
+   */
+
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/images") ||
     pathname.startsWith("/icons") ||
-    pathname.startsWith("/public") ||
-    pathname.startsWith("/manifest") ||
-    pathname.startsWith("/sw") ||
+    pathname.startsWith("/manifest") || // Allow manifest.json and query variants
+    pathname.startsWith("/sw") || // Allow service worker
     pathname.startsWith("/favicon") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/login") ||
@@ -21,7 +27,12 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ✅ Protected areas only
+  /**
+   * ==========================================================
+   * PROTECTED ROUTES
+   * ==========================================================
+   */
+
   const protectedRoutes = [
     "/dashboard",
     "/admin",
@@ -38,10 +49,15 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ✅ Check Supabase session cookie
+  /**
+   * ==========================================================
+   * SESSION CHECK (Supabase)
+   * ==========================================================
+   */
+
   const hasSession = request.cookies
     .getAll()
-    .some((cookie) => cookie.name.startsWith("sb-"));
+    .some((cookie) => cookie.name.includes("sb-"));
 
   if (!hasSession) {
     const loginUrl = new URL("/login", request.url);
