@@ -4,22 +4,30 @@ import type { NextRequest } from "next/server";
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // ALWAYS allow public/static assets
+  // 🚨 HARD ALLOW ALL STATIC FILES FIRST
   if (
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/images") ||
     pathname.startsWith("/icons") ||
-    pathname.startsWith("/manifest") ||
-    pathname.startsWith("/sw") ||
-    pathname.startsWith("/favicon") ||
-    pathname.startsWith("/api/auth") ||
-    pathname === "/" ||
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/signup")
+    pathname.startsWith("/images") ||
+    pathname.startsWith("/fonts") ||
+    pathname === "/manifest.json" ||
+    pathname === "/sw.js" ||
+    pathname === "/favicon.ico"
   ) {
     return NextResponse.next();
   }
 
+  // 🚨 ALWAYS ALLOW PUBLIC ROUTES
+  if (
+    pathname === "/" ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/api/auth")
+  ) {
+    return NextResponse.next();
+  }
+
+  // 🔐 Protected routes ONLY
   const protectedRoutes = [
     "/dashboard",
     "/admin",
@@ -48,5 +56,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+  ],
 };
