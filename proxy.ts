@@ -4,27 +4,24 @@ import type { NextRequest } from "next/server";
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 🔓 Always allow static files + public assets
+  // 🔓 ALWAYS allow public assets and system files
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/images") ||
     pathname.startsWith("/icons") ||
-    pathname.startsWith("/fonts") ||
     pathname.startsWith("/public") ||
-    pathname === "/manifest.json" ||
-    pathname === "/sw.js" ||
-    pathname === "/favicon.ico" ||
-    pathname.endsWith(".png") ||
-    pathname.endsWith(".jpg") ||
-    pathname.endsWith(".jpeg") ||
-    pathname.endsWith(".svg") ||
-    pathname.endsWith(".webp") ||
-    pathname.endsWith(".ico")
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/manifest") || // 👈 FIXED
+    pathname.startsWith("/sw.js") || // 👈 FIXED
+    pathname.startsWith("/favicon") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/signup") ||
+    pathname === "/"
   ) {
     return NextResponse.next();
   }
 
-  // 🔐 Protected app routes ONLY
+  // 🔐 Only protect private app areas
   const protectedRoutes = [
     "/dashboard",
     "/admin",
@@ -41,7 +38,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 🔎 Supabase session cookie check
+  // 🔐 Check Supabase session cookie
   const hasSession = request.cookies
     .getAll()
     .some((cookie) => cookie.name.includes("sb-"));
