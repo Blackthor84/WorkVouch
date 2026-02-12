@@ -4,20 +4,7 @@ import type { NextRequest } from "next/server";
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // ✅ Always allow static + public assets
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/images") ||
-    pathname.startsWith("/icons") ||
-    pathname === "/manifest.json" ||
-    pathname === "/sw.js" ||
-    pathname === "/favicon.ico" ||
-    pathname.startsWith("/api/auth")
-  ) {
-    return NextResponse.next();
-  }
-
-  // Only protect true application routes
+  // Protect ONLY these routes
   const protectedRoutes = [
     "/dashboard",
     "/admin",
@@ -34,17 +21,25 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const sessionCookie = request.cookies
+  // Check for Supabase session cookie
+  const hasSession = request.cookies
     .getAll()
-    .find((c) => c.name.includes("sb-"));
+    .some((c) => c.name.startsWith("sb-"));
 
-  if (!sessionCookie) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  if (!hasSession) {
+    const loginUrl = new URL("/login", request.url);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/admin/:path*",
+    "/employer/:path*",
+    "/profile/:path*",
+    "/settings/:path*",
+  ],
 };
