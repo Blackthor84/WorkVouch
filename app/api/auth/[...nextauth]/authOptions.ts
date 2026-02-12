@@ -45,7 +45,6 @@ const getSupabaseAuth = () => {
 };
 
 export const authOptions: NextAuthOptions = {
-  trustHost: true, // Let NextAuth auto-detect host (Vercel, preview URLs). Do not require NEXTAUTH_URL.
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
