@@ -50,6 +50,28 @@ const getSupabaseAuth = () => {
 };
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
+
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.session-token"
+          : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
+
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -96,11 +118,6 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-
-  session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
 
   callbacks: {
     async signIn({ user }) {
@@ -179,6 +196,4 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
-
-  secret: process.env.NEXTAUTH_SECRET,
 };

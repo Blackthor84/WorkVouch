@@ -2,23 +2,21 @@
 
 import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
 function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleLogin(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("[LOGIN] Submit fired");
 
+    console.log("[LOGIN] Submit fired");
     setError("");
     setLoading(true);
 
@@ -28,22 +26,41 @@ function LoginForm() {
       redirect: false,
     });
 
-    console.log("[LOGIN] Result:", result);
+    console.log("[LOGIN] Result:", JSON.stringify(result, null, 2));
 
-    if (result?.error) {
-      setError("Invalid credentials");
+    if (!result) {
+      console.error("[LOGIN] No result returned");
+      setError("Login failed. Try again.");
       setLoading(false);
       return;
     }
 
-    if (result?.ok) {
-      router.push(callbackUrl);
+    if (result.error) {
+      console.error("[LOGIN] Error:", result.error);
+      setError("Invalid email or password");
+      setLoading(false);
       return;
     }
 
-    setError("Invalid credentials");
+    if (result.ok) {
+      console.log("[LOGIN] Success. Checking session...");
+
+      const sessionCheck = await fetch("/api/auth/session");
+      const sessionData = await sessionCheck.json();
+
+      console.log("[LOGIN] Session:", sessionData);
+
+      if (sessionData?.user) {
+        router.push("/dashboard");
+        router.refresh();
+      } else {
+        console.error("[LOGIN] Session not established");
+        setError("Login succeeded but session failed.");
+      }
+    }
+
     setLoading(false);
-  }
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 px-4 overflow-x-hidden">
@@ -61,7 +78,7 @@ function LoginForm() {
       <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200 dark:border-gray-700">
         <h1 className="text-3xl font-bold mb-2 text-center text-gray-900 dark:text-white">Log in</h1>
         <p className="text-gray-600 dark:text-gray-400 text-sm text-center mb-6">Use your WorkVouch account.</p>
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
             placeholder="Email"
