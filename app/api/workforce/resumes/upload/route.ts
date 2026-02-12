@@ -11,6 +11,7 @@ import { getEnvironmentForServer } from "@/lib/app-mode";
 import { extractTextFromBuffer } from "@/lib/workforce/resume-extract";
 import { parseResumeWithAI } from "@/lib/workforce/resume-parse-ai";
 import { computePeerSuggestions } from "@/lib/workforce/overlap-detection";
+import type { ParsedResumeJson } from "@/lib/workforce/resume-types";
 import { randomUUID } from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Text extraction failed" }, { status: 400 });
     }
 
-    let parsedJson: { full_name?: string; email?: string; phone?: string; work_history?: { company: string; start_date: string; end_date: string | null }[]; skills?: string[]; certifications?: string[] };
+    let parsedJson: { full_name?: string; email?: string; phone?: string; work_history?: { company?: string; title?: string; start_date?: string; end_date?: string | null }[]; skills?: string[]; certifications?: string[] };
     try {
       parsedJson = await parseResumeWithAI(extractedText);
     } catch (e) {
@@ -154,11 +155,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const suggestions = computePeerSuggestions(
-      employeeId,
-      parsedJson as { full_name: string; email: string; work_history: { company: string; start_date: string; end_date: string | null }[]; skills: string[]; certifications: string[] },
-      otherResumes
-    );
+    const normalizedResume: ParsedResumeJson = {
+      full_name: typeof parsedJson.full_name === "string" ? parsedJson.full_name : "",
+      email: typeof parsedJson.email === "string" ? parsedJson.email : "",
+      skills: Array.isArray(parsedJson.skills) ? parsedJson.skills : [],
+      certifications: Array.isArray(parsedJson.certifications) ? parsedJson.certifications : [],
+      work_history: (parsedJson.work_history ?? []).map((entry) => ({
+        company: typeof entry.company === "string" ? entry.company : "",
+        start_date: typeof entry.start_date === "string" ? entry.start_date : "",
+        end_date: entry.end_date != null && typeof entry.end_date === "string" ? entry.end_date : null,
+        title: typeof entry.title === "string" && entry.title.trim() !== "" ? entry.title : "Unknown Title",
+      })),
+    };
+    if (typeof parsedJson.phone === "string") normalizedResume.phone = parsedJson.phone;
+
+    const suggestions = computePeerSuggestions(employeeId, normalizedResume, otherResumes);
     for (const s of suggestions) {
       await supabase.from("peer_match_suggestions").insert({
         organization_id: employee.organization_id,
