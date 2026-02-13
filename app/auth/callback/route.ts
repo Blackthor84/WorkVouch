@@ -2,15 +2,20 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
-  const supabase = await supabaseServer();
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get("code");
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get("code");
 
-  if (code) {
-    await supabase.auth.exchangeCodeForSession(code);
-  } else {
-    await supabase.auth.getSession();
+  if (!code) {
+    return NextResponse.redirect(`${origin}/login?error=missing_code`);
   }
 
-  return NextResponse.redirect(new URL("/dashboard", request.url));
+  const supabase = await supabaseServer();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    console.error("Auth callback error:", error);
+    return NextResponse.redirect(`${origin}/login?error=auth_failed`);
+  }
+
+  return NextResponse.redirect(`${origin}/dashboard`);
 }
