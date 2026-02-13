@@ -3,14 +3,16 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get("code");
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/login`);
+    return NextResponse.redirect(new URL("/login", requestUrl.origin));
   }
 
-  const cookieStore = await cookies();
+  const response = NextResponse.redirect(
+    new URL("/dashboard", requestUrl.origin)
+  );
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,11 +20,11 @@ export async function GET(request: Request) {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll();
+          return cookies().getAll();
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
+            response.cookies.set(name, value, options);
           });
         },
       },
@@ -31,5 +33,5 @@ export async function GET(request: Request) {
 
   await supabase.auth.exchangeCodeForSession(code);
 
-  return NextResponse.redirect(`${origin}/dashboard`);
+  return response;
 }
