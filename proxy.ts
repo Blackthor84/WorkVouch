@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const PUBLIC_PATHS = [
+  "/login",
+  "/signup",
+  "/auth/callback",
+  "/api/auth",
+  "/_next",
+  "/favicon.ico",
+];
+
 export function proxy(request: NextRequest) {
   if (request.method === "OPTIONS") {
     return NextResponse.next();
@@ -8,33 +17,13 @@ export function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
+    return NextResponse.next();
+  }
+
   const hasSession = request.cookies
     .getAll()
     .some((c) => c.name.includes("next-auth") || c.name.includes("sb-"));
-
-  if (pathname === "/login" || pathname.startsWith("/login/")) {
-    if (hasSession) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-    return NextResponse.next();
-  }
-
-  if (
-    pathname === "/auth/callback" ||
-    pathname.startsWith("/auth/callback") ||
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/signup") ||
-    pathname === "/manifest.json" ||
-    pathname.startsWith("/_next") ||
-    pathname === "/favicon.ico" ||
-    pathname.startsWith("/icons") ||
-    pathname.startsWith("/images") ||
-    pathname === "/sw.js" ||
-    pathname === "/"
-  ) {
-    return NextResponse.next();
-  }
 
   const protectedRoutes = [
     "/dashboard",

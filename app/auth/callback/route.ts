@@ -1,28 +1,32 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabase } from "@/lib/supabase/server";
+// app/auth/callback/route.ts
+import { NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-/**
- * Supabase auth callback: exchange code for session, set cookies, redirect to /dashboard.
- * Does NOT require authentication. Never exposes access_token or refresh_token in URL.
- */
-export async function GET(request: NextRequest) {
-  const origin = request.nextUrl.origin;
-  const supabase = await createServerSupabase();
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get("code");
 
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get("code");
+  if (!code) {
+    return NextResponse.redirect(`${origin}/login`);
+  }
 
-  if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) {
-      return NextResponse.redirect(`${origin}/login?error=auth_failed`);
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get: (name) => cookieStore.get(name)?.value,
+        set: (name, value, options) =>
+          cookieStore.set({ name, value, ...options }),
+        remove: (name, options) =>
+          cookieStore.set({ name, value: "", ...options }),
+      },
     }
-  }
+  );
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user?.id) {
-    return NextResponse.redirect(`${origin}/login?error=auth_failed`);
-  }
+  await supabase.auth.exchangeCodeForSession(code);
 
   return NextResponse.redirect(`${origin}/dashboard`);
 }
