@@ -40,7 +40,7 @@ export default function CareerPricingPage({
           
           if (profile) {
             const role = (profile as any).role;
-            if (role === "employer" || role === "admin") {
+            if (role === "employer" || role === "admin" || role === "superadmin") {
               setUserType("employer");
             } else {
               setUserType("employee");

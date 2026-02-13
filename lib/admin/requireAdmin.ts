@@ -16,86 +16,127 @@ export type AdminSession = {
   isSuperAdmin: boolean;
 };
 
+/** Server-side only. Do not expose to client. */
+function logAdminAuthFailure(context: string, reason: string): void {
+  try {
+    if (typeof process !== "undefined" && process.env?.NODE_ENV !== "test") {
+      console.warn(`[admin-auth] ${context}: ${reason}`);
+    }
+  } catch {
+    // no-op
+  }
+}
+
 export async function requireAdmin(): Promise<AdminSession> {
-  const supabase = await supabaseServer();
+  try {
+    const supabase = await supabaseServer();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    if (!session) {
+      logAdminAuthFailure("requireAdmin", "no-session");
+      redirect("/login");
+    }
 
-  if (!session) {
-    redirect("/login");
-  }
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", session.user.id)
+      .single();
 
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", session.user.id)
-    .single();
+    if (error || !profile) {
+      logAdminAuthFailure("requireAdmin", "profile-missing");
+      redirect("/login");
+    }
 
-  if (error || !profile) {
-    redirect("/login");
-  }
+    const profileRole = (profile as { role?: string }).role ?? "";
+    if (!["admin", "superadmin"].includes(profileRole)) {
+      logAdminAuthFailure("requireAdmin", "insufficient-role");
+      redirect("/unauthorized");
+    }
 
-  const profileRole = (profile as { role?: string }).role ?? "";
-  if (!["admin", "superadmin"].includes(profileRole)) {
+    const role = profileRole;
+    const isSuperAdminRole = role === "superadmin";
+
+    return {
+      session,
+      user: session.user,
+      profile: profile as AdminSession["profile"],
+      supabase,
+      userId: session.user.id,
+      role,
+      isSuperAdmin: isSuperAdminRole,
+    };
+  } catch (e) {
+    if (e && typeof e === "object" && "digest" in e && typeof (e as { digest?: string }).digest === "string") {
+      throw e;
+    }
+    logAdminAuthFailure("requireAdmin", "error");
     redirect("/unauthorized");
   }
-
-  const role = profileRole;
-  const isSuperAdminRole = role === "superadmin";
-
-  return {
-    session,
-    user: session.user,
-    profile: profile as AdminSession["profile"],
-    supabase,
-    userId: session.user.id,
-    role,
-    isSuperAdmin: isSuperAdminRole,
-  };
 }
 
 export async function requireSuperAdmin(): Promise<AdminSession> {
-  const admin = await requireAdmin();
-  if (admin.profile.role !== "superadmin") {
+  try {
+    const admin = await requireAdmin();
+    if (admin.profile.role !== "superadmin") {
+      logAdminAuthFailure("requireSuperAdmin", "not-superadmin");
+      redirect("/unauthorized");
+    }
+    return admin;
+  } catch (e) {
+    if (e && typeof e === "object" && "digest" in e && typeof (e as { digest?: string }).digest === "string") {
+      throw e;
+    }
+    logAdminAuthFailure("requireSuperAdmin", "error");
     redirect("/unauthorized");
   }
-  return admin;
 }
 
 export async function requireRole(allowedRoles: string[]): Promise<AdminSession> {
-  const supabase = await supabaseServer();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", session.user.id)
-    .single();
-  if (error || !profile) {
-    redirect("/login");
-  }
-  const profileRole = (profile as { role?: string }).role ?? "";
-  const hasRole = allowedRoles.includes(profileRole);
-  if (!hasRole) {
+  try {
+    const supabase = await supabaseServer();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.user?.id) {
+      logAdminAuthFailure("requireRole", "no-session");
+      redirect("/login");
+    }
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", session.user.id)
+      .single();
+    if (error || !profile) {
+      logAdminAuthFailure("requireRole", "profile-missing");
+      redirect("/login");
+    }
+    const profileRole = (profile as { role?: string }).role ?? "";
+    const hasRole = allowedRoles.includes(profileRole);
+    if (!hasRole) {
+      logAdminAuthFailure("requireRole", "insufficient-role");
+      redirect("/unauthorized");
+    }
+    const role = profileRole;
+    const isSuperAdminRole = role === "superadmin";
+    return {
+      session,
+      user: session.user,
+      profile: profile as AdminSession["profile"],
+      supabase,
+      userId: session.user.id,
+      role,
+      isSuperAdmin: isSuperAdminRole,
+    };
+  } catch (e) {
+    if (e && typeof e === "object" && "digest" in e && typeof (e as { digest?: string }).digest === "string") {
+      throw e;
+    }
+    logAdminAuthFailure("requireRole", "error");
     redirect("/unauthorized");
   }
-  const role = profileRole;
-  const isSuperAdminRole = role === "superadmin";
-  return {
-    session,
-    user: session.user,
-    profile: profile as AdminSession["profile"],
-    supabase,
-    userId: session.user.id,
-    role,
-    isSuperAdmin: isSuperAdminRole,
-  };
 }
 
 export function assertAdminCanModify(

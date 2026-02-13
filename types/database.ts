@@ -198,6 +198,7 @@ export interface Database {
           risk_level: string | null
           flagged_for_fraud: boolean
           deleted_at: string | null
+          is_demo?: boolean
         }
         Insert: {
           id: string
@@ -224,6 +225,7 @@ export interface Database {
           risk_level?: string | null
           flagged_for_fraud?: boolean
           deleted_at?: string | null
+          is_demo?: boolean
         }
         Update: {
           id?: string
@@ -250,6 +252,7 @@ export interface Database {
           risk_level?: string | null
           flagged_for_fraud?: boolean
           deleted_at?: string | null
+          is_demo?: boolean
         }
         Relationships: []
       }
@@ -1565,9 +1568,9 @@ export interface Database {
         Relationships: []
       }
       organizations: {
-        Row: { id: string; name: string; slug: string; billing_tier: string; plan_type: string | null; enterprise_features: Json | null; number_of_locations: number; requires_enterprise: boolean; created_at: string; updated_at: string }
-        Insert: { id?: string; name: string; slug: string; billing_tier?: string; plan_type?: string | null; enterprise_features?: Json | null; number_of_locations?: number; requires_enterprise?: boolean; created_at?: string; updated_at?: string }
-        Update: { id?: string; name?: string; slug?: string; billing_tier?: string; plan_type?: string | null; enterprise_features?: Json | null; number_of_locations?: number; requires_enterprise?: boolean; created_at?: string; updated_at?: string }
+        Row: { id: string; name: string; slug: string; billing_tier: string; plan_type: string | null; enterprise_features: Json | null; number_of_locations: number; requires_enterprise: boolean; created_at: string; updated_at: string; mode?: string | null }
+        Insert: { id?: string; name: string; slug: string; billing_tier?: string; plan_type?: string | null; enterprise_features?: Json | null; number_of_locations?: number; requires_enterprise?: boolean; created_at?: string; updated_at?: string; mode?: string | null }
+        Update: { id?: string; name?: string; slug?: string; billing_tier?: string; plan_type?: string | null; enterprise_features?: Json | null; number_of_locations?: number; requires_enterprise?: boolean; created_at?: string; updated_at?: string; mode?: string | null }
         Relationships: []
       }
       organization_usage: {

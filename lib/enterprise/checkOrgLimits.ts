@@ -3,9 +3,11 @@
  * Reusable function: call BEFORE insert/update for add_location, add_admin, run_check.
  * Uses plan_limits table (with app fallback), organization_usage (auto-create + monthly reset),
  * organization_metrics for limit_block logging, and enterprise_features.multi_property to skip location cap.
+ * Superadmin always bypasses (allowed: true).
  */
 
 import { NextResponse } from "next/server";
+import { getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getOrgPlanLimits } from "./orgPlanLimits";
 
@@ -191,6 +193,9 @@ export async function checkOrgLimits(
   organizationIdOrContext: string | { organizationId: string },
   action: CheckOrgLimitsAction
 ): Promise<CheckOrgLimitsResult> {
+  const role = await getCurrentUserRole();
+  if (role === "superadmin") return { allowed: true };
+
   const organizationId =
     typeof organizationIdOrContext === "string"
       ? organizationIdOrContext

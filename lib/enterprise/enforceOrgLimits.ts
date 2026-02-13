@@ -2,8 +2,10 @@
  * Server-side enforcement of organization plan limits.
  * Call before org-scoped actions (unlock, add location, add admin).
  * Returns 403 payload when over limit; does not auto-disable account.
+ * Superadmin always bypasses (allowed: true).
  */
 
+import { getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getOrgPlanLimits, type OrgPlanType } from "./orgPlanLimits";
 
@@ -28,6 +30,9 @@ export async function checkOrgLimits(
   context: OrgLimitContext,
   action: "unlock" | "add_location" | "add_admin"
 ): Promise<OrgLimitCheckResult> {
+  const role = await getCurrentUserRole();
+  if (role === "superadmin") return { allowed: true, planType: undefined };
+
   const sb = getSupabaseServer() as any;
   const { data: org } = await sb
     .from("organizations")
