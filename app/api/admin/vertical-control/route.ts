@@ -3,7 +3,7 @@
  * PATCH: toggle enabled for a vertical by name (admin only).
  */
 
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -12,21 +12,14 @@ import {
   type PlatformVerticalRow,
 } from "@/lib/verticals/activation";
 
-function isAdmin(roles: string[]): boolean {
-  return roles.includes("admin") || roles.includes("superadmin");
-}
-
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const { session } = await getSupabaseSession();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const roles = (session.user as any).roles ?? [];
-  if (!isAdmin(roles)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const role = await getCurrentUserRole();
+  const isAdmin = role === "admin" || role === "superadmin";
+  if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   try {
     const supabase = getSupabaseServer();
@@ -67,14 +60,11 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
-  const { session } = await getSupabaseSession();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const roles = (session.user as any).roles ?? [];
-  if (!isAdmin(roles)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const role = await getCurrentUserRole();
+  const isAdmin = role === "admin" || role === "superadmin";
+  if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   let body: { name?: string; enabled?: boolean };
   try {

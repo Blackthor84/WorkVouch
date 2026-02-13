@@ -1,14 +1,6 @@
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
-
-function isAdmin(roles: string[]): boolean {
-  return roles.includes("admin") || roles.includes("superadmin");
-}
-
-function isSuperAdmin(roles: string[]): boolean {
-  return roles.includes("superadmin");
-}
 
 /**
  * POST /api/admin/feature-flags/assignments
@@ -16,12 +8,10 @@ function isSuperAdmin(roles: string[]): boolean {
  */
 export async function POST(request: Request) {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const roles = (session.user as any).roles || [];
-    if (!isAdmin(roles)) {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const role = await getCurrentUserRole();
+    if (role !== "admin" && role !== "superadmin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -56,7 +46,7 @@ export async function POST(request: Request) {
     if (flagError || !flag) {
       return NextResponse.json({ error: "Feature flag not found" }, { status: 404 });
     }
-    if (!isSuperAdmin(roles) && flag.is_globally_enabled) {
+    if (role !== "superadmin" && flag.is_globally_enabled) {
       return NextResponse.json(
         { error: "Cannot assign when feature is globally enabled. Only SuperAdmin can change global state." },
         { status: 403 }

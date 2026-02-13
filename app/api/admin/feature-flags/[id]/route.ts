@@ -1,10 +1,6 @@
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
-
-function isSuperAdmin(roles: string[]): boolean {
-  return roles.includes("superadmin");
-}
 
 /**
  * PATCH /api/admin/feature-flags/[id]
@@ -15,14 +11,10 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const roles = (session.user as any).roles || [];
-    if (!isSuperAdmin(roles)) {
-      return NextResponse.json({ error: "Forbidden: SuperAdmin only" }, { status: 403 });
-    }
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const role = await getCurrentUserRole();
+    if (role !== "superadmin") return NextResponse.json({ error: "Forbidden: SuperAdmin only" }, { status: 403 });
 
     const { id } = await params;
     const body = await request.json();
@@ -53,7 +45,7 @@ export async function PATCH(
     try {
       const flagKey = (data as { key?: string }).key ?? "";
       await (getSupabaseServer() as any).from("admin_actions").insert({
-        admin_id: session.user.id,
+        admin_id: user.id,
         impersonated_user_id: "",
         action_type: "feature_flag_updated",
         details: JSON.stringify({ flag_key: flagKey, action: "update" }),
@@ -78,14 +70,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const roles = (session.user as any).roles || [];
-    if (!isSuperAdmin(roles)) {
-      return NextResponse.json({ error: "Forbidden: SuperAdmin only" }, { status: 403 });
-    }
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const role = await getCurrentUserRole();
+    if (role !== "superadmin") return NextResponse.json({ error: "Forbidden: SuperAdmin only" }, { status: 403 });
 
     const { id } = await params;
     const supabase = getSupabaseServer();
@@ -97,7 +85,7 @@ export async function DELETE(
 
     try {
       await (supabase as any).from("admin_actions").insert({
-        admin_id: session.user.id,
+        admin_id: user.id,
         impersonated_user_id: "",
         action_type: "feature_flag_updated",
         details: JSON.stringify({ flag_key: flagKey, action: "delete" }),

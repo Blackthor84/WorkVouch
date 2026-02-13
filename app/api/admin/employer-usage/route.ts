@@ -1,4 +1,4 @@
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getUsageForEmployer } from "@/lib/usage";
 import { NextRequest, NextResponse } from "next/server";
@@ -9,15 +9,11 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function GET(req: NextRequest) {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const roles = (session.user as { roles?: string[] }).roles || [];
-    const isAdmin = roles.includes("admin") || roles.includes("superadmin");
-    if (!isAdmin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const role = await getCurrentUserRole();
+    const isAdmin = role === "admin" || role === "superadmin";
+    if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const employerId = req.nextUrl.searchParams.get("employerId");
     const supabase = getSupabaseServer() as any;
@@ -131,15 +127,11 @@ export async function GET(req: NextRequest) {
  */
 export async function PATCH(req: NextRequest) {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const roles = (session.user as { roles?: string[] }).roles || [];
-    const isAdmin = roles.includes("admin") || roles.includes("superadmin");
-    if (!isAdmin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const role = await getCurrentUserRole();
+    const isAdmin = role === "admin" || role === "superadmin";
+    if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await req.json();
     const employerId = body.employerId as string;

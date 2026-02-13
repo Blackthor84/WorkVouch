@@ -14,10 +14,10 @@ import {
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
-  roles: string[];
+  role?: string | null;
 }
 
-export function Sidebar({ roles }: SidebarProps) {
+export function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
 
   const navigation = [
@@ -32,7 +32,7 @@ export function Sidebar({ roles }: SidebarProps) {
     { name: "Settings", href: "/settings", icon: Cog6ToothIcon },
   ];
 
-  if (roles.includes("employer")) {
+  if (role === "employer") {
     navigation.push({
       name: "Search",
       href: "/employer/search",
@@ -40,7 +40,7 @@ export function Sidebar({ roles }: SidebarProps) {
     });
   }
 
-  if (roles.includes("admin")) {
+  if (role === "admin" || role === "superadmin") {
     navigation.push({
       name: "Admin",
       href: "/admin",

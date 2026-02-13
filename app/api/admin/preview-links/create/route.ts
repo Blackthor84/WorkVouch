@@ -2,7 +2,7 @@
  * POST /api/admin/preview-links/create
  * Superadmin only. Creates a shareable preview link (preview_sessions).
  */
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
@@ -15,13 +15,10 @@ function secureToken(): string {
 
 export async function POST(request: Request) {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const roles = (session.user as { roles?: string[] }).roles ?? [];
-    if (!roles.includes("superadmin")) {
-      return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
-    }
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const role = await getCurrentUserRole();
+    if (role !== "superadmin") return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
 
     const body = await request.json().catch(() => ({}));
     const previewRole = (body?.preview_role as string) || "employer";
@@ -32,7 +29,7 @@ export async function POST(request: Request) {
         ? Object.keys(body.preview_features).filter((k: string) => (body.preview_features as Record<string, boolean>)[k])
         : []);
     const expiresInMinutes = typeof body?.expires_in_minutes === "number" ? Math.min(10080, Math.max(15, body.expires_in_minutes)) : 60;
-    const createdBy = (session.user as { id?: string }).id ?? null;
+    const createdBy = user.id;
 
     const token = secureToken();
     const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000).toISOString();

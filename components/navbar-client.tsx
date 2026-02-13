@@ -9,7 +9,6 @@ import { EmployerNotificationsBell } from "./employer-notifications-bell";
 import { Logo } from "./logo";
 import { User } from "@/lib/auth";
 import { usePreview } from "@/lib/preview-context";
-import { isAdmin } from "@/lib/roles";
 import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 
@@ -22,7 +21,6 @@ export interface OrgSwitcherItem {
 
 interface NavbarClientProps {
   user?: User | null;
-  roles?: string[];
   role?: string | null;
   /** When org_admin/enterprise_owner: list of orgs/locations for switcher dropdown. */
   orgSwitcherItems?: OrgSwitcherItem[] | null;
@@ -30,15 +28,14 @@ interface NavbarClientProps {
   impersonating?: boolean;
 }
 
-export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp, orgSwitcherItems, impersonating: impersonatingProp }: NavbarClientProps = {}) {
+export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems, impersonating: impersonatingProp }: NavbarClientProps = {}) {
   const { data: session, status } = useSupabaseSession();
   const router = useRouter();
   const pathname = usePathname();
   const { preview } = usePreview();
   const user = userProp ?? session?.user;
-  const roles = rolesProp ?? (session?.user as { roles?: string[] } | undefined)?.roles ?? [];
-  const role = roleProp ?? (session?.user as { role?: string } | undefined)?.role ?? roles[0] ?? null;
-  const showAdmin = isAdmin(role) || roles.some((r: string) => isAdmin(r));
+  const role = roleProp ?? (session?.user as { role?: string } | undefined)?.role ?? null;
+  const showAdmin = role === "admin" || role === "superadmin";
   const impersonating = Boolean(impersonatingProp ?? (session as { impersonating?: boolean } | null)?.impersonating);
   const eliteDemo = Boolean(preview?.demoActive);
   const isEmployerArea = pathname?.startsWith("/employer");
@@ -46,7 +43,7 @@ export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp,
   const [complianceCount, setComplianceCount] = useState(0);
 
   useEffect(() => {
-    if (!isEmployerArea || !user || !roles?.includes("employer")) {
+    if (!isEmployerArea || !user || role !== "employer") {
       setComplianceCount(0);
       return;
     }
@@ -54,7 +51,7 @@ export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp,
       .then((r) => r.json())
       .then((data: { count?: number }) => setComplianceCount(data?.count ?? 0))
       .catch(() => setComplianceCount(0));
-  }, [isEmployerArea, user?.id, roles]);
+  }, [isEmployerArea, user?.id, role]);
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white shadow-sm py-2">
@@ -74,7 +71,7 @@ export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp,
                 variant="secondary"
                 size="sm"
                 onClick={async () => {
-                  await update({ stopImpersonation: true });
+                  await fetch("/api/admin/impersonate/exit", { method: "POST" });
                   router.push("/admin");
                 }}
                 className="bg-red-600 hover:bg-red-700 text-white dark:bg-red-600 dark:hover:bg-red-700"
@@ -148,7 +145,7 @@ export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp,
                     </Button>
                   </>
                 )}
-                {(roles.includes("employer") || roles.includes("superadmin")) && (
+                {(role === "employer" || role === "superadmin") && (
                   <Button
                     variant="ghost"
                     size="sm"

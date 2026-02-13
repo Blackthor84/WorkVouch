@@ -8,14 +8,13 @@ interface AdminUser {
   id: string;
   email: string;
   full_name: string;
-  roles: string[];
+  role: string | null;
   created_at: string;
 }
 
 export function AdminUsersList() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const { update: updateSession } = useSession();
   const router = useRouter();
 
   useEffect(() => {
@@ -56,7 +55,7 @@ export function AdminUsersList() {
               Full name
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-[#0F172A] uppercase tracking-wider">
-              Roles
+              Role
             </th>
             <th className="px-4 py-3 text-left text-xs font-semibold text-[#0F172A] uppercase tracking-wider">
               Created
@@ -79,7 +78,7 @@ export function AdminUsersList() {
                 {user.full_name || "—"}
               </td>
               <td className="px-4 py-3 text-sm text-[#334155]">
-                {user.roles.length ? user.roles.join(", ") : "—"}
+                {user.role ?? "—"}
               </td>
               <td className="px-4 py-3 text-sm text-[#64748B]">
                 {new Date(user.created_at).toLocaleDateString()}

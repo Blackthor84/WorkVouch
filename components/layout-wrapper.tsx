@@ -7,11 +7,11 @@ import { DemoModeActivator } from "./DemoModeActivator";
 export function LayoutWrapper({
   children,
   user,
-  roles,
+  role,
 }: {
   children: React.ReactNode;
   user: any;
-  roles: string[];
+  role?: string | null;
 }) {
   return (
     <Providers>

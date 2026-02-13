@@ -14,7 +14,8 @@ export async function POST(req: Request) {
 
     // Check admin access
     const { session } = await getSupabaseSession();
-    const isAdmin = session?.user?.role === 'admin' || session?.user?.roles?.includes('admin') || session?.user?.roles?.includes('superadmin');
+    const role = (session?.user as { role?: string } | undefined)?.role ?? "";
+    const isAdmin = role === "admin" || role === "superadmin";
     
     if (!isAdmin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

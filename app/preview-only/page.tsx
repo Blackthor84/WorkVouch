@@ -21,8 +21,7 @@ export default function PreviewOnlyPage() {
       fetch("/api/user/me")
         .then((r) => r.json())
         .then((data) => {
-          const roles = data?.roles ?? [];
-          setRoleCheck(roles.includes("beta") ? "beta" : "other");
+          setRoleCheck(data?.role === "beta" ? "beta" : "other");
         })
         .catch(() => setRoleCheck("other"));
     }

@@ -8,7 +8,6 @@ import { Database } from "@/types/database";
 // For complete auth.users data, you'd need service role key or RPC function
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
-type UserRole = Database["public"]["Tables"]["user_roles"]["Row"];
 
 export default async function AdminSignupsPage() {
   const { supabase } = await requireSuperAdmin();
@@ -20,32 +19,17 @@ export default async function AdminSignupsPage() {
     .select("*")
     .order("created_at", { ascending: false });
 
-  // Get all user roles
-  const { data: userRoles, error: rolesError } = await supabaseAny
-    .from("user_roles")
-    .select("*");
-
-  // Query auth.users via RPC or direct query
-  // Since we can't use admin API, we'll use profiles and supplement with what we can get
-  // For superadmin, RLS should allow access to all profiles
-
-  // Get all profiles and combine with roles
   const signups = ((profiles || []) as unknown as Profile[]).map((profile: Profile) => {
-    const roles =
-      ((userRoles || []) as unknown as UserRole[])
-        .filter((ur: UserRole) => ur.user_id === profile.id)
-        .map((ur: UserRole) => ur.role) || [];
-
+    const profileAny = profile as { role?: string | null };
     return {
       id: profile.id,
       email: profile.email,
-      emailConfirmed: true, // Assume confirmed if profile exists
+      emailConfirmed: true,
       createdAt: profile.created_at,
-      lastSignIn: null, // Can't access auth.users.last_sign_in_at without admin API
+      lastSignIn: null,
       fullName: profile.full_name || null,
-      industry: null, // Industry not in profiles table - would need to check jobs or other tables
-      role: null, // Role not in profiles table - using roles array instead
-      roles: roles,
+      industry: null,
+      role: profileAny.role ?? null,
       profileCreated: true,
     };
   });
@@ -89,19 +73,6 @@ export default async function AdminSignupsPage() {
                       <Badge variant="info" className="text-xs">
                         {signup.role}
                       </Badge>
-                    )}
-                    {signup.roles.length > 0 && (
-                      <div className="flex gap-1">
-                        {signup.roles.map((role) => (
-                          <Badge
-                            key={role}
-                            variant="info"
-                            className="text-xs bg-purple-100"
-                          >
-                            {role}
-                          </Badge>
-                        ))}
-                      </div>
                     )}
                   </div>
 

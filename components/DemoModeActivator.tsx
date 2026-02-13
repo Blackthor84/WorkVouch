@@ -25,7 +25,7 @@ export function DemoModeActivator() {
     if (sessionStatus === "loading") return;
 
     const demoParam = searchParams.get("demo");
-    const userRole = (session?.user as { role?: string; roles?: string[] } | undefined)?.role ?? (session?.user as { role?: string; roles?: string[] } | undefined)?.roles?.[0];
+    const userRole = (session?.user as { role?: string } | undefined)?.role;
     const enabled = isEliteDemoEnabled(searchParams, userRole);
 
     if (demoParam === "elite" && enabled) {
@@ -48,7 +48,7 @@ export function DemoModeActivator() {
         return prev;
       });
     }
-  }, [searchParams, session?.user?.role, session?.user?.roles, sessionStatus, setPreview]);
+  }, [searchParams, session?.user?.role, sessionStatus, setPreview]);
 
   return null;
 }

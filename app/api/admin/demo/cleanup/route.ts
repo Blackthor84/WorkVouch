@@ -1,4 +1,4 @@
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
@@ -8,13 +8,10 @@ const DEMO_MAX_AGE_HOURS = 48;
 
 export async function POST() {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const roles = session.user.roles ?? [];
-    if (!roles.includes("superadmin")) {
-      return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
-    }
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const role = await getCurrentUserRole();
+    if (role !== "superadmin") return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
 
     const supabase = getSupabaseServer() as any;
     const cutoff = new Date(Date.now() - DEMO_MAX_AGE_HOURS * 60 * 60 * 1000).toISOString();

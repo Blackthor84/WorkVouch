@@ -11,7 +11,6 @@ export async function GET(req: NextRequest) {
     }
 
     const profile = await getCurrentUserProfile();
-    const roles = profile?.role ? [profile.role] : [];
 
     if (!profile) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -39,7 +38,7 @@ export async function GET(req: NextRequest) {
         searchable_by_verified_employers: profileAny.searchable_by_verified_employers ?? true,
         searchable_by_shared_employers: profileAny.searchable_by_shared_employers ?? true,
       },
-      roles,
+      role: profile.role ?? null,
     });
   } catch (error) {
     console.error("Get user error:", error);

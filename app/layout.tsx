@@ -45,7 +45,7 @@ export default async function RootLayout({
         <Providers>
           <PreviewProvider>
             <SimulationBanner />
-            <LayoutWrapper user={null} roles={[]}>
+            <LayoutWrapper user={null} role={null}>
               {children}
             </LayoutWrapper>
           </PreviewProvider>

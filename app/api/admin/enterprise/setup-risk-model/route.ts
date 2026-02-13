@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { logAuditAction } from "@/lib/audit";
 import { z } from "zod";
@@ -18,10 +18,10 @@ const bodySchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const roles = (session.user as { roles?: string[] }).roles ?? [];
-    if (!roles.includes("superadmin")) return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const role = await getCurrentUserRole();
+    if (role !== "superadmin") return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
 
     const data = bodySchema.parse(await req.json());
     const supabase = getSupabaseServer() as any;
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    await logAuditAction("enterprise_risk_model_setup", { admin_id: session.user.id, employer_id: data.companyId, details: JSON.stringify({ companyId: data.companyId, overrideEnabled: data.overrideEnabled }) });
+    await logAuditAction("enterprise_risk_model_setup", { admin_id: user.id, employer_id: data.companyId, details: JSON.stringify({ companyId: data.companyId, overrideEnabled: data.overrideEnabled }) });
     return NextResponse.json({ ok: true });
   } catch (e) {
     if (e instanceof z.ZodError) return NextResponse.json({ error: "Invalid input", details: e.issues }, { status: 400 });

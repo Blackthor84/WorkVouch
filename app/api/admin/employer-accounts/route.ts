@@ -1,4 +1,4 @@
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
@@ -8,15 +8,11 @@ import { NextResponse } from "next/server";
  */
 export async function GET() {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const roles = (session.user as any).roles || [];
-    const isAdmin = roles.includes("admin") || roles.includes("superadmin");
-    if (!isAdmin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const role = await getCurrentUserRole();
+    const isAdmin = role === "admin" || role === "superadmin";
+    if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const supabase = getSupabaseServer();
     const { data, error } = await (supabase as any)

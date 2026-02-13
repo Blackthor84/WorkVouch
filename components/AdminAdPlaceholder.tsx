@@ -21,12 +21,8 @@ export default function AdminAdPlaceholder({ location }: AdminAdPlaceholderProps
         return res.json();
       })
       .then((data) => {
-        if (data?.roles) {
-          const roles = Array.isArray(data.roles) ? data.roles : [data.roles];
-          if (roles.includes('admin') || roles.includes('superadmin')) {
-            setIsAdmin(true);
-          }
-        }
+        const r = data?.role;
+        if (r === "admin" || r === "superadmin") setIsAdmin(true);
         setLoading(false);
       })
       .catch(() => setLoading(false));

@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
   try {
-    // Check admin access
-    const { session } = await getSupabaseSession();
-    const isAdmin = session?.user?.role === 'admin' || 
-                   session?.user?.roles?.includes('admin') || 
-                   session?.user?.roles?.includes('superadmin');
-    
-    if (!isAdmin) {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const role = await getCurrentUserRole();
+    if (role !== "admin" && role !== "superadmin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

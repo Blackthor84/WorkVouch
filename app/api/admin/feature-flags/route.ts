@@ -1,14 +1,6 @@
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
-
-function isAdmin(roles: string[]): boolean {
-  return roles.includes("admin") || roles.includes("superadmin");
-}
-
-function isSuperAdmin(roles: string[]): boolean {
-  return roles.includes("superadmin");
-}
 
 /** Core feature flags that must always exist. Insert if missing (by key). visibility_type uses "both" or "ui" (DB allows ui|api|both). */
 const CORE_FEATURE_FLAGS = [
@@ -44,12 +36,10 @@ const CORE_FEATURE_FLAGS = [
  */
 export async function GET() {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const roles = (session.user as any).roles || [];
-    if (!isAdmin(roles)) {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const role = await getCurrentUserRole();
+    if (role !== "admin" && role !== "superadmin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -121,12 +111,10 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const roles = (session.user as any).roles || [];
-    if (!isSuperAdmin(roles)) {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const role = await getCurrentUserRole();
+    if (role !== "superadmin") {
       return NextResponse.json({ error: "Forbidden: SuperAdmin only" }, { status: 403 });
     }
 
@@ -150,7 +138,7 @@ export async function POST(request: Request) {
         visibility_type,
         required_subscription_tier,
         is_globally_enabled: false,
-        created_by: session.user.id,
+        created_by: user.id,
       })
       .select()
       .single();
@@ -164,7 +152,7 @@ export async function POST(request: Request) {
 
     try {
       await (getSupabaseServer() as any).from("admin_actions").insert({
-        admin_id: session.user.id,
+        admin_id: user.id,
         impersonated_user_id: "",
         action_type: "feature_flag_updated",
         details: JSON.stringify({ flag_key: finalKey, action: "create" }),

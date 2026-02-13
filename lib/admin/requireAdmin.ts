@@ -64,24 +64,6 @@ export async function requireSuperAdmin(): Promise<AdminSession> {
   return admin;
 }
 
-async function getSessionRoles(userId: string): Promise<string[]> {
-  const supabase = await supabaseServer();
-  const supabaseAny = supabase as any;
-  const { data: profile } = await supabaseAny
-    .from("profiles")
-    .select("role")
-    .eq("id", userId)
-    .single();
-  const { data: roleRows } = await supabaseAny
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId);
-  const fromProfile = (profile as { role?: string } | null)?.role;
-  const fromTable = (roleRows as { role: string }[] | null)?.map((r) => r.role) ?? [];
-  const roles = fromProfile ? [fromProfile, ...fromTable] : fromTable;
-  return [...new Set(roles)].filter(Boolean);
-}
-
 export async function requireRole(allowedRoles: string[]): Promise<AdminSession> {
   const supabase = await supabaseServer();
   const {
@@ -89,11 +71,6 @@ export async function requireRole(allowedRoles: string[]): Promise<AdminSession>
   } = await supabase.auth.getSession();
   if (!session?.user?.id) {
     redirect("/login");
-  }
-  const roles = await getSessionRoles(session.user.id);
-  const hasRole = allowedRoles.some((r) => roles.includes(r));
-  if (!hasRole) {
-    redirect("/unauthorized");
   }
   const { data: profile, error } = await supabase
     .from("profiles")
@@ -103,12 +80,13 @@ export async function requireRole(allowedRoles: string[]): Promise<AdminSession>
   if (error || !profile) {
     redirect("/login");
   }
-  const profileAny = profile as { role?: string };
-  const role = roles.includes("superadmin")
-    ? "superadmin"
-    : roles.includes("admin")
-      ? "admin"
-      : profileAny.role ?? roles[0] ?? "user";
+  const profileRole = (profile as { role?: string }).role ?? "";
+  const hasRole = allowedRoles.includes(profileRole);
+  if (!hasRole) {
+    redirect("/unauthorized");
+  }
+  const role = profileRole;
+  const isSuperAdminRole = role === "superadmin";
   return {
     session,
     user: session.user,
@@ -116,7 +94,7 @@ export async function requireRole(allowedRoles: string[]): Promise<AdminSession>
     supabase,
     userId: session.user.id,
     role,
-    isSuperAdmin: roles.includes("superadmin"),
+    isSuperAdmin: isSuperAdminRole,
   };
 }
 

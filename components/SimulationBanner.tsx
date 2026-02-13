@@ -6,14 +6,14 @@ import { usePreview, saveEliteStateToStorage } from "@/lib/preview-context";
 
 const BODY_DEMO_CLASS = "workvouch-elite-demo-active";
 
-function isPreviewAdmin(session: { user?: { role?: string; roles?: string[] } } | null): boolean {
+function isPreviewAdmin(session: { user?: { role?: string } } | null): boolean {
   if (!session?.user) return false;
-  const roles = session.user.roles ?? (session.user.role ? [session.user.role] : []);
-  return roles.includes("admin") || roles.includes("superadmin");
+  const r = session.user.role ?? "";
+  return r === "admin" || r === "superadmin";
 }
 
 export default function SimulationBanner() {
-  const { data: session } = useSession();
+  const { data: session } = useSupabaseSession();
   const { preview, setPreview } = usePreview();
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function SimulationBanner() {
 
   if (!preview) return null;
 
-  const adminPreview = isPreviewAdmin(session as { user?: { role?: string; roles?: string[] } } | null);
+  const adminPreview = isPreviewAdmin(session as { user?: { role?: string } } | null);
   if (!adminPreview) return null;
 
   const handleExit = () => {

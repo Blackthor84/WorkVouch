@@ -2,7 +2,7 @@
  * GET /api/admin/investor-metrics
  * Real platform counts for investor dashboard. Superadmin only. Read-only.
  */
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
@@ -22,13 +22,10 @@ async function count(supabase: ReturnType<typeof getSupabaseServer>, table: stri
 
 export async function GET() {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const roles = (session.user as { roles?: string[] }).roles ?? [];
-    if (!roles.includes("superadmin")) {
-      return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
-    }
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const role = await getCurrentUserRole();
+    if (role !== "superadmin") return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
 
     const supabase = getSupabaseServer() as any;
 

@@ -14,16 +14,21 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const roles = (session.user as { roles?: string[] }).roles ?? [];
-    const isAdmin = roles.includes("admin") || roles.includes("superadmin");
+    const supabase = getSupabaseServer();
+    const { data: actorProfile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", session.user.id)
+      .single();
+    const actorRole = (actorProfile as { role?: string } | null)?.role ?? "";
+    const isAdmin = actorRole === "admin" || actorRole === "superadmin";
     if (!isAdmin) {
       return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
 
-    const supabase = getSupabaseServer();
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("id, email, full_name, created_at")
+      .select("id, email, full_name, created_at, role")
       .order("created_at", { ascending: false });
 
     if (profilesError) {
@@ -34,46 +39,25 @@ export async function GET(request: Request) {
       );
     }
 
-    const { data: rolesData, error: rolesError } = await supabase
-      .from("user_roles")
-      .select("user_id, role");
-
-    if (rolesError) {
-      console.error("[ADMIN_API_ERROR] GET /api/admin/users user_roles", rolesError.message);
-      return NextResponse.json(
-        { success: false, error: "Internal server error" },
-        { status: 500 }
-      );
-    }
-
-    type RoleRow = { user_id: string; role: string };
-    const rolesByUserId = ((rolesData ?? []) as RoleRow[]).reduce<Record<string, string[]>>(
-      (acc, row) => {
-        if (!acc[row.user_id]) acc[row.user_id] = [];
-        acc[row.user_id].push(row.role);
-        return acc;
-      },
-      {}
-    );
-
     type ProfileRow = {
       id: string;
       email: string | null;
       full_name: string | null;
       created_at: string;
+      role?: string | null;
     };
     const users = ((profiles ?? []) as ProfileRow[]).map((p) => ({
       id: p.id,
       email: p.email ?? "",
       full_name: p.full_name ?? "",
-      roles: rolesByUserId[p.id] ?? [],
+      role: p.role ?? null,
       created_at: p.created_at,
     }));
 
     const { ipAddress, userAgent } = getAuditMetaFromRequest(request);
     await auditLog({
       actorUserId: session.user.id,
-      actorRole: roles.includes("superadmin") ? "superadmin" : "admin",
+      actorRole: actorRole === "superadmin" ? "superadmin" : "admin",
       action: "admin_list_users",
       metadata: { count: users.length },
       ipAddress,

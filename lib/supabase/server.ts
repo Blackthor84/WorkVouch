@@ -66,14 +66,13 @@ export async function getSupabaseSession() {
           .from("user_roles")
           .select("role")
           .eq("user_id", impersonatedUserId);
-        const roles: string[] = (rolesData ?? []).map((r: { role: string }) => r.role);
+        const roleList: string[] = (rolesData ?? []).map((r: { role: string }) => r.role);
         const user = profile
           ? {
               id: profile.id,
               email: profile.email ?? undefined,
               user_metadata: { full_name: profile.full_name },
-              role: roles[0] ?? undefined,
-              roles,
+              role: roleList[0] ?? undefined,
             }
           : null;
         if (user) {

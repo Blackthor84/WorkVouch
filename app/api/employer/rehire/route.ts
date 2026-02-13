@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseSession } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { getCurrentUser, hasRole } from "@/lib/auth";
+import { getCurrentUser, hasRole, getCurrentUserRole } from "@/lib/auth";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { calculateAndStoreRisk } from "@/lib/risk/calculateAndPersist";
 import { calculateEmployerWorkforceRisk } from "@/lib/risk/workforce";
@@ -100,9 +100,8 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const hasEmployer = await hasRole("employer");
-    const { session } = await getSupabaseSession();
-    const roles = ((session?.user as { roles?: string[] })?.roles) ?? [];
-    const isAdmin = roles.includes("admin") || roles.includes("superadmin");
+    const role = await getCurrentUserRole();
+    const isAdmin = role === "admin" || role === "superadmin";
     if (!hasEmployer && !isAdmin)
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -239,9 +238,8 @@ export async function GET() {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const hasEmployer = await hasRole("employer");
-    const { session } = await getSupabaseSession();
-    const roles = ((session?.user as { roles?: string[] })?.roles) ?? [];
-    const isAdmin = roles.includes("admin") || roles.includes("superadmin");
+    const role = await getCurrentUserRole();
+    const isAdmin = role === "admin" || role === "superadmin";
     if (!hasEmployer && !isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const enabled = await checkFeatureAccess("rehire_system", { userId: user.id });
@@ -341,9 +339,8 @@ export async function PATCH(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const hasEmployer = await hasRole("employer");
-    const { session } = await getSupabaseSession();
-    const roles = ((session?.user as { roles?: string[] })?.roles) ?? [];
-    const isAdmin = roles.includes("admin") || roles.includes("superadmin");
+    const role = await getCurrentUserRole();
+    const isAdmin = role === "admin" || role === "superadmin";
     if (!hasEmployer && !isAdmin)
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

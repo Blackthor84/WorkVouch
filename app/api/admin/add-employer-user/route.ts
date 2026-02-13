@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
 import { getOrgHealthScore, updateOrgHealth } from "@/lib/enterprise/orgHealthScore";
@@ -14,15 +14,11 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-    const roles = (session.user as { roles?: string[] }).roles ?? [];
-    const isAdmin = roles.includes("admin") || roles.includes("superadmin");
-    if (!isAdmin) {
-      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
-    }
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const authRole = await getCurrentUserRole();
+    const isAdmin = authRole === "admin" || authRole === "superadmin";
+    if (!isAdmin) return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
 
     const body = await req.json().catch(() => ({}));
     const organizationId = typeof body.organizationId === "string" ? body.organizationId.trim() : "";
