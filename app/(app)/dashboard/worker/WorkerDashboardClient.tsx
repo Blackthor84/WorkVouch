@@ -1,8 +1,8 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 import { calculateTrustScore } from "@/lib/trust-score";
 import Link from "next/link";
 
@@ -12,9 +12,8 @@ import Link from "next/link";
  * Growth-focused; no employer metrics.
  */
 export default function WorkerDashboard() {
-  const supabase = supabaseBrowser();
-  const sessionObj = useSession();
-  const session = sessionObj?.data ?? null;
+  const supabase = useMemo(() => supabaseBrowser(), []);
+  const { data: session } = useSupabaseSession();
   const user = session?.user ?? null;
   const [profile, setProfile] = useState<any>(null);
   const [jobs, setJobs] = useState<any[]>([]);

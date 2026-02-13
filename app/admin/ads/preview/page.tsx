@@ -1,10 +1,9 @@
 import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/authOptions';
+import { getSupabaseSession } from "@/lib/supabase/server";
 import Link from 'next/link';
 
 export default async function AdPreviewPage() {
-  const session = await getServerSession(authOptions);
+  const { session } = await getSupabaseSession();
 
   if (!session?.user) redirect('/login');
   const roles = session.user.roles || [];

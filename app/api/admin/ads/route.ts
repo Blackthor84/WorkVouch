@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 import { v4 as uuid } from "uuid";
 import { Ad } from "../../../../types/ad";
 
@@ -12,24 +11,18 @@ function unauthorized() {
 }
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (
-    !session ||
-    (!session.user?.roles?.includes("admin") &&
-      !session.user?.roles?.includes("superadmin"))
-  ) {
+  try {
+    await requireAdmin();
+  } catch {
     return unauthorized();
   }
   return NextResponse.json(ads);
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (
-    !session ||
-    (!session.user?.roles?.includes("admin") &&
-      !session.user?.roles?.includes("superadmin"))
-  ) {
+  try {
+    await requireAdmin();
+  } catch {
     return unauthorized();
   }
   const data = await req.json();
@@ -51,12 +44,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (
-    !session ||
-    (!session.user?.roles?.includes("admin") &&
-      !session.user?.roles?.includes("superadmin"))
-  ) {
+  try {
+    await requireAdmin();
+  } catch {
     return unauthorized();
   }
   const data = await req.json();
@@ -67,12 +57,9 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (
-    !session ||
-    (!session.user?.roles?.includes("admin") &&
-      !session.user?.roles?.includes("superadmin"))
-  ) {
+  try {
+    await requireAdmin();
+  } catch {
     return unauthorized();
   }
   const { searchParams } = new URL(req.url);

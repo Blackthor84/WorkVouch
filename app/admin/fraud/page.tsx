@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 import { FraudDashboardClient } from "@/components/admin/fraud-dashboard-client";
 
 export const dynamic = "force-dynamic";

@@ -2,8 +2,7 @@
  * POST /api/admin/preview-links/create
  * Superadmin only. Creates a shareable preview link (preview_sessions).
  */
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseSession } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
@@ -16,7 +15,7 @@ function secureToken(): string {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const { session } = await getSupabaseSession();
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const roles = (session.user as { roles?: string[] }).roles ?? [];

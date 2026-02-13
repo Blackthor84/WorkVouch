@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 
 function BetaLoginContent() {
   const searchParams = useSearchParams();

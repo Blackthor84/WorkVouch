@@ -1,5 +1,5 @@
 import { NavbarServer } from "@/components/navbar-server";
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 
 export const dynamic = "force-dynamic";

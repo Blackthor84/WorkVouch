@@ -1,13 +1,12 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseSession } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { EmployersMarketplaceClient } from "@/components/directory/EmployersMarketplaceClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function DirectoryEmployersPage() {
-  const session = await getServerSession(authOptions);
+  const { session } = await getSupabaseSession();
   if (!session?.user) redirect("/login");
 
   const sb = getSupabaseServer() as any;

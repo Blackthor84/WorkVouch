@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseSession } from "@/lib/supabase/server";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rateLimit";
 import { checkEmailChangeRateLimit } from "@/lib/email/email-change-rate-limit";
@@ -32,7 +31,7 @@ function generateSecureToken(): string {
  */
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const { session } = await getSupabaseSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

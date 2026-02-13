@@ -1,4 +1,4 @@
-import { requireSuperAdmin } from "@/lib/auth/requireSuperAdmin";
+import { requireSuperAdmin } from "@/lib/admin/requireAdmin";
 import InvestorDashboardClient from "./InvestorDashboardClient";
 
 export const dynamic = "force-dynamic";

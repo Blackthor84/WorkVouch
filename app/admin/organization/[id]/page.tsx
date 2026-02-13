@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";

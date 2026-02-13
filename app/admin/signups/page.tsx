@@ -1,4 +1,4 @@
-import { requireSuperAdmin } from "@/lib/auth/requireSuperAdmin";
+import { requireSuperAdmin } from "@/lib/admin/requireAdmin";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDateLong } from "@/lib/utils/date";

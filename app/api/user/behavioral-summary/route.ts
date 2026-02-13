@@ -3,8 +3,7 @@
  * Employee-safe: returns only a human-friendly summary when behavioral_intelligence_enterprise
  * is enabled for the current user. Never exposes raw scores. Candidate-only (own profile).
  */
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseSession } from "@/lib/supabase/server";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { getBehavioralVector } from "@/lib/intelligence/getBehavioralVector";
 import { buildBehavioralSummary } from "@/lib/intelligence/behavioralSummary";
@@ -14,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const { session } = await getSupabaseSession();
     if (!session?.user?.id) {
       return NextResponse.json({ summary: null }, { status: 200 });
     }

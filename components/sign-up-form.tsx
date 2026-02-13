@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
@@ -82,17 +81,8 @@ export function SignUpForm() {
                   : key
                     ? `/onboarding/${key}/role`
                     : "/dashboard";
-          const result = await signIn("credentials", {
-            email: email.trim().toLowerCase(),
-            password,
-            callbackUrl,
-            redirect: false,
-          });
-          if (result?.ok && result?.url) {
-            window.location.href = result.url;
-            return;
-          }
           window.location.href = callbackUrl;
+          return;
         } else {
           // Email confirmation might be required, but try to sign in anyway
           console.log("No session, attempting to sign in...");
@@ -121,17 +111,8 @@ export function SignUpForm() {
                     : key
                       ? `/onboarding/${key}/role`
                       : "/dashboard";
-            const result = await signIn("credentials", {
-              email: email.trim().toLowerCase(),
-              password,
-              callbackUrl,
-              redirect: false,
-            });
-            if (result?.ok && result?.url) {
-              window.location.href = result.url;
-              return;
-            }
             window.location.href = callbackUrl;
+            return;
           } else {
             setError(
               "Account created! Please check your email to confirm your account, then sign in.",

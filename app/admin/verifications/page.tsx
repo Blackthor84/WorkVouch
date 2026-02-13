@@ -1,12 +1,11 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseSession } from "@/lib/supabase/server";
 import { VerificationsList } from "@/components/workvouch/verifications-list";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminVerificationsPage() {
-  const session = await getServerSession(authOptions);
+  const { session } = await getSupabaseSession();
 
   if (!session?.user) redirect("/login");
   const roles = session.user.roles || [];

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 import { usePreview, saveEliteStateToStorage } from "@/lib/preview-context";
 
 const BODY_DEMO_CLASS = "workvouch-elite-demo-active";
@@ -30,7 +30,7 @@ export default function SimulationBanner() {
 
   if (!preview) return null;
 
-  const adminPreview = isPreviewAdmin(session);
+  const adminPreview = isPreviewAdmin(session as { user?: { role?: string; roles?: string[] } } | null);
   if (!adminPreview) return null;
 
   const handleExit = () => {

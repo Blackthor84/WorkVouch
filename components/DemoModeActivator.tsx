@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 import { isEliteDemoEnabled } from "@/lib/demo-mode";
 import {
   usePreview,
@@ -18,14 +18,14 @@ import {
  */
 export function DemoModeActivator() {
   const searchParams = useSearchParams();
-  const { data: session, status: sessionStatus } = useSession();
+  const { data: session, status: sessionStatus } = useSupabaseSession();
   const { preview, setPreview } = usePreview();
 
   useEffect(() => {
     if (sessionStatus === "loading") return;
 
     const demoParam = searchParams.get("demo");
-    const userRole = session?.user?.role ?? session?.user?.roles?.[0];
+    const userRole = (session?.user as { role?: string; roles?: string[] } | undefined)?.role ?? (session?.user as { role?: string; roles?: string[] } | undefined)?.roles?.[0];
     const enabled = isEliteDemoEnabled(searchParams, userRole);
 
     if (demoParam === "elite" && enabled) {

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 import { Button } from "@/components/ui/button";
 import { UserDetailActions } from "@/components/admin/user-detail-actions";
 import { UserForensicsTabs } from "@/components/admin/user-forensics-tabs";

@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth-config";
+import { getSupabaseSession } from "@/lib/supabase/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
   try {
     // Check admin access
-    const session = await getServerSession(authOptions);
+    const { session } = await getSupabaseSession();
     const isAdmin = session?.user?.role === 'admin' || 
                    session?.user?.roles?.includes('admin') || 
                    session?.user?.roles?.includes('superadmin');

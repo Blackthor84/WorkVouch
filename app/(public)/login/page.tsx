@@ -1,37 +1,38 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 
 function LoginForm() {
-  const searchParams = useSearchParams();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const err = searchParams.get("error");
-    if (err === "CredentialsSignin") setError("Invalid email or password");
-  }, [searchParams]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     setError("");
     setLoading(true);
 
-    await signIn("credentials", {
+    const supabase = supabaseBrowser();
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password,
-      redirect: true,
-      callbackUrl: "/dashboard",
     });
 
     setLoading(false);
+    if (signInError) {
+      setError(signInError.message || "Invalid email or password");
+      return;
+    }
+    if (data.session) {
+      router.push("/dashboard");
+      router.refresh();
+    }
   };
 
   return (

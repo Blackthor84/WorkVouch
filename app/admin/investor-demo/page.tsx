@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 import InvestorLayout from "@/components/investor/InvestorLayout";
 import InvestorDemoClient from "@/components/investor/InvestorDemoClient";
 

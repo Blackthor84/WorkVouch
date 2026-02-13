@@ -1,4 +1,4 @@
-import { requireSuperAdmin } from "@/lib/auth/requireSuperAdmin";
+import { requireSuperAdmin } from "@/lib/admin/requireAdmin";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";

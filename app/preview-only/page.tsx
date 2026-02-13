@@ -1,30 +1,41 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import CareersGrid from "@/components/CareersGrid";
+import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 
 export default function PreviewOnlyPage() {
-  const sessionObj = useSession();
-  const session = sessionObj?.data ?? null;
+  const { data: session, status } = useSupabaseSession();
   const router = useRouter();
-  const status = sessionObj?.status ?? "loading";
   const user = session?.user ?? null;
+  const [roleCheck, setRoleCheck] = useState<"beta" | "other" | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
-    } else if (status === "authenticated" && user) {
-      const isBeta = user.role === "beta" || user.roles?.includes("beta");
-      if (!isBeta) {
-        router.push("/dashboard");
-      }
+      return;
     }
-  }, [user, status, router]);
+    if (status === "authenticated" && user?.id) {
+      fetch("/api/user/me")
+        .then((r) => r.json())
+        .then((data) => {
+          const roles = data?.roles ?? [];
+          setRoleCheck(roles.includes("beta") ? "beta" : "other");
+        })
+        .catch(() => setRoleCheck("other"));
+    }
+  }, [user?.id, status, router]);
 
-  if (status === "loading") {
+  useEffect(() => {
+    if (roleCheck === "other") router.push("/dashboard");
+  }, [roleCheck, router]);
+
+  const isBeta = roleCheck === "beta";
+  const loading = status === "loading" || (status === "authenticated" && roleCheck === null);
+
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -32,10 +43,12 @@ export default function PreviewOnlyPage() {
     );
   }
 
-  const isBeta = user?.role === "beta" || user?.roles?.includes("beta");
+  if (roleCheck === "other") {
+    return null; // useEffect will redirect
+  }
 
   if (!isBeta) {
-    return null; // Will redirect
+    return null;
   }
 
   return (

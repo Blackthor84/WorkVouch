@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
@@ -106,9 +105,17 @@ export function AdminUsersList() {
                         return;
                       }
                       const data = await res.json();
-                      if (data.impersonateUser) {
-                        await updateSession({ impersonateUser: data.impersonateUser });
+                      if (data.impersonateUser || data.impersonationToken) {
+                        await fetch("/api/admin/impersonate/set", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            impersonationToken: data.impersonationToken,
+                            impersonateUser: data.impersonateUser,
+                          }),
+                        });
                         router.push("/dashboard");
+                        router.refresh();
                       }
                     } catch (e) {
                       console.error("Impersonate error:", e);

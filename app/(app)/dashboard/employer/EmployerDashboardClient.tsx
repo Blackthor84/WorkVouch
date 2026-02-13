@@ -1,7 +1,7 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
+import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 import Link from "next/link";
 import { 
   MagnifyingGlassIcon, 
@@ -22,8 +22,7 @@ import {
  * - Security Bundle features (if applicable)
  */
 export default function EmployerDashboard() {
-  const sessionObj = useSession();
-  const session = sessionObj?.data ?? null;
+  const { data: session } = useSupabaseSession();
   const user = session?.user ?? null;
   const [employerAccount, setEmployerAccount] = useState<any>(null);
   const [searchUsage, setSearchUsage] = useState<any>(null);

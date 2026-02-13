@@ -1,11 +1,11 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export function DashboardAuthGuard({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSupabaseSession();
   const router = useRouter();
 
   useEffect(() => {

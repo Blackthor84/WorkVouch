@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 import { useRouter } from "next/navigation";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
@@ -24,7 +24,7 @@ export function UserSettings() {
         setLoading(false);
         return;
       }
-      await signOut({ redirect: false });
+      await supabaseBrowser().auth.signOut();
       router.push("/");
       router.refresh();
     } catch {

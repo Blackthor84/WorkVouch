@@ -1,15 +1,14 @@
 import { WarehouseOnboardingWrapper } from "./warehouse-onboarding-wrapper";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseSession } from "@/lib/supabase/server";
 
 // Mark as dynamic to prevent build-time prerendering
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function WarehouseOnboardingPage() {
-  const session = await getServerSession(authOptions);
+  const { session } = await getSupabaseSession();
 
   if (!session?.user) {
     console.log("REDIRECT TRIGGERED IN: app/(app)/onboarding/warehouse/page.tsx");

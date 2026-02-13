@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 
 interface ReviewFormProps {
   employerId: string;
@@ -18,8 +18,7 @@ export default function ReviewForm({
   onReviewSubmitted,
   className = "",
 }: ReviewFormProps) {
-  const sessionObj = useSession();
-  const session = sessionObj?.data ?? null;
+  const { data: session } = useSupabaseSession();
   const [rating, setRating] = useState<number>(0);
   const [hoveredRating, setHoveredRating] = useState<number>(0);
   const [reviewText, setReviewText] = useState("");
@@ -27,7 +26,6 @@ export default function ReviewForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // Optional: Use logged-in user's ID for verified reviews
   const reviewerId = session?.user?.id ?? null;
 
   const handleSubmit = async (e: React.FormEvent) => {

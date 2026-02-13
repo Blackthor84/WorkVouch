@@ -1,7 +1,6 @@
 import { AD_PRICING } from "@/lib/ads/pricing";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth-config";
+import { getSupabaseSession } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe";
 
 export async function POST(req: Request) {
@@ -14,7 +13,7 @@ export async function POST(req: Request) {
     }
 
     // Check admin access
-    const session = await getServerSession(authOptions);
+    const { session } = await getSupabaseSession();
     const isAdmin = session?.user?.role === 'admin' || session?.user?.roles?.includes('admin') || session?.user?.roles?.includes('superadmin');
     
     if (!isAdmin) {

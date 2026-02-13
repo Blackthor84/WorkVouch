@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -130,40 +129,13 @@ export default function SelectRolePage() {
         }
       }
 
-      let callbackUrl = role === "employer" ? employerUrl : employeeOnboardingUrl;
-
-      // Sign in with NextAuth so session is preserved (no logout); then redirect to onboarding
-      let stored: { email?: string; password?: string } | null = null;
+      const callbackUrl = role === "employer" ? employerUrl : employeeOnboardingUrl;
       try {
-        const raw = sessionStorage.getItem(SIGNUP_CREDENTIALS_KEY);
-        if (raw) stored = JSON.parse(raw) as { email?: string; password?: string };
+        sessionStorage.removeItem(SIGNUP_CREDENTIALS_KEY);
       } catch {
         // ignore
       }
-      if (stored?.email && stored?.password) {
-        try {
-          sessionStorage.removeItem(SIGNUP_CREDENTIALS_KEY);
-        } catch {
-          // ignore
-        }
-        const result = await signIn("credentials", {
-          email: stored.email,
-          password: stored.password,
-          callbackUrl,
-          redirect: false,
-        });
-        if (result?.ok && result?.url) {
-          router.push(result.url);
-          return;
-        }
-        if (result?.error) {
-          setError(result.error === "CredentialsSignin" ? "Invalid credentials. Please try again or log in." : String(result.error));
-          setSelecting(null);
-          return;
-        }
-      }
-
-      router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+      router.push(callbackUrl);
     } catch (err) {
       console.error("Select role error:", err);
       setError("An unexpected error occurred. Please try again.");

@@ -1,7 +1,5 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { supabaseServer } from "@/lib/supabase/server";
 import { isAdmin, isSuperAdmin, canModifyUser, canAssignRole } from "@/lib/roles";
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type AdminSession = {
   userId: string;
@@ -9,17 +7,41 @@ export type AdminSession = {
   isSuperAdmin: boolean;
 };
 
+async function getSessionRoles(userId: string): Promise<string[]> {
+  const supabase = await supabaseServer();
+  const supabaseAny = supabase as any;
+  const { data: profile } = await supabaseAny
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .single();
+  const { data: roleRows } = await supabaseAny
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId);
+  const fromProfile = (profile as { role?: string } | null)?.role;
+  const fromTable = (roleRows as { role: string }[] | null)?.map((r) => r.role) ?? [];
+  const roles = fromProfile ? [fromProfile, ...fromTable] : fromTable;
+  return [...new Set(roles)].filter(Boolean);
+}
+
 /**
  * Require admin or superadmin. Returns session info or throws.
- * Use in API routes: const admin = await requireAdmin();
  */
 export async function requireAdmin(): Promise<AdminSession> {
-  const session = await getServerSession(authOptions);
+  const supabase = await supabaseServer();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
-  const roles = (session.user as { roles?: string[] }).roles ?? [];
-  const role = roles.includes("superadmin") ? "superadmin" : roles.includes("admin") ? "admin" : null;
+  const roles = await getSessionRoles(session.user.id);
+  const role = roles.includes("superadmin")
+    ? "superadmin"
+    : roles.includes("admin")
+      ? "admin"
+      : null;
   if (!role || !isAdmin(role)) {
     throw new Error("Forbidden");
   }
@@ -30,9 +52,6 @@ export async function requireAdmin(): Promise<AdminSession> {
   };
 }
 
-/**
- * Require superadmin only. Use for hard delete, Stripe ID edits, system panel.
- */
 export async function requireSuperAdmin(): Promise<AdminSession> {
   const admin = await requireAdmin();
   if (!admin.isSuperAdmin) {
@@ -41,21 +60,24 @@ export async function requireSuperAdmin(): Promise<AdminSession> {
   return admin;
 }
 
-/**
- * Require one of the given roles (server-side). Use for route guards.
- * Returns session info; throws "Unauthorized" or "Forbidden" if not allowed.
- */
 export async function requireRole(allowedRoles: string[]): Promise<AdminSession> {
-  const session = await getServerSession(authOptions);
+  const supabase = await supabaseServer();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
-  const roles = (session.user as { roles?: string[] }).roles ?? [];
+  const roles = await getSessionRoles(session.user.id);
   const hasRole = allowedRoles.some((r) => roles.includes(r));
   if (!hasRole) {
     throw new Error("Forbidden");
   }
-  const role = roles.includes("superadmin") ? "superadmin" : roles.includes("admin") ? "admin" : roles[0] ?? "user";
+  const role = roles.includes("superadmin")
+    ? "superadmin"
+    : roles.includes("admin")
+      ? "admin"
+      : roles[0] ?? "user";
   return {
     userId: session.user.id,
     role,
@@ -63,15 +85,6 @@ export async function requireRole(allowedRoles: string[]): Promise<AdminSession>
   };
 }
 
-/**
- * Enforce: admin cannot modify superadmin; admin cannot escalate own role.
- * Call after requireAdmin() and after fetching target profile.
- * @param admin - from requireAdmin()
- * @param targetUserId - user being modified
- * @param targetRole - target's current role (from profiles or user_roles)
- * @param newRole - if role is being changed, the new role; otherwise undefined
- * @throws if actor may not perform the action
- */
 export function assertAdminCanModify(
   admin: AdminSession,
   targetUserId: string,
@@ -81,7 +94,12 @@ export function assertAdminCanModify(
   if (!canModifyUser(admin.role, targetRole)) {
     throw new Error("Forbidden: Cannot modify a user with equal or higher role");
   }
-  if (newRole !== undefined && !canAssignRole(admin.role, newRole, admin.userId === targetUserId)) {
-    throw new Error("Forbidden: Cannot assign this role (e.g. cannot escalate own role or assign superadmin)");
+  if (
+    newRole !== undefined &&
+    !canAssignRole(admin.role, newRole, admin.userId === targetUserId)
+  ) {
+    throw new Error(
+      "Forbidden: Cannot assign this role (e.g. cannot escalate own role or assign superadmin)"
+    );
   }
 }

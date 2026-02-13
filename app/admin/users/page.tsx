@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 import { AdminUsersList } from "@/components/admin/users-list";
 
 export const dynamic = "force-dynamic";

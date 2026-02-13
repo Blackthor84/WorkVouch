@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 
 /**
  * Security Bundle Feature: License Management
@@ -9,8 +9,7 @@ import { useSession } from "next-auth/react";
  * Allows security agencies to upload and verify guard licenses
  */
 export default function LicenseManagement() {
-  const sessionObj = useSession();
-  const session = sessionObj?.data ?? null;
+  const { data: session } = useSupabaseSession();
   const user = session?.user ?? null;
   const [licenses, setLicenses] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);

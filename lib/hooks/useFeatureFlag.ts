@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 import { usePreview } from "@/lib/preview-context";
 
 function isPreviewAdmin(session: { user?: { role?: string } } | null): boolean {
@@ -98,9 +98,9 @@ export function useFeatureFlagWithLoading(featureKey: string): {
   enabled: boolean;
   loading: boolean;
 } {
-  const { data: session } = useSession();
+  const { data: session } = useSupabaseSession();
   const { preview } = usePreview();
-  const previewModeActive = Boolean(preview && (preview.demoActive || preview.featureFlags?.length) && isPreviewAdmin(session));
+  const previewModeActive = Boolean(preview && (preview.demoActive || preview.featureFlags?.length) && isPreviewAdmin(session as { user?: { role?: string } } | null));
   const previewEnabled =
     previewModeActive &&
     (preview?.previewFeatures?.[featureKey] === true || (preview?.previewFeatures?.[featureKey] !== false && preview?.featureFlags?.includes(featureKey)));

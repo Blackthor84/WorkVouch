@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 import { AdminIntelligenceDashboardClient } from "./AdminIntelligenceDashboardClient";
 
 export const dynamic = "force-dynamic";

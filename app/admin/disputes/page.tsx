@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseSession } from "@/lib/supabase/server";
 import { DisputesList } from "@/components/workvouch/disputes-list";
 
 export default async function AdminDisputesPage() {
-  const session = await getServerSession(authOptions);
+  const { session } = await getSupabaseSession();
 
   if (!session?.user) redirect("/login");
   const roles = session.user.roles || [];

@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 import AdminAdsPanel from "@/components/AdminAdsPanel";
 import { AdminAdsGate } from "@/components/AdminAdsGate";
 import { AD_PRICING } from "@/lib/ads/pricing";

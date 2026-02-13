@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
@@ -11,6 +10,8 @@ import { Logo } from "./logo";
 import { User } from "@/lib/auth";
 import { usePreview } from "@/lib/preview-context";
 import { isAdmin } from "@/lib/roles";
+import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 
 export interface OrgSwitcherItem {
   id: string;
@@ -25,20 +26,20 @@ interface NavbarClientProps {
   role?: string | null;
   /** When org_admin/enterprise_owner: list of orgs/locations for switcher dropdown. */
   orgSwitcherItems?: OrgSwitcherItem[] | null;
+  /** True when admin is viewing as another user (from server). */
+  impersonating?: boolean;
 }
 
-export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp, orgSwitcherItems }: NavbarClientProps = {}) {
-  const { data: session, status, update } = useSession();
+export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp, orgSwitcherItems, impersonating: impersonatingProp }: NavbarClientProps = {}) {
+  const { data: session, status } = useSupabaseSession();
   const router = useRouter();
   const pathname = usePathname();
   const { preview } = usePreview();
   const user = userProp ?? session?.user;
-  const roles = rolesProp ?? session?.user?.roles ?? [];
-  const role = roleProp ?? session?.user?.role ?? roles[0] ?? null;
+  const roles = rolesProp ?? (session?.user as { roles?: string[] } | undefined)?.roles ?? [];
+  const role = roleProp ?? (session?.user as { role?: string } | undefined)?.role ?? roles[0] ?? null;
   const showAdmin = isAdmin(role) || roles.some((r: string) => isAdmin(r));
-  const impersonating = Boolean(
-    (session as { impersonating?: boolean })?.impersonating
-  );
+  const impersonating = Boolean(impersonatingProp ?? (session as { impersonating?: boolean } | null)?.impersonating);
   const eliteDemo = Boolean(preview?.demoActive);
   const isEmployerArea = pathname?.startsWith("/employer");
   const showOrgSwitcher = Boolean(orgSwitcherItems?.length);
@@ -168,7 +169,11 @@ export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp,
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => signOut({ callbackUrl: "/" })}
+                  onClick={async () => {
+                  await supabaseBrowser().auth.signOut();
+                  router.push("/");
+                  router.refresh();
+                }}
                   className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
                 >
                   Logout

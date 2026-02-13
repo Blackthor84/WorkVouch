@@ -2,8 +2,7 @@
  * GET /api/user/career-health
  * Returns career health and component scores from intelligence_snapshots (canonical). Event-driven; no stale recalc.
  */
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseSession } from "@/lib/supabase/server";
 import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
 import { NextResponse } from "next/server";
 
@@ -41,7 +40,7 @@ function clamp(n: number): number {
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const { session } = await getSupabaseSession();
     if (!session?.user?.id) {
       return NextResponse.json({
         careerHealth: 0,

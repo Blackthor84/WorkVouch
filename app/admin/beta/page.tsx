@@ -1,11 +1,10 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseSession } from "@/lib/supabase/server";
 import BetaAccessManager from "@/components/admin/BetaAccessManager";
 import { AdminBetaGate } from "@/components/AdminBetaGate";
 
 export default async function AdminBetaPage() {
-  const session = await getServerSession(authOptions);
+  const { session } = await getSupabaseSession();
 
   if (!session?.user) redirect("/login");
   const roles = session.user.roles || [];

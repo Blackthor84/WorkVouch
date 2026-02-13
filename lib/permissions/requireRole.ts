@@ -3,8 +3,7 @@
  * Use for server-side route protection: /admin (superadmin), /admin/org (org_admin), /admin/location (location_admin), /employer (location_admin + hiring_manager + employer).
  */
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseSession } from "@/lib/supabase/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 export type AllowedRole =
@@ -93,7 +92,7 @@ export async function getEffectiveRoles(userId: string): Promise<string[]> {
 export async function requireRole(
   allowedRoles: AllowedRole[]
 ): Promise<RequireRoleResult> {
-  const session = await getServerSession(authOptions);
+  const { session } = await getSupabaseSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }

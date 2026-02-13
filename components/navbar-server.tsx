@@ -1,12 +1,11 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { getSupabaseSession } from "@/lib/supabase/server";
 import { getCurrentUserProfile, getCurrentUserRoles } from "@/lib/auth";
 import { getEffectiveRoles } from "@/lib/permissions/requireRole";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { NavbarClient, type OrgSwitcherItem } from "./navbar-client";
 
 export async function NavbarServer() {
-  const session = await getServerSession(authOptions);
+  const { session } = await getSupabaseSession();
   const profile = session?.user ? await getCurrentUserProfile() : null;
   const roles = session?.user ? await getCurrentUserRoles() : [];
   const role = profile?.role ?? roles[0] ?? (session?.user as { role?: string })?.role ?? null;
@@ -54,12 +53,14 @@ export async function NavbarServer() {
       }
     }
   }
+  const impersonating = Boolean((session as { impersonating?: boolean } | null)?.impersonating);
   return (
     <NavbarClient
       user={session?.user ?? undefined}
       roles={roles.length > 0 ? roles : (session?.user as { roles?: string[] })?.roles ?? undefined}
       role={role ?? undefined}
       orgSwitcherItems={orgSwitcherItems}
+      impersonating={impersonating}
     />
   );
 }

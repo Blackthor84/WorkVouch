@@ -1,10 +1,16 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 export function ImpersonationBanner() {
-  const { data: session } = useSession();
-  const impersonating = session?.impersonating ?? false;
+  const [impersonating, setImpersonating] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/impersonate/status")
+      .then((r) => r.json())
+      .then((data) => setImpersonating(Boolean(data?.impersonating)))
+      .catch(() => setImpersonating(false));
+  }, []);
 
   if (!impersonating) return null;
 

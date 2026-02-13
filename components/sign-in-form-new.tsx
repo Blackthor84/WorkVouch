@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 
 export function SignInFormNew() {
   const router = useRouter();
@@ -19,20 +19,18 @@ export function SignInFormNew() {
     setError(null);
 
     try {
-      const result = await signIn("credentials", {
+      const { data, error: signInError } = await supabaseBrowser().auth.signInWithPassword({
         email,
         password,
-        type,
-        redirect: false,
       });
 
-      if (result?.error) {
-        setError(result.error);
+      if (signInError) {
+        setError(signInError.message || "Invalid email or password");
+        setLoading(false);
         return;
       }
 
-      if (result?.ok) {
-        // Redirect based on user type
+      if (data?.session) {
         if (type === "user") {
           router.push("/dashboard");
         } else if (type === "employer") {
@@ -40,6 +38,7 @@ export function SignInFormNew() {
         } else if (type === "admin") {
           router.push("/admin/dashboard");
         }
+        router.refresh();
       }
     } catch (err: any) {
       console.error("Sign in failed:", err);

@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 import { SandboxV2Client } from "./SandboxV2Client";
 
 export const dynamic = "force-dynamic";
