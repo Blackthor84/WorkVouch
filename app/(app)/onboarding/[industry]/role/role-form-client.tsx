@@ -36,8 +36,7 @@ export function RoleFormClient({ industry }: RoleFormClientProps) {
       }
 
       // Check if user's industry matches
-      const supabaseAny = supabase as any;
-      const { data: profile } = await supabaseAny
+      const { data: profile } = await supabaseBrowser
         .from("profiles")
         .select("industry")
         .eq("id", currentUser.id)
@@ -55,7 +54,7 @@ export function RoleFormClient({ industry }: RoleFormClientProps) {
     }
 
     checkUser();
-  }, [router, supabase, industry]);
+  }, [router, industry]);
 
   const handleNext = async () => {
     if (!role) {
@@ -67,9 +66,7 @@ export function RoleFormClient({ industry }: RoleFormClientProps) {
 
     try {
       const tableName = `${industry}_profiles`;
-      const supabaseAny = supabase as any;
-
-      const { error } = await supabaseAny.from(tableName).upsert(
+      const { error } = await (supabaseBrowser as any).from(tableName).upsert(
         {
           user_id: user.id,
           role,
