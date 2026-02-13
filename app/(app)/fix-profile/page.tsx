@@ -30,7 +30,7 @@ export default function FixProfilePage() {
       setMessage(`Found user: ${user.email} (${user.id})`);
 
       // Check if profile exists
-      const { data: existingProfile } = await supabase
+      const { data: existingProfile } = await supabaseBrowser
         .from("profiles")
         .select("*")
         .eq("id", user.id)
@@ -50,7 +50,7 @@ export default function FixProfilePage() {
         email: user.email || "",
       });
 
-      const supabaseAny = supabase as any;
+      const supabaseAny = supabaseBrowser as any;
       const { data: profile, error: profileError } = await supabaseAny
         .from("profiles")
         .insert([
