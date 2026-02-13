@@ -1,11 +1,68 @@
+import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
-import { isAdmin, isSuperAdmin, canModifyUser, canAssignRole } from "@/lib/roles";
+import { canModifyUser, canAssignRole } from "@/lib/roles";
 
 export type AdminSession = {
+  session: any;
+  user: any;
+  profile: {
+    id: string;
+    role: string;
+    [key: string]: any;
+  };
+  supabase: Awaited<ReturnType<typeof supabaseServer>>;
   userId: string;
   role: string;
   isSuperAdmin: boolean;
 };
+
+export async function requireAdmin(): Promise<AdminSession> {
+  const supabase = await supabaseServer();
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", session.user.id)
+    .single();
+
+  if (error || !profile) {
+    redirect("/login");
+  }
+
+  const profileRole = (profile as { role?: string }).role ?? "";
+  if (!["admin", "superadmin"].includes(profileRole)) {
+    redirect("/unauthorized");
+  }
+
+  const role = profileRole;
+  const isSuperAdminRole = role === "superadmin";
+
+  return {
+    session,
+    user: session.user,
+    profile: profile as AdminSession["profile"],
+    supabase,
+    userId: session.user.id,
+    role,
+    isSuperAdmin: isSuperAdminRole,
+  };
+}
+
+export async function requireSuperAdmin(): Promise<AdminSession> {
+  const admin = await requireAdmin();
+  if (admin.profile.role !== "superadmin") {
+    redirect("/unauthorized");
+  }
+  return admin;
+}
 
 async function getSessionRoles(userId: string): Promise<string[]> {
   const supabase = await supabaseServer();
@@ -25,60 +82,38 @@ async function getSessionRoles(userId: string): Promise<string[]> {
   return [...new Set(roles)].filter(Boolean);
 }
 
-/**
- * Require admin or superadmin. Returns session info or throws.
- */
-export async function requireAdmin(): Promise<AdminSession> {
-  const supabase = await supabaseServer();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-  const roles = await getSessionRoles(session.user.id);
-  const role = roles.includes("superadmin")
-    ? "superadmin"
-    : roles.includes("admin")
-      ? "admin"
-      : null;
-  if (!role || !isAdmin(role)) {
-    throw new Error("Forbidden");
-  }
-  return {
-    userId: session.user.id,
-    role,
-    isSuperAdmin: isSuperAdmin(role) || roles.includes("superadmin"),
-  };
-}
-
-export async function requireSuperAdmin(): Promise<AdminSession> {
-  const admin = await requireAdmin();
-  if (!admin.isSuperAdmin) {
-    throw new Error("Forbidden: Superadmin only");
-  }
-  return admin;
-}
-
 export async function requireRole(allowedRoles: string[]): Promise<AdminSession> {
   const supabase = await supabaseServer();
   const {
     data: { session },
   } = await supabase.auth.getSession();
   if (!session?.user?.id) {
-    throw new Error("Unauthorized");
+    redirect("/login");
   }
   const roles = await getSessionRoles(session.user.id);
   const hasRole = allowedRoles.some((r) => roles.includes(r));
   if (!hasRole) {
-    throw new Error("Forbidden");
+    redirect("/unauthorized");
   }
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", session.user.id)
+    .single();
+  if (error || !profile) {
+    redirect("/login");
+  }
+  const profileAny = profile as { role?: string };
   const role = roles.includes("superadmin")
     ? "superadmin"
     : roles.includes("admin")
       ? "admin"
-      : roles[0] ?? "user";
+      : profileAny.role ?? roles[0] ?? "user";
   return {
+    session,
+    user: session.user,
+    profile: profile as AdminSession["profile"],
+    supabase,
     userId: session.user.id,
     role,
     isSuperAdmin: roles.includes("superadmin"),
