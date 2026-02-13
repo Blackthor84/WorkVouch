@@ -18,35 +18,21 @@ export function SignInForm() {
     setError(null);
 
     try {
-      console.log("Attempting sign in...");
-      // Using single supabase instance
-      const { data, error: signInError } =
-        await supabaseBrowser.auth.signInWithPassword({
-          email,
-          password,
-        });
+      const { error } = await supabaseBrowser.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      console.log("Sign in response:", { data, error: signInError });
-
-      if (signInError) {
-        console.error("Sign in error:", signInError);
-        throw signInError;
+      if (error) {
+        throw error;
       }
 
-      if (data.session) {
-        console.log("✅ Sign in successful!");
-        // Force session refresh so cookies are written before navigation
-        await supabaseBrowser.auth.getSession();
-        console.log("🔄 Redirecting to dashboard...");
-        setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 100);
-        router.push("/dashboard");
-        return;
-      } else {
-        console.error("❌ No session in response");
-        throw new Error("No session created");
-      }
+      // Force cookie write
+      await supabaseBrowser.auth.getSession();
+      // Small delay guarantees cookie flush
+      await new Promise((r) => setTimeout(r, 150));
+
+      router.push("/dashboard");
     } catch (err: any) {
       console.error("Sign in failed:", err);
       setError(err.message || "An error occurred");

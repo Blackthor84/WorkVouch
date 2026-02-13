@@ -2,11 +2,17 @@
 
 import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { useSupabaseReady } from "@/lib/hooks/useSupabaseReady";
 
 export default function FixProfilePage() {
+  const authReady = useSupabaseReady();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  if (!authReady) {
+    return null;
+  }
 
   const handleCreateProfile = async () => {
     setLoading(true);

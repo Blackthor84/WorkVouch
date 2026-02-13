@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { useSupabaseReady } from "@/lib/hooks/useSupabaseReady";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,8 @@ export function JobFormClient({ industry }: JobFormClientProps) {
 
     checkUser();
   }, [router]);
+
+  if (!authReady) return null;
 
   const handleNext = async () => {
     if (!jobTitle || !employer || !startDate || !employmentType) {

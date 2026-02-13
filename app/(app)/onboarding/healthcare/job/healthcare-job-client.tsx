@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { useSupabaseReady } from "@/lib/hooks/useSupabaseReady";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import { Label } from "@/components/ui/label";
 
 export function HealthcareJobClient() {
   const router = useRouter();
-  // Using single supabase instance
+  const authReady = useSupabaseReady();
   const [jobTitle, setJobTitle] = useState("");
   const [employer, setEmployer] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -38,6 +39,8 @@ export function HealthcareJobClient() {
 
     checkUser();
   }, [router]);
+
+  if (!authReady) return null;
 
   const handleNext = async () => {
     if (!jobTitle || !employer || !startDate || !employmentType) {

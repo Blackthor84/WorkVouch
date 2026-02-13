@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { useSupabaseReady } from "@/lib/hooks/useSupabaseReady";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +19,7 @@ interface RoleFormClientProps {
 
 export function RoleFormClient({ industry }: RoleFormClientProps) {
   const router = useRouter();
-  // Using single supabase instance
+  const authReady = useSupabaseReady();
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -55,6 +56,8 @@ export function RoleFormClient({ industry }: RoleFormClientProps) {
 
     checkUser();
   }, [router, industry]);
+
+  if (!authReady) return null;
 
   const handleNext = async () => {
     if (!role) {

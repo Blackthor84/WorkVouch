@@ -68,10 +68,8 @@ export function SignUpForm() {
 
         // Check if email confirmation is required
         if (data.session) {
-          // Force session refresh so cookies are written before navigation
           await supabaseBrowser.auth.getSession();
-          // User is automatically signed in with Supabase; establish NextAuth session so dashboard doesn't redirect to login
-          console.log("Signup successful, signing in with NextAuth...");
+          await new Promise((r) => setTimeout(r, 150));
           const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
           const callbackUrl =
             userType === "employer"
@@ -93,7 +91,6 @@ export function SignUpForm() {
             window.location.href = result.url;
             return;
           }
-          // Fallback: redirect anyway (user may need to log in if NextAuth failed)
           window.location.href = callbackUrl;
         } else {
           // Email confirmation might be required, but try to sign in anyway
@@ -111,7 +108,7 @@ export function SignUpForm() {
             );
           } else if (signInData.session) {
             await supabaseBrowser.auth.getSession();
-            console.log("Signed in with Supabase, signing in with NextAuth...");
+            await new Promise((r) => setTimeout(r, 150));
             const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
             const callbackUrl =
               userType === "employer"

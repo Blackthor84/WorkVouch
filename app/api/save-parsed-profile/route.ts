@@ -5,13 +5,11 @@ import { Database } from "@/types/database";
 export async function POST(request: NextRequest) {
   try {
     const supabase = await supabaseServer();
-    const { data } = await supabase.auth.getSession();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!data.session) {
+    if (!user) {
       return upgradeRequired401();
     }
-
-    const user = data.session.user;
     const supabaseAny = supabase as any;
 
     const body = await request.json();

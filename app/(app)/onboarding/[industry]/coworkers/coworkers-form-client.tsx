@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { useSupabaseReady } from "@/lib/hooks/useSupabaseReady";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,7 @@ interface CoworkersFormClientProps {
 
 export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
   const router = useRouter();
-  // Using single supabase instance
+  const authReady = useSupabaseReady();
   const [coworkers, setCoworkers] = useState<
     Array<{ id?: number; coworker_name: string }>
   >([]);
@@ -44,6 +45,8 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
 
     checkUser();
   }, [router]);
+
+  if (!authReady) return null;
 
   const fetchCoworkers = async (userId: string) => {
     const supabaseAny = supabaseBrowser as any;
