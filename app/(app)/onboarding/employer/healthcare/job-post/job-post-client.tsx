@@ -50,7 +50,7 @@ export function JobPostClient() {
     }
 
     checkUser();
-  }, [router, supabase]);
+  }, [router]);
 
   const handleSubmit = async () => {
     if (!jobTitle || !workSetting || !location) {
@@ -70,9 +70,8 @@ export function JobPostClient() {
         : [];
 
       // Get employer account
-      const supabaseAny = supabase as any;
       type EmployerAccountRow = { id: string };
-      const { data: employerAccount } = await supabaseAny
+      const { data: employerAccount } = await (supabaseBrowser as any)
         .from("employer_accounts")
         .select("id")
         .eq("user_id", user.id)
@@ -89,7 +88,7 @@ export function JobPostClient() {
       const employerAccountTyped = employerAccount as EmployerAccountRow;
 
       // Insert job posting
-      const { error: jobError } = await supabaseAny
+      const { error: jobError } = await (supabaseBrowser as any)
         .from("job_postings")
         .insert([
           {
