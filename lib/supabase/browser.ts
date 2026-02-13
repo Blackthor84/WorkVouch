@@ -1,3 +1,3 @@
 "use client";
 
-export { supabase as supabaseBrowser, supabase } from "./client";
+export { supabase } from "./client";

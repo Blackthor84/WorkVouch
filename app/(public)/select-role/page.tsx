@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { supabaseBrowser } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 const SIGNUP_CREDENTIALS_KEY = "workvouch_signup_credentials";
@@ -37,7 +37,7 @@ export default function SelectRolePage() {
       // ignore
     }
     const checkSession = async () => {
-      const { data, error } = await supabaseBrowser.auth.getSession();
+      const { data, error } = await supabase.auth.getSession();
 
       if (error) {
         router.replace("/signup");
@@ -64,7 +64,7 @@ export default function SelectRolePage() {
     setSelecting(role);
 
     try {
-      const { error: profileError } = await supabaseBrowser
+      const { error: profileError } = await supabase
         .from("profiles")
         .update({ role: role === "employer" ? "employer" : "user" })
         .eq("id", user.id);
@@ -75,7 +75,7 @@ export default function SelectRolePage() {
         return;
       }
 
-      const { error: roleError } = await supabaseBrowser
+      const { error: roleError } = await supabase
         .from("user_roles")
         .insert({ user_id: user.id, role: role === "employer" ? "employer" : "user" });
 
@@ -98,7 +98,7 @@ export default function SelectRolePage() {
         } catch {
           /* ignore */
         }
-        const { error: employerError } = await supabaseBrowser
+        const { error: employerError } = await supabase
           .from("employer_accounts")
           .insert({
             user_id: user.id,

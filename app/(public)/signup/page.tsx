@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabaseBrowser } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 
 const SIGNUP_PLAN_KEY = "workvouch_signup_plan";
 
@@ -47,7 +47,7 @@ export default function SignupPage() {
     }
 
     try {
-      const { data, error: signUpError } = await supabaseBrowser.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
         options: {
@@ -67,7 +67,7 @@ export default function SignupPage() {
         return;
       }
 
-      const supabaseAny = supabaseBrowser as any;
+      const supabaseAny = supabase as any;
       const { error: profileError } = await supabaseAny
         .from("profiles")
         .insert({

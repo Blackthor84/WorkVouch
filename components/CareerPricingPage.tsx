@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { PricingModal } from "@/components/PricingModal";
-import { supabaseBrowser as supabase } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 
 interface CareerPricingPageProps {
   userId?: string;
