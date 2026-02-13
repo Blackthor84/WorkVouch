@@ -36,16 +36,26 @@ export default function SelectRolePage() {
     } catch {
       // ignore
     }
-    supabaseBrowser.auth.getSession().then((res) => {
-      const session = res.data.session;
+    const checkSession = async () => {
+      const { data, error } = await supabaseBrowser.auth.getSession();
+
+      if (error) {
+        router.replace("/signup");
+        return;
+      }
+
+      const session = data.session;
 
       if (!session?.user) {
         router.replace("/signup");
         return;
       }
+
       setUser(session.user);
       setLoading(false);
-    });
+    };
+
+    checkSession();
   }, [router]);
 
   async function handleSelect(role: "user" | "employer") {
