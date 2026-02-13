@@ -16,7 +16,7 @@ export type RequireUserResult = {
 export async function requireUser(): Promise<RequireUserResult> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    redirect("/login");
+    redirect("/login?reason=session_expired");
   }
 
   const supabase = await createServerSupabase();
