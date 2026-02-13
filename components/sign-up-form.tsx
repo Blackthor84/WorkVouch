@@ -68,6 +68,8 @@ export function SignUpForm() {
 
         // Check if email confirmation is required
         if (data.session) {
+          // Force session refresh so cookies are written before navigation
+          await supabaseBrowser.auth.getSession();
           // User is automatically signed in with Supabase; establish NextAuth session so dashboard doesn't redirect to login
           console.log("Signup successful, signing in with NextAuth...");
           const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
@@ -108,6 +110,7 @@ export function SignUpForm() {
               "Account created! Please check your email to confirm your account, then sign in.",
             );
           } else if (signInData.session) {
+            await supabaseBrowser.auth.getSession();
             console.log("Signed in with Supabase, signing in with NextAuth...");
             const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
             const callbackUrl =

@@ -35,21 +35,14 @@ export function SignInForm() {
 
       if (data.session) {
         console.log("✅ Sign in successful!");
-        console.log("Session:", data.session);
-        console.log("User:", data.user);
-
-        // Redirect immediately - session is already set
+        // Force session refresh so cookies are written before navigation
+        await supabaseBrowser.auth.getSession();
         console.log("🔄 Redirecting to dashboard...");
-
-        // Force immediate redirect
         setTimeout(() => {
           window.location.href = "/dashboard";
         }, 100);
-
-        // Also try router immediately
         router.push("/dashboard");
-
-        return; // Don't continue
+        return;
       } else {
         console.error("❌ No session in response");
         throw new Error("No session created");
