@@ -6,7 +6,7 @@ import {
   sendMessage,
   markMessageAsRead,
 } from "@/lib/actions/messages";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabase/client";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";

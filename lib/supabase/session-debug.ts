@@ -4,7 +4,7 @@
  * Temporary session debug logger. Remove after confirming auth is stable.
  * Use to confirm: session persists across navigation, token refresh fires correctly.
  */
-import { supabaseBrowser } from "@/lib/supabase/browser";
+import { supabase } from "@/lib/supabase/client";
 
 const DEBUG_AUTH =
   process.env.NODE_ENV === "development" ||
@@ -13,7 +13,7 @@ const DEBUG_AUTH =
 export function initSessionDebug(): (() => void) | undefined {
   if (!DEBUG_AUTH || typeof window === "undefined") return undefined;
 
-  const { data: sub } = supabaseBrowser.auth.onAuthStateChange(
+  const { data: sub } = supabase.auth.onAuthStateChange(
     (event, session) => {
       console.log("AUTH EVENT:", event);
       console.log("SESSION:", session);

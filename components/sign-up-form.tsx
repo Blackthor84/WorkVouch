@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { getIndustriesForSignup, INDUSTRY_TO_ONBOARDING_KEY } from "@/lib/constants/industries";
