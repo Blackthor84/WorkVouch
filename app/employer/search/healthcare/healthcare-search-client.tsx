@@ -35,6 +35,7 @@ type HealthcareCandidateRow = Omit<HealthcareCandidate, "healthcare_profile"> & 
 };
 
 export function HealthcareSearchClient() {
+  const supabase = supabaseBrowser();
   const [candidates, setCandidates] = useState<HealthcareCandidate[]>([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
@@ -43,12 +44,11 @@ export function HealthcareSearchClient() {
     certification: "",
     minExperience: "",
   });
-  // Using single supabase instance
 
   const searchCandidates = async () => {
     setLoading(true);
     try {
-      let query = supabaseBrowser
+      let query = supabase
         .from("profiles")
         .select(
           `

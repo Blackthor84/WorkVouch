@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { useSupabaseReady } from "@/lib/hooks/useSupabaseReady";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,7 @@ import { Label } from "@/components/ui/label";
 
 export function HealthcareCoworkersClient() {
   const router = useRouter();
-  const authReady = useSupabaseReady();
+  const supabase = supabaseBrowser();
   const [coworkers, setCoworkers] = useState<
     Array<{ id?: string; coworker_name: string }>
   >([]);
@@ -19,30 +18,9 @@ export function HealthcareCoworkersClient() {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
 
-  useEffect(() => {
-    async function checkUser() {
-      console.log("Supabase auth check triggered in: app/(app)/onboarding/healthcare/coworkers/healthcare-coworkers-client.tsx");
-      const {
-        data: { user: currentUser },
-      } = await supabaseBrowser.auth.getUser();
-
-      if (!currentUser) {
-        router.push("/login");
-        return;
-      }
-
-      setUser(currentUser);
-      fetchCoworkers(currentUser.id);
-    }
-
-    checkUser();
-  }, [router]);
-
-  if (!authReady) return null;
-
   const fetchCoworkers = async (userId: string) => {
     try {
-      const { data, error } = await supabaseBrowser
+      const { data, error } = await supabase
         .from("coworker_matches")
         .select("*")
         .eq("user_id", userId);
@@ -58,6 +36,18 @@ export function HealthcareCoworkersClient() {
     }
   };
 
+  useEffect(() => {
+    (async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        router.push("/login");
+        return;
+      }
+      setUser(currentUser);
+      fetchCoworkers(currentUser.id);
+    })();
+  }, [router]);
+
   const handleAdd = async () => {
     if (!input.trim()) return;
 
@@ -66,7 +56,7 @@ export function HealthcareCoworkersClient() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabaseBrowser
+      const { data, error } = await supabase
         .from("coworker_matches")
         .insert([
           {
@@ -98,7 +88,7 @@ export function HealthcareCoworkersClient() {
     if (!user) return;
 
     try {
-      const { error } = await supabaseBrowser
+      const { error } = await supabase
         .from("coworker_matches")
         .delete()
         .eq("user_id", user.id)

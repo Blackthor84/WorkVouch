@@ -14,7 +14,7 @@ const DEBUG_AUTH =
 export function initSessionDebug(): (() => void) | undefined {
   if (!DEBUG_AUTH || typeof window === "undefined") return undefined;
 
-  const { data: sub } = supabaseBrowser.auth.onAuthStateChange(
+  const { data: sub } = supabaseBrowser().auth.onAuthStateChange(
     (event: AuthChangeEvent, session: Session | null) => {
       console.log("AUTH EVENT:", event);
       console.log("SESSION:", session);

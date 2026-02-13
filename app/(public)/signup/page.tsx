@@ -11,6 +11,7 @@ const SIGNUP_PLAN_KEY = "workvouch_signup_plan";
 export default function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const supabase = supabaseBrowser();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,7 +48,7 @@ export default function SignupPage() {
     }
 
     try {
-      const { data, error: signUpError } = await supabaseBrowser.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
         options: {
@@ -67,8 +68,7 @@ export default function SignupPage() {
         return;
       }
 
-      const supabaseAny = supabaseBrowser as any;
-      const { error: profileError } = await supabaseAny
+      const { error: profileError } = await (supabase as any)
         .from("profiles")
         .insert({
           id: data.user.id,

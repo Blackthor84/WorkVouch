@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { useSupabaseReady } from "@/lib/hooks/useSupabaseReady";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -24,45 +23,28 @@ const HEALTHCARE_ROLES = [
 
 export function HealthcareRoleClient() {
   const router = useRouter();
-  const authReady = useSupabaseReady();
+  const supabase = supabaseBrowser();
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    async function checkUser() {
-      console.log("Supabase auth check triggered in: app/(app)/onboarding/healthcare/role/healthcare-role-client.tsx");
-      const {
-        data: { user: currentUser },
-      } = await supabaseBrowser.auth.getUser();
-
+    (async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (!currentUser) {
         router.push("/login");
         return;
       }
-
-      // Check if user's industry is healthcare
-      const { data: profile } = await supabaseBrowser
-        .from("profiles")
-        .select("industry")
-        .eq("id", currentUser.id)
-        .single();
-
+      const { data: profile } = await supabase.from("profiles").select("industry").eq("id", currentUser.id).single();
       type ProfileRow = { industry: string | null };
       const profileTyped = profile as ProfileRow | null;
-
       if (profileTyped?.industry !== "healthcare") {
         router.push("/dashboard");
         return;
       }
-
       setUser(currentUser);
-    }
-
-    checkUser();
+    })();
   }, [router]);
-
-  if (!authReady) return null;
 
   const handleNext = async () => {
     if (!role) {
@@ -74,7 +56,7 @@ export function HealthcareRoleClient() {
 
     try {
       // Create or update healthcare profile
-      const { error } = await supabaseBrowser.from("healthcare_profiles").upsert(
+      const { error } = await supabase.from("healthcare_profiles").upsert(
         {
           user_id: user.id,
           role,

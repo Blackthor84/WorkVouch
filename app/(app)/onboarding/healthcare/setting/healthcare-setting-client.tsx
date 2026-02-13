@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { useSupabaseReady } from "@/lib/hooks/useSupabaseReady";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -21,32 +20,21 @@ const HEALTHCARE_SETTINGS = [
 
 export function HealthcareSettingClient() {
   const router = useRouter();
-  const authReady = useSupabaseReady();
+  const supabase = supabaseBrowser();
   const [setting, setSetting] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    async function checkUser() {
-      console.log("Supabase auth check triggered in: app/(app)/onboarding/healthcare/setting/healthcare-setting-client.tsx");
-      const {
-        data: { user: currentUser },
-      } = await supabaseBrowser.auth.getUser();
-
+    (async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (!currentUser) {
         router.push("/login");
         return;
       }
-
       setUser(currentUser);
-    }
-
-    checkUser();
+    })();
   }, [router]);
-
-  if (!authReady) {
-    return null;
-  }
 
   const handleNext = async () => {
     if (!setting) {
@@ -57,7 +45,7 @@ export function HealthcareSettingClient() {
     setLoading(true);
 
     try {
-      const { error } = await supabaseBrowser
+      const { error } = await supabase
         .from("healthcare_profiles")
         .update({ work_setting: setting })
         .eq("user_id", user.id);

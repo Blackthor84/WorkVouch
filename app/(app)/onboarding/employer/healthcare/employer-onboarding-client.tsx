@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { useSupabaseReady } from "@/lib/hooks/useSupabaseReady";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +21,7 @@ const HEALTHCARE_SETTINGS = [
 
 export function EmployerOnboardingClient() {
   const router = useRouter();
-  const authReady = useSupabaseReady();
+  const supabase = supabaseBrowser();
   const [companyName, setCompanyName] = useState("");
   const [workSetting, setWorkSetting] = useState("");
   const [location, setLocation] = useState("");
@@ -30,40 +29,22 @@ export function EmployerOnboardingClient() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    async function checkUser() {
-      console.log("Supabase auth check triggered in: app/(app)/onboarding/employer/healthcare/employer-onboarding-client.tsx");
-      const {
-        data: { user: currentUser },
-      } = await supabaseBrowser.auth.getUser();
-
+    (async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (!currentUser) {
         router.push("/login");
         return;
       }
-
-      // Check if user is an employer
-      const supabaseAny = supabaseBrowser as any;
-      const { data: profile } = await supabaseAny
-        .from("profiles")
-        .select("role")
-        .eq("id", currentUser.id)
-        .single();
-
+      const { data: profile } = await (supabase as any).from("profiles").select("role").eq("id", currentUser.id).single();
       type ProfileRow = { role: string | null };
       const profileTyped = profile as ProfileRow | null;
-
       if (profileTyped?.role !== "employer") {
         router.push("/dashboard");
         return;
       }
-
       setUser(currentUser);
-    }
-
-    checkUser();
+    })();
   }, [router]);
-
-  if (!authReady) return null;
 
   const handleNext = async () => {
     if (!companyName || !workSetting || !location) {
@@ -74,8 +55,7 @@ export function EmployerOnboardingClient() {
     setLoading(true);
 
     try {
-      const supabaseAny = supabaseBrowser as any;
-      // Update employer account with healthcare info
+      const supabaseAny = supabase as any;
       const { error: employerError } = await supabaseAny
         .from("employer_accounts")
         .update({
@@ -89,7 +69,7 @@ export function EmployerOnboardingClient() {
       if (employerError) {
         console.error("Error updating employer account:", employerError);
         // If employer_accounts doesn't exist, create it
-        const { error: createError } = await supabaseAny
+        const { error: createError } = await (supabase as any)
           .from("employer_accounts")
           .insert([
             {

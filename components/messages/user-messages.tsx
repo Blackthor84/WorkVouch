@@ -12,6 +12,7 @@ import { Button } from "../ui/button";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 
 export function UserMessages() {
+  const supabase = supabaseBrowser();
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
@@ -25,10 +26,9 @@ export function UserMessages() {
 
   const loadCurrentUser = async () => {
     try {
-      // Using single supabase instance
       const {
         data: { user },
-      } = await supabaseBrowser.auth.getUser();
+      } = await supabase.auth.getUser();
       if (user) {
         setCurrentUserId(user.id);
       }

@@ -6,10 +6,10 @@ import { Button } from "./ui/button";
 
 export function SignOutButton() {
   const router = useRouter();
+  const supabase = supabaseBrowser();
 
   const handleSignOut = async () => {
-    // Using single supabase instance
-    await supabaseBrowser.auth.signOut();
+    await supabase.auth.signOut();
     router.push("/");
     router.refresh();
   };

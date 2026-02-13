@@ -4,19 +4,17 @@ import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 export default function TestPage() {
+  const supabase = supabaseBrowser();
   const [status, setStatus] = useState("Loading...");
   const [details, setDetails] = useState<any>(null);
 
   useEffect(() => {
     const check = async () => {
-      // Using single supabase instance
-
-      // Check 1: Get user
       console.log("Supabase auth check triggered in: app/test/page.tsx");
       const {
         data: { user },
         error: userError,
-      } = await supabaseBrowser.auth.getUser();
+      } = await supabase.auth.getUser();
       setStatus(`User: ${user ? "Found" : "Not found"}`);
 
       if (userError) {
@@ -30,7 +28,7 @@ export default function TestPage() {
       }
 
       // Check 2: Get profile
-      const { data: profile, error: profileError } = await supabaseBrowser
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)

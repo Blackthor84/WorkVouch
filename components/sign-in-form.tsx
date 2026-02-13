@@ -7,6 +7,7 @@ import { Button } from "./ui/button";
 
 export function SignInForm() {
   const router = useRouter();
+  const supabase = supabaseBrowser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -18,7 +19,7 @@ export function SignInForm() {
     setError(null);
 
     try {
-      const { error } = await supabaseBrowser.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -27,8 +28,7 @@ export function SignInForm() {
         throw error;
       }
 
-      // Force cookie write
-      await supabaseBrowser.auth.getSession();
+      await supabase.auth.getSession();
       // Small delay guarantees cookie flush
       await new Promise((r) => setTimeout(r, 150));
 

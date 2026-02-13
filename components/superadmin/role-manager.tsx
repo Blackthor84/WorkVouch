@@ -13,15 +13,15 @@ interface User {
 }
 
 export function RoleManager() {
+  const supabase = supabaseBrowser();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
-  // Using single supabase instance
 
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const { data, error } = await supabaseBrowser
+        const { data, error } = await supabase
           .from("profiles")
           .select("id, email, full_name, role, created_at")
           .order("created_at", { ascending: false });
@@ -42,18 +42,16 @@ export function RoleManager() {
   const updateRole = async (id: string, newRole: string) => {
     setUpdating(id);
     try {
-      const { error } = await supabaseBrowser
+      const { error } = await supabase
         .from("profiles")
         .update({ role: newRole })
         .eq("id", id);
 
       if (error) throw error;
 
-      // Update local state
       setUsers(users.map((u) => (u.id === id ? { ...u, role: newRole } : u)));
 
-      // Also update auth metadata
-      const { error: metadataError } = await supabaseBrowser.auth.admin.updateUserById(
+      const { error: metadataError } = await supabase.auth.admin.updateUserById(
         id,
         {
           user_metadata: { role: newRole },

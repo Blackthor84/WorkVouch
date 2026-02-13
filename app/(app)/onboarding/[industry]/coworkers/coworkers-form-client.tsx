@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { useSupabaseReady } from "@/lib/hooks/useSupabaseReady";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +18,7 @@ interface CoworkersFormClientProps {
 
 export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
   const router = useRouter();
-  const authReady = useSupabaseReady();
+  const supabase = supabaseBrowser();
   const [coworkers, setCoworkers] = useState<
     Array<{ id?: number; coworker_name: string }>
   >([]);
@@ -27,30 +26,8 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
 
-  useEffect(() => {
-    async function checkUser() {
-      console.log("Supabase auth check triggered in: app/(app)/onboarding/[industry]/coworkers/coworkers-form-client.tsx");
-      const {
-        data: { user: currentUser },
-      } = await supabaseBrowser.auth.getUser();
-
-      if (!currentUser) {
-        router.push("/login");
-        return;
-      }
-
-      setUser(currentUser);
-      fetchCoworkers(currentUser.id);
-    }
-
-    checkUser();
-  }, [router]);
-
-  if (!authReady) return null;
-
   const fetchCoworkers = async (userId: string) => {
-    const supabaseAny = supabaseBrowser as any;
-    const { data, error } = await supabaseAny
+    const { data, error } = await (supabase as any)
       .from("coworker_matches")
       .select("*")
       .eq("user_id", userId);
@@ -63,6 +40,18 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
     setCoworkers(data || []);
   };
 
+  useEffect(() => {
+    (async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        router.push("/login");
+        return;
+      }
+      setUser(currentUser);
+      fetchCoworkers(currentUser.id);
+    })();
+  }, [router]);
+
   const handleAdd = async () => {
     if (!input.trim()) {
       alert("Please enter a coworker name");
@@ -74,8 +63,7 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
     setLoading(true);
 
     try {
-      const supabaseAny = supabaseBrowser as any;
-      const { error } = await supabaseAny.from("coworker_matches").insert([
+      const { error } = await (supabase as any).from("coworker_matches").insert([
         {
           user_id: user.id,
           coworker_name: input.trim(),
@@ -105,8 +93,7 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
     setLoading(true);
 
     try {
-      const supabaseAny = supabaseBrowser as any;
-      const { error } = await supabaseAny
+      const { error } = await (supabase as any)
         .from("coworker_matches")
         .delete()
         .eq("user_id", user.id)

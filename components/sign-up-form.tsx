@@ -9,6 +9,7 @@ import { getIndustriesForSignup, INDUSTRY_TO_ONBOARDING_KEY } from "@/lib/consta
 
 export function SignUpForm() {
   const router = useRouter();
+  const supabase = supabaseBrowser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -44,7 +45,7 @@ export function SignUpForm() {
       }
 
       // Using single supabase instance
-      const { data, error: signUpError } = await supabaseBrowser.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -68,7 +69,7 @@ export function SignUpForm() {
 
         // Check if email confirmation is required
         if (data.session) {
-          await supabaseBrowser.auth.getSession();
+          await supabase.auth.getSession();
           await new Promise((r) => setTimeout(r, 150));
           const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
           const callbackUrl =
@@ -96,7 +97,7 @@ export function SignUpForm() {
           // Email confirmation might be required, but try to sign in anyway
           console.log("No session, attempting to sign in...");
           const { data: signInData, error: signInError } =
-            await supabaseBrowser.auth.signInWithPassword({
+            await supabase.auth.signInWithPassword({
               email,
               password,
             });
@@ -107,7 +108,7 @@ export function SignUpForm() {
               "Account created! Please check your email to confirm your account, then sign in.",
             );
           } else if (signInData.session) {
-            await supabaseBrowser.auth.getSession();
+            await supabase.auth.getSession();
             await new Promise((r) => setTimeout(r, 150));
             const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
             const callbackUrl =

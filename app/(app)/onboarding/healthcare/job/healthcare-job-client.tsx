@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { useSupabaseReady } from "@/lib/hooks/useSupabaseReady";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,7 @@ import { Label } from "@/components/ui/label";
 
 export function HealthcareJobClient() {
   const router = useRouter();
-  const authReady = useSupabaseReady();
+  const supabase = supabaseBrowser();
   const [jobTitle, setJobTitle] = useState("");
   const [employer, setEmployer] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -23,24 +22,15 @@ export function HealthcareJobClient() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    async function checkUser() {
-      console.log("Supabase auth check triggered in: app/(app)/onboarding/healthcare/job/healthcare-job-client.tsx");
-      const {
-        data: { user: currentUser },
-      } = await supabaseBrowser.auth.getUser();
-
+    (async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (!currentUser) {
         router.push("/login");
         return;
       }
-
       setUser(currentUser);
-    }
-
-    checkUser();
+    })();
   }, [router]);
-
-  if (!authReady) return null;
 
   const handleNext = async () => {
     if (!jobTitle || !employer || !startDate || !employmentType) {
@@ -60,7 +50,7 @@ export function HealthcareJobClient() {
         : [];
 
       // Insert job
-      const { error: jobError } = await supabaseBrowser.from("jobs").insert([
+      const { error: jobError } = await supabase.from("jobs").insert([
         {
           user_id: user.id,
           company_name: employer,

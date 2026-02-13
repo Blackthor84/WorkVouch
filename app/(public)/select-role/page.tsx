@@ -16,6 +16,7 @@ type UserOrId = User | { id: string; email?: string };
 
 export default function SelectRolePage() {
   const router = useRouter();
+  const supabase = supabaseBrowser();
   const [user, setUser] = useState<UserOrId | null>(null);
   const [loading, setLoading] = useState(true);
   const [selecting, setSelecting] = useState<string | null>(null);
@@ -37,7 +38,7 @@ export default function SelectRolePage() {
       // ignore
     }
     const checkSession = async () => {
-      const { data, error } = await supabaseBrowser.auth.getSession();
+      const { data, error } = await supabase.auth.getSession();
 
       if (error) {
         router.replace("/signup");
@@ -64,7 +65,7 @@ export default function SelectRolePage() {
     setSelecting(role);
 
     try {
-      const { error: profileError } = await supabaseBrowser
+      const { error: profileError } = await supabase
         .from("profiles")
         .update({ role: role === "employer" ? "employer" : "user" })
         .eq("id", user.id);
@@ -75,7 +76,7 @@ export default function SelectRolePage() {
         return;
       }
 
-      const { error: roleError } = await supabaseBrowser
+      const { error: roleError } = await supabase
         .from("user_roles")
         .insert({ user_id: user.id, role: role === "employer" ? "employer" : "user" });
 
@@ -98,7 +99,7 @@ export default function SelectRolePage() {
         } catch {
           /* ignore */
         }
-        const { error: employerError } = await supabaseBrowser
+        const { error: employerError } = await supabase
           .from("employer_accounts")
           .insert({
             user_id: user.id,

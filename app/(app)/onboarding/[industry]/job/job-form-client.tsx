@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { useSupabaseReady } from "@/lib/hooks/useSupabaseReady";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +18,7 @@ interface JobFormClientProps {
 
 export function JobFormClient({ industry }: JobFormClientProps) {
   const router = useRouter();
-  const authReady = useSupabaseReady();
+  const supabase = supabaseBrowser();
   const [jobTitle, setJobTitle] = useState("");
   const [employer, setEmployer] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -31,24 +30,15 @@ export function JobFormClient({ industry }: JobFormClientProps) {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    async function checkUser() {
-      console.log("Supabase auth check triggered in: app/(app)/onboarding/[industry]/job/job-form-client.tsx");
-      const {
-        data: { user: currentUser },
-      } = await supabaseBrowser.auth.getUser();
-
+    (async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (!currentUser) {
         router.push("/login");
         return;
       }
-
       setUser(currentUser);
-    }
-
-    checkUser();
+    })();
   }, [router]);
-
-  if (!authReady) return null;
 
   const handleNext = async () => {
     if (!jobTitle || !employer || !startDate || !employmentType) {
@@ -68,8 +58,7 @@ export function JobFormClient({ industry }: JobFormClientProps) {
         : [];
 
       // Insert job
-      const supabaseAny = supabaseBrowser as any;
-      const { error: jobError } = await supabaseAny.from("jobs").insert([
+      const { error: jobError } = await (supabase as any).from("jobs").insert([
         {
           user_id: user.id,
           company_name: employer,

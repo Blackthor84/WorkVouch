@@ -2,17 +2,12 @@
 
 import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { useSupabaseReady } from "@/lib/hooks/useSupabaseReady";
 
 export default function FixProfilePage() {
-  const authReady = useSupabaseReady();
+  const supabase = supabaseBrowser();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
-  if (!authReady) {
-    return null;
-  }
 
   const handleCreateProfile = async () => {
     setLoading(true);
@@ -27,7 +22,7 @@ export default function FixProfilePage() {
       const {
         data: { user },
         error: userError,
-      } = await supabaseBrowser.auth.getUser();
+      } = await supabase.auth.getUser();
 
       if (userError || !user) {
         throw new Error("Not signed in. Please sign in first.");
@@ -36,7 +31,7 @@ export default function FixProfilePage() {
       setMessage(`Found user: ${user.email} (${user.id})`);
 
       // Check if profile exists
-      const { data: existingProfile } = await supabaseBrowser
+      const { data: existingProfile } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
@@ -56,7 +51,7 @@ export default function FixProfilePage() {
         email: user.email || "",
       });
 
-      const supabaseAny = supabaseBrowser as any;
+      const supabaseAny = supabase as any;
       const { data: profile, error: profileError } = await supabaseAny
         .from("profiles")
         .insert([
