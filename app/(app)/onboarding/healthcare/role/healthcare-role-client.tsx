@@ -41,8 +41,7 @@ export function HealthcareRoleClient() {
       }
 
       // Check if user's industry is healthcare
-      const supabaseAny = supabase as any;
-      const { data: profile } = await supabaseAny
+      const { data: profile } = await supabaseBrowser
         .from("profiles")
         .select("industry")
         .eq("id", currentUser.id)
@@ -60,7 +59,7 @@ export function HealthcareRoleClient() {
     }
 
     checkUser();
-  }, [router, supabase]);
+  }, [router]);
 
   const handleNext = async () => {
     if (!role) {
@@ -72,8 +71,7 @@ export function HealthcareRoleClient() {
 
     try {
       // Create or update healthcare profile
-      const supabaseAny = supabase as any;
-      const { error } = await supabaseAny.from("healthcare_profiles").upsert(
+      const { error } = await supabaseBrowser.from("healthcare_profiles").upsert(
         {
           user_id: user.id,
           role,
