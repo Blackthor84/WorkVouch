@@ -38,7 +38,7 @@ export function SettingFormClient({ industry }: SettingFormClientProps) {
     }
 
     checkUser();
-  }, [router, supabase]);
+  }, [router]);
 
   const handleNext = async () => {
     if (!setting) {
@@ -50,9 +50,7 @@ export function SettingFormClient({ industry }: SettingFormClientProps) {
 
     try {
       const tableName = `${industry}_profiles`;
-      const supabaseAny = supabase as any;
-
-      const { error } = await supabaseAny
+      const { error } = await (supabaseBrowser as any)
         .from(tableName)
         .update({ work_setting: setting })
         .eq("user_id", user.id);
