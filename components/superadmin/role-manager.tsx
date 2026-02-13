@@ -21,7 +21,7 @@ export function RoleManager() {
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseBrowser
           .from("profiles")
           .select("id, email, full_name, role, created_at")
           .order("created_at", { ascending: false });
@@ -37,13 +37,12 @@ export function RoleManager() {
     }
 
     fetchUsers();
-  }, [supabase]);
+  }, []);
 
   const updateRole = async (id: string, newRole: string) => {
     setUpdating(id);
     try {
-      const supabaseAny = supabase as any;
-      const { error } = await supabaseAny
+      const { error } = await supabaseBrowser
         .from("profiles")
         .update({ role: newRole })
         .eq("id", id);

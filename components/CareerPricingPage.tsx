@@ -32,7 +32,7 @@ export default function CareerPricingPage({
           setUserId(user.id);
           
           // Try to determine user type from profile
-          const { data: profile } = await supabase
+          const { data: profile } = await supabaseBrowser
             .from("profiles")
             .select("role")
             .eq("id", user.id)

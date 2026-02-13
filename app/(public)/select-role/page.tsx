@@ -64,7 +64,7 @@ export default function SelectRolePage() {
     setSelecting(role);
 
     try {
-      const { error: profileError } = await supabase
+      const { error: profileError } = await supabaseBrowser
         .from("profiles")
         .update({ role: role === "employer" ? "employer" : "user" })
         .eq("id", user.id);
@@ -75,7 +75,7 @@ export default function SelectRolePage() {
         return;
       }
 
-      const { error: roleError } = await supabase
+      const { error: roleError } = await supabaseBrowser
         .from("user_roles")
         .insert({ user_id: user.id, role: role === "employer" ? "employer" : "user" });
 
@@ -98,7 +98,7 @@ export default function SelectRolePage() {
         } catch {
           /* ignore */
         }
-        const { error: employerError } = await supabase
+        const { error: employerError } = await supabaseBrowser
           .from("employer_accounts")
           .insert({
             user_id: user.id,

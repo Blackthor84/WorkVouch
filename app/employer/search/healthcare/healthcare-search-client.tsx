@@ -48,7 +48,7 @@ export function HealthcareSearchClient() {
   const searchCandidates = async () => {
     setLoading(true);
     try {
-      let query = supabase
+      let query = supabaseBrowser
         .from("profiles")
         .select(
           `

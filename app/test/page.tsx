@@ -30,7 +30,7 @@ export default function TestPage() {
       }
 
       // Check 2: Get profile
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile, error: profileError } = await supabaseBrowser
         .from("profiles")
         .select("*")
         .eq("id", user.id)

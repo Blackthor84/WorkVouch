@@ -41,7 +41,7 @@ export function HealthcareSettingClient() {
     }
 
     checkUser();
-  }, [router, supabase]);
+  }, [router]);
 
   const handleNext = async () => {
     if (!setting) {
@@ -52,8 +52,7 @@ export function HealthcareSettingClient() {
     setLoading(true);
 
     try {
-      const supabaseAny = supabase as any;
-      const { error } = await supabaseAny
+      const { error } = await supabaseBrowser
         .from("healthcare_profiles")
         .update({ work_setting: setting })
         .eq("user_id", user.id);
