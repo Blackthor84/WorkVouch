@@ -4,6 +4,7 @@ import { LayoutWrapper } from "@/components/layout-wrapper";
 import { Providers } from "@/components/providers";
 import { PreviewProvider } from "@/lib/preview-context";
 import SimulationBanner from "@/components/SimulationBanner";
+import AuthSync from "./(auth)/AuthSync";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body className="bg-[#F8FAFC] flex flex-col min-h-screen antialiased transition-colors overflow-x-hidden">
+        <AuthSync />
         <Providers>
           <PreviewProvider>
             <SimulationBanner />

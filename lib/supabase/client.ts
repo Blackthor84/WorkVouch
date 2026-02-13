@@ -1,7 +1,11 @@
 "use client";
 
-/**
- * Browser Supabase client — re-exports from canonical lib/supabase/browser.ts.
- * Single shared client; persistent session (persistSession, autoRefreshToken, pkce).
- */
-export { supabaseBrowser } from "./browser";
+import { createBrowserClient } from "@supabase/ssr";
+
+export const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+/** @deprecated Use `supabase` — kept for backward compatibility. */
+export const supabaseBrowser = supabase;
