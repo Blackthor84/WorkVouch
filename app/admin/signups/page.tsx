@@ -1,4 +1,6 @@
-import { requireSuperAdmin } from "@/lib/admin/requireAdmin";
+import { redirect } from "next/navigation";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { supabaseServer } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDateLong } from "@/lib/utils/date";
@@ -10,7 +12,9 @@ import { Database } from "@/types/database";
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 export default async function AdminSignupsPage() {
-  const { supabase } = await requireSuperAdmin();
+  const ctx = await getAdminContext();
+  if (!ctx.authorized || !ctx.isSuperAdmin) redirect("/login");
+  const supabase = await supabaseServer();
   const supabaseAny = supabase as any;
 
   // Get all profiles (which includes user IDs)

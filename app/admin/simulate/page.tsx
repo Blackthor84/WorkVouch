@@ -1,7 +1,9 @@
 import SimulationClient from "./simulation-client";
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { redirect } from "next/navigation";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
 
 export default async function SimulatePage() {
-  await requireAdmin();
+  const ctx = await getAdminContext();
+  if (!ctx.authorized) redirect("/login");
   return <SimulationClient />;
 }

@@ -1,4 +1,5 @@
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { redirect } from "next/navigation";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -13,7 +14,8 @@ const EXPORT_TYPES = [
 ];
 
 export default async function AdminExportPage() {
-  await requireAdmin();
+  const ctx = await getAdminContext();
+  if (!ctx.authorized) redirect("/login");
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">

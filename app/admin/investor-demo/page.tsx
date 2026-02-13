@@ -1,4 +1,5 @@
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { redirect } from "next/navigation";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
 import InvestorLayout from "@/components/investor/InvestorLayout";
 import InvestorDemoClient from "@/components/investor/InvestorDemoClient";
 
@@ -14,7 +15,8 @@ export const metadata = {
 };
 
 export default async function AdminInvestorDemoPage() {
-  await requireAdmin();
+  const ctx = await getAdminContext();
+  if (!ctx.authorized) redirect("/login");
   return (
     <InvestorLayout>
       <InvestorDemoClient />

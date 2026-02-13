@@ -1,10 +1,12 @@
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { redirect } from "next/navigation";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { VerificationsList } from "@/components/workvouch/verifications-list";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminVerificationsPage() {
-  await requireAdmin();
+  const ctx = await getAdminContext();
+  if (!ctx.authorized) redirect("/login");
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">

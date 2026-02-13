@@ -1,4 +1,5 @@
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { redirect } from "next/navigation";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,8 +9,9 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function AdminEmployerUsagePage() {
-  const { profile } = await requireAdmin();
-  const isSuperAdmin = profile.role === "superadmin";
+  const ctx = await getAdminContext();
+  if (!ctx.authorized) redirect("/login");
+  const isSuperAdmin = ctx.isSuperAdmin;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

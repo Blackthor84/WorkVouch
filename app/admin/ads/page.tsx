@@ -1,11 +1,13 @@
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { redirect } from "next/navigation";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
 import AdminAdsPanel from "@/components/AdminAdsPanel";
 import { AdminAdsGate } from "@/components/AdminAdsGate";
 import { AD_PRICING } from "@/lib/ads/pricing";
 import Link from "next/link";
 
 export default async function AdminAdsPage() {
-  await requireAdmin();
+  const ctx = await getAdminContext();
+  if (!ctx.authorized) redirect("/login");
 
   return (
     <AdminAdsGate>

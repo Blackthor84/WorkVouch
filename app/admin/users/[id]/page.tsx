@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { redirect } from "next/navigation";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { supabaseServer } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { UserDetailActions } from "@/components/admin/user-detail-actions";
 import { UserForensicsTabs } from "@/components/admin/user-forensics-tabs";
@@ -25,7 +27,9 @@ export default async function AdminUserPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase, profile } = await requireAdmin();
+  const ctx = await getAdminContext();
+  if (!ctx.authorized) redirect("/login");
+  const supabase = await supabaseServer();
   const supabaseAny = supabase as any;
 
   const { data: targetProfile, error } = await supabaseAny
@@ -55,7 +59,7 @@ export default async function AdminUserPage({
 
   const status = row.status ?? "active";
   const riskLevel = row.risk_level ?? "low";
-  const isSuperAdmin = profile.role === "superadmin";
+  const isSuperAdmin = ctx.isSuperAdmin;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">

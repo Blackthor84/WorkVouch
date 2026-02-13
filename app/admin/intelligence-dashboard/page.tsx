@@ -1,10 +1,14 @@
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { redirect } from "next/navigation";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { supabaseServer } from "@/lib/supabase/server";
 import { AdminIntelligenceDashboardClient } from "./AdminIntelligenceDashboardClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminIntelligenceDashboardPage() {
-  const { supabase } = await requireAdmin();
+  const ctx = await getAdminContext();
+  if (!ctx.authorized) redirect("/login");
+  const supabase = await supabaseServer();
   const supabaseAny = supabase as any;
   const { data: profiles } = await supabaseAny
     .from("profiles")

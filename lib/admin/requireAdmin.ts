@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getAdminSession } from "@/lib/auth/getAdminSession";
 import { supabaseServer } from "@/lib/supabase/server";
 import { canModifyUser, canAssignRole } from "@/lib/roles";
 
@@ -28,6 +29,12 @@ function logAdminAuthFailure(context: string, reason: string): void {
 }
 
 export async function requireAdmin(): Promise<AdminSession> {
+  const admin = await getAdminSession();
+  if (!admin) {
+    logAdminAuthFailure("requireAdmin", "no-admin-session");
+    redirect("/unauthorized");
+  }
+
   try {
     const supabase = await supabaseServer();
     const {
@@ -78,20 +85,12 @@ export async function requireAdmin(): Promise<AdminSession> {
 }
 
 export async function requireSuperAdmin(): Promise<AdminSession> {
-  try {
-    const admin = await requireAdmin();
-    if (admin.profile.role !== "superadmin") {
-      logAdminAuthFailure("requireSuperAdmin", "not-superadmin");
-      redirect("/unauthorized");
-    }
-    return admin;
-  } catch (e) {
-    if (e && typeof e === "object" && "digest" in e && typeof (e as { digest?: string }).digest === "string") {
-      throw e;
-    }
-    logAdminAuthFailure("requireSuperAdmin", "error");
+  const admin = await getAdminSession();
+  if (!admin || admin.role !== "superadmin") {
+    logAdminAuthFailure("requireSuperAdmin", "not-superadmin");
     redirect("/unauthorized");
   }
+  return requireAdmin();
 }
 
 export async function requireRole(allowedRoles: string[]): Promise<AdminSession> {

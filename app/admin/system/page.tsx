@@ -1,4 +1,5 @@
-import { requireSuperAdmin } from "@/lib/admin/requireAdmin";
+import { redirect } from "next/navigation";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -7,7 +8,8 @@ import { SystemPanelClient } from "@/components/admin/system-panel-client";
 export const dynamic = "force-dynamic";
 
 export default async function AdminSystemPage() {
-  await requireSuperAdmin();
+  const ctx = await getAdminContext();
+  if (!ctx.authorized || !ctx.isSuperAdmin) redirect("/login");
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 ">

@@ -1,8 +1,10 @@
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { redirect } from "next/navigation";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
 import Link from 'next/link';
 
 export default async function AdSuccessPage() {
-  await requireAdmin();
+  const ctx = await getAdminContext();
+  if (!ctx.authorized) redirect("/login");
 
   return (
     <div className="max-w-2xl mx-auto p-8">

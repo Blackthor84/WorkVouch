@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { supabaseServer } from "@/lib/supabase/server";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -9,20 +10,23 @@ export default async function AdminOrganizationPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { supabase, user, profile } = await requireAdmin();
+  const ctx = await getAdminContext();
+  if (!ctx.authorized) redirect("/login");
+  const supabase = await supabaseServer();
+  const supabaseAny = supabase as any;
   const { id: orgId } = await params;
+  const userId = ctx.user?.id;
 
-  if (profile.role !== "superadmin") {
-    const supabaseAny = supabase as any;
+  if (!ctx.isSuperAdmin && userId) {
     const { data: myOrgs } = await supabaseAny
       .from("employer_users")
       .select("organization_id")
-      .eq("profile_id", user.id);
+      .eq("profile_id", userId);
     const orgIds = [...new Set((myOrgs ?? []).map((r: { organization_id: string }) => r.organization_id))];
     const { data: tenantOrgs } = await supabaseAny
       .from("tenant_memberships")
       .select("organization_id")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .in("role", ["enterprise_owner", "location_admin"]);
     (tenantOrgs ?? []).forEach((r: { organization_id: string }) => orgIds.push(r.organization_id));
     const allowedOrgIds = [...new Set(orgIds)];
@@ -31,7 +35,6 @@ export default async function AdminOrganizationPage({
     }
   }
 
-  const supabaseAny = supabase as any;
   const { data: org } = await supabaseAny
     .from("organizations")
     .select("id, name, industry, enterprise_plan, billing_contact_email")

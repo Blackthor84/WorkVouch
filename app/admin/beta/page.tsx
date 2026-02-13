@@ -1,9 +1,11 @@
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { redirect } from "next/navigation";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
 import BetaAccessManager from "@/components/admin/BetaAccessManager";
 import { AdminBetaGate } from "@/components/AdminBetaGate";
 
 export default async function AdminBetaPage() {
-  await requireAdmin();
+  const ctx = await getAdminContext();
+  if (!ctx.authorized) redirect("/login");
 
   return (
     <AdminBetaGate>

@@ -1,8 +1,10 @@
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { redirect } from "next/navigation";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
 import AdminPreview from '@/components/AdminPreview';
 
 export default async function AdminPreviewPage() {
-  await requireAdmin();
+  const ctx = await getAdminContext();
+  if (!ctx.authorized) redirect("/login");
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-4">

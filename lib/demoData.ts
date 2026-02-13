@@ -1,6 +1,9 @@
 /**
  * Static mock data for Demo Mode. No database or API calls.
  * 3 profiles per industry: high tenure, high distribution, lower score.
+ *
+ * CONSUMERS: Only use when allowFakeData (lib/env/runtimeFlags) or isSandboxOrg is true.
+ * Production must never show this data on real user profiles.
  */
 
 export type DemoIndustry =
