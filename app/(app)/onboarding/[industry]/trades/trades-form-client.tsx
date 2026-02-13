@@ -65,7 +65,7 @@ export function TradesFormClient({ industry }: TradesFormClientProps) {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        alert(err.error || "Failed to save trades");
+        alert(err.error || "Failed to save skilled trades");
         setSaving(false);
         return;
       }
@@ -90,10 +90,10 @@ export function TradesFormClient({ industry }: TradesFormClientProps) {
   return (
     <Card className="p-8">
       <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">
-        Your Trades
+        Your Skilled Trades
       </h1>
       <p className="text-grey-medium dark:text-gray-400 mb-6">
-        Select one or more trades that match your experience. Employers can filter by trade.
+        Select one or more skilled trades that match your experience. Employers can filter by skilled trade.
       </p>
 
       <div className="space-y-2 max-h-64 overflow-y-auto mb-6">

@@ -5,6 +5,15 @@ import { enforceLimit } from "@/lib/enforceLimit";
 import { incrementUsage } from "@/lib/usage";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { checkOrgLimits, incrementOrgUnlockCount } from "@/lib/enterprise/enforceOrgLimits";
+import { planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
+import { getOrgHealthScore } from "@/lib/scoring/orgHealthScore";
+import {
+  getEmployeeAuditScoresBatch,
+  getAuditLabel,
+  getAuditExplanation,
+  compareAuditForRank,
+  type AuditBand,
+} from "@/lib/scoring/employeeAuditScore";
 
 const MAX_RESULTS = 50;
 
@@ -56,9 +65,11 @@ export async function GET(request: NextRequest) {
         "unlock"
       );
       if (!orgCheck.allowed) {
-        return NextResponse.json(
-          { error: orgCheck.error ?? "Organization plan limit reached.", requiresUpgrade: orgCheck.requiresUpgrade },
-          { status: 403 },
+        const health = await getOrgHealthScore(subCheck.organizationId);
+        return planLimit403Response(
+          orgCheck,
+          "run_check",
+          { status: health.status, recommended_plan: health.recommended_plan }
         );
       }
     }
@@ -109,33 +120,57 @@ export async function GET(request: NextRequest) {
 
     const userIds = (candidates as { user_id: string }[]).map((c) => c.user_id);
 
-    type SkillRow = { user_id: string; skill_name: string };
-    const { data: skillsData } = await supabaseAny
-      .from("skills")
-      .select("user_id, skill_name")
-      .in("user_id", userIds);
+    const [auditScoresMap, skillsResult] = await Promise.all([
+      getEmployeeAuditScoresBatch(userIds),
+      supabaseAny.from("skills").select("user_id, skill_name").in("user_id", userIds),
+    ]);
 
+    type SkillRow = { user_id: string; skill_name: string };
+    const skillsData = skillsResult.data as SkillRow[] | null;
     const skillsByUser = new Map<string, string[]>();
     if (skillsData) {
-      (skillsData as SkillRow[]).forEach((s) => {
+      skillsData.forEach((s) => {
         if (!skillsByUser.has(s.user_id)) skillsByUser.set(s.user_id, []);
         skillsByUser.get(s.user_id)!.push(s.skill_name);
       });
     }
 
-    const users = (candidates as { user_id: string; full_name: string | null; industry: string | null; city: string | null; state: string | null; verified_employment_count: number; trust_score: number; reference_count: number; aggregate_rating: number; rehire_eligible_count: number }[]).map((c) => ({
-      id: c.user_id,
-      name: c.full_name,
-      industry: c.industry ?? null,
-      city: c.city ?? null,
-      state: c.state ?? null,
-      verifiedEmploymentCount: c.verified_employment_count ?? 0,
-      trustScore: c.trust_score ?? 0,
-      referenceCount: c.reference_count ?? 0,
-      aggregateRating: c.aggregate_rating ?? 0,
-      rehireEligibleCount: c.rehire_eligible_count ?? 0,
-      skills: (skillsByUser.get(c.user_id) ?? []).slice(0, 10),
-    }));
+    type CandidateRow = {
+      user_id: string;
+      full_name: string | null;
+      industry: string | null;
+      city: string | null;
+      state: string | null;
+      verified_employment_count: number;
+      trust_score: number;
+      reference_count: number;
+      aggregate_rating: number;
+      rehire_eligible_count: number;
+    };
+    const candidateList = candidates as CandidateRow[];
+    candidateList.sort((a, b) => compareAuditForRank(auditScoresMap.get(a.user_id) ?? null, auditScoresMap.get(b.user_id) ?? null));
+
+    const users = candidateList.map((c) => {
+      const audit = auditScoresMap.get(c.user_id);
+      const band: AuditBand = audit?.band ?? "unverified";
+      return {
+        id: c.user_id,
+        name: c.full_name,
+        industry: c.industry ?? null,
+        city: c.city ?? null,
+        state: c.state ?? null,
+        verifiedEmploymentCount: c.verified_employment_count ?? 0,
+        trustScore: c.trust_score ?? 0,
+        referenceCount: c.reference_count ?? 0,
+        aggregateRating: c.aggregate_rating ?? 0,
+        rehireEligibleCount: c.rehire_eligible_count ?? 0,
+        skills: (skillsByUser.get(c.user_id) ?? []).slice(0, 10),
+        auditScore: audit?.score ?? null,
+        auditBand: band,
+        auditLabel: getAuditLabel(band),
+        auditExplanation: audit ? getAuditExplanation(band, audit.breakdown) : "Verification data not yet calculated.",
+      };
+    });
 
     return NextResponse.json({
       users,

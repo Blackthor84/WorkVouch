@@ -646,6 +646,30 @@ export interface Database {
         }
         Relationships: []
       }
+      employee_audit_scores: {
+        Row: {
+          user_id: string
+          score: number
+          band: string
+          breakdown: Record<string, unknown>
+          calculated_at: string
+        }
+        Insert: {
+          user_id: string
+          score: number
+          band: string
+          breakdown?: Record<string, unknown>
+          calculated_at?: string
+        }
+        Update: {
+          user_id?: string
+          score?: number
+          band?: string
+          breakdown?: Record<string, unknown>
+          calculated_at?: string
+        }
+        Relationships: []
+      }
       compliance_disputes: {
         Row: {
           id: string
@@ -1580,6 +1604,12 @@ export interface Database {
         Row: { id: string; organization_id: string; metric_name: string; metric_value: number; created_at: string }
         Insert: { id?: string; organization_id: string; metric_name: string; metric_value?: number; created_at?: string }
         Update: { id?: string; organization_id?: string; metric_name?: string; metric_value?: number; created_at?: string }
+        Relationships: []
+      }
+      organization_health: {
+        Row: { organization_id: string; score: number; band: string; signals: Record<string, unknown>; last_calculated_at: string }
+        Insert: { organization_id: string; score: number; band: string; signals?: Record<string, unknown>; last_calculated_at?: string }
+        Update: { organization_id?: string; score?: number; band?: string; signals?: Record<string, unknown>; last_calculated_at?: string }
         Relationships: []
       }
       locations: {

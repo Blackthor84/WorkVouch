@@ -180,7 +180,7 @@ export function EmployeeSearch() {
             onChange={(e) => setTradeSlug(e.target.value)}
             aria-label="Filter by trade"
           >
-            <option value="">All trades</option>
+            <option value="">All skilled trades</option>
             {trades.map((t) => (
               <option key={t.id} value={t.slug}>
                 {t.display_name}

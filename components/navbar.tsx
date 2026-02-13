@@ -31,8 +31,8 @@ export default function Navbar() {
           </div>
         </div>
         <div className="hidden md:flex items-center space-x-4">
-          <Link href="/login" className="bg-gray-100 text-blue-700 px-4 py-2 rounded hover:bg-gray-200 transition">Login</Link>
-          <Link href="/signup" className="bg-white text-blue-700 px-4 py-2 rounded hover:bg-gray-100 transition font-semibold">Sign Up</Link>
+            <Link href="/login" className="text-white border border-white/80 px-4 py-2 rounded hover:bg-white/20 transition">Login</Link>
+          <Link href="/signup" className="text-white border border-white/80 px-4 py-2 rounded hover:bg-white/20 transition font-semibold">Sign Up</Link>
         </div>
         {/* Mobile Menu Button */}
         <button
@@ -59,8 +59,8 @@ export default function Navbar() {
           <Link href="/careers" className="block py-2 hover:text-gray-300 transition">Careers</Link>
           <Link href="/contact" className="block py-2 hover:text-gray-300 transition">Contact</Link>
           <div className="pt-2 space-y-2">
-            <Link href="/login" className="block bg-gray-100 text-blue-700 px-4 py-2 rounded hover:bg-gray-200 transition text-center">Login</Link>
-            <Link href="/signup" className="block bg-white text-blue-700 px-4 py-2 rounded hover:bg-gray-100 transition font-semibold text-center">Sign Up</Link>
+            <Link href="/login" className="block text-white border border-white/80 px-4 py-2 rounded hover:bg-white/20 transition text-center">Login</Link>
+            <Link href="/signup" className="block text-white border border-white/80 px-4 py-2 rounded hover:bg-white/20 transition font-semibold text-center">Sign Up</Link>
           </div>
         </div>
       )}

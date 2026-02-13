@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface ScaleMetrics {
   limit_blocks_last_24h: number;
@@ -15,9 +18,11 @@ interface ScaleMetrics {
 }
 
 export function ScaleMetricsClient() {
+  const router = useRouter();
   const [metrics, setMetrics] = useState<ScaleMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [orgIdInput, setOrgIdInput] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -93,6 +98,27 @@ export function ScaleMetricsClient() {
         <pre className="text-sm bg-slate-50 p-3 rounded overflow-auto">
           {JSON.stringify(metrics.blocked_actions_by_plan, null, 2)}
         </pre>
+      </Card>
+      <Card className="p-4">
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Org limit explainer (plan vs usage, abuse, recommendation)</p>
+        <div className="flex gap-2 flex-wrap">
+          <Input
+            placeholder="Organization ID"
+            value={orgIdInput}
+            onChange={(e) => setOrgIdInput(e.target.value)}
+            className="max-w-xs"
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              const id = orgIdInput.trim();
+              if (id) router.push(`/admin/orgs/${encodeURIComponent(id)}/limit-explainer`);
+            }}
+          >
+            View limit explainer
+          </Button>
+        </div>
       </Card>
       <p className="text-xs text-slate-400">
         checks_per_minute requires time-bucketed logging (TODO).

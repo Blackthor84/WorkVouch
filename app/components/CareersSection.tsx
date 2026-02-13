@@ -91,6 +91,20 @@ const careers: CareerData[] = [
       "Stand out for promotions or transfers",
       "Access better retail positions quickly"
     ]
+  },
+  {
+    name: "Skilled Trades",
+    image: getIndustryImageByName("Skilled Trades"),
+    employerBenefits: [
+      "Hire skilled trades with verified work history",
+      "Check certifications and reliability",
+      "Reduce risk with peer-verified references"
+    ],
+    employeeBenefits: [
+      "Peer-verified experience from coworkers and supervisors",
+      "Skill and certification credibility",
+      "Portable reputation and stand out before interviews"
+    ]
   }
 ];
 

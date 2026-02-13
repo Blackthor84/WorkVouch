@@ -10,6 +10,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
+import { getOrgHealthScore } from "@/lib/enterprise/orgHealthScore";
 
 export async function GET(req: NextRequest) {
   try {
@@ -48,7 +49,8 @@ export async function GET(req: NextRequest) {
     if (organizationId) {
       const limitCheck = await checkOrgLimits(organizationId, "run_check");
       if (!limitCheck.allowed) {
-        return planLimit403Response(limitCheck, "run_check");
+        const health = await getOrgHealthScore(organizationId);
+        return planLimit403Response(limitCheck, "run_check", { status: health.status, recommended_plan: health.recommended_plan });
       }
     }
 

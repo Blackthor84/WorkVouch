@@ -24,6 +24,7 @@ export async function GET(request: Request) {
     recalcErrors: 0,
     softDeletedPurged: 0,
     sandboxSessionsExpired: 0,
+    orgHealthPersisted: 0,
     errors: [] as string[],
   };
 
@@ -102,6 +103,20 @@ export async function GET(request: Request) {
       }
     } catch (sandboxErr) {
       summary.errors.push("sandbox_cleanup: " + (sandboxErr as Error).message);
+    }
+
+    try {
+      const { data: orgRows } = await supabaseAny.from("organizations").select("id").limit(200);
+      const orgIds = (orgRows ?? []).map((o: { id: string }) => o.id);
+      const { persistOrgHealthScore, updateOrgHealth } = await import("@/lib/enterprise/orgHealthScore");
+      for (const orgId of orgIds) {
+        const res = await persistOrgHealthScore(orgId);
+        if (!res.error) summary.orgHealthPersisted += 1;
+        else summary.errors.push(`org_health ${orgId}: ${res.error}`);
+        updateOrgHealth(orgId).catch(() => {});
+      }
+    } catch (orgHealthErr) {
+      summary.errors.push("org_health: " + (orgHealthErr as Error).message);
     }
 
     await auditLog({

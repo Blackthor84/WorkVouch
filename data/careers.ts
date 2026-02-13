@@ -18,6 +18,24 @@ export const careers = [
     ],
   },
   {
+    id: 'skilled-trades',
+    name: 'Skilled Trades',
+    image: getIndustryImage('skilled-trades'),
+    heroText: 'Verified work history for skilled trades professionals. Build trust, verify experience, and stand out with peer-backed references.',
+    whyForEmployees: [
+      'Peer-verified experience from coworkers and supervisors who worked with you.',
+      'Skill and certification credibility with proof of hands-on experience.',
+      'Portable reputation from job to job, company to company.',
+      'Stand out with verified trust signals employers see before interviews.',
+    ],
+    whyForEmployers: [
+      'Hire faster with verified work history and peer references.',
+      'Reduce bad hires by spotting inconsistencies before onboarding.',
+      'Validate skills with what coworkers say, not just resumes.',
+      'Scale from small shops to multi-location operations.',
+    ],
+  },
+  {
     id: 'construction',
     name: 'Construction',
     image: getIndustryImage('construction'),

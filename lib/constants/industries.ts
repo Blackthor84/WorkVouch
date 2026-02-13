@@ -14,6 +14,7 @@ export const INDUSTRY_IMAGES: Record<string, string> = {
   education: "/images/careers/Education.png",
   construction: "/images/careers/Construction.png",
   law_enforcement: "/images/careers/law.jpg",
+  trades: "/images/careers/trades.jpg",
 };
 
 /** Career id / slug → INDUSTRY_IMAGES key (e.g. "law-enforcement" → "law_enforcement", "warehouse-logistics" → "warehouse"). */
@@ -27,6 +28,8 @@ const CAREER_ID_TO_IMAGE_KEY: Record<string, string> = {
   warehouse: "warehouse",
   education: "education",
   construction: "construction",
+  trades: "trades",
+  "skilled-trades": "trades",
 };
 
 /**
@@ -48,6 +51,8 @@ const DISPLAY_NAME_TO_IMAGE_KEY: Record<string, string> = {
   "Warehouse & Logistics": "warehouse",
   Education: "education",
   Construction: "construction",
+  Trades: "trades",
+  "Skilled Trades": "trades",
 };
 
 /** Resolve industry image from display name (e.g. career.name). */

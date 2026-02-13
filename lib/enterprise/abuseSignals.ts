@@ -135,6 +135,9 @@ export async function getAbuseSignals(organizationId: string): Promise<AbuseSign
       metric_name: "abuse_flag_triggered",
       metric_value: riskScore,
     });
+    import("@/lib/enterprise/orgHealthScore").then(({ updateOrgHealth }) => {
+      updateOrgHealth(organizationId).catch(() => {});
+    });
   }
   if (enterprise_recommended) {
     await supabase.from("organization_metrics").insert({

@@ -8,40 +8,40 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           <div>
             <h3 className="font-semibold mb-4 text-lg">WorkVouch</h3>
-            <p className="text-sm text-blue-100 mb-4">
+            <p className="text-sm text-white mb-4">
               Verified work history for real careers. Build trust, verify experience, and hire with confidence.
             </p>
-            <div className="text-sm space-y-1">
-              <p><strong>General Inquiries:</strong>{" "}<a href={"mailto:" + INFO_EMAIL} className="hover:underline">{INFO_EMAIL}</a></p>
-              <p><strong>Support:</strong>{" "}<a href={"mailto:" + SUPPORT_EMAIL} className="hover:underline">{SUPPORT_EMAIL}</a></p>
-              <p><strong>Legal:</strong>{" "}<a href={"mailto:" + LEGAL_EMAIL} className="hover:underline">{LEGAL_EMAIL}</a></p>
-              <p><strong>Sales:</strong>{" "}<a href={"mailto:" + SALES_EMAIL} className="hover:underline">{SALES_EMAIL}</a></p>
+            <div className="text-sm space-y-1 text-white">
+              <p><strong>General Inquiries:</strong>{" "}<a href={"mailto:" + INFO_EMAIL} className="text-white hover:underline">{INFO_EMAIL}</a></p>
+              <p><strong>Support:</strong>{" "}<a href={"mailto:" + SUPPORT_EMAIL} className="text-white hover:underline">{SUPPORT_EMAIL}</a></p>
+              <p><strong>Legal:</strong>{" "}<a href={"mailto:" + LEGAL_EMAIL} className="text-white hover:underline">{LEGAL_EMAIL}</a></p>
+              <p><strong>Sales:</strong>{" "}<a href={"mailto:" + SALES_EMAIL} className="text-white hover:underline">{SALES_EMAIL}</a></p>
             </div>
           </div>
           
           <div>
             <h3 className="font-semibold mb-4 text-lg">Company</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/about" className="hover:underline text-blue-100 hover:text-white">About</Link></li>
-              <li><Link href="/careers" className="hover:underline text-blue-100 hover:text-white">Careers</Link></li>
-              <li><Link href="/contact" className="hover:underline text-blue-100 hover:text-white">Contact</Link></li>
+              <li><Link href="/about" className="text-white hover:underline">About</Link></li>
+              <li><Link href="/careers" className="text-white hover:underline">Careers</Link></li>
+              <li><Link href="/contact" className="text-white hover:underline">Contact</Link></li>
             </ul>
           </div>
           
           <div>
             <h3 className="font-semibold mb-4 text-lg">Resources</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/pricing" className="hover:underline text-blue-100 hover:text-white">Pricing</Link></li>
-              <li><Link href="/directory" className="hover:underline text-blue-100 hover:text-white">Directory</Link></li>
-              <li><Link href="/faq" className="hover:underline text-blue-100 hover:text-white">FAQ</Link></li>
-              <li><Link href="/help" className="hover:underline text-blue-100 hover:text-white">Help</Link></li>
+              <li><Link href="/pricing" className="text-white hover:underline">Pricing</Link></li>
+              <li><Link href="/directory" className="text-white hover:underline">Directory</Link></li>
+              <li><Link href="/faq" className="text-white hover:underline">FAQ</Link></li>
+              <li><Link href="/help" className="text-white hover:underline">Help</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="font-semibold mb-4 text-lg">Industry Solutions</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/solutions" className="hover:underline text-blue-100 hover:text-white">All Solutions</Link></li>
+              <li><Link href="/solutions" className="text-white hover:underline">All Solutions</Link></li>
             </ul>
           </div>
           
@@ -59,7 +59,7 @@ export default function Footer() {
           </div>
         </div>
         
-        <div className="border-t border-blue-600 mt-8 pt-8 text-center text-sm text-blue-100">
+        <div className="border-t border-blue-600 mt-8 pt-8 text-center text-sm text-white">
           <p>&copy; {new Date().getFullYear()} WorkVouch. All rights reserved.</p>
         </div>
       </div>

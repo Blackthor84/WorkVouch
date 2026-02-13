@@ -120,4 +120,7 @@ export async function incrementOrgUnlockCount(
       updated_at: new Date().toISOString(),
     });
   }
+  import("@/lib/enterprise/orgHealthScore").then(({ updateOrgHealth }) => {
+    updateOrgHealth(organizationId).catch(() => {});
+  });
 }

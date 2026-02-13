@@ -112,6 +112,7 @@ async function ensureUsageAndMaybeReset(
 
 /**
  * Log a limit_block event to organization_metrics.
+ * Silently triggers organization_health recalculation (no user-facing errors).
  */
 async function logLimitBlock(
   supabase: ReturnType<typeof getSupabaseServer>,
@@ -121,6 +122,32 @@ async function logLimitBlock(
     organization_id: organizationId,
     metric_name: "limit_block",
     metric_value: 1,
+  });
+  import("@/lib/enterprise/orgHealthScore").then(({ updateOrgHealth }) => {
+    updateOrgHealth(organizationId).catch(() => {});
+  });
+}
+
+/**
+ * If org health band is "review", log recommendation only (observational; no blocking).
+ * TODO: Score-based search ranking when enterprise visibility is enabled.
+ * TODO: Enterprise-only visibility toggle for org health band.
+ * TODO: Exportable compliance reports including health band.
+ * TODO: Customer-facing explainer copy (later phase).
+ */
+function logReviewRecommendationIfNeeded(organizationId: string): void {
+  void import("@/lib/enterprise/orgHealthScore").then(({ getOrgHealthFromTable }) => {
+    void getOrgHealthFromTable(organizationId).then((row) => {
+      if (row?.band === "review") {
+        void getSupabaseServer()
+          .from("organization_metrics")
+          .insert({
+            organization_id: organizationId,
+            metric_name: "org_health_review_recommendation_logged",
+            metric_value: row.score,
+          });
+      }
+    });
   });
 }
 
@@ -200,6 +227,7 @@ export async function checkOrgLimits(
     const currentLocations = count ?? 0;
     if (currentLocations >= limits.max_locations) {
       await logLimitBlock(supabase, organizationId);
+      logReviewRecommendationIfNeeded(organizationId);
       return { allowed: false, error: PLAN_LIMIT_ERROR, reason: PLAN_LIMIT_ERROR, planType: orgRow.plan_type ?? planKey };
     }
     return { allowed: true };
@@ -216,6 +244,7 @@ export async function checkOrgLimits(
     const currentAdmins = count ?? 0;
     if (currentAdmins >= limits.max_admins) {
       await logLimitBlock(supabase, organizationId);
+      logReviewRecommendationIfNeeded(organizationId);
       return { allowed: false, error: PLAN_LIMIT_ERROR, reason: PLAN_LIMIT_ERROR };
     }
     return { allowed: true };
@@ -251,6 +280,7 @@ export async function checkOrgLimits(
 
     if (usage.monthly_checks >= limits.max_monthly_checks) {
       await logLimitBlock(supabase, organizationId);
+      logReviewRecommendationIfNeeded(organizationId);
       return { allowed: false, error: PLAN_LIMIT_ERROR, reason: PLAN_LIMIT_ERROR, planType: orgRow.plan_type ?? planKey };
     }
 
@@ -268,11 +298,19 @@ export async function checkOrgLimits(
   return { allowed: true };
 }
 
+/** Optional health from getOrgHealthScore; when provided, 403 body includes health_status. */
+export interface PlanLimit403Health {
+  status: "healthy" | "at_risk" | "misaligned";
+  recommended_plan: string | null;
+}
+
 /** Standardized 403 response for plan limit blocks. Use whenever checkOrgLimits() returns allowed: false. */
 export function planLimit403Response(
   result: CheckOrgLimitsResult,
-  action: CheckOrgLimitsAction
+  action: CheckOrgLimitsAction,
+  health?: PlanLimit403Health | null
 ): NextResponse {
+  const enterpriseRecommended = health?.status === "at_risk" || health?.status === "misaligned";
   return NextResponse.json(
     {
       success: false,
@@ -280,11 +318,15 @@ export function planLimit403Response(
       error: "Upgrade Required",
       message: "🚨 Upgrade Required: This action exceeds your current plan limits.",
       detail:
-        "Your current plan does not support this action. Upgrade to Enterprise to continue without limits.",
+        "Your current plan does not support this action. Upgrade to Enterprise to continue without limits."
+        + (enterpriseRecommended ? " Enterprise Recommended for your usage." : ""),
       recommended_plan: "enterprise",
+      health_status: health?.status ?? null,
       action,
       plan: result.planType ?? null,
       upgrade_recommended: true,
+      cta_text: "Upgrade to Enterprise",
+      cta_url: "/pricing",
     },
     { status: 403 }
   );

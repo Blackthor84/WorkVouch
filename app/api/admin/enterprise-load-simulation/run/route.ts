@@ -10,6 +10,7 @@ import { requireSimulationLabAdmin } from "@/lib/simulation-lab";
 import { requireEnterpriseSimulationMode } from "@/lib/enterprise/simulation-guard";
 import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
 import { getAbuseSignals } from "@/lib/enterprise/abuseSignals";
+import { getOrgHealthScore, updateOrgHealth } from "@/lib/enterprise/orgHealthScore";
 import { calculateUserIntelligence } from "@/lib/intelligence/calculateUserIntelligence";
 
 export const dynamic = "force-dynamic";
@@ -119,7 +120,8 @@ export async function POST(req: NextRequest) {
     for (let i = 0; i < ADMINS_COUNT; i++) {
       const addAdminCheck = await checkOrgLimits(orgId, "add_admin");
       if (!addAdminCheck.allowed) {
-        return planLimit403Response(addAdminCheck, "add_admin");
+        const health = await getOrgHealthScore(orgId);
+        return planLimit403Response(addAdminCheck, "add_admin", { status: health.status, recommended_plan: health.recommended_plan });
       }
       const email = `casino-admin-${i}-${sessionId.slice(0, 8)}@simulation.local`;
       const { data: authUser, error: authErr } = await supabase.auth.admin.createUser({
@@ -152,7 +154,8 @@ export async function POST(req: NextRequest) {
     for (let i = 0; i < LOCATIONS_COUNT; i++) {
       const addLocationCheck = await checkOrgLimits(orgId, "add_location");
       if (!addLocationCheck.allowed) {
-        return planLimit403Response(addLocationCheck, "add_location");
+        const health = await getOrgHealthScore(orgId);
+        return planLimit403Response(addLocationCheck, "add_location", { status: health.status, recommended_plan: health.recommended_plan });
       }
       const { data: loc, error: locErr } = await supabase
         .from("locations")
@@ -165,6 +168,7 @@ export async function POST(req: NextRequest) {
         .single();
       if (!locErr && loc?.id) locationIds.push(loc.id);
     }
+    updateOrgHealth(orgId).catch(() => {});
 
     const firstEmployerId = adminProfileIds[0];
     const { data: empAcc } = await supabase

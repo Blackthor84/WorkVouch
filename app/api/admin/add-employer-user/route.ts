@@ -9,6 +9,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
+import { getOrgHealthScore, updateOrgHealth } from "@/lib/enterprise/orgHealthScore";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,8 @@ export async function POST(req: NextRequest) {
 
     const limitCheck = await checkOrgLimits(organizationId, "add_admin");
     if (!limitCheck.allowed) {
-      return planLimit403Response(limitCheck, "add_admin");
+      const health = await getOrgHealthScore(organizationId);
+      return planLimit403Response(limitCheck, "add_admin", { status: health.status, recommended_plan: health.recommended_plan });
     }
 
     const supabase = getSupabaseServer();
@@ -60,6 +62,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    updateOrgHealth(organizationId).catch(() => {});
     return NextResponse.json({ success: true, employer_user: inserted });
   } catch (e) {
     console.error("[admin/add-employer-user]", e);

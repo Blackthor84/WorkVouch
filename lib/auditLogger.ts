@@ -23,7 +23,8 @@ export type AuditAction =
   | "email_change_revoked"
   | "email_change_forced_admin"
   | "cron_nightly_run"
-  | "sandbox_purge";
+  | "sandbox_purge"
+  | "compliance_export";
 
 export async function auditLog(params: {
   actorUserId?: string | null;

@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireLocationAccess } from "@/lib/enterprise/requireEnterprise";
 import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
+import { getOrgHealthScore } from "@/lib/enterprise/orgHealthScore";
 import { getEnvironmentForServer } from "@/lib/app-mode";
 import { extractTextFromBuffer } from "@/lib/workforce/resume-extract";
 import { parseResumeWithAI } from "@/lib/workforce/resume-parse-ai";
@@ -66,7 +67,8 @@ export async function POST(req: NextRequest) {
 
     const limitCheck = await checkOrgLimits(employee.organization_id, "run_check");
     if (!limitCheck.allowed) {
-      return planLimit403Response(limitCheck, "run_check");
+      const health = await getOrgHealthScore(employee.organization_id);
+      return planLimit403Response(limitCheck, "run_check", { status: health.status, recommended_plan: health.recommended_plan });
     }
 
     const ext = file.type === "application/pdf" ? "pdf" : "docx";

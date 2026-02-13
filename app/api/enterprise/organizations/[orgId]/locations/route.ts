@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireEnterpriseOwner } from "@/lib/enterprise/requireEnterprise";
 import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
+import { getOrgHealthScore, updateOrgHealth } from "@/lib/enterprise/orgHealthScore";
 
 /**
  * GET /api/enterprise/organizations/[orgId]/locations
@@ -73,7 +74,8 @@ export async function POST(
 
     const orgLimit = await checkOrgLimits(orgId, "add_location");
     if (!orgLimit.allowed) {
-      return planLimit403Response(orgLimit, "add_location");
+      const health = await getOrgHealthScore(orgId);
+      return planLimit403Response(orgLimit, "add_location", { status: health.status, recommended_plan: health.recommended_plan });
     }
 
     const supabase = getSupabaseServer();
@@ -111,6 +113,7 @@ export async function POST(
     if (typeof count === "number") {
       await supabase.from("organizations").update({ number_of_locations: count }).eq("id", orgId);
     }
+    updateOrgHealth(orgId).catch(() => {});
     return NextResponse.json({ success: true, location: inserted });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unauthorized";

@@ -1,8 +1,8 @@
-import { redirect } from "next/navigation";
 import { requireEnterpriseOwner } from "@/lib/enterprise/requireEnterprise";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getEnvironmentForServer } from "@/lib/app-mode";
 import { headers, cookies } from "next/headers";
+import { EnterpriseRecommendedBanner } from "@/components/enterprise/EnterpriseRecommendedBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +50,7 @@ export default async function EnterpriseOverviewPage({ params }: { params: Promi
 
   return (
     <div className="max-w-4xl space-y-8">
+      <EnterpriseRecommendedBanner orgId={orgId} />
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Overview</h1>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">

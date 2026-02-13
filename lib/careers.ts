@@ -36,7 +36,7 @@ const careersData: CareerData[] = [
     slug: "construction",
     name: "Construction",
     image: getIndustryImage("construction"),
-    description: "Verified employment for construction and trades",
+    description: "Verified employment for construction and skilled trades",
     employers: [
       "Hire crew with verified work history and safety signals.",
       "Check certifications and job-site reliability.",
