@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
 
 interface User {
@@ -54,7 +54,7 @@ export function RoleManager() {
       setUsers(users.map((u) => (u.id === id ? { ...u, role: newRole } : u)));
 
       // Also update auth metadata
-      const { error: metadataError } = await supabase.auth.admin.updateUserById(
+      const { error: metadataError } = await supabaseBrowser.auth.admin.updateUserById(
         id,
         {
           user_metadata: { role: newRole },

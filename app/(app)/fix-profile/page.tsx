@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 export default function FixProfilePage() {
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ export default function FixProfilePage() {
       const {
         data: { user },
         error: userError,
-      } = await supabase.auth.getUser();
+      } = await supabaseBrowser.auth.getUser();
 
       if (userError || !user) {
         throw new Error("Not signed in. Please sign in first.");

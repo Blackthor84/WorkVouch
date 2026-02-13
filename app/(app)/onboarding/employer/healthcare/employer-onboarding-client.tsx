@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +33,7 @@ export function EmployerOnboardingClient() {
       console.log("Supabase auth check triggered in: app/(app)/onboarding/employer/healthcare/employer-onboarding-client.tsx");
       const {
         data: { user: currentUser },
-      } = await supabase.auth.getUser();
+      } = await supabaseBrowser.auth.getUser();
 
       if (!currentUser) {
         router.push("/login");
@@ -41,7 +41,7 @@ export function EmployerOnboardingClient() {
       }
 
       // Check if user is an employer
-      const supabaseAny = supabase as any;
+      const supabaseAny = supabaseBrowser as any;
       const { data: profile } = await supabaseAny
         .from("profiles")
         .select("role")
@@ -60,7 +60,7 @@ export function EmployerOnboardingClient() {
     }
 
     checkUser();
-  }, [router, supabase]);
+  }, [router, supabaseBrowser]);
 
   const handleNext = async () => {
     if (!companyName || !workSetting || !location) {
@@ -71,7 +71,7 @@ export function EmployerOnboardingClient() {
     setLoading(true);
 
     try {
-      const supabaseAny = supabase as any;
+      const supabaseAny = supabaseBrowser as any;
       // Update employer account with healthcare info
       const { error: employerError } = await supabaseAny
         .from("employer_accounts")

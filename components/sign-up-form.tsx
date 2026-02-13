@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { getIndustriesForSignup, INDUSTRY_TO_ONBOARDING_KEY } from "@/lib/constants/industries";
@@ -44,7 +44,7 @@ export function SignUpForm() {
       }
 
       // Using single supabase instance
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabaseBrowser.auth.signUp({
         email,
         password,
         options: {
@@ -97,7 +97,7 @@ export function SignUpForm() {
           // Email confirmation might be required, but try to sign in anyway
           console.log("No session, attempting to sign in...");
           const { data: signInData, error: signInError } =
-            await supabase.auth.signInWithPassword({
+            await supabaseBrowser.auth.signInWithPassword({
               email,
               password,
             });

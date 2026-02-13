@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 export default function TestPage() {
   const [status, setStatus] = useState("Loading...");
@@ -16,7 +16,7 @@ export default function TestPage() {
       const {
         data: { user },
         error: userError,
-      } = await supabase.auth.getUser();
+      } = await supabaseBrowser.auth.getUser();
       setStatus(`User: ${user ? "Found" : "Not found"}`);
 
       if (userError) {

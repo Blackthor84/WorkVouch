@@ -5,7 +5,7 @@
  * Use to confirm: session persists across navigation, token refresh fires correctly.
  */
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 const DEBUG_AUTH =
   process.env.NODE_ENV === "development" ||
@@ -14,7 +14,7 @@ const DEBUG_AUTH =
 export function initSessionDebug(): (() => void) | undefined {
   if (!DEBUG_AUTH || typeof window === "undefined") return undefined;
 
-  const { data: sub } = supabase.auth.onAuthStateChange(
+  const { data: sub } = supabaseBrowser.auth.onAuthStateChange(
     (event: AuthChangeEvent, session: Session | null) => {
       console.log("AUTH EVENT:", event);
       console.log("SESSION:", session);

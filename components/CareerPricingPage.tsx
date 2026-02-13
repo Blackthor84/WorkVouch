@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { PricingModal } from "@/components/PricingModal";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 interface CareerPricingPageProps {
   userId?: string;
@@ -27,7 +27,7 @@ export default function CareerPricingPage({
 
     const fetchUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await supabaseBrowser.auth.getUser();
         if (user) {
           setUserId(user.id);
           

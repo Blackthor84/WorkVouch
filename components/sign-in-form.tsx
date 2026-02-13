@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 
@@ -21,7 +21,7 @@ export function SignInForm() {
       console.log("Attempting sign in...");
       // Using single supabase instance
       const { data, error: signInError } =
-        await supabase.auth.signInWithPassword({
+        await supabaseBrowser.auth.signInWithPassword({
           email,
           password,
         });

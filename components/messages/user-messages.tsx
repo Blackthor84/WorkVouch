@@ -6,7 +6,7 @@ import {
   sendMessage,
   markMessageAsRead,
 } from "@/lib/actions/messages";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
@@ -28,7 +28,7 @@ export function UserMessages() {
       // Using single supabase instance
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = await supabaseBrowser.auth.getUser();
       if (user) {
         setCurrentUserId(user.id);
       }

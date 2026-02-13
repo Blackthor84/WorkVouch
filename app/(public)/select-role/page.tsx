@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 const SIGNUP_CREDENTIALS_KEY = "workvouch_signup_credentials";
@@ -37,7 +37,7 @@ export default function SelectRolePage() {
       // ignore
     }
     const checkSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
+      const { data, error } = await supabaseBrowser.auth.getSession();
 
       if (error) {
         router.replace("/signup");

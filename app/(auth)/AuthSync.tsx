@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 export default function AuthSync() {
   useEffect(() => {
-    supabase.auth.getSession();
+    supabaseBrowser.auth.getSession();
   }, []);
 
   return null;
