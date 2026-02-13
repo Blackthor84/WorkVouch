@@ -36,7 +36,9 @@ export default function SelectRolePage() {
     } catch {
       // ignore
     }
-    supabaseBrowser.auth.getSession().then(({ data: { session } }) => {
+    supabaseBrowser.auth.getSession().then((res) => {
+      const session = res.data.session;
+
       if (!session?.user) {
         router.replace("/signup");
         return;
