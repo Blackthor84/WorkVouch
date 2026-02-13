@@ -43,10 +43,10 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
     }
 
     checkUser();
-  }, [router, supabase]);
+  }, [router]);
 
   const fetchCoworkers = async (userId: string) => {
-    const supabaseAny = supabase as any;
+    const supabaseAny = supabaseBrowser as any;
     const { data, error } = await supabaseAny
       .from("coworker_matches")
       .select("*")
@@ -71,7 +71,7 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
     setLoading(true);
 
     try {
-      const supabaseAny = supabase as any;
+      const supabaseAny = supabaseBrowser as any;
       const { error } = await supabaseAny.from("coworker_matches").insert([
         {
           user_id: user.id,
@@ -102,7 +102,7 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
     setLoading(true);
 
     try {
-      const supabaseAny = supabase as any;
+      const supabaseAny = supabaseBrowser as any;
       const { error } = await supabaseAny
         .from("coworker_matches")
         .delete()
