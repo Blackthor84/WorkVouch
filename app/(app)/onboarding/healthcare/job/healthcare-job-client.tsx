@@ -37,7 +37,7 @@ export function HealthcareJobClient() {
     }
 
     checkUser();
-  }, [router, supabase]);
+  }, [router]);
 
   const handleNext = async () => {
     if (!jobTitle || !employer || !startDate || !employmentType) {
@@ -57,8 +57,7 @@ export function HealthcareJobClient() {
         : [];
 
       // Insert job
-      const supabaseAny = supabase as any;
-      const { error: jobError } = await supabaseAny.from("jobs").insert([
+      const { error: jobError } = await supabaseBrowser.from("jobs").insert([
         {
           user_id: user.id,
           company_name: employer,
