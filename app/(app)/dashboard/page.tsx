@@ -1,5 +1,7 @@
 import { getCurrentUser, getCurrentUserProfile, isEmployer } from "@/lib/auth";
 import { getVerticalDashboardConfig } from "@/lib/verticals/dashboard";
+import { getSandboxContext } from "@/lib/sandbox/sandboxContext";
+import { MOCK_RECENT_ACTIVITY, MOCK_PROFILE_COMPLETENESS } from "@/lib/sandbox/mockDashboardData";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -100,26 +102,11 @@ export default async function UserDashboardPage() {
       : []),
   ];
 
-  const activityFeed = [
-    {
-      id: 1,
-      type: "reference",
-      message: "New reference from John Doe",
-      time: "2 hours ago",
-    },
-    {
-      id: 2,
-      type: "match",
-      message: "Coworker match found at ABC Security",
-      time: "1 day ago",
-    },
-    {
-      id: 3,
-      type: "message",
-      message: "New message from employer",
-      time: "2 days ago",
-    },
-  ];
+  const sandbox = await getSandboxContext(profile?.role ?? undefined);
+  const recentActivity = sandbox.enabled ? MOCK_RECENT_ACTIVITY : [];
+  const profileStats = sandbox.enabled
+    ? MOCK_PROFILE_COMPLETENESS
+    : { percent: 0, references: 0, jobs: 0 };
 
   return (
     <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-[#F8FAFC] min-w-0 overflow-x-hidden">
@@ -171,27 +158,35 @@ export default async function UserDashboardPage() {
                 <h2 className="text-xl font-semibold text-[#0F172A]">
                   Recent Activity
                 </h2>
-                <Button variant="ghost" size="sm">
-                  View All
-                </Button>
+                {recentActivity.length > 0 && (
+                  <Button variant="ghost" size="sm">
+                    View All
+                  </Button>
+                )}
               </div>
               <div className="space-y-3">
-                {activityFeed.map((activity) => (
-                  <div
-                    key={activity.id}
-                    className="flex items-start gap-3 p-3 rounded-xl bg-slate-50"
-                  >
-                    <div className="h-2 w-2 rounded-full bg-[#2563EB] mt-2" />
-                    <div className="flex-1">
-                      <p className="text-sm text-[#334155]">
-                        {activity.message}
-                      </p>
-                      <p className="text-xs text-[#64748B] mt-1">
-                        {activity.time}
-                      </p>
+                {recentActivity.length > 0 ? (
+                  recentActivity.map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="flex items-start gap-3 p-3 rounded-xl bg-slate-50"
+                    >
+                      <div className="h-2 w-2 rounded-full bg-[#2563EB] mt-2" />
+                      <div className="flex-1">
+                        <p className="text-sm text-[#334155]">
+                          {activity.message}
+                        </p>
+                        <p className="text-xs text-[#64748B] mt-1">
+                          {activity.time}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-sm text-[#64748B] py-4 text-center">
+                    No activity yet
+                  </p>
+                )}
               </div>
             </Card>
           </div>
@@ -219,24 +214,32 @@ export default async function UserDashboardPage() {
                 Profile completeness
               </h3>
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-grey-medium dark:text-gray-400">
-                    Profile complete
-                  </span>
-                  <Badge variant="success">85%</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-grey-medium dark:text-gray-400">
-                    References
-                  </span>
-                  <Badge variant="info">3</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-grey-medium dark:text-gray-400">
-                    Job history
-                  </span>
-                  <Badge variant="info">5</Badge>
-                </div>
+                {profileStats.percent > 0 || profileStats.references > 0 || profileStats.jobs > 0 ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-grey-medium dark:text-gray-400">
+                        Profile complete
+                      </span>
+                      <Badge variant="success">{profileStats.percent}%</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-grey-medium dark:text-gray-400">
+                        References
+                      </span>
+                      <Badge variant="info">{profileStats.references}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-grey-medium dark:text-gray-400">
+                        Job history
+                      </span>
+                      <Badge variant="info">{profileStats.jobs}</Badge>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-sm text-grey-medium dark:text-gray-400 py-2">
+                    Complete your profile to see stats
+                  </p>
+                )}
               </div>
             </Card>
 

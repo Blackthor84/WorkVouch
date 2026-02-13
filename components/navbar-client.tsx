@@ -35,7 +35,6 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
   const { preview } = usePreview();
   const user = userProp ?? session?.user;
   const role = roleProp ?? (session?.user as { role?: string } | undefined)?.role ?? null;
-  const showAdmin = role === "admin" || role === "superadmin";
   const impersonating = Boolean(impersonatingProp ?? (session as { impersonating?: boolean } | null)?.impersonating);
   const eliteDemo = Boolean(preview?.demoActive);
   const isEmployerArea = pathname?.startsWith("/employer");
@@ -125,25 +124,25 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
                     ))}
                   </select>
                 )}
-                {showAdmin && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      href="/admin"
-                      className="font-semibold text-primary dark:text-blue-400 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
-                    >
-                      Admin Panel
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      href="/admin/sandbox-v2"
-                      className="font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
-                    >
-                      Enterprise Simulation
-                    </Button>
-                  </>
+                {(role === "admin" || role === "superadmin") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    href="/admin"
+                    className="font-semibold text-primary dark:text-blue-400 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
+                  >
+                    Admin
+                  </Button>
+                )}
+                {role === "superadmin" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    href="/admin"
+                    className="font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
+                  >
+                    Sandbox
+                  </Button>
                 )}
                 {(role === "employer" || role === "superadmin") && (
                   <Button
