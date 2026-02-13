@@ -10,6 +10,7 @@ import { Logo } from "./logo";
 import { User } from "@/lib/auth";
 import { usePreview } from "@/lib/preview-context";
 import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
+import { useAuth } from "@/components/AuthContext";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 
 export interface OrgSwitcherItem {
@@ -30,11 +31,12 @@ interface NavbarClientProps {
 
 export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems, impersonating: impersonatingProp }: NavbarClientProps = {}) {
   const { data: session, status } = useSupabaseSession();
+  const { role: authRole, loading: authLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { preview } = usePreview();
   const user = userProp ?? session?.user;
-  const role = roleProp ?? null;
+  const role = authLoading ? null : (authRole ?? roleProp ?? null);
   const impersonating = Boolean(impersonatingProp ?? (session as { impersonating?: boolean } | null)?.impersonating);
   const eliteDemo = Boolean(preview?.demoActive);
   const isEmployerArea = pathname?.startsWith("/employer");
