@@ -1,13 +1,7 @@
 import SimulationClient from "./simulation-client";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 
 export default async function SimulatePage() {
-  const { session } = await getSupabaseSession();
-  const roles = (session?.user as { roles?: string[] })?.roles ?? [];
-
-  if (!roles.includes("admin") && !roles.includes("superadmin")) {
-    return null;
-  }
-
+  await requireAdmin();
   return <SimulationClient />;
 }

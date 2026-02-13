@@ -43,7 +43,7 @@ export default async function EmployerAccessPage() {
                 </p>
               )}
               <p className="text-sm text-grey-medium dark:text-gray-400 mt-1">
-                Current roles: {roles.length > 0 ? roles.join(", ") : "none"}
+                Role: {profile?.role === "superadmin" ? "super admin" : profile?.role === "admin" ? "admin" : profile?.role === "employer" ? "employer" : profile?.role ?? "none"}
               </p>
             </div>
 

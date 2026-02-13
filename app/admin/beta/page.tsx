@@ -1,14 +1,9 @@
-import { redirect } from "next/navigation";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 import BetaAccessManager from "@/components/admin/BetaAccessManager";
 import { AdminBetaGate } from "@/components/AdminBetaGate";
 
 export default async function AdminBetaPage() {
-  const { session } = await getSupabaseSession();
-
-  if (!session?.user) redirect("/login");
-  const roles = session.user.roles || [];
-  if (!roles.includes("admin") && !roles.includes("superadmin")) redirect("/dashboard");
+  await requireAdmin();
 
   return (
     <AdminBetaGate>

@@ -1,13 +1,8 @@
-import { redirect } from "next/navigation";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 import { DisputesList } from "@/components/workvouch/disputes-list";
 
 export default async function AdminDisputesPage() {
-  const { session } = await getSupabaseSession();
-
-  if (!session?.user) redirect("/login");
-  const roles = session.user.roles || [];
-  if (!roles.includes("admin") && !roles.includes("superadmin")) redirect("/dashboard");
+  await requireAdmin();
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

@@ -1,13 +1,8 @@
-import { redirect } from 'next/navigation';
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 import Link from 'next/link';
 
 export default async function AdCancelPage() {
-  const { session } = await getSupabaseSession();
-
-  if (!session?.user) redirect('/login');
-  const roles = session.user.roles || [];
-  if (!roles.includes('admin') && !roles.includes('superadmin')) redirect('/dashboard');
+  await requireAdmin();
 
   return (
     <div className="max-w-2xl mx-auto p-8">

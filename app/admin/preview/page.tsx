@@ -1,13 +1,8 @@
-import { redirect } from 'next/navigation';
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin/requireAdmin";
 import AdminPreview from '@/components/AdminPreview';
 
 export default async function AdminPreviewPage() {
-  const { session } = await getSupabaseSession();
-
-  if (!session?.user) redirect('/login');
-  const roles = session.user.roles || [];
-  if (!roles.includes('admin') && !roles.includes('superadmin')) redirect('/dashboard');
+  await requireAdmin();
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-4">
