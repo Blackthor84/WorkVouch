@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { getCurrentUser, getCurrentUserProfile, getCurrentUserRoles } from "@/lib/auth";
+import { getCurrentUser, getCurrentUserProfile } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     }
 
     const profile = await getCurrentUserProfile();
-    const roles = await getCurrentUserRoles();
+    const roles = profile?.role ? [profile.role] : [];
 
     if (!profile) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
         searchable_by_verified_employers: profileAny.searchable_by_verified_employers ?? true,
         searchable_by_shared_employers: profileAny.searchable_by_shared_employers ?? true,
       },
-      roles: roles || [],
+      roles,
     });
   } catch (error) {
     console.error("Get user error:", error);

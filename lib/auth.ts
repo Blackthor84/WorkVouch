@@ -62,25 +62,10 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   return profile as UserProfile;
 }
 
-/**
- * Get current user roles from user_roles table
- */
-export async function getCurrentUserRoles(): Promise<string[]> {
-  const user = await getCurrentUser();
-  if (!user) return [];
-  const supabase = await supabaseServer();
-  const supabaseAny = supabase as any;
-  const { data: roles } = await supabaseAny
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", user.id);
-  if (!roles || roles.length === 0) return [];
-  return (roles as any[]).map((r: any) => r.role);
-}
-
+/** Roles come only from profiles.role. */
 export async function hasRole(role: string): Promise<boolean> {
-  const roles = await getCurrentUserRoles();
-  return roles.includes(role);
+  const profile = await getCurrentUserProfile();
+  return (profile?.role ?? "") === role;
 }
 
 export async function isEmployer(): Promise<boolean> {
@@ -88,8 +73,9 @@ export async function isEmployer(): Promise<boolean> {
 }
 
 export async function isAdmin(): Promise<boolean> {
-  const roles = await getCurrentUserRoles();
-  return roles.includes("admin") || roles.includes("superadmin");
+  const profile = await getCurrentUserProfile();
+  const r = profile?.role ?? "";
+  return r === "admin" || r === "superadmin";
 }
 
 export async function isSuperAdmin(): Promise<boolean> {
@@ -97,17 +83,14 @@ export async function isSuperAdmin(): Promise<boolean> {
 }
 
 export async function hasRoleOrSuperadmin(role: string): Promise<boolean> {
-  const roles = await getCurrentUserRoles();
-  return roles.includes("superadmin") || roles.includes(role);
+  const profile = await getCurrentUserProfile();
+  const r = profile?.role ?? "";
+  return r === "superadmin" || r === role;
 }
 
 export async function getCurrentUserRole(): Promise<string | null> {
-  const user = await getCurrentUser();
-  if (!user) return null;
   const profile = await getCurrentUserProfile();
-  if (profile?.role) return profile.role;
-  const roles = await getCurrentUserRoles();
-  return roles[0] ?? null;
+  return profile?.role ?? null;
 }
 
 export async function requireAuth(): Promise<User> {

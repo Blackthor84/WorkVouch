@@ -1,5 +1,5 @@
 import { getSupabaseSession } from "@/lib/supabase/server";
-import { getCurrentUserProfile, getCurrentUserRoles } from "@/lib/auth";
+import { getCurrentUserProfile } from "@/lib/auth";
 import { getEffectiveRoles } from "@/lib/permissions/requireRole";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { NavbarClient, type OrgSwitcherItem } from "./navbar-client";
@@ -7,8 +7,8 @@ import { NavbarClient, type OrgSwitcherItem } from "./navbar-client";
 export async function NavbarServer() {
   const { session } = await getSupabaseSession();
   const profile = session?.user ? await getCurrentUserProfile() : null;
-  const roles = session?.user ? await getCurrentUserRoles() : [];
-  const role = profile?.role ?? roles[0] ?? (session?.user as { role?: string })?.role ?? null;
+  const roles = profile?.role ? [profile.role] : [];
+  const role = profile?.role ?? (session?.user as { role?: string })?.role ?? null;
   let orgSwitcherItems: OrgSwitcherItem[] | null = null;
   if (session?.user?.id) {
     const effectiveRoles = await getEffectiveRoles(session.user.id);
@@ -57,7 +57,7 @@ export async function NavbarServer() {
   return (
     <NavbarClient
       user={session?.user ?? undefined}
-      roles={roles.length > 0 ? roles : (session?.user as { roles?: string[] })?.roles ?? undefined}
+      roles={roles.length > 0 ? roles : undefined}
       role={role ?? undefined}
       orgSwitcherItems={orgSwitcherItems}
       impersonating={impersonating}

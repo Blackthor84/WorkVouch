@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { HomepageNavbar } from "@/components/homepage-navbar";
 import { NavbarClient } from "@/components/navbar-client";
-import { getCurrentUser, getCurrentUserRoles } from "@/lib/auth";
+import { getCurrentUser, getCurrentUserProfile } from "@/lib/auth";
 
 export async function NavbarConditional() {
   const pathname = usePathname();
@@ -13,10 +13,9 @@ export async function NavbarConditional() {
     return <HomepageNavbar />;
   }
 
-  // For non-homepage, we need to get user data
-  // Since this is client-side, we'll need to fetch it
   const user = await getCurrentUser();
-  const roles = await getCurrentUserRoles();
+  const profile = await getCurrentUserProfile();
+  const roles = profile?.role ? [profile.role] : [];
 
   return <NavbarClient user={user} roles={roles} />;
 }

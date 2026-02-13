@@ -7,7 +7,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { getCurrentUser, getCurrentUserProfile, getCurrentUserRoles } from "@/lib/auth";
+import { getCurrentUser, getCurrentUserProfile } from "@/lib/auth";
 import { isAdmin } from "@/lib/roles";
 
 export const SIMULATION_SESSION_DEFAULT_MINUTES = 60;
@@ -113,8 +113,8 @@ export async function hasActiveSimulationPreview(userId: string | null): Promise
 export async function getProductionSimulationFilter(): Promise<{ is_simulation?: boolean }> {
   const user = await getCurrentUser();
   if (!user?.id) return { is_simulation: false };
-  const [profile, roles] = await Promise.all([getCurrentUserProfile(), getCurrentUserRoles()]);
-  const admin = isAdmin(profile?.role ?? null) || roles.some((r) => isAdmin(r));
+  const profile = await getCurrentUserProfile();
+  const admin = isAdmin(profile?.role ?? null);
   if (!admin) return { is_simulation: false };
   const hasPreview = await hasActiveSimulationPreview(user.id);
   if (hasPreview) return {};
@@ -127,8 +127,8 @@ export async function getProductionSimulationFilter(): Promise<{ is_simulation?:
 export async function requireSimulationLabAdmin(): Promise<{ id: string }> {
   const user = await getCurrentUser();
   if (!user?.id) throw new Error("Unauthorized");
-  const [profile, roles] = await Promise.all([getCurrentUserProfile(), getCurrentUserRoles()]);
-  const admin = isAdmin(profile?.role ?? null) || roles.some((r) => isAdmin(r));
+  const profile = await getCurrentUserProfile();
+  const admin = isAdmin(profile?.role ?? null);
   if (!admin) throw new Error("Forbidden: admin or superadmin required");
   return { id: user.id };
 }

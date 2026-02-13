@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { getCurrentUser, hasRole, getCurrentUserRoles } from "@/lib/auth";
+import { getCurrentUser, hasRole, getCurrentUserProfile } from "@/lib/auth";
 import { EmployerHeader } from "@/components/employer/employer-header";
 import { EmployerSidebar } from "@/components/employer/employer-sidebar";
 import { EmployerDashboardClient } from "@/components/employer/EmployerDashboardClient";
@@ -45,8 +45,8 @@ export default async function EmployerDashboardPage({
     const planTier = (employerAccount as EmployerAccountRow | null)?.plan_tier || "free";
     const employerId = (employerAccount as EmployerAccountRow | null)?.id;
     const employerIndustry = (employerAccount as EmployerAccountRow | null)?.industry_type ?? null;
-    const roles = await getCurrentUserRoles();
-    const userRole = roles.includes("superadmin") ? "superadmin" : roles.includes("admin") ? "admin" : roles.includes("employer") ? "employer" : "user";
+    const profile = await getCurrentUserProfile();
+    const userRole = profile?.role === "superadmin" ? "superadmin" : profile?.role === "admin" ? "admin" : profile?.role === "employer" ? "employer" : "user";
 
     return (
       <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">

@@ -1,4 +1,4 @@
-import { getCurrentUser, getCurrentUserRoles } from "@/lib/auth";
+import { getCurrentUser, getCurrentUserProfile } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
@@ -6,8 +6,8 @@ import Link from "next/link";
 
 export default async function EmployerAccessPage() {
   const user = await getCurrentUser();
-  const roles = await getCurrentUserRoles();
-  const hasEmployerRole = roles.includes("employer");
+  const profile = await getCurrentUserProfile();
+  const hasEmployerRole = profile?.role === "employer";
 
   return (
     <div className="min-h-screen bg-background dark:bg-[#0D1117] py-12 px-4 sm:px-6 lg:px-8">

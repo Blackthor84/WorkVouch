@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { getCurrentUser, getCurrentUserRoles } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { checkPaywall } from "@/lib/middleware/paywall";
 import { z } from "zod";
 
@@ -61,8 +61,7 @@ export async function POST(req: NextRequest) {
       subscriptionTier = employerAccount?.plan_tier || "free";
     }
 
-    // Get user roles for paywall check
-    const userRoles = await getCurrentUserRoles();
+    const userRoles = profile?.role ? [profile.role] : undefined;
 
     // Check paywall for messaging feature
     const paywallCheck = await checkPaywall(
@@ -70,7 +69,7 @@ export async function POST(req: NextRequest) {
       subscriptionTier,
       "unlimited_messaging",
       user.email,
-      userRoles.length > 0 ? userRoles : undefined
+      userRoles
     );
 
     if (!paywallCheck.allowed) {

@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { getCurrentUser, getCurrentUserRoles, getCurrentUserProfile } from "@/lib/auth";
+import { getCurrentUser, getCurrentUserProfile } from "@/lib/auth";
 import { isAdmin } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +17,7 @@ export async function GET() {
     const user = await getCurrentUser();
     if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const profile = await getCurrentUserProfile();
-    const roles = await getCurrentUserRoles();
-    const admin = isAdmin(profile?.role ?? null) || roles.some((r) => isAdmin(r));
+    const admin = isAdmin(profile?.role ?? null);
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const supabase = getSupabaseServer();
@@ -49,8 +48,7 @@ export async function PATCH(req: NextRequest) {
     const user = await getCurrentUser();
     if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const profile = await getCurrentUserProfile();
-    const roles = await getCurrentUserRoles();
-    const admin = isAdmin(profile?.role ?? null) || roles.some((r) => isAdmin(r));
+    const admin = isAdmin(profile?.role ?? null);
     if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await req.json().catch(() => ({}));

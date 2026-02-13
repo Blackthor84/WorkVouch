@@ -4,7 +4,7 @@
  */
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { getCurrentUser, getCurrentUserProfile, getCurrentUserRoles } from "@/lib/auth";
+import { getCurrentUser, getCurrentUserProfile } from "@/lib/auth";
 import { isAdmin } from "@/lib/roles";
 
 export interface SandboxRow {
@@ -24,8 +24,8 @@ export interface SandboxRow {
 export async function requireSandboxAdmin(): Promise<{ id: string }> {
   const user = await getCurrentUser();
   if (!user?.id) throw new Error("Unauthorized");
-  const [profile, roles] = await Promise.all([getCurrentUserProfile(), getCurrentUserRoles()]);
-  const admin = isAdmin(profile?.role ?? null) || roles.some((r) => isAdmin(r));
+  const profile = await getCurrentUserProfile();
+  const admin = isAdmin(profile?.role ?? null);
   if (!admin) throw new Error("Forbidden: admin or superadmin required");
   return { id: user.id };
 }

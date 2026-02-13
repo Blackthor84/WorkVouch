@@ -1,5 +1,5 @@
-import { getSupabaseSession } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { supabaseServer } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import type { Database } from "@/types/supabase";
@@ -14,14 +14,23 @@ type AdminActionInsert = Database["public"]["Tables"]["admin_actions"]["Insert"]
 
 export async function POST(request: Request) {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user) {
+    const supabase = await supabaseServer();
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const roles = await getCurrentUserRoles();
-    const isAdmin = roles.includes("admin") || roles.includes("superadmin");
-    if (!isAdmin) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", session.user.id)
+      .single();
+
+    if (!profile || !["admin", "superadmin"].includes((profile as { role?: string }).role ?? "")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -34,19 +43,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = getSupabaseServer();
+    const adminSupabase = getSupabaseServer();
 
-    const { data: profile, error } = await supabase
+    const { data: targetProfile, error } = await adminSupabase
       .from("profiles")
       .select("id, email")
       .eq("id", userId)
       .single<Profile>();
 
-    if (error || !profile) {
+    if (error || !targetProfile) {
       return new Response("Profile not found", { status: 404 });
     }
 
-    const { data: rolesData, error: rolesError } = await supabase
+    const { data: rolesData, error: rolesError } = await adminSupabase
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
@@ -79,8 +88,8 @@ export async function POST(request: Request) {
           : "user";
 
     const impersonateUser = {
-      id: profile.id,
-      email: profile.email ?? "",
+      id: targetProfile.id,
+      email: targetProfile.email ?? "",
       role,
       roles: targetRoles,
     };
@@ -89,7 +98,7 @@ export async function POST(request: Request) {
     let impersonationToken: string | null = null;
 
     try {
-      const { data: adminSession, error: sessionErr } = await supabase
+      const { data: adminSession, error: sessionErr } = await adminSupabase
         .from("admin_sessions")
         .insert({
           admin_id: session.user.id,
@@ -122,7 +131,7 @@ export async function POST(request: Request) {
         impersonated_user_id: userId,
         action_type: "impersonate",
       };
-      await supabase.from("admin_actions").insert(adminAction);
+      await adminSupabase.from("admin_actions").insert(adminAction);
     } catch {
       // Table may not exist; ignore
     }
