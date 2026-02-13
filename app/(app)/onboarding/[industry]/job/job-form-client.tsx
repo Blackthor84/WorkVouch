@@ -45,7 +45,7 @@ export function JobFormClient({ industry }: JobFormClientProps) {
     }
 
     checkUser();
-  }, [router, supabase]);
+  }, [router]);
 
   const handleNext = async () => {
     if (!jobTitle || !employer || !startDate || !employmentType) {
@@ -65,7 +65,7 @@ export function JobFormClient({ industry }: JobFormClientProps) {
         : [];
 
       // Insert job
-      const supabaseAny = supabase as any;
+      const supabaseAny = supabaseBrowser as any;
       const { error: jobError } = await supabaseAny.from("jobs").insert([
         {
           user_id: user.id,
