@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { supabaseServer, upgradeRequired401 } from "@/lib/supabase/server";
 import { Database } from "@/types/database";
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const supabase = await createServerSupabase();
-    const supabaseAny = supabase as any;
-    console.log("Supabase auth check triggered in: app/api/save-parsed-profile/route.ts");
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    const supabase = await supabaseServer();
+    const { data } = await supabase.auth.getSession();
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!data.session) {
+      return upgradeRequired401();
     }
+
+    const user = data.session.user;
+    const supabaseAny = supabase as any;
 
     const body = await request.json();
     const { jobs, education, skills, certifications, contactInfo, summary } =
