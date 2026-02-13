@@ -8,24 +8,34 @@ export function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  const hasSession = request.cookies
+    .getAll()
+    .some((c) => c.name.includes("next-auth") || c.name.includes("sb-"));
+
+  if (pathname === "/login" || pathname.startsWith("/login/")) {
+    if (hasSession) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+    return NextResponse.next();
+  }
+
   if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/images") ||
-    pathname.startsWith("/icons") ||
-    pathname === "/manifest.json" ||
-    pathname === "/sw.js" ||
-    pathname === "/favicon.ico" ||
-    // 🔑 AUTH MUST ALWAYS PASS
+    pathname === "/auth/callback" ||
+    pathname.startsWith("/auth/callback") ||
     pathname.startsWith("/auth") ||
     pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/login") ||
     pathname.startsWith("/signup") ||
+    pathname === "/manifest.json" ||
+    pathname.startsWith("/_next") ||
+    pathname === "/favicon.ico" ||
+    pathname.startsWith("/icons") ||
+    pathname.startsWith("/images") ||
+    pathname === "/sw.js" ||
     pathname === "/"
   ) {
     return NextResponse.next();
   }
 
-  // 🔒 Only protect real private routes
   const protectedRoutes = [
     "/dashboard",
     "/admin",
@@ -41,11 +51,6 @@ export function proxy(request: NextRequest) {
   if (!isProtected) {
     return NextResponse.next();
   }
-
-  // ✅ Session: next-auth or Supabase cookie (proxy is the only route guard)
-  const hasSession = request.cookies
-    .getAll()
-    .some((c) => c.name.includes("next-auth") || c.name.includes("sb-"));
 
   if (!hasSession) {
     return NextResponse.redirect(new URL("/login?reason=session_expired", request.url));
