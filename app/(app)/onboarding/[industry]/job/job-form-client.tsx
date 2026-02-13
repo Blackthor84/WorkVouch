@@ -19,7 +19,7 @@ interface JobFormClientProps {
 
 export function JobFormClient({ industry }: JobFormClientProps) {
   const router = useRouter();
-  // Using single supabase instance
+  const authReady = useSupabaseReady();
   const [jobTitle, setJobTitle] = useState("");
   const [employer, setEmployer] = useState("");
   const [startDate, setStartDate] = useState("");
