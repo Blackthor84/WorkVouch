@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,12 @@ import {
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { formatDateShort } from "@/lib/utils/date";
+
+interface Trade {
+  id: string;
+  slug: string;
+  display_name: string;
+}
 
 interface Employee {
   userId: string;
@@ -34,9 +40,18 @@ interface Employee {
 
 export function EmployeeSearch() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [tradeSlug, setTradeSlug] = useState<string>("");
+  const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/trades")
+      .then((r) => r.json())
+      .then((d) => setTrades(d.trades ?? []))
+      .catch(() => setTrades([]));
+  }, []);
 
   const handleSearch = async () => {
     if (searchQuery.length < 2) {
@@ -47,9 +62,12 @@ export function EmployeeSearch() {
     setLoading(true);
     setError(null);
 
+    const params = new URLSearchParams({ name: searchQuery });
+    if (tradeSlug) params.set("trade", tradeSlug);
+
     try {
       const response = await fetch(
-        `/api/employer/search-employees?name=${encodeURIComponent(searchQuery)}`,
+        `/api/employer/search-employees?${params.toString()}`,
       );
       const data = await response.json();
 
@@ -147,7 +165,7 @@ export function EmployeeSearch() {
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
             <Input
               placeholder="Search by employee name..."
@@ -156,6 +174,19 @@ export function EmployeeSearch() {
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             />
           </div>
+          <select
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm min-w-[140px]"
+            value={tradeSlug}
+            onChange={(e) => setTradeSlug(e.target.value)}
+            aria-label="Filter by trade"
+          >
+            <option value="">All trades</option>
+            {trades.map((t) => (
+              <option key={t.id} value={t.slug}>
+                {t.display_name}
+              </option>
+            ))}
+          </select>
           <Button onClick={handleSearch} disabled={loading}>
             <MagnifyingGlassIcon className="h-5 w-5 mr-2" />
             {loading ? "Searching..." : "Search"}

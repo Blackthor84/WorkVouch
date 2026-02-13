@@ -54,6 +54,7 @@ const nav = {
     { href: "/admin/vertical-control", label: "Vertical Control" },
     { href: "/admin/system", label: "System Panel" },
     { href: "/admin/hidden-features", label: "Hidden Features" },
+    { href: "/admin/scale-metrics", label: "Scale Metrics" },
     { href: "/admin/superadmin", label: "Superadmin Control" },
   ],
 };
@@ -62,7 +63,7 @@ export function AdminSidebar({ isSuperAdmin }: AdminSidebarProps) {
   const pathname = usePathname();
 
   const systemLinks = nav.System.filter((item) => {
-    if (item.href === "/admin/system" || item.href === "/admin/hidden-features" || item.href === "/admin/superadmin") {
+    if (item.href === "/admin/system" || item.href === "/admin/hidden-features" || item.href === "/admin/scale-metrics" || item.href === "/admin/superadmin") {
       return isSuperAdmin;
     }
     return true;

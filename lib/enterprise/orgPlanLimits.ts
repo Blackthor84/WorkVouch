@@ -10,27 +10,32 @@ export interface OrgPlanLimitConfig {
   max_admins: number;
   max_locations: number;
   max_monthly_unlocks: number;
+  /** Monthly checks (e.g. resume/hiring); -1 = unlimited */
+  max_monthly_checks: number;
   /** -1 = unlimited */
   unlimited: boolean;
 }
 
 export const ORG_PLAN_LIMITS: Record<OrgPlanType, OrgPlanLimitConfig> = {
   starter: {
-    max_admins: 2,
+    max_admins: 1,
     max_locations: 1,
     max_monthly_unlocks: 25,
+    max_monthly_checks: 50,
     unlimited: false,
   },
   growth: {
-    max_admins: 5,
-    max_locations: 3,
+    max_admins: 3,
+    max_locations: 2,
     max_monthly_unlocks: 100,
+    max_monthly_checks: 200,
     unlimited: false,
   },
   enterprise: {
     max_admins: -1,
     max_locations: -1,
     max_monthly_unlocks: -1,
+    max_monthly_checks: -1,
     unlimited: true,
   },
 };

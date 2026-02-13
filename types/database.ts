@@ -1541,15 +1541,51 @@ export interface Database {
         Relationships: []
       }
       organizations: {
-        Row: { id: string; name: string; slug: string; billing_tier: string; created_at: string; updated_at: string }
-        Insert: { id?: string; name: string; slug: string; billing_tier?: string; created_at?: string; updated_at?: string }
-        Update: { id?: string; name?: string; slug?: string; billing_tier?: string; created_at?: string; updated_at?: string }
+        Row: { id: string; name: string; slug: string; billing_tier: string; plan_type: string | null; enterprise_features: Json | null; number_of_locations: number; requires_enterprise: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; name: string; slug: string; billing_tier?: string; plan_type?: string | null; enterprise_features?: Json | null; number_of_locations?: number; requires_enterprise?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; name?: string; slug?: string; billing_tier?: string; plan_type?: string | null; enterprise_features?: Json | null; number_of_locations?: number; requires_enterprise?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      organization_usage: {
+        Row: { id: string; organization_id: string; month: string; unlock_count: number; monthly_checks: number; last_reset: string | null; admin_count_snapshot: number | null; location_count_snapshot: number | null; created_at: string; updated_at: string }
+        Insert: { id?: string; organization_id: string; month: string; unlock_count?: number; monthly_checks?: number; last_reset?: string | null; admin_count_snapshot?: number | null; location_count_snapshot?: number | null; created_at?: string; updated_at?: string }
+        Update: { id?: string; organization_id?: string; month?: string; unlock_count?: number; monthly_checks?: number; last_reset?: string | null; admin_count_snapshot?: number | null; location_count_snapshot?: number | null; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      organization_features: {
+        Row: { id: string; organization_id: string; bulk_upload_enabled: boolean; api_access_enabled: boolean; multi_location_enabled: boolean; priority_support: boolean; advanced_analytics: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; organization_id: string; bulk_upload_enabled?: boolean; api_access_enabled?: boolean; multi_location_enabled?: boolean; priority_support?: boolean; advanced_analytics?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; organization_id?: string; bulk_upload_enabled?: boolean; api_access_enabled?: boolean; multi_location_enabled?: boolean; priority_support?: boolean; advanced_analytics?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      enterprise_signals: {
+        Row: { id: string; organization_id: string; signal_type: string; value: number | null; triggered_at: string; resolved: boolean; created_at: string }
+        Insert: { id?: string; organization_id: string; signal_type: string; value?: number | null; triggered_at?: string; resolved?: boolean; created_at?: string }
+        Update: { id?: string; organization_id?: string; signal_type?: string; value?: number | null; triggered_at?: string; resolved?: boolean; created_at?: string }
+        Relationships: []
+      }
+      employer_users: {
+        Row: { id: string; organization_id: string; location_id: string | null; profile_id: string; role: string; created_at: string }
+        Insert: { id?: string; organization_id: string; location_id?: string | null; profile_id: string; role: string; created_at?: string }
+        Update: { id?: string; organization_id?: string; location_id?: string | null; profile_id?: string; role?: string; created_at?: string }
+        Relationships: []
+      }
+      plan_limits: {
+        Row: { id: string; plan_key: string; max_locations: number; max_admins: number; max_monthly_checks: number; created_at: string; updated_at: string }
+        Insert: { id?: string; plan_key: string; max_locations?: number; max_admins?: number; max_monthly_checks?: number; created_at?: string; updated_at?: string }
+        Update: { id?: string; plan_key?: string; max_locations?: number; max_admins?: number; max_monthly_checks?: number; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      organization_metrics: {
+        Row: { id: string; organization_id: string; metric_name: string; metric_value: number; created_at: string }
+        Insert: { id?: string; organization_id: string; metric_name: string; metric_value?: number; created_at?: string }
+        Update: { id?: string; organization_id?: string; metric_name?: string; metric_value?: number; created_at?: string }
         Relationships: []
       }
       locations: {
-        Row: { id: string; organization_id: string; name: string; slug: string; created_at: string; updated_at: string }
-        Insert: { id?: string; organization_id: string; name: string; slug: string; created_at?: string; updated_at?: string }
-        Update: { id?: string; organization_id?: string; name?: string; slug?: string; created_at?: string; updated_at?: string }
+        Row: { id: string; organization_id: string; name: string; slug: string; city: string | null; state: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; organization_id: string; name: string; slug: string; city?: string | null; state?: string | null; created_at?: string; updated_at?: string }
+        Update: { id?: string; organization_id?: string; name?: string; slug?: string; city?: string | null; state?: string | null; created_at?: string; updated_at?: string }
         Relationships: []
       }
       departments: {
@@ -1598,6 +1634,18 @@ export interface Database {
         Row: { id: string; organization_id: string; user_id: string | null; action: string; metadata: unknown; environment: string; created_at: string }
         Insert: { id?: string; organization_id: string; user_id?: string | null; action: string; metadata?: unknown; environment?: string; created_at?: string }
         Update: { id?: string; organization_id?: string; user_id?: string | null; action?: string; metadata?: unknown; environment?: string; created_at?: string }
+        Relationships: []
+      }
+      trades: {
+        Row: { id: string; slug: string; display_name: string; created_at: string }
+        Insert: { id?: string; slug: string; display_name: string; created_at?: string }
+        Update: { id?: string; slug?: string; display_name?: string; created_at?: string }
+        Relationships: []
+      }
+      profile_trades: {
+        Row: { id: string; profile_id: string; trade_id: string; created_at: string }
+        Insert: { id?: string; profile_id: string; trade_id: string; created_at?: string }
+        Update: { id?: string; profile_id?: string; trade_id?: string; created_at?: string }
         Relationships: []
       }
     }

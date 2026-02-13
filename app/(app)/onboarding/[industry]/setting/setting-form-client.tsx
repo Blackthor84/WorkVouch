@@ -64,7 +64,7 @@ export function SettingFormClient({ industry }: SettingFormClientProps) {
         return;
       }
 
-      router.push(`/onboarding/${industry}/job`);
+      router.push(`/onboarding/${industry}/trades`);
     } catch (err: any) {
       console.error("Error:", err);
       alert("An error occurred. Please try again.");

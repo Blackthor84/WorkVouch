@@ -9,6 +9,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { checkFeatureAccess } from "@/lib/feature-flags";
+import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
 
 export async function GET(req: NextRequest) {
   try {
@@ -40,6 +41,15 @@ export async function GET(req: NextRequest) {
       (await checkFeatureAccess("enterprise_team_fit", { userId, employerId, uiOnly: true }));
     if (!allowed) {
       return NextResponse.json({ error: "Feature not available" }, { status: 403 });
+    }
+
+    const { data: eu } = await supabase.from("employer_users").select("organization_id").eq("profile_id", userId).limit(1).maybeSingle();
+    const organizationId = (eu as { organization_id?: string } | null)?.organization_id;
+    if (organizationId) {
+      const limitCheck = await checkOrgLimits(organizationId, "run_check");
+      if (!limitCheck.allowed) {
+        return planLimit403Response(limitCheck, "run_check");
+      }
     }
 
     const [teamFitRes, riskResEmp, riskResGlobal, networkRes, hiringRes] = await Promise.all([

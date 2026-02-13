@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSimulationLabAdmin } from "@/lib/simulation-lab";
 import { requireEnterpriseSimulationMode } from "@/lib/enterprise/simulation-guard";
-import { checkOrgLimits } from "@/lib/enterprise/enforceOrgLimits";
+import { checkOrgLimits } from "@/lib/enterprise/checkOrgLimits";
 
 export const dynamic = "force-dynamic";
 
@@ -35,38 +35,35 @@ export async function POST(req: NextRequest) {
     const planType = (org as { plan_type?: string }).plan_type;
     const isEnterprise = planType === "enterprise";
 
-    const addLocationCheck = await checkOrgLimits({ organizationId: orgId }, "add_location");
+    const addLocationCheck = await checkOrgLimits(orgId, "add_location");
     const locationPass: boolean = isEnterprise
-      ? addLocationCheck?.allowed === true
-      : (addLocationCheck?.allowed === false || addLocationCheck?.requiresUpgrade === true);
+      ? addLocationCheck.allowed === true
+      : (addLocationCheck.allowed === false || !!addLocationCheck.error);
     results.push({
       test: "add_location limit check",
       expected: "enterprise: allowed; starter/growth: 403 when at limit",
-      got: addLocationCheck?.allowed === true ? "allowed" : `403 ${addLocationCheck?.error ?? ""}`,
+      got: addLocationCheck.allowed === true ? "allowed" : `403 ${addLocationCheck.error ?? ""}`,
       passed: locationPass,
     });
 
-    const addAdminCheck = await checkOrgLimits({ organizationId: orgId }, "add_admin");
+    const addAdminCheck = await checkOrgLimits(orgId, "add_admin");
     const adminPass: boolean = isEnterprise
-      ? addAdminCheck?.allowed === true
-      : (addAdminCheck?.allowed === false || addAdminCheck?.requiresUpgrade === true);
+      ? addAdminCheck.allowed === true
+      : (addAdminCheck.allowed === false || !!addAdminCheck.error);
     results.push({
       test: "add_admin limit check",
       expected: "enterprise: allowed; starter/growth: 403 when at limit",
-      got: addAdminCheck?.allowed === true ? "allowed" : `403 ${addAdminCheck?.error ?? ""}`,
+      got: addAdminCheck.allowed === true ? "allowed" : `403 ${addAdminCheck.error ?? ""}`,
       passed: adminPass,
     });
 
-    const unlockCheck = await checkOrgLimits(
-      { organizationId: orgId, month: new Date().toISOString().slice(0, 7) },
-      "unlock"
-    );
-    const unlockPass: boolean = true;
+    const runCheckResult = await checkOrgLimits(orgId, "run_check");
+    const runCheckPass: boolean = true;
     results.push({
-      test: "unlock limit check",
-      expected: "enterprise: allowed; starter/growth: 403 when over monthly cap",
-      got: unlockCheck?.allowed === true ? "allowed" : `403 ${unlockCheck?.error ?? ""}`,
-      passed: unlockPass,
+      test: "run_check limit check",
+      expected: "enterprise: allowed; starter/growth: 403 when over monthly_checks cap",
+      got: runCheckResult.allowed === true ? "allowed" : `403 ${runCheckResult.error ?? ""}`,
+      passed: runCheckPass,
     });
 
     const allPassed: boolean = results.every((r) => r.passed === true);

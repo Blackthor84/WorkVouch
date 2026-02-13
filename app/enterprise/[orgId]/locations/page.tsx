@@ -1,10 +1,17 @@
 import Link from "next/link";
 import { requireEnterpriseOwner } from "@/lib/enterprise/requireEnterprise";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { createServerSupabase } from "@/lib/supabase/server";
 import { getEnvironmentForServer } from "@/lib/app-mode";
 import { headers, cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
+
+type Location = {
+  id: string;
+  name: string;
+  city: string | null;
+  state: string | null;
+};
 
 export default async function EnterpriseLocationsPage({ params }: { params: Promise<{ orgId: string }> }) {
   const { orgId } = await params;
@@ -12,16 +19,22 @@ export default async function EnterpriseLocationsPage({ params }: { params: Prom
   const h = await headers();
   const c = await cookies();
   const env = getEnvironmentForServer(h, c);
-  const supabase = getSupabaseServer();
+  const supabase = await createServerSupabase();
 
-  const { data: locations } = await supabase
+  const { data: locations, error } = await supabase
     .from("locations")
-    .select("id, name, slug, city, state")
+    .select("id, name, city, state")
     .eq("organization_id", orgId)
-    .eq("environment", env)
     .order("name");
 
-  const locationIds = (locations ?? []).map((l) => l.id);
+  if (error) {
+    console.error("[LOCATIONS_FETCH_ERROR]", error);
+    return <div>Failed to load locations.</div>;
+  }
+
+  const safeLocations: Location[] = locations ?? [];
+  const locationIds = safeLocations.map((l) => l.id);
+
   const employeeCounts: Record<string, number> = {};
   const refCounts: Record<string, number> = {};
   for (const loc of locationIds) {
@@ -72,15 +85,16 @@ export default async function EnterpriseLocationsPage({ params }: { params: Prom
             </tr>
           </thead>
           <tbody>
-            {(locations ?? []).map((loc) => (
+            {safeLocations.map((loc) => (
               <tr key={loc.id} className="border-b border-gray-100 dark:border-gray-700">
                 <td className="p-3">
                   <Link href={`/enterprise/${orgId}/locations/${loc.id}`} className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
                     {loc.name}
                   </Link>
-                  <span className="text-gray-500 ml-1">({loc.slug})</span>
                 </td>
-                <td className="p-3 text-gray-600 dark:text-gray-400">{[loc.city, loc.state].filter(Boolean).join(", ") || "—"}</td>
+                <td className="p-3 text-gray-600 dark:text-gray-400">
+                  {[loc.city, loc.state].filter(Boolean).join(", ") || "—"}
+                </td>
                 <td className="p-3 text-right">{employeeCounts[loc.id] ?? 0}</td>
                 <td className="p-3 text-right">{refCounts[loc.id] ?? 0}</td>
                 <td className="p-3 text-gray-500">Active</td>
@@ -89,7 +103,7 @@ export default async function EnterpriseLocationsPage({ params }: { params: Prom
           </tbody>
         </table>
       </div>
-      {(!locations || locations.length === 0) && (
+      {safeLocations.length === 0 && (
         <p className="text-gray-500 dark:text-gray-400">No locations yet. Add one above.</p>
       )}
     </div>

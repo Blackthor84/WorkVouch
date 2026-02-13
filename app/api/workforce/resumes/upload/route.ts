@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireLocationAccess } from "@/lib/enterprise/requireEnterprise";
+import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
 import { getEnvironmentForServer } from "@/lib/app-mode";
 import { extractTextFromBuffer } from "@/lib/workforce/resume-extract";
 import { parseResumeWithAI } from "@/lib/workforce/resume-parse-ai";
@@ -61,6 +62,11 @@ export async function POST(req: NextRequest) {
     }
     if (employee.location_id !== locationId) {
       return NextResponse.json({ success: false, error: "Employee not in this location" }, { status: 403 });
+    }
+
+    const limitCheck = await checkOrgLimits(employee.organization_id, "run_check");
+    if (!limitCheck.allowed) {
+      return planLimit403Response(limitCheck, "run_check");
     }
 
     const ext = file.type === "application/pdf" ? "pdf" : "docx";

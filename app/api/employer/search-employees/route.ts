@@ -46,6 +46,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const name = searchParams.get("name");
+    const tradeSlug = searchParams.get("trade") ?? searchParams.get("tradeSlug");
     const companyName =
       searchParams.get("companyName") || employerAccount?.company_name;
 
@@ -60,7 +61,26 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const { data: jobs, error: jobsError } = await supabase
+    let userIdsFilter: string[] | null = null;
+    if (tradeSlug && tradeSlug.trim()) {
+      const { data: tradeRow } = await supabase
+        .from("trades")
+        .select("id")
+        .eq("slug", tradeSlug.trim())
+        .maybeSingle();
+      if (tradeRow?.id) {
+        const { data: pt } = await supabase
+          .from("profile_trades")
+          .select("profile_id")
+          .eq("trade_id", tradeRow.id);
+        userIdsFilter = (pt ?? []).map((r) => r.profile_id);
+        if (userIdsFilter.length === 0) {
+          return NextResponse.json({ employees: [] });
+        }
+      }
+    }
+
+    let query = supabase
       .from("jobs")
       .select(
         `
@@ -82,6 +102,12 @@ export async function GET(req: NextRequest) {
       .ilike("company_name", companyName)
       .ilike("profiles.full_name", `%${name}%`)
       .order("start_date", { ascending: false });
+
+    if (userIdsFilter && userIdsFilter.length > 0) {
+      query = query.in("user_id", userIdsFilter);
+    }
+
+    const { data: jobs, error: jobsError } = await query;
 
     if (jobsError) {
       console.error("Search employees error:", jobsError);

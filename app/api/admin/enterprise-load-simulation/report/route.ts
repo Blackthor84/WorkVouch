@@ -27,6 +27,12 @@ const defaultReport = () => ({
   },
   scaling_risk_level: "low" as "low" | "moderate" | "high",
   recommended_improvements: [] as string[],
+  enterprise_recommended_signal: {
+    enterprise_recommended: false,
+    recommendation_reason: null as string | null,
+    abuse_score: 0,
+    flags: [] as string[],
+  },
 });
 
 export async function GET() {
