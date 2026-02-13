@@ -112,6 +112,7 @@ export async function calculateCoreTrustScore(userId: string): Promise<{
   components: TrustScoreComponents;
   previousScore: number | null;
   version: string;
+  organizationId: string | null;
 }> {
   const startMs = Date.now();
   logIntel({
@@ -273,7 +274,7 @@ export async function recalculateTrustScore(
   const triggeredBy = options?.triggeredBy ?? userId;
   const reason = options?.reason ?? "manual_admin";
 
-  const { score, components, previousScore, version } =
+  const { score, components, previousScore, version, organizationId } =
     await calculateCoreTrustScore(userId);
 
   const sb = getSupabaseServer();

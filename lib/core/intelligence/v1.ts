@@ -63,7 +63,7 @@ export function calculateV1(input: ProfileInput): number {
   const rvs = reviewVolumeStrength(input.reviewCount);
   const ss = sentimentStrength(input.sentimentAverage);
   const rs = ratingStrength(input.averageRating);
-  const fp = fraudPenalty(input.fraudScore);
+  const fp = fraudPenalty(input.fraudScore, input.fraud_count);
   const rawScore = ts + rvs + ss + rs - fp;
   const rm = rehireMultiplier(input.rehireEligible);
   const finalScore = clamp(rawScore * rm, MIN_SCORE, MAX_SCORE);

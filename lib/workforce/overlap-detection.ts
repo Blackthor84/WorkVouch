@@ -19,8 +19,8 @@ function normalizeCompany(name: string): string {
     .replace(/[,.]/g, "");
 }
 
-function parseDate(s: string): Date | null {
-  if (!s || s.trim() === "") return null;
+function parseDate(s: string | null): Date | null {
+  if (s == null || s.trim() === "") return null;
   const d = new Date(s.trim());
   return Number.isNaN(d.getTime()) ? null : d;
 }

@@ -22,6 +22,8 @@ export interface AbuseSignalsResult {
   enterprise_recommended: boolean;
   /** Set when enterprise_recommended; reason for upgrade CTA. */
   recommendation_reason: string | null;
+  /** Non-blocking hint when enterprise_recommended. */
+  hint: string | null;
 }
 
 /** Default threshold above which to soft-block and surface upgrade CTA. */
@@ -53,13 +55,13 @@ export async function getAbuseSignals(organizationId: string): Promise<AbuseSign
     .single();
 
   if (!org) {
-    return { riskScore: 0, flags: [], enterprise_recommended: false, recommendation_reason: null };
+    return { riskScore: 0, flags: [], enterprise_recommended: false, recommendation_reason: null, hint: null };
   }
 
   const planType = (org as { plan_type?: string | null }).plan_type;
   const planKey = normalizePlanKey(planType);
   if (planKey === "enterprise") {
-    return { riskScore: 0, flags: [], enterprise_recommended: false, recommendation_reason: null };
+    return { riskScore: 0, flags: [], enterprise_recommended: false, recommendation_reason: null, hint: null };
   }
 
   const limits = getOrgPlanLimits(planType);
@@ -119,6 +121,14 @@ export async function getAbuseSignals(organizationId: string): Promise<AbuseSign
   }
 
   const riskScore = Math.min(100, score);
+  const enterprise_recommended = riskScore >= ENTERPRISE_RECOMMENDED_THRESHOLD;
+  const recommendation_reason = enterprise_recommended
+    ? "Multi-location activity detected. Enterprise plan recommended."
+    : null;
+  const hint = enterprise_recommended
+    ? "Enterprise Recommended: multi-location or high-volume activity detected."
+    : null;
+
   if (flags.length > 0 && riskScore >= ABUSE_RISK_THRESHOLD) {
     await supabase.from("organization_metrics").insert({
       organization_id: organizationId,
@@ -126,8 +136,21 @@ export async function getAbuseSignals(organizationId: string): Promise<AbuseSign
       metric_value: riskScore,
     });
   }
+  if (enterprise_recommended) {
+    await supabase.from("organization_metrics").insert({
+      organization_id: organizationId,
+      metric_name: "enterprise_recommended_signal",
+      metric_value: riskScore,
+    });
+  }
 
-  return { riskScore, flags };
+  return {
+    riskScore,
+    flags,
+    enterprise_recommended,
+    recommendation_reason,
+    hint,
+  };
 }
 
 /**

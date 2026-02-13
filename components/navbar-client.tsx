@@ -27,9 +27,10 @@ interface NavbarClientProps {
   orgSwitcherItems?: OrgSwitcherItem[] | null;
 }
 
-export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp }: NavbarClientProps = {}) {
+export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp, orgSwitcherItems }: NavbarClientProps = {}) {
   const { data: session, status, update } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const { preview } = usePreview();
   const user = userProp ?? session?.user;
   const roles = rolesProp ?? session?.user?.roles ?? [];
@@ -40,6 +41,7 @@ export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp 
   );
   const eliteDemo = Boolean(preview?.demoActive);
   const isEmployerArea = pathname?.startsWith("/employer");
+  const showOrgSwitcher = Boolean(orgSwitcherItems?.length);
   const [complianceCount, setComplianceCount] = useState(0);
 
   useEffect(() => {
@@ -105,7 +107,7 @@ export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp 
                 <Button variant="ghost" size="sm" href="/pricing" className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]">
                   Pricing
                 </Button>
-                {showOrgSwitcher && (
+                {showOrgSwitcher && orgSwitcherItems && (
                   <select
                     className="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white px-2 py-1"
                     value=""
@@ -115,7 +117,7 @@ export function NavbarClient({ user: userProp, roles: rolesProp, role: roleProp 
                     }}
                   >
                     <option value="">Organization / Location</option>
-                    {orgSwitcherItems!.map((item) => (
+                    {orgSwitcherItems.map((item: OrgSwitcherItem) => (
                       <option
                         key={item.type === "organization" ? item.id : `${item.organizationId}-${item.id}`}
                         value={item.type === "organization" ? `/admin/organization/${item.id}` : `/enterprise/${item.organizationId}/locations/${item.id}`}

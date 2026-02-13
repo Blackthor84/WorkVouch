@@ -31,7 +31,12 @@ export async function GET() {
       );
     }
 
-    const list = (data ?? []).map((row: { trade_id: string; trades: { slug: string; display_name: string } | null }) => ({
+    interface ProfileTradeRow {
+      trade_id: string;
+      trades: { slug: string; display_name: string } | null;
+    }
+    const rows = (data ?? []) as unknown as ProfileTradeRow[];
+    const list = rows.map((row) => ({
       trade_id: row.trade_id,
       slug: row.trades?.slug ?? null,
       display_name: row.trades?.display_name ?? null,
@@ -55,19 +60,20 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const tradeSlugs = Array.isArray(body.trade_slugs)
-      ? body.trade_slugs.filter((s): s is string => typeof s === "string")
+    const tradeSlugs: string[] = Array.isArray(body.trade_slugs)
+      ? body.trade_slugs.filter((s: unknown): s is string => typeof s === "string")
       : [];
 
     const supabase = await createServerSupabase();
 
+    type TradeRow = { id: string };
     let validIds: string[] = [];
     if (tradeSlugs.length > 0) {
       const { data: tradeRows } = await supabase
         .from("trades")
         .select("id")
         .in("slug", tradeSlugs);
-      validIds = (tradeRows ?? []).map((r) => r.id);
+      validIds = (tradeRows ?? []).map((r: TradeRow) => r.id);
     }
 
     await supabase

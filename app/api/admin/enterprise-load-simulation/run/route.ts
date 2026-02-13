@@ -186,8 +186,9 @@ export async function POST(req: NextRequest) {
     const employmentRecordIdsByUserId: Record<string, string> = {};
     const companyNorm = preset.companyName.toLowerCase().trim();
 
+    type TradeRow = { id: string };
     const { data: allTrades } = await supabase.from("trades").select("id");
-    const tradeIds = (allTrades ?? []).map((t) => t.id);
+    const tradeIds = (allTrades ?? []).map((t: TradeRow) => t.id);
 
     for (let batchStart = 0; batchStart < CANDIDATE_COUNT; batchStart += BATCH_SIZE) {
       const batchEnd = Math.min(batchStart + BATCH_SIZE, CANDIDATE_COUNT);
@@ -333,6 +334,7 @@ export async function POST(req: NextRequest) {
       enterprise_recommended_signal: {
         enterprise_recommended: abuseSignals.enterprise_recommended,
         recommendation_reason: abuseSignals.recommendation_reason,
+        hint: abuseSignals.hint,
         abuse_score: abuseSignals.riskScore,
         flags: abuseSignals.flags,
       },

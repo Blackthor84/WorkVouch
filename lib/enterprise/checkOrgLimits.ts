@@ -22,6 +22,8 @@ export interface CheckOrgLimitsResult {
   error?: string;
   /** Alias for error; use for upgrade CTA messaging. */
   reason?: string;
+  /** Current plan (e.g. starter, growth, enterprise) when allowed: false. */
+  planType?: string | null;
 }
 
 const PLAN_LIMIT_ERROR = "Plan limit reached. Upgrade required.";
@@ -275,9 +277,11 @@ export function planLimit403Response(
     {
       success: false,
       code: "PLAN_LIMIT_REACHED",
-      message: "🚨 Upgrade Required",
+      error: "Upgrade Required",
+      message: "🚨 Upgrade Required: This action exceeds your current plan limits.",
       detail:
         "Your current plan does not support this action. Upgrade to Enterprise to continue without limits.",
+      recommended_plan: "enterprise",
       action,
       plan: result.planType ?? null,
       upgrade_recommended: true,
