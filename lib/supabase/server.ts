@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-export async function supabaseServer() {
+export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -13,7 +13,7 @@ export async function supabaseServer() {
         getAll: () => cookieStore.getAll(),
         setAll: (cookiesToSet) => {
           cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
+            cookieStore.set({ name, value, ...options });
           });
         },
       },
@@ -26,13 +26,11 @@ export function upgradeRequired401() {
   return NextResponse.json({ error: "🚨 Upgrade Required" }, { status: 401 });
 }
 
-/** @deprecated Use supabaseServer */
-export async function createSupabaseServerClient() {
-  return supabaseServer();
-}
-
-/** @deprecated Use supabaseServer */
+/** @deprecated Use createSupabaseServerClient */
 export const createServerSupabase = createSupabaseServerClient;
 
-/** @deprecated Use supabaseServer */
+/** @deprecated Use createSupabaseServerClient */
 export const getSupabaseServer = createSupabaseServerClient;
+
+/** @deprecated Use createSupabaseServerClient */
+export const supabaseServer = createSupabaseServerClient;
