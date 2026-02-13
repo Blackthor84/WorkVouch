@@ -1,13 +1,18 @@
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/types/database";
 
-/** Alias for layout auth: returns server Supabase client (use in server components). */
-export async function getSupabaseServer() {
-  return createServerSupabase();
+/** Use in protected API routes when session is missing. */
+export function upgradeRequired401() {
+  return NextResponse.json({ error: "🚨 Upgrade Required" }, { status: 401 });
 }
 
-export async function createServerSupabase() {
+/**
+ * Single request-scoped server Supabase client (cookie-based session).
+ * Use in route handlers and server actions. Do not share across requests.
+ */
+export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
@@ -30,4 +35,14 @@ export async function createServerSupabase() {
       },
     }
   );
+}
+
+/** @deprecated Use createSupabaseServerClient — kept for backward compatibility. */
+export async function createServerSupabase() {
+  return createSupabaseServerClient();
+}
+
+/** @deprecated Use createSupabaseServerClient — kept for backward compatibility. */
+export async function getSupabaseServer() {
+  return createSupabaseServerClient();
 }
