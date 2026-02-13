@@ -34,7 +34,7 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
   const pathname = usePathname();
   const { preview } = usePreview();
   const user = userProp ?? session?.user;
-  const role = roleProp ?? (session?.user as { role?: string } | undefined)?.role ?? null;
+  const role = roleProp ?? null;
   const impersonating = Boolean(impersonatingProp ?? (session as { impersonating?: boolean } | null)?.impersonating);
   const eliteDemo = Boolean(preview?.demoActive);
   const isEmployerArea = pathname?.startsWith("/employer");

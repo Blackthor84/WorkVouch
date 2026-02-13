@@ -7,7 +7,7 @@ import { NavbarClient, type OrgSwitcherItem } from "./navbar-client";
 export async function NavbarServer() {
   const { session } = await getSupabaseSession();
   const profile = session?.user ? await getCurrentUserProfile() : null;
-  const role = profile?.role ?? (session?.user as { role?: string })?.role ?? null;
+  const role = profile?.role ?? null;
   let orgSwitcherItems: OrgSwitcherItem[] | null = null;
   if (session?.user?.id) {
     const effectiveRoles = await getEffectiveRoles(session.user.id);
