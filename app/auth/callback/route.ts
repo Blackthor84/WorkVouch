@@ -7,8 +7,12 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get("code");
 
   if (!code) {
-    return NextResponse.redirect(new URL("/login", requestUrl.origin));
+    return NextResponse.redirect(
+      new URL("/login", requestUrl.origin)
+    );
   }
+
+  const cookieStore = await cookies();
 
   const response = NextResponse.redirect(
     new URL("/dashboard", requestUrl.origin)
@@ -20,7 +24,7 @@ export async function GET(request: Request) {
     {
       cookies: {
         getAll() {
-          return cookies().getAll();
+          return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
