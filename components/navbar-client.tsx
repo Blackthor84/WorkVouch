@@ -47,6 +47,22 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
   const isEmployerArea = pathname?.startsWith("/employer");
   const showOrgSwitcher = Boolean(orgSwitcherItems?.length);
   const [complianceCount, setComplianceCount] = useState(0);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    const supabase = supabaseBrowser();
+    supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", session.user.id)
+      .single()
+      .then(({ data }) => {
+        const r = (data as { role?: string } | null)?.role;
+        if (r) setUserRole(r);
+      })
+      .catch(() => {});
+  }, [session?.user?.id]);
 
   useEffect(() => {
     if (!isEmployerArea || !user || role !== "employer") {
@@ -59,10 +75,9 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
       .catch(() => setComplianceCount(0));
   }, [isEmployerArea, user?.id, role]);
 
-  const sessionUserRole = (session?.user as { role?: string } | undefined)?.role;
   const showAdmin =
-    sessionUserRole === "admin" || sessionUserRole === "super_admin";
-  const showSandboxAdmin = sessionUserRole === "superadmin" || sessionUserRole === "super_admin";
+    userRole === "admin" || userRole === "super_admin";
+  const showSandboxAdmin = userRole === "superadmin" || userRole === "super_admin";
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white shadow-sm py-2">
