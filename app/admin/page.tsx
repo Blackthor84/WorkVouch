@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getSandboxContext } from "@/lib/sandbox/sandboxContext";
 import { SandboxToggle } from "@/components/admin/SandboxToggle";
+import { IS_SANDBOX } from "@/lib/env";
 
 export default async function AdminHomePage() {
   const ctx = await getAdminContext();
@@ -54,6 +55,17 @@ export default async function AdminHomePage() {
             <li><a href="/admin/impersonate">Impersonate</a></li>
             <li><a href="/admin/sandbox">Sandbox</a></li>
             <li><a href="/admin/enterprise-load-simulation">Enterprise Simulator</a></li>
+          </ul>
+        </section>
+      )}
+
+      {IS_SANDBOX && ctx.isSuperAdmin && (
+        <section className="mt-6 p-4 rounded-lg border border-emerald-200 bg-emerald-50">
+          <h2 className="font-medium mb-2 text-emerald-900">Sandbox-only tools</h2>
+          <ul className="list-disc ml-6 space-y-1 text-emerald-800">
+            <li><a href="/superadmin/impersonate" className="hover:underline">Impersonate User</a></li>
+            <li><a href="/admin/sandbox-v2" className="hover:underline">Seed Fake Activity / Sandbox V2</a></li>
+            <li><a href="/admin/sandbox-v2" className="hover:underline">Reset Sandbox Data</a></li>
           </ul>
         </section>
       )}

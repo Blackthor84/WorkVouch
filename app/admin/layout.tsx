@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { NavbarServer } from "@/components/navbar-server";
-import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { requireAdminSafe } from "@/lib/auth/requireAdminSafe";
+import { isSuperAdminRole } from "@/lib/auth/roles";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 
 export const dynamic = "force-dynamic";
@@ -10,11 +11,11 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const context = await getAdminContext();
-  if (!context.authorized) {
+  const admin = await requireAdminSafe();
+  if (!admin.ok) {
     redirect("/login");
   }
-  const superAdmin = context.isSuperAdmin;
+  const superAdmin = isSuperAdminRole(admin.role);
 
   return (
     <>

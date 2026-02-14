@@ -2,9 +2,23 @@ import { getSupabaseSession } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
 import { getEffectiveRoles } from "@/lib/permissions/requireRole";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { requireAdminSafe } from "@/lib/auth/requireAdminSafe";
 import { NavbarClient, type OrgSwitcherItem } from "./navbar-client";
 
 export async function NavbarServer() {
+  let showAdmin = false;
+  let showSandboxAdmin = false;
+  try {
+    const admin = await requireAdminSafe();
+    if (admin.ok) {
+      showAdmin = true;
+      showSandboxAdmin = admin.role === "superadmin";
+    }
+  } catch {
+    showAdmin = false;
+    showSandboxAdmin = false;
+  }
+
   const { session } = await getSupabaseSession();
   const profile = session?.user ? await getCurrentUserProfile() : null;
   const role = profile?.role ?? null;
@@ -57,6 +71,8 @@ export async function NavbarServer() {
     <NavbarClient
       user={session?.user ?? undefined}
       role={role ?? undefined}
+      showAdmin={showAdmin}
+      showSandboxAdmin={showSandboxAdmin}
       orgSwitcherItems={orgSwitcherItems}
       impersonating={impersonating}
     />

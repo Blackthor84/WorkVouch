@@ -5,6 +5,7 @@
  */
 
 import { supabaseServer } from "@/lib/supabase/server";
+import { normalizeRole, isAdminRole } from "@/lib/auth/roles";
 
 export type AdminRole = "admin" | "superadmin";
 
@@ -15,7 +16,7 @@ export interface AdminSessionMinimal {
 
 /**
  * Returns { userId, role } if the current user has admin or superadmin role; otherwise null.
- * Does not throw. Roles come from profiles.role only.
+ * Does not throw. Roles come from profiles.role only. Normalizes super_admin → superadmin.
  */
 export async function getAdminSession(): Promise<AdminSessionMinimal | null> {
   try {
@@ -34,8 +35,9 @@ export async function getAdminSession(): Promise<AdminSessionMinimal | null> {
 
     if (error || !profile) return null;
 
-    const role = (profile as { role?: string | null }).role ?? "";
-    if (role !== "admin" && role !== "superadmin") return null;
+    const rawRole = (profile as { role?: string | null }).role ?? "";
+    const role = normalizeRole(rawRole);
+    if (!isAdminRole(role)) return null;
 
     return {
       userId: session.user.id,

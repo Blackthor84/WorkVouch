@@ -23,6 +23,10 @@ export interface OrgSwitcherItem {
 interface NavbarClientProps {
   user?: User | null;
   role?: string | null;
+  /** Server-computed: show Admin link (never crashes navbar). */
+  showAdmin?: boolean;
+  /** Server-computed: show Sandbox link (superadmin only). */
+  showSandboxAdmin?: boolean;
   /** When org_admin/enterprise_owner: list of orgs/locations for switcher dropdown. */
   orgSwitcherItems?: OrgSwitcherItem[] | null;
   /** True when admin is viewing as another user (from server). */
@@ -126,7 +130,7 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
                     ))}
                   </select>
                 )}
-                {(role === "admin" || role === "superadmin") && (
+                {showAdmin && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -136,7 +140,7 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
                     Admin
                   </Button>
                 )}
-                {role === "superadmin" && (
+                {showSandboxAdmin && (
                   <Button
                     variant="ghost"
                     size="sm"
