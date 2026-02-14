@@ -45,3 +45,8 @@ export const env: Env = {
 export const IS_SANDBOX =
   typeof process !== "undefined" &&
   process.env.NEXT_PUBLIC_APP_MODE === "sandbox";
+
+/** Single sandbox flag: true = sandbox, false/undefined = production. Fake data ONLY when true. */
+export const SANDBOX_MODE =
+  typeof process !== "undefined" &&
+  process.env.NEXT_PUBLIC_SANDBOX_MODE === "true";

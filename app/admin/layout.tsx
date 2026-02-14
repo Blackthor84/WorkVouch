@@ -13,7 +13,7 @@ export default async function AdminLayout({
 }) {
   const admin = await requireAdminSafe();
   if (!admin.ok) {
-    redirect("/login");
+    redirect("/dashboard");
   }
   const superAdmin = isSuperAdminRole(admin.role);
 

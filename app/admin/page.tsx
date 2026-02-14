@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getSandboxContext } from "@/lib/sandbox/sandboxContext";
 import { SandboxToggle } from "@/components/admin/SandboxToggle";
-import { IS_SANDBOX } from "@/lib/env";
+import { SANDBOX_MODE } from "@/lib/env";
 
 export default async function AdminHomePage() {
   const ctx = await getAdminContext();
@@ -15,6 +15,12 @@ export default async function AdminHomePage() {
 
   return (
     <div className="p-8 space-y-6">
+      {SANDBOX_MODE && (
+        <div className="mb-6 border border-amber-400 bg-amber-100 p-4 rounded-lg">
+          <p className="font-semibold text-amber-900">SANDBOX MODE</p>
+          <p className="text-sm text-amber-800">Fake data and sandbox tools are enabled. No production data is affected.</p>
+        </div>
+      )}
       {sandbox.isSuperAdmin && (
         <div className="mb-6 border border-amber-200 p-4 rounded-lg bg-amber-50">
           <div className="flex items-center justify-between">
@@ -34,6 +40,7 @@ export default async function AdminHomePage() {
       <section>
         <h2 className="font-medium mb-2">Admin Tools</h2>
         <ul className="list-disc ml-6 space-y-1">
+          <li><a href="/admin/users">User management</a></li>
           <li><a href="/admin/organizations">Organizations</a></li>
           <li><a href="/admin/employer-usage">Employer Usage</a></li>
           <li><a href="/admin/locations">Locations</a></li>
@@ -59,7 +66,7 @@ export default async function AdminHomePage() {
         </section>
       )}
 
-      {IS_SANDBOX && ctx.isSuperAdmin && (
+      {SANDBOX_MODE && ctx.isSuperAdmin && (
         <section className="mt-6 p-4 rounded-lg border border-emerald-200 bg-emerald-50">
           <h2 className="font-medium mb-2 text-emerald-900">Sandbox-only tools</h2>
           <ul className="list-disc ml-6 space-y-1 text-emerald-800">

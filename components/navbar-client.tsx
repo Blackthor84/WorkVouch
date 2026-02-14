@@ -50,22 +50,15 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const email = session?.user?.email;
-    if (!email) return;
-
     const loadRole = async () => {
-      const supabase = supabaseBrowser();
-      const { data } = await supabase
-        .from("admin_users")
-        .select("role")
-        .eq("email", email)
-        .single();
-
-      if (data?.role) setUserRole(data.role);
+      const res = await fetch("/api/admin/session");
+      const json = await res.json().catch(() => ({}));
+      const role = json?.role ?? null;
+      if (role) setUserRole(role);
     };
 
     loadRole();
-  }, [session?.user?.email]);
+  }, [session?.user?.id]);
 
   useEffect(() => {
     if (!isEmployerArea || !user || role !== "employer") {
