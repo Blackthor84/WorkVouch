@@ -50,19 +50,23 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!session?.user?.id) return;
-    const supabase = supabaseBrowser();
-    supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", session.user.id)
-      .single()
-      .then(({ data }) => {
-        const r = (data as { role?: string } | null)?.role;
-        if (r) setUserRole(r);
-      })
-      .catch(() => {});
-  }, [session?.user?.id]);
+    if (!session?.user?.email) return;
+
+    const loadRole = async () => {
+      const supabase = supabaseBrowser();
+      const { data, error } = await supabase
+        .from("admin_users")
+        .select("role")
+        .eq("email", session.user.email)
+        .single();
+
+      if (!error && data?.role) {
+        setUserRole((data as { role: string }).role);
+      }
+    };
+
+    loadRole();
+  }, [session?.user?.email]);
 
   useEffect(() => {
     if (!isEmployerArea || !user || role !== "employer") {
