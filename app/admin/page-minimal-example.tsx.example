@@ -1,0 +1,29 @@
+/**
+ * Minimal AdminPage equivalent using this project's auth (Supabase + getAdminContext).
+ * This project does NOT use NextAuth auth() or app_metadata.role.
+ *
+ * NextAuth-style snippet:
+ *   import { auth } from "@/auth"
+ *   const session = await auth()
+ *   if (session?.user?.app_metadata?.role !== "admin") return <div>Not authorized</div>
+ *
+ * Supabase equivalent:
+ */
+
+import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { getAdminRole } from "@/lib/admin";
+import { AdminRole } from "@/lib/permissions";
+
+export default async function AdminPage() {
+  const admin = await getAdminContext();
+
+  const role = admin.email ? await getAdminRole(admin.email) : null;
+  const isAdmin =
+    role === AdminRole.PLATFORM_ADMIN || role === AdminRole.PLATFORM_READ_ONLY;
+
+  if (!admin.isAuthenticated || !isAdmin) {
+    return <div>Not authorized</div>;
+  }
+
+  return <div>Admin Dashboard</div>;
+}
