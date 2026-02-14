@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminContext, adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { SANDBOX_MODE } from "@/lib/env";
+import { APP_MODE } from "@/lib/app-mode";
 
 export const dynamic = "force-dynamic";
 

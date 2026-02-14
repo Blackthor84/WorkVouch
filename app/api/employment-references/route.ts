@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseSession } from "@/lib/supabase/server";
 import { submitReview } from "@/lib/core/reviews";
-import { logAudit } from "@/lib/dispute-audit";
+import { logAudit, type AuditEntity } from "@/lib/dispute-audit";
 import { processReviewIntelligence } from "@/lib/intelligence/processReviewIntelligence";
 import { runAnomalyChecksAfterReview } from "@/lib/admin/runAnomalyChecks";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rateLimit";
@@ -49,10 +49,10 @@ export async function POST(req: NextRequest) {
       {
         auditLog: (payload) =>
           logAudit({
-            entityType: payload.entityType,
+            entityType: payload.entityType as AuditEntity,
             entityId: payload.entityId,
             changedBy: payload.changedBy,
-            newValue: payload.newValue,
+            newValue: payload.newValue as Record<string, unknown> | null | undefined,
             changeReason: payload.changeReason,
           }),
       }

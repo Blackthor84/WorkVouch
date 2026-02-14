@@ -4,8 +4,7 @@
  * Data filter only — does not change API success/failure.
  */
 
-import { APP_MODE } from "@/lib/env";
-import { getAppModeFromHeaders } from "@/lib/app-mode";
+import { isSandbox, getAppModeFromHeaders } from "@/lib/app-mode";
 
 /**
  * Returns true when the current context is sandbox (env or request header).
@@ -13,7 +12,7 @@ import { getAppModeFromHeaders } from "@/lib/app-mode";
  * When false: production queries must NEVER include demo/sandbox rows.
  */
 export function isSandboxRequest(input?: Headers | Request | null): boolean {
-  if (APP_MODE === "sandbox") return true;
+  if (isSandbox()) return true;
   if (!input) return false;
   const headers = input instanceof Request ? input.headers : input;
   return getAppModeFromHeaders(headers) === "sandbox";

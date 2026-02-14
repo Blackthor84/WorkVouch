@@ -56,7 +56,7 @@ export async function insertEmploymentFromResume(
     };
     const { data: inserted, error } = await sb
       .from("employment_records")
-      .insert(rowWithSource)
+      .insert(rowWithSource as never)
       .select("id")
       .single();
 

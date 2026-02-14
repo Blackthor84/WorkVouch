@@ -6,6 +6,7 @@
 
 import { supabaseServer } from "@/lib/supabase/server";
 import { isAdminRole, normalizeRole } from "@/lib/auth/roles";
+import { isSandbox } from "@/lib/app-mode";
 
 export type AdminCheck =
   | { ok: true; user: { id: string; email?: string }; profile: Record<string, unknown>; role: string }
@@ -43,7 +44,7 @@ export async function requireAdminSafe(): Promise<AdminCheck> {
       console.log("[ADMIN CHECK]", {
         email: session.user.email,
         role,
-        sandbox: process.env.NEXT_PUBLIC_SANDBOX_MODE === "true",
+        sandbox: isSandbox(),
       });
     }
 

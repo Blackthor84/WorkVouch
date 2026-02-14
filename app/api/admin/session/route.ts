@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { normalizeRole } from "@/lib/auth/normalizeRole";
 import { isAdminRole } from "@/lib/auth/roles";
+import { isSandbox } from "@/lib/app-mode";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,7 @@ export async function GET() {
     const role = isAdminRole(normalized) ? (normalized as "admin" | "super_admin") : null;
 
     if (process.env.NODE_ENV !== "test") {
-      console.log("[ADMIN CHECK]", { email, role, sandbox: process.env.NEXT_PUBLIC_SANDBOX_MODE === "true" });
+      console.log("[ADMIN CHECK]", { email, role, sandbox: isSandbox() });
     }
 
     return NextResponse.json({ role });

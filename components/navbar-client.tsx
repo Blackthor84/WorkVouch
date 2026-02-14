@@ -60,7 +60,7 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
       .catch(() => setComplianceCount(0));
   }, [isEmployerArea, user?.id, role]);
 
-  const normalizedRole = normalizeRole(userRole);
+  const normalizedRole = normalizeRole(role ?? "");
 
   const showAdmin =
     normalizedRole === "admin" || normalizedRole === "super_admin";

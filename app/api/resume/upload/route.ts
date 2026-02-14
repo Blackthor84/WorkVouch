@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!result.ok && "error" in result) {
-      const status = "status" in result ? result.status : 500;
+      const status = "status" in result && typeof result.status === "number" ? result.status : 500;
       return NextResponse.json({ error: result.error }, { status });
     }
 

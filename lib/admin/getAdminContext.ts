@@ -8,7 +8,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { normalizeRole } from "@/lib/auth/normalizeRole";
 import { isAdminRole } from "@/lib/auth/roles";
-import { APP_MODE } from "@/lib/env";
+import { isSandbox } from "@/lib/app-mode";
 
 export type AdminRole = "user" | "admin" | "super_admin";
 
@@ -30,10 +30,10 @@ const UNAUTHORIZED_CONTEXT: AdminContext = {
   roles: ["user"],
   isAdmin: false,
   isSuperAdmin: false,
-  isSandbox: APP_MODE === "sandbox",
+  isSandbox: isSandbox(),
   canImpersonate: false,
   canBypassLimits: false,
-  canSeedData: APP_MODE === "sandbox",
+  canSeedData: isSandbox(),
 };
 
 /**
@@ -72,7 +72,7 @@ export async function getAdminContext(): Promise<AdminContext> {
     const isSuperAdmin = role === "super_admin";
 
     const roles: AdminRole[] = isAdmin ? (isSuperAdmin ? ["user", "admin", "super_admin"] : ["user", "admin"]) : ["user"];
-    const isSandbox = APP_MODE === "sandbox";
+    const sandbox = isSandbox();
 
     return {
       userId: session.user.id,
@@ -80,10 +80,10 @@ export async function getAdminContext(): Promise<AdminContext> {
       roles,
       isAdmin,
       isSuperAdmin,
-      isSandbox,
-      canImpersonate: isSuperAdmin || isSandbox,
-      canBypassLimits: isSuperAdmin || isSandbox,
-      canSeedData: isSandbox || isSuperAdmin,
+      isSandbox: sandbox,
+      canImpersonate: isSuperAdmin || sandbox,
+      canBypassLimits: isSuperAdmin || sandbox,
+      canSeedData: sandbox || isSuperAdmin,
     };
   } catch {
     return { ...UNAUTHORIZED_CONTEXT };

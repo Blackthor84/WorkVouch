@@ -15,7 +15,7 @@ export type SubmitReviewInput = {
 };
 
 export type SubmitReviewResult =
-  | { ok: true; referenceId: string }
+  | { ok: true; referenceId: string; reviewedUserId: string }
   | { ok: false; error: string; status: 400 | 403 | 404 | 409 | 500 };
 
 /**

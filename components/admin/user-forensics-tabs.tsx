@@ -43,7 +43,10 @@ export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserF
   const [breakdown, setBreakdown] = useState<Record<string, unknown> | null>(null);
   const [scoreHistory, setScoreHistory] = useState<Record<string, unknown>[]>([]);
   const [auditChainResumes, setAuditChainResumes] = useState<Record<string, unknown>[]>([]);
+  const [auditChainEmployment, setAuditChainEmployment] = useState<Record<string, unknown>[]>([]);
   const [auditChainMatches, setAuditChainMatches] = useState<Record<string, unknown>[]>([]);
+  const [auditChainReviews, setAuditChainReviews] = useState<Record<string, unknown>[]>([]);
+  const [auditChainScoreHistory, setAuditChainScoreHistory] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
 
   useEffect(() => {

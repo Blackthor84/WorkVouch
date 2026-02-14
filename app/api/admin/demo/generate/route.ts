@@ -1,7 +1,7 @@
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isSuperAdmin } from "@/lib/roles";
-import { APP_MODE } from "@/lib/env";
+import { APP_MODE } from "@/lib/app-mode";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

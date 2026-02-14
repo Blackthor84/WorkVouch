@@ -57,8 +57,8 @@ export async function requireAdmin(): Promise<AdminSession> {
       redirect("/login");
     }
 
-    const role = admin.role;
-    const isSuperAdminRole = role === "super_admin";
+    const role = admin.isSuperAdmin ? "super_admin" : admin.isAdmin ? "admin" : "user";
+    const isSuperAdminRole = admin.isSuperAdmin;
 
     return {
       session,

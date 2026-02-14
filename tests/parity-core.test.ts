@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from "vitest";
 import { overlapDays, confidenceFromOverlapDays, MIN_OVERLAP_DAYS } from "@/lib/core/coworker-matching";
-import { APP_MODE } from "@/lib/env";
+import { APP_MODE } from "@/lib/app-mode";
 
 describe("Parity: environment does not change behavior", () => {
   it("APP_MODE is production or sandbox only", () => {

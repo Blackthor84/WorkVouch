@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { APP_MODE } from "@/lib/env";
+import { APP_MODE } from "@/lib/app-mode";
 
 export const dynamic = "force-dynamic";
 

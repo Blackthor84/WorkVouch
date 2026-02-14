@@ -257,7 +257,7 @@ export function EmployerOnboardingClient({ userEmail }: { userEmail: string | un
       <div className="mt-8 flex justify-between">
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           onClick={() => goToStep(step - 1)}
           disabled={step === 0}
         >

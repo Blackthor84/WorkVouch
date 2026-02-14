@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getSandboxContext } from "@/lib/sandbox/sandboxContext";
 import { SandboxToggle } from "@/components/admin/SandboxToggle";
-import { APP_MODE } from "@/lib/env";
+import { APP_MODE } from "@/lib/app-mode";
 
 export default async function AdminHomePage() {
   const admin = await getAdminContext();

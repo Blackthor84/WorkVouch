@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminContext, adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { SANDBOX_MODE } from "@/lib/env";
+import { APP_MODE } from "@/lib/app-mode";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   if (APP_MODE !== "sandbox" || !admin.isSandbox) return adminForbiddenResponse();
 
   try {
-    const body = await req.json().catch(() => ({})) as { sourceOrgId?: string; name?: string };
+    const body = await req.json().catch(() => ({})) as { sourceOrgId?: string; organizationId?: string; name?: string };
     const sourceOrgId = body.sourceOrgId ?? body.organizationId;
     const name = body.name ?? "Cloned Sandbox Org";
 

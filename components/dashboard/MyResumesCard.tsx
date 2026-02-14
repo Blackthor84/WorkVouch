@@ -34,7 +34,7 @@ export function MyResumesCard() {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-[#0F172A]">My Resumes</h3>
         <div className="flex gap-2">
-          <Button asChild size="sm" variant="outline">
+          <Button asChild size="sm" variant="secondary">
             <Link href="/dashboard/import-resume">
               <DocumentTextIcon className="h-4 w-4 mr-1" />
               Import
