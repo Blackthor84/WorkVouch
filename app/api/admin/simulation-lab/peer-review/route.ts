@@ -51,38 +51,33 @@ export async function POST(req: NextRequest) {
     if (recA.company_normalized !== recB.company_normalized)
       return NextResponse.json({ error: "Users must share same company for peer review" }, { status: 400 });
 
-    const overlapStart = new Date();
-    overlapStart.setMonth(overlapStart.getMonth() - 6);
-    const overlapEnd = new Date();
-    const overlapStartStr = overlapStart.toISOString().slice(0, 10);
-    const overlapEndStr = overlapEnd.toISOString().slice(0, 10);
-
-    let matchId: string;
-    const { data: existingMatch } = await supabase
-      .from("employment_matches")
-      .select("id")
-      .eq("employment_record_id", recA.id)
-      .eq("matched_user_id", reviewedUserId)
-      .maybeSingle();
-    if (existingMatch && (existingMatch as { id: string }).id) {
-      matchId = (existingMatch as { id: string }).id;
-    } else {
-      const { data: newMatch, error: matchErr } = await supabase
-        .from("employment_matches")
-        .insert({
-          employment_record_id: recA.id,
-          matched_user_id: reviewedUserId,
-          overlap_start: overlapStartStr,
-          overlap_end: overlapEndStr,
-          match_status: "confirmed",
-          is_simulation: true,
-          simulation_session_id: sessionId,
-          expires_at: expiresAt,
-        })
+    let matchId: string | null = null;
+    try {
+      const { data: d1 } = await supabase
+        .from("coworker_matches")
         .select("id")
-        .single();
-      if (matchErr || !newMatch) return NextResponse.json({ error: matchErr?.message ?? "Failed to create match" }, { status: 500 });
-      matchId = (newMatch as { id: string }).id;
+        .eq("user1_id", reviewerUserId)
+        .eq("user2_id", reviewedUserId)
+        .maybeSingle();
+      if ((d1 as { id?: string } | null)?.id) {
+        matchId = (d1 as { id: string }).id;
+      } else {
+        const { data: d2 } = await supabase
+          .from("coworker_matches")
+          .select("id")
+          .eq("user1_id", reviewedUserId)
+          .eq("user2_id", reviewerUserId)
+          .maybeSingle();
+        if ((d2 as { id?: string } | null)?.id) matchId = (d2 as { id: string }).id;
+      }
+    } catch (e) {
+      console.warn("Optional simulation-lab peer-review match query failed", e);
+    }
+    if (!matchId) {
+      return NextResponse.json(
+        { error: "No existing coworker match found; employment_matches does not exist" },
+        { status: 503 }
+      );
     }
 
     const { error: refErr } = await supabase.from("employment_references").insert({

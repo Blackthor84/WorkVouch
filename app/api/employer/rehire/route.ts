@@ -7,7 +7,7 @@ import { getCurrentUser, hasRole, getCurrentUserRole } from "@/lib/auth";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { calculateAndStoreRisk } from "@/lib/risk/calculateAndPersist";
 import { calculateEmployerWorkforceRisk } from "@/lib/risk/workforce";
-import { logAuditAction } from "@/lib/audit";
+import { logAdminAction } from "@/lib/audit";
 import {
   RehireStatusEnum,
   RehireReasonEnum,
@@ -205,15 +205,21 @@ export async function POST(req: NextRequest) {
     }
 
     if ((internalNotes ?? detailedExplanation)?.trim()) {
-      await logAuditAction("internal_note_created", {
-        employer_id: employerAccountId,
-        profile_id: profileId,
-        details: JSON.stringify({
-          rehire_registry: true,
-          recommendation: rec,
-          reasonCategory: reasonCat,
-          submitted_at: upsertPayload.submitted_at,
-        }),
+      await logAdminAction({
+        admin_profile_id: user.id,
+        action: "internal_note_created",
+        target_type: "user",
+        target_id: profileId,
+        new_value: {
+          employer_id: employerAccountId,
+          profile_id: profileId,
+          details: JSON.stringify({
+            rehire_registry: true,
+            recommendation: rec,
+            reasonCategory: reasonCat,
+            submitted_at: upsertPayload.submitted_at,
+          }),
+        },
       });
     }
 

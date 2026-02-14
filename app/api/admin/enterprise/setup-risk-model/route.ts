@@ -4,7 +4,7 @@ export const runtime = "nodejs";
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isSuperAdmin } from "@/lib/roles";
-import { logAuditAction } from "@/lib/audit";
+import { logAdminAction } from "@/lib/audit";
 import { z } from "zod";
 
 const bodySchema = z.object({
@@ -51,7 +51,13 @@ export async function POST(req: NextRequest) {
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    await logAuditAction("enterprise_risk_model_setup", { admin_id: user.id, employer_id: data.companyId, details: JSON.stringify({ companyId: data.companyId, overrideEnabled: data.overrideEnabled }) });
+    await logAdminAction({
+      admin_profile_id: user.id,
+      action: "enterprise_risk_model_setup",
+      target_type: "organization",
+      target_id: data.companyId,
+      new_value: { companyId: data.companyId, overrideEnabled: data.overrideEnabled },
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     if (e instanceof z.ZodError) return NextResponse.json({ error: "Invalid input", details: e.issues }, { status: 400 });

@@ -1,8 +1,8 @@
 /**
  * POST /api/match-employment
- * Creates employment record (if body has user_id, company_name, etc.) and runs coworker matching.
- * Same company_normalized + date overlap >= 30 days → pending employment_matches.
- * No auto-send emails (App Store compliant); user sees matches in-app only (Coworker Matches page).
+ * Creates employment record (if body has user_id, company_name, etc.).
+ * Coworker matching uses coworker_matches only (employment_matches does not exist).
+ * Returns employment_record_id; matches are read from coworker_matches on the Coworker Matches page.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -13,25 +13,6 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
-
-const minOverlapDays = 30;
-const msPerDay = 24 * 60 * 60 * 1000;
-
-function overlapDays(
-  start1: Date,
-  end1: Date | null,
-  start2: Date,
-  end2: Date | null
-): number {
-  const s1 = start1.getTime();
-  const e1 = (end1 ?? new Date()).getTime();
-  const s2 = start2.getTime();
-  const e2 = (end2 ?? new Date()).getTime();
-  const overlapStart = Math.max(s1, s2);
-  const overlapEnd = Math.min(e1, e2);
-  if (overlapEnd <= overlapStart) return 0;
-  return (overlapEnd - overlapStart) / msPerDay;
-}
 
 const createBodySchema = z.object({
   user_id: z.string().uuid(),
@@ -131,52 +112,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Employment record not found" }, { status: 404 });
     }
 
-    const myStart = new Date(myRecord.start_date);
-    const myEnd = myRecord.end_date ? new Date(myRecord.end_date) : null;
-
-    const { data: others } = await sb
-      .from("employment_records")
-      .select("id, user_id, start_date, end_date")
-      .eq("company_normalized", myRecord.company_normalized)
-      .neq("user_id", myRecord.user_id);
-
-    const created: { id: string; matched_user_id: string }[] = [];
-    for (const row of others ?? []) {
-      const theirStart = new Date(row.start_date);
-      const theirEnd = row.end_date ? new Date(row.end_date) : null;
-      const days = overlapDays(myStart, myEnd, theirStart, theirEnd);
-      if (days < minOverlapDays) continue;
-
-      const overlapStart = new Date(Math.max(myStart.getTime(), theirStart.getTime()));
-      const overlapEnd = new Date(Math.min((myEnd ?? new Date()).getTime(), (theirEnd ?? new Date()).getTime()));
-
-      const { data: existing } = await sb
-        .from("employment_matches")
-        .select("id")
-        .eq("employment_record_id", employmentRecordId)
-        .eq("matched_user_id", row.user_id)
-        .maybeSingle();
-      if (existing) continue;
-
-      const { data: match, error: matchErr } = await sb
-        .from("employment_matches")
-        .insert({
-          employment_record_id: employmentRecordId,
-          matched_user_id: row.user_id,
-          overlap_start: overlapStart.toISOString().slice(0, 10),
-          overlap_end: overlapEnd.toISOString().slice(0, 10),
-          match_status: "pending",
-        })
-        .select("id, matched_user_id")
-        .single();
-      if (matchErr) continue;
-      if (match) created.push({ id: match.id, matched_user_id: match.matched_user_id });
-    }
-
+    // Coworker matching is persisted in coworker_matches only (employment_matches does not exist).
+    // Matching may be driven by jobs/coworker_matches flow elsewhere; here we only ensure the record exists.
     return NextResponse.json({
       employment_record_id: employmentRecordId,
-      matches_created: created.length,
-      matches: created,
+      matches_created: 0,
+      matches: [],
     });
   } catch (err: unknown) {
     console.error("[API][match-employment]", { err });

@@ -6,7 +6,7 @@ import { getCurrentUser, hasRole } from "@/lib/auth";
 import { canRequestVerification } from "@/lib/middleware/plan-enforcement-supabase";
 import { incrementUsage } from "@/lib/usage";
 import { calculateEnterpriseMetrics } from "@/lib/enterpriseEngine";
-import { logAuditAction } from "@/lib/audit";
+import { logAdminAction } from "@/lib/audit";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { z } from "zod";
 
@@ -183,11 +183,16 @@ export async function POST(req: NextRequest) {
       })
       .eq("id", data.jobHistoryId);
 
-    await logAuditAction("verification_requested", {
-      admin_id: user.id,
-      employer_id: employerAccountTyped.id,
-      profile_id: jobHistoryTyped.user_id ?? undefined,
-      details: JSON.stringify({ job_id: data.jobHistoryId }),
+    await logAdminAction({
+      admin_profile_id: user.id,
+      action: "verification_requested",
+      target_type: "organization",
+      target_id: employerAccountTyped.id,
+      new_value: {
+        employer_id: employerAccountTyped.id,
+        profile_id: jobHistoryTyped.user_id ?? undefined,
+        details: JSON.stringify({ job_id: data.jobHistoryId }),
+      },
     });
 
     return NextResponse.json({ success: true, verificationRequest });

@@ -106,24 +106,21 @@ export async function GET() {
       }
     }
 
-    // Peer activity: employment_matches confirmed in last 30 days
+    // Peer activity: use coworker_matches only (employment_matches does not exist); optional metrics
     const employmentIds = employmentList.map((r: { id: string }) => (r as { id: string }).id);
     let new_peer_confirmations = 0;
     let new_peer_reviews = 0;
-    if (employmentIds.length > 0) {
-      const { count: matchCount } = await adminSupabase
-        .from("employment_matches")
-        .select("id", { count: "exact", head: true })
-        .in("employment_record_id", employmentIds)
-        .eq("match_status", "confirmed")
-        .gte("updated_at", iso30);
-      new_peer_confirmations = matchCount ?? 0;
-      const { count: refCount } = await adminSupabase
-        .from("employment_references")
-        .select("id", { count: "exact", head: true })
-        .in("reviewed_user_id", userIds)
-        .gte("created_at", iso30);
-      new_peer_reviews = refCount ?? 0;
+    if (employmentIds.length > 0 && userIds.length > 0) {
+      try {
+        const { count: refCount } = await adminSupabase
+          .from("employment_references")
+          .select("id", { count: "exact", head: true })
+          .in("reviewed_user_id", userIds)
+          .gte("created_at", iso30);
+        new_peer_reviews = refCount ?? 0;
+      } catch (e) {
+        console.warn("Optional confirmation-activity employment_references query failed", e);
+      }
     }
 
     // Disputes: opened and resolved in last 30 days (employer-related)

@@ -271,35 +271,8 @@ export async function POST(req: NextRequest) {
       const others = candidateIds.filter((id) => id !== candidateId);
       const shuffled = [...others].sort(() => Math.random() - 0.5);
       const peers = shuffled.slice(0, numMatches);
-      for (const peerId of peers) {
-        const overlapStart = new Date().toISOString().slice(0, 10);
-        const overlapEnd = new Date().toISOString().slice(0, 10);
-        const { data: matchRow, error: matchErr } = await supabase
-          .from("employment_matches")
-          .insert({
-            employment_record_id: recordId,
-            matched_user_id: peerId,
-            overlap_start: overlapStart,
-            overlap_end: overlapEnd,
-            match_status: "confirmed",
-            is_simulation: true,
-            simulation_session_id: sessionId,
-            expires_at: expiresAt,
-          })
-          .select("id")
-          .single();
-        if (matchErr || !matchRow?.id) continue;
-        const { error: refErr } = await supabase.from("employment_references").insert({
-          employment_match_id: matchRow.id,
-          reviewer_id: peerId,
-          reviewed_user_id: candidateId,
-          rating: randomInt(1, 5),
-          comment: "Simulated review.",
-          is_simulation: true,
-          simulation_session_id: sessionId,
-          expires_at: expiresAt,
-        });
-        if (!refErr) metrics.reviews_created++;
+      for (const _peerId of peers) {
+        // employment_matches does not exist; skip creating match and employment_references for simulation
       }
 
       const t0 = Date.now();

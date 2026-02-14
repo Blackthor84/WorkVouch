@@ -70,21 +70,16 @@ export async function getTrustScoreComponents(
 
   let uniqueEmployersWithReferences = 0;
   if (refList.length > 0) {
-    const matchIds = [...new Set(refList.map((r) => r.employment_match_id))];
-    const { data: matches } = await sb
-      .from("employment_matches")
-      .select("employment_record_id")
-      .in("id", matchIds);
-    const matchesList = (matches ?? []) as { employment_record_id: string }[];
-    const recordIds = matchesList.map((m) => m.employment_record_id);
-    const { data: recs } = await sb
-      .from("employment_records")
-      .select("company_normalized")
-      .eq("user_id", userId)
-      .in("id", recordIds);
-    const recsList = (recs ?? []) as { company_normalized: string }[];
-    const distinctCompanies = new Set(recsList.map((r) => r.company_normalized));
-    uniqueEmployersWithReferences = distinctCompanies.size;
+    try {
+      const { data: recs } = await sb
+        .from("employment_records")
+        .select("company_normalized")
+        .eq("user_id", userId);
+      const recsList = (recs ?? []) as { company_normalized: string }[];
+      uniqueEmployersWithReferences = new Set(recsList.map((r) => r.company_normalized)).size;
+    } catch (e) {
+      console.warn("Optional trust score uniqueEmployersWithReferences query failed", e);
+    }
   }
 
   const { count: fraudCount } = await sb

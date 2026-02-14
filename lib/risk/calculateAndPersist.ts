@@ -150,10 +150,16 @@ export async function calculateAndStoreRisk(profileId: string): Promise<{ error?
   }
 
   if (components.overall < 50) {
-    const { logAuditAction } = await import("@/lib/audit");
-    await logAuditAction("risk_flagged", {
-      profile_id: profileId,
-      details: JSON.stringify({ overall: components.overall, version: components.version }),
+    const { logAdminAction } = await import("@/lib/audit");
+    await logAdminAction({
+      admin_profile_id: profileId,
+      action: "risk_flagged",
+      target_type: "user",
+      target_id: profileId,
+      new_value: {
+        profile_id: profileId,
+        details: JSON.stringify({ overall: components.overall, version: components.version }),
+      },
     });
   }
 

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { logAuditAction } from "@/lib/audit";
+import { logAdminAction } from "@/lib/audit";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { validateLicenseFormat } from "@/lib/security/licenseValidator";
 import { generateComplianceAlerts } from "@/lib/security/complianceAlerts";
@@ -80,11 +80,16 @@ export async function POST(req: NextRequest) {
     const inserted = (res as { data?: { id?: string } | null }).data;
     const licenseId = inserted?.id ?? null;
 
-    await logAuditAction("license_uploaded", {
-      admin_id: user.id,
-      employer_id: employerId,
-      profile_id: guardUserId ?? undefined,
-      details: JSON.stringify({ license_id: licenseId, license_number: licenseNumber, state }),
+    await logAdminAction({
+      admin_profile_id: user.id,
+      action: "license_uploaded",
+      target_type: "organization",
+      target_id: employerId,
+      new_value: {
+        employer_id: employerId,
+        profile_id: guardUserId ?? undefined,
+        details: JSON.stringify({ license_id: licenseId, license_number: licenseNumber, state }),
+      },
     });
 
     try {
