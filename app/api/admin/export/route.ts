@@ -4,17 +4,50 @@ export const runtime = "nodejs";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireAdminForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { getAdminRole } from "@/lib/admin";
+import { AdminRole } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
-/** GET: export data as CSV. ?type=users|peer_reviews|fraud_flags|employment|audit_logs */
+/** GET: export data as CSV. ?type=users|peer_reviews|fraud_flags|employment|audit_logs|soc2 */
 export async function GET(req: NextRequest) {
-  const _session = await requireAdminForApi();
-  if (!_session) return adminForbiddenResponse();
+  const session = await requireAdminForApi();
+  if (!session) return adminForbiddenResponse();
   try {
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type") || "users";
     const supabase = getSupabaseServer();
+
+    if (type === "soc2") {
+      const role = await getAdminRole(session.user.email as string);
+      if (role !== AdminRole.PLATFORM_ADMIN) {
+        return NextResponse.json({ error: "SOC-2 reports are available to platform admins only" }, { status: 403 });
+      }
+      const { data, error } = await supabase
+        .from("admin_audit_logs")
+        .select("admin_id, action, target_user_id, new_value, created_at")
+        .order("created_at", { ascending: false })
+        .limit(10000);
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      const rows = (data ?? []).map((r: Record<string, unknown>) => {
+        const nv = (r.new_value ?? {}) as Record<string, unknown>;
+        return {
+          admin_id: r.admin_id,
+          created_at: r.created_at,
+          action: r.action,
+          target_type: nv.target_type ?? "",
+          target_id: nv.target_id ?? r.target_user_id ?? "",
+          impersonation_used: nv.impersonation_context != null && nv.impersonation_context !== "" ? "yes" : "no",
+        };
+      });
+      const csv = toCSV(rows);
+      return new NextResponse(csv, {
+        headers: {
+          "Content-Type": "text/csv",
+          "Content-Disposition": "attachment; filename=admin-access-soc2-report.csv",
+        },
+      });
+    }
 
     if (type === "users") {
       const { data, error } = await supabase.from("profiles").select("id, full_name, email, role, industry, status, risk_level, flagged_for_fraud, created_at").order("created_at", { ascending: false });
@@ -53,7 +86,7 @@ export async function GET(req: NextRequest) {
       return new NextResponse(csv, { headers: { "Content-Type": "text/csv", "Content-Disposition": "attachment; filename=audit_logs.csv" } });
     }
 
-    return NextResponse.json({ error: "Invalid type. Use users|peer_reviews|fraud_flags|employment|audit_logs" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid type. Use users|peer_reviews|fraud_flags|employment|audit_logs|soc2" }, { status: 400 });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Internal error";
     return NextResponse.json({ error: msg }, { status: 500 });

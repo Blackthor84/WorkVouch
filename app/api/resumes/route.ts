@@ -40,8 +40,17 @@ export async function GET() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("[resumes] list error:", error.message ?? String(error));
-      return NextResponse.json({ error: "Failed to fetch resumes" }, { status: 500 });
+      const err = error as { message?: string; code?: string; details?: string; hint?: string };
+      console.error("[resumes] Supabase error:", {
+        message: err.message ?? String(error),
+        code: err.code,
+        details: err.details,
+        hint: err.hint,
+      });
+      return NextResponse.json(
+        { error: "Failed to fetch resumes", code: err.code ?? undefined },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ resumes: Array.isArray(data) ? data : [] });

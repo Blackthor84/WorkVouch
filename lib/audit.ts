@@ -1,53 +1,40 @@
 /**
- * Audit logging for Security Agency and platform events.
- * Writes to admin_actions (action_type + details). Service role only.
+ * Enterprise admin audit logging. Writes to admin_audit_logs.
+ * Each entry: admin_profile_id, action, target_type, target_id, impersonation_context, timestamp.
+ * Never throws.
  */
 
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { logAdminAction as writeLog } from "@/lib/admin-audit";
 
-export type AuditActionType =
-  | "impersonate"
-  | "verification_requested"
-  | "license_uploaded"
-  | "risk_flagged"
-  | "internal_note_created"
-  | "enterprise_risk_model_setup";
+export type AuditTargetType = "user" | "organization" | "role" | "impersonation" | "login" | "feature_flag";
 
-export interface AuditPayload {
-  admin_id?: string;
-  employer_id?: string;
-  profile_id?: string;
-  target_id?: string;
-  details?: string;
-}
+export type LogAdminActionParams = {
+  admin_profile_id: string;
+  action: string;
+  target_type: AuditTargetType;
+  target_id: string;
+  impersonation_context?: string | null;
+  old_value?: Record<string, unknown> | null;
+  new_value?: Record<string, unknown> | null;
+  reason?: string | null;
+};
 
 /**
- * Log an audit event. Never throws; logs errors to console.
+ * Log an admin action to admin_audit_logs (enterprise audit trail). Never throws.
  */
-export async function logAuditAction(
-  actionType: AuditActionType,
-  payload: AuditPayload
-): Promise<void> {
+export async function logAdminAction(params: LogAdminActionParams): Promise<void> {
   try {
-    const supabase = getSupabaseServer() as unknown as {
-      from: (t: string) => {
-        insert: (row: Record<string, unknown>) => Promise<{ error: unknown }>;
-      };
-    };
-    const row: Record<string, unknown> = {
-      action_type: actionType,
-      admin_id: payload.admin_id ?? "system",
-      impersonated_user_id: payload.target_id ?? payload.profile_id ?? payload.employer_id ?? "",
-      details:
-        typeof payload.details === "string"
-          ? payload.details
-          : payload.details != null
-            ? JSON.stringify(payload.details)
-            : null,
-    };
-    const { error } = await supabase.from("admin_actions").insert(row);
-    if (error) console.error("[Audit] insert error:", error);
-  } catch (e) {
-    console.error("[Audit] logAuditAction error:", e);
+    await writeLog({
+      admin_profile_id: params.admin_profile_id,
+      action: params.action,
+      target_type: params.target_type,
+      target_id: params.target_id,
+      impersonation_context: params.impersonation_context ?? null,
+      old_value: params.old_value ?? null,
+      new_value: params.new_value ?? null,
+      reason: params.reason ?? null,
+    });
+  } catch {
+    // no-op
   }
 }

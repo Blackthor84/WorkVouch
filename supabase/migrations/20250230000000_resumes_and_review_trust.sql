@@ -39,19 +39,20 @@ CREATE POLICY "Users can update own resumes" ON public.resumes FOR UPDATE USING 
 DROP POLICY IF EXISTS "Service role full access resumes" ON public.resumes;
 CREATE POLICY "Service role full access resumes" ON public.resumes FOR ALL USING (auth.jwt() ->> 'role' = 'service_role');
 
--- 2) EMPLOYMENT_REFERENCES: add sentiment and trust_weight for immutable snapshot
+-- 2) EMPLOYMENT_REFERENCES: add sentiment and trust_weight for immutable snapshot (only if table exists)
 DO $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'employment_references' AND column_name = 'sentiment') THEN
-    ALTER TABLE public.employment_references ADD COLUMN sentiment NUMERIC(3,2);
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'employment_references' AND column_name = 'trust_weight') THEN
-    ALTER TABLE public.employment_references ADD COLUMN trust_weight NUMERIC(5,2) DEFAULT 1.0;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'employment_references') THEN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'employment_references' AND column_name = 'sentiment') THEN
+      ALTER TABLE public.employment_references ADD COLUMN sentiment NUMERIC(3,2);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'employment_references' AND column_name = 'trust_weight') THEN
+      ALTER TABLE public.employment_references ADD COLUMN trust_weight NUMERIC(5,2) DEFAULT 1.0;
+    END IF;
+    COMMENT ON COLUMN public.employment_references.sentiment IS 'Normalized sentiment -1 to 1; derived from comment or rating.';
+    COMMENT ON COLUMN public.employment_references.trust_weight IS 'Weight applied in trust score; default 1.0.';
   END IF;
 END $$;
-
-COMMENT ON COLUMN public.employment_references.sentiment IS 'Normalized sentiment -1 to 1; derived from comment or rating.';
-COMMENT ON COLUMN public.employment_references.trust_weight IS 'Weight applied in trust score; default 1.0.';
 
 -- 3) TRUST_SCORES: ensure calculated_at exists (schema has it)
 DO $$

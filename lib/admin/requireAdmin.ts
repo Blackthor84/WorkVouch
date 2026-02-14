@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { supabaseServer } from "@/lib/supabase/server";
 import { canModifyUser, canAssignRole } from "@/lib/roles";
+import { recordFailedAdminAccess } from "@/lib/admin/adminAlertsStore";
 
 export type AdminSession = {
   session: { user: { id: string; email?: string; [key: string]: unknown } };
@@ -91,7 +92,10 @@ export async function requireSuperAdmin(): Promise<AdminSession> {
 /** API-safe: returns null instead of redirecting. Use with adminForbiddenResponse(). */
 export async function requireAdminForApi(): Promise<AdminSession | null> {
   const admin = await getAdminContext();
-  if (!admin.isAdmin) return null;
+  if (!admin.isAdmin) {
+    recordFailedAdminAccess(admin.email ?? undefined);
+    return null;
+  }
   try {
     const supabase = await supabaseServer();
     const { data: { user } } = await supabase.auth.getUser();

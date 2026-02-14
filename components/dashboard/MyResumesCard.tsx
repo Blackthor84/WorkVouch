@@ -21,9 +21,12 @@ export function MyResumesCard() {
 
   useEffect(() => {
     fetch("/api/resumes")
-      .then((r) => r.json())
-      .then((data) => {
-        setResumes(Array.isArray(data.resumes) ? data.resumes : []);
+      .then((res) => {
+        if (!res.ok) return res.json().then((body) => Promise.reject(new Error((body as { error?: string })?.error ?? res.statusText)));
+        return res.json();
+      })
+      .then((data: { resumes?: unknown }) => {
+        setResumes(Array.isArray(data?.resumes) ? data.resumes as ResumeRow[] : []);
       })
       .catch(() => setResumes([]))
       .finally(() => setLoading(false));
