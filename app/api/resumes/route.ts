@@ -1,37 +1,39 @@
 /**
  * GET /api/resumes
- * Lists current user's resumes (id, file_path, status, parsed_data, created_at).
- * Production only: no demo/sandbox resumes unless env allows.
+ * Lists current user's resumes. Production-safe: uses getUser(), no getSession(), no uncaught errors.
  */
 
 import { NextResponse } from "next/server";
-import { getSupabaseSession } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user?.id) {
+    const supabase = await supabaseServer();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const sb = getSupabaseServer();
-    const { data, error } = await sb
+    const { data, error } = await supabase
       .from("resumes")
       .select("id, user_id, organization_id, file_path, status, parsed_data, parsing_error, created_at")
-      .eq("user_id", session.user.id)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("[resumes] list error:", error);
-      return NextResponse.json({ error: "Failed to list resumes" }, { status: 500 });
+      console.error("[resumes] list error:", error.message ?? error);
+      return NextResponse.json({ error: "Failed to fetch resumes" }, { status: 500 });
     }
 
     return NextResponse.json({ resumes: data ?? [] });
   } catch (e) {
-    console.error("[resumes] error:", e);
+    const message = e instanceof Error ? e.message : "Unknown error";
+    console.error("[resumes] error:", message);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
