@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { stripe, STRIPE_PRICE_MAP, logMissingStripePriceIds, getCheckoutBaseUrl } from "@/lib/stripe/config";
 
 export async function GET(req: NextRequest) {

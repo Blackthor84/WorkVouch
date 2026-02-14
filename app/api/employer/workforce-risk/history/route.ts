@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { requireWorkforceRiskEmployer } from "@/lib/employer-workforce-risk-auth";
 
 export const dynamic = "force-dynamic";

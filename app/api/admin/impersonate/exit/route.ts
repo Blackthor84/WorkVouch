@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { cookies } from "next/headers";
 
 const IMPERSONATION_COOKIE = "workvouch_impersonation";

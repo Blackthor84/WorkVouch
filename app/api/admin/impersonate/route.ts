@@ -1,6 +1,8 @@
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { SignJWT } from "jose";
 import type { Database } from "@/types/supabase";
 

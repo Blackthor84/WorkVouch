@@ -3,6 +3,8 @@
  * Admin/superadmin only. Returns full intelligence breakdown: snapshot, risk, network, team fit, hiring, model version, last calculated.
  */
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { isAdmin } from "@/lib/roles";
 import { getSupabaseServer } from "@/lib/supabase/admin";

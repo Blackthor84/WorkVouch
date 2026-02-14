@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { supabaseServer } from "@/lib/supabase/admin";
 import { stripe } from "@/lib/stripe";
 

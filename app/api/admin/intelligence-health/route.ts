@@ -3,6 +3,8 @@
  * Admin only. Integrity health dashboard: % recalc success, fraud blocks/day, avg sentiment shift, overlap failures.
  */
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/roles";

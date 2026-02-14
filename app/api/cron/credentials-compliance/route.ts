@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { updateAllCredentialStatuses } from "@/lib/credentials/statusUpdater";
 import { generateComplianceAlerts } from "@/lib/compliance/generateAlerts";
 

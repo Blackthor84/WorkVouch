@@ -4,6 +4,7 @@ import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export default async function AdminLayout({
   children,

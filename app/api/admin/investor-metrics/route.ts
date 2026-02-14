@@ -7,6 +7,8 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function count(supabase: ReturnType<typeof getSupabaseServer>, table: string): Promise<number> {

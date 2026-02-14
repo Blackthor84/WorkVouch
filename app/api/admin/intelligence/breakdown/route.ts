@@ -4,6 +4,8 @@
  * { totalScore, components: { tenure, reviewVolume, sentiment, rating, rehireMultiplier } }
  */
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { isAdmin } from "@/lib/roles";
 import { calculateV1Breakdown, buildProductionProfileInput } from "@/lib/core/intelligence";

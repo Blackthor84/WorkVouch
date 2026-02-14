@@ -6,6 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getCurrentUser, getCurrentUserProfile } from "@/lib/auth";
 import { isAdmin } from "@/lib/roles";

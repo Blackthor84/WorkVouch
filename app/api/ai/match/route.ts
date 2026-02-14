@@ -4,6 +4,8 @@
  */
 
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { requireAuth } from "@/lib/auth";
 import { findTopMatches, calculateMatchScore } from "@/lib/ai/matching";
 

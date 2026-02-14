@@ -1,6 +1,8 @@
 import { getSupabaseSession } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { auditLog, getAuditMetaFromRequest } from "@/lib/auditLogger";
 
 /**

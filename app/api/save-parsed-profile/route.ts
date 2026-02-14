@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { supabaseServer, upgradeRequired401 } from "@/lib/supabase/server";
 import { Database } from "@/types/database";
 

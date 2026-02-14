@@ -3,6 +3,8 @@
  * Placeholder: generate or redirect to Career Passport PDF. Not yet implemented.
  */
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {

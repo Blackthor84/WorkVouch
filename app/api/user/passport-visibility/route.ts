@@ -5,6 +5,8 @@
  * Tier gating: Lite = private or shared_network only; Pro = + verified_employers; Enterprise (when flag) = + public.
  */
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { createServerSupabase } from "@/lib/supabase/server";

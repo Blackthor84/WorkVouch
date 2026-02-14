@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { enforceLimit } from "@/lib/enforceLimit";

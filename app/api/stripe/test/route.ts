@@ -2,6 +2,8 @@
 import { stripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 export async function GET() {
   try {
     if (!stripe) {

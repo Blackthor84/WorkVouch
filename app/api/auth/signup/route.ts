@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 /**
  * Legacy signup route - not used
  * The app uses Supabase Auth directly via components/sign-up-form.tsx

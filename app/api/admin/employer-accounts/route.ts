@@ -3,6 +3,8 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 /**
  * GET /api/admin/employer-accounts
  * List employer accounts for admin (e.g. feature flag assign dropdown). Admin + SuperAdmin only.

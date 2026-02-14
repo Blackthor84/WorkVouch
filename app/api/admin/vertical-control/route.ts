@@ -7,6 +7,8 @@ import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/roles";
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import {
   VERTICAL_NAMES,
   VERTICAL_DISPLAY_NAMES,

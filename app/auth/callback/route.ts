@@ -2,20 +2,26 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
+export const runtime = "nodejs";
+
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
+  try {
+    const { searchParams, origin } = new URL(request.url);
+    const code = searchParams.get("code");
 
-  if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=missing_code`);
-  }
+    if (!code) {
+      return NextResponse.redirect(`${origin}/login?error=missing_code`);
+    }
 
-  const cookieStore = await cookies();
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !anonKey) {
+      return NextResponse.redirect(`${origin}/login?error=misconfigured`);
+    }
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+    const cookieStore = await cookies();
+
+    const supabase = createServerClient(url, anonKey, {
       cookies: {
         getAll() {
           return cookieStore.getAll();
@@ -26,10 +32,13 @@ export async function GET(request: Request) {
           });
         },
       },
-    }
-  );
+    });
 
-  await supabase.auth.exchangeCodeForSession(code);
+    await supabase.auth.exchangeCodeForSession(code);
 
-  return NextResponse.redirect(`${origin}/dashboard`);
+    return NextResponse.redirect(`${origin}/dashboard`);
+  } catch {
+    const origin = new URL(request.url).origin;
+    return NextResponse.redirect(`${origin}/login?error=auth_failed`);
+  }
 }

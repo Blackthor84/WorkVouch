@@ -4,6 +4,8 @@
  */
 
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { auditLog } from "@/lib/auditLogger";
 

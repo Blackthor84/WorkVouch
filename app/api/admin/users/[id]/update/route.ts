@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { requireAdminForApi, assertAdminCanModify } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";

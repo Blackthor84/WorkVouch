@@ -5,6 +5,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireSimulationLabAdmin } from "@/lib/simulation-lab";
 import type { DataDensitySnapshotInsert } from "@/types/simulation";

@@ -5,6 +5,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { linkEmployeeToRandomEmployer } from "@/lib/sandbox/employmentGenerator";
 import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";

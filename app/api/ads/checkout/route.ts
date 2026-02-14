@@ -1,5 +1,7 @@
 import { AD_PRICING } from "@/lib/ads/pricing";
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getSupabaseSession } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe";
 

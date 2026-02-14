@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { ComplianceDisputeType } from "@/lib/compliance-types";

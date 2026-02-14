@@ -4,6 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getSupabaseSession } from "@/lib/supabase/server";
 import { submitReview } from "@/lib/core/reviews";
 import { logAudit, type AuditEntity } from "@/lib/dispute-audit";

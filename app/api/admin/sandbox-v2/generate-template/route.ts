@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 import { generateTemplateByKey } from "@/lib/sandbox/templateEngine";
 

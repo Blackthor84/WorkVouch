@@ -3,6 +3,8 @@
  * Public directory search uses server action only (no API). This route returns 401 when unauthenticated.
  */
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";

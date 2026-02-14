@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const runtime = "nodejs";
 import { getAds, getVisibleAds, addAd, updateAd, removeAd, toggleAdVisibility, Ad } from '@/lib/ads';
 
 export async function GET(req: NextRequest) {

@@ -5,6 +5,8 @@
  */
 
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";

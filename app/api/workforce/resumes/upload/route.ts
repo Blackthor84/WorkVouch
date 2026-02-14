@@ -5,6 +5,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireLocationAccess } from "@/lib/enterprise/requireEnterprise";
 import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";

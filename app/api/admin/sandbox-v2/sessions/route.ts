@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin, requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
 import { seedSandboxFeatures } from "@/lib/sandbox/seedFeatures";

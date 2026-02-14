@@ -4,6 +4,8 @@ import { isSuperAdmin } from "@/lib/roles";
 import { APP_MODE } from "@/lib/app-mode";
 import { NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const DEMO_PASSWORD = "DemoAccount1!Secure";

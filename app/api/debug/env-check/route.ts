@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 /**
  * Temporary debug route: environment verification for production (Vercel).
  * Does NOT return actual secret values. Only booleans, lengths, and safe metadata.

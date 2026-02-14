@@ -3,6 +3,8 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const DEMO_MAX_AGE_HOURS = 48;

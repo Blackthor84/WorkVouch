@@ -4,6 +4,8 @@
  */
 
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getEnabledVerticalNames } from "@/lib/platform-verticals";
 
 export async function GET() {

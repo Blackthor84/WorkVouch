@@ -3,6 +3,8 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isAdmin, isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 /**
  * PATCH /api/admin/feature-flags/assignments/[id]
  * Update assignment. Admin can only when feature.is_globally_enabled = false; SuperAdmin always.

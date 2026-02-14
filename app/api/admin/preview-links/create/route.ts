@@ -6,6 +6,8 @@ import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { randomBytes } from "crypto";
 
 export const dynamic = "force-dynamic";

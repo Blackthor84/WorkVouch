@@ -4,6 +4,8 @@ import { getUsageForEmployer } from "@/lib/usage";
 import { isAdmin } from "@/lib/roles";
 import { NextRequest, NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 /**
  * GET /api/admin/employer-usage
  * List employer accounts with usage (admin/superadmin only).

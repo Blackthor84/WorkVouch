@@ -4,6 +4,8 @@
  * GET /api/search/passport?slug=xxx — Single passport view by slug; employer views logged to search_logs.
  */
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
 import { searchPassport, getPassportViewBySlug } from "@/lib/actions/passport-search";
 

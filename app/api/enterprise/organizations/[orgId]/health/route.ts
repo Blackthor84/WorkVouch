@@ -5,6 +5,8 @@
  */
 
 import { NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { requireEnterpriseOwner } from "@/lib/enterprise/requireEnterprise";
 import { getOrgHealthScore } from "@/lib/enterprise/orgHealthScore";
 

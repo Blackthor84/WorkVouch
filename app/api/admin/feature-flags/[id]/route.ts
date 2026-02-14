@@ -3,6 +3,8 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 /**
  * PATCH /api/admin/feature-flags/[id]
  * Update feature flag. SuperAdmin only (is_globally_enabled, visibility_type, required_subscription_tier, description, name).

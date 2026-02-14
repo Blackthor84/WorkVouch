@@ -9,6 +9,8 @@ import { getBehavioralVector } from "@/lib/intelligence/getBehavioralVector";
 import { buildBehavioralSummary } from "@/lib/intelligence/behavioralSummary";
 import { NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {

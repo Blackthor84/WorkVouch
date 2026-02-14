@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 export async function GET() {
   return NextResponse.json({
     stripeKey: process.env.STRIPE_SECRET_KEY ? "loaded" : "missing",

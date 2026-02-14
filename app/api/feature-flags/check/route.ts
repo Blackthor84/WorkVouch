@@ -3,6 +3,8 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 /**
  * GET /api/feature-flags/check?key=<feature_key>
  * Returns { enabled: boolean } for the current user.

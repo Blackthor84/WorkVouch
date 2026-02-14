@@ -5,6 +5,8 @@
  * Values from profile_metrics when available; otherwise computed server-side. No raw weights exposed.
  */
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";

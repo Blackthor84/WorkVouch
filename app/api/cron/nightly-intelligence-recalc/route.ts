@@ -7,6 +7,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { recalculateTrustScore } from "@/lib/trustScore";
 import { logIntel, LOG_TAGS } from "@/lib/core/intelligence";

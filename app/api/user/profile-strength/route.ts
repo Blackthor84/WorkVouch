@@ -6,6 +6,8 @@ import { getSupabaseSession } from "@/lib/supabase/server";
 import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
 import { NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export type ProfileStrengthResponse = {

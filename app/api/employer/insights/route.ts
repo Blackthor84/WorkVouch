@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "nodejs";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { checkFeatureAccess } from "@/lib/feature-flags";

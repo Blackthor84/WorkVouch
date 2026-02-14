@@ -3,6 +3,8 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isAdmin, isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
+
+export const runtime = "nodejs";
 /** Core feature flags that must always exist. Insert if missing (by key). visibility_type uses "both" or "ui" (DB allows ui|api|both). */
 const CORE_FEATURE_FLAGS = [
   { name: "Ads System", key: "ads_system", description: "Controls visibility of advertising system", visibility_type: "both" as const, is_globally_enabled: false },
