@@ -58,6 +58,11 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
       .catch(() => setComplianceCount(0));
   }, [isEmployerArea, user?.id, role]);
 
+  const sessionUserRole = (session?.user as { role?: string } | undefined)?.role;
+  const showAdmin =
+    sessionUserRole === "admin" || sessionUserRole === "superadmin";
+  const showSandboxAdmin = sessionUserRole === "superadmin";
+
   return (
     <nav className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white shadow-sm py-2">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
