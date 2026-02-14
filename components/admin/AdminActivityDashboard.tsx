@@ -11,7 +11,7 @@ export async function AdminActivityDashboard() {
     getRecentAdminActions(15),
     getHighRiskActions(10),
     Promise.resolve(getAdminAlerts(20)),
-    getImpersonationContext().catch(() => ({ isImpersonating: false })),
+    getImpersonationContext().catch((): { isImpersonating: false } => ({ isImpersonating: false })),
   ]);
 
   return (
@@ -60,9 +60,9 @@ export async function AdminActivityDashboard() {
 
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
         <h3 className="mb-3 font-medium text-slate-900">Impersonation</h3>
-        {impersonation.isImpersonating ? (
+        {impersonation.isImpersonating === true ? (
           <p className="text-sm text-amber-800">
-            Currently viewing as {impersonation.userId ?? "user"}.{" "}
+            Currently viewing as {impersonation.userId}.{" "}
             <Link href="/api/admin/impersonate/exit" className="underline">Exit</Link>
           </p>
         ) : (

@@ -2,7 +2,7 @@ import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { isPlatformAdmin, isPlatformReadOnlyAdmin, getAdminRole } from "@/lib/admin";
 import { recordFailedAdminAccess } from "@/lib/admin/adminAlertsStore";
 import { hasPermission, canMutate, AdminRole, Permission } from "@/lib/permissions";
-import { getImpersonationContext } from "@/lib/admin-impersonation";
+import { getImpersonationContext, type ImpersonationState } from "@/lib/admin-impersonation";
 import { getSandboxContext } from "@/lib/sandbox/sandboxContext";
 import { SandboxToggle } from "@/components/admin/SandboxToggle";
 import { AdminActivityDashboard } from "@/components/admin/AdminActivityDashboard";
@@ -36,7 +36,7 @@ export default async function AdminHomePage() {
     sandbox = { enabled: false, isSuperAdmin: false };
   }
 
-  let impersonation;
+  let impersonation: ImpersonationState;
   try {
     impersonation = await getImpersonationContext();
   } catch {
@@ -45,10 +45,10 @@ export default async function AdminHomePage() {
 
   return (
     <div className="p-8 space-y-6">
-      {impersonation.isImpersonating && (
+      {impersonation.isImpersonating === true && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 flex items-center justify-between">
           <span className="text-sm text-amber-900">
-            Viewing as impersonated user{impersonation.userId ? ` (${impersonation.userId})` : ""}.
+            Viewing as impersonated user ({impersonation.userId}).
           </span>
           <Link
             href="/api/admin/impersonate/exit"
