@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { ThemeToggle } from "./theme-toggle";
@@ -60,8 +61,8 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
 
   const sessionUserRole = (session?.user as { role?: string } | undefined)?.role;
   const showAdmin =
-    sessionUserRole === "admin" || sessionUserRole === "superadmin";
-  const showSandboxAdmin = sessionUserRole === "superadmin";
+    sessionUserRole === "admin" || sessionUserRole === "super_admin";
+  const showSandboxAdmin = sessionUserRole === "superadmin" || sessionUserRole === "super_admin";
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white shadow-sm py-2">
@@ -115,6 +116,13 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
                 <Button variant="ghost" size="sm" href="/pricing" className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]">
                   Pricing
                 </Button>
+                {showAdmin && (
+                  <Link href="/admin">
+                    <Button variant="ghost" size="sm">
+                      Admin
+                    </Button>
+                  </Link>
+                )}
                 {showOrgSwitcher && orgSwitcherItems && (
                   <select
                     className="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white px-2 py-1"
@@ -134,16 +142,6 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
                       </option>
                     ))}
                   </select>
-                )}
-                {showAdmin && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    href="/admin"
-                    className="font-semibold text-primary dark:text-blue-400 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
-                  >
-                    Admin
-                  </Button>
                 )}
                 {showSandboxAdmin && (
                   <Button
