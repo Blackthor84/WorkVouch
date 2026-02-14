@@ -102,33 +102,16 @@ export async function POST(req: NextRequest) {
 
     const userId = session.user.id;
     const body = await req.json().catch(() => ({}));
-    const resumeId = typeof body.resume_id === "string" ? body.resume_id.trim() : null;
-    let path = typeof body.path === "string" ? body.path.trim() : "";
-
-    const sb = getSupabaseServer();
-
-    if (resumeId) {
-      const { data: resume } = await sb
-        .from("resumes")
-        .select("file_path")
-        .eq("id", resumeId)
-        .eq("user_id", userId)
-        .single();
-      if (resume) path = (resume as { file_path: string }).file_path;
-    }
+    const path = typeof body.path === "string" ? body.path.trim() : "";
 
     if (!path) {
-      return NextResponse.json({ error: "Missing file path or resume_id" }, { status: 400 });
+      return NextResponse.json({ error: "Missing file path" }, { status: 400 });
     }
     if (!path.startsWith(userId + "/") && !path.startsWith("sandbox/")) {
       if (path.includes("..")) return NextResponse.json({ error: "Invalid file path" }, { status: 403 });
     }
 
-    if (resumeId) {
-      const result = await parseResumeAndUpdateRecord(path, userId, resumeId);
-      if (result.ok) return NextResponse.json({ employment: result.employment });
-      return NextResponse.json({ error: result.error }, { status: 400 });
-    }
+    const sb = getSupabaseServer();
 
 
     const todayStart = new Date();

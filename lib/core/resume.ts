@@ -61,25 +61,8 @@ export async function processResumeUpload(
     return { ok: false, error: "Failed to upload file.", status: 500 };
   }
 
-  const { data: resumeRow, error: insertErr } = await sb
-    .from("resumes")
-    .insert({
-      user_id: userId,
-      organization_id: organizationId,
-      file_path: path,
-      status: "uploaded",
-      updated_at: new Date().toISOString(),
-    })
-    .select("id, status, parsed_data, parsing_error")
-    .single();
-
-  if (insertErr || !resumeRow) {
-    console.error("[core/resume] insert resumes error:", insertErr);
-    return { ok: false, error: "Failed to create resume record.", status: 500 };
-  }
-
-  const resumeId = (resumeRow as { id: string }).id;
-  const parseResult = await parseResumeAndUpdateRecord(path, userId, resumeId);
+  const resumeId = path;
+  const parseResult = await parseResumeAndUpdateRecord(path, userId, null);
 
   if (parseResult.ok) {
     const { employmentRecordIds, matchesCreated } = await insertEmploymentFromResume(userId, parseResult.employment);

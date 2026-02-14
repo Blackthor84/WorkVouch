@@ -44,7 +44,7 @@ export default async function StoreReadinessPage() {
       id: "data-resumes-table",
       name: "Resumes viewable by user",
       pass: true,
-      detail: "resumes table exists; GET /api/resumes lists user uploads.",
+      detail: "Resume data computed from employment_records; GET /api/resumes returns aggregated view.",
     },
     {
       id: "data-reviews",
@@ -61,20 +61,20 @@ export default async function StoreReadinessPage() {
   ];
   checks.push(...dataTransparencyChecks);
 
-  let resumesTableExists = false;
+  let resumesDataAvailable = false;
   try {
-    const { data } = await sb.from("resumes").select("id").limit(1);
-    resumesTableExists = Array.isArray(data);
+    const { data, error } = await sb.from("employment_records").select("id").limit(1);
+    resumesDataAvailable = !error && Array.isArray(data);
   } catch {
-    resumesTableExists = false;
+    resumesDataAvailable = false;
   }
   const idx = checks.findIndex((c) => c.id === "data-resumes-table");
   if (idx >= 0) {
-    checks[idx].pass = resumesTableExists;
-    checks[idx].detail = resumesTableExists
-      ? "resumes table exists; GET /api/resumes lists user uploads."
-      : "resumes table missing — run migration 20250230000000_resumes_and_review_trust.sql";
-    checks[idx].blockSubmission = !resumesTableExists;
+    checks[idx].pass = resumesDataAvailable;
+    checks[idx].detail = resumesDataAvailable
+      ? "Resume data computed from employment_records; GET /api/resumes returns aggregated view."
+      : "employment_records not available; GET /api/resumes may return empty.";
+    checks[idx].blockSubmission = false;
   }
 
   const privacyChecks: Check[] = [

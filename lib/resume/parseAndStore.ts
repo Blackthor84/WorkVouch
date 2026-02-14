@@ -94,21 +94,12 @@ export async function parseResumeAndUpdateRecord(
   const sb = getSupabaseServer();
 
   const updateResume = async (
-    status: "parsed" | "failed",
-    parsedData: unknown,
-    parsingError: string | null
+    _status: "parsed" | "failed",
+    _parsedData: unknown,
+    _parsingError: string | null
   ) => {
     if (!resumeId) return;
-    await sb
-      .from("resumes")
-      .update({
-        status,
-        parsed_data: parsedData ?? null,
-        parsing_error: parsingError,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", resumeId)
-      .eq("user_id", userId);
+    // No resumes table; parse status is not persisted.
   };
 
   let downloadError: unknown;

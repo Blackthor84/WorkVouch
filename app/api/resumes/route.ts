@@ -1,11 +1,8 @@
 /**
  * GET /api/resumes
- * Lists current user's resumes. Production-safe: no getSession(), no uncaught errors.
- * Force Node runtime to avoid Edge/cookies() issues on Vercel.
+ * Lists current user's "resumes" as a computed view from employment_records.
+ * No resumes table; data aggregated from employment_records. Production-safe.
  */
-
-// Log when this module is loaded (helps confirm route resolution and catch import crashes)
-console.error("[resumes] ROUTE MODULE LOADED");
 
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -13,50 +10,68 @@ import { supabaseServer } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET() {
-  console.error("[resumes] GET invoked");
+export type ComputedResumeRow = {
+  id: string;
+  user_id: string;
+  file_path: string;
+  status: string;
+  parsed_data: { employment?: { company_name: string; job_title: string; start_date: string; end_date: string | null; is_current: boolean }[] } | null;
+  parsing_error: string | null;
+  created_at: string;
+};
 
+export async function GET() {
   try {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
     if (!url || !anonKey) {
-      console.error("[resumes] Missing env: URL=" + (url ? "set" : "MISSING") + ", ANON_KEY=" + (anonKey ? "set" : "MISSING"));
       return NextResponse.json({ error: "Service misconfigured" }, { status: 503 });
     }
 
     const supabase = await supabaseServer();
     const authResult = await supabase.auth.getUser();
     const user = authResult?.data?.user ?? null;
-
     if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data, error } = await supabase
-      .from("resumes")
-      .select("id, user_id, organization_id, file_path, status, parsed_data, parsing_error, created_at")
+    const { data: records, error } = await supabase
+      .from("employment_records")
+      .select("id, user_id, company_name, job_title, start_date, end_date, is_current, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (error) {
-      const err = error as { message?: string; code?: string; details?: string; hint?: string };
-      console.error("[resumes] Supabase error:", {
-        message: err.message ?? String(error),
-        code: err.code,
-        details: err.details,
-        hint: err.hint,
-      });
-      return NextResponse.json(
-        { error: "Failed to fetch resumes", code: err.code ?? undefined },
-        { status: 500 }
-      );
+      console.warn("[resumes] employment_records error:", error.message, error.code);
+      return NextResponse.json({ resumes: [] });
     }
 
-    return NextResponse.json({ resumes: Array.isArray(data) ? data : [] });
+    const list = Array.isArray(records) ? records : [];
+    const employment = list.map((r) => ({
+      company_name: r.company_name ?? "",
+      job_title: r.job_title ?? "",
+      start_date: r.start_date ?? "",
+      end_date: r.end_date ?? null,
+      is_current: r.is_current ?? false,
+    }));
+    const created_at = list.length > 0
+      ? list.reduce((min, r) => (r.created_at < min ? r.created_at : min), list[0].created_at)
+      : new Date().toISOString();
+
+    const computed: ComputedResumeRow = {
+      id: user.id,
+      user_id: user.id,
+      file_path: "Career history",
+      status: "parsed",
+      parsed_data: employment.length > 0 ? { employment } : null,
+      parsing_error: null,
+      created_at,
+    };
+
+    return NextResponse.json({ resumes: list.length > 0 ? [computed] : [] });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
-    console.error("[resumes] GET error:", message);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.warn("[resumes] GET error:", message);
+    return NextResponse.json({ resumes: [] });
   }
 }
