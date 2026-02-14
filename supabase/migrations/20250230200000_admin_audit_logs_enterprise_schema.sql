@@ -67,7 +67,3 @@ REVOKE UPDATE ON public.admin_audit_logs FROM PUBLIC;
 REVOKE DELETE ON public.admin_audit_logs FROM PUBLIC;
 
 COMMENT ON TABLE public.admin_audit_logs IS 'Enterprise admin audit trail. Every admin action MUST write here. If insert fails, action must fail. Immutable (no UPDATE/DELETE).';
-
--- Optional: employers (organizations) suspend support for admin
-ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS suspended_at TIMESTAMPTZ;
-COMMENT ON COLUMN public.organizations.suspended_at IS 'Set by admin suspend; null = active.';

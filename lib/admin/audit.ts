@@ -4,7 +4,9 @@
  * If insert fails, THROWS — action must fail. No silent failures.
  */
 
+import { NextRequest } from "next/server";
 import { writeAdminAuditLog } from "./audit-enterprise";
+import { getAuditRequestMeta } from "./getAuditRequestMeta";
 
 export type AuditAction =
   | "profile_update"
@@ -62,6 +64,49 @@ export async function insertAdminAuditLog(params: {
     is_sandbox: params.isSandbox ?? false,
     ip_address: params.ipAddress ?? null,
     user_agent: params.userAgent ?? null,
+  });
+}
+
+/**
+ * Log an admin action with payload shape: action_type, target_type, target_id, before_state, after_state, reason, is_sandbox.
+ * Fills admin_user_id, admin_email, admin_role, ip_address, user_agent from admin + req.
+ * THROWS if audit insert fails.
+ */
+export type LogAdminActionPayload = {
+  action_type: string;
+  target_type: "user" | "employer" | "review" | "trust_score" | "system" | "organization" | "role";
+  target_id: string | null;
+  before_state: Record<string, unknown> | null;
+  after_state: Record<string, unknown> | null;
+  reason: string;
+  is_sandbox: boolean;
+};
+
+export type AdminContextForAudit = {
+  userId: string;
+  email?: string | null;
+  isSuperAdmin: boolean;
+};
+
+export async function logAdminAction(
+  admin: AdminContextForAudit,
+  req: NextRequest,
+  payload: LogAdminActionPayload
+): Promise<void> {
+  const { ipAddress, userAgent } = getAuditRequestMeta(req);
+  await writeAdminAuditLog({
+    admin_user_id: admin.userId,
+    admin_email: admin.email ?? null,
+    admin_role: admin.isSuperAdmin ? "superadmin" : "admin",
+    action_type: payload.action_type,
+    target_type: payload.target_type,
+    target_id: payload.target_id ?? null,
+    before_state: payload.before_state ?? null,
+    after_state: payload.after_state ?? null,
+    reason: payload.reason?.trim() ?? "",
+    is_sandbox: payload.is_sandbox,
+    ip_address: ipAddress ?? null,
+    user_agent: userAgent ?? null,
   });
 }
 

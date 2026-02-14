@@ -1,5 +1,5 @@
 /**
- * POST /api/admin/employers/[id]/suspend — suspend employer (organization). Admin only. Audit required.
+ * POST /api/admin/employers/[id]/reactivate — clear suspended_at. Admin only. Audit required.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -35,15 +35,14 @@ export async function POST(
 
     if (!oldRow) return NextResponse.json({ success: false, error: "Employer not found" }, { status: 404 });
 
-    const now = new Date().toISOString();
     const { error } = await supabase
       .from("organizations")
-      .update({ suspended_at: now })
+      .update({ suspended_at: null })
       .eq("id", orgId);
 
     if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
 
-    const updatedOrg = { ...(oldRow as Record<string, unknown>), suspended_at: now };
+    const updatedOrg = { ...(oldRow as Record<string, unknown>), suspended_at: null };
     const isSandbox = await getAdminSandboxModeFromCookies();
     await logAdminAction(
       {
@@ -53,7 +52,7 @@ export async function POST(
       },
       req,
       {
-        action_type: "SUSPEND_EMPLOYER",
+        action_type: "REACTIVATE_EMPLOYER",
         target_type: "organization",
         target_id: orgId,
         before_state: oldRow as Record<string, unknown>,

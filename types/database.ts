@@ -1568,9 +1568,9 @@ export interface Database {
         Relationships: []
       }
       organizations: {
-        Row: { id: string; name: string; slug: string; billing_tier: string; plan_type: string | null; enterprise_features: Json | null; number_of_locations: number; requires_enterprise: boolean; created_at: string; updated_at: string; mode?: string | null }
-        Insert: { id?: string; name: string; slug: string; billing_tier?: string; plan_type?: string | null; enterprise_features?: Json | null; number_of_locations?: number; requires_enterprise?: boolean; created_at?: string; updated_at?: string; mode?: string | null }
-        Update: { id?: string; name?: string; slug?: string; billing_tier?: string; plan_type?: string | null; enterprise_features?: Json | null; number_of_locations?: number; requires_enterprise?: boolean; created_at?: string; updated_at?: string; mode?: string | null }
+        Row: { id: string; name: string; slug: string; billing_tier: string; plan_type: string | null; enterprise_features: Json | null; number_of_locations: number; requires_enterprise: boolean; created_at: string; updated_at: string; mode?: string | null; suspended_at: string | null }
+        Insert: { id?: string; name: string; slug: string; billing_tier?: string; plan_type?: string | null; enterprise_features?: Json | null; number_of_locations?: number; requires_enterprise?: boolean; created_at?: string; updated_at?: string; mode?: string | null; suspended_at?: string | null }
+        Update: { id?: string; name?: string; slug?: string; billing_tier?: string; plan_type?: string | null; enterprise_features?: Json | null; number_of_locations?: number; requires_enterprise?: boolean; created_at?: string; updated_at?: string; mode?: string | null; suspended_at?: string | null }
         Relationships: []
       }
       organization_usage: {
