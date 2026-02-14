@@ -89,7 +89,7 @@ export async function getSupabaseSession() {
   }
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  return { session, user: session?.user ?? null };
+    data: { user },
+  } = await supabase.auth.getUser();
+  return { user, session: user ? { user } : null };
 }

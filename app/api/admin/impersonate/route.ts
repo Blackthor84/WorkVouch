@@ -17,17 +17,17 @@ export async function POST(request: Request) {
     const supabase = await supabaseServer();
 
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
-      .eq("id", session.user.id)
+      .eq("id", user.id)
       .single();
 
     if (!profile || !["admin", "superadmin"].includes((profile as { role?: string }).role ?? "")) {
@@ -101,7 +101,7 @@ export async function POST(request: Request) {
       const { data: adminSession, error: sessionErr } = await adminSupabase
         .from("admin_sessions")
         .insert({
-          admin_id: session.user.id,
+          admin_id: user.id,
           impersonated_user_id: userId,
           expires_at: expiresAt.toISOString(),
         })
@@ -127,7 +127,7 @@ export async function POST(request: Request) {
 
     try {
       const adminAction: AdminActionInsert = {
-        admin_id: session.user.id,
+        admin_id: user.id,
         impersonated_user_id: userId,
         action_type: "impersonate",
       };

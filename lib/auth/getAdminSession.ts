@@ -1,5 +1,5 @@
 /**
- * Canonical admin session helper. Uses Supabase session + admin_users table.
+ * Canonical admin session helper. Uses getUser() + profiles.role.
  * NEVER throws — returns null on any failure or non-admin user.
  * Use for guard checks; use requireAdmin() when you need supabase client + full profile.
  */
@@ -16,32 +16,31 @@ export interface AdminSessionMinimal {
 }
 
 /**
- * Returns { userId, role } if the current user is in admin_users with role admin or super_admin; otherwise null.
- * Roles come from admin_users table only. Normalizes to "admin" | "super_admin".
+ * Returns { userId, role } if the current user has admin or super_admin in profiles.role; otherwise null.
  */
 export async function getAdminSession(): Promise<AdminSessionMinimal | null> {
   try {
     const supabase = await supabaseServer();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!session?.user?.id || !session?.user?.email) return null;
+    if (!user?.id) return null;
 
-    const { data: adminRow, error } = await supabase
-      .from("admin_users")
+    const { data: profile, error } = await supabase
+      .from("profiles")
       .select("role")
-      .eq("email", session.user.email)
+      .eq("id", user.id)
       .maybeSingle();
 
-    if (error || !adminRow) return null;
+    if (error || !profile) return null;
 
-    const rawRole = (adminRow as { role?: string | null }).role ?? "";
+    const rawRole = (profile as { role?: string | null }).role ?? "";
     const role = normalizeRole(rawRole);
     if (!isAdminRole(role)) return null;
 
     return {
-      userId: session.user.id,
+      userId: user.id,
       role: role as AdminRole,
     };
   } catch {

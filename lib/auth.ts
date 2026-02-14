@@ -21,25 +21,25 @@ export interface UserProfile {
 }
 
 /**
- * Get current authenticated user from Supabase session.
- * Returns null if session missing or profile is soft-deleted (deleted_at set).
+ * Get current authenticated user from Supabase (getUser() for server-side safety).
+ * Returns null if not authenticated or profile is soft-deleted (deleted_at set).
  */
 export async function getCurrentUser(): Promise<User | null> {
   const supabase = await supabaseServer();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user?.id) return null;
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user?.id) return null;
   const supabaseAny = supabase as any;
   const { data: row } = await supabaseAny
     .from("profiles")
     .select("deleted_at")
-    .eq("id", session.user.id)
+    .eq("id", user.id)
     .single();
   if (row?.deleted_at) return null;
   return {
-    id: session.user.id,
-    email: session.user.email ?? undefined,
+    id: user.id,
+    email: user.email ?? undefined,
   };
 }
 

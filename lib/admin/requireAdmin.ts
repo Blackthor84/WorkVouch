@@ -4,12 +4,12 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { canModifyUser, canAssignRole } from "@/lib/roles";
 
 export type AdminSession = {
-  session: any;
-  user: any;
+  session: { user: { id: string; email?: string; [key: string]: unknown } };
+  user: { id: string; email?: string; [key: string]: unknown };
   profile: {
     id: string;
     role: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   supabase: Awaited<ReturnType<typeof supabaseServer>>;
   userId: string;
@@ -38,18 +38,18 @@ export async function requireAdmin(): Promise<AdminSession> {
   try {
     const supabase = await supabaseServer();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!session) {
-      logAdminAuthFailure("requireAdmin", "no-session");
+    if (!user?.id) {
+      logAdminAuthFailure("requireAdmin", "no-user");
       redirect("/login");
     }
 
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", session.user.id)
+      .eq("id", user.id)
       .single();
 
     if (error || !profile) {
@@ -59,13 +59,14 @@ export async function requireAdmin(): Promise<AdminSession> {
 
     const role = admin.isSuperAdmin ? "super_admin" : admin.isAdmin ? "admin" : "user";
     const isSuperAdminRole = admin.isSuperAdmin;
+    const sessionLike = { user: { ...user, id: user.id, email: user.email } };
 
     return {
-      session,
-      user: session.user,
+      session: sessionLike,
+      user: { ...user, id: user.id, email: user.email },
       profile: profile as AdminSession["profile"],
       supabase,
-      userId: session.user.id,
+      userId: user.id,
       role,
       isSuperAdmin: isSuperAdminRole,
     };
@@ -93,17 +94,18 @@ export async function requireAdminForApi(): Promise<AdminSession | null> {
   if (!admin.isAdmin) return null;
   try {
     const supabase = await supabaseServer();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return null;
-    const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) return null;
+    const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
     if (error || !profile) return null;
     const role = admin.isSuperAdmin ? "super_admin" : "admin";
+    const sessionLike = { user: { ...user, id: user.id, email: user.email } };
     return {
-      session,
-      user: session.user,
+      session: sessionLike,
+      user: { ...user, id: user.id, email: user.email },
       profile: profile as AdminSession["profile"],
       supabase,
-      userId: session.user.id,
+      userId: user.id,
       role,
       isSuperAdmin: admin.isSuperAdmin,
     };
@@ -123,16 +125,16 @@ export async function requireRole(allowedRoles: string[]): Promise<AdminSession>
   try {
     const supabase = await supabaseServer();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session?.user?.id) {
-      logAdminAuthFailure("requireRole", "no-session");
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user?.id) {
+      logAdminAuthFailure("requireRole", "no-user");
       redirect("/login");
     }
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", session.user.id)
+      .eq("id", user.id)
       .single();
     if (error || !profile) {
       logAdminAuthFailure("requireRole", "profile-missing");
@@ -146,12 +148,13 @@ export async function requireRole(allowedRoles: string[]): Promise<AdminSession>
     }
     const role = profileRole === "super_admin" || profileRole === "superadmin" ? "super_admin" : profileRole;
     const isSuperAdminRole = role === "super_admin";
+    const sessionLike = { user: { ...user, id: user.id, email: user.email } };
     return {
-      session,
-      user: session.user,
+      session: sessionLike,
+      user: { ...user, id: user.id, email: user.email },
       profile: profile as AdminSession["profile"],
       supabase,
-      userId: session.user.id,
+      userId: user.id,
       role,
       isSuperAdmin: isSuperAdminRole,
     };

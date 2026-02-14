@@ -15,18 +15,17 @@ export async function GET() {
   try {
     const supabase = await supabaseServer();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    const email = session?.user?.email ?? null;
-    if (!email) {
+    if (!user?.id) {
       return NextResponse.json({ role: null });
     }
 
     const { data } = await supabase
-      .from("admin_users")
+      .from("profiles")
       .select("role")
-      .eq("email", email)
+      .eq("id", user.id)
       .maybeSingle();
 
     const rawRole = (data as { role?: string | null } | null)?.role ?? null;
@@ -34,7 +33,7 @@ export async function GET() {
     const role = isAdminRole(normalized) ? (normalized as "admin" | "super_admin") : null;
 
     if (process.env.NODE_ENV !== "test") {
-      console.log("[ADMIN CHECK]", { email, role, sandbox: isSandbox() });
+      console.log("[ADMIN CHECK]", { email: user.email, role, sandbox: isSandbox() });
     }
 
     return NextResponse.json({ role });

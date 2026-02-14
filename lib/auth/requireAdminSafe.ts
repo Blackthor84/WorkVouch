@@ -1,7 +1,7 @@
 /**
  * Safe admin check for Server Components. NEVER throws.
  * Use for navbar and any UI that must render even when auth fails.
- * All checks from admin_users table.
+ * Auth via getUser(); role from profiles table.
  */
 
 import { supabaseServer } from "@/lib/supabase/server";
@@ -16,24 +16,24 @@ export async function requireAdminSafe(): Promise<AdminCheck> {
   try {
     const supabase = await supabaseServer();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!session?.user?.id || !session?.user?.email) {
+    if (!user?.id || !user?.email) {
       return { ok: false, reason: "no_user" };
     }
 
-    const { data: adminRow, error } = await supabase
-      .from("admin_users")
+    const { data: profile, error } = await supabase
+      .from("profiles")
       .select("role")
-      .eq("email", session.user.email)
+      .eq("id", user.id)
       .maybeSingle();
 
-    if (error || !adminRow) {
+    if (error || !profile) {
       return { ok: false, reason: "not_admin" };
     }
 
-    const rawRole = (adminRow as { role?: string | null }).role ?? "";
+    const rawRole = (profile as { role?: string | null }).role ?? "";
     const role = normalizeRole(rawRole);
 
     if (!isAdminRole(role)) {
@@ -42,22 +42,22 @@ export async function requireAdminSafe(): Promise<AdminCheck> {
 
     if (process.env.NODE_ENV !== "test") {
       console.log("[ADMIN CHECK]", {
-        email: session.user.email,
+        email: user.email,
         role,
         sandbox: isSandbox(),
       });
     }
 
-    const { data: profile } = await supabase
+    const { data: fullProfile } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", session.user.id)
+      .eq("id", user.id)
       .single();
 
     return {
       ok: true,
-      user: { id: session.user.id, email: session.user.email ?? undefined },
-      profile: (profile as Record<string, unknown>) ?? {},
+      user: { id: user.id, email: user.email ?? undefined },
+      profile: (fullProfile as Record<string, unknown>) ?? {},
       role,
     };
   } catch {

@@ -1,11 +1,10 @@
 /**
  * SINGLE SOURCE OF TRUTH — Admin context. Server-side only.
- * Uses Supabase service role to derive roles from database (admin_users).
- * Never trust session.user.role alone. No duplicated role logic. Cache per request only.
+ * Uses getUser() for auth and profiles.role from DB for authorization.
+ * Never use getSession() or trust cookies for role. Never throws.
  */
 
 import { supabaseServer } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
 import { normalizeRole } from "@/lib/auth/normalizeRole";
 import { isAdminRole } from "@/lib/auth/roles";
 import { isSandbox } from "@/lib/app-mode";
@@ -13,6 +12,7 @@ import { isSandbox } from "@/lib/app-mode";
 export type AdminRole = "user" | "admin" | "super_admin";
 
 export type AdminContext = {
+  isAuthenticated: boolean;
   userId: string;
   email: string;
   roles: AdminRole[];
@@ -25,6 +25,7 @@ export type AdminContext = {
 };
 
 const UNAUTHORIZED_CONTEXT: AdminContext = {
+  isAuthenticated: false,
   userId: "",
   email: "",
   roles: ["user"],
@@ -38,35 +39,35 @@ const UNAUTHORIZED_CONTEXT: AdminContext = {
 
 /**
  * Returns the single authoritative admin context. Never throws.
- * Server-side only. Uses service role to read admin_users.
+ * Server-side only. Auth via getUser(); role from profiles table.
  */
 export async function getAdminContext(): Promise<AdminContext> {
   try {
-    const userClient = await supabaseServer();
+    const supabase = await supabaseServer();
     const {
-      data: { session },
-    } = await userClient.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!session?.user?.id || !session?.user?.email) {
+    if (!user?.id || !user?.email) {
       return { ...UNAUTHORIZED_CONTEXT };
     }
 
-    const supabase = getSupabaseServer();
-    const { data: adminRow, error } = await supabase
-      .from("admin_users")
+    const { data: profile, error } = await supabase
+      .from("profiles")
       .select("role")
-      .eq("email", session.user.email)
+      .eq("id", user.id)
       .maybeSingle();
 
-    if (error) {
+    if (error || !profile) {
       return {
         ...UNAUTHORIZED_CONTEXT,
-        userId: session.user.id,
-        email: session.user.email ?? "",
+        isAuthenticated: true,
+        userId: user.id,
+        email: user.email ?? "",
       };
     }
 
-    const rawRole = (adminRow as { role?: string | null } | null)?.role ?? "";
+    const rawRole = (profile as { role?: string | null })?.role ?? "";
     const role = normalizeRole(rawRole);
     const isAdmin = isAdminRole(role);
     const isSuperAdmin = role === "super_admin";
@@ -75,8 +76,9 @@ export async function getAdminContext(): Promise<AdminContext> {
     const sandbox = isSandbox();
 
     return {
-      userId: session.user.id,
-      email: session.user.email ?? "",
+      isAuthenticated: true,
+      userId: user.id,
+      email: user.email ?? "",
       roles,
       isAdmin,
       isSuperAdmin,

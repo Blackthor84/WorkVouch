@@ -7,8 +7,11 @@ import { APP_MODE } from "@/lib/app-mode";
 export default async function AdminHomePage() {
   const admin = await getAdminContext();
 
-  if (!admin.isAdmin) {
+  if (!admin.isAuthenticated) {
     redirect("/login");
+  }
+  if (!admin.isAdmin) {
+    redirect("/dashboard");
   }
 
   const sandbox = await getSandboxContext(admin.isSuperAdmin ? "super_admin" : "admin");
