@@ -10,6 +10,10 @@ import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Reinstate disabled/suspended user (set status active, clear deleted_at).
+ * 1. requireAdmin 2. sandbox 3. before 4. mutate 5. audit.
+ */
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -22,10 +26,16 @@ export async function POST(
       return NextResponse.json({ success: false, error: "Missing user id" }, { status: 400 });
     }
 
+    const body = await req.json().catch(() => ({}));
+    const reason = typeof body.reason === "string" ? body.reason.trim() : "";
+    if (!reason) {
+      return NextResponse.json({ success: false, error: "Reason is required for reinstate" }, { status: 400 });
+    }
+
     const supabase = getSupabaseServer();
     const { data: oldRow } = await supabase
       .from("profiles")
-      .select("id, status, role")
+      .select("id, status, role, deleted_at")
       .eq("id", targetUserId)
       .single();
 
@@ -37,27 +47,24 @@ export async function POST(
 
     const { error } = await supabase
       .from("profiles")
-      .update({ status: "suspended" })
+      .update({ status: "active", deleted_at: null })
       .eq("id", targetUserId);
 
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    const body = await req.json().catch(() => ({}));
-    const reason = typeof body.reason === "string" ? body.reason.trim() : "";
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     const isSandbox = await getAdminSandboxModeFromCookies();
-    // If audit write fails, action must fail (audit throws).
     await insertAdminAuditLog({
       adminId: admin.userId,
-      adminEmail: admin.user?.email ?? null,
+      adminEmail: (admin.user as { email?: string })?.email ?? null,
       targetType: "user",
       targetId: targetUserId,
-      action: "suspend",
+      action: "reinstate",
       oldValue: oldRow as Record<string, unknown>,
-      newValue: { status: "suspended" },
-      reason: reason || "User suspended",
+      newValue: { status: "active", deleted_at: null },
+      reason,
       ipAddress,
       userAgent,
       adminRole: admin.isSuperAdmin ? "superadmin" : "admin",
@@ -67,6 +74,7 @@ export async function POST(
     return NextResponse.json({ success: true });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Internal error";
+    if (msg.startsWith("Audit log failed")) return NextResponse.json({ success: false, error: "Audit failed" }, { status: 500 });
     if (msg === "Unauthorized") return NextResponse.json({ success: false, error: msg }, { status: 401 });
     if (msg === "Forbidden") return NextResponse.json({ success: false, error: msg }, { status: 403 });
     return NextResponse.json({ success: false, error: msg }, { status: 500 });

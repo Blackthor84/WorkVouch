@@ -1,9 +1,10 @@
 /**
- * Admin audit logging. All admin actions on users should call this.
- * Uses service role to insert into admin_audit_logs.
+ * Admin audit logging. All admin actions MUST call this.
+ * Uses enterprise schema: admin_user_id, action_type, target_type, target_id, before_state, after_state, reason (NOT NULL).
+ * If insert fails, THROWS — action must fail. No silent failures.
  */
 
-import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
+import { writeAdminAuditLog } from "./audit-enterprise";
 
 export type AuditAction =
   | "profile_update"
@@ -11,6 +12,8 @@ export type AuditAction =
   | "status_update"
   | "suspend"
   | "unsuspend"
+  | "disable"
+  | "reinstate"
   | "soft_delete"
   | "hard_delete"
   | "recalculate"
@@ -19,6 +22,11 @@ export type AuditAction =
   | "user_email_change"
   | "admin_update_profile"
   | "employer_update_company"
+  | "employer_suspend"
+  | "employer_reactivate"
+  | "review_remove"
+  | "review_restore"
+  | "trust_adjust"
   | "rehire_status_change"
   | "dispute_resolution"
   | "fraud_override"
@@ -26,26 +34,34 @@ export type AuditAction =
 
 export async function insertAdminAuditLog(params: {
   adminId: string;
-  targetUserId: string;
+  adminEmail?: string | null;
+  targetUserId?: string;
+  targetType?: "user" | "employer" | "review" | "trust_score" | "system" | "organization" | "role";
+  targetId?: string | null;
   action: AuditAction;
   oldValue?: Record<string, unknown> | null;
   newValue?: Record<string, unknown> | null;
   reason?: string | null;
   ipAddress?: string | null;
   userAgent?: string | null;
-  organizationId?: string | null;
+  adminRole?: "admin" | "superadmin";
+  isSandbox?: boolean;
 }): Promise<void> {
-  const supabase = getServiceRoleClient();
-  await (supabase as any).from("admin_audit_logs").insert({
-    admin_id: params.adminId,
-    target_user_id: params.targetUserId,
-    action: params.action,
-    old_value: params.oldValue ?? null,
-    new_value: params.newValue ?? null,
-    reason: params.reason ?? null,
+  const targetType = params.targetType ?? "user";
+  const targetId = params.targetId ?? params.targetUserId ?? null;
+  await writeAdminAuditLog({
+    admin_user_id: params.adminId,
+    admin_email: params.adminEmail ?? null,
+    admin_role: params.adminRole ?? "admin",
+    action_type: params.action,
+    target_type: targetType,
+    target_id: targetId,
+    before_state: params.oldValue ?? null,
+    after_state: params.newValue ?? null,
+    reason: params.reason?.trim() ?? "",
+    is_sandbox: params.isSandbox ?? false,
     ip_address: params.ipAddress ?? null,
     user_agent: params.userAgent ?? null,
-    organization_id: params.organizationId ?? null,
   });
 }
 

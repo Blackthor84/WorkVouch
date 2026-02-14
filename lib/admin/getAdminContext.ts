@@ -1,6 +1,6 @@
 /**
  * SINGLE SOURCE OF TRUTH — Admin context. Server-side only.
- * Uses getUser() for auth and profiles.role from DB for authorization.
+ * Role: Supabase Auth auth.users.raw_app_meta_data.role first, then profiles.role fallback.
  * Never use getSession() or trust cookies for role. Never throws.
  */
 
@@ -8,6 +8,8 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { normalizeRole } from "@/lib/auth/normalizeRole";
 import { isAdminRole } from "@/lib/auth/roles";
 import { isSandbox } from "@/lib/app-mode";
+import { getRoleFromSession } from "@/lib/auth/admin-role-guards";
+import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
 
 export type AdminRole = "user" | "admin" | "super_admin";
 
@@ -39,7 +41,7 @@ const UNAUTHORIZED_CONTEXT: AdminContext = {
 
 /**
  * Returns the single authoritative admin context. Never throws.
- * Server-side only. Auth via getUser(); role from profiles table.
+ * Role: auth.app_metadata.role first (Supabase Auth as source of truth), then profiles.role fallback.
  */
 export async function getAdminContext(): Promise<AdminContext> {
   try {
@@ -52,28 +54,30 @@ export async function getAdminContext(): Promise<AdminContext> {
       return { ...UNAUTHORIZED_CONTEXT };
     }
 
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
+    const appRole = (user as { app_metadata?: { role?: string } }).app_metadata?.role;
+    const sessionLike = { user: { id: user.id, app_metadata: { role: appRole } } };
+    const authRole = getRoleFromSession(sessionLike);
 
-    if (error || !profile) {
-      return {
-        ...UNAUTHORIZED_CONTEXT,
-        isAuthenticated: true,
-        userId: user.id,
-        email: user.email ?? "",
-      };
+    let role: string;
+    if (authRole !== "user") {
+      role = authRole === "superadmin" ? "super_admin" : "admin";
+    } else {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      const rawRole = (profile as { role?: string | null })?.role ?? "";
+      role = normalizeRole(rawRole);
     }
 
-    const rawRole = (profile as { role?: string | null })?.role ?? "";
-    const role = normalizeRole(rawRole);
     const isAdmin = isAdminRole(role);
     const isSuperAdmin = role === "super_admin";
 
     const roles: AdminRole[] = isAdmin ? (isSuperAdmin ? ["user", "admin", "super_admin"] : ["user", "admin"]) : ["user"];
-    const sandbox = isSandbox();
+    const appSandbox = isSandbox();
+    const adminToggledSandbox = await getAdminSandboxModeFromCookies();
+    const sandbox = appSandbox || adminToggledSandbox;
 
     return {
       isAuthenticated: true,
@@ -92,12 +96,12 @@ export async function getAdminContext(): Promise<AdminContext> {
   }
 }
 
-/** Clean 403 response for admin routes. Use when !admin.isAdmin. */
+/** Clean 403 response for admin routes. Use when !admin.isAdmin. Never leak details. */
 export function adminForbiddenResponse() {
-  return new Response(
-    JSON.stringify({ error: "🚨 Upgrade Required\nEnterprise Recommended" }),
-    { status: 403, headers: { "Content-Type": "application/json" } }
-  );
+  return new Response(JSON.stringify({ error: "Forbidden" }), {
+    status: 403,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 /** Type guard: context has admin access. */

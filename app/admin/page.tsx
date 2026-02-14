@@ -1,47 +1,49 @@
 import { getAdminContext } from "@/lib/admin/getAdminContext";
-import { isPlatformAdmin, isPlatformReadOnlyAdmin, getAdminRole } from "@/lib/admin";
-import { recordFailedAdminAccess } from "@/lib/admin/adminAlertsStore";
-import { hasPermission, canMutate, AdminRole, Permission } from "@/lib/permissions";
+import { getDashboardCounts } from "@/lib/admin/dashboardCounts";
+import { getRecentAdminActions } from "@/lib/admin/recentAdminActivity";
 import { getImpersonationContext, type ImpersonationState } from "@/lib/admin-impersonation";
 import { getSandboxContext } from "@/lib/sandbox/sandboxContext";
 import { SandboxToggle } from "@/components/admin/SandboxToggle";
+import { AdminDashboardWidgets } from "@/components/admin/AdminDashboardWidgets";
 import { AdminActivityDashboard } from "@/components/admin/AdminActivityDashboard";
+import { isPlatformAdmin, isPlatformReadOnlyAdmin, getAdminRole } from "@/lib/admin";
+import { hasPermission, canMutate, AdminRole, Permission } from "@/lib/permissions";
 import { hasFeature, AdminFeature } from "@/lib/featureFlags";
 import { APP_MODE } from "@/lib/app-mode";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminHomePage() {
   const admin = await getAdminContext();
-
-  if (!admin.isAuthenticated || !admin.email) {
-    recordFailedAdminAccess(undefined);
+  if (!admin.isAuthenticated || !admin.isAdmin) {
     return <div className="p-8 text-slate-700">Not authorized</div>;
   }
 
   const platformAdmin = await isPlatformAdmin(admin.email);
   const readOnly = isPlatformReadOnlyAdmin(admin.email);
-  if (!platformAdmin && !readOnly) {
-    recordFailedAdminAccess(admin.email);
-    return <div className="p-8 text-slate-700">Not authorized</div>;
-  }
-
   const role = await getAdminRole(admin.email);
   const canEdit = role != null && canMutate(role);
   const canImpersonate = role != null && hasPermission(role, Permission.IMPERSONATE_EMPLOYER);
 
-  let sandbox;
+  let sandbox = { enabled: false, isSuperAdmin: admin.isSuperAdmin };
   try {
     sandbox = await getSandboxContext(admin.isSuperAdmin ? "super_admin" : "admin");
   } catch {
-    sandbox = { enabled: false, isSuperAdmin: false };
+    sandbox.enabled = admin.isSandbox;
   }
 
-  let impersonation: ImpersonationState;
+  let impersonation: ImpersonationState = { isImpersonating: false };
   try {
     impersonation = await getImpersonationContext();
   } catch {
-    impersonation = { isImpersonating: false };
+    // ignore
   }
+
+  const [counts, recentActions] = await Promise.all([
+    getDashboardCounts(),
+    getRecentAdminActions(10),
+  ]);
 
   return (
     <div className="p-8 space-y-6">
@@ -59,6 +61,13 @@ export default async function AdminHomePage() {
         </div>
       )}
 
+      {!platformAdmin && !readOnly && (
+        <div className="rounded-lg border border-slate-300 bg-slate-100 p-4">
+          <p className="text-sm font-medium text-slate-800">Limited access</p>
+          <p className="text-sm text-slate-600">Some features may be restricted by platform allowlist.</p>
+        </div>
+      )}
+
       {role === AdminRole.PLATFORM_READ_ONLY && (
         <div className="rounded-lg border border-slate-300 bg-slate-100 p-4">
           <p className="text-sm font-medium text-slate-800">Read-only access</p>
@@ -66,15 +75,15 @@ export default async function AdminHomePage() {
         </div>
       )}
 
-      {APP_MODE === "sandbox" && (
-        <div className="mb-6 border border-amber-400 bg-amber-100 p-4 rounded-lg">
-          <p className="font-semibold text-amber-900">SANDBOX MODE</p>
-          <p className="text-sm text-amber-800">Sandbox is strictly more powerful than production.</p>
+      {admin.isSandbox && (
+        <div className="rounded-lg border border-amber-400 bg-amber-100 p-4">
+          <p className="font-semibold text-amber-900">🧪 SANDBOX MODE — NO PRODUCTION DATA WILL BE AFFECTED</p>
+          <p className="text-sm text-amber-800">Same powers as production; all actions are isolated and audited with is_sandbox.</p>
         </div>
       )}
 
       {admin.isSuperAdmin && canEdit && (
-        <div className="mb-6 border border-amber-200 p-4 rounded-lg bg-amber-50">
+        <div className="rounded-lg border border-amber-200 p-4 bg-amber-50">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-amber-900">Sandbox Mode</h3>
@@ -88,6 +97,23 @@ export default async function AdminHomePage() {
       )}
 
       <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
+
+      <AdminDashboardWidgets
+        counts={counts}
+        recentActions={recentActions}
+        isSandbox={admin.isSandbox}
+        canEnterSandbox={admin.isAdmin}
+      />
+
+      <section className="rounded-lg border border-slate-200 bg-white p-4 mb-6">
+        <h2 className="font-medium mb-2 text-slate-900">Quick access</h2>
+        <ul className="flex flex-wrap gap-4 text-sm">
+          <li><Link href="/admin/users" className="text-blue-600 hover:underline">Users</Link></li>
+          <li><Link href="/admin/organizations" className="text-blue-600 hover:underline">Employers</Link></li>
+          <li><Link href="/admin/reviews" className="text-blue-600 hover:underline">Reviews & Trust</Link></li>
+          <li><Link href="/admin/audit-logs" className="text-blue-600 hover:underline">Audit logs</Link></li>
+        </ul>
+      </section>
 
       {role != null && hasFeature(role, AdminFeature.ANALYTICS_DASHBOARD) && (
         <section className="mb-6">

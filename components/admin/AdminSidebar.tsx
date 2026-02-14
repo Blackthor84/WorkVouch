@@ -20,59 +20,51 @@ interface AdminSidebarProps {
 }
 
 const nav = {
+  Dashboard: [{ href: "/admin", label: "Dashboard" }],
   Users: [
-    { href: "/admin/users", label: "Manage Users" },
+    { href: "/admin/users", label: "Users" },
     { href: "/admin/signups", label: "Signups" },
   ],
   Employers: [
+    { href: "/admin/organizations", label: "Employers" },
     { href: "/admin/claim-requests", label: "Claim Requests" },
     { href: "/admin/employer-usage", label: "Employer Usage" },
   ],
-  Intelligence: [
-    { href: "/admin/intelligence-dashboard", label: "Intelligence Dashboard" },
-    { href: "/admin/intelligence-preview", label: "Intelligence Preview" },
-    { href: "/admin/intelligence-health", label: "Integrity Health" },
-    { href: "/admin/employer-reputation-preview", label: "Employer Reputation" },
+  ReviewsAndTrust: [
+    { href: "/admin/reviews", label: "Reviews & Moderation" },
+    { href: "/admin/trust-scores", label: "Trust Scores" },
   ],
   Sandbox: [
-    { href: "/admin/sandbox-v2", label: "Enterprise Simulation" },
-    { href: "/admin/preview", label: "Preview Panel" },
-    { href: "/admin/preview-control", label: "Preview & Simulation Control" },
-    { href: "/admin/beta", label: "Beta Access" },
-    { href: "/admin/investor-sandbox", label: "Investor Sandbox" },
-    { href: "/admin/testing-lab", label: "Testing Lab" },
+    { href: "/admin/sandbox/enter", label: "Enter Sandbox" },
+    { href: "/admin/sandbox-v2", label: "Sandbox" },
     { href: "/admin/simulate", label: "Simulate" },
-    { href: "/admin/intelligence-sandbox", label: "Intelligence Sandbox" },
   ],
-  System: [
-    { href: "/admin/disputes", label: "Disputes" },
-    { href: "/admin/verifications", label: "Verifications" },
-    { href: "/admin/export", label: "Data Export" },
-    { href: "/admin/ads", label: "Ads Manager" },
-    { href: "/admin/fraud", label: "Fraud Dashboard" },
-    { href: "/admin/fraud-workflow", label: "Fraud Workflow" },
-    { href: "/admin/vertical-control", label: "Vertical Control" },
-    { href: "/admin/system", label: "System Panel" },
-    { href: "/admin/hidden-features", label: "Hidden Features" },
-    { href: "/admin/scale-metrics", label: "Scale Metrics" },
-    { href: "/admin/superadmin", label: "Superadmin Control" },
-  ],
+  AuditLogs: [{ href: "/admin/audit-logs", label: "Audit Logs" }],
+  SystemSettings: [{ href: "/admin/system", label: "System Settings" }],
 };
 
 export function AdminSidebar({ isSuperAdmin }: AdminSidebarProps) {
   const pathname = usePathname();
 
-  const systemLinks = nav.System.filter((item) => {
-    if (item.href === "/admin/system" || item.href === "/admin/hidden-features" || item.href === "/admin/scale-metrics" || item.href === "/admin/superadmin") {
-      return isSuperAdmin;
-    }
-    return true;
-  });
-
-  const sandboxLinks = [
-    ...nav.Sandbox,
-    ...(isSuperAdmin ? [{ href: "/admin/investor", label: "Investor Dashboard" }] : []),
-  ];
+  const section = (title: string, items: { href: string; label: string }[]) => (
+    <div key={title}>
+      <div className={`px-3 py-1.5 ${SECTION_TITLE}`}>{title}</div>
+      <ul className="mt-1 space-y-0.5">
+        {items.map((item) => (
+          <li key={item.href}>
+            <Link
+              href={item.href}
+              className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                isActive(pathname, item.href) ? LINK_ACTIVE : LINK_INACTIVE
+              }`}
+            >
+              {item.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 
   return (
     <aside
@@ -86,94 +78,16 @@ export function AdminSidebar({ isSuperAdmin }: AdminSidebarProps) {
             pathname === "/admin" ? LINK_ACTIVE : "text-[#334155] hover:bg-slate-50"
           }`}
         >
-          Admin Overview
+          Dashboard
         </Link>
         <nav className="flex-1 overflow-y-auto mt-4 space-y-6 px-2">
-          <div>
-            <div className={`px-3 py-1.5 ${SECTION_TITLE}`}>Users</div>
-            <ul className="mt-1 space-y-0.5">
-              {nav.Users.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      isActive(pathname, item.href) ? LINK_ACTIVE : LINK_INACTIVE
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <div className={`px-3 py-1.5 ${SECTION_TITLE}`}>Employers</div>
-            <ul className="mt-1 space-y-0.5">
-              {nav.Employers.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      isActive(pathname, item.href) ? LINK_ACTIVE : LINK_INACTIVE
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <div className={`px-3 py-1.5 ${SECTION_TITLE}`}>Intelligence</div>
-            <ul className="mt-1 space-y-0.5">
-              {nav.Intelligence.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      isActive(pathname, item.href) ? LINK_ACTIVE : LINK_INACTIVE
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <div className={`px-3 py-1.5 ${SECTION_TITLE}`}>Sandbox</div>
-            <ul className="mt-1 space-y-0.5">
-              {sandboxLinks.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      isActive(pathname, item.href) ? LINK_ACTIVE : LINK_INACTIVE
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <div className={`px-3 py-1.5 ${SECTION_TITLE}`}>System</div>
-            <ul className="mt-1 space-y-0.5">
-              {systemLinks.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                      isActive(pathname, item.href) ? LINK_ACTIVE : LINK_INACTIVE
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {section("Dashboard", nav.Dashboard)}
+          {section("Users", nav.Users)}
+          {section("Employers", nav.Employers)}
+          {section("Reviews & Trust", nav.ReviewsAndTrust)}
+          {section("Sandbox", nav.Sandbox)}
+          {section("Audit Logs", nav.AuditLogs)}
+          {isSuperAdmin && section("System Settings", nav.SystemSettings)}
         </nav>
       </div>
     </aside>

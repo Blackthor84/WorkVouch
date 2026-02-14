@@ -6,15 +6,21 @@ export type SandboxContext = {
 };
 
 /**
+ * Read admin sandbox mode from cookie. When true, admin actions must use is_sandbox and never touch production rows.
+ */
+export async function getAdminSandboxModeFromCookies(): Promise<boolean> {
+  const cookieStore = await cookies();
+  return cookieStore.get("sandbox_mode")?.value === "true";
+}
+
+/**
  * Read-only sandbox state from cookie + role.
- * Safe to import anywhere. Does not modify anything.
+ * Any admin with sandbox_mode cookie is in sandbox mode; superadmin can always toggle.
  */
 export async function getSandboxContext(userRole?: string): Promise<SandboxContext> {
-  const cookieStore = await cookies();
-  const sandboxCookie = cookieStore.get("sandbox_mode")?.value === "true";
-
-  const isSuperAdmin = userRole === "superadmin";
-  const enabled = isSuperAdmin && sandboxCookie;
+  const sandboxCookie = await getAdminSandboxModeFromCookies();
+  const isSuperAdmin = userRole === "superadmin" || userRole === "super_admin";
+  const enabled = sandboxCookie;
 
   return {
     enabled,

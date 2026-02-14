@@ -5,33 +5,31 @@
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
 const HIGH_RISK_ACTIONS = [
-  "role_changed",
-  "user_deleted",
-  "organization_deleted",
-  "impersonation_start",
-  "impersonation_end",
+  "role_change",
+  "hard_delete",
+  "disable",
   "force_email_change",
-  "profile_updated",
+  "profile_update",
 ];
 
 export type RecentAdminAction = {
   id: string;
-  admin_id: string;
-  action: string;
-  target_user_id: string | null;
-  new_value: Record<string, unknown> | null;
+  admin_user_id: string;
+  action_type: string;
+  target_id: string | null;
+  after_state: Record<string, unknown> | null;
   created_at: string;
 };
 
 /**
- * Fetch recent admin_audit_logs entries. Never throws.
+ * Fetch recent admin_audit_logs entries. Never throws. Uses enterprise schema columns.
  */
 export async function getRecentAdminActions(limit = 20): Promise<RecentAdminAction[]> {
   try {
     const supabase = getSupabaseServer();
     const { data, error } = await supabase
       .from("admin_audit_logs")
-      .select("id, admin_id, action, target_user_id, new_value, created_at")
+      .select("id, admin_user_id, action_type, target_id, after_state, created_at")
       .order("created_at", { ascending: false })
       .limit(limit);
     if (error) return [];
@@ -49,8 +47,8 @@ export async function getHighRiskActions(limit = 15): Promise<RecentAdminAction[
     const supabase = getSupabaseServer();
     const { data, error } = await supabase
       .from("admin_audit_logs")
-      .select("id, admin_id, action, target_user_id, new_value, created_at")
-      .in("action", HIGH_RISK_ACTIONS)
+      .select("id, admin_user_id, action_type, target_id, after_state, created_at")
+      .in("action_type", HIGH_RISK_ACTIONS)
       .order("created_at", { ascending: false })
       .limit(limit);
     if (error) return [];
@@ -75,13 +73,13 @@ export async function runAdminAnomalyChecks(): Promise<void> {
     const since = new Date(Date.now() - RAPID_ROLE_WINDOW_MS).toISOString();
     const { data: roleChanges, error } = await supabase
       .from("admin_audit_logs")
-      .select("admin_id, created_at")
-      .eq("action", "role_changed")
+      .select("admin_user_id, created_at")
+      .eq("action_type", "role_change")
       .gte("created_at", since);
     if (!error && Array.isArray(roleChanges)) {
       const byAdmin: Record<string, number> = {};
       for (const r of roleChanges) {
-        const id = (r as { admin_id?: string }).admin_id ?? "";
+        const id = (r as { admin_user_id?: string }).admin_user_id ?? "";
         byAdmin[id] = (byAdmin[id] ?? 0) + 1;
       }
       for (const [adminId, count] of Object.entries(byAdmin)) {

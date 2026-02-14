@@ -22,7 +22,7 @@ export async function AdminActivityDashboard() {
           {recent.length === 0 && <li className="text-slate-500">No recent actions</li>}
           {recent.slice(0, 8).map((a) => (
             <li key={a.id} className="flex justify-between gap-2 border-b border-slate-100 pb-2 last:border-0">
-              <span className="truncate text-slate-700">{a.action}</span>
+              <span className="truncate text-slate-700">{a.action_type}</span>
               <span className="shrink-0 text-slate-500">{formatDate(a.created_at)}</span>
             </li>
           ))}
@@ -38,7 +38,7 @@ export async function AdminActivityDashboard() {
           {highRisk.length === 0 && <li className="text-slate-500">None</li>}
           {highRisk.slice(0, 6).map((a) => (
             <li key={a.id} className="flex justify-between gap-2 border-b border-slate-100 pb-2 last:border-0">
-              <span className="truncate font-medium text-amber-800">{a.action}</span>
+              <span className="truncate font-medium text-amber-800">{a.action_type}</span>
               <span className="shrink-0 text-slate-500">{formatDate(a.created_at)}</span>
             </li>
           ))}
