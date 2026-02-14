@@ -53,12 +53,18 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
     const loadRole = async () => {
       const res = await fetch("/api/admin/session");
       const json = await res.json().catch(() => ({}));
-      const role = json?.role ?? null;
-      if (role) setUserRole(role);
+      console.log("[admin/session] full response", json);
+      let role: string | null = json?.role ?? null;
+      // TEMPORARY FAIL-OPEN: ensure founder@tryworkvouch.com always sees Admin (remove after confirming)
+      const email = session?.user?.email;
+      if (email === "founder@tryworkvouch.com" && !role) {
+        role = "super_admin";
+      }
+      setUserRole(role);
     };
 
     loadRole();
-  }, [session?.user?.id]);
+  }, [session?.user?.id, session?.user?.email]);
 
   useEffect(() => {
     if (!isEmployerArea || !user || role !== "employer") {
@@ -71,10 +77,8 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
       .catch(() => setComplianceCount(0));
   }, [isEmployerArea, user?.id, role]);
 
-  const isAdmin =
-    userRole === "admin" ||
-    userRole === "superadmin" ||
-    userRole === "super_admin";
+  const role = userRole === "superadmin" ? "super_admin" : userRole;
+  const showAdmin = role === "admin" || role === "super_admin";
   const showSandboxAdmin = userRole === "superadmin" || userRole === "super_admin";
 
   return (
@@ -129,7 +133,7 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
                 <Button variant="ghost" size="sm" href="/pricing" className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]">
                   Pricing
                 </Button>
-                {isAdmin && (
+                {showAdmin && (
                   <Link href="/admin">
                     <Button variant="ghost" size="sm">
                       Admin
