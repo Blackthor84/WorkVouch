@@ -55,15 +55,13 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
 
     const loadRole = async () => {
       const supabase = supabaseBrowser();
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("admin_users")
         .select("role")
         .eq("email", email)
         .single();
 
-      if (!error && data?.role) {
-        setUserRole(data.role);
-      }
+      if (data?.role) setUserRole(data.role);
     };
 
     loadRole();
@@ -80,8 +78,10 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
       .catch(() => setComplianceCount(0));
   }, [isEmployerArea, user?.id, role]);
 
-  const showAdmin =
-    userRole === "admin" || userRole === "super_admin";
+  const isAdmin =
+    userRole === "admin" ||
+    userRole === "superadmin" ||
+    userRole === "super_admin";
   const showSandboxAdmin = userRole === "superadmin" || userRole === "super_admin";
 
   return (
@@ -136,7 +136,7 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
                 <Button variant="ghost" size="sm" href="/pricing" className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]">
                   Pricing
                 </Button>
-                {showAdmin && (
+                {isAdmin && (
                   <Link href="/admin">
                     <Button variant="ghost" size="sm">
                       Admin

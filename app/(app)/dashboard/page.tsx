@@ -1,6 +1,5 @@
 import { getCurrentUser, getCurrentUserProfile, isEmployer } from "@/lib/auth";
 import { getVerticalDashboardConfig } from "@/lib/verticals/dashboard";
-import { getSandboxContext } from "@/lib/sandbox/sandboxContext";
 import { IS_SANDBOX } from "@/lib/env";
 import { MOCK_RECENT_ACTIVITY, MOCK_PROFILE_COMPLETENESS } from "@/lib/sandbox/mockDashboardData";
 import { Card } from "@/components/ui/card";
@@ -103,8 +102,7 @@ export default async function UserDashboardPage() {
       : []),
   ];
 
-  const sandbox = await getSandboxContext(profile?.role ?? undefined);
-  const allowMock = IS_SANDBOX || sandbox.enabled;
+  const allowMock = IS_SANDBOX;
   const recentActivity = allowMock ? MOCK_RECENT_ACTIVITY : [];
   const profileStats = allowMock
     ? MOCK_PROFILE_COMPLETENESS

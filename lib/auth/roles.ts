@@ -1,7 +1,9 @@
 /**
- * Single source of truth for role normalization.
- * Use everywhere to avoid super_admin vs superadmin mismatches.
+ * Single source of truth for admin role checks.
+ * Admin access: admin | superadmin | super_admin — use everywhere.
  */
+
+export const ADMIN_ROLE_VALUES = ["admin", "superadmin", "super_admin"] as const;
 
 export function normalizeRole(role?: string | null): string {
   if (!role) return "user";
@@ -10,8 +12,10 @@ export function normalizeRole(role?: string | null): string {
 }
 
 export function isAdminRole(role?: string | null): boolean {
-  const r = normalizeRole(role);
-  return r === "admin" || r === "superadmin";
+  if (!role) return false;
+  return (
+    role === "admin" || role === "superadmin" || role === "super_admin"
+  );
 }
 
 export function isSuperAdminRole(role?: string | null): boolean {
