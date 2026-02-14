@@ -1,30 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { requireAdminForApi } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { v4 as uuid } from "uuid";
 import { Ad } from "../../../../types/ad";
 
 // TEMP IN-MEMORY STORE (replace with DB)
 let ads: Ad[] = [];
 
-function unauthorized() {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-}
-
 export async function GET() {
-  try {
-    await requireAdmin();
-  } catch {
-    return unauthorized();
-  }
+  const _session = await requireAdminForApi();
+  if (!_session) return adminForbiddenResponse();
   return NextResponse.json(ads);
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    await requireAdmin();
-  } catch {
-    return unauthorized();
-  }
+  const _session = await requireAdminForApi();
+  if (!_session) return adminForbiddenResponse();
   const data = await req.json();
   const newAd: Ad = {
     id: uuid(),
@@ -44,11 +35,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  try {
-    await requireAdmin();
-  } catch {
-    return unauthorized();
-  }
+  const _session = await requireAdminForApi();
+  if (!_session) return adminForbiddenResponse();
   const data = await req.json();
   const index = ads.findIndex((ad) => ad.id === data.id);
   if (index === -1) return NextResponse.json({ error: "Ad not found" }, { status: 404 });
@@ -57,11 +45,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  try {
-    await requireAdmin();
-  } catch {
-    return unauthorized();
-  }
+  const _session = await requireAdminForApi();
+  if (!_session) return adminForbiddenResponse();
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   ads = ads.filter((ad) => ad.id !== id);

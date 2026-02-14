@@ -1,5 +1,7 @@
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { isSuperAdmin } from "@/lib/roles";
+import { APP_MODE } from "@/lib/env";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -19,10 +21,11 @@ function randomSuffix(): string {
 
 export async function POST(request: Request) {
   try {
+    if (APP_MODE !== "sandbox") return NextResponse.json({ error: "Demo account creation is only allowed in sandbox mode" }, { status: 403 });
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const role = await getCurrentUserRole();
-    if (role !== "superadmin") return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
+    if (!isSuperAdmin(role)) return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
 
     const body = await request.json().catch(() => ({}));
     const type = (body?.type as string) || "";

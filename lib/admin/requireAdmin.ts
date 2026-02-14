@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getAdminSession } from "@/lib/auth/getAdminSession";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { supabaseServer } from "@/lib/supabase/server";
 import { canModifyUser, canAssignRole } from "@/lib/roles";
 
@@ -29,9 +29,9 @@ function logAdminAuthFailure(context: string, reason: string): void {
 }
 
 export async function requireAdmin(): Promise<AdminSession> {
-  const admin = await getAdminSession();
-  if (!admin) {
-    logAdminAuthFailure("requireAdmin", "no-admin-session");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) {
+    logAdminAuthFailure("requireAdmin", "no-admin-context");
     redirect("/unauthorized");
   }
 
@@ -57,14 +57,8 @@ export async function requireAdmin(): Promise<AdminSession> {
       redirect("/login");
     }
 
-    const profileRole = (profile as { role?: string }).role ?? "";
-    if (!["admin", "superadmin"].includes(profileRole)) {
-      logAdminAuthFailure("requireAdmin", "insufficient-role");
-      redirect("/unauthorized");
-    }
-
-    const role = profileRole;
-    const isSuperAdminRole = role === "superadmin";
+    const role = admin.role;
+    const isSuperAdminRole = role === "super_admin";
 
     return {
       session,
@@ -85,12 +79,44 @@ export async function requireAdmin(): Promise<AdminSession> {
 }
 
 export async function requireSuperAdmin(): Promise<AdminSession> {
-  const admin = await getAdminSession();
-  if (!admin || admin.role !== "superadmin") {
-    logAdminAuthFailure("requireSuperAdmin", "not-superadmin");
+  const admin = await getAdminContext();
+  if (!admin.isSuperAdmin) {
+    logAdminAuthFailure("requireSuperAdmin", "not-super-admin");
     redirect("/unauthorized");
   }
   return requireAdmin();
+}
+
+/** API-safe: returns null instead of redirecting. Use with adminForbiddenResponse(). */
+export async function requireAdminForApi(): Promise<AdminSession | null> {
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) return null;
+  try {
+    const supabase = await supabaseServer();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return null;
+    const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+    if (error || !profile) return null;
+    const role = admin.isSuperAdmin ? "super_admin" : "admin";
+    return {
+      session,
+      user: session.user,
+      profile: profile as AdminSession["profile"],
+      supabase,
+      userId: session.user.id,
+      role,
+      isSuperAdmin: admin.isSuperAdmin,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** API-safe super-admin: returns null instead of redirecting. */
+export async function requireSuperAdminForApi(): Promise<AdminSession | null> {
+  const admin = await getAdminContext();
+  if (!admin.isSuperAdmin) return null;
+  return requireAdminForApi();
 }
 
 export async function requireRole(allowedRoles: string[]): Promise<AdminSession> {
@@ -118,8 +144,8 @@ export async function requireRole(allowedRoles: string[]): Promise<AdminSession>
       logAdminAuthFailure("requireRole", "insufficient-role");
       redirect("/unauthorized");
     }
-    const role = profileRole;
-    const isSuperAdminRole = role === "superadmin";
+    const role = profileRole === "super_admin" || profileRole === "superadmin" ? "super_admin" : profileRole;
+    const isSuperAdminRole = role === "super_admin";
     return {
       session,
       user: session.user,

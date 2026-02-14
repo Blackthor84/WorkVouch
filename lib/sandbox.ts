@@ -1,11 +1,10 @@
 /**
  * Intelligence Sandbox — validate and scope sandbox operations.
- * Admin/superadmin only. Production rows (sandbox_id IS NULL) never touched.
+ * Admin/super_admin only. Production rows (sandbox_id IS NULL) never touched. All checks from admin_users.
  */
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { getCurrentUser, getCurrentUserProfile } from "@/lib/auth";
-import { isAdmin } from "@/lib/roles";
+import { getAdminSession } from "@/lib/auth/getAdminSession";
 
 export interface SandboxRow {
   id: string;
@@ -19,15 +18,13 @@ export interface SandboxRow {
 }
 
 /**
- * Assert current user is admin/superadmin. For sandbox API routes.
+ * Assert current user is admin or super_admin (from admin_users). For sandbox API routes.
+ * super_admin bypasses sandbox restrictions; sandbox mode flag does NOT block super_admin.
  */
 export async function requireSandboxAdmin(): Promise<{ id: string }> {
-  const user = await getCurrentUser();
-  if (!user?.id) throw new Error("Unauthorized");
-  const profile = await getCurrentUserProfile();
-  const admin = isAdmin(profile?.role ?? null);
-  if (!admin) throw new Error("Forbidden: admin or superadmin required");
-  return { id: user.id };
+  const admin = await getAdminSession();
+  if (!admin) throw new Error("Forbidden: admin or super_admin required");
+  return { id: admin.userId };
 }
 
 /**

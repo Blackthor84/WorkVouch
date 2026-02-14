@@ -26,10 +26,48 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
 
-    const { data: profiles, error: profilesError } = await supabase
+    const url = new URL(request.url);
+    const searchEmail = url.searchParams.get("email")?.trim() || "";
+    const searchName = url.searchParams.get("name")?.trim() || "";
+    const searchOrg = url.searchParams.get("org")?.trim() || "";
+
+    let query = supabase
       .from("profiles")
       .select("id, email, full_name, created_at, role")
       .order("created_at", { ascending: false });
+
+    if (searchEmail) {
+      query = query.ilike("email", `%${searchEmail}%`);
+    }
+    if (searchName) {
+      query = query.ilike("full_name", `%${searchName}%`);
+    }
+
+    let profileIdsFilter: string[] | null = null;
+    if (searchOrg) {
+      const { data: orgs } = await supabase
+        .from("organizations")
+        .select("id")
+        .ilike("name", `%${searchOrg}%`);
+      const orgIds = (orgs ?? []).map((o: { id: string }) => o.id);
+      if (orgIds.length === 0) {
+        profileIdsFilter = [];
+      } else {
+        const { data: members } = await supabase
+          .from("tenant_memberships")
+          .select("user_id")
+          .in("organization_id", orgIds);
+        profileIdsFilter = [...new Set((members ?? []).map((m: { user_id: string }) => m.user_id))];
+      }
+    }
+    if (profileIdsFilter && profileIdsFilter.length === 0) {
+      return NextResponse.json([]);
+    }
+    if (profileIdsFilter && profileIdsFilter.length > 0) {
+      query = query.in("id", profileIdsFilter);
+    }
+
+    const { data: profiles, error: profilesError } = await query;
 
     if (profilesError) {
       console.error("[ADMIN_API_ERROR] GET /api/admin/users profiles", profilesError.message);

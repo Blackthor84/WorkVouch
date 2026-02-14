@@ -6,8 +6,8 @@ import { AdminIntelligenceDashboardClient } from "./AdminIntelligenceDashboardCl
 export const dynamic = "force-dynamic";
 
 export default async function AdminIntelligenceDashboardPage() {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized) redirect("/login");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) redirect("/login");
   const supabase = await supabaseServer();
   const supabaseAny = supabase as any;
   const { data: profiles } = await supabaseAny

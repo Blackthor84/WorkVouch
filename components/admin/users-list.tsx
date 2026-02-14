@@ -15,12 +15,20 @@ interface AdminUser {
 export function AdminUsersList() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [org, setOrg] = useState("");
   const router = useRouter();
 
   useEffect(() => {
     async function fetchUsers() {
+      setLoading(true);
       try {
-        const res = await fetch("/api/admin/users");
+        const params = new URLSearchParams();
+        if (email) params.set("email", email);
+        if (name) params.set("name", name);
+        if (org) params.set("org", org);
+        const res = await fetch(`/api/admin/users?${params.toString()}`);
         if (!res.ok) throw new Error("Failed to fetch users");
         const data = await res.json();
         setUsers(Array.isArray(data) ? data : []);
@@ -33,7 +41,7 @@ export function AdminUsersList() {
     }
 
     fetchUsers();
-  }, []);
+  }, [email, name, org]);
 
   if (loading) {
     return (

@@ -15,8 +15,8 @@ export const metadata = {
 };
 
 export default async function AdminInvestorDemoPage() {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized) redirect("/login");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) redirect("/login");
   return (
     <InvestorLayout>
       <InvestorDemoClient />

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { requireAdminForApi } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 
 export const dynamic = "force-dynamic";
 
@@ -9,8 +10,9 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _session = await requireAdminForApi();
+  if (!_session) return adminForbiddenResponse();
   try {
-    await requireAdmin();
     const { id: userId } = await params;
     if (!userId) {
       return NextResponse.json({ error: "Missing user id" }, { status: 400 });

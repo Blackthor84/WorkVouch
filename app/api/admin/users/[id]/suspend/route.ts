@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireAdmin, assertAdminCanModify } from "@/lib/admin/requireAdmin";
+import { requireAdminForApi, assertAdminCanModify } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
 
@@ -10,8 +11,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const admin = await requireAdminForApi();
+  if (!admin) return adminForbiddenResponse();
   try {
-    const admin = await requireAdmin();
     const { id: targetUserId } = await params;
     if (!targetUserId) {
       return NextResponse.json({ success: false, error: "Missing user id" }, { status: 400 });

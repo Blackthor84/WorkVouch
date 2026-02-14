@@ -1,13 +1,11 @@
 /**
  * POST /api/employment-references
- * Submit a reference for a confirmed employment match. Rate limited. Zod validated.
- * Only confirmed matches; unique (employment_match_id, reviewer_id). Recalculates trust score.
+ * Single path: core submitReview. Rate limited, Zod validated.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseSession } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-import { recalculateTrustScore } from "@/lib/trustScore";
+import { submitReview } from "@/lib/core/reviews";
 import { logAudit } from "@/lib/dispute-audit";
 import { processReviewIntelligence } from "@/lib/intelligence/processReviewIntelligence";
 import { runAnomalyChecksAfterReview } from "@/lib/admin/runAnomalyChecks";
@@ -41,101 +39,48 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
 
-    const sb = getSupabaseServer() as any;
-    const { employment_match_id, rating, comment } = parsed.data;
+    const result = await submitReview(
+      {
+        employment_match_id: parsed.data.employment_match_id,
+        reviewer_id: session.user.id,
+        rating: parsed.data.rating,
+        comment: parsed.data.comment,
+      },
+      {
+        auditLog: (payload) =>
+          logAudit({
+            entityType: payload.entityType,
+            entityId: payload.entityId,
+            changedBy: payload.changedBy,
+            newValue: payload.newValue,
+            changeReason: payload.changeReason,
+          }),
+      }
+    );
 
-    const { data: match, error: matchErr } = await sb
-      .from("employment_matches")
-      .select("id, employment_record_id, matched_user_id, match_status")
-      .eq("id", employment_match_id)
-      .single();
-
-    if (matchErr || !match) {
-      return NextResponse.json({ error: "Match not found" }, { status: 404 });
-    }
-
-    if (match.match_status !== "confirmed") {
+    if (!result.ok) {
       return NextResponse.json(
-        { error: "Only confirmed matches can receive references" },
-        { status: 403 }
+        { error: result.error },
+        { status: result.status }
       );
     }
 
-    const { data: rec } = await sb
-      .from("employment_records")
-      .select("user_id")
-      .eq("id", match.employment_record_id)
-      .single();
-
-    const recordOwnerId = rec?.user_id;
-    const matchedUserId = match.matched_user_id;
-    const reviewerId = session.user.id;
-    const reviewedUserId = recordOwnerId === reviewerId ? matchedUserId : recordOwnerId;
-
-    if (reviewedUserId === reviewerId) {
-      return NextResponse.json({ error: "Cannot reference yourself" }, { status: 400 });
-    }
-
-    const { data: existing } = await sb
-      .from("employment_references")
-      .select("id")
-      .eq("employment_match_id", employment_match_id)
-      .eq("reviewer_id", reviewerId)
-      .maybeSingle();
-
-    if (existing) {
-      return NextResponse.json({ error: "You have already left a reference for this match" }, { status: 409 });
-    }
-
-    const reliability_score = rating * 20;
-
-    const { data: ref, error: insertErr } = await sb
-      .from("employment_references")
-      .insert({
-        employment_match_id,
-        reviewer_id: reviewerId,
-        reviewed_user_id: reviewedUserId,
-        rating,
-        reliability_score,
-        comment: comment ?? null,
-      })
-      .select("id")
-      .single();
-
-    if (insertErr) {
-      console.error("[employment-references] insert error:", insertErr);
-      return NextResponse.json({ error: "Failed to save reference" }, { status: 500 });
-    }
-
-    await logAudit({
-      entityType: "reference",
-      entityId: ref?.id ?? employment_match_id,
-      changedBy: reviewerId,
-      newValue: { employment_match_id, reviewed_user_id: reviewedUserId, rating },
-      changeReason: "Reference submitted for confirmed match",
-    });
-
-    await recalculateTrustScore(reviewedUserId, {
-      triggeredBy: session.user.id,
-      reason: "peer_review_added",
-    });
-
-    const intelResult = await processReviewIntelligence(ref?.id ?? "");
+    const intelResult = await processReviewIntelligence(result.referenceId);
     if (!intelResult.ok) {
       console.error("[employment-references] processReviewIntelligence failed:", intelResult.error);
       return NextResponse.json(
         {
           error: "Reference saved but intelligence processing failed",
           warning: "Score update may be delayed; retry later.",
-          id: ref?.id,
+          id: result.referenceId,
         },
         { status: 500 }
       );
     }
 
-    await runAnomalyChecksAfterReview(reviewedUserId);
+    await runAnomalyChecksAfterReview(result.reviewedUserId);
 
-    return NextResponse.json({ id: ref?.id, success: true });
+    return NextResponse.json({ id: result.referenceId, success: true });
   } catch (e) {
     console.error("[employment-references] error:", e);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

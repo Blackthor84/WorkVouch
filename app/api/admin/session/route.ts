@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { normalizeRole } from "@/lib/auth/normalizeRole";
+import { isAdminRole } from "@/lib/auth/roles";
 
 export const dynamic = "force-dynamic";
 
 /**
  * GET /api/admin/session
- * Returns { role: "admin" | "superadmin" | null } for the authenticated user.
+ * Returns { role: "admin" | "super_admin" | null } for the authenticated user (from admin_users only).
  * Never throws, never 404. Client components use this as the single source for admin visibility.
  */
 export async function GET() {
@@ -15,7 +17,7 @@ export async function GET() {
       data: { session },
     } = await supabase.auth.getSession();
 
-    const email = session?.user?.email;
+    const email = session?.user?.email ?? null;
     if (!email) {
       return NextResponse.json({ role: null });
     }
@@ -26,15 +28,15 @@ export async function GET() {
       .eq("email", email)
       .maybeSingle();
 
-    const role = data?.role ?? null;
-    const normalized =
-      role === "admin" || role === "superadmin" || role === "super_admin"
-        ? (role === "super_admin" ? "superadmin" : role)
-        : null;
+    const rawRole = (data as { role?: string | null } | null)?.role ?? null;
+    const normalized = rawRole ? normalizeRole(rawRole) : "";
+    const role = isAdminRole(normalized) ? (normalized as "admin" | "super_admin") : null;
 
-    return NextResponse.json({
-      role: normalized as "admin" | "superadmin" | null,
-    });
+    if (process.env.NODE_ENV !== "test") {
+      console.log("[ADMIN CHECK]", { email, role, sandbox: process.env.NEXT_PUBLIC_SANDBOX_MODE === "true" });
+    }
+
+    return NextResponse.json({ role });
   } catch {
     return NextResponse.json({ role: null });
   }

@@ -4,6 +4,7 @@
  */
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const role = await getCurrentUserRole();
-    if (role !== "superadmin") return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
+    if (!isSuperAdmin(role)) return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
 
     const body = await request.json().catch(() => ({}));
     const previewRole = (body?.preview_role as string) || "employer";

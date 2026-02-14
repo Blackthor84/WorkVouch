@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { isSuperAdmin } from "@/lib/roles";
 import { logAuditAction } from "@/lib/audit";
 import { z } from "zod";
 
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const role = await getCurrentUserRole();
-    if (role !== "superadmin") return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
+    if (!isSuperAdmin(role)) return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
 
     const data = bodySchema.parse(await req.json());
     const supabase = getSupabaseServer() as any;

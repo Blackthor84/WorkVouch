@@ -5,7 +5,8 @@
  */
 
 import { NextResponse } from "next/server";
-import { requireSuperAdmin } from "@/lib/admin/requireAdmin";
+import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getOrgPlanLimits } from "@/lib/enterprise/orgPlanLimits";
 import { getAbuseSignals } from "@/lib/enterprise/abuseSignals";
@@ -17,13 +18,8 @@ export async function GET(
   _req: Request,
   props: { params: Promise<{ orgId: string }> }
 ) {
-  try {
-    await requireSuperAdmin();
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Forbidden";
-    if (msg === "Unauthorized") return NextResponse.json({ error: msg }, { status: 401 });
-    return NextResponse.json({ error: msg }, { status: 403 });
-  }
+  const _session = await requireSuperAdminForApi();
+  if (!_session) return adminForbiddenResponse();
 
   const { orgId } = await props.params;
   if (!orgId) {

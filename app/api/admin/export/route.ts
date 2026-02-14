@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { requireAdminForApi } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 
 export const dynamic = "force-dynamic";
 
 /** GET: export data as CSV. ?type=users|peer_reviews|fraud_flags|employment|audit_logs */
 export async function GET(req: NextRequest) {
+  const _session = await requireAdminForApi();
+  if (!_session) return adminForbiddenResponse();
   try {
-    await requireAdmin();
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type") || "users";
     const supabase = getSupabaseServer();
@@ -52,8 +54,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Invalid type. Use users|peer_reviews|fraud_flags|employment|audit_logs" }, { status: 400 });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Internal error";
-    if (msg === "Unauthorized") return NextResponse.json({ error: msg }, { status: 401 });
-    if (msg === "Forbidden") return NextResponse.json({ error: msg }, { status: 403 });
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

@@ -5,6 +5,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
+import { isAdmin } from "@/lib/roles";
 import { calculateV1Breakdown, buildProductionProfileInput } from "@/lib/core/intelligence";
 import { buildSandboxProfileInput } from "@/lib/sandbox/buildProfileInput";
 import { calculateSentimentFromText } from "@/lib/sandbox/enterpriseEngine";
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const role = await getCurrentUserRole();
-    if (role !== "admin" && role !== "superadmin") {
+    if (!isAdmin(role)) {
       return NextResponse.json(
         { error: "Forbidden: admin or superadmin only" },
         { status: 403 }

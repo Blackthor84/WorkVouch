@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { requireAdmin, assertAdminCanModify } from "@/lib/admin/requireAdmin";
+import { requireAdminForApi, assertAdminCanModify } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { insertAdminAuditLog, getClientIpFromHeaders } from "@/lib/admin/audit";
 import { auditLog, getAuditMetaFromRequest } from "@/lib/auditLogger";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rateLimit";
@@ -16,7 +17,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const admin = await requireAdmin();
+    const admin = await requireAdminForApi();
+    if (!admin) return adminForbiddenResponse();
     const rl = withRateLimit(request, { userId: admin.userId, ...RATE_LIMITS.admin, prefix: "rl:admin:" });
     if (!rl.allowed) return rl.response;
     const { id: targetUserId } = await params;

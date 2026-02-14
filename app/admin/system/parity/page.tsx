@@ -8,8 +8,8 @@ import { ParityReportClient } from "@/components/admin/parity-report-client";
 export const dynamic = "force-dynamic";
 
 export default async function AdminSystemParityPage() {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized || !ctx.isSuperAdmin) redirect("/login");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin || !admin.isSuperAdmin) redirect("/login");
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 ">

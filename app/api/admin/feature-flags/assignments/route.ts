@@ -1,5 +1,6 @@
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { isAdmin, isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
 /**
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
     if (flagError || !flag) {
       return NextResponse.json({ error: "Feature flag not found" }, { status: 404 });
     }
-    if (role !== "superadmin" && flag.is_globally_enabled) {
+    if (!isSuperAdmin(role) && flag.is_globally_enabled) {
       return NextResponse.json(
         { error: "Cannot assign when feature is globally enabled. Only SuperAdmin can change global state." },
         { status: 403 }

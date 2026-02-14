@@ -1,15 +1,17 @@
 /**
  * Centralized role checks and hierarchy.
- * Source of truth: profiles.role and user_roles table (server-side).
+ * Use normalizeRole() for admin/super_admin comparisons. Canonical: "admin" | "super_admin".
  * Enterprise roles: tenant_memberships (enterprise_owner, location_admin, recruiter).
  *
  * Role hierarchy (strict):
  * - user (lowest)
  * - employer
  * - admin
- * - superadmin
+ * - super_admin / superadmin
  * - system (internal only, never assignable via UI)
  */
+
+import { normalizeRole } from "@/lib/auth/normalizeRole";
 
 export type AssignableRole = "user" | "employer" | "admin" | "superadmin";
 export type SystemRole = "system";
@@ -24,15 +26,17 @@ const ROLE_ORDER: Record<string, number> = {
   employer: 1,
   admin: 2,
   superadmin: 3,
+  super_admin: 3,
   system: 4,
 };
 
 export function isAdmin(role?: string | null): boolean {
-  return role === "admin" || role === "superadmin";
+  const r = normalizeRole(role);
+  return r === "admin" || r === "super_admin";
 }
 
 export function isSuperAdmin(role?: string | null): boolean {
-  return role === "superadmin";
+  return normalizeRole(role) === "super_admin";
 }
 
 /** System role is internal only (e.g. background jobs). Not assignable in admin UI. */
@@ -41,7 +45,8 @@ export function isSystem(role?: string | null): boolean {
 }
 
 export function roleLevel(role: string): number {
-  return ROLE_ORDER[role] ?? -1;
+  const r = normalizeRole(role) || role;
+  return ROLE_ORDER[r] ?? ROLE_ORDER[role] ?? -1;
 }
 
 /**
@@ -67,8 +72,9 @@ export function canAssignRole(actorRole: string, newRole: string, isSelf: boolea
   if (isSystem(newRole)) return false;
   if (isSuperAdmin(actorRole)) return true;
   if (isAdmin(actorRole)) {
-    if (isSelf && (newRole === "admin" || newRole === "superadmin")) return false; // cannot escalate own role
-    if (newRole === "superadmin" || newRole === "system") return false; // cannot assign above self
+    const nr = normalizeRole(newRole);
+    if (isSelf && (nr === "admin" || nr === "super_admin")) return false; // cannot escalate own role
+    if (nr === "super_admin" || newRole === "system") return false; // cannot assign above self
     return true;
   }
   return false;

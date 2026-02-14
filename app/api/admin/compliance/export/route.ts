@@ -6,7 +6,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { requireAdminForApi } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { getOrgHealthScore } from "@/lib/enterprise/orgHealthScore";
 import { getOrgPlanLimits } from "@/lib/enterprise/orgPlanLimits";
 import { planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
@@ -22,7 +23,8 @@ function normalizePlanKey(planType: string | null | undefined): string {
 
 export async function GET(request: NextRequest) {
   try {
-    const admin = await requireAdmin();
+    const admin = await requireAdminForApi();
+    if (!admin) return adminForbiddenResponse();
     const { searchParams } = request.nextUrl;
     const format = searchParams.get("format")?.toLowerCase() === "pdf" ? "pdf" : "csv";
     const organizationId = searchParams.get("organizationId")?.trim() ?? null;

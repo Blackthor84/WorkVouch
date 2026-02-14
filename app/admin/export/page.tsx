@@ -14,8 +14,8 @@ const EXPORT_TYPES = [
 ];
 
 export default async function AdminExportPage() {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized) redirect("/login");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) redirect("/login");
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">

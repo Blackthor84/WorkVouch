@@ -9,9 +9,9 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function AdminEmployerUsagePage() {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized) redirect("/login");
-  const isSuperAdmin = ctx.isSuperAdmin;
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) redirect("/login");
+  const isSuperAdmin = admin.isSuperAdmin;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

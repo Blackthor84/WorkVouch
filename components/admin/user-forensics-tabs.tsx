@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 export type ForensicsTabId =
   | "overview"
+  | "audit-chain"
   | "employment"
   | "peer-reviews"
   | "intelligence"
@@ -15,6 +16,7 @@ export type ForensicsTabId =
 
 const TABS: { id: ForensicsTabId; label: string }[] = [
   { id: "overview", label: "Overview" },
+  { id: "audit-chain", label: "Audit Chain" },
   { id: "employment", label: "Employment Records" },
   { id: "peer-reviews", label: "Peer Reviews" },
   { id: "intelligence", label: "Intelligence" },
@@ -40,6 +42,8 @@ export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserF
   const [activity, setActivity] = useState<Record<string, unknown>[]>([]);
   const [breakdown, setBreakdown] = useState<Record<string, unknown> | null>(null);
   const [scoreHistory, setScoreHistory] = useState<Record<string, unknown>[]>([]);
+  const [auditChainResumes, setAuditChainResumes] = useState<Record<string, unknown>[]>([]);
+  const [auditChainMatches, setAuditChainMatches] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
 
   useEffect(() => {
@@ -100,14 +104,33 @@ export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserF
   }, [tab, userId]);
 
   useEffect(() => {
-    if (tab === "sessions" || tab === "overview") {
-      if (tab === "sessions") {
-        setLoading("activity");
-        fetch(`/api/admin/users/${userId}/activity`)
-          .then((r) => r.json())
-          .then((d) => setActivity(Array.isArray(d) ? (d as Record<string, unknown>[]) : []))
-          .finally(() => setLoading(null));
-      }
+    if (tab === "sessions") {
+      setLoading("activity");
+      fetch(`/api/admin/users/${userId}/activity`)
+        .then((r) => r.json())
+        .then((d) => setActivity(Array.isArray(d) ? (d as Record<string, unknown>[]) : []))
+        .finally(() => setLoading(null));
+    }
+  }, [tab, userId]);
+
+  useEffect(() => {
+    if (tab === "audit-chain") {
+      setLoading("audit-chain");
+      Promise.all([
+        fetch(`/api/admin/resumes?userId=${userId}`).then((r) => r.json()),
+        fetch(`/api/admin/users/${userId}/employment`).then((r) => r.json()),
+        fetch(`/api/admin/users/${userId}/employment-matches`).then((r) => r.json()),
+        fetch(`/api/admin/users/${userId}/peer-reviews`).then((r) => r.json()),
+        fetch(`/api/admin/users/${userId}/score-history`).then((r) => r.json()),
+      ])
+        .then(([resumesData, employmentData, matchesData, reviewsData, historyData]) => {
+          setAuditChainResumes(Array.isArray((resumesData as { resumes?: unknown[] }).resumes) ? (resumesData as { resumes: Record<string, unknown>[] }).resumes : []);
+          setAuditChainEmployment(Array.isArray(employmentData) ? (employmentData as Record<string, unknown>[]) : []);
+          setAuditChainMatches(Array.isArray(matchesData) ? (matchesData as Record<string, unknown>[]) : []);
+          setAuditChainReviews(Array.isArray(reviewsData) ? (reviewsData as Record<string, unknown>[]) : []);
+          setAuditChainScoreHistory(Array.isArray(historyData) ? (historyData as Record<string, unknown>[]) : []);
+        })
+        .finally(() => setLoading(null));
     }
   }, [tab, userId]);
 
@@ -136,6 +159,120 @@ export function UserForensicsTabs({ userId, isEmployer, overviewContent }: UserF
       </div>
 
       {tab === "overview" && overviewContent}
+
+      {tab === "audit-chain" && (
+        <div className="space-y-6">
+          <p className="text-sm text-grey-medium dark:text-gray-400">
+            End-to-end audit: resume uploads → parsed employment → coworker matches → reviews → trust score. Use this to answer &quot;Why does this user have this score?&quot;
+          </p>
+          {loading === "audit-chain" ? (
+            <p className="text-grey-medium dark:text-gray-400">Loading audit chain...</p>
+          ) : (
+            <>
+              <div className="rounded-xl border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] p-6">
+                <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">1. Resume uploads</h3>
+                {auditChainResumes.length === 0 ? (
+                  <p className="text-grey-medium dark:text-gray-400 text-sm">No resume uploads.</p>
+                ) : (
+                  <ul className="space-y-2 text-sm">
+                    {auditChainResumes.map((r: Record<string, unknown>, i) => (
+                      <li key={(r.id as string) ?? i} className="border-b border-grey-background/50 dark:border-[#374151]/50 pb-2">
+                        <span className="font-medium text-grey-dark dark:text-gray-200">{r.file_path as string}</span>
+                        {" · "}
+                        <span className="capitalize text-grey-medium dark:text-gray-400">{String(r.status ?? "—")}</span>
+                        {" · "}
+                        <span className="text-grey-medium dark:text-gray-400">{r.created_at ? new Date(r.created_at as string).toLocaleString() : ""}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="rounded-xl border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] p-6">
+                <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">2. Parsed employment entries</h3>
+                {auditChainEmployment.length === 0 ? (
+                  <p className="text-grey-medium dark:text-gray-400 text-sm">No employment records.</p>
+                ) : (
+                  <ul className="space-y-2 text-sm">
+                    {auditChainEmployment.map((r: Record<string, unknown>, i) => (
+                      <li key={(r.id as string) ?? i} className="border-b border-grey-background/50 dark:border-[#374151]/50 pb-2">
+                        <span className="font-medium text-grey-dark dark:text-gray-200">{r.company_name as string}</span>
+                        {" — "}
+                        <span>{r.job_title as string}</span>
+                        {" · "}
+                        <span className="text-grey-medium dark:text-gray-400">
+                          {r.start_date ? new Date(r.start_date as string).toLocaleDateString() : "—"} – {r.end_date ? new Date(r.end_date as string).toLocaleDateString() : "present"}
+                        </span>
+                        {r.source ? <span className="ml-1 text-grey-medium dark:text-gray-400">· source: {String(r.source)}</span> : null}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="rounded-xl border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] p-6">
+                <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">3. Coworker matches</h3>
+                {auditChainMatches.length === 0 ? (
+                  <p className="text-grey-medium dark:text-gray-400 text-sm">No coworker matches.</p>
+                ) : (
+                  <ul className="space-y-2 text-sm">
+                    {auditChainMatches.map((m: Record<string, unknown>, i) => (
+                      <li key={(m.id as string) ?? i} className="border-b border-grey-background/50 dark:border-[#374151]/50 pb-2">
+                        <span className="font-medium text-grey-dark dark:text-gray-200">{m.company_name as string}</span>
+                        {" · "}
+                        <span className="capitalize">{String(m.match_status ?? "—")}</span>
+                        {" · "}
+                        <span className="text-grey-medium dark:text-gray-400">
+                          {m.overlap_start ? new Date(m.overlap_start as string).toLocaleDateString() : "—"} – {m.overlap_end ? new Date(m.overlap_end as string).toLocaleDateString() : "—"}
+                        </span>
+                        {" · "}
+                        <span className="text-grey-medium dark:text-gray-400">record_owner_id: {(m.record_owner_id as string) ?? "—"}</span>
+                        {" · "}
+                        <span className="text-grey-medium dark:text-gray-400">matched_user_id: {(m.matched_user_id as string) ?? "—"}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="rounded-xl border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] p-6">
+                <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">4. Reviews sent / received</h3>
+                {auditChainReviews.length === 0 ? (
+                  <p className="text-grey-medium dark:text-gray-400 text-sm">No peer reviews.</p>
+                ) : (
+                  <ul className="space-y-2 text-sm">
+                    {auditChainReviews.map((r: Record<string, unknown>, i) => (
+                      <li key={(r.id as string) ?? i} className="border-b border-grey-background/50 dark:border-[#374151]/50 pb-2">
+                        <span className="capitalize font-medium text-grey-dark dark:text-gray-200">{r.direction === "sent" ? "Sent" : "Received"}</span>
+                        {" · "}
+                        Rating: <strong>{String(r.rating)}</strong>
+                        {r.comment ? ` · ${String(r.comment).slice(0, 80)}${String(r.comment).length > 80 ? "…" : ""}` : null}
+                        {" · "}
+                        <span className="text-grey-medium dark:text-gray-400">{r.created_at ? new Date(r.created_at as string).toLocaleString() : ""}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="rounded-xl border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] p-6">
+                <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-3">5. Trust score history</h3>
+                {auditChainScoreHistory.length === 0 ? (
+                  <p className="text-grey-medium dark:text-gray-400 text-sm">No score history.</p>
+                ) : (
+                  <ul className="space-y-2 text-sm">
+                    {auditChainScoreHistory.map((h: Record<string, unknown>, i) => (
+                      <li key={(h.id as string) ?? i} className="flex flex-wrap gap-x-2 gap-y-1 border-b border-grey-background/50 dark:border-[#374151]/50 pb-2">
+                        <span className="text-grey-medium dark:text-gray-400">Old: {h.previous_score != null ? String(h.previous_score) : "—"}</span>
+                        <span className="text-grey-medium dark:text-gray-400">→ New: {String(h.new_score ?? "—")}</span>
+                        {h.delta != null && <span className="text-grey-medium dark:text-gray-400">(Δ {String(h.delta)})</span>}
+                        <span className="font-medium text-grey-dark dark:text-gray-200">{String(h.reason ?? "—")}</span>
+                        <span className="text-grey-medium dark:text-gray-400">{h.created_at ? new Date(h.created_at as string).toLocaleString() : ""}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {tab === "employment" && (
         <div className="rounded-xl border border-grey-background dark:border-[#374151] bg-white dark:bg-[#111827] p-6">

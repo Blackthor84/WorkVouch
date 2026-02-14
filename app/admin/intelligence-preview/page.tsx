@@ -6,8 +6,8 @@ import { AdminIntelligencePreviewClient } from "./AdminIntelligencePreviewClient
 export const dynamic = "force-dynamic";
 
 export default async function AdminIntelligencePreviewPage() {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized) redirect("/login");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) redirect("/login");
   const supabase = await supabaseServer();
   const supabaseAny = supabase as any;
   const { data: profiles } = await supabaseAny.from("profiles").select("id, email, full_name").order("created_at", { ascending: false }).limit(100);

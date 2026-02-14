@@ -2,22 +2,13 @@ import { getSupabaseSession } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
 import { getEffectiveRoles } from "@/lib/permissions/requireRole";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { requireAdminSafe } from "@/lib/auth/requireAdminSafe";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { NavbarClient, type OrgSwitcherItem } from "./navbar-client";
 
 export async function NavbarServer() {
-  let showAdmin = false;
-  let showSandboxAdmin = false;
-  try {
-    const admin = await requireAdminSafe();
-    if (admin.ok) {
-      showAdmin = true;
-      showSandboxAdmin = admin.role === "superadmin";
-    }
-  } catch {
-    showAdmin = false;
-    showSandboxAdmin = false;
-  }
+  const admin = await getAdminContext();
+  const showAdmin = admin.isAdmin;
+  const showSandboxAdmin = admin.isSandbox || admin.isSuperAdmin;
 
   const { session } = await getSupabaseSession();
   const profile = session?.user ? await getCurrentUserProfile() : null;

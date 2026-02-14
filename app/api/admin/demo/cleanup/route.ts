@@ -1,5 +1,6 @@
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ export async function POST() {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const role = await getCurrentUserRole();
-    if (role !== "superadmin") return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
+    if (!isSuperAdmin(role)) return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
 
     const supabase = getSupabaseServer() as any;
     const cutoff = new Date(Date.now() - DEMO_MAX_AGE_HOURS * 60 * 60 * 1000).toISOString();

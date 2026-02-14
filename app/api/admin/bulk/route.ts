@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireAdmin, assertAdminCanModify } from "@/lib/admin/requireAdmin";
+import { requireAdminForApi, assertAdminCanModify } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
 import { calculateUserIntelligence } from "@/lib/intelligence/calculateUserIntelligence";
@@ -11,8 +12,9 @@ type BulkAction = "suspend" | "soft_delete" | "recalculate" | "fraud_flag" | "do
 
 /** POST: bulk moderation. Body: { action: BulkAction, user_ids: string[] } or { action: "delete_reviews", review_ids: string[] } */
 export async function POST(req: NextRequest) {
+  const admin = await requireAdminForApi();
+  if (!admin) return adminForbiddenResponse();
   try {
-    const admin = await requireAdmin();
     const body = await req.json().catch(() => ({})) as {
       action: BulkAction;
       user_ids?: string[];

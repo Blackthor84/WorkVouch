@@ -6,7 +6,8 @@
 
 import { NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireSuperAdmin } from "@/lib/admin/requireAdmin";
+import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 
 export const dynamic = "force-dynamic";
 
@@ -23,46 +24,40 @@ function topSignals(signals: Record<string, unknown>, max = 5): Record<string, u
 }
 
 export async function GET() {
-  try {
-    await requireSuperAdmin();
+  const _session = await requireSuperAdminForApi();
+  if (!_session) return adminForbiddenResponse();
 
-    const supabase = getSupabaseServer();
-    const { data: rows, error } = await supabase
-      .from("organization_health")
-      .select("organization_id, score, band, signals, last_calculated_at");
+  const supabase = getSupabaseServer();
+  const { data: rows, error } = await supabase
+    .from("organization_health")
+    .select("organization_id, score, band, signals, last_calculated_at");
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    const orgIds = [...new Set((rows ?? []).map((r: { organization_id: string }) => r.organization_id))];
-    if (orgIds.length === 0) {
-      return NextResponse.json({ orgs: [] });
-    }
-
-    const { data: orgs } = await supabase
-      .from("organizations")
-      .select("id, plan_type")
-      .in("id", orgIds);
-
-    const planByOrg = new Map(
-      (orgs ?? []).map((o: { id: string; plan_type: string | null }) => [o.id, o.plan_type ?? "unknown"])
-    );
-
-    const orgsList = (rows ?? []).map((r: { organization_id: string; score: number; band: string; signals: Record<string, unknown>; last_calculated_at: string }) => ({
-      org_id: r.organization_id,
-      plan: planByOrg.get(r.organization_id) ?? "unknown",
-      score: r.score,
-      band: r.band,
-      top_signals: topSignals(r.signals ?? {}),
-      last_calculated_at: r.last_calculated_at,
-    }));
-
-    return NextResponse.json({ orgs: orgsList });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Internal error";
-    if (msg === "Unauthorized") return NextResponse.json({ error: msg }, { status: 401 });
-    if (msg === "Forbidden" || msg.includes("Superadmin")) return NextResponse.json({ error: msg }, { status: 403 });
-    return NextResponse.json({ error: msg }, { status: 500 });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  const orgIds = [...new Set((rows ?? []).map((r: { organization_id: string }) => r.organization_id))];
+  if (orgIds.length === 0) {
+    return NextResponse.json({ orgs: [] });
+  }
+
+  const { data: orgs } = await supabase
+    .from("organizations")
+    .select("id, plan_type")
+    .in("id", orgIds);
+
+  const planByOrg = new Map(
+    (orgs ?? []).map((o: { id: string; plan_type: string | null }) => [o.id, o.plan_type ?? "unknown"])
+  );
+
+  const orgsList = (rows ?? []).map((r: { organization_id: string; score: number; band: string; signals: Record<string, unknown>; last_calculated_at: string }) => ({
+    org_id: r.organization_id,
+    plan: planByOrg.get(r.organization_id) ?? "unknown",
+    score: r.score,
+    band: r.band,
+    top_signals: topSignals(r.signals ?? {}),
+    last_calculated_at: r.last_calculated_at,
+  }));
+
+  return NextResponse.json({ orgs: orgsList });
 }

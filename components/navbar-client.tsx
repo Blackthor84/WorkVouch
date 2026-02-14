@@ -13,6 +13,7 @@ import { usePreview } from "@/lib/preview-context";
 import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 import { useAuth } from "@/components/AuthContext";
 import { supabaseBrowser } from "@/lib/supabase/browser";
+import { normalizeRole } from "@/lib/auth/normalizeRole";
 
 export interface OrgSwitcherItem {
   id: string;
@@ -47,24 +48,6 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
   const isEmployerArea = pathname?.startsWith("/employer");
   const showOrgSwitcher = Boolean(orgSwitcherItems?.length);
   const [complianceCount, setComplianceCount] = useState(0);
-  const [userRole, setUserRole] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadRole = async () => {
-      const res = await fetch("/api/admin/session");
-      const json = await res.json().catch(() => ({}));
-      console.log("[admin/session] full response", json);
-      let role: string | null = json?.role ?? null;
-      // TEMPORARY FAIL-OPEN: ensure founder@tryworkvouch.com always sees Admin (remove after confirming)
-      const email = session?.user?.email;
-      if (email === "founder@tryworkvouch.com" && !role) {
-        role = "super_admin";
-      }
-      setUserRole(role);
-    };
-
-    loadRole();
-  }, [session?.user?.id, session?.user?.email]);
 
   useEffect(() => {
     if (!isEmployerArea || !user || role !== "employer") {
@@ -77,12 +60,11 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
       .catch(() => setComplianceCount(0));
   }, [isEmployerArea, user?.id, role]);
 
-  const normalizedRole =
-    userRole === "superadmin" ? "super_admin" : userRole;
+  const normalizedRole = normalizeRole(userRole);
 
   const showAdmin =
     normalizedRole === "admin" || normalizedRole === "super_admin";
-  const showSandboxAdmin = userRole === "superadmin" || userRole === "super_admin";
+  const showSandboxAdmin = normalizedRole === "super_admin";
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white shadow-sm py-2">
@@ -173,7 +155,7 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
                     Sandbox
                   </Button>
                 )}
-                {(role === "employer" || role === "superadmin") && (
+                {(role === "employer" || role === "superadmin" || role === "super_admin") && (
                   <Button
                     variant="ghost"
                     size="sm"

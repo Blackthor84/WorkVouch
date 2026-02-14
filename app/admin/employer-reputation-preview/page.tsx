@@ -3,8 +3,8 @@ import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { EmployerReputationPreviewClient } from "@/components/admin/EmployerReputationPreviewClient";
 
 export default async function AdminEmployerReputationPreviewPage() {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized) redirect("/login");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) redirect("/login");
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { requireAdminForApi } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { getAuditMeta } from "@/lib/email/system-audit";
 import { logSystemAudit } from "@/lib/email/system-audit";
 import { auditLog } from "@/lib/auditLogger";
@@ -31,7 +32,8 @@ export async function POST(
       );
     }
 
-    const admin = await requireAdmin();
+    const admin = await requireAdminForApi();
+    if (!admin) return adminForbiddenResponse();
     const { id: targetUserId } = await params;
     if (!targetUserId || typeof targetUserId !== "string") {
       return NextResponse.json(

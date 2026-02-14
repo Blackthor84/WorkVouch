@@ -5,7 +5,7 @@ import HiddenFeaturesClient from "@/components/admin/HiddenFeaturesClient";
 export const dynamic = "force-dynamic";
 
 export default async function HiddenFeaturesPage() {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized) redirect("/login");
-  return <HiddenFeaturesClient isSuperAdmin={ctx.isSuperAdmin} />;
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) redirect("/login");
+  return <HiddenFeaturesClient isSuperAdmin={admin.isSuperAdmin} />;
 }

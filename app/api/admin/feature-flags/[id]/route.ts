@@ -1,5 +1,6 @@
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
 /**
@@ -73,7 +74,7 @@ export async function DELETE(
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const role = await getCurrentUserRole();
-    if (role !== "superadmin") return NextResponse.json({ error: "Forbidden: SuperAdmin only" }, { status: 403 });
+    if (!isSuperAdmin(role)) return NextResponse.json({ error: "Forbidden: SuperAdmin only" }, { status: 403 });
 
     const { id } = await params;
     const supabase = getSupabaseServer();

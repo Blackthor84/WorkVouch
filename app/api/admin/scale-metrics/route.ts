@@ -5,19 +5,15 @@
  */
 
 import { NextResponse } from "next/server";
-import { requireSuperAdmin } from "@/lib/admin/requireAdmin";
+import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  try {
-    await requireSuperAdmin();
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Forbidden";
-    if (msg === "Unauthorized") return NextResponse.json({ error: msg }, { status: 401 });
-    return NextResponse.json({ error: msg }, { status: 403 });
-  }
+  const _session = await requireSuperAdminForApi();
+  if (!_session) return adminForbiddenResponse();
 
   const supabase = getSupabaseServer();
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();

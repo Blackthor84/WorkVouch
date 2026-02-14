@@ -12,8 +12,8 @@ import { Database } from "@/types/database";
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 export default async function AdminSignupsPage() {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized || !ctx.isSuperAdmin) redirect("/login");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin || !admin.isSuperAdmin) redirect("/login");
   const supabase = await supabaseServer();
   const supabaseAny = supabase as any;
 

@@ -5,6 +5,7 @@
 
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { isAdmin } from "@/lib/roles";
 import { NextRequest, NextResponse } from "next/server";
 import {
   VERTICAL_NAMES,
@@ -18,8 +19,7 @@ export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const role = await getCurrentUserRole();
-  const isAdmin = role === "admin" || role === "superadmin";
-  if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!isAdmin(role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   try {
     const supabase = getSupabaseServer();
@@ -63,8 +63,7 @@ export async function PATCH(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const role = await getCurrentUserRole();
-  const isAdmin = role === "admin" || role === "superadmin";
-  if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!isAdmin(role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   let body: { name?: string; enabled?: boolean };
   try {

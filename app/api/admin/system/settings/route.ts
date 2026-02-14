@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireAdmin, requireSuperAdmin } from "@/lib/admin/requireAdmin";
+import { requireAdminForApi, requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 
 export const dynamic = "force-dynamic";
 
 /** GET: system settings (maintenance mode, etc.) — admin can read */
 export async function GET() {
+  const _session = await requireAdminForApi();
+  if (!_session) return adminForbiddenResponse();
   try {
-    await requireAdmin();
     const supabase = getSupabaseServer();
     const { data, error } = await supabase.from("system_settings").select("key, value, updated_at").in("key", ["maintenance_mode", "intelligence_version"]);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -26,8 +28,9 @@ export async function GET() {
 
 /** PATCH: update system settings — superadmin only */
 export async function PATCH(req: NextRequest) {
+  const admin = await requireSuperAdminForApi();
+  if (!admin) return adminForbiddenResponse();
   try {
-    const admin = await requireSuperAdmin();
     const body = await req.json().catch(() => ({})) as { maintenance_mode?: { enabled?: boolean; block_signups?: boolean; block_reviews?: boolean; block_employment?: boolean; banner_message?: string } };
     const supabase = getSupabaseServer();
     if (body.maintenance_mode !== undefined) {

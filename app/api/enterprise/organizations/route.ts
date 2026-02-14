@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getEnterpriseSession } from "@/lib/enterprise/requireEnterprise";
+import { isSandboxRequest } from "@/lib/sandboxRequest";
 
 /**
  * GET /api/enterprise/organizations
  * List organizations where current user is enterprise owner (or all for superadmin).
+ * Demo orgs (sandbox/demo) only returned when isSandboxRequest(); production never sees them.
  */
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
     const ent = await getEnterpriseSession();
     const supabase = getSupabaseServer();
 
-    const isSuperAdmin =
-      (await import("@/lib/admin/requireAdmin").then((m) => m.requireAdmin().catch(() => null))) != null;
+    const admin = await import("@/lib/admin/getAdminContext").then((m) => m.getAdminContext());
+    const isSuperAdmin = admin.isSuperAdmin;
     const orgIds = isSuperAdmin ? null : ent.enterpriseOwnerOrgIds;
     if (orgIds != null && orgIds.length === 0) {
       return NextResponse.json({ success: true, organizations: [] });
@@ -20,8 +22,12 @@ export async function GET(_req: NextRequest) {
 
     let query = supabase
       .from("organizations")
-      .select("id, name, slug, billing_tier, created_at, updated_at")
+      .select("id, name, slug, billing_tier, created_at, updated_at, mode, demo")
       .order("name");
+
+    if (!isSandboxRequest(req)) {
+      query = query.eq("mode", "production").eq("demo", false);
+    }
     if (orgIds != null) {
       query = query.in("id", orgIds);
     }

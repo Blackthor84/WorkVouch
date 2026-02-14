@@ -10,14 +10,14 @@ export default async function AdminOrganizationPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized) redirect("/login");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) redirect("/login");
   const supabase = await supabaseServer();
   const supabaseAny = supabase as any;
   const { id: orgId } = await params;
-  const userId = ctx.user?.id;
+  const userId = admin.userId;
 
-  if (!ctx.isSuperAdmin && userId) {
+  if (!admin.isSuperAdmin && userId) {
     const { data: myOrgs } = await supabaseAny
       .from("employer_users")
       .select("organization_id")

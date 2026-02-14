@@ -1,22 +1,13 @@
 /**
  * POST /api/resume/upload
- * Auth required. Validates file type (PDF/DOCX) and size (max 5MB).
- * Uploads to Supabase storage bucket "resumes" (private). Returns file path.
+ * Auth required. Single path: core processResumeUpload (store, parse, employment, matching).
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseSession } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-import { randomUUID } from "crypto";
+import { processResumeUpload } from "@/lib/core/resume";
 
 export const dynamic = "force-dynamic";
-
-const BUCKET = "resumes";
-const MAX_BYTES = 5 * 1024 * 1024; // 5MB
-const ALLOWED_TYPES = [
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,50 +18,54 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("file");
+    const organizationId = formData.get("organization_id");
 
     if (!file || !(file instanceof File)) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json(
-        { error: "Invalid file type. Only PDF and DOCX are allowed." },
-        { status: 400 }
-      );
+    const orgId =
+      organizationId && typeof organizationId === "string" ? organizationId : null;
+    const result = await processResumeUpload(session.user.id, file, orgId);
+
+    if (result.ok && result.status === "parsed") {
+      return NextResponse.json({
+        id: result.resumeId,
+        path: result.path,
+        status: "parsed",
+        parsed_data: { employment: result.employment },
+        employment_record_ids: result.employmentRecordIds,
+        coworker_matches_created: result.matchesCreated,
+        message:
+          "Resume uploaded and parsed. Jobs added to your profile; coworker matches will appear in Coworker Matches.",
+      });
     }
 
-    if (file.size > MAX_BYTES) {
-      return NextResponse.json(
-        { error: "File size exceeds 5MB limit." },
-        { status: 400 }
-      );
+    if (!result.ok && "status" in result && result.status === 400) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+    if (!result.ok && "status" in result && result.status === 401) {
+      return NextResponse.json({ error: result.error }, { status: 401 });
     }
 
-    const ext = file.type === "application/pdf" ? "pdf" : "docx";
-    const path = `${session.user.id}/${randomUUID()}.${ext}`;
-
-    const sb = getSupabaseServer();
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    const { error: uploadError } = await sb.storage.from(BUCKET).upload(path, buffer, {
-      contentType: file.type,
-      upsert: false,
-    });
-
-    if (uploadError) {
-      console.error("[resume/upload] storage error:", uploadError);
-      return NextResponse.json(
-        { error: "Failed to upload file." },
-        { status: 500 }
-      );
+    if (!result.ok && "resumeId" in result && result.resumeId) {
+      return NextResponse.json({
+        id: result.resumeId,
+        path: result.path,
+        status: "failed",
+        parsing_error: result.parsingError ?? result.error,
+        message: "Resume uploaded but parsing failed. You can add employment manually.",
+      });
     }
 
-    return NextResponse.json({ path });
+    if (!result.ok && "error" in result) {
+      const status = "status" in result ? result.status : 500;
+      return NextResponse.json({ error: result.error }, { status });
+    }
+
+    return NextResponse.json({ error: "Internal server error." }, { status: 500 });
   } catch (e) {
     console.error("[resume/upload] error:", e);
-    return NextResponse.json(
-      { error: "Internal server error." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error." }, { status: 500 });
   }
 }

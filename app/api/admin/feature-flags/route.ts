@@ -1,5 +1,6 @@
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { isAdmin, isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
 /** Core feature flags that must always exist. Insert if missing (by key). visibility_type uses "both" or "ui" (DB allows ui|api|both). */
@@ -39,7 +40,7 @@ export async function GET() {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const role = await getCurrentUserRole();
-    if (role !== "admin" && role !== "superadmin") {
+    if (!isAdmin(role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -114,7 +115,7 @@ export async function POST(request: Request) {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const role = await getCurrentUserRole();
-    if (role !== "superadmin") {
+    if (!isSuperAdmin(role)) {
       return NextResponse.json({ error: "Forbidden: SuperAdmin only" }, { status: 403 });
     }
 

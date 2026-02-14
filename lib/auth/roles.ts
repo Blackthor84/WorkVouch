@@ -1,23 +1,20 @@
 /**
  * Single source of truth for admin role checks.
- * Admin access: admin | superadmin | super_admin — use everywhere.
+ * Use normalizeRole() for all comparisons. Canonical: "admin" | "super_admin".
  */
 
-export const ADMIN_ROLE_VALUES = ["admin", "superadmin", "super_admin"] as const;
+import { normalizeRole as normalizeRoleFn } from "./normalizeRole";
 
-export function normalizeRole(role?: string | null): string {
-  if (!role) return "user";
-  if (role === "super_admin") return "superadmin";
-  return role;
-}
+export const ADMIN_ROLE_VALUES = ["admin", "super_admin"] as const;
+
+/** Re-export for backward compatibility. Prefer importing from @/lib/auth/normalizeRole. */
+export { normalizeRole } from "./normalizeRole";
 
 export function isAdminRole(role?: string | null): boolean {
-  if (!role) return false;
-  return (
-    role === "admin" || role === "superadmin" || role === "super_admin"
-  );
+  const r = normalizeRoleFn(role);
+  return r === "admin" || r === "super_admin";
 }
 
 export function isSuperAdminRole(role?: string | null): boolean {
-  return normalizeRole(role) === "superadmin";
+  return normalizeRoleFn(role) === "super_admin";
 }

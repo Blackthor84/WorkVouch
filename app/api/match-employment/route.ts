@@ -1,14 +1,13 @@
 /**
  * POST /api/match-employment
  * Creates employment record (if body has user_id, company_name, etc.) and runs coworker matching.
- * Same company_normalized + date overlap >= 30 days → pending employment_matches + email to both users.
- * Uses service role for inserts. Auth: user can only submit for self (user_id = session).
+ * Same company_normalized + date overlap >= 30 days → pending employment_matches.
+ * No auto-send emails (App Store compliant); user sees matches in-app only (Coworker Matches page).
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseSession } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { sendEmail } from "@/lib/utils/sendgrid";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -170,18 +169,6 @@ export async function POST(req: NextRequest) {
         .single();
       if (matchErr) continue;
       if (match) created.push({ id: match.id, matched_user_id: match.matched_user_id });
-    }
-
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://workvouch.com");
-    for (const m of created) {
-      const { data: profile } = await sb.from("profiles").select("email, full_name").eq("id", m.matched_user_id).single();
-      if (profile?.email) {
-        await sendEmail(
-          profile.email,
-          "WorkVouch: New Coworker Match",
-          `<p>Someone you worked with at the same company has been matched with you on WorkVouch. You can confirm or reject the match in your dashboard.</p><p><a href="${baseUrl}/dashboard">View dashboard</a></p>`
-        );
-      }
     }
 
     return NextResponse.json({

@@ -27,8 +27,8 @@ export default async function AdminUserPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const ctx = await getAdminContext();
-  if (!ctx.authorized) redirect("/login");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) redirect("/login");
   const supabase = await supabaseServer();
   const supabaseAny = supabase as any;
 
@@ -59,7 +59,7 @@ export default async function AdminUserPage({
 
   const status = row.status ?? "active";
   const riskLevel = row.risk_level ?? "low";
-  const isSuperAdmin = ctx.isSuperAdmin;
+  const isSuperAdmin = admin.isSuperAdmin;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">

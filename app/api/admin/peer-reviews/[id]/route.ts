@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireAdmin } from "@/lib/admin/requireAdmin";
+import { requireAdminForApi } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
 import { calculateUserIntelligence } from "@/lib/intelligence/calculateUserIntelligence";
@@ -12,8 +13,9 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const admin = await requireAdminForApi();
+  if (!admin) return adminForbiddenResponse();
   try {
-    const admin = await requireAdmin();
     const { id: reviewId } = await params;
     if (!reviewId) {
       return NextResponse.json({ success: false, error: "Missing review id" }, { status: 400 });

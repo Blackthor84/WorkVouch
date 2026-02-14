@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { requireSuperAdmin } from "@/lib/admin/requireAdmin";
+import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 
 export async function POST() {
-  await requireSuperAdmin();
+  const _session = await requireSuperAdminForApi();
+  if (!_session) return adminForbiddenResponse();
 
   const cookieStore = await cookies();
   const current = cookieStore.get("sandbox_mode")?.value === "true";

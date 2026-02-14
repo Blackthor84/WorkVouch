@@ -1,26 +1,19 @@
 /**
- * Require admin for sandbox-v2 API routes. Uses Supabase + profiles.role.
+ * Require admin for sandbox-v2 API routes. Uses admin_users table only.
+ * super_admin bypasses sandbox restrictions; sandbox mode flag does NOT block super_admin.
  */
 
-import { getCurrentUser, getCurrentUserProfile } from "@/lib/auth";
-import { isAdmin, isSuperAdmin } from "@/lib/roles";
+import { getAdminSession } from "@/lib/auth/getAdminSession";
 
 export async function requireSandboxV2Admin(): Promise<{ id: string }> {
-  const user = await getCurrentUser();
-  if (!user?.id) throw new Error("Unauthorized");
-  const profile = await getCurrentUserProfile();
-  const admin = isAdmin(profile?.role ?? null);
-  if (!admin) throw new Error("Forbidden: admin or superadmin required");
-  return { id: user.id };
+  const admin = await getAdminSession();
+  if (!admin) throw new Error("Forbidden: admin or super_admin required");
+  return { id: admin.userId };
 }
 
-/** Same as requireSandboxV2Admin but also returns whether user is superadmin (sees all sessions). */
+/** Same as requireSandboxV2Admin but also returns whether user is super_admin (sees all sessions). */
 export async function requireSandboxV2AdminWithRole(): Promise<{ id: string; isSuperAdmin: boolean }> {
-  const user = await getCurrentUser();
-  if (!user?.id) throw new Error("Unauthorized");
-  const profile = await getCurrentUserProfile();
-  const admin = isAdmin(profile?.role ?? null);
-  if (!admin) throw new Error("Forbidden: admin or superadmin required");
-  const superAdmin = isSuperAdmin(profile?.role ?? null);
-  return { id: user.id, isSuperAdmin: !!superAdmin };
+  const admin = await getAdminSession();
+  if (!admin) throw new Error("Forbidden: admin or super_admin required");
+  return { id: admin.userId, isSuperAdmin: admin.role === "super_admin" };
 }

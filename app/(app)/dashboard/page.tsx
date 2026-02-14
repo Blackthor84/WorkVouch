@@ -1,7 +1,5 @@
 import { getCurrentUser, getCurrentUserProfile, isEmployer } from "@/lib/auth";
 import { getVerticalDashboardConfig } from "@/lib/verticals/dashboard";
-import { SANDBOX_MODE } from "@/lib/env";
-import { MOCK_RECENT_ACTIVITY, MOCK_PROFILE_COMPLETENESS } from "@/lib/sandbox/mockDashboardData";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +7,7 @@ import { TrustScoreCard } from "@/components/trust-score-card";
 import { ProfileStrengthCard } from "@/components/profile";
 import { CareerHealthDashboard } from "@/components/employee/CareerHealthDashboard";
 import { ProfileVisibilityCard } from "@/components/employee/ProfileVisibilityCard";
+import { MyResumesCard } from "@/components/dashboard/MyResumesCard";
 import {
   UserCircleIcon,
   BriefcaseIcon,
@@ -52,7 +51,6 @@ export default async function UserDashboardPage() {
       }
     : null;
 
-  // Mock data
   const shortcuts = [
     {
       href: "/upload-resume",
@@ -102,11 +100,9 @@ export default async function UserDashboardPage() {
       : []),
   ];
 
-  const allowMock = SANDBOX_MODE;
-  const recentActivity = allowMock ? MOCK_RECENT_ACTIVITY : [];
-  const profileStats = allowMock
-    ? MOCK_PROFILE_COMPLETENESS
-    : { percent: 0, references: 0, jobs: 0 };
+  // UI renders only real DB data; no mock/fake. Activity and profile stats from DB or empty state.
+  const recentActivity: { id: string; message: string; time: string }[] = [];
+  const profileStats = { percent: 0, references: 0, jobs: 0 };
 
   return (
     <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-[#F8FAFC] min-w-0 overflow-x-hidden">
@@ -197,6 +193,7 @@ export default async function UserDashboardPage() {
               <TrustScoreCard userId={safeProfile?.id || user.id} />
             </div>
 
+            <MyResumesCard />
             <div id="profile-strength">
               <ProfileStrengthCard userId={safeProfile?.id || user.id} />
             </div>

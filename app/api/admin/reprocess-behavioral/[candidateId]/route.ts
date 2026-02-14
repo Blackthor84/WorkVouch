@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
+import { isAdmin } from "@/lib/roles";
 import { updateBehavioralVector } from "@/lib/intelligence/updateBehavioralVector";
 
 export async function POST(
@@ -15,7 +16,7 @@ export async function POST(
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const role = await getCurrentUserRole();
-    if (role !== "admin" && role !== "superadmin") {
+    if (!isAdmin(role)) {
       return NextResponse.json({ error: "Forbidden: admin or superadmin only" }, { status: 403 });
     }
 

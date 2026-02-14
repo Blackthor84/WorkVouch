@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireSuperAdmin } from "@/lib/admin/requireAdmin";
+import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +13,9 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const _session = await requireSuperAdminForApi();
+  if (!_session) return adminForbiddenResponse();
   try {
-    await requireSuperAdmin();
     const { id: employerId } = await params;
     if (!employerId) return NextResponse.json({ success: false, error: "Missing employer id" }, { status: 400 });
     const body = await req.json().catch(() => ({})) as Record<string, unknown>;

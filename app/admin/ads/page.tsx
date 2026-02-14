@@ -6,8 +6,8 @@ import { AD_PRICING } from "@/lib/ads/pricing";
 import Link from "next/link";
 
 export default async function AdminAdsPage() {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized) redirect("/login");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) redirect("/login");
 
   return (
     <AdminAdsGate>

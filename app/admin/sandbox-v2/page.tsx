@@ -5,7 +5,7 @@ import { SandboxV2Client } from "./SandboxV2Client";
 export const dynamic = "force-dynamic";
 
 export default async function AdminSandboxV2Page() {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized) redirect("/login");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) redirect("/login");
   return <SandboxV2Client />;
 }

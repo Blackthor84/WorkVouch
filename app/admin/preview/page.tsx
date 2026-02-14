@@ -3,8 +3,8 @@ import { getAdminContext } from "@/lib/admin/getAdminContext";
 import AdminPreview from '@/components/AdminPreview';
 
 export default async function AdminPreviewPage() {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized) redirect("/login");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) redirect("/login");
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-4">

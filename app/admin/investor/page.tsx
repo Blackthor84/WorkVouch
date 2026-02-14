@@ -42,8 +42,8 @@ async function getRealCounts(supabase: any) {
 }
 
 export default async function AdminInvestorPage() {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized || !ctx.isSuperAdmin) redirect("/login");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin || !admin.isSuperAdmin) redirect("/login");
   const supabase = await supabaseServer();
   const realCounts = await getRealCounts(supabase);
 

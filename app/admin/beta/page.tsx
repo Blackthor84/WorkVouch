@@ -4,8 +4,8 @@ import BetaAccessManager from "@/components/admin/BetaAccessManager";
 import { AdminBetaGate } from "@/components/AdminBetaGate";
 
 export default async function AdminBetaPage() {
-  const ctx = await getAdminContext();
-  if (!ctx.authorized) redirect("/login");
+  const admin = await getAdminContext();
+  if (!admin.isAdmin) redirect("/login");
 
   return (
     <AdminBetaGate>
