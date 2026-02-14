@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "danger" | "info";
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "info" | "outline";
   size?: "sm" | "md" | "lg";
   children: ReactNode;
   asChild?: boolean;
@@ -32,6 +32,8 @@ export function Button({
     danger:
       "bg-red-600 hover:bg-red-700 text-white",
     info: "bg-blue-100 hover:bg-blue-200 text-[#1E40AF]",
+    outline:
+      "bg-transparent text-[#334155] border border-[#E2E8F0] hover:bg-slate-50",
   };
 
   const sizes = {

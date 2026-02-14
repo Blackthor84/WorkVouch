@@ -29,7 +29,16 @@ type FunnelsData = { windowHours: number; steps: FunnelStep[]; filters: { countr
 
 type AbuseData = { windowHours: number; signals: { signal_type: string; severity: number; is_sandbox: boolean; created_at: string }[]; bySignalType: { type: string; count: number }[] };
 
-type TabId = "overview" | "realtime" | "geography" | "funnels" | "heatmaps" | "journeys" | "abuse";
+/** Single source of truth for analytics tab IDs. Use this type and activeTab only—no raw "tab" or magic strings. */
+type AnalyticsTab =
+  | "overview"
+  | "realtime"
+  | "geography"
+  | "funnels"
+  | "heatmaps"
+  | "journeys"
+  | "abuse"
+  | "sandbox";
 
 type JourneyItem = { type: "page_view"; at: string; path: string; referrer?: string } | { type: "event"; at: string; event_type: string; metadata?: unknown };
 
@@ -106,7 +115,7 @@ function JourneysSearch() {
   );
 }
 
-const TAB_TO_SEGMENT: Record<TabId, string> = {
+const TAB_TO_SEGMENT: Record<AnalyticsTab, string> = {
   overview: "overview",
   realtime: "real-time",
   geography: "geography",
@@ -114,12 +123,13 @@ const TAB_TO_SEGMENT: Record<TabId, string> = {
   heatmaps: "heatmaps",
   journeys: "journeys",
   abuse: "abuse",
+  sandbox: "sandbox",
 };
 
-function pathToTab(pathname: string | null): TabId {
+function pathToTab(pathname: string | null): AnalyticsTab {
   if (!pathname) return "overview";
   const segment = pathname.replace(/^\/admin\/analytics\/?/, "").split("/")[0];
-  const map: Record<string, TabId> = {
+  const map: Record<string, AnalyticsTab> = {
     overview: "overview",
     "real-time": "realtime",
     geography: "geography",
@@ -127,18 +137,20 @@ function pathToTab(pathname: string | null): TabId {
     heatmaps: "heatmaps",
     journeys: "journeys",
     abuse: "abuse",
+    sandbox: "sandbox",
   };
   return map[segment] ?? "overview";
 }
 
-type DashboardProps = { initialTab?: TabId; forceSandbox?: boolean };
+type DashboardProps = { initialTab?: AnalyticsTab; forceSandbox?: boolean };
 
 export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox = false }: DashboardProps) {
   const pathname = usePathname();
   const router = useRouter();
   const tabFromUrl = pathToTab(pathname);
-  const [internalTab, setInternalTab] = useState<TabId>(initialTab);
-  const effectiveTab = forceSandbox ? internalTab : tabFromUrl;
+  const [internalTab, setInternalTab] = useState<AnalyticsTab>(initialTab);
+  /** Single source of truth: the tab currently shown. URL-driven unless forceSandbox. */
+  const activeTab: AnalyticsTab = forceSandbox ? internalTab : tabFromUrl;
 
   const [env, setEnv] = useState<"" | "sandbox" | "production">(forceSandbox ? "sandbox" : "");
   const [data, setData] = useState<Overview | null>(null);
@@ -192,6 +204,7 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
       .catch(() => {});
   };
 
+  // Data fetching: overview when env changes; errors after overview load; funnels/abuse when tab + env.
   useEffect(() => {
     fetchOverview();
   }, [env]);
@@ -202,12 +215,13 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
   }, [data, env]);
 
   useEffect(() => {
-    if (effectiveTab === "funnels") fetchFunnels();
-    if (effectiveTab === "abuse") fetchAbuse();
-  }, [effectiveTab, env]);
+    if (activeTab === "funnels") fetchFunnels();
+    if (activeTab === "abuse") fetchAbuse();
+  }, [activeTab, env]);
 
+  // SSE: only open when realtime tab is active; always close on tab change or unmount to avoid leaks.
   useEffect(() => {
-    if (tab !== "realtime") {
+    if (activeTab !== "realtime") {
       if (sseRef.current) {
         sseRef.current.close();
         sseRef.current = null;
@@ -220,7 +234,7 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
     sseRef.current = es;
     es.onmessage = (e) => {
       try {
-        const d = JSON.parse(e.data);
+        const d = JSON.parse(e.data) as { error?: string; activeVisitors?: number; sandboxActive?: number; productionActive?: number; recentPageViews?: { path: string; is_sandbox: boolean; at: string }[] };
         if (d.error) return;
         setRealtime({
           activeVisitors: d.activeVisitors ?? 0,
@@ -232,9 +246,9 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
     };
     es.onerror = () => { es.close(); };
     return () => { es.close(); sseRef.current = null; };
-  }, [effectiveTab, env]);
+  }, [activeTab, env]);
 
-  const tabs: { id: TabId; label: string }[] = [
+  const tabs: { id: AnalyticsTab; label: string }[] = [
     { id: "overview", label: "Overview" },
     { id: "realtime", label: "Real-Time" },
     { id: "geography", label: "Geography" },
@@ -244,7 +258,7 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
     { id: "abuse", label: "Abuse & Security" },
   ];
 
-  const goToTab = (id: TabId) => {
+  const goToTab = (id: AnalyticsTab) => {
     if (forceSandbox) setInternalTab(id);
     else router.push(`/admin/analytics/${TAB_TO_SEGMENT[id]}`);
   };
@@ -303,8 +317,8 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
               key={id}
               type="button"
               onClick={() => goToTab(id)}
-              className={`border-b-2 py-2 px-1 text-sm font-medium ${effectiveTab === id ? "border-[#2563EB] text-[#2563EB]" : "border-transparent text-slate-600 hover:text-slate-900"}`}
-              aria-current={effectiveTab === id ? "page" : undefined}
+              className={`border-b-2 py-2 px-1 text-sm font-medium ${activeTab === id ? "border-[#2563EB] text-[#2563EB]" : "border-transparent text-slate-600 hover:text-slate-900"}`}
+              aria-current={activeTab === id ? "page" : undefined}
             >
               {label}
             </button>
@@ -312,7 +326,7 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
         </nav>
       </div>
 
-      {effectiveTab === "overview" && (
+      {activeTab === "overview" && (
         <>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
@@ -379,7 +393,7 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
         </>
       )}
 
-      {effectiveTab === "realtime" && (
+      {activeTab === "realtime" && (
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="mb-3 text-lg font-semibold text-slate-900">Live (SSE)</h2>
           {realtime ? (
@@ -402,7 +416,7 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
         </div>
       )}
 
-      {tab === "geography" && (
+      {activeTab === "geography" && (
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="mb-3 text-lg font-semibold text-slate-900">Visitor map (by country)</h2>
           {o.visitorMap.length === 0 ? (
@@ -420,7 +434,7 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
         </div>
       )}
 
-      {effectiveTab === "funnels" && (
+      {activeTab === "funnels" && (
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="mb-3 text-lg font-semibold text-slate-900">Funnels (Landing → Signup → Dashboard)</h2>
           {funnelsData ? (
@@ -440,7 +454,7 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
         </div>
       )}
 
-      {tab === "heatmaps" && (
+      {activeTab === "heatmaps" && (
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="mb-3 text-lg font-semibold text-slate-900">Heatmaps</h2>
           <p className="text-sm text-slate-600">Send <code className="bg-slate-100 px-1">click</code> or <code className="bg-slate-100 px-1">scroll_depth</code> events via POST /api/analytics/event with event_metadata (path, x_bucket, y_bucket or depth_pct). No PII. Sampling allowed.</p>
@@ -448,7 +462,7 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
         </div>
       )}
 
-      {effectiveTab === "journeys" && (
+      {activeTab === "journeys" && (
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="mb-3 text-lg font-semibold text-slate-900">User Journeys</h2>
           <p className="text-sm text-slate-600 mb-3">Search by session ID or user ID to inspect page views and events. No PII.</p>
@@ -456,7 +470,7 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
         </div>
       )}
 
-      {effectiveTab === "abuse" && (
+      {activeTab === "abuse" && (
         <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="mb-3 text-lg font-semibold text-slate-900">Abuse & security signals</h2>
           {abuseData ? (
