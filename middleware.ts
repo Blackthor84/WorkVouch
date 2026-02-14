@@ -27,11 +27,25 @@ function getPlatformReadOnlyEmails(): string[] {
   }
 }
 
+const ANALYTICS_SESSION_COOKIE = "wv_sid";
+const ANALYTICS_SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
+
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const isAdminRoute = path.startsWith("/admin");
 
   let res = NextResponse.next({ request: req });
+
+  // Internal analytics: set anonymous session ID for page-view capture (GDPR: no PII in cookie)
+  if (!req.cookies.get(ANALYTICS_SESSION_COOKIE)?.value) {
+    res.cookies.set(ANALYTICS_SESSION_COOKIE, crypto.randomUUID(), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: ANALYTICS_SESSION_MAX_AGE,
+      path: "/",
+    });
+  }
 
   try {
     const supabase = createServerClient(

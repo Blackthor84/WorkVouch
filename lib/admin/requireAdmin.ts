@@ -1,3 +1,9 @@
+/**
+ * Admin and superadmin access guards. BACKEND ENFORCEMENT ONLY.
+ * - Page/layout: requireAdmin() / requireSuperAdmin() redirect to /unauthorized if not allowed.
+ * - API routes: use requireAdminForApi() / requireSuperAdminForApi(); if null, return adminForbiddenResponse() (403).
+ * Never rely on UI-only checks. Fail closed: deny by default.
+ */
 import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -118,7 +124,10 @@ export async function requireAdminForApi(): Promise<AdminSession | null> {
   }
 }
 
-/** API-safe super-admin: returns null instead of redirecting. */
+/**
+ * API-safe superadmin guard: returns null if not superadmin.
+ * Use for: promote/demote, silence CRITICAL alerts, system settings. Return 403 when null.
+ */
 export async function requireSuperAdminForApi(): Promise<AdminSession | null> {
   const admin = await getAdminContext();
   if (!admin.isSuperAdmin) return null;

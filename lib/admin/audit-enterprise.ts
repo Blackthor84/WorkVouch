@@ -2,9 +2,10 @@
  * Enterprise admin audit logging. EXACT schema: admin_user_id, admin_email, admin_role,
  * action_type, target_type, target_id, before_state, after_state, reason (NOT NULL), is_sandbox, ip_address, user_agent.
  *
- * RULE: If an admin action cannot write to this table, THE ACTION MUST FAIL.
- * This function THROWS on insert failure so callers must catch and fail the action (rollback/500).
- * No silent failures. Ever.
+ * SECURITY RULES:
+ * - If an admin action cannot write to this table, THE ACTION MUST FAIL.
+ * - This function THROWS on insert failure; callers must catch and fail the action (rollback/500).
+ * - No silent failures. Ever. Audit logs are immutable (REVOKE UPDATE/DELETE in DB).
  */
 
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";

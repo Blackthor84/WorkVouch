@@ -10,8 +10,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Demote admin to user. Superadmin only. Cannot demote self. Cannot demote superadmin.
- * Superadmin actions require reason.
+ * Demote admin to user. SUPERADMIN ONLY (requireSuperAdminForApi). Cannot demote self. Cannot demote superadmin.
+ * Reason required. Audit log written on success; action fails if audit fails (no silent success).
  */
 export async function POST(
   req: NextRequest,

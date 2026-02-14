@@ -39,6 +39,18 @@ const nav = {
     { href: "/admin/sandbox-v2", label: "Sandbox" },
     { href: "/admin/simulate", label: "Simulate" },
   ],
+  Analytics: [
+    { href: "/admin/analytics/overview", label: "Overview" },
+    { href: "/admin/analytics/real-time", label: "Real-Time" },
+    { href: "/admin/analytics/geography", label: "Geography" },
+    { href: "/admin/analytics/funnels", label: "Funnels" },
+    { href: "/admin/analytics/heatmaps", label: "Heatmaps" },
+    { href: "/admin/analytics/journeys", label: "User Journeys" },
+    { href: "/admin/analytics/abuse", label: "Abuse & Security" },
+    { href: "/admin/analytics/sandbox", label: "Sandbox Analytics" },
+  ],
+  Alerts: [{ href: "/admin/alerts", label: "Alerts" }],
+  Incidents: [{ href: "/admin/incidents", label: "Incidents" }],
   AuditLogs: [{ href: "/admin/audit-logs", label: "Audit Logs" }],
   SystemSettings: [{ href: "/admin/system", label: "System Settings" }],
 };
@@ -86,6 +98,9 @@ export function AdminSidebar({ isSuperAdmin }: AdminSidebarProps) {
           {section("Employers", nav.Employers)}
           {section("Reviews & Trust", nav.ReviewsAndTrust)}
           {section("Sandbox", nav.Sandbox)}
+          {section("Analytics", nav.Analytics)}
+          {section("Alerts", nav.Alerts)}
+          {section("Incidents", nav.Incidents)}
           {section("Audit Logs", nav.AuditLogs)}
           {isSuperAdmin && section("System Settings", nav.SystemSettings)}
         </nav>

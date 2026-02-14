@@ -826,6 +826,219 @@ export interface Database {
         }
         Relationships: []
       }
+      site_visits: {
+        Row: {
+          id: string
+          session_id: string
+          user_id: string | null
+          role: string | null
+          path: string
+          referrer: string | null
+          country: string | null
+          region: string | null
+          city: string | null
+          ip_hash: string
+          user_agent: string | null
+          device_type: string | null
+          is_sandbox: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          user_id?: string | null
+          role?: string | null
+          path: string
+          referrer?: string | null
+          country?: string | null
+          region?: string | null
+          city?: string | null
+          ip_hash: string
+          user_agent?: string | null
+          device_type?: string | null
+          is_sandbox?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          user_id?: string | null
+          role?: string | null
+          path?: string
+          referrer?: string | null
+          country?: string | null
+          region?: string | null
+          city?: string | null
+          ip_hash?: string
+          user_agent?: string | null
+          device_type?: string | null
+          is_sandbox?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      site_sessions: {
+        Row: {
+          id: string
+          session_token: string
+          user_id: string | null
+          user_role: string | null
+          ip_hash: string | null
+          user_agent: string | null
+          device_type: string | null
+          os: string | null
+          browser: string | null
+          country: string | null
+          region: string | null
+          city: string | null
+          timezone: string | null
+          asn: string | null
+          isp: string | null
+          is_vpn: boolean
+          is_authenticated: boolean
+          is_sandbox: boolean
+          started_at: string
+          last_seen_at: string
+        }
+        Insert: {
+          id?: string
+          session_token: string
+          user_id?: string | null
+          user_role?: string | null
+          ip_hash?: string | null
+          user_agent?: string | null
+          device_type?: string | null
+          os?: string | null
+          browser?: string | null
+          country?: string | null
+          region?: string | null
+          city?: string | null
+          timezone?: string | null
+          asn?: string | null
+          isp?: string | null
+          is_vpn?: boolean
+          is_authenticated?: boolean
+          is_sandbox?: boolean
+          started_at?: string
+          last_seen_at?: string
+        }
+        Update: {
+          id?: string
+          session_token?: string
+          user_id?: string | null
+          user_role?: string | null
+          ip_hash?: string | null
+          user_agent?: string | null
+          device_type?: string | null
+          os?: string | null
+          browser?: string | null
+          country?: string | null
+          region?: string | null
+          city?: string | null
+          timezone?: string | null
+          asn?: string | null
+          isp?: string | null
+          is_vpn?: boolean
+          is_authenticated?: boolean
+          is_sandbox?: boolean
+          started_at?: string
+          last_seen_at?: string
+        }
+        Relationships: []
+      }
+      site_page_views: {
+        Row: {
+          id: string
+          session_id: string | null
+          user_id: string | null
+          path: string
+          referrer: string | null
+          duration_ms: number | null
+          is_sandbox: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          session_id?: string | null
+          user_id?: string | null
+          path: string
+          referrer?: string | null
+          duration_ms?: number | null
+          is_sandbox?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string | null
+          user_id?: string | null
+          path?: string
+          referrer?: string | null
+          duration_ms?: number | null
+          is_sandbox?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      site_events: {
+        Row: {
+          id: string
+          session_id: string | null
+          user_id: string | null
+          event_type: string
+          event_metadata: Json | null
+          is_sandbox: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          session_id?: string | null
+          user_id?: string | null
+          event_type: string
+          event_metadata?: Json | null
+          is_sandbox?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string | null
+          user_id?: string | null
+          event_type?: string
+          event_metadata?: Json | null
+          is_sandbox?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      abuse_signals: {
+        Row: {
+          id: string
+          session_id: string | null
+          signal_type: string
+          severity: number
+          metadata: Json | null
+          is_sandbox: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          session_id?: string | null
+          signal_type: string
+          severity?: number
+          metadata?: Json | null
+          is_sandbox?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string | null
+          signal_type?: string
+          severity?: number
+          metadata?: Json | null
+          is_sandbox?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
       admin_sessions: {
         Row: {
           id: string

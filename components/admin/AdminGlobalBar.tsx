@@ -21,26 +21,24 @@ export function AdminGlobalBar({ env, role, email, isSandbox }: AdminGlobalBarPr
   return (
     <>
       <div
-        className={`sticky top-0 z-50 flex items-center justify-between gap-4 px-4 py-2 ${barBg} ${barText} text-sm font-medium shadow-md`}
+        className={`sticky top-0 z-50 shadow-md ${barBg} text-white [&_*]:text-white px-4 py-2 text-sm font-semibold flex items-center gap-4 flex-wrap`}
         role="banner"
         aria-label="Admin mode active"
       >
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="font-semibold" aria-hidden>🔒</span>
-          <span className="uppercase tracking-wider">ADMIN MODE</span>
-          <span className="text-white/80">|</span>
-          <span className={`px-2 py-0.5 rounded text-xs font-semibold ${envBadge}`}>
-            ENV: {env}
-          </span>
-          <span className="text-white/80">|</span>
-          <span className="px-2 py-0.5 rounded text-xs font-semibold bg-white/20">
-            ROLE: {role}
-          </span>
-          <span className="text-white/80">|</span>
-          <span className="truncate max-w-[280px]" title={email}>
-            {email || "—"}
-          </span>
-        </div>
+        <span className="font-semibold" aria-hidden>🔒</span>
+        <span>ADMIN MODE</span>
+        <span>|</span>
+        <span className={`px-2 py-0.5 rounded text-xs font-semibold ${envBadge}`}>
+          ENV: {env}
+        </span>
+        <span>|</span>
+        <span className="px-2 py-0.5 rounded text-xs font-semibold bg-white/20">
+          ROLE: {role}
+        </span>
+        <span>|</span>
+        <span className="truncate max-w-[280px]" title={email}>
+          {email || "—"}
+        </span>
       </div>
       {isSandbox && (
         <div

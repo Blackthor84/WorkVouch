@@ -10,8 +10,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Promote user to admin. Superadmin only. Cannot promote to superadmin (use seed).
- * Superadmin actions require reason.
+ * Promote user to admin. SUPERADMIN ONLY (requireSuperAdminForApi). Cannot promote to superadmin (use seed).
+ * Reason required. Audit log written on success; action fails if audit fails.
  */
 export async function POST(
   req: NextRequest,
