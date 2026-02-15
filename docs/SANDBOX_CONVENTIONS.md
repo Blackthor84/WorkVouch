@@ -1,5 +1,19 @@
 # Sandbox & Admin Conventions
 
+## ENV requirement (deploy)
+
+Set in Vercel → Environment Variables:
+
+- **`ENV=SANDBOX`**
+
+Enable for: Preview, Development. Redeploy after setting. Without this, all `/api/sandbox/*` routes return 403.
+
+## Sandbox API guard
+
+- **`sandboxAdminGuard()`** — `lib/server/sandboxGuard.ts`. Use at the start of every `/api/sandbox/*` route.
+- Requires: `ENV === "SANDBOX"` and admin role (Supabase `getAdminSession()`).
+- Client must send auth cookies: **`credentials: "include"`** on every sandbox fetch.
+
 ## PART 8 — Type safety
 
 - **Never use `null`** in sandbox or admin code for optional values.

@@ -11,18 +11,17 @@ export function HiddenSystemsObserverPanel() {
     abuseRisk?: string;
   } | undefined>(undefined);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | undefined>(undefined);
 
   const fetchObserver = useCallback(async () => {
     setLoading(true);
-    setError(undefined);
     try {
-      const res = await fetch("/api/sandbox/observer");
-      const json = await res.json().catch(() => ({}));
+      const res = await fetch("/api/sandbox/observer", { credentials: "include" });
       if (!res.ok) {
-        setError((json as { error?: string }).error ?? "Failed");
+        setData(undefined);
+        setLoading(false);
         return;
       }
+      const json = await res.json().catch(() => ({}));
       setData({
         trustDelta: json.trustDelta,
         culture: Array.isArray(json.culture) ? json.culture : [],
@@ -30,7 +29,7 @@ export function HiddenSystemsObserverPanel() {
         abuseRisk: json.abuseRisk,
       });
     } catch {
-      setError("Request failed");
+      setData(undefined);
     } finally {
       setLoading(false);
     }
@@ -40,9 +39,8 @@ export function HiddenSystemsObserverPanel() {
     fetchObserver();
   }, [fetchObserver]);
 
-  if (loading && !data) return <p style={{ margin: 0, color: "#64748B" }}>Loading…</p>;
-  if (error) return <p style={{ margin: 0, color: "#DC2626" }}>{error}</p>;
-  if (!data) return <p style={{ margin: 0, color: "#64748B" }}>No data</p>;
+  if (loading && data === undefined) return <p style={{ margin: 0, color: "#64748B" }}>Loading…</p>;
+  if (data === undefined && !loading) return <p style={{ margin: 0, color: "#64748B" }}>No data</p>;
 
   return (
     <div style={{ fontSize: 13 }}>

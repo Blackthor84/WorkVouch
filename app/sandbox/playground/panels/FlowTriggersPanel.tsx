@@ -32,6 +32,7 @@ export function FlowTriggersPanel() {
       }
       const res = await fetch(url, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: Object.keys(body).length ? JSON.stringify(body) : undefined,
       });

@@ -19,6 +19,7 @@ export function ImpersonationPanel() {
     try {
       const res = await fetch("/api/sandbox/impersonate", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           targetUserId: targetUserId.trim(),
@@ -43,7 +44,7 @@ export function ImpersonationPanel() {
     setLoading(true);
     setMessage(undefined);
     try {
-      await fetch("/api/sandbox/impersonate/exit", { method: "POST" });
+      await fetch("/api/sandbox/impersonate/exit", { method: "POST", credentials: "include" });
       setImpersonating(false);
       setMessage("Exited.");
     } catch {

@@ -16,6 +16,7 @@ export function IdentitySimulatorPanel() {
     try {
       const res = await fetch("/api/sandbox/spawn", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type }),
       });
