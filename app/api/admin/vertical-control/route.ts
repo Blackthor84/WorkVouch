@@ -25,7 +25,7 @@ export async function GET() {
 
   try {
     const supabase = getSupabaseServer();
-    const { data: rows, error } = await (supabase as any)
+    const { data: rows, error } = await supabase
       .from("platform_verticals")
       .select("id, name, enabled, created_at")
       .order("name");
@@ -86,14 +86,14 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const supabase = getSupabaseServer();
-    const { data: existing } = await (supabase as any)
+    const { data: existing } = await supabase
       .from("platform_verticals")
       .select("id")
       .eq("name", name)
       .maybeSingle();
 
     if (existing?.id) {
-      const { error: updateError } = await (supabase as any)
+      const { error: updateError } = await supabase
         .from("platform_verticals")
         .update({ enabled })
         .eq("name", name);
@@ -102,7 +102,7 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: updateError.message }, { status: 500 });
       }
     } else {
-      const { error: insertError } = await (supabase as any)
+      const { error: insertError } = await supabase
         .from("platform_verticals")
         .insert({ name, enabled });
       if (insertError) {

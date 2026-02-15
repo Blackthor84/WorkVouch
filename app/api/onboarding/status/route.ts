@@ -38,21 +38,19 @@ export async function GET() {
     }
 
     const supabase = await createServerSupabase();
-    const supabaseAny = supabase as any;
 
-    // Check profile (onboarding_completed column may not exist yet)
-    const { data: profile } = await supabaseAny
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
       .single();
 
-    const profileRow = profile as { role?: string; onboarding_completed?: boolean } | null;
+    const profileRow = profileError ? null : profile;
     if (isAdmin(profileRow ?? undefined)) {
       return NextResponse.json({ showOnboarding: false, completed: true });
     }
 
-    const onboardingCompleted = (profile as any)?.onboarding_completed === true;
+    const onboardingCompleted = profileRow?.onboarding_completed === true;
     if (onboardingCompleted) {
       return NextResponse.json({ showOnboarding: false, completed: true });
     }
@@ -60,24 +58,24 @@ export async function GET() {
     const isEmployer = await hasRole("employer");
 
     if (isEmployer) {
-      const { data: employerAccount } = await supabaseAny
+      const { data: employerAccount, error: employerError } = await supabase
         .from("employer_accounts")
         .select("*")
         .eq("user_id", user.id)
         .single();
 
-      const employerId = (employerAccount as any)?.id;
+      const employerId = employerError ? undefined : employerAccount?.id;
       let verificationCount = 0;
       if (employerId) {
-        const res = await supabaseAny
+        const { count } = await supabase
           .from("verification_requests")
           .select("*", { count: "exact", head: true })
           .eq("requested_by_id", employerId)
           .eq("requested_by_type", "employer");
-        verificationCount = (res as { count?: number })?.count ?? 0;
+        verificationCount = count ?? 0;
       }
 
-      const seatsUsed = (employerAccount as any)?.seats_used ?? (employerAccount as any)?.seats_allowed ?? 1;
+      const seatsUsed = employerAccount?.seats_used ?? employerAccount?.seats_allowed ?? 1;
       const hasVerifications = verificationCount > 0;
       const hasSeats = Number(seatsUsed) > 0;
 
@@ -90,13 +88,12 @@ export async function GET() {
       });
     }
 
-    // Worker: check jobs count and profile completeness
-    const { count: jobsCount } = await supabaseAny
+    const { count: jobsCount } = await supabase
       .from("jobs")
       .select("*", { count: "exact", head: true })
       .eq("user_id", user.id);
 
-    const profileComplete = Boolean((profile as any)?.full_name?.trim() && (profile as any)?.industry?.trim());
+    const profileComplete = Boolean(profileRow?.full_name?.trim() && profileRow?.industry?.trim());
     const hasJobs = (jobsCount ?? 0) > 0;
 
     const showOnboarding = !profileComplete || !hasJobs;

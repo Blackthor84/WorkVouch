@@ -4,6 +4,8 @@
     "react/no-unescaped-entities": "warn",
     "@next/next/no-img-element": "warn",
     "react-hooks/exhaustive-deps": "warn",
-    "no-undef": "error"
+    "no-undef": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unnecessary-type-assertion": "error"
   }
 }

@@ -45,8 +45,7 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabaseAuth.auth.getUser();
     const user_id = user?.id ?? null;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase.from("site_events") as any).insert({
+    const { error } = await supabase.from("site_events").insert({
       session_id,
       user_id,
       event_type,

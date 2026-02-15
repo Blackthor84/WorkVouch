@@ -20,8 +20,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const supabase = await createServerSupabase();
-    const supabaseAny = supabase as any;
-    const { data: employerAccount } = await supabaseAny
+    const { data: employerAccount } = await supabase
       .from("employer_accounts")
       .select("plan_tier")
       .eq("user_id", user.id)
@@ -52,9 +51,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const adminSupabase = getSupabaseServer() as any;
+    const adminSupabase = getSupabaseServer();
     const { data: emp } = await adminSupabase.from("employer_accounts").select("id").eq("user_id", user.id).single();
-    const employerId = (emp as { id?: string } | null)?.id ?? null;
+    const employerId = emp?.id ?? null;
     if (!employerId) {
       return NextResponse.json({ error: "Employer not found" }, { status: 404 });
     }

@@ -23,13 +23,12 @@ export async function GET() {
     if (!(await hasRole("employer"))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const supabase = await createServerSupabase();
-    const supabaseAny = supabase as any;
-    const { data: account } = await supabaseAny.from("employer_accounts").select("id, plan_tier").eq("user_id", user.id).single();
+    const { data: account } = await supabase.from("employer_accounts").select("id, plan_tier").eq("user_id", user.id).single();
     if (!account) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
 
-    const employerId = (account as { id: string }).id;
-    const planTier = normalizeTier((account as { plan_tier?: string }).plan_tier);
-    const adminSupabase = getSupabaseServer() as any;
+    const employerId = account.id;
+    const planTier = normalizeTier(account.plan_tier);
+    const adminSupabase = getSupabaseServer();
 
     const { data: rows } = await adminSupabase
       .from("employment_records")

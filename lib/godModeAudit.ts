@@ -20,7 +20,7 @@ export type GodModeAuditParams = {
 export async function writeGodModeAudit(params: GodModeAuditParams): Promise<void> {
   try {
     const supabase = getServiceRoleClient();
-    const { error } = await (supabase as any).from("god_mode_audit").insert({
+    const { error } = await supabase.from("god_mode_audit").insert({
       superadmin_id: params.superadmin_id,
       superadmin_email: params.superadmin_email ?? null,
       action: params.action,

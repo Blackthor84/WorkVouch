@@ -21,8 +21,12 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return NextResponse.json({ enabled: false }, { status: 401 });
 
-    const { data: profile } = await (supabase as any).from("profiles").select("role").eq("id", user.id).single();
-    const role = (profile as { role?: string })?.role ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "";
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    const role = (profileError ? undefined : profile?.role) ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "";
     const isSuperAdmin = isAdmin({ role }) && String(role).toUpperCase() === "SUPERADMIN";
 
     if (!isSuperAdmin) return NextResponse.json({ enabled: false });
@@ -44,8 +48,12 @@ export async function POST(request: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data: profile } = await (supabase as any).from("profiles").select("role").eq("id", user.id).single();
-    const role = (profile as { role?: string })?.role ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "";
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    const role = (profileError ? undefined : profile?.role) ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "";
     const isSuperAdmin = isAdmin({ role }) && String(role).toUpperCase() === "SUPERADMIN";
 
     if (!isSuperAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });

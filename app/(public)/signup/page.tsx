@@ -74,7 +74,7 @@ export default function SignupPage() {
         router.push("/admin");
         return;
       }
-      const { error: profileError } = await (supabase as any)
+      const { error: profileError } = await supabase
         .from("profiles")
         .insert({
           id: data.user.id,

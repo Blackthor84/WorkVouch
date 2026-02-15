@@ -15,10 +15,10 @@ export async function GET() {
     const isEmployer = await hasRole("employer");
     if (!isEmployer) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const sb = getSupabaseServer() as any;
+    const sb = getSupabaseServer();
     const { data: ea } = await sb.from("employer_accounts").select("id, plan_tier").eq("user_id", user.id).single();
-    const employerId = (ea as { id?: string; plan_tier?: string } | null)?.id;
-    const planTier = (ea as { plan_tier?: string } | null)?.plan_tier ?? "";
+    const employerId = ea?.id;
+    const planTier = ea?.plan_tier ?? "";
     const normalized = planTier.toLowerCase().replace(/-/g, "_");
     if (!employerId || (normalized !== "security_agency" && normalized !== "security_bundle")) {
       return NextResponse.json({ error: "Security Agency plan required" }, { status: 403 });

@@ -34,12 +34,11 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = await createServerSupabase();
-    const supabaseAny = supabase as any;
-    const adminSupabase = getSupabaseServer() as any;
+    const adminSupabase = getSupabaseServer();
 
-    const { data: account } = await supabaseAny.from("employer_accounts").select("id").eq("user_id", user.id).single();
+    const { data: account } = await supabase.from("employer_accounts").select("id").eq("user_id", user.id).single();
     if (!account) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
-    const employerId = (account as { id: string }).id;
+    const employerId = account.id;
 
     const { data: rec, error: fetchErr } = await adminSupabase
       .from("employment_records")

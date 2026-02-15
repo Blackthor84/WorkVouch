@@ -32,8 +32,7 @@ export async function GET(req: NextRequest) {
       created_at: string;
     };
 
-    const supabaseAny = supabase as any;
-    const { data: employerAccount, error } = await supabaseAny
+    const { data: employerAccount, error } = await supabase
       .from("employer_accounts")
       .select("id, company_name, contact_email, plan_tier, stripe_customer_id, created_at")
       .eq("user_id", user.id)

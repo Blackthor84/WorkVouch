@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 async function count(supabase: ReturnType<typeof getSupabaseServer>, table: string): Promise<number> {
   try {
-    const { count, error } = await (supabase as any)
+    const { count, error } = await supabase
       .from(table)
       .select("*", { count: "exact", head: true });
     if (error) return 0;
@@ -30,7 +30,7 @@ export async function GET() {
     const role = await getCurrentUserRole();
     if (!isSuperAdmin(role)) return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
 
-    const supabase = getSupabaseServer() as any;
+    const supabase = getSupabaseServer();
 
     const [totalUsers, totalEmployers, verificationVolume, demoResult] = await Promise.all([
       count(supabase, "profiles"),
@@ -39,7 +39,7 @@ export async function GET() {
       supabase.from("profiles").select("id", { count: "exact", head: true }).eq("demo_account", true),
     ]);
 
-    const demoCount = typeof (demoResult as { count?: number })?.count === "number" ? (demoResult as { count: number }).count : 0;
+    const demoCount = typeof demoResult?.count === "number" ? demoResult.count : 0;
 
     return NextResponse.json({
       totalUsers,

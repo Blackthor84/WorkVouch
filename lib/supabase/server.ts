@@ -67,12 +67,12 @@ export async function getSupabaseSession() {
       if (impersonatedUserId) {
         const { getSupabaseServer } = await import("@/lib/supabase/admin");
         const admin = getSupabaseServer();
-        const { data: profile } = await (admin as any)
+        const { data: profile } = await admin
           .from("profiles")
           .select("id, email, full_name")
           .eq("id", impersonatedUserId)
           .single();
-        const { data: rolesData } = await (admin as any)
+        const { data: rolesData } = await admin
           .from("user_roles")
           .select("role")
           .eq("user_id", impersonatedUserId);

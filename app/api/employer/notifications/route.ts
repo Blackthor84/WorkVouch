@@ -20,15 +20,14 @@ export async function GET() {
     if (!(await hasRole("employer"))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const supabase = await createServerSupabase();
-    const supabaseAny = supabase as any;
-    const { data: account } = await supabaseAny.from("employer_accounts").select("id").eq("user_id", user.id).single();
+    const { data: account } = await supabase.from("employer_accounts").select("id").eq("user_id", user.id).single();
     if (!account) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
 
-    const adminSupabase = getSupabaseServer() as any;
+    const adminSupabase = getSupabaseServer();
     const { data: notifications } = await adminSupabase
       .from("employer_notifications")
       .select("id, type, related_user_id, related_record_id, read, created_at")
-      .eq("employer_id", (account as { id: string }).id)
+      .eq("employer_id", account.id)
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -49,8 +48,7 @@ export async function PATCH(req: NextRequest) {
     if (!(await hasRole("employer"))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const supabase = await createServerSupabase();
-    const supabaseAny = supabase as any;
-    const { data: account } = await supabaseAny.from("employer_accounts").select("id").eq("user_id", user.id).single();
+    const { data: account } = await supabase.from("employer_accounts").select("id").eq("user_id", user.id).single();
     if (!account) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
 
     const body = await req.json().catch(() => ({}));
@@ -59,7 +57,7 @@ export async function PATCH(req: NextRequest) {
 
     if (ids.length === 0) return NextResponse.json({ ok: true });
 
-    const adminSupabase = getSupabaseServer() as any;
+    const adminSupabase = getSupabaseServer();
     const { error } = await adminSupabase
       .from("employer_notifications")
       .update({ read: true })

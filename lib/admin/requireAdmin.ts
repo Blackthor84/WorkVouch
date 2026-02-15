@@ -10,6 +10,11 @@ import { isGodMode } from "@/lib/auth/isGodMode";
 import { supabaseServer } from "@/lib/supabase/server";
 import { canModifyUser, canAssignRole } from "@/lib/roles";
 import { recordFailedAdminAccess } from "@/lib/admin/adminAlertsStore";
+import type { AdminContext } from "@/lib/admin/getAdminContext";
+
+function adminOrGodMode(admin: AdminContext): boolean {
+  return admin.isAdmin || admin.godMode.enabled;
+}
 
 export type AdminSession = {
   session: { user: { id: string; email?: string; [key: string]: unknown } };
