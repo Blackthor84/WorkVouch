@@ -1,44 +1,43 @@
 import { WarehouseOnboardingWrapper } from "./warehouse-onboarding-wrapper";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { getSupabaseSession } from "@/lib/supabase/server";
-import { isAdmin } from "@/lib/auth/isAdmin";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
 
 // Mark as dynamic to prevent build-time prerendering
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function WarehouseOnboardingPage() {
-  const { session } = await getSupabaseSession();
+  const admin = await getAdminContext();
 
-  if (!session?.user) {
+  if (!admin.isAuthenticated) {
     redirect("/login");
   }
 
-  const userId = session.user.id;
+  if (admin.isAdmin) {
+    redirect("/admin");
+  }
+
+  const userId = admin.userId;
   const supabase = await createServerSupabase();
-  const supabaseAny = supabase as {
-    from: (t: string) => {
-      select: (s: string) => { eq: (k: string, v: string) => { single: () => Promise<{ data: { role?: string; industry?: string } | null; error: unknown }> } };
-    };
-  };
-  const { data: profile, error } = await supabaseAny
+
+  const { data, error } = await supabase
     .from("profiles")
     .select("role, industry")
     .eq("id", userId)
     .single();
 
-  if (error) {
-    console.error("Error loading profile:", error);
+  if (error || !data) {
+    return (
+      <main className="min-h-screen bg-background dark:bg-[#0D1117]">
+        <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+          <p>Unable to load profile data.</p>
+        </div>
+      </main>
+    );
   }
 
-  if (isAdmin(profile ?? undefined)) {
-    redirect("/admin");
-  }
-
-  type ProfileRow = { industry: string | null };
-  const profileTyped = profile as ProfileRow | null;
-  if (!profileTyped || profileTyped.industry !== "warehousing") {
+  if (data.industry !== "warehousing") {
     redirect("/dashboard");
   }
 
