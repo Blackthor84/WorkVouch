@@ -152,6 +152,33 @@ export function ReplaysClient() {
     URL.revokeObjectURL(a.href);
   };
 
+  const exportPdf = () => {
+    if (!session || !events.length) return;
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    const ruleVer = selectedReplay?.rule_version_id ? selectedReplay.rule_version_id.slice(0, 8) : "—";
+    const rows = events
+      .map(
+        (e) =>
+          `<tr><td>${e.event_order}</td><td>${e.event_type}</td><td>${new Date(e.created_at).toISOString()}</td><td>${e.trust_score_before ?? "—"} → ${e.trust_score_after ?? "—"}</td><td>${(e.reason ?? "—").replace(/</g, "&lt;").slice(0, 80)}</td></tr>`
+      )
+      .join("");
+    printWindow.document.write(`
+      <!DOCTYPE html><html><head><title>Replay: ${session.name.replace(/</g, "&lt;")}</title>
+      <style>body{font-family:system-ui,sans-serif;padding:1rem;max-width:900px;margin:0 auto;} .banner{background:#fef3c7;border:1px solid #f59e0b;padding:.5rem 1rem;margin-bottom:1rem;} table{width:100%;border-collapse:collapse;font-size:.75rem;} th,td{border:1px solid #e2e8f0;padding:.25rem .5rem;text-align:left;} th{background:#f1f5f9;}</style></head><body>
+      <div class="banner">SANDBOX REPLAY MODE | READ-ONLY | RULE VERSION: ${ruleVer}</div>
+      <h1>${session.name.replace(/</g, "&lt;")}</h1>
+      <p style="color:#64748b;margin-bottom:1rem;">Exported: ${new Date().toISOString()} | Session ID: ${session.id} | Events: ${events.length}</p>
+      <table><thead><tr><th>#</th><th>Event type</th><th>Time</th><th>Trust before → after</th><th>Reason</th></tr></thead><tbody>${rows}</tbody></table>
+      </body></html>`);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+
   const affectedFromEvent = (e: ReplayEvent): string[] => {
     const ids: string[] = [];
     if (e.entity_id) ids.push(e.entity_id);
