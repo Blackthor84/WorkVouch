@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
+import { supabaseServer } from "@/lib/supabase/server";
+import { requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
 import { INDUSTRIES } from "@/lib/constants/industries";
+import { writeAdminAuditLog } from "@/lib/admin/audit-enterprise";
+import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +22,7 @@ function pick<T>(arr: readonly T[]): T {
 
 export async function POST(req: NextRequest) {
   try {
-    await requireSandboxV2Admin();
+    const adminSession = await requireSandboxV2AdminWithRole();
     const body = await req.json().catch(() => ({}));
     const sandboxId = (body.sandboxId ?? body.sandbox_id) as string | undefined;
     if (!sandboxId || typeof sandboxId !== "string") {
@@ -53,6 +56,23 @@ export async function POST(req: NextRequest) {
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
+    const serverSupabase = await supabaseServer();
+    const { data: { user } } = await serverSupabase.auth.getUser();
+    const { ipAddress, userAgent } = getAuditRequestMeta(req);
+    await writeAdminAuditLog({
+      admin_user_id: adminSession.id,
+      admin_email: user?.email ?? null,
+      admin_role: adminSession.isSuperAdmin ? "superadmin" : "admin",
+      action_type: "sandbox_spawn_employer",
+      target_type: "system",
+      target_id: data.id,
+      before_state: null,
+      after_state: { sandbox_id: sandboxId, employer_id: data.id, company_name: data.company_name },
+      reason: "sandbox_playground_spawn_employer",
+      is_sandbox: true,
+      ip_address: ipAddress ?? null,
+      user_agent: userAgent ?? null,
+    });
     console.log("Sandbox employer generated:", data?.id);
     return NextResponse.json({ success: true, employer: data });
   } catch (err) {

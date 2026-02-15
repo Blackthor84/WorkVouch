@@ -4,6 +4,7 @@ import { LayoutWrapper } from "@/components/layout-wrapper";
 import { Providers } from "@/components/providers";
 import { PreviewProvider } from "@/lib/preview-context";
 import SimulationBanner from "@/components/SimulationBanner";
+import { SandboxImpersonationBanner } from "@/components/sandbox/SandboxImpersonationBanner";
 import AuthSync from "./(auth)/AuthSync";
 import { PageViewCapture } from "@/components/analytics/PageViewCapture";
 import { PageViewTracker } from "@/components/PageViewTracker";
@@ -49,6 +50,7 @@ export default async function RootLayout({
             <PageViewCapture />
             <PageViewTracker />
             <SimulationBanner />
+            <SandboxImpersonationBanner />
             <LayoutWrapper user={null} role={null}>
               {children}
             </LayoutWrapper>

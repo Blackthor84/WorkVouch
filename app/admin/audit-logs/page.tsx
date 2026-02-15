@@ -17,7 +17,7 @@ export default async function AdminAuditLogsPage() {
       </div>
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-[#0F172A] mb-2">Audit logs</h1>
-        <p className="text-[#334155]">Read-only. Export via Admin → Export.</p>
+        <p className="text-[#334155]">Read-only. Export via Admin → Export. Impersonation audit below.</p>
       </div>
       <AuditLogsClient />
     </div>

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { SignJWT } from "jose";
+import { writeImpersonationAudit } from "@/lib/impersonationAudit";
 import type { Database } from "@/types/supabase";
 
 type Profile = {
@@ -136,6 +137,19 @@ export async function POST(request: Request) {
       await adminSupabase.from("admin_actions").insert(adminAction);
     } catch {
       // Table may not exist; ignore
+    }
+
+    try {
+      await writeImpersonationAudit({
+        admin_user_id: user.id,
+        admin_email: user.email ?? null,
+        target_user_id: userId,
+        target_identifier: targetProfile.email ?? null,
+        event: "start",
+        environment: "production",
+      });
+    } catch (e) {
+      console.error("[impersonate] impersonation_audit insert failed", e);
     }
 
     return NextResponse.json({

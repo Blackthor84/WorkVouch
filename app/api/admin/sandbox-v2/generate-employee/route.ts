@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
+import { supabaseServer } from "@/lib/supabase/server";
+import { requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
 import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";
 import { INDUSTRIES } from "@/lib/constants/industries";
+import { writeAdminAuditLog } from "@/lib/admin/audit-enterprise";
+import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +24,7 @@ function randomInt(min: number, max: number): number {
 
 export async function POST(req: NextRequest) {
   try {
-    await requireSandboxV2Admin();
+    const adminSession = await requireSandboxV2AdminWithRole();
     const body = await req.json().catch(() => ({}));
     const sandboxId = (body.sandboxId ?? body.sandbox_id) as string | undefined;
     if (!sandboxId || typeof sandboxId !== "string") {
@@ -101,6 +104,24 @@ export async function POST(req: NextRequest) {
           network_density: intelRow.network_density ?? 0,
         }
       : null;
+
+    const serverSupabase = await supabaseServer();
+    const { data: { user } } = await serverSupabase.auth.getUser();
+    const { ipAddress, userAgent } = getAuditRequestMeta(req);
+    await writeAdminAuditLog({
+      admin_user_id: adminSession.id,
+      admin_email: user?.email ?? null,
+      admin_role: adminSession.isSuperAdmin ? "superadmin" : "admin",
+      action_type: "sandbox_spawn_worker",
+      target_type: "system",
+      target_id: employee.id,
+      before_state: null,
+      after_state: { sandbox_id: sandboxId, employee_id: employee.id, full_name: employee.full_name },
+      reason: "sandbox_playground_spawn_worker",
+      is_sandbox: true,
+      ip_address: ipAddress ?? null,
+      user_agent: userAgent ?? null,
+    });
 
     return NextResponse.json({ success: true, employee, intelligence });
   } catch (err) {

@@ -165,6 +165,69 @@ export function AuditLogsClient() {
           )}
         </div>
       )}
+
+      <ImpersonationAuditSection />
+    </div>
+  );
+}
+
+type ImpersonationRow = {
+  id: string;
+  admin_user_id: string;
+  admin_email: string | null;
+  target_user_id: string | null;
+  target_identifier: string | null;
+  event: string;
+  environment: string;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: string;
+};
+
+function ImpersonationAuditSection() {
+  const [rows, setRows] = useState<ImpersonationRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/audit-logs/impersonation?limit=100")
+      .then((r) => r.json())
+      .then((data) => setRows(Array.isArray(data) ? data : []))
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div className="space-y-2">
+      <h2 className="text-lg font-semibold text-slate-900">Impersonation audit (read-only)</h2>
+      <p className="text-sm text-slate-600">Every impersonation start/end. SOC-2.</p>
+      {loading && <p className="text-slate-500">Loading…</p>}
+      {!loading && (
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-600">Time</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-600">Admin</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-600">Event</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-600">Target</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-600">Environment</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {rows.map((row) => (
+                <tr key={row.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3 text-sm text-slate-600">{new Date(row.created_at).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-sm">{row.admin_email ?? row.admin_user_id}</td>
+                  <td className="px-4 py-3 text-sm font-medium">{row.event}</td>
+                  <td className="px-4 py-3 text-sm text-slate-600">{row.target_identifier ?? row.target_user_id ?? "—"}</td>
+                  <td className="px-4 py-3 text-sm">{row.environment === "sandbox" ? <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800 text-xs">Sandbox</span> : "Production"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {rows.length === 0 && <p className="p-4 text-slate-500">No impersonation audit entries.</p>}
+        </div>
+      )}
     </div>
   );
 }

@@ -9,7 +9,7 @@ import { AdminRole } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
-/** GET: export data as CSV. ?type=users|peer_reviews|fraud_flags|employment|audit_logs|soc2 */
+/** GET: export data as CSV. ?type=users|peer_reviews|fraud_flags|employment|audit_logs|impersonation_audit|soc2 */
 export async function GET(req: NextRequest) {
   const session = await requireAdminForApi();
   if (!session) return adminForbiddenResponse();
@@ -79,14 +79,21 @@ export async function GET(req: NextRequest) {
     }
 
     if (type === "audit_logs") {
-      const { data, error } = await supabase.from("admin_audit_logs").select("id, admin_id, target_user_id, action, old_value, new_value, reason, created_at").order("created_at", { ascending: false }).limit(10000);
+      const { data, error } = await supabase.from("admin_audit_logs").select("id, admin_user_id, admin_email, admin_role, action_type, target_type, target_id, before_state, after_state, reason, is_sandbox, ip_address, user_agent, created_at").order("created_at", { ascending: false }).limit(10000);
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-      const rows = (data ?? []).map((r: Record<string, unknown>) => ({ ...r, old_value: JSON.stringify(r.old_value), new_value: JSON.stringify(r.new_value) }));
+      const rows = (data ?? []).map((r: Record<string, unknown>) => ({ ...r, before_state: JSON.stringify(r.before_state), after_state: JSON.stringify(r.after_state) }));
       const csv = toCSV(rows);
       return new NextResponse(csv, { headers: { "Content-Type": "text/csv", "Content-Disposition": "attachment; filename=audit_logs.csv" } });
     }
 
-    return NextResponse.json({ error: "Invalid type. Use users|peer_reviews|fraud_flags|employment|audit_logs|soc2" }, { status: 400 });
+    if (type === "impersonation_audit") {
+      const { data, error } = await supabase.from("impersonation_audit").select("id, admin_user_id, admin_email, target_user_id, target_identifier, event, environment, ip_address, user_agent, created_at").order("created_at", { ascending: false }).limit(10000);
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      const csv = toCSV((data ?? []) as Record<string, unknown>[]);
+      return new NextResponse(csv, { headers: { "Content-Type": "text/csv", "Content-Disposition": "attachment; filename=impersonation_audit.csv" } });
+    }
+
+    return NextResponse.json({ error: "Invalid type. Use users|peer_reviews|fraud_flags|employment|audit_logs|impersonation_audit|soc2" }, { status: 400 });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Internal error";
     return NextResponse.json({ error: msg }, { status: 500 });

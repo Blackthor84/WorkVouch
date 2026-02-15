@@ -38,6 +38,7 @@ const nav = {
   Sandbox: [
     { href: "/admin/sandbox/enter", label: "Enter Sandbox" },
     { href: "/admin/sandbox-v2", label: "Sandbox" },
+    { href: "/sandbox/playground", label: "Playground" },
     { href: "/admin/sandbox-v2/replays", label: "Replays" },
     { href: "/admin/sandbox-v2/rule-versions", label: "Rule Versions" },
     { href: "/admin/sandbox-v2/population-generator", label: "Population Generator" },
