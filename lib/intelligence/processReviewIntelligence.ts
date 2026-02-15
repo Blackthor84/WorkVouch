@@ -8,6 +8,7 @@ import { extractBehavioralSignals } from "./behavioralEngine";
 import { updateBehavioralVector } from "./updateBehavioralVector";
 import { scheduleBaselineRecalcForCandidate } from "./scheduleBaselineRecalc";
 import { logIntel, LOG_TAGS } from "@/lib/core/intelligence";
+import { deriveWorkstyleSignalsFromReference } from "@/lib/culture/peerWorkstyle";
 
 export interface ProcessReviewIntelligenceResult {
   ok: boolean;
@@ -33,7 +34,7 @@ export async function processReviewIntelligence(
     const supabase = getSupabaseServer();
     const { data: ref, error: fetchError } = await supabase
       .from("employment_references")
-      .select("id, comment, reviewed_user_id")
+      .select("id, comment, reviewed_user_id, reviewer_id, sentiment, trust_weight")
       .eq("id", reviewId)
       .maybeSingle();
 
@@ -154,6 +155,24 @@ export async function processReviewIntelligence(
     }
 
     scheduleBaselineRecalcForCandidate(candidateId).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
+
+    const reviewerId = (ref as { reviewer_id?: string }).reviewer_id;
+    if (reviewerId) {
+      const { data: trustRow } = await supabase
+        .from("trust_scores")
+        .select("score")
+        .eq("user_id", reviewerId)
+        .order("calculated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const reviewerTrustWeight = trustRow?.score != null ? Number(trustRow.score) / 100 : 0.5;
+      const sentimentScore = (ref as { sentiment?: number | null }).sentiment ?? signals.sentiment_score ?? null;
+      deriveWorkstyleSignalsFromReference({
+        reviewedUserId: candidateId,
+        reviewerTrustWeight,
+        sentimentScore: sentimentScore != null ? Number(sentimentScore) : null,
+      }).catch((e) => console.error("[culture] deriveWorkstyleSignalsFromReference", e));
+    }
 
     logIntel({
       tag: LOG_TAGS.INTEL_SUCCESS,
