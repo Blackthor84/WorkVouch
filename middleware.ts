@@ -32,8 +32,20 @@ const ANALYTICS_SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
-  const isAdminRoute = path.startsWith("/admin");
 
+  // Fail-soft: all /api/admin/* (except sandbox-v2) return 200 empty in sandbox — no 500s, no blocking
+  if (
+    path.startsWith("/api/admin") &&
+    process.env.ENV === "SANDBOX" &&
+    !path.startsWith("/api/admin/sandbox-v2")
+  ) {
+    return NextResponse.json(
+      { data: [], notice: "Not available in sandbox" },
+      { status: 200 }
+    );
+  }
+
+  const isAdminRoute = path.startsWith("/admin");
   let res = NextResponse.next({ request: req });
 
   // Internal analytics: set anonymous session ID for page-view capture (GDPR: no PII in cookie)
@@ -89,5 +101,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/((?!_next|favicon.ico|api).*)"],
+  matcher: ["/admin/:path*", "/api/admin/:path*", "/((?!_next|favicon.ico|api).*)"],
 };

@@ -1,14 +1,14 @@
 /**
- * Hard guard for sandbox APIs: 403 unless ENV === SANDBOX.
- * Use in every /api/sandbox/* route.
+ * Hard guard for sandbox APIs: 403 unless isSandboxEnv().
+ * Use in every /api/sandbox/* route. Every write must include is_sandbox = true.
  */
 
-import { isSandbox } from "@/lib/app-mode";
 import { NextResponse } from "next/server";
+import { isSandboxEnv } from "@/lib/sandbox/env";
 
 export function requireSandboxMode(): NextResponse | null {
-  if (!isSandbox()) {
-    return NextResponse.json({ error: "Sandbox mode required" }, { status: 403 });
+  if (!isSandboxEnv()) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   return null;
 }

@@ -17,6 +17,8 @@ function isActive(pathname: string, href: string): boolean {
 
 interface AdminSidebarProps {
   isSuperAdmin: boolean;
+  /** When true, show only: Dashboard, Users, Sandbox, Audit Logs, Playground. */
+  isSandbox?: boolean;
 }
 
 const nav = {
@@ -62,7 +64,18 @@ const nav = {
   SystemSettings: [{ href: "/admin/system", label: "System Settings" }],
 };
 
-export function AdminSidebar({ isSuperAdmin }: AdminSidebarProps) {
+/** Sandbox-only nav: Dashboard, Users (sandbox only), Sandbox, Audit Logs, Playground. */
+const sandboxNav = {
+  Dashboard: nav.Dashboard,
+  Users: nav.Users,
+  Sandbox: [
+    { href: "/admin/sandbox-v2", label: "Sandbox" },
+    { href: "/sandbox/playground", label: "Playground" },
+  ],
+  AuditLogs: nav.AuditLogs,
+};
+
+export function AdminSidebar({ isSuperAdmin, isSandbox = false }: AdminSidebarProps) {
   const pathname = usePathname();
 
   const section = (title: string, items: { href: string; label: string }[]) => (
@@ -100,16 +113,27 @@ export function AdminSidebar({ isSuperAdmin }: AdminSidebarProps) {
           Dashboard
         </Link>
         <nav className="flex-1 overflow-y-auto mt-4 space-y-6 px-2">
-          {section("Dashboard", nav.Dashboard)}
-          {section("Users", nav.Users)}
-          {section("Employers", nav.Employers)}
-          {section("Reviews & Trust", nav.ReviewsAndTrust)}
-          {section("Sandbox", nav.Sandbox)}
-          {section("Analytics", nav.Analytics)}
-          {section("Alerts", nav.Alerts)}
-          {section("Incidents", nav.Incidents)}
-          {section("Audit Logs", nav.AuditLogs)}
-          {isSuperAdmin && section("System Settings", nav.SystemSettings)}
+          {isSandbox ? (
+            <>
+              {section("Dashboard", sandboxNav.Dashboard)}
+              {section("Users", sandboxNav.Users)}
+              {section("Sandbox", sandboxNav.Sandbox)}
+              {section("Audit Logs", sandboxNav.AuditLogs)}
+            </>
+          ) : (
+            <>
+              {section("Dashboard", nav.Dashboard)}
+              {section("Users", nav.Users)}
+              {section("Employers", nav.Employers)}
+              {section("Reviews & Trust", nav.ReviewsAndTrust)}
+              {section("Sandbox", nav.Sandbox)}
+              {section("Analytics", nav.Analytics)}
+              {section("Alerts", nav.Alerts)}
+              {section("Incidents", nav.Incidents)}
+              {section("Audit Logs", nav.AuditLogs)}
+              {isSuperAdmin && section("System Settings", nav.SystemSettings)}
+            </>
+          )}
         </nav>
       </div>
     </aside>

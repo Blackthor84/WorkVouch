@@ -10,6 +10,7 @@ import { isAdminRole } from "@/lib/auth/roles";
 import { isSandbox } from "@/lib/app-mode";
 import { getRoleFromSession } from "@/lib/auth/admin-role-guards";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
+import { isSandboxEnv } from "@/lib/sandbox/env";
 
 export type AdminRole = "user" | "admin" | "super_admin";
 
@@ -26,6 +27,10 @@ export type AdminContext = {
   canSeedData: boolean;
 };
 
+function resolveSandbox(): boolean {
+  return isSandbox() || isSandboxEnv();
+}
+
 const UNAUTHORIZED_CONTEXT: AdminContext = {
   isAuthenticated: false,
   userId: "",
@@ -33,10 +38,10 @@ const UNAUTHORIZED_CONTEXT: AdminContext = {
   roles: ["user"],
   isAdmin: false,
   isSuperAdmin: false,
-  isSandbox: isSandbox(),
+  isSandbox: resolveSandbox(),
   canImpersonate: false,
   canBypassLimits: false,
-  canSeedData: isSandbox(),
+  canSeedData: resolveSandbox(),
 };
 
 /**
@@ -75,7 +80,7 @@ export async function getAdminContext(): Promise<AdminContext> {
     const isSuperAdmin = role === "super_admin";
 
     const roles: AdminRole[] = isAdmin ? (isSuperAdmin ? ["user", "admin", "super_admin"] : ["user", "admin"]) : ["user"];
-    const appSandbox = isSandbox();
+    const appSandbox = resolveSandbox();
     const adminToggledSandbox = await getAdminSandboxModeFromCookies();
     const sandbox = appSandbox || adminToggledSandbox;
 

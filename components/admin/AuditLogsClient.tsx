@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "@/components/AuthContext";
+import { shouldCallAdminApi } from "@/lib/admin/clientGuard";
 
 type LogRow = {
   id: string;
@@ -20,6 +22,7 @@ type LogRow = {
 };
 
 export function AuditLogsClient() {
+  const { role } = useAuth();
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminId, setAdminId] = useState("");
@@ -28,6 +31,7 @@ export function AuditLogsClient() {
   const [detailId, setDetailId] = useState<string | null>(null);
 
   const fetchLogs = useCallback(() => {
+    if (!shouldCallAdminApi(role)) return;
     setLoading(true);
     const params = new URLSearchParams();
     params.set("limit", "200");
@@ -39,11 +43,16 @@ export function AuditLogsClient() {
       .then((data) => setLogs(Array.isArray(data) ? data : []))
       .catch(() => setLogs([]))
       .finally(() => setLoading(false));
-  }, [adminId, action, isSandbox]);
+  }, [role, adminId, action, isSandbox]);
 
   useEffect(() => {
+    if (!shouldCallAdminApi(role)) {
+      setLogs([]);
+      setLoading(false);
+      return;
+    }
     fetchLogs();
-  }, [fetchLogs]);
+  }, [fetchLogs, role]);
 
   const detailLog = detailId ? logs.find((l) => l.id === detailId) : null;
 
