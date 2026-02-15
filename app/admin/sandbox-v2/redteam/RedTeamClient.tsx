@@ -29,6 +29,58 @@ type Run = {
   created_at: string;
 };
 
+const SCENARIO_LABELS: Record<string, string> = {
+  sybil_attack: "Sybil attack",
+  collusion_ring: "Collusion ring",
+  fake_overlap_farm: "Fake overlap farm",
+  review_brigade: "Review brigade",
+  employer_collusion: "Employer collusion",
+};
+
+type DashboardMetrics = {
+  total: number;
+  detected: number;
+  avgLatency: number | null;
+  resilienceScore: number | null;
+  weakPoints: string[];
+  recommendations: string[];
+};
+
+function computeDashboard(runs: Run[]): DashboardMetrics {
+  const withOutcome = runs.filter((r) => r.outcome);
+  const total = withOutcome.length;
+  const detected = withOutcome.filter((r) => r.outcome?.detected).length;
+  const latencies = withOutcome.map((r) => r.outcome?.detection_latency_ms).filter((n): n is number => typeof n === "number");
+  const avgLatency = latencies.length ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : null;
+  const byScenario = new Map<string, { detected: number; total: number }>();
+  withOutcome.forEach((r) => {
+    const key = r.scenario;
+    const cur = byScenario.get(key) ?? { detected: 0, total: 0 };
+    cur.total++;
+    if (r.outcome?.detected) cur.detected++;
+    byScenario.set(key, cur);
+  });
+  const weakPoints: string[] = [];
+  byScenario.forEach((v, scenario) => {
+    if (v.total > 0 && v.detected < v.total) weakPoints.push(SCENARIO_LABELS[scenario] ?? scenario);
+  });
+  const recommendations: string[] = [];
+  if (weakPoints.length > 0) {
+    recommendations.push("Tighten detection rules or thresholds for: " + weakPoints.join(", ") + ".");
+  }
+  if (total > 0 && detected < total) {
+    recommendations.push("Run more iterations and review why some runs were not detected (signals, thresholds, or timing).");
+  }
+  if (avgLatency != null && avgLatency > 5000) {
+    recommendations.push("Detection latency is high; consider async signal processing or batching.");
+  }
+  if (recommendations.length === 0 && total > 0) {
+    recommendations.push("All sampled scenarios were detected. Consider adding new attack variants or scale tests.");
+  }
+  const resilienceScore = total === 0 ? null : Math.round((detected / total) * 100);
+  return { total, detected, avgLatency, resilienceScore, weakPoints, recommendations };
+}
+
 export function RedTeamClient() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [sandboxId, setSandboxId] = useState("");
