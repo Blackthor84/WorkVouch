@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { writeAdminAuditLog } from "@/lib/admin/audit-enterprise";
 import { requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
 import { generateSyntheticPopulation, listSyntheticPopulations } from "@/lib/sandbox/synthetic/generator";
 
