@@ -8,7 +8,8 @@ export function PageViewTracker() {
   const path = usePathname();
 
   useEffect(() => {
-    logEvent("page_view", path);
+    if (path == null) return;
+    logEvent("page_view", undefined, { path });
   }, [path]);
 
   return null;
