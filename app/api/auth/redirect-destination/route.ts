@@ -31,15 +31,21 @@ export async function GET(request: Request) {
     if (!user?.id) {
       return NextResponse.redirect(`${origin}/dashboard`);
     }
-    const supabaseAny = supabase as { from: (t: string) => { select: (s: string) => { eq: (k: string, v: string) => { single: () => Promise<{ data: unknown }> } } } };
-    const { data: profile } = await supabaseAny
+
+    const { data, error } = await supabase
       .from("profiles")
       .select("role, onboarding_completed, full_name, industry")
       .eq("id", user.id)
       .single();
-    const row = profile as { role?: string; onboarding_completed?: boolean; full_name?: string; industry?: string } | null;
-    const role = row?.role ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "";
-    const profile_complete = isProfileComplete(row ?? {}, role);
+
+    if (error || !data) {
+      const role = (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "";
+      const path = getPostLoginRedirect({ role, profile_complete: false });
+      return NextResponse.redirect(`${origin}${path}`);
+    }
+
+    const role = data.role ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "";
+    const profile_complete = isProfileComplete(data, role);
     const path = getPostLoginRedirect({ role, profile_complete });
     return NextResponse.redirect(`${origin}${path}`);
   } catch {
