@@ -30,8 +30,8 @@ function LoginForm() {
       return;
     }
     if (data.session) {
-      router.push("/dashboard");
-      router.refresh();
+      window.location.href = "/api/auth/redirect-destination";
+      return;
     }
   };
 

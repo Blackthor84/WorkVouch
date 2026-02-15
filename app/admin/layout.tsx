@@ -4,6 +4,8 @@ import { NavbarServer } from "@/components/navbar-server";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminGlobalBar } from "@/components/admin/AdminGlobalBar";
+import { GodModeBanner } from "@/components/admin/GodModeBanner";
+import { isGodMode } from "@/lib/auth/isGodMode";
 import { isSandboxEnv } from "@/lib/sandbox/env";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +41,8 @@ export default async function AdminLayout({
   if (!admin.isAuthenticated) {
     redirect("/login");
   }
-  if (!admin.isAdmin) {
+  const sessionLike = { user: { role: admin.isSuperAdmin ? "SUPERADMIN" : admin.isAdmin ? "ADMIN" : "USER" }, godMode: admin.godMode };
+  if (!admin.isAdmin && !isGodMode(sessionLike)) {
     redirect("/dashboard");
   }
 
@@ -49,6 +52,7 @@ export default async function AdminLayout({
   return (
     <>
       <NavbarServer />
+      {admin.godMode?.enabled && <GodModeBanner environment={env} />}
       <AdminGlobalBar
         env={env}
         role={role}

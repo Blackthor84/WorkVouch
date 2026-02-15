@@ -1,8 +1,20 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import { getPostLoginRedirect } from "@/lib/auth/getPostLoginRedirect";
 
 export const runtime = "nodejs";
+
+function isProfileComplete(profile: Record<string, unknown> | null, role: string): boolean {
+  if (!profile) return false;
+  const r = String(role || "").toLowerCase();
+  if (r === "employer") {
+    return (profile.onboarding_completed as boolean) === true;
+  }
+  const hasName = Boolean((profile.full_name as string)?.trim());
+  const hasIndustry = Boolean((profile.industry as string)?.trim());
+  return hasName && hasIndustry;
+}
 
 export async function GET(request: Request) {
   try {
@@ -36,7 +48,23 @@ export async function GET(request: Request) {
 
     await supabase.auth.exchangeCodeForSession(code);
 
-    return NextResponse.redirect(`${origin}/dashboard`);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) {
+      return NextResponse.redirect(`${origin}/dashboard`);
+    }
+
+    const supabaseAny = supabase as { from: (t: string) => { select: (s: string) => { eq: (k: string, v: string) => { single: () => Promise<{ data: Record<string, unknown> | null }> } } } };
+    const { data: profile } = await supabaseAny
+      .from("profiles")
+      .select("role, onboarding_completed, full_name, industry")
+      .eq("id", user.id)
+      .single();
+
+    const profileRow = profile as { role?: string; onboarding_completed?: boolean; full_name?: string; industry?: string } | null;
+    const role = profileRow?.role ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "";
+    const profile_complete = isProfileComplete(profileRow ?? {}, role);
+    const path = getPostLoginRedirect({ role, profile_complete });
+    return NextResponse.redirect(`${origin}${path}`);
   } catch {
     const origin = new URL(request.url).origin;
     return NextResponse.redirect(`${origin}/login?error=auth_failed`);

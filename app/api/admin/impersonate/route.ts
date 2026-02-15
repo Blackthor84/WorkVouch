@@ -1,6 +1,10 @@
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { isAdmin } from "@/lib/auth/isAdmin";
+import { getGodModeState } from "@/lib/auth/godModeCookie";
+import { writeGodModeAudit } from "@/lib/godModeAudit";
+import { isSandboxEnv } from "@/lib/sandbox/env";
 
 export const runtime = "nodejs";
 import { SignJWT } from "jose";
@@ -33,7 +37,8 @@ export async function POST(request: Request) {
       .eq("id", user.id)
       .single();
 
-    if (!profile || !["admin", "superadmin"].includes((profile as { role?: string }).role ?? "")) {
+    const role = (profile as { role?: string }).role ?? "";
+    if (!profile || !isAdmin({ role })) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -72,7 +77,7 @@ export async function POST(request: Request) {
 
     const targetRoles: string[] = (rolesData || []).map((r: { role: string }) => r.role);
 
-    if (targetRoles.includes("superadmin")) {
+    if (targetRoles.includes("superadmin") && !godMode.enabled) {
       return NextResponse.json(
         { error: "Cannot impersonate another superadmin" },
         { status: 403 }
@@ -139,6 +144,7 @@ export async function POST(request: Request) {
       // Table may not exist; ignore
     }
 
+    const environment = isSandboxEnv() ? "sandbox" : "production";
     try {
       await writeImpersonationAudit({
         admin_user_id: user.id,
@@ -146,10 +152,25 @@ export async function POST(request: Request) {
         target_user_id: userId,
         target_identifier: targetProfile.email ?? null,
         event: "start",
-        environment: "production",
+        environment,
       });
     } catch (e) {
       console.error("[impersonate] impersonation_audit insert failed", e);
+    }
+    if (godMode.enabled) {
+      const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || null;
+      const userAgent = request.headers.get("user-agent") || null;
+      await writeGodModeAudit({
+        superadmin_id: user.id,
+        superadmin_email: user.email ?? null,
+        action: "impersonate",
+        target_user_id: userId,
+        target_identifier: targetProfile.email ?? null,
+        reason: "godmode",
+        environment,
+        ip_address: ip,
+        user_agent: userAgent,
+      });
     }
 
     return NextResponse.json({

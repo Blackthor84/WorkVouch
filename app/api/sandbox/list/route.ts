@@ -46,7 +46,12 @@ export async function GET(req: NextRequest) {
       ...employers.map((e) => ({ id: e.id, name: e.company_name ?? "Employer", role: "employer" as const })),
     ];
 
-    return NextResponse.json({ users, sandboxId: resolvedId });
+    return NextResponse.json({
+      users,
+      employers: employers.map((e) => ({ id: e.id, company_name: e.company_name ?? "Employer" })),
+      employees: employees.map((e) => ({ id: e.id, full_name: e.full_name ?? "Worker" })),
+      sandboxId: resolvedId,
+    });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     return NextResponse.json({ error: msg }, { status: 500 });

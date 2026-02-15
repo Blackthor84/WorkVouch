@@ -11,8 +11,11 @@ import { isSandbox } from "@/lib/app-mode";
 import { getRoleFromSession } from "@/lib/auth/admin-role-guards";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
 import { isSandboxEnv } from "@/lib/sandbox/env";
+import { getGodModeState } from "@/lib/auth/godModeCookie";
 
 export type AdminRole = "user" | "admin" | "super_admin";
+
+export type GodModeState = { enabled: boolean; enabledAt?: string };
 
 export type AdminContext = {
   isAuthenticated: boolean;
@@ -25,6 +28,7 @@ export type AdminContext = {
   canImpersonate: boolean;
   canBypassLimits: boolean;
   canSeedData: boolean;
+  godMode: GodModeState;
 };
 
 function resolveSandbox(): boolean {
@@ -42,6 +46,7 @@ const UNAUTHORIZED_CONTEXT: AdminContext = {
   canImpersonate: false,
   canBypassLimits: false,
   canSeedData: resolveSandbox(),
+  godMode: { enabled: false },
 };
 
 /**
@@ -83,6 +88,7 @@ export async function getAdminContext(): Promise<AdminContext> {
     const appSandbox = resolveSandbox();
     const adminToggledSandbox = await getAdminSandboxModeFromCookies();
     const sandbox = appSandbox || adminToggledSandbox;
+    const godMode = await getGodModeState(user.id, isSuperAdmin);
 
     return {
       isAuthenticated: true,
@@ -95,6 +101,7 @@ export async function getAdminContext(): Promise<AdminContext> {
       canImpersonate: isSuperAdmin || sandbox,
       canBypassLimits: isSuperAdmin || sandbox,
       canSeedData: sandbox || isSuperAdmin,
+      godMode,
     };
   } catch {
     return { ...UNAUTHORIZED_CONTEXT };

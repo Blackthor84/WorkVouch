@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
-import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -11,16 +10,10 @@ function getOrigin(req: NextRequest): string {
   return `${proto}://${host}`;
 }
 
-/** POST /api/sandbox/spawn — real creation via admin sandbox-v2 generate-employee/employer. All data is_sandbox. */
+/** POST /api/sandbox/generate-company — one click: 1 employer + 5 workers, all sandbox-flagged. Uses real generate-employer/generate-employee. */
 export async function POST(req: NextRequest) {
   const guard = await sandboxAdminGuard();
   if (!guard.allowed) return guard.response;
-
-  const body = await req.json().catch(() => ({}));
-  const type = (body.type as string)?.toLowerCase() ?? "worker";
-  if (!["worker", "employer", "pair", "team"].includes(type)) {
-    return NextResponse.json({ error: "Invalid type. Use worker | employer | pair | team" }, { status: 400 });
-  }
 
   const origin = getOrigin(req);
   const cookie = req.headers.get("cookie") ?? "";
@@ -34,7 +27,7 @@ export async function POST(req: NextRequest) {
     const createRes = await fetch(`${origin}/api/admin/sandbox-v2/sessions`, {
       method: "POST",
       headers: { "Content-Type": "application/json", cookie },
-      body: JSON.stringify({ name: "Playground Sandbox" }),
+      body: JSON.stringify({ name: "Sandbox Co" }),
     });
     const createData = await createRes.json().catch(() => ({}));
     const id = (createData as { data?: { id?: string } }).data?.id;
@@ -54,31 +47,25 @@ export async function POST(req: NextRequest) {
   };
 
   try {
+    const body = await req.json().catch(() => ({}));
     const sandboxId = (body.sandboxId ?? body.sandbox_id) as string | undefined;
     const resolvedId = sandboxId && typeof sandboxId === "string" ? sandboxId : await getOrCreateSandboxId();
 
-    const workers: unknown[] = [];
-    const employers: unknown[] = [];
+    const employerOut = await post("/api/admin/sandbox-v2/generate-employer", { sandboxId: resolvedId });
+    const employer = (employerOut as { employer?: { id: string; company_name?: string } }).employer;
+    if (!employer?.id) throw new Error("Failed to create employer");
 
-    if (type === "worker" || type === "pair" || type === "team") {
-      const count = type === "worker" ? 1 : type === "pair" ? 2 : 4;
-      for (let i = 0; i < count; i++) {
-        const out = await post("/api/admin/sandbox-v2/generate-employee", { sandboxId: resolvedId });
-        const emp = (out as { employee?: unknown }).employee;
-        if (emp) workers.push(emp);
-      }
-    }
-    if (type === "employer" || type === "team") {
-      const out = await post("/api/admin/sandbox-v2/generate-employer", { sandboxId: resolvedId });
-      const emp = (out as { employer?: unknown }).employer;
-      if (emp) employers.push(emp);
+    const workers: { id: string; full_name?: string }[] = [];
+    for (let i = 0; i < 5; i++) {
+      const out = await post("/api/admin/sandbox-v2/generate-employee", { sandboxId: resolvedId });
+      const emp = (out as { employee?: { id: string; full_name?: string } }).employee;
+      if (emp) workers.push(emp);
     }
 
     return NextResponse.json({
-      ok: true,
+      employer: { id: employer.id, company_name: employer.company_name ?? "Sandbox Co" },
+      workers,
       sandboxId: resolvedId,
-      workers: workers.length ? workers : undefined,
-      employers: employers.length ? employers : undefined,
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);

@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import type { SandboxUser } from "../SandboxPlaygroundPanels";
 
-export function ImpersonationPanel() {
+type Props = { users?: SandboxUser[]; sandboxId?: string };
+
+export function ImpersonationPanel({ users = [], sandboxId }: Props) {
   const [loading, setLoading] = useState(false);
   const [targetUserId, setTargetUserId] = useState("");
   const [targetName, setTargetName] = useState("Sandbox user");
@@ -11,7 +14,7 @@ export function ImpersonationPanel() {
 
   const startImpersonation = useCallback(async () => {
     if (!targetUserId.trim()) {
-      setMessage("Enter target user ID");
+      setMessage("Enter or select target user ID");
       return;
     }
     setLoading(true);
@@ -24,6 +27,7 @@ export function ImpersonationPanel() {
         body: JSON.stringify({
           targetUserId: targetUserId.trim(),
           targetName: targetName.trim() || "Sandbox user",
+          sandboxId: sandboxId ?? undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -33,6 +37,7 @@ export function ImpersonationPanel() {
       }
       setImpersonating(true);
       setMessage("Impersonating. Show global banner.");
+      window.dispatchEvent(new CustomEvent("sandbox-impersonation-change"));
     } catch {
       setMessage("Request failed");
     } finally {
@@ -47,6 +52,7 @@ export function ImpersonationPanel() {
       await fetch("/api/sandbox/impersonate/exit", { method: "POST", credentials: "include" });
       setImpersonating(false);
       setMessage("Exited.");
+      window.dispatchEvent(new CustomEvent("sandbox-impersonation-change"));
     } catch {
       setMessage("Exit failed");
     } finally {
@@ -63,45 +69,72 @@ export function ImpersonationPanel() {
     }
   }, [message]);
 
+  const selectUser = (u: SandboxUser) => {
+    setTargetUserId(u.id);
+    setTargetName(u.name);
+  };
+
+  const handleDropdownChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = e.target.value;
+    if (!id) {
+      setTargetUserId("");
+      setTargetName("Sandbox user");
+      return;
+    }
+    const u = users.find((x) => x.id === id);
+    if (u) selectUser(u);
+  };
+
   return (
     <div style={{ fontSize: 14 }}>
-      <p style={{ margin: "0 0 8px 0", color: "#64748B" }}>ADMIN only. Logs to impersonation_audit. Show &quot;Impersonating sandbox user&quot; banner.</p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <input
-          type="text"
-          placeholder="Target user ID"
-          value={targetUserId}
-          onChange={(e) => setTargetUserId(e.target.value)}
-          style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #CBD5E1" }}
-        />
-        <input
-          type="text"
-          placeholder="Target name"
-          value={targetName}
-          onChange={(e) => setTargetName(e.target.value)}
-          style={{ padding: "6px 8px", borderRadius: 6, border: "1px solid #CBD5E1" }}
-        />
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            type="button"
-            onClick={startImpersonation}
-            disabled={loading}
-            style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #CBD5E1", background: "#fff", cursor: loading ? "not-allowed" : "pointer" }}
+      <p style={{ margin: "0 0 8px 0", color: "#64748B" }}>
+        One-click impersonate. Navigate the full site as that user. No production data affected.
+      </p>
+      {users.length > 0 ? (
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ display: "block", fontSize: 12, marginBottom: 4, color: "#64748B" }}>Sandbox user</label>
+          <select
+            value={targetUserId}
+            onChange={handleDropdownChange}
+            style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid #CBD5E1", fontSize: 14 }}
           >
-            Start
-          </button>
-          <button
-            type="button"
-            onClick={exitImpersonation}
-            disabled={loading}
-            style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #CBD5E1", background: "#fff", cursor: loading ? "not-allowed" : "pointer" }}
-          >
-            Exit
-          </button>
+            <option value="">— Select user —</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name} ({u.role}) — {u.id.slice(0, 8)}…
+              </option>
+            ))}
+          </select>
         </div>
+      ) : (
+        <p style={{ margin: "0 0 8px 0", fontSize: 12, color: "#64748B" }}>Generate a company to see users.</p>
+      )}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <button
+          type="button"
+          onClick={startImpersonation}
+          disabled={loading || !targetUserId}
+          style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #CBD5E1", background: "#fff", cursor: loading || !targetUserId ? "not-allowed" : "pointer" }}
+        >
+          Impersonate
+        </button>
+        <button
+          type="button"
+          onClick={exitImpersonation}
+          disabled={loading}
+          style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #CBD5E1", background: "#fff", cursor: loading ? "not-allowed" : "pointer" }}
+        >
+          Exit
+        </button>
       </div>
-      {impersonating && <p style={{ margin: "8px 0 0 0", color: "#059669", fontWeight: 600 }}>Impersonating sandbox user</p>}
-      {message && <p style={{ margin: "8px 0 0 0", color: "#64748B" }}>{message}</p>}
+      {impersonating && (
+        <div style={{ marginTop: 12, padding: 10, background: "#ECFDF5", borderRadius: 6, border: "1px solid #10B981" }}>
+          <p style={{ margin: 0, color: "#059669", fontWeight: 600 }}>
+            Impersonating sandbox user — no production data affected
+          </p>
+        </div>
+      )}
+      {message && !impersonating && <p style={{ margin: "8px 0 0 0", color: "#64748B" }}>{message}</p>}
     </div>
   );
 }

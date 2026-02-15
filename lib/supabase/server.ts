@@ -47,7 +47,11 @@ export const createServerSupabase = supabaseServer;
 /** @deprecated Use supabaseServer */
 export const getSupabaseServer = supabaseServer;
 
-/** Get current Supabase session (use instead of NextAuth getServerSession). Respects impersonation cookie. */
+/**
+ * Get current Supabase session (use instead of NextAuth getServerSession).
+ * Auth context resolution: effectiveUserId = impersonatingUserId ?? session.user.id.
+ * When impersonation cookie is set, returns the impersonated user as session.user so the entire site behaves as that user.
+ */
 export async function getSupabaseSession() {
   const supabase = await supabaseServer();
   const cookieStore = await cookies();

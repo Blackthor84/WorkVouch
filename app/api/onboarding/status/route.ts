@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { isAdmin } from "@/lib/auth/isAdmin";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,11 @@ export async function GET() {
       .select("*")
       .eq("id", user.id)
       .single();
+
+    const profileRow = profile as { role?: string; onboarding_completed?: boolean } | null;
+    if (isAdmin(profileRow ?? undefined)) {
+      return NextResponse.json({ showOnboarding: false, completed: true });
+    }
 
     const onboardingCompleted = (profile as any)?.onboarding_completed === true;
     if (onboardingCompleted) {

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { isAdmin } from "@/lib/auth/isAdmin";
 
 const SIGNUP_PLAN_KEY = "workvouch_signup_plan";
 
@@ -68,6 +69,11 @@ export default function SignupPage() {
         return;
       }
 
+      const userRole = (data.user as { app_metadata?: { role?: string } }).app_metadata?.role ?? null;
+      if (isAdmin({ role: userRole ?? undefined })) {
+        router.push("/admin");
+        return;
+      }
       const { error: profileError } = await (supabase as any)
         .from("profiles")
         .insert({

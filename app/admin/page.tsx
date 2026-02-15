@@ -4,6 +4,7 @@ import { getRecentAdminActions } from "@/lib/admin/recentAdminActivity";
 import { getImpersonationContext, type ImpersonationState } from "@/lib/admin-impersonation";
 import { getSandboxContext } from "@/lib/sandbox/sandboxContext";
 import { SandboxToggle } from "@/components/admin/SandboxToggle";
+import { GodModeToggle } from "@/components/admin/GodModeToggle";
 import { AdminDashboardWidgets } from "@/components/admin/AdminDashboardWidgets";
 import { AdminActivityDashboard } from "@/components/admin/AdminActivityDashboard";
 import { isPlatformAdmin, isPlatformReadOnlyAdmin, getAdminRole } from "@/lib/admin";
@@ -83,17 +84,30 @@ export default async function AdminHomePage() {
       )}
 
       {admin.isSuperAdmin && canEdit && (
-        <div className="rounded-lg border border-amber-200 p-4 bg-amber-50">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-amber-900">Sandbox Mode</h3>
-              <p className="text-sm text-amber-800">
-                Sandbox is {sandbox.enabled ? "ENABLED" : "DISABLED"}
-              </p>
+        <>
+          <div className="rounded-lg border border-amber-200 p-4 bg-amber-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-amber-900">God Mode</h3>
+                <p className="text-sm text-amber-800">
+                  Override all guards. All actions logged. Opt-in only.
+                </p>
+              </div>
+              <GodModeToggle initialEnabled={admin.godMode?.enabled ?? false} />
             </div>
-            <SandboxToggle enabled={sandbox.enabled} />
           </div>
-        </div>
+          <div className="rounded-lg border border-amber-200 p-4 bg-amber-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-amber-900">Sandbox Mode</h3>
+                <p className="text-sm text-amber-800">
+                  Sandbox is {sandbox.enabled ? "ENABLED" : "DISABLED"}
+                </p>
+              </div>
+              <SandboxToggle enabled={sandbox.enabled} />
+            </div>
+          </div>
+        </>
       )}
 
       <h1 className="text-2xl font-semibold">Admin Dashboard</h1>

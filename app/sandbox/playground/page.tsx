@@ -1,15 +1,15 @@
 import { SandboxPlaygroundPanels } from "./SandboxPlaygroundPanels";
+import { ImpersonationBanner } from "./ImpersonationBanner";
 
 /**
- * Minimal, render-safe. No data fetching, no admin dependencies, no assumptions.
- * This page must render even if all APIs fail.
+ * Full sandbox simulator: generate company, run scenarios, observe. Render-safe; no blocking.
  */
 export default function SandboxPlaygroundPage() {
   return (
     <div style={{ padding: 24 }}>
+      <ImpersonationBanner />
       <h1>🧪 Sandbox Playground</h1>
-      <p>Sandbox is active. Admin shell is isolated.</p>
-      <p>This page must render even if all APIs fail.</p>
+      <p style={{ color: "#64748B", marginBottom: 0 }}>Generate a full fake company, run scenarios, and observe hidden systems. Admin-only; sandbox data only.</p>
       <SandboxPlaygroundPanels />
     </div>
   );
