@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     const isTargetAdmin = targetRoles.includes("admin") || targetRoles.includes("superadmin");
     const isTargetBeta = targetRoles.includes("beta");
     const isTargetEmployer = targetRoles.includes("employer");
-    const role = isTargetBeta
+    const impersonatedRole = isTargetBeta
       ? "beta"
       : isTargetAdmin
         ? "admin"
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
     const impersonateUser = {
       id: targetProfile.id,
       email: targetProfile.email ?? "",
-      role,
+      role: impersonatedRole,
       roles: targetRoles,
     };
 
