@@ -16,6 +16,24 @@ import { normalizeTier } from "@/lib/planLimits";
 
 export const dynamic = "force-dynamic";
 
+function hasNumericProfileStrength(s: unknown): s is { profile_strength: number } {
+  if (typeof s !== "object" || s === null) return false;
+  const v = Object.getOwnPropertyDescriptor(s, "profile_strength")?.value;
+  return typeof v === "number";
+}
+
+function userIdString(r: unknown): string | null {
+  if (typeof r !== "object" || r === null) return null;
+  const v = Object.getOwnPropertyDescriptor(r, "user_id")?.value;
+  return typeof v === "string" ? v : null;
+}
+
+function verificationStatusString(r: unknown): string | null {
+  if (typeof r !== "object" || r === null) return null;
+  const v = Object.getOwnPropertyDescriptor(r, "verification_status")?.value;
+  return typeof v === "string" ? v : null;
+}
+
 export async function GET() {
   try {
     const user = await getCurrentUser();
@@ -55,12 +73,15 @@ export async function GET() {
     };
 
     if (planTier !== "free" && list.length > 0) {
-      const userIds = [...new Set(list.map((r: { user_id: string }) => r.user_id))];
+      const userIds = [...new Set(list.map(userIdString).filter((id): id is string => id !== null))];
       const { data: snapshots } = await adminSupabase.from("intelligence_snapshots").select("user_id, profile_strength").in("user_id", userIds);
-      const strengths = (snapshots ?? []).filter((s: { profile_strength?: number }) => s.profile_strength != null) as { profile_strength: number }[];
-      if (strengths.length > 0) {
+      const strengthValues: number[] = [];
+      for (const s of snapshots ?? []) {
+        if (hasNumericProfileStrength(s)) strengthValues.push(s.profile_strength);
+      }
+      if (strengthValues.length > 0) {
         out.average_profile_strength = Math.round(
-          strengths.reduce((a: number, s: { profile_strength: number }) => a + s.profile_strength, 0) / strengths.length
+          strengthValues.reduce((a, n) => a + n, 0) / strengthValues.length
         );
       }
     }

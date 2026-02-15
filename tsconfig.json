@@ -31,6 +31,7 @@
     "mobile",
     "types/database.generated.ts",
     "vitest.config.ts",
-    "tests"
+    "tests",
+    "**/__tests__/**"
   ]
 }

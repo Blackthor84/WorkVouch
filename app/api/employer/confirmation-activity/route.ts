@@ -14,6 +14,22 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
+function getStr(obj: unknown, key: string): string | null {
+  if (typeof obj !== "object" || obj === null) return null;
+  const v = Object.getOwnPropertyDescriptor(obj, key)?.value;
+  return typeof v === "string" ? v : null;
+}
+
+function getNum(obj: unknown, key: string): number | null {
+  if (typeof obj !== "object" || obj === null) return null;
+  const v = Object.getOwnPropertyDescriptor(obj, key)?.value;
+  return typeof v === "number" ? v : null;
+}
+
+function hasNumericProfileStrength(s: unknown): s is { profile_strength: number } {
+  return getNum(s, "profile_strength") !== null;
+}
+
 export async function GET() {
   try {
     const user = await getCurrentUser();
@@ -21,16 +37,16 @@ export async function GET() {
     if (!(await hasRole("employer"))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const supabase = await createServerSupabase();
-    const supabaseAny = supabase as any;
-    const adminSupabase = getSupabaseServer() as any;
+    const adminSupabase = getSupabaseServer();
 
-    const { data: account } = await supabaseAny
+    const { data: account } = await supabase
       .from("employer_accounts")
       .select("id")
       .eq("user_id", user.id)
       .single();
     if (!account) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
-    const employerId = (account as { id: string }).id;
+    const employerId = getStr(account, "id") ?? "";
+    if (!employerId) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -71,9 +87,10 @@ export async function GET() {
     let totalMs = 0;
     let countWithTime = 0;
     for (const row of approvedRows ?? []) {
-      const r = row as { created_at?: string; updated_at?: string };
-      if (r.updated_at && r.created_at) {
-        totalMs += new Date(r.updated_at).getTime() - new Date(r.created_at).getTime();
+      const created = getStr(row, "created_at");
+      const updated = getStr(row, "updated_at");
+      if (updated && created) {
+        totalMs += new Date(updated).getTime() - new Date(created).getTime();
         countWithTime++;
       }
     }
@@ -84,30 +101,37 @@ export async function GET() {
       .from("employment_records")
       .select("id, user_id, confirmation_level, verification_status, employer_id, employer_confirmation_status")
       .eq("employer_id", employerId);
-    const employmentList = Array.isArray(employmentRows) ? employmentRows : [];
+    const employmentList: unknown[] = Array.isArray(employmentRows) ? employmentRows : [];
     const totalLinked = employmentList.length;
 
-    const employerConfirmed = employmentList.filter((r: { employer_confirmation_status?: string; verification_status?: string }) =>
-      (r as { employer_confirmation_status?: string }).employer_confirmation_status === "approved" || (r as { verification_status?: string }).verification_status === "verified").length;
-    const peerConfirmed = employmentList.filter((r: { confirmation_level?: string }) => (r as { confirmation_level?: string }).confirmation_level === "peer_confirmed" || (r as { confirmation_level?: string }).confirmation_level === "multi_confirmed").length;
-    const multiConfirmed = employmentList.filter((r: { confirmation_level?: string }) => (r as { confirmation_level?: string }).confirmation_level === "multi_confirmed").length;
+    const employerConfirmed = employmentList.filter((r) =>
+      getStr(r, "employer_confirmation_status") === "approved" || getStr(r, "verification_status") === "verified"
+    ).length;
+    const peerConfirmed = employmentList.filter((r) => {
+      const c = getStr(r, "confirmation_level");
+      return c === "peer_confirmed" || c === "multi_confirmed";
+    }).length;
+    const multiConfirmed = employmentList.filter((r) => getStr(r, "confirmation_level") === "multi_confirmed").length;
 
     const percent_employer_confirmed = totalLinked > 0 ? Math.round((employerConfirmed / totalLinked) * 100) : 0;
     const percent_peer_confirmed = totalLinked > 0 ? Math.round((peerConfirmed / totalLinked) * 100) : 0;
     const percent_multi_confirmed = totalLinked > 0 ? Math.round((multiConfirmed / totalLinked) * 100) : 0;
 
-    const userIds = [...new Set(employmentList.map((r: { user_id?: string }) => (r as { user_id?: string }).user_id).filter(Boolean))] as string[];
+    const userIds = [...new Set(employmentList.map((r) => getStr(r, "user_id")).filter((id): id is string => id !== null))];
     let average_profile_score: number | null = null;
     if (userIds.length > 0) {
       const { data: snapshots } = await adminSupabase.from("intelligence_snapshots").select("profile_strength").in("user_id", userIds);
-      const strengths = (snapshots ?? []).map((s: { profile_strength?: number }) => (s as { profile_strength?: number }).profile_strength).filter((n: unknown): n is number => typeof n === "number");
-      if (strengths.length > 0) {
-        average_profile_score = Math.round(strengths.reduce((a: number, b: number) => a + b, 0) / strengths.length);
+      const strengthValues: number[] = [];
+      for (const s of snapshots ?? []) {
+        if (hasNumericProfileStrength(s)) strengthValues.push(s.profile_strength);
+      }
+      if (strengthValues.length > 0) {
+        average_profile_score = Math.round(strengthValues.reduce((a, b) => a + b, 0) / strengthValues.length);
       }
     }
 
     // Peer activity: use coworker_matches only (employment_matches does not exist); optional metrics
-    const employmentIds = employmentList.map((r: { id: string }) => (r as { id: string }).id);
+    const employmentIds = employmentList.map((r) => getStr(r, "id")).filter((id): id is string => id !== null);
     let new_peer_confirmations = 0;
     let new_peer_reviews = 0;
     if (employmentIds.length > 0 && userIds.length > 0) {
@@ -129,10 +153,10 @@ export async function GET() {
       .select("id, status, created_at, updated_at")
       .in("related_record_id", employmentIds.length > 0 ? employmentIds : ["00000000-0000-0000-0000-000000000000"]);
     const disputeList = Array.isArray(disputes) ? disputes : [];
-    const disputes_opened = disputeList.filter((d: { created_at?: string }) => d.created_at && d.created_at >= iso30).length;
-    const disputes_resolved = disputeList.filter((d: { status?: string; updated_at?: string }) => {
-      const status = (d as { status?: string }).status;
-      const updated_at = (d as { updated_at?: string }).updated_at;
+    const disputes_opened = disputeList.filter((d) => { const c = getStr(d, "created_at"); return c != null && c >= iso30; }).length;
+    const disputes_resolved = disputeList.filter((d) => {
+      const status = getStr(d, "status");
+      const updated_at = getStr(d, "updated_at");
       return status === "resolved" && updated_at != null && updated_at >= iso30;
     }).length;
 
