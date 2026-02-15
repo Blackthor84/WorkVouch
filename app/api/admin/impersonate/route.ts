@@ -2,7 +2,6 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/auth/isAdmin";
-import { getGodModeState } from "@/lib/auth/godModeCookie";
 import { writeGodModeAudit } from "@/lib/godModeAudit";
 import { isSandboxEnv } from "@/lib/sandbox/env";
 
@@ -42,6 +41,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    const godModeEnabled = process.env.WORKVOUCH_GOD_MODE === "true";
+
     const body = await request.json();
     const userId = typeof body?.userId === "string" ? body.userId.trim() : null;
     if (!userId) {
@@ -77,7 +78,7 @@ export async function POST(request: Request) {
 
     const targetRoles: string[] = (rolesData || []).map((r: { role: string }) => r.role);
 
-    if (targetRoles.includes("superadmin") && !godMode.enabled) {
+    if (targetRoles.includes("superadmin") && !godModeEnabled) {
       return NextResponse.json(
         { error: "Cannot impersonate another superadmin" },
         { status: 403 }
@@ -157,7 +158,7 @@ export async function POST(request: Request) {
     } catch (e) {
       console.error("[impersonate] impersonation_audit insert failed", e);
     }
-    if (godMode.enabled) {
+    if (godModeEnabled) {
       const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || null;
       const userAgent = request.headers.get("user-agent") || null;
       await writeGodModeAudit({
