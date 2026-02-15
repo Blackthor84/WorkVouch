@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const adminSession = await requireSandboxV2AdminWithRole();
     const body = await req.json().catch(() => ({}));
     const type = (body.type as string)?.toLowerCase();
-    let sandboxId = (body.sandboxId ?? body.sandbox_id) as string | undefined;
+    let sandboxId: string | undefined = (body.sandboxId ?? body.sandbox_id) as string | undefined;
 
     if (!sandboxId || typeof sandboxId !== "string") {
       const supabase = getServiceRoleClient();
@@ -34,10 +34,15 @@ export async function POST(req: NextRequest) {
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(1);
-      sandboxId = (sessions?.[0] as { id: string } | undefined)?.id ?? null;
+      if (Array.isArray(sessions) && sessions.length > 0) {
+        sandboxId = (sessions[0] as { id: string })?.id;
+      }
     }
     if (!sandboxId) {
-      return NextResponse.json({ error: "No sandbox session. Create one from Sandbox first." }, { status: 400 });
+      return NextResponse.json(
+        { error: "No sandbox session. Create one from Sandbox first." },
+        { status: 400 }
+      );
     }
     if (!["worker", "employer", "pair", "team"].includes(type)) {
       return NextResponse.json({ error: "Invalid type. Use worker | employer | pair | team" }, { status: 400 });
