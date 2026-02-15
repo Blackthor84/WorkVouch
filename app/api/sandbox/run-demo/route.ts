@@ -45,15 +45,15 @@ export async function POST(req: NextRequest) {
       const sessionsRes = await fetch(`${origin}/api/admin/sandbox-v2/sessions`, { headers: { cookie } });
       const sessionsData = await sessionsRes.json().catch(() => ({}));
       const list = (sessionsData as { data?: { id: string }[] }).data;
-      sandboxId = list?.[0]?.id ?? null;
+      sandboxId = list?.[0]?.id;
       if (!sandboxId) {
         const createRes = await fetch(`${origin}/api/admin/sandbox-v2/sessions`, {
           method: "POST",
           headers: { "Content-Type": "application/json", cookie },
           body: JSON.stringify({ name: "Demo session" }),
         });
-        const createData = await createRes.json().catch(() => ({}));
-        sandboxId = (createData as { data?: { id: string } }).data?.id;
+        const created = await createRes.json().catch(() => ({}));
+        sandboxId = (created as { data?: { id: string } }).data?.id;
       }
     }
     if (!sandboxId) return NextResponse.json({ error: "No sandbox session" }, { status: 400 });
