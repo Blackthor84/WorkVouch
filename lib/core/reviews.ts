@@ -56,6 +56,18 @@ export async function submitReview(
       return { ok: false, error: "You have already left a reference for this match", status: 409 };
     }
 
+    // Collusion-resistant: reciprocal verification disallowed. If the reviewed user already left a reference for this reviewer on the same match, reject.
+    const { data: reciprocal } = await sb
+      .from("employment_references")
+      .select("id")
+      .eq("employment_match_id", employment_match_id)
+      .eq("reviewer_id", reviewedUserId)
+      .eq("reviewed_user_id", reviewer_id)
+      .maybeSingle();
+    if (reciprocal) {
+      return { ok: false, error: "Reciprocal verification is not allowed for this match", status: 403 };
+    }
+
     const reliability_score = rating * 20;
     const sentiment = Math.max(-1, Math.min(1, (rating - 3) / 2));
     const trust_weight = 1.0;

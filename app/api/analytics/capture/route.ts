@@ -39,11 +39,12 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}));
-  // path is REQUIRED: prefer client-sent page path, else fallback to request pathname or "/"
-  const path =
+  // path is REQUIRED: prefer client-sent page path, else fallback to request pathname or "/". Canonical contract: non-empty (DB CHECK).
+  let path =
     (typeof body.path === "string" ? body.path.trim().slice(0, 2048) : null) ||
     req.nextUrl.pathname ||
     "/";
+  if (!path || path.trim() === "") path = "/";
   const referrer = typeof body.referrer === "string" ? body.referrer.trim().slice(0, 2048) : req.headers.get("referer") ?? null;
   const duration_ms = typeof body.duration_ms === "number" && body.duration_ms >= 0 ? Math.round(body.duration_ms) : null;
 

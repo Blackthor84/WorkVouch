@@ -2,6 +2,12 @@
  * Trust Score Engine — server-side only. Never calculate on frontend.
  * Single portable core score per user (0–100). Stored in trust_scores.
  * All scoring uses @/lib/core/intelligence only. No duplicate math.
+ *
+ * INVARIANTS (fail-closed):
+ * - Trust score cannot change without: reason, audit log, before/after state.
+ * - Score has min/max bounds (0, 100). Enforced in application.
+ * - Admin manual adjustments require justification (reason in audit).
+ * See docs/schema/trust_schema.md and admin scoring-explained page.
  */
 
 import { getSupabaseServer } from "@/lib/supabase/admin";

@@ -6,6 +6,7 @@ import { PreviewProvider } from "@/lib/preview-context";
 import SimulationBanner from "@/components/SimulationBanner";
 import AuthSync from "./(auth)/AuthSync";
 import { PageViewCapture } from "@/components/analytics/PageViewCapture";
+import { PageViewTracker } from "@/components/PageViewTracker";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,7 @@ export default async function RootLayout({
         <Providers>
           <PreviewProvider>
             <PageViewCapture />
+            <PageViewTracker />
             <SimulationBanner />
             <LayoutWrapper user={null} role={null}>
               {children}

@@ -33,10 +33,16 @@ const nav = {
   ReviewsAndTrust: [
     { href: "/admin/reviews", label: "Reviews & Moderation" },
     { href: "/admin/trust-scores", label: "Trust Scores" },
+    { href: "/admin/scoring-explained", label: "Scoring Explained" },
   ],
   Sandbox: [
     { href: "/admin/sandbox/enter", label: "Enter Sandbox" },
     { href: "/admin/sandbox-v2", label: "Sandbox" },
+    { href: "/admin/sandbox-v2/replays", label: "Replays" },
+    { href: "/admin/sandbox-v2/rule-versions", label: "Rule Versions" },
+    { href: "/admin/sandbox-v2/population-generator", label: "Population Generator" },
+    { href: "/admin/sandbox-v2/redteam", label: "Red-Team" },
+    { href: "/admin/sandbox-v2/playbook", label: "Stress-Test Playbook" },
     { href: "/admin/simulate", label: "Simulate" },
   ],
   Analytics: [
