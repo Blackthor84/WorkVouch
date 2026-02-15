@@ -3,6 +3,19 @@
 -- Replay, rule versioning, synthetic population, red-team. Sandbox-only.
 -- Purpose: trust laboratory, fraud stress-test, policy simulator, forensic analysis.
 -- ============================================================================
+-- Ensure sandbox_sessions exists (may already exist from 20250129700000 or 20250205000000).
+-- Required for FK from sandbox_snapshots, sandbox_replay_sessions, etc.
+CREATE TABLE IF NOT EXISTS public.sandbox_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT,
+  created_by UUID,
+  starts_at TIMESTAMPTZ,
+  ends_at TIMESTAMPTZ,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'expired', 'deleted')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_sandbox_sessions_ends_at ON public.sandbox_sessions(ends_at);
+CREATE INDEX IF NOT EXISTS idx_sandbox_sessions_status ON public.sandbox_sessions(status);
 
 -- 1. Sandbox Snapshots — state at a moment (for replay baseline). Read-only reference.
 CREATE TABLE IF NOT EXISTS public.sandbox_snapshots (
