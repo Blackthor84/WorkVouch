@@ -4,7 +4,7 @@ import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** GET /api/sandbox/observer — read-only. ENV === SANDBOX + ADMIN. Cookies required (credentials: "include"). */
+/** GET /api/sandbox/observer — read-only. ADMIN only. Cookies required (credentials: "include"). */
 export async function GET() {
   const guard = await sandboxAdminGuard();
   if (!guard.allowed) return guard.response;

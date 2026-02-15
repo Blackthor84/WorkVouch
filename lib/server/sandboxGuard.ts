@@ -1,6 +1,7 @@
 /**
- * Sandbox API guard: ENV === SANDBOX + ADMIN role only.
+ * Sandbox API guard: ADMIN role only. Sandbox is a permissioned mode, not a deployment.
  * Use at the start of every /api/sandbox/* route. Auth cookies must be sent (credentials: "include").
+ * Isolation is via data flags (is_sandbox = true), not ENV.
  */
 
 import { NextResponse } from "next/server";
@@ -11,17 +12,9 @@ export type SandboxGuardResult =
   | { allowed: false; response: NextResponse };
 
 export async function sandboxAdminGuard(): Promise<SandboxGuardResult> {
-  if (process.env.ENV !== "SANDBOX") {
-    return {
-      allowed: false,
-      response: NextResponse.json(
-        { error: "Sandbox disabled in this environment" },
-        { status: 403 }
-      ),
-    };
-  }
-
   const session = await getAdminSession();
+
+  // ADMIN is the real gate
   if (!session || (session.role !== "admin" && session.role !== "super_admin")) {
     return {
       allowed: false,
@@ -32,5 +25,6 @@ export async function sandboxAdminGuard(): Promise<SandboxGuardResult> {
     };
   }
 
+  // Sandbox is a MODE, not an ENV
   return { allowed: true };
 }

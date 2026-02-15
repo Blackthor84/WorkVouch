@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireSandboxMode } from "@/lib/sandbox/apiGuard";
-import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
+import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -13,11 +12,10 @@ function getOrigin(req: NextRequest): string {
 
 /** POST /api/sandbox/trigger/leave-vouch — body: { sandboxId, workerId (reviewer), coworkerId (reviewed), rating?, reviewText? }. Calls same internal service as production; is_sandbox. */
 export async function POST(req: NextRequest) {
-  const guard = requireSandboxMode();
-  if (guard) return guard;
+  const guard = await sandboxAdminGuard();
+  if (!guard.allowed) return guard.response;
 
   try {
-    await requireSandboxV2Admin();
     const body = await req.json().catch(() => ({}));
     const sandboxId = body.sandboxId ?? body.sandbox_id;
     const workerId = body.workerId ?? body.reviewer_id;
@@ -50,7 +48,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, review: (data as { review?: unknown }).review });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
-    if (msg === "Forbidden: admin or super_admin required") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

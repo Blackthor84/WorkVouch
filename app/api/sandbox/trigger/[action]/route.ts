@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireSandboxMode } from "@/lib/sandbox/apiGuard";
-import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
+import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -18,11 +17,10 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ action: string }> }
 ) {
-  const guard = requireSandboxMode();
-  if (guard) return guard;
+  const guard = await sandboxAdminGuard();
+  if (!guard.allowed) return guard.response;
 
   try {
-    await requireSandboxV2Admin();
     const { action } = await params;
     const normalized = action?.toLowerCase().replace(/_/g, "-") ?? "";
 
@@ -40,7 +38,6 @@ export async function POST(
     return NextResponse.json({ error: "Unknown action" }, { status: 404 });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
-    if (msg === "Forbidden: admin or super_admin required") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

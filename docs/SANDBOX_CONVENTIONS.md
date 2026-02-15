@@ -1,18 +1,12 @@
 # Sandbox & Admin Conventions
 
-## ENV requirement (deploy)
-
-Set in Vercel → Environment Variables:
-
-- **`ENV=SANDBOX`**
-
-Enable for: Preview, Development. Redeploy after setting. Without this, all `/api/sandbox/*` routes return 403.
-
 ## Sandbox API guard
 
 - **`sandboxAdminGuard()`** — `lib/server/sandboxGuard.ts`. Use at the start of every `/api/sandbox/*` route.
-- Requires: `ENV === "SANDBOX"` and admin role (Supabase `getAdminSession()`).
+- **ADMIN is the gate.** Sandbox is a permissioned mode, not a deployment. No ENV check.
+- Requires: admin or super_admin role (Supabase `getAdminSession()`).
 - Client must send auth cookies: **`credentials: "include"`** on every sandbox fetch.
+- Isolation is via data flags (`is_sandbox = true`), not environment.
 
 ## PART 8 — Type safety
 

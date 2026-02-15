@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireSandboxMode } from "@/lib/sandbox/apiGuard";
-import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
+import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 export const dynamic = "force-dynamic";
@@ -8,11 +7,10 @@ export const runtime = "nodejs";
 
 /** GET /api/sandbox/list — sandboxId optional (default: first active session). Returns users for ImpersonationPanel. */
 export async function GET(req: NextRequest) {
-  const guard = requireSandboxMode();
-  if (guard) return guard;
+  const guard = await sandboxAdminGuard();
+  if (!guard.allowed) return guard.response;
 
   try {
-    await requireSandboxV2Admin();
     const sandboxId =
       req.nextUrl.searchParams.get("sandboxId")?.trim() ||
       req.nextUrl.searchParams.get("sandbox_id")?.trim() ||
@@ -51,7 +49,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ users, sandboxId: resolvedId });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
-    if (msg === "Forbidden: admin or super_admin required") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

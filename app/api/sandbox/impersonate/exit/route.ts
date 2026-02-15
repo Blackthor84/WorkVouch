@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireSandboxMode } from "@/lib/sandbox/apiGuard";
-import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
+import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
+import { getAdminSession } from "@/lib/auth/getAdminSession";
 import { supabaseServer } from "@/lib/supabase/server";
 import { writeImpersonationAudit } from "@/lib/impersonationAudit";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
@@ -10,11 +10,12 @@ export const runtime = "nodejs";
 
 /** POST /api/sandbox/impersonate/exit — clear impersonation cookie. Logs end to impersonation_audit. */
 export async function POST(req: NextRequest) {
-  const guard = requireSandboxMode();
-  if (guard) return guard;
+  const guard = await sandboxAdminGuard();
+  if (!guard.allowed) return guard.response;
 
   try {
-    const { id: adminId } = await requireSandboxV2Admin();
+    const session = await getAdminSession();
+    const adminId = session?.userId ?? "";
     const cookie = req.cookies.get("sandbox_playground_impersonation")?.value;
     let targetUserId: string | null = null;
     let targetIdentifier: string | null = null;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireSandboxMode } from "@/lib/sandbox/apiGuard";
-import { requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
+import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
+import { getAdminSession } from "@/lib/auth/getAdminSession";
 import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";
 import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
 import { writeAdminAuditLog } from "@/lib/admin/audit-enterprise";
@@ -19,11 +19,11 @@ function getOrigin(req: NextRequest): string {
 
 /** POST /api/sandbox/run-demo — Runs full demo: spawn employer+team (4 workers), 6 vouches, mixed traits, 1 dispute, resolve. */
 export async function POST(req: NextRequest) {
-  const guard = requireSandboxMode();
-  if (guard) return guard;
+  const guard = await sandboxAdminGuard();
+  if (!guard.allowed) return guard.response;
 
   try {
-    const adminSession = await requireSandboxV2AdminWithRole();
+    const adminSession = await getAdminSession();
     const body = await req.json().catch(() => ({}));
     let sandboxId = (body.sandboxId ?? body.sandbox_id) as string | undefined;
 
@@ -88,9 +88,9 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await serverSupabase.auth.getUser();
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await writeAdminAuditLog({
-      admin_user_id: adminSession.id,
+      admin_user_id: adminSession?.userId ?? "",
       admin_email: user?.email ?? null,
-      admin_role: adminSession.isSuperAdmin ? "superadmin" : "admin",
+      admin_role: adminSession?.role === "super_admin" ? "superadmin" : "admin",
       action_type: "sandbox_run_demo",
       target_type: "system",
       target_id: sandboxId,
