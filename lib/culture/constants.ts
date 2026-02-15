@@ -71,4 +71,16 @@ export type PeerWorkstyleSignalKey = (typeof PEER_WORKSTYLE_SIGNAL_KEYS)[number]
 /** Alias for PEER_WORKSTYLE_SIGNAL_KEYS. Same locked list. */
 export const PEER_WORKSTYLE_SIGNALS = PEER_WORKSTYLE_SIGNAL_KEYS;
 
+/** Pairs of workstyle signals that conflict; when both present, confidence is reduced (not punitive). */
+export const CONFLICT_PAIRS: Array<[string, string]> = [
+  ["CONSISTENT_ATTENDANCE", "FREQUENT_LATENESS"],
+  ["SHIFT_COVERING", "MISSED_CONFIRMATIONS"],
+  ["LOW_FRICTION", "REPEATED_CONFLICT"],
+  ["TEAM_POSITIVE", "ISOLATED"],
+  ["GOES_ABOVE_EXPECTATIONS", "MEETS_MINIMUM"],
+  ["GOES_ABOVE_EXPECTATIONS", "BURNOUT_PATTERN"],
+  ["HIGH_PEER_ALIGNMENT", "OUTLIER_REPORTS"],
+  ["HIGH_PEER_ALIGNMENT", "DISPUTED_VOUCHES"],
+];
+
 export const MAX_TRAITS_PER_VOTE = 3;

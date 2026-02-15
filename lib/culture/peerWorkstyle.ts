@@ -6,7 +6,7 @@
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import type { PeerWorkstyleSignalKey } from "./constants";
-import { PEER_WORKSTYLE_SIGNAL_KEYS } from "./constants";
+import { CONFLICT_PAIRS, PEER_WORKSTYLE_SIGNAL_KEYS } from "./constants";
 
 const DECAY_HALFLIFE_DAYS = 365;
 const MIN_OBSERVATIONS_FOR_SIGNAL = 2;
