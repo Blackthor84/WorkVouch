@@ -6,16 +6,24 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getAdminContext, adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isSandboxRequest } from "@/lib/sandboxRequest";
+import { requireAdmin } from "@/lib/adminApiGuard";
+import { getRequestId } from "@/lib/requestContext";
+import { logAdminAction } from "@/lib/adminAudit";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const requestId = getRequestId(req);
+
   try {
     const admin = await getAdminContext();
-    if (!admin.isAdmin) return adminForbiddenResponse();
+    const guard = requireAdmin(admin);
+    if (!guard.ok) {
+      return NextResponse.json({ error: guard.error }, { status: guard.status });
+    }
 
     const supabase = getSupabaseServer();
     const url = new URL(req.url);
@@ -36,13 +44,26 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      console.error("[admin/organizations]", error);
-      return NextResponse.json({ error: "Failed to load organizations" }, { status: 500 });
+      console.error("Admin API error:", { requestId, error: error.message });
+      return NextResponse.json(
+        { error: "Internal server error" },
+        { status: 500 }
+      );
     }
 
+    logAdminAction({
+      adminId: admin.userId,
+      action: "READ",
+      resource: "ORGANIZATIONS",
+      requestId,
+    });
+
     return NextResponse.json(data ?? []);
-  } catch (e) {
-    console.error("[admin/organizations]", e);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } catch (err) {
+    console.error("Admin API error:", { requestId, err });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
