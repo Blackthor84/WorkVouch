@@ -15,11 +15,8 @@ export default function ConstructionCareerPage() {
             Hiring risk in construction is real: jobsite safety, crew reliability, rehire consistency, and project stability. WorkVouch turns verified site overlap and peer validation into a defensible hiring signal—so you hire with confidence, not guesswork.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Build Your Verified Construction Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Reduce Hiring Risk in Construction
+            <Button href="/signup" variant="primary" size="lg">
+              Get Verified Work History
             </Button>
           </div>
         </section>
@@ -36,6 +33,38 @@ export default function ConstructionCareerPage() {
             <li><strong className="text-slate-800 dark:text-slate-200">Project stability</strong> — Claims about past sites, trades, and employers must be verifiable.</li>
             <li><strong className="text-slate-800 dark:text-slate-200">Trade and tenure verification</strong> — Overlap at real jobsites matters more than résumé claims.</li>
           </ul>
+        </section>
+
+        {/* Why People in This Career Use WorkVouch */}
+        <section className="mb-16 border-t border-slate-200 dark:border-slate-700 pt-12">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            Why People in This Career Use WorkVouch
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            In construction you jump from project to project and employer to employer. Past supervisors move on, companies get bought, and jobsite records disappear. When the next GC or contractor wants to verify you worked there, often nobody answers.
+          </p>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            Your trade and your time on the tools are real. Proving it shouldn&apos;t depend on a phone call that never gets returned.
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Foremen or project managers leave and your history goes with them</li>
+            <li>Short jobs or subcontracts never make it onto a formal reference</li>
+            <li>Companies merge or shut down and records are gone</li>
+            <li>Crews change every job, so nobody can confirm you were there</li>
+            <li>Your resume doesn&apos;t reflect the work you actually did</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400 mb-4 font-medium text-slate-800 dark:text-slate-200">
+            How WorkVouch helps:
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Coworkers and crew verify you actually worked on that site or for that employer</li>
+            <li>Your role, schedule, and reliability are confirmed by people who were there</li>
+            <li>Your work history stays with you from job to job</li>
+            <li>You don&apos;t miss out because a former boss won&apos;t pick up the phone</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400">
+            What you built and where you showed up shouldn&apos;t vanish when a project ends. WorkVouch helps you keep proof of the work you actually did.
+          </p>
         </section>
 
         {/* SECTION 3 — For Employees */}
@@ -107,17 +136,12 @@ export default function ConstructionCareerPage() {
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
             Own Your Reputation in Construction.
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 mb-2">
-            Stop Guessing. Start Verifying.
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            Stop guessing. Start verifying.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Create Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Employer Sign Up
-            </Button>
-          </div>
+          <Button href="/signup" variant="primary" size="lg">
+            Get Verified Work History
+          </Button>
         </section>
       </div>
     </div>

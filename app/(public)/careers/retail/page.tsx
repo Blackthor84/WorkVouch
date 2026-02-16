@@ -15,11 +15,8 @@ export default function RetailCareerPage() {
             Hiring risk in retail is real: customer experience, shift reliability, shrinkage, and turnover. WorkVouch turns verified store overlap and peer validation into a defensible hiring signal—so you hire with confidence, not guesswork.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Build Your Verified Retail Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Reduce Hiring Risk in Retail
+            <Button href="/signup" variant="primary" size="lg">
+              Get Verified Work History
             </Button>
           </div>
         </section>
@@ -36,6 +33,38 @@ export default function RetailCareerPage() {
             <li><strong className="text-slate-800 dark:text-slate-200">Cross-store verification</strong> — Claims about past employers and roles must be verifiable.</li>
             <li><strong className="text-slate-800 dark:text-slate-200">Team fit and peer sentiment</strong> — How coworkers describe reliability and teamwork matters.</li>
           </ul>
+        </section>
+
+        {/* Why People in This Career Use WorkVouch */}
+        <section className="mb-16 border-t border-slate-200 dark:border-slate-700 pt-12">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            Why People in This Career Use WorkVouch
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            In retail you move between stores, brands, and managers. Turnover is high, HR is stretched, and when you leave, often nobody follows up. The next employer wants to verify your experience, but the manager who knew you may have left or the store may have closed.
+          </p>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            Your time on the floor and your reliability are real. Proving it shouldn&apos;t depend on a callback that never comes.
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Managers or HR don&apos;t respond after you leave</li>
+            <li>Short stints or seasonal jobs disappear from reference checks</li>
+            <li>Stores close or get rebranded and records are lost</li>
+            <li>Teammates rotate constantly, so nobody can vouch for you</li>
+            <li>Your resume doesn&apos;t reflect the work you actually did</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400 mb-4 font-medium text-slate-800 dark:text-slate-200">
+            How WorkVouch helps:
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Coworkers who worked with you verify your role and time at the store</li>
+            <li>Your shifts, reliability, and teamwork are confirmed by people who were there</li>
+            <li>Your work history stays with you as you move between brands and roles</li>
+            <li>You don&apos;t lose opportunities because someone won&apos;t answer the phone</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400">
+            Your experience shouldn&apos;t disappear just because a manager moved or a store closed. WorkVouch helps you keep proof of the work you actually did.
+          </p>
         </section>
 
         {/* SECTION 3 — For Employees */}
@@ -107,17 +136,12 @@ export default function RetailCareerPage() {
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
             Own Your Reputation in Retail.
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 mb-2">
-            Stop Guessing. Start Verifying.
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            Stop guessing. Start verifying.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Create Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Employer Sign Up
-            </Button>
-          </div>
+          <Button href="/signup" variant="primary" size="lg">
+            Get Verified Work History
+          </Button>
         </section>
       </div>
     </div>

@@ -17,11 +17,8 @@ export default function SkilledTradesCareerPage() {
             from people who have worked alongside you.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Get Started
-            </Button>
-            <Button href="/login" variant="secondary" size="lg">
-              Log In
+            <Button href="/signup" variant="primary" size="lg">
+              Get Verified Work History
             </Button>
           </div>
         </section>
@@ -38,6 +35,38 @@ export default function SkilledTradesCareerPage() {
             <li><strong className="text-slate-800 dark:text-slate-200">Credential gaps</strong> — Licenses alone don&apos;t show actual performance.</li>
             <li><strong className="text-slate-800 dark:text-slate-200">Trust-based hiring</strong> — Word-of-mouth is common but difficult to verify.</li>
           </ul>
+        </section>
+
+        {/* Why People in This Career Use WorkVouch */}
+        <section className="mb-16 border-t border-slate-200 dark:border-slate-700 pt-12">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            Why People in This Career Use WorkVouch
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            In skilled trades you move from job to job, crew to crew, sometimes with no paper trail. Side work and cash jobs never show up on a W-2. The foreman who knew your work quits or the shop closes, and the next employer has no way to verify you actually ran that job or had those skills.
+          </p>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            Your hands-on experience is real. You shouldn&apos;t have to depend on someone else&apos;s file cabinet or memory to prove it.
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Informal crews and side jobs leave no official record</li>
+            <li>Shops close or get sold and nobody keeps your work history</li>
+            <li>Foremen and lead hands move on and your proof goes with them</li>
+            <li>Cash or 1099 work never appears on a standard reference check</li>
+            <li>Your real skills and hours don&apos;t match what&apos;s on paper</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400 mb-4 font-medium text-slate-800 dark:text-slate-200">
+            How WorkVouch helps:
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Coworkers and leads who worked beside you confirm you were there and what you did</li>
+            <li>Your role, skills, and reliability are backed by people who saw it on the job</li>
+            <li>Your work history stays with you even when the company or crew is gone</li>
+            <li>You don&apos;t lose the next job because a former boss won&apos;t answer or has no records</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400">
+            Your experience is real even when the paperwork disappears. WorkVouch helps you keep proof of the work you actually did.
+          </p>
         </section>
 
         {/* SECTION 3 — What Employers Need to Verify */}
@@ -106,14 +135,12 @@ export default function SkilledTradesCareerPage() {
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
             Build a verified work history that speaks for itself
           </h2>
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Create Your Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Learn More
-            </Button>
-          </div>
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            Your experience is real even when the paperwork disappears.
+          </p>
+          <Button href="/signup" variant="primary" size="lg">
+            Get Verified Work History
+          </Button>
         </section>
       </div>
     </div>

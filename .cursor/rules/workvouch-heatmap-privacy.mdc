@@ -1,0 +1,47 @@
+---
+description: Privacy-safe heat map and location analytics — no city/ZIP/coordinates; aggregation only
+globs: app/api/analytics/**/*.ts, components/**/admin/**/*.tsx, lib/analytics/**/*.ts, supabase/migrations/*analytics*.sql
+alwaysApply: false
+---
+
+# WorkVouch Heat Map & Location Privacy
+
+Scope: **Analytics heat map, geography, and location features**. Enforce so heat map builds trust without exposing individuals (App Store, Google Play, SOC2).
+
+## HARD CONSTRAINTS (NON-NEGOTIABLE)
+
+- **NO** city-level location in analytics or heat map.
+- **NO** ZIP / postal code / precise coordinates (latitude, longitude).
+- **NO** real-time tracking or per-user location exposure.
+- **NO** storing raw IP addresses (hashed only).
+- **NO** pins, dots, or zoom to city level on maps.
+
+## ALLOWED LOCATION DATA
+
+- **Country** (always).
+- **U.S. state** only (e.g. `region` when `country = 'US'`).
+- Persist only: `country: string`, `state?: string`. Never persist city, zip, lat, long.
+
+## API RULES
+
+- Heat map endpoint: **GET /api/analytics/heatmap** must return **aggregated counts only**.
+- Response shape: `{ country: string; state?: string; count: number }[]`.
+- Never return per-user rows or identifiable location.
+- Enforce a minimum count threshold (e.g. &lt;5 → hide or "Low activity").
+- Before returning: validate no row contains city, zip, latitude, longitude; if any do, log critical and return safe response (e.g. empty).
+
+## UI RULES
+
+- **Mandatory disclaimer**: "Locations are approximate and shown in aggregate to protect user privacy."
+- Do not render pins/dots, allow city-level zoom, or animate real-time activity.
+- Public/marketing: country-level only. Authenticated dashboard: country + U.S. state aggregation only.
+
+## DATABASE
+
+- Do not insert or update `city`, zip, or coordinates in analytics/session tables.
+- Use DB triggers or constraints to null disallowed location fields on write if present.
+
+## FAILURE MODE
+
+- If location data unavailable: return empty aggregation; do not guess or infer.
+- If counts too small: hide or mask; never fail open.

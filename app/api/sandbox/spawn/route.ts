@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   const getOrCreateSandboxId = async (): Promise<string> => {
     const listRes = await fetch(`${origin}/api/admin/sandbox-v2/sessions`, { headers: { cookie } });
     const listData = await listRes.json().catch(() => ({}));
-    const sessions = (listData as { data?: { id: string; status?: string }[] }).data;
+    const sessions = (listData as { sessions?: { id: string; status?: string }[] }).sessions ?? (listData as { data?: { id: string; status?: string }[] }).data;
     const active = Array.isArray(sessions) ? sessions.find((s) => s.status === "active") : undefined;
     if (active?.id) return active.id;
     const createRes = await fetch(`${origin}/api/admin/sandbox-v2/sessions`, {

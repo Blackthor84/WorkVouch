@@ -1,0 +1,28 @@
+# Enforce single admin analytics route: audit log, role check, rate limit; no bypass routes.
+name: Admin analytics compliance
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "app/api/admin/analytics/**"
+      - "lib/admin/analytics-*.ts"
+      - "scripts/ci/check-admin-analytics.js"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "app/api/admin/analytics/**"
+      - "lib/admin/analytics-*.ts"
+      - "scripts/ci/check-admin-analytics.js"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run ci:admin-analytics

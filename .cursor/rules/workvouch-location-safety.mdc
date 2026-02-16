@@ -1,0 +1,68 @@
+---
+description: Heat map & location safety — canonical model, no city/ZIP/GPS; aggregation only; App Store / SOC2
+alwaysApply: true
+---
+
+# WorkVouch Location Safety (workvouch-location-safety)
+
+Scope: **Entire repo**. Heat map and any location-related code must follow this rule.
+
+## DATA MODEL (CANONICAL)
+
+**Allowed fields ONLY:**
+
+- `country: string` — ISO-2 (e.g. "US")
+- `state: string | null` — US only (e.g. "CA")
+
+**Forbidden (never store):** city, zip, latitude, longitude, GPS, raw IP, IP hash, device location.
+
+**Validation (mandatory):** If `country === "US"` then `state` is required. Invalid state → drop record.
+
+## HARD BLOCKS
+
+Cursor MUST refuse any code that:
+
+- Stores city, ZIP, GPS, lat/lng
+- Renders location pins or dots
+- Returns per-user location data
+- Zooms maps below state level
+- Stores or logs IP addresses (IP hash in session is legacy; do not add new IP storage)
+
+## REQUIRED ENFORCEMENT
+
+- Location queries MUST be aggregated (e.g. from `user_locations` by country/state).
+- Map/heat map data MUST originate from **GET /api/analytics/heatmap** (aggregated only).
+- UI MUST show disclaimer: "Locations are approximate and shown in aggregate to protect user privacy."
+- Write-time: validate US locations have state; never persist city/zip/coordinates.
+
+## AUTO-FIX BEHAVIOR
+
+If Cursor detects:
+
+- Granular location usage (city, ZIP, coordinates)
+- Per-user heat map logic
+- Forbidden fields in location tables or API responses
+
+Then Cursor MUST:
+
+1. Remove granular data
+2. Replace with aggregation (country/state only)
+3. Insert privacy-safe fallback (empty array or threshold mask)
+4. Explain the correction to the user
+
+## FAILURE & EDGE CASES
+
+| Scenario    | Behavior                    |
+|------------|-----------------------------|
+| &lt;5 users | Hide or label "Low activity" |
+| No data    | Empty map / empty array     |
+| API error  | Silent fallback (e.g. [])   |
+| Invalid state | Drop record, do not persist |
+
+## SOC2 ALIGNMENT
+
+- **Data minimization:** Only country/state.
+- **Least privilege:** Aggregated server-side only.
+- **Privacy by design:** No precise location.
+- **Logging:** No sensitive location data in logs.
+- **Disclosure:** Explicit UI disclaimer + policy text.

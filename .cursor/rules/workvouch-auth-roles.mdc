@@ -1,0 +1,81 @@
+---
+description: Auth and role enforcement for WorkVouch — resolve auth before logic, 401/403 never throw, admin/employer guards, log failures
+globs: app/api/**/*.ts
+alwaysApply: false
+---
+
+# workvouch-auth-roles
+
+Scope: **`/app/api/**`, `middleware.ts`, auth utilities.** Enforce correct authentication, authorization, and role enforcement — especially on admin routes.
+
+## PURPOSE
+
+- Guarantee auth and role checks before any business logic.
+- Prevent privilege escalation, accidental admin exposure, App Store rejection, and SOC2 audit failures.
+
+## AUTHENTICATION RULES
+
+**Required**
+
+- Every API route MUST explicitly determine: **Is the user authenticated?** and **What role does the user have?**
+- Auth MUST be resolved **before** business logic runs.
+
+**Forbidden**
+
+- Assuming a user exists.
+- Accessing `user.id` (or similar) without a null check.
+- Trusting client-provided role flags.
+- Using **throw** for auth failures.
+
+## ROLE ENFORCEMENT
+
+**Canonical role model:** `"user"` | `"employer"` | `"admin"` (and project-specific variants like `superadmin`).
+
+- **`/api/admin/**`**: MUST require admin; MUST return **403** if role is insufficient.
+- **`/api/employer/**`**: MUST require employer where applicable.
+- **Public routes**: MUST explicitly allow unauthenticated access (no silent assumption of auth).
+
+## REQUIRED AUTH PATTERN
+
+Enforce this structure (adapt to project helpers e.g. `getAuth`, `requireAdminForApi`):
+
+```ts
+const auth = await getAuth(req)
+if (!auth.user) {
+  return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } })
+}
+if (!auth.roles.includes("admin")) {
+  return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { "Content-Type": "application/json" } })
+}
+```
+
+## FAILURE HANDLING
+
+- **Never:** `throw new Error("Unauthorized")` (or similar) for auth failures.
+- **Always:** Return **401** or **403** with a JSON body and log with `console.warn`.
+
+## LOGGING REQUIREMENTS
+
+All auth failures MUST log:
+
+```ts
+console.warn("[AUTH]", { route: req.url, reason })
+```
+
+## AUTOFIX BEHAVIOR
+
+If you detect:
+
+- Admin route without role enforcement
+- Role checks after DB queries
+- Auth checks missing entirely
+
+Then:
+
+1. Insert auth logic at the **top** of the handler.
+2. Enforce the correct role for that path.
+3. Downgrade any crashes to safe HTTP responses (401/403/500 with JSON).
+
+## OBJECTIVE
+
+Prevent privilege escalation, accidental admin exposure, App Store rejection, and SOC2 audit failures.

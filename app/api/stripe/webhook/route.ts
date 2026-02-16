@@ -91,6 +91,69 @@ async function resetUsageForCustomer(stripeCustomerId: string, periodEnd: Date):
   }
 }
 
+/** Upsert finance_subscriptions for MRR/ARR. Never throws. */
+async function upsertFinanceSubscription(
+  stripeCustomerId: string,
+  subscription: Stripe.Subscription,
+  employerId?: string
+): Promise<void> {
+  try {
+    const adminSupabase = getSupabaseServer();
+    let employer_id = employerId;
+    if (!employer_id) {
+      const { data: row } = await adminSupabase
+        .from("employer_accounts")
+        .select("id")
+        .eq("stripe_customer_id", stripeCustomerId)
+        .maybeSingle();
+      employer_id = (row as { id?: string } | null)?.id ?? null;
+    }
+    if (!employer_id) return;
+    const plan = getTierFromSubscription(subscription);
+    const status = subscription.status ?? "active";
+    const item = subscription.items?.data?.[0]?.price;
+    const monthlyAmountCents = item?.recurring?.interval === "year"
+      ? Math.round((item.unit_amount ?? 0) / 12)
+      : (item?.unit_amount ?? 0);
+    await adminSupabase.from("finance_subscriptions").upsert(
+      {
+        employer_id,
+        stripe_customer_id: stripeCustomerId,
+        stripe_sub_id: subscription.id,
+        plan,
+        status,
+        monthly_amount_cents: monthlyAmountCents,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "stripe_sub_id" }
+    );
+  } catch (e) {
+    console.error("[Stripe Webhook] upsertFinanceSubscription error:", e);
+  }
+}
+
+/** Record paid invoice to finance_payments (revenue truth). Never throws. */
+async function recordFinancePayment(invoice: Stripe.Invoice): Promise<void> {
+  try {
+    const subId =
+      typeof invoice.subscription === "string"
+        ? invoice.subscription
+        : (invoice.subscription as { id?: string } | undefined)?.id;
+    if (!subId) return;
+    const adminSupabase = getSupabaseServer();
+    const paidAt = (invoice as { status_transitions?: { paid_at?: number } }).status_transitions?.paid_at;
+    await adminSupabase.from("finance_payments").insert({
+      stripe_subscription_id: subId,
+      stripe_invoice_id: invoice.id ?? null,
+      amount_cents: invoice.amount_paid ?? 0,
+      currency: (invoice.currency ?? "usd").toLowerCase(),
+      paid_at: paidAt ? new Date(paidAt * 1000).toISOString() : new Date().toISOString(),
+    });
+  } catch (e) {
+    console.error("[Stripe Webhook] recordFinancePayment error:", e);
+  }
+}
+
 /** Log webhook event for idempotency. Returns true if already processed. */
 async function logStripeEvent(
   eventId: string,
@@ -182,6 +245,7 @@ export async function POST(req: NextRequest) {
                 .update({ stripe_customer_id: customerId })
                 .eq("id", employerId);
               await updateEmployerFromSubscription(customerId, subscription, { employerId });
+              await upsertFinanceSubscription(customerId, subscription, employerId);
             } else if (supabaseUserId) {
               const { data: employer } = await adminSupabase
                 .from("employer_accounts")
@@ -214,6 +278,7 @@ export async function POST(req: NextRequest) {
         try {
           const customerId = subscription.customer as string;
           await updateEmployerFromSubscription(customerId, subscription);
+          await upsertFinanceSubscription(customerId, subscription);
         } catch (e) {
           console.error(`[Stripe Webhook] ${event.type}:`, e);
         }
@@ -238,6 +303,7 @@ export async function POST(req: NextRequest) {
           typeof invoiceAny.subscription === "string"
             ? invoiceAny.subscription
             : (invoiceAny.subscription as unknown as { id?: string } | undefined)?.id;
+        await recordFinancePayment(invoice);
         if (subscriptionId) {
           try {
             const subscription = await stripe.subscriptions.retrieve(subscriptionId);

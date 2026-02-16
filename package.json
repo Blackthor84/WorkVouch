@@ -11,8 +11,9 @@
     "generate:types": "node --loader ts-node/esm scripts/generate-types.ts || npx tsx scripts/generate-types.ts",
     "sandbox:sync-features": "node scripts/sync-sandbox-feature-registry.js",
     "test": "vitest run",
-    "test:watch": "vitest"
-  },
+"test:watch": "vitest",
+    "ci:admin-analytics": "node scripts/ci/check-admin-analytics.js"
+},
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@prisma/client": "^6.19.2",

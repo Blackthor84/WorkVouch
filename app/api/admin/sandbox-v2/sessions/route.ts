@@ -80,7 +80,7 @@ export async function GET() {
     const { id: userId, isSuperAdmin } = await requireSandboxV2AdminWithRole();
     if (!userId) {
       console.error("Sessions GET failure:", { stage: "auth", error: "No user id" });
-      return NextResponse.json(structuredError(false, "Not authenticated"), { status: 401 });
+      return Response.json({ sessions: [], sandbox: true }, { status: 401 });
     }
 
     const supabase = getServiceRoleClient();
@@ -97,18 +97,17 @@ export async function GET() {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Supabase error:", error);
-      return NextResponse.json({ success: false, error: String(error?.message ?? error) }, { status: 500 });
+      console.error("Sandbox sessions error:", error);
+      return Response.json({ sessions: [], sandbox: true }, { status: 500 });
     }
 
-    const result = Array.isArray(data) ? data : (data ?? []);
-    console.log("SUPABASE RAW DATA:", JSON.stringify(data, null, 2));
-    return NextResponse.json({ success: true, data: result });
+    const sessions = Array.isArray(data) ? data : (data != null ? [data] : []);
+    return Response.json({ sessions, sandbox: true });
   } catch (err: unknown) {
-    console.error("Sessions GET failure:", { stage: "server_crash", err });
+    console.error("Sandbox sessions error:", err);
     const msg = err instanceof Error ? err.message : String(err);
-    if (msg === "Unauthorized") return NextResponse.json(structuredError(false, msg), { status: 401 });
-    if (msg.startsWith("Forbidden")) return NextResponse.json(structuredError(false, msg), { status: 403 });
-    return NextResponse.json(structuredError(false, msg), { status: 500 });
+    if (msg === "Unauthorized") return Response.json({ sessions: [], sandbox: true }, { status: 401 });
+    if (msg.startsWith("Forbidden")) return Response.json({ sessions: [], sandbox: true }, { status: 403 });
+    return Response.json({ sessions: [], sandbox: true }, { status: 500 });
   }
 }

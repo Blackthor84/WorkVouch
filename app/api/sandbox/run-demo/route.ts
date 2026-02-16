@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     if (!sandboxId) {
       const sessionsRes = await fetch(`${origin}/api/admin/sandbox-v2/sessions`, { headers: { cookie } });
       const sessionsData = await sessionsRes.json().catch(() => ({}));
-      const sessions = (sessionsData as { data?: { id: string }[] }).data;
+      const sessions = (sessionsData as { sessions?: { id: string }[] }).sessions ?? (sessionsData as { data?: { id: string }[] }).data;
       if (Array.isArray(sessions) && sessions.length > 0) {
         sandboxId = sessions[0]?.id;
       }

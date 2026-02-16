@@ -1,0 +1,90 @@
+---
+description: Database safety for WorkVouch — guarded reads/writes, limits, try/catch, no blind deletes, null checks
+globs: app/api/**/*.ts
+alwaysApply: false
+---
+
+# workvouch-database-safety
+
+Scope: **All database access, `/app/api/**`.** Make DB access predictable, guarded, and crash-proof (Supabase, Prisma, or other).
+
+## PURPOSE
+
+Prevent data leaks, silent crashes, corrupt records, and SOC2 red flags. Keep WorkVouch app-store safe and audit-ready.
+
+## FORBIDDEN DATABASE BEHAVIOR
+
+- Queries without auth context where the route is protected.
+- Writes without role or ownership checks.
+- Unbounded reads (e.g. `findMany()` or `.select()` with no limit).
+- Blind deletes (no ownership/role check, no logging).
+- Assuming records exist (using `result` without null/empty check).
+- Running DB queries **outside** try/catch.
+
+## REQUIRED DATABASE PATTERNS
+
+**Always wrap DB access in try/catch**
+
+```ts
+try {
+  const result = await db.query()
+  // use result
+} catch (error) {
+  console.error("[DB ERROR]", error)
+  return Response.json({ error: "Database error" }, { status: 500 })
+}
+```
+
+**Guard reads**
+
+- Add **pagination**, **limits**, and **ownership filters** where appropriate.
+- Example pattern: `findMany({ where: { userId }, take: 50 })` or Supabase `.eq("user_id", userId).limit(50)`.
+
+**Guard writes**
+
+- Writes MUST: verify ownership or role, validate inputs.
+- Example: `if (record.userId !== auth.user.id) return Response.json({ error: "Forbidden" }, { status: 403 })`.
+
+## NULL & EMPTY HANDLING
+
+- **Never:** `const user = await db.user.findFirst(); user.id` (unsafe).
+- **Always:** Check for null/empty and return 404 or safe response:
+
+```ts
+if (!user) {
+  return Response.json({ error: "Not Found" }, { status: 404 })
+}
+```
+
+## TRANSACTIONS
+
+- Multi-step DB operations that must succeed or fail together MUST use transactions (or equivalent). Prefer converting chained writes into a single transactional flow.
+
+## DATA LOSS PREVENTION
+
+Deletes MUST:
+
+- Prefer **soft deletes** when possible.
+- Require **elevated roles** or ownership.
+- **Log** deletion intent: `console.warn("[DELETE]", { model, id, actor })`.
+
+## AUTOFIX BEHAVIOR
+
+If you detect:
+
+- Unguarded DB queries
+- Missing limits on list queries
+- Writes before auth
+- Possible null dereference
+
+Then:
+
+1. Insert auth/ownership guards.
+2. Add limits and filters.
+3. Wrap in try/catch.
+4. Prevent destructive actions (e.g. blind delete).
+5. Preserve functionality.
+
+## OBJECTIVE
+
+Prevent data leaks, silent crashes, corrupt records, and SOC2 red flags. With API Safety + Auth & Roles + DB Safety, WorkVouch stays app-store safe, audit-ready, hard to misuse, hard to break, and easy to scale.

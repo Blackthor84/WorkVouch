@@ -42,6 +42,12 @@ type AnalyticsTab =
 
 type JourneyItem = { type: "page_view"; at: string; path: string; referrer?: string } | { type: "event"; at: string; event_type: string; metadata?: unknown };
 
+type HeatmapRow = {
+  country: string;
+  state: string | null;
+  count: number;
+};
+
 function JourneysSearch() {
   const [sessionId, setSessionId] = useState("");
   const [userId, setUserId] = useState("");
@@ -159,6 +165,9 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
   const [abuseData, setAbuseData] = useState<AbuseData | null>(null);
   const [realtime, setRealtime] = useState<{ activeVisitors: number; sandboxActive: number; productionActive: number; recentPageViews: { path: string; is_sandbox: boolean; at: string }[] } | null>(null);
   const [heatmapData, setHeatmapData] = useState<{ data: HeatmapRow[]; message?: string } | null>(null);
+  const [platformHealth, setPlatformHealth] = useState<Record<string, unknown> | null>(null);
+  const [roleView, setRoleView] = useState<"admin" | "sales" | "marketing" | "ops" | "support" | "finance">("admin");
+  const [allowedViews, setAllowedViews] = useState<string[]>(["admin"]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const sseRef = useRef<EventSource | null>(null);
@@ -212,11 +221,21 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
 
   useEffect(() => {
     if (activeTab !== "overview") return;
-    fetch("/api/admin/analytics", { credentials: "same-origin" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => d && setPlatformHealth(d))
+    const params = new URLSearchParams({ view: roleView });
+    fetch(`/api/admin/analytics?${params}`, { credentials: "same-origin" })
+      .then((r) => {
+        if (!r.ok) return null;
+        return r.json();
+      })
+      .then((d) => {
+        if (d) {
+          setPlatformHealth(d);
+          if (Array.isArray(d.allowedViews)) setAllowedViews(d.allowedViews);
+          if (d.view) setRoleView(d.view as "admin" | "sales" | "marketing" | "ops");
+        } else setPlatformHealth(null);
+      })
       .catch(() => setPlatformHealth(null));
-  }, [activeTab]);
+  }, [activeTab, roleView]);
 
   useEffect(() => {
     if (!data) return;
@@ -345,20 +364,42 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
 
       {activeTab === "overview" && (
         <>
-          {platformHealth != null && (
-            <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-              <h2 className="mb-3 text-lg font-semibold text-slate-900">Platform health (aggregated)</h2>
-              <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-7">
-                <div><p className="text-xs text-slate-500">Total users</p><p className="text-xl font-semibold">{platformHealth.totalUsers}</p></div>
-                <div><p className="text-xs text-slate-500">Total employers</p><p className="text-xl font-semibold">{platformHealth.totalEmployers}</p></div>
-                <div><p className="text-xs text-slate-500">Active users (30d)</p><p className="text-xl font-semibold">{platformHealth.activeUsers}</p></div>
-                <div><p className="text-xs text-slate-500">References submitted</p><p className="text-xl font-semibold">{platformHealth.totalReferences}</p></div>
-                <div><p className="text-xs text-slate-500">Verification rate</p><p className="text-xl font-semibold">{platformHealth.verificationRate}%</p></div>
-                <div><p className="text-xs text-slate-500">Countries active</p><p className="text-xl font-semibold">{platformHealth.countriesActive}</p></div>
-                <div><p className="text-xs text-slate-500">US states active</p><p className="text-xl font-semibold">{platformHealth.statesActive}</p></div>
-              </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 className="mb-3 text-lg font-semibold text-slate-900">Role-based metrics</h2>
+            <div className="mb-3 border-b border-slate-200">
+              <nav className="flex gap-2" aria-label="Analytics view by role">
+                {(["admin", "sales", "marketing", "ops", "support", "finance"] as const).map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setRoleView(v)}
+                    disabled={!allowedViews.includes(v)}
+                    className={`border-b-2 py-1.5 px-2 text-sm font-medium ${roleView === v ? "border-[#2563EB] text-[#2563EB]" : "border-transparent text-slate-600 hover:text-slate-900"} disabled:opacity-50 disabled:cursor-not-allowed`}
+                    aria-current={roleView === v ? "true" : undefined}
+                  >
+                    {v.charAt(0).toUpperCase() + v.slice(1)}
+                  </button>
+                ))}
+              </nav>
             </div>
-          )}
+            {platformHealth != null ? (
+              <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+                {Object.entries(platformHealth)
+                  .filter(([k]) => k !== "view" && k !== "allowedViews")
+                  .map(([key, value]) => (
+                    <div key={key}>
+                      <p className="text-xs text-slate-500">{key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase())}</p>
+                      <p className="text-xl font-semibold text-slate-900">{typeof value === "number" ? value : String(value ?? "—")}</p>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">Loading…</p>
+            )}
+            <p className="mt-3 text-xs text-slate-500 border-t border-slate-100 pt-3">
+              All analytics are shown in aggregate to protect user privacy.
+            </p>
+          </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
               <p className="text-sm font-medium text-slate-500">Real-time (5 min)</p>

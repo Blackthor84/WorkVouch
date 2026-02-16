@@ -15,11 +15,8 @@ export default function LawEnforcementCareerPage() {
             Hiring risk in law enforcement is high: public trust, discipline history, shift reliability, and rehire eligibility matter. WorkVouch turns verified agency overlap and peer validation into a defensible hiring signal—so departments hire with confidence, not guesswork.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Build Your Verified Law Enforcement Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Reduce Hiring Risk in Law Enforcement
+            <Button href="/signup" variant="primary" size="lg">
+              Get Verified Work History
             </Button>
           </div>
         </section>
@@ -36,6 +33,38 @@ export default function LawEnforcementCareerPage() {
             <li><strong className="text-slate-800 dark:text-slate-200">Rehire eligibility</strong> — Knowing whether prior agencies would rehire is critical.</li>
             <li><strong className="text-slate-800 dark:text-slate-200">Cross-agency verification</strong> — Claims about past departments, sheriffs, or corrections must be confirmed.</li>
           </ul>
+        </section>
+
+        {/* Why People in This Career Use WorkVouch */}
+        <section className="mb-16 border-t border-slate-200 dark:border-slate-700 pt-12">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            Why People in This Career Use WorkVouch
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            In law enforcement you move between agencies, units, and roles. When you leave a department, HR may be swamped or policy may limit what they can say. The next agency wants to verify your service and conduct, but the chain of command that knew you may have changed or the records may be hard to access.
+          </p>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            Your service record and your reliability are real. Proving it shouldn&apos;t depend on a callback that never comes or red tape that blocks the request.
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Departments or HR don&apos;t respond or are limited in what they can share</li>
+            <li>Details about assignments or units don&apos;t show up on a standard check</li>
+            <li>Agencies merge or restructure and records are hard to track down</li>
+            <li>Partners and supervisors rotate, so the people who knew you may be gone</li>
+            <li>Your resume doesn&apos;t reflect the work you actually did</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400 mb-4 font-medium text-slate-800 dark:text-slate-200">
+            How WorkVouch helps:
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Peers who served with you verify your role and time at the agency</li>
+            <li>Your tenure, assignments, and reliability are confirmed by people who were there</li>
+            <li>Your work history stays with you across departments and roles</li>
+            <li>You don&apos;t lose opportunities because someone won&apos;t answer the phone or release information</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400">
+            Your experience shouldn&apos;t disappear just because a department restructures or a contact retires. WorkVouch helps you keep proof of the work you actually did.
+          </p>
         </section>
 
         {/* SECTION 3 — For Employees */}
@@ -107,17 +136,12 @@ export default function LawEnforcementCareerPage() {
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
             Own Your Reputation in Law Enforcement.
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 mb-2">
-            Stop Guessing. Start Verifying.
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            Stop guessing. Start verifying.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Create Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Employer Sign Up
-            </Button>
-          </div>
+          <Button href="/signup" variant="primary" size="lg">
+            Get Verified Work History
+          </Button>
         </section>
       </div>
     </div>

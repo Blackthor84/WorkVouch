@@ -15,11 +15,8 @@ export default function EducationCareerPage() {
             Hiring risk in education is real: student safety, classroom performance, reputation protection, and rehire eligibility. WorkVouch turns verified school overlap and peer validation into a defensible hiring signal—so you hire with confidence, not guesswork.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Build Your Verified Education Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Reduce Hiring Risk in Education
+            <Button href="/signup" variant="primary" size="lg">
+              Get Verified Work History
             </Button>
           </div>
         </section>
@@ -36,6 +33,38 @@ export default function EducationCareerPage() {
             <li><strong className="text-slate-800 dark:text-slate-200">Rehire eligibility</strong> — Knowing whether prior schools would rehire is critical.</li>
             <li><strong className="text-slate-800 dark:text-slate-200">Cross-district verification</strong> — Claims about past schools and roles must be confirmed.</li>
           </ul>
+        </section>
+
+        {/* Why People in This Career Use WorkVouch */}
+        <section className="mb-16 border-t border-slate-200 dark:border-slate-700 pt-12">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            Why People in This Career Use WorkVouch
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            In education you move between schools, districts, and roles. Principals change, HR is overwhelmed, and substitute or short-term positions often fall through the cracks. When a new school wants to verify your experience, the person who knew you may be gone.
+          </p>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            Your time in the classroom and with students is real. You shouldn&apos;t have to rely on someone returning a call to prove it.
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Administrators or HR don&apos;t respond after you leave a school</li>
+            <li>Sub or one-year positions don&apos;t get written into formal references</li>
+            <li>Districts reorganize and records are hard to track down</li>
+            <li>Fellow teachers and staff rotate, so nobody can confirm you were there</li>
+            <li>Your resume doesn&apos;t reflect the work you actually did</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400 mb-4 font-medium text-slate-800 dark:text-slate-200">
+            How WorkVouch helps:
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Colleagues who worked with you verify your role and time at the school</li>
+            <li>Your tenure, role, and reliability are confirmed by peers who were there</li>
+            <li>Your work history stays with you across districts and roles</li>
+            <li>You don&apos;t lose opportunities because someone won&apos;t answer the phone</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400">
+            Your experience shouldn&apos;t disappear just because a school restructures or a principal moves on. WorkVouch helps you keep proof of the work you actually did.
+          </p>
         </section>
 
         {/* SECTION 3 — For Employees */}
@@ -107,17 +136,12 @@ export default function EducationCareerPage() {
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
             Own Your Reputation in Education.
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 mb-2">
-            Stop Guessing. Start Verifying.
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            Stop guessing. Start verifying.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Create Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Employer Sign Up
-            </Button>
-          </div>
+          <Button href="/signup" variant="primary" size="lg">
+            Get Verified Work History
+          </Button>
         </section>
       </div>
     </div>

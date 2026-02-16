@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const getOrCreateSandboxId = async (): Promise<string> => {
     const listRes = await fetch(`${origin}/api/admin/sandbox-v2/sessions`, { headers: { cookie } });
     const listData = await listRes.json().catch(() => ({}));
-    const sessions = (listData as { data?: { id: string; status?: string }[] }).data;
+    const sessions = (listData as { sessions?: { id: string; status?: string }[] }).sessions ?? (listData as { data?: { id: string; status?: string }[] }).data;
     const active = Array.isArray(sessions) ? sessions.find((s) => s.status === "active") : undefined;
     if (active?.id) return active.id;
     const createRes = await fetch(`${origin}/api/admin/sandbox-v2/sessions`, {
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({ name: "Sandbox Co" }),
     });
     const createData = await createRes.json().catch(() => ({}));
-    const id = (createData as { data?: { id?: string } }).data?.id;
+    const id = (createData as { data?: { id?: string } }).data?.id ?? (createData as { id?: string }).id;
     if (!id) throw new Error((createData as { error?: string }).error ?? "Failed to create sandbox session");
     return id;
   };

@@ -1,0 +1,37 @@
+---
+description: Finance APIs and revenue — role-gated, rate-limited, audit-logged; aggregated only; no card data or Stripe IDs in UI
+globs: app/api/admin/financials/**/*.ts, app/api/stripe/**/*.ts, app/api/metrics/**/*.ts, lib/admin/requireAdmin.ts, app/admin/financials/**/*.tsx
+alwaysApply: false
+---
+
+# WorkVouch Financial Safety (workvouch-financial-safety)
+
+Scope: **Finance APIs, Stripe webhook, revenue in metrics, admin financials UI.**
+
+## FINANCE APIs MUST
+
+- Be **role-gated**: finance | admin | board (forecast/health: `requireFinanceForApi()`; board dashboard: `requireBoardForApi()`).
+- Be **rate-limited**: e.g. 60/min for view, 30/min for export.
+- Be **audit-logged**: `VIEW_FINANCIALS`, `EXPORT_FINANCIALS`, `VIEW_FORECAST`, `VIEW_CHURN_LTV`, `VIEW_BOARD_DASHBOARD` via `logAudit`. Never log dollar amounts per user, employer names, or payment IDs.
+
+## REVENUE MUST
+
+- Be **aggregated** only (totals, MRR, ARR, counts).
+- **Never** be per-user or per-employer in responses.
+- Use **Stripe webhook** as revenue truth (invoice.payment_succeeded → finance_payments).
+
+## CURSOR MUST REFUSE
+
+- Client-side revenue calculation.
+- Storing card data or full billing address (unless explicitly required).
+- Exposing Stripe subscription IDs or customer IDs to the UI.
+- Finance endpoints without auth, role check, rate limit, or audit log.
+
+## INVESTOR METRICS
+
+- `GET /api/metrics` and `GET /api/metrics/export` may include `totalRevenue` when `financeMetrics` flag is on. Aggregated only; no PII.
+
+## DATA MODEL (REVENUE)
+
+- `finance_subscriptions`: employer_id, stripe_customer_id, stripe_sub_id, plan, status, monthly_amount_cents. Synced from Stripe webhook.
+- `finance_payments`: stripe_subscription_id, amount_cents, currency, paid_at. Insert on invoice.payment_succeeded. No PII.

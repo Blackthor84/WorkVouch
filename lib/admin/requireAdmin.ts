@@ -140,6 +140,62 @@ export async function requireSuperAdminForApi(): Promise<AdminSession | null> {
   return requireAdminForApi();
 }
 
+const FINANCE_OR_BOARD_ROLES = ["finance", "board"] as const;
+
+/** API-safe guard: returns session if profile.role is finance, board, or admin/super_admin. Use for financials, forecast, health APIs. */
+export async function requireFinanceForApi(): Promise<AdminSession | null> {
+  const admin = await getAdminContext();
+  if (adminOrGodMode(admin)) return requireAdminForApi();
+  try {
+    const supabase = await supabaseServer();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) return null;
+    const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    if (error || !profile) return null;
+    const profileRole = String((profile as { role?: string }).role ?? "").toLowerCase();
+    if (!FINANCE_OR_BOARD_ROLES.includes(profileRole as typeof FINANCE_OR_BOARD_ROLES[number])) return null;
+    const sessionLike = { user: { ...user, id: user.id, email: user.email } };
+    return {
+      session: sessionLike,
+      user: { ...user, id: user.id, email: user.email },
+      profile: profile as AdminSession["profile"],
+      supabase,
+      userId: user.id,
+      role: profileRole,
+      isSuperAdmin: false,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** API-safe board guard: returns session if profile.role is board or admin/super_admin. Use for board dashboard only. */
+export async function requireBoardForApi(): Promise<AdminSession | null> {
+  const admin = await getAdminContext();
+  if (adminOrGodMode(admin)) return requireAdminForApi();
+  try {
+    const supabase = await supabaseServer();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) return null;
+    const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    if (error || !profile) return null;
+    const profileRole = String((profile as { role?: string }).role ?? "").toLowerCase();
+    if (profileRole !== "board") return null;
+    const sessionLike = { user: { ...user, id: user.id, email: user.email } };
+    return {
+      session: sessionLike,
+      user: { ...user, id: user.id, email: user.email },
+      profile: profile as AdminSession["profile"],
+      supabase,
+      userId: user.id,
+      role: "board",
+      isSuperAdmin: false,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function requireRole(allowedRoles: string[]): Promise<AdminSession> {
   try {
     const supabase = await supabaseServer();

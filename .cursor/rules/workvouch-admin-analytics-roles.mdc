@@ -1,0 +1,48 @@
+---
+description: Single admin analytics; role-filtered views (admin|sales|marketing|ops|support|finance); no duplicate dashboards; server-side only
+globs: app/api/admin/analytics/**/*.ts, app/api/metrics/**/*.ts, components/admin/AdminAnalyticsDashboard.tsx, lib/admin/analytics-*.ts
+alwaysApply: false
+---
+
+# WorkVouch Admin, Analytics & Investor System
+
+Scope: **Admin analytics API, metrics, export, dashboard.** One dashboard, six role views, server-side enforcement only.
+
+## ROLES (CANONICAL)
+
+admin | sales | marketing | ops | support | finance — no other roles without explicit addition.
+
+## SINGLE SOURCE OF TRUTH
+
+- **One dashboard:** `/admin/analytics`. **One endpoint:** `GET /api/admin/analytics?view=<role>`.
+- View filtering is server-side. UI must not request unauthorized views. Missing view defaults to user's role default.
+- Unauthorized access MUST return **403**. Feature-disabled views return **404**.
+
+## CURSOR MUST
+
+- Reject per-role dashboards (e.g. /admin/analytics-sales).
+- Reject duplicate analytics endpoints (e.g. /api/admin/analytics/sales).
+- Reject client-only role checks (role must be validated in API first).
+- Reject per-user analytics or PII/location in responses.
+- Auto-insert: auth check, role enforcement (canAccessView), audit logging (logAudit VIEW_ADMIN_ANALYTICS, resource admin/analytics:${view}), rate limiting (60/min/user).
+
+## API RULES
+
+- Authenticate user → validate role → validate view → enforce role→view mapping → aggregate only → rate limit → log audit → fail closed.
+- No per-user rows, no names/emails/IDs, no city or precise location. Country + U.S. state only.
+- Feature flags (analyticsV2, financeMetrics, investorExport) evaluated server-side; disabled = 404.
+
+## UI RULES
+
+- Tabs: Admin | Sales | Marketing | Ops | Support | Finance. Disabled when view not in API `allowedViews`.
+- Mandatory disclaimer: "All analytics are shown in aggregate to protect user privacy."
+- No duplicate dashboards; shared layout and components.
+
+## INVESTOR
+
+- `GET /api/metrics` — read-only, aggregated, screenshot-safe.
+- `GET /api/metrics/export` — deck-ready JSON, no internal identifiers, gated by investorExport flag.
+
+## CI
+
+- CI MUST fail if: admin analytics lacks audit logging, role checks missing, rate limiting absent, or new analytics endpoints bypass /api/admin/analytics.

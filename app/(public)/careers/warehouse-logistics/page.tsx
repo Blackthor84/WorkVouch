@@ -15,11 +15,8 @@ export default function WarehouseLogisticsPage() {
             Hiring risk in warehouse and logistics is real: safety, reliability, throughput, and turnover. WorkVouch turns verified facility overlap and peer validation into a defensible hiring signal—so you hire with confidence, not guesswork.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Build Your Verified Warehouse & Logistics Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Reduce Hiring Risk in Warehouse & Logistics
+            <Button href="/signup" variant="primary" size="lg">
+              Get Verified Work History
             </Button>
           </div>
         </section>
@@ -36,6 +33,38 @@ export default function WarehouseLogisticsPage() {
             <li><strong className="text-slate-800 dark:text-slate-200">Cross-facility verification</strong> — Claims about past warehouses, carriers, and employers must be verifiable.</li>
             <li><strong className="text-slate-800 dark:text-slate-200">Peer sentiment and teamwork</strong> — How coworkers describe reliability and safety focus matters.</li>
           </ul>
+        </section>
+
+        {/* Why People in This Career Use WorkVouch */}
+        <section className="mb-16 border-t border-slate-200 dark:border-slate-700 pt-12">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            Why People in This Career Use WorkVouch
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            In warehouse and logistics you move between facilities, carriers, and shifts. Temp agencies and employers often don&apos;t keep records long-term. When the next hiring manager wants to verify you worked there, the supervisor may be gone or the system may have no record of you.
+          </p>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            Your experience on the floor or on the road is real. You shouldn&apos;t have to rely on someone digging through old files to prove it.
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Supervisors or staffing agencies don&apos;t respond after you leave</li>
+            <li>Short assignments or peak-season work don&apos;t show up on a standard check</li>
+            <li>Facilities close or carriers merge and records disappear</li>
+            <li>Crews and leads rotate, so nobody can confirm you were there</li>
+            <li>Your resume doesn&apos;t reflect the work you actually did</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400 mb-4 font-medium text-slate-800 dark:text-slate-200">
+            How WorkVouch helps:
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Coworkers who worked with you verify your role and time at the facility</li>
+            <li>Your schedule, reliability, and safety record are confirmed by people who were there</li>
+            <li>Your work history stays with you from job to job</li>
+            <li>You don&apos;t miss out because a former employer won&apos;t pick up the phone</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400">
+            Your experience shouldn&apos;t disappear just because a company shuts down or a manager moves on. WorkVouch helps you keep proof of the work you actually did.
+          </p>
         </section>
 
         {/* SECTION 3 — For Employees */}
@@ -107,17 +136,12 @@ export default function WarehouseLogisticsPage() {
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
             Own Your Reputation in Warehouse & Logistics.
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 mb-2">
-            Stop Guessing. Start Verifying.
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            Stop guessing. Start verifying.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Create Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Employer Sign Up
-            </Button>
-          </div>
+          <Button href="/signup" variant="primary" size="lg">
+            Get Verified Work History
+          </Button>
         </section>
       </div>
     </div>

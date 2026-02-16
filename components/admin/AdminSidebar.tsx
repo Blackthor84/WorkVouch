@@ -19,6 +19,8 @@ interface AdminSidebarProps {
   isSuperAdmin: boolean;
   /** When true, show only: Dashboard, Users, Sandbox, Audit Logs, Playground. */
   isSandbox?: boolean;
+  /** When true, show Financials nav (finance | admin). */
+  showFinancials?: boolean;
 }
 
 const nav = {
@@ -61,6 +63,8 @@ const nav = {
   Alerts: [{ href: "/admin/alerts", label: "Alerts" }],
   Incidents: [{ href: "/admin/incidents", label: "Incidents" }],
   AuditLogs: [{ href: "/admin/audit-logs", label: "Audit Logs" }],
+  Financials: [{ href: "/admin/financials", label: "Financials" }],
+  Board: [{ href: "/admin/board", label: "Board" }],
   SystemSettings: [{ href: "/admin/system", label: "System Settings" }],
 };
 
@@ -75,7 +79,7 @@ const sandboxNav = {
   AuditLogs: nav.AuditLogs,
 };
 
-export function AdminSidebar({ isSuperAdmin, isSandbox = false }: AdminSidebarProps) {
+export function AdminSidebar({ isSuperAdmin, isSandbox = false, showFinancials = false, showBoard = false }: AdminSidebarProps) {
   const pathname = usePathname();
 
   const section = (title: string, items: { href: string; label: string }[]) => (
@@ -131,6 +135,8 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false }: AdminSidebarPr
               {section("Alerts", nav.Alerts)}
               {section("Incidents", nav.Incidents)}
               {section("Audit Logs", nav.AuditLogs)}
+              {showFinancials && section("Financials", nav.Financials)}
+              {showBoard && section("Board", nav.Board)}
               {isSuperAdmin && section("System Settings", nav.SystemSettings)}
             </>
           )}

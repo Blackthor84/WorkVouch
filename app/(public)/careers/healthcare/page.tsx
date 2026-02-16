@@ -15,11 +15,8 @@ export default function HealthcareCareerPage() {
             Hiring risk in healthcare is real: patient safety, licensing credibility, shift reliability, and burnout-driven turnover. WorkVouch turns verified clinical overlap and peer validation into a defensible hiring signal—so you hire with confidence, not guesswork.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Build Your Verified Healthcare Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Reduce Hiring Risk in Healthcare
+            <Button href="/signup" variant="primary" size="lg">
+              Get Verified Work History
             </Button>
           </div>
         </section>
@@ -36,6 +33,38 @@ export default function HealthcareCareerPage() {
             <li><strong className="text-slate-800 dark:text-slate-200">Burnout turnover</strong> — High churn makes tenure and rehire signals critical.</li>
             <li><strong className="text-slate-800 dark:text-slate-200">Cross-facility consistency</strong> — Verifying overlap across hospitals, clinics, and agencies reduces resume inflation.</li>
           </ul>
+        </section>
+
+        {/* Why People in This Career Use WorkVouch */}
+        <section className="mb-16 border-t border-slate-200 dark:border-slate-700 pt-12">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            Why People in This Career Use WorkVouch
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            In healthcare you move between facilities, agencies, and shifts. When you leave a job, HR often doesn&apos;t return calls. Your years of experience can disappear when the next employer tries to verify you.
+          </p>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            It&apos;s hard to prove where you really worked and who you worked with. WorkVouch gives you a way to carry that proof with you.
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Employers or HR don&apos;t respond after you leave</li>
+            <li>Short-term or per-diem roles don&apos;t show up on a standard check</li>
+            <li>Staffing agencies lose records or go out of business</li>
+            <li>Charge nurses and coworkers rotate constantly, so nobody&apos;s left to vouch for you</li>
+            <li>Your resume says one thing, but there&apos;s no way to prove it</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400 mb-4 font-medium text-slate-800 dark:text-slate-200">
+            How WorkVouch helps:
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Coworkers who actually worked with you verify your role and overlap</li>
+            <li>Your shifts, units, and reliability get confirmed by peers, not just your word</li>
+            <li>Your work history stays with you even when a facility closes or a manager moves on</li>
+            <li>You don&apos;t lose opportunities because someone won&apos;t answer the phone</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400">
+            Your experience shouldn&apos;t disappear just because a company restructures or a supervisor leaves. WorkVouch helps you keep proof of the work you actually did.
+          </p>
         </section>
 
         {/* SECTION 3 — For Employees */}
@@ -107,17 +136,12 @@ export default function HealthcareCareerPage() {
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
             Own Your Reputation in Healthcare.
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 mb-2">
-            Stop Guessing. Start Verifying.
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            Stop guessing. Start verifying.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Create Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Employer Sign Up
-            </Button>
-          </div>
+          <Button href="/signup" variant="primary" size="lg">
+            Get Verified Work History
+          </Button>
         </section>
       </div>
     </div>

@@ -22,6 +22,8 @@ export type AdminContext = {
   userId: string;
   email: string;
   roles: AdminRole[];
+  /** Resolved role from auth or profiles.role (e.g. admin, super_admin, finance). */
+  profileRole: string;
   isAdmin: boolean;
   isSuperAdmin: boolean;
   isSandbox: boolean;
@@ -95,6 +97,7 @@ export async function getAdminContext(): Promise<AdminContext> {
       userId: user.id,
       email: user.email ?? "",
       roles,
+      profileRole: role,
       isAdmin,
       isSuperAdmin,
       isSandbox: sandbox,

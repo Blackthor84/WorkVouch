@@ -42,7 +42,8 @@ export default async function AdminLayout({
     redirect("/login");
   }
   const sessionLike = { user: { role: admin.isSuperAdmin ? "SUPERADMIN" : admin.isAdmin ? "ADMIN" : "USER" }, godMode: admin.godMode };
-  if (!admin.isAdmin && !isGodMode(sessionLike)) {
+  const canAccessAdmin = admin.isAdmin || admin.profileRole === "finance" || isGodMode(sessionLike);
+  if (!canAccessAdmin) {
     redirect("/dashboard");
   }
 
@@ -60,7 +61,12 @@ export default async function AdminLayout({
         isSandbox={admin.isSandbox}
       />
       <div className={`min-h-screen flex ${admin.isSandbox ? "bg-amber-50/50" : "bg-[#F8FAFC]"}`}>
-        <AdminSidebar isSuperAdmin={admin.isSuperAdmin} isSandbox={admin.isSandbox} />
+        <AdminSidebar
+        isSuperAdmin={admin.isSuperAdmin}
+        isSandbox={admin.isSandbox}
+        showFinancials={admin.isAdmin || admin.profileRole === "finance" || admin.profileRole === "board"}
+        showBoard={admin.isAdmin || admin.profileRole === "board"}
+      />
         <main className="flex-1 min-h-screen overflow-auto text-[#0F172A]">
           {children}
         </main>

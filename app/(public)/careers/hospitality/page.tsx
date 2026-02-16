@@ -15,11 +15,8 @@ export default function HospitalityCareerPage() {
             Hiring risk in hospitality is real: guest experience, shift reliability, turnover, and team chemistry. WorkVouch turns verified hotel and restaurant overlap and peer validation into a defensible hiring signal—so you hire with confidence, not guesswork.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Build Your Verified Hospitality Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Reduce Hiring Risk in Hospitality
+            <Button href="/signup" variant="primary" size="lg">
+              Get Verified Work History
             </Button>
           </div>
         </section>
@@ -36,6 +33,38 @@ export default function HospitalityCareerPage() {
             <li><strong className="text-slate-800 dark:text-slate-200">Cross-property verification</strong> — Claims about past hotels, restaurants, and venues must be verifiable.</li>
             <li><strong className="text-slate-800 dark:text-slate-200">Peer sentiment and teamwork</strong> — How coworkers describe reliability and customer focus matters.</li>
           </ul>
+        </section>
+
+        {/* Why People in This Career Use WorkVouch */}
+        <section className="mb-16 border-t border-slate-200 dark:border-slate-700 pt-12">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            Why People in This Career Use WorkVouch
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            In hospitality you move between hotels, restaurants, and seasons. Managers change, properties get sold, and when you leave, reference requests often go nowhere. The next employer wants to know you showed up and did the work, but the person who could say so may have moved on.
+          </p>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            Your experience with guests and your reliability are real. Proving it shouldn&apos;t depend on a callback that never comes.
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Managers or HR don&apos;t respond after you leave</li>
+            <li>Seasonal or short-term roles don&apos;t show up on a standard check</li>
+            <li>Properties change hands and records are lost</li>
+            <li>Staff rotates constantly, so nobody can vouch for you</li>
+            <li>Your resume doesn&apos;t reflect the work you actually did</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400 mb-4 font-medium text-slate-800 dark:text-slate-200">
+            How WorkVouch helps:
+          </p>
+          <ul className="space-y-2 text-slate-600 dark:text-slate-400 list-disc list-inside mb-6">
+            <li>Coworkers who worked with you verify your role and time at the property</li>
+            <li>Your shifts, reliability, and guest focus are confirmed by people who were there</li>
+            <li>Your work history stays with you as you move between venues and roles</li>
+            <li>You don&apos;t lose opportunities because someone won&apos;t answer the phone</li>
+          </ul>
+          <p className="text-slate-600 dark:text-slate-400">
+            Your experience shouldn&apos;t disappear just because a manager left or a property was sold. WorkVouch helps you keep proof of the work you actually did.
+          </p>
         </section>
 
         {/* SECTION 3 — For Employees */}
@@ -107,17 +136,12 @@ export default function HospitalityCareerPage() {
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
             Own Your Reputation in Hospitality.
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 mb-2">
-            Stop Guessing. Start Verifying.
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
+            Stop guessing. Start verifying.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
-            <Button href="/signup?type=employee" variant="primary" size="lg">
-              Create Profile
-            </Button>
-            <Button href="/signup" variant="secondary" size="lg">
-              Employer Sign Up
-            </Button>
-          </div>
+          <Button href="/signup" variant="primary" size="lg">
+            Get Verified Work History
+          </Button>
         </section>
       </div>
     </div>

@@ -1,0 +1,75 @@
+---
+description: API safety and structure for WorkVouch — App Router, Response.json only, no React/RSC, admin try/catch, stubs, health route
+globs: app/api/**/*
+alwaysApply: false
+---
+
+# workvouch-api-safety
+
+Scope: **All files under `app/api/**`**. Cursor MUST enforce these rules when creating or editing API routes.
+
+## STRUCTURAL ENFORCEMENT
+
+- **Required**: Next.js App Router structure → `app/api/**/route.ts` only.
+- **FORBIDDEN** under `app/api/**`: `page.ts`, `layout.ts`, `template.ts`, `export.ts`, **default exports**.
+- If an API file is not named `route.ts`, refactor it to the correct route and name.
+
+## RESPONSE FORMAT
+
+- **NEVER**: return JSX, React components, or plain objects.
+- **ALWAYS** return:
+  - `Response.json(...)` **or**
+  - `new Response(JSON.stringify(...), { headers: { "Content-Type": "application/json" } })`
+- Treat any React Flight / RSC payload in an API response as a critical failure; fix immediately.
+
+## REACT & RSC PREVENTION
+
+- API routes **MUST NOT** import `react`, `next/link`, or `next/navigation`.
+- API routes are **pure server logic only**.
+
+## ADMIN ROUTE SAFETY (`/api/admin/**`)
+
+- Wrap all logic in **try/catch**.
+- Log errors with **console.error**.
+- Return only these HTTP responses: **401 Unauthorized**, **403 Forbidden**, **500** (last resort).
+- **NEVER** throw uncaught errors; always catch and return a Response.
+
+## STUB-FIRST DEVELOPMENT
+
+- If backend logic is incomplete, **return stubbed JSON**; do not leave routes unimplemented.
+- Example: `return Response.json({ status: "stub", ok: true })`.
+
+## QUERY & BODY HANDLING
+
+- **GET**: use `new URL(req.url).searchParams`; do **not** access `req.body`.
+- **POST/PUT**: use `await req.json()` and **validate input** before use.
+
+## ERROR & STATUS RULES
+
+- **404** = route missing (not for runtime logic).
+- **500** = unexpected internal failure only; **auth failures must NEVER return 500**.
+- Downgrade crashes to safe JSON responses when possible.
+
+## DEBUGGING REQUIREMENTS
+
+- Every API route MUST include: `console.log("[API HIT]", req.url)` (or equivalent request log).
+- Every **catch** block MUST include: `console.error("[API ERROR]", error)`.
+
+## SANITY ENDPOINT
+
+- Project MUST contain **`app/api/health/route.ts`**. Do not remove or break this route.
+
+## AUTOFIX BEHAVIOR
+
+If you detect RSC payloads in API responses, JSX under `app/api/**`, or missing HTTP method exports:
+
+1. Refactor into `route.ts` with correct path.
+2. Convert output to `Response.json(...)`.
+3. Wrap logic in try/catch.
+4. Preserve functionality.
+5. Do not ask for permission; apply the fix.
+
+## RULE VIOLATION POLICY
+
+- If a user request **conflicts** with this rule: **refuse the change**, explain why, and propose a **compliant alternative**.
+- **Primary objective**: Keep WorkVouch’s API layer boring, predictable, compliance-safe, and app-store-ready.

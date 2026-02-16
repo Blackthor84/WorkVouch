@@ -1,6 +1,6 @@
 /**
- * GET /api/metrics — investor-safe aggregated metrics (read-only).
- * No auth required. No PII. Revenue included when financeMetrics flag is on.
+ * GET /api/metrics/export — investor deck–ready JSON. Chart-safe, no internal IDs, no per-user timestamps.
+ * Gated by investorExport feature flag (404 when disabled). Aggregated only.
  */
 
 import { NextResponse } from "next/server";
@@ -13,9 +13,13 @@ export const runtime = "nodejs";
 const SEVEN_DAYS_AGO = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
 export async function GET() {
+  const flags = getAnalyticsFeatureFlags();
+  if (!flags.investorExport) {
+    return NextResponse.json({ error: "Not Found" }, { status: 404 });
+  }
+
   try {
     const supabase = getSupabaseServer();
-    const flags = getAnalyticsFeatureFlags();
 
     const [
       profilesRes,
@@ -42,7 +46,7 @@ export async function GET() {
     const totalRecords = typeof recordsRes.count === "number" ? recordsRes.count : 0;
     const verifiedRecords = typeof verifiedRes.count === "number" ? verifiedRes.count : 0;
     const verificationRate = totalRecords === 0 ? 0 : Math.round((verifiedRecords / totalRecords) * 100);
-    const referencesPerUser = users === 0 ? "0" : (references / users).toFixed(2);
+    const referencesPerUser = users === 0 ? 0 : Math.round((references / users) * 100) / 100;
 
     const countries = new Set<string>();
     const statesSet = new Set<string>();
@@ -59,24 +63,37 @@ export async function GET() {
         const cents = (payments ?? []).reduce((s: number, r: { amount_cents?: number }) => s + (r.amount_cents ?? 0), 0);
         totalRevenue = Math.round(cents / 100 * 100) / 100;
       } catch {
-        // Table may not exist; omit revenue
+        // omit if table missing
       }
     }
 
-    const body: Record<string, unknown> = {
+    const metrics: Record<string, unknown> = {
       users,
       weeklyActive,
       employers,
-      referencesPerUser: parseFloat(referencesPerUser),
+      referencesPerUser,
       verificationRate,
       statesActive: statesSet.size,
       countriesActive: countries.size,
     };
-    if (totalRevenue !== undefined) body.totalRevenue = totalRevenue;
+    if (totalRevenue !== undefined) metrics.totalRevenue = totalRevenue;
 
-    return NextResponse.json(body);
+    const payload = {
+      metrics,
+      charts: {
+        adoption: { users, weeklyActive, employers },
+        trust: { verificationRate, referencesPerUser },
+        reach: { statesActive: statesSet.size, countriesActive: countries.size },
+      },
+    };
+
+    return NextResponse.json(payload, {
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+      },
+    });
   } catch (e) {
-    console.error("[METRICS ERROR]", e);
+    console.error("[METRICS EXPORT ERROR]", e);
     return NextResponse.json({ error: "Unavailable" }, { status: 503 });
   }
 }

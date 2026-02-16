@@ -1,0 +1,33 @@
+---
+description: Analytics endpoints must log audit events; UI must show disclaimer and block zoom below state
+globs: app/api/analytics/**/*.ts, components/analytics/**/*.tsx, lib/soc2-audit.ts
+alwaysApply: false
+---
+
+# WorkVouch Audit & Analytics (workvouch-audit-and-analytics)
+
+Scope: **Analytics API routes and analytics UI components.**
+
+## ANALYTICS ENDPOINTS — REQUIRED
+
+Any analytics endpoint MUST:
+
+1. **Log an audit event** (e.g. via `logAudit` from `@/lib/soc2-audit`) with action and resource. Example: `VIEW_HEATMAP`, resource `analytics/heatmap`. Never log location values, IP, user names/emails, or raw request bodies.
+2. **Return aggregated data only.** No per-user rows, no identifiable location.
+
+## UI — REQUIRED
+
+- **Display privacy disclaimer:** "Locations are approximate and shown in aggregate to protect user privacy."
+- **Block zoom below state:** No city-level zoom; no pins/dots; no coordinates.
+- **No real-time updates** or "new users" animation for location data.
+
+## CURSOR MUST REFUSE
+
+- Per-user analytics responses
+- Location detail rendering (city, ZIP, coordinates, pins)
+- Analytics endpoints that do not call the audit logger
+- Map or heat map UI that allows zoom below state or shows city labels
+
+## SOC2 AUDIT LOG
+
+- Use `logAudit({ actorId?, action, resource, metadata? })` from `@/lib/soc2-audit`. Append-only; never crash the app on log failure. Do not put PII or location in metadata.
