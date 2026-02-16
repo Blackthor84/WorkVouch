@@ -18,6 +18,7 @@ import {
   getTimezone,
   getIsVpn,
 } from "@/lib/analytics/privacy";
+import { upsertUserLocationFromGeo } from "@/lib/analytics/user-location";
 import { getEnvironmentForServer } from "@/lib/app-mode";
 import { cookies } from "next/headers";
 
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
           browser: browser ?? null,
           country: geo.country,
           region: geo.region,
-          city: geo.city,
+          city: null, // Privacy: never persist city-level data (heat map is country/state only)
           timezone: timezone ?? null,
           asn: null,
           isp: null,
@@ -139,6 +140,10 @@ export async function POST(req: NextRequest) {
 
     const { maybeRecordRapidRefresh } = await import("@/lib/analytics/abuse");
     void maybeRecordRapidRefresh(supabase, session_id, is_sandbox);
+
+    if (user_id && geo?.country) {
+      void upsertUserLocationFromGeo(supabase, user_id, geo.country, geo.region ?? null);
+    }
 
     const res = NextResponse.json({ ok: true });
     if (!cookieStore.get(SESSION_COOKIE)?.value) {

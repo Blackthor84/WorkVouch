@@ -158,6 +158,7 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
   const [funnelsData, setFunnelsData] = useState<FunnelsData | null>(null);
   const [abuseData, setAbuseData] = useState<AbuseData | null>(null);
   const [realtime, setRealtime] = useState<{ activeVisitors: number; sandboxActive: number; productionActive: number; recentPageViews: { path: string; is_sandbox: boolean; at: string }[] } | null>(null);
+  const [heatmapData, setHeatmapData] = useState<{ data: HeatmapRow[]; message?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const sseRef = useRef<EventSource | null>(null);
@@ -210,6 +211,14 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
   }, [env]);
 
   useEffect(() => {
+    if (activeTab !== "overview") return;
+    fetch("/api/admin/analytics", { credentials: "same-origin" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setPlatformHealth(d))
+      .catch(() => setPlatformHealth(null));
+  }, [activeTab]);
+
+  useEffect(() => {
     if (!data) return;
     fetchErrors();
   }, [data, env]);
@@ -218,6 +227,14 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
     if (activeTab === "funnels") fetchFunnels();
     if (activeTab === "abuse") fetchAbuse();
   }, [activeTab, env]);
+
+  useEffect(() => {
+    if (activeTab !== "geography") return;
+    fetch("/api/analytics/heatmap?state=true")
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => d && setHeatmapData({ data: d.data ?? [], message: d.message }))
+      .catch(() => setHeatmapData({ data: [] }));
+  }, [activeTab]);
 
   // SSE: only open when realtime tab is active; always close on tab change or unmount to avoid leaks.
   useEffect(() => {
@@ -328,6 +345,20 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
 
       {activeTab === "overview" && (
         <>
+          {platformHealth != null && (
+            <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <h2 className="mb-3 text-lg font-semibold text-slate-900">Platform health (aggregated)</h2>
+              <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-7">
+                <div><p className="text-xs text-slate-500">Total users</p><p className="text-xl font-semibold">{platformHealth.totalUsers}</p></div>
+                <div><p className="text-xs text-slate-500">Total employers</p><p className="text-xl font-semibold">{platformHealth.totalEmployers}</p></div>
+                <div><p className="text-xs text-slate-500">Active users (30d)</p><p className="text-xl font-semibold">{platformHealth.activeUsers}</p></div>
+                <div><p className="text-xs text-slate-500">References submitted</p><p className="text-xl font-semibold">{platformHealth.totalReferences}</p></div>
+                <div><p className="text-xs text-slate-500">Verification rate</p><p className="text-xl font-semibold">{platformHealth.verificationRate}%</p></div>
+                <div><p className="text-xs text-slate-500">Countries active</p><p className="text-xl font-semibold">{platformHealth.countriesActive}</p></div>
+                <div><p className="text-xs text-slate-500">US states active</p><p className="text-xl font-semibold">{platformHealth.statesActive}</p></div>
+              </div>
+            </div>
+          )}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
               <p className="text-sm font-medium text-slate-500">Real-time (5 min)</p>
@@ -417,20 +448,45 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
       )}
 
       {activeTab === "geography" && (
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="mb-3 text-lg font-semibold text-slate-900">Visitor map (by country)</h2>
-          {o.visitorMap.length === 0 ? (
-            <p className="text-sm text-slate-500">No geo data in window</p>
-          ) : (
-            <ul className="space-y-1 text-sm max-h-96 overflow-auto">
-              {o.visitorMap.map(({ country, count }) => (
-                <li key={country} className="flex justify-between">
-                  <span className="font-medium">{country === "unknown" ? "(unknown)" : country}</span>
-                  <span className="text-slate-500">{count}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+        <div className="space-y-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 className="mb-3 text-lg font-semibold text-slate-900">Visitor map (last 24h, by country)</h2>
+            {o.visitorMap.length === 0 ? (
+              <p className="text-sm text-slate-500">No geo data in window</p>
+            ) : (
+              <ul className="space-y-1 text-sm max-h-64 overflow-auto">
+                {o.visitorMap.map(({ country, count }) => (
+                  <li key={country} className="flex justify-between">
+                    <span className="font-medium">{country === "unknown" ? "(unknown)" : country}</span>
+                    <span className="text-slate-500">{count}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 className="mb-3 text-lg font-semibold text-slate-900">Adoption (aggregate, country + U.S. state)</h2>
+            {heatmapData === null ? (
+              <p className="text-sm text-slate-500">Loading…</p>
+            ) : heatmapData.data.length === 0 ? (
+              <p className="text-sm text-slate-500">No aggregate data or counts below threshold</p>
+            ) : (
+              <ul className="space-y-1 text-sm max-h-64 overflow-auto">
+                {heatmapData.data.map((row, i) => (
+                  <li key={`${row.country}-${row.state ?? ""}-${i}`} className="flex justify-between">
+                    <span className="font-medium">
+                      {row.country === "unknown" ? "(unknown)" : row.country}
+                      {row.state ? ` — ${row.state}` : ""}
+                    </span>
+                    <span className="text-slate-500">{row.count}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="text-xs text-slate-500 border-t border-slate-100 pt-3 mt-3">
+              Locations are approximate and shown in aggregate to protect user privacy.
+            </p>
+          </div>
         </div>
       )}
 

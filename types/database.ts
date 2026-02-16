@@ -979,6 +979,60 @@ export interface Database {
         }
         Relationships: []
       }
+      user_locations: {
+        Row: {
+          id: string
+          user_id: string
+          country: string
+          state: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          country: string
+          state?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          country?: string
+          state?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      soc2_audit_log: {
+        Row: {
+          id: string
+          actor_id: string | null
+          action: string
+          resource: string
+          metadata: unknown
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          actor_id?: string | null
+          action: string
+          resource: string
+          metadata?: unknown
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          actor_id?: string | null
+          action?: string
+          resource?: string
+          metadata?: unknown
+          created_at?: string
+        }
+        Relationships: []
+      }
       site_events: {
         Row: {
           id: string
