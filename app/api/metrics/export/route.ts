@@ -59,8 +59,10 @@ export async function GET() {
     let totalRevenue: number | undefined;
     if (flags.financeMetrics) {
       try {
-        const { data: payments } = await supabase.from("finance_payments").select("amount_cents");
-        const cents = (payments ?? []).reduce((s: number, r: { amount_cents?: number }) => s + (r.amount_cents ?? 0), 0);
+        const { data: paymentsData } = await supabase.from("finance_payments").select("amount_cents");
+        type PaymentRow = { amount_cents: number | null };
+        const payments: PaymentRow[] = (paymentsData ?? []) as PaymentRow[];
+        const cents = payments.reduce((sum, row) => sum + (row.amount_cents ?? 0), 0);
         totalRevenue = Math.round(cents / 100 * 100) / 100;
       } catch {
         // omit if table missing

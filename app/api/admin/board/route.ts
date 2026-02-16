@@ -16,6 +16,9 @@ export const runtime = "nodejs";
 const SEVEN_DAYS_AGO = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 const DEFAULT_GROWTH = 0.05;
 
+type PaymentRow = { amount_cents: number | null };
+type SubscriptionRow = { monthly_amount_cents: number | null };
+
 export async function GET(req: NextRequest) {
   const session = await requireBoardForApi();
   if (!session) return adminForbiddenResponse();
@@ -69,11 +72,12 @@ export async function GET(req: NextRequest) {
       if (row.state?.trim()) statesSet.add(row.state.trim());
     }
 
-    const totalRevenueCents = (paymentsRes.data ?? []).reduce((s: number, r: { amount_cents?: number }) => s + (r.amount_cents ?? 0), 0);
+    const payments: PaymentRow[] = (paymentsRes.data ?? []) as PaymentRow[];
+    const totalRevenueCents = payments.reduce((sum, row) => sum + (row.amount_cents ?? 0), 0);
     const totalRevenue = Math.round(totalRevenueCents / 100 * 100) / 100;
 
-    const activeSubs = activeSubsRes.data ?? [];
-    const mrrCents = activeSubs.reduce((s: number, r: { monthly_amount_cents?: number }) => s + (r.monthly_amount_cents ?? 0), 0);
+    const activeSubs: SubscriptionRow[] = (activeSubsRes.data ?? []) as SubscriptionRow[];
+    const mrrCents = activeSubs.reduce((sum, row) => sum + (row.monthly_amount_cents ?? 0), 0);
     const MRR = Math.round(mrrCents / 100 * 100) / 100;
     const ARR = Math.round((mrrCents * 12) / 100 * 100) / 100;
 
@@ -88,8 +92,8 @@ export async function GET(req: NextRequest) {
     const canceled = (canceledSubsRes.data ?? []).length;
     const totalSubs = activeSubs.length + canceled;
     const churnRate = totalSubs === 0 ? 0 : Number((canceled / totalSubs).toFixed(3));
-    const arpaRows = arpaSubsRes.data ?? [];
-    const arpaCents = activeSubs.length === 0 ? 0 : arpaRows.reduce((s: number, r: { monthly_amount_cents?: number }) => s + (r.monthly_amount_cents ?? 0), 0) / activeSubs.length;
+    const arpaRows: SubscriptionRow[] = (arpaSubsRes.data ?? []) as SubscriptionRow[];
+    const arpaCents = activeSubs.length === 0 ? 0 : arpaRows.reduce((sum, row) => sum + (row.monthly_amount_cents ?? 0), 0) / activeSubs.length;
     const ARPA = Math.round(arpaCents / 100 * 100) / 100;
     const estimatedLTV = churnRate === 0 ? null : Math.round((ARPA / churnRate) * 100) / 100;
 

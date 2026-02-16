@@ -106,7 +106,7 @@ async function upsertFinanceSubscription(
         .select("id")
         .eq("stripe_customer_id", stripeCustomerId)
         .maybeSingle();
-      employer_id = (row as { id?: string } | null)?.id ?? null;
+      employer_id = (row as { id?: string } | null)?.id ?? undefined;
     }
     if (!employer_id) return;
     const plan = getTierFromSubscription(subscription);
@@ -135,10 +135,11 @@ async function upsertFinanceSubscription(
 /** Record paid invoice to finance_payments (revenue truth). Never throws. */
 async function recordFinancePayment(invoice: Stripe.Invoice): Promise<void> {
   try {
+    const inv = invoice as Stripe.Invoice & { subscription?: string | Stripe.Subscription };
     const subId =
-      typeof invoice.subscription === "string"
-        ? invoice.subscription
-        : (invoice.subscription as { id?: string } | undefined)?.id;
+      typeof inv.subscription === "string"
+        ? inv.subscription
+        : (inv.subscription as { id?: string } | undefined)?.id;
     if (!subId) return;
     const adminSupabase = getSupabaseServer();
     const paidAt = (invoice as { status_transitions?: { paid_at?: number } }).status_transitions?.paid_at;

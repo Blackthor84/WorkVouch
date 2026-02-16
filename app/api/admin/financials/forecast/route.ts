@@ -35,13 +35,14 @@ export async function GET(req: NextRequest) {
 
   try {
     const supabase = getSupabaseServer();
-    const { data: activeSubs } = await supabase
+    const { data: activeSubsData } = await supabase
       .from("finance_subscriptions")
       .select("monthly_amount_cents")
       .eq("status", "active");
 
-    const subs = activeSubs ?? [];
-    const currentMRRCents = subs.reduce((s: number, r: { monthly_amount_cents?: number }) => s + (r.monthly_amount_cents ?? 0), 0);
+    type SubscriptionRow = { monthly_amount_cents: number | null };
+    const subs: SubscriptionRow[] = (activeSubsData ?? []) as SubscriptionRow[];
+    const currentMRRCents = subs.reduce((sum, row) => sum + (row.monthly_amount_cents ?? 0), 0);
     const currentMRR = Math.round(currentMRRCents / 100 * 100) / 100;
 
     const monthlyGrowthRate =

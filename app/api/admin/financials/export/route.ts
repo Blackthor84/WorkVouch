@@ -38,15 +38,12 @@ export async function GET(req: NextRequest) {
       supabase.from("finance_subscriptions").select("monthly_amount_cents").eq("status", "active"),
     ]);
 
-    const totalRevenueCents = (paymentsRes.data ?? []).reduce(
-      (sum: number, r: { amount_cents?: number }) => sum + (r.amount_cents ?? 0),
-      0
-    );
-    const activeSubs = subsRes.data ?? [];
-    const mrrCents = activeSubs.reduce(
-      (sum: number, r: { monthly_amount_cents?: number }) => sum + (r.monthly_amount_cents ?? 0),
-      0
-    );
+    type PaymentRow = { amount_cents: number | null };
+    type SubscriptionRow = { monthly_amount_cents: number | null };
+    const payments: PaymentRow[] = (paymentsRes.data ?? []) as PaymentRow[];
+    const totalRevenueCents = payments.reduce((sum, row) => sum + (row.amount_cents ?? 0), 0);
+    const activeSubs: SubscriptionRow[] = (subsRes.data ?? []) as SubscriptionRow[];
+    const mrrCents = activeSubs.reduce((sum, row) => sum + (row.monthly_amount_cents ?? 0), 0);
 
     const payload = {
       generatedAt: new Date().toISOString(),

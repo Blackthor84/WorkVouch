@@ -46,8 +46,9 @@ export async function GET(req: NextRequest) {
     const total = active + canceled;
     const churnRate = total === 0 ? 0 : canceled / total;
 
-    const arpaRows = arpaRes.data ?? [];
-    const sumCents = arpaRows.reduce((s: number, r: { monthly_amount_cents?: number }) => s + (r.monthly_amount_cents ?? 0), 0);
+    type SubscriptionRow = { monthly_amount_cents: number | null };
+    const arpaRows: SubscriptionRow[] = (arpaRes.data ?? []) as SubscriptionRow[];
+    const sumCents = arpaRows.reduce((sum, row) => sum + (row.monthly_amount_cents ?? 0), 0);
     const arpaCents = active === 0 ? 0 : sumCents / active;
     const ARPA = Math.round(arpaCents / 100 * 100) / 100;
     const estimatedLTV = churnRate === 0 ? null : Math.round((ARPA / churnRate) * 100) / 100;
