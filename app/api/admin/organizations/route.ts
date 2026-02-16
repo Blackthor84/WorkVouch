@@ -1,6 +1,7 @@
 /**
  * GET /api/admin/organizations — list organizations (admin/super_admin). Org search by name/slug.
  * Demo orgs only when isSandboxRequest(); production never sees demo rows.
+ * Never returns 500 for expected conditions; audit logging is non-fatal.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -9,7 +10,6 @@ export const runtime = "nodejs";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isSandboxRequest } from "@/lib/sandboxRequest";
-import { requireAdmin } from "@/lib/adminApiGuard";
 import { getRequestId } from "@/lib/requestContext";
 import { logAdminAction } from "@/lib/adminAudit";
 
@@ -18,13 +18,15 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const requestId = getRequestId(req);
 
-  try {
-    const admin = await getAdminContext();
-    const guard = requireAdmin(admin);
-    if (!guard.ok) {
-      return NextResponse.json({ error: guard.error }, { status: guard.status });
-    }
+  const admin = await getAdminContext();
+  if (!admin || !admin.isAuthenticated) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!admin.isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
+  try {
     const supabase = getSupabaseServer();
     const url = new URL(req.url);
     const search = url.searchParams.get("search")?.trim() || "";
@@ -44,23 +46,31 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Admin API error:", { requestId, error: error.message });
+      console.error("[ADMIN_ORGS_ERROR] Supabase error:", error);
       return NextResponse.json(
-        { error: "Internal server error" },
+        { error: "Failed to load organizations" },
         { status: 500 }
       );
     }
 
-    logAdminAction({
-      adminId: admin.userId,
-      action: "READ",
-      resource: "ORGANIZATIONS",
-      requestId,
-    });
+    const organizations = data ?? [];
 
-    return NextResponse.json(data ?? []);
+    if (admin?.userId) {
+      try {
+        logAdminAction({
+          adminId: admin.userId,
+          action: "READ",
+          resource: "ORGANIZATIONS",
+          requestId,
+        });
+      } catch {
+        // Audit must never crash the route
+      }
+    }
+
+    return NextResponse.json(organizations);
   } catch (err) {
-    console.error("Admin API error:", { requestId, err });
+    console.error("[ADMIN_ORGS_ERROR]", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
