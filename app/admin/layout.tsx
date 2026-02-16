@@ -7,6 +7,11 @@ import { AdminGlobalBar } from "@/components/admin/AdminGlobalBar";
 import { GodModeBanner } from "@/components/admin/GodModeBanner";
 import { isGodMode } from "@/lib/auth/isGodMode";
 import { isSandboxEnv } from "@/lib/sandbox/env";
+import {
+  canAccessAdminArea,
+  canViewFinancials,
+  canViewBoard,
+} from "@/lib/adminPermissions";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -42,8 +47,13 @@ export default async function AdminLayout({
     redirect("/login");
   }
   const sessionLike = { user: { role: admin.isSuperAdmin ? "SUPERADMIN" : admin.isAdmin ? "ADMIN" : "USER" }, godMode: admin.godMode };
-  const canAccessAdmin = admin.isAdmin || admin.profileRole === "finance" || isGodMode(sessionLike);
-  if (!canAccessAdmin) {
+  const allowed =
+    canAccessAdminArea({
+      isAdmin: admin.isAdmin,
+      isSuperAdmin: admin.isSuperAdmin,
+      profileRole: admin.profileRole,
+    }) || isGodMode(sessionLike);
+  if (!allowed) {
     redirect("/dashboard");
   }
 
@@ -62,11 +72,19 @@ export default async function AdminLayout({
       />
       <div className={`min-h-screen flex ${admin.isSandbox ? "bg-amber-50/50" : "bg-[#F8FAFC]"}`}>
         <AdminSidebar
-        isSuperAdmin={admin.isSuperAdmin}
-        isSandbox={admin.isSandbox}
-        showFinancials={admin.isAdmin || admin.profileRole === "finance" || admin.profileRole === "board"}
-        showBoard={admin.isAdmin || admin.profileRole === "board"}
-      />
+          isSuperAdmin={admin.isSuperAdmin}
+          isSandbox={admin.isSandbox}
+          showFinancials={canViewFinancials({
+            isAdmin: admin.isAdmin,
+            isSuperAdmin: admin.isSuperAdmin,
+            profileRole: admin.profileRole,
+          })}
+          showBoard={canViewBoard({
+            isAdmin: admin.isAdmin,
+            isSuperAdmin: admin.isSuperAdmin,
+            profileRole: admin.profileRole,
+          })}
+        />
         <main className="flex-1 min-h-screen overflow-auto text-[#0F172A]">
           {children}
         </main>

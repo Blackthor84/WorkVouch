@@ -42,6 +42,7 @@ const UNAUTHORIZED_CONTEXT: AdminContext = {
   userId: "",
   email: "",
   roles: ["user"],
+  profileRole: "user",
   isAdmin: false,
   isSuperAdmin: false,
   isSandbox: resolveSandbox(),

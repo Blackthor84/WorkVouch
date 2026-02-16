@@ -18,9 +18,11 @@ function isActive(pathname: string, href: string): boolean {
 interface AdminSidebarProps {
   isSuperAdmin: boolean;
   /** When true, show only: Dashboard, Users, Sandbox, Audit Logs, Playground. */
-  isSandbox?: boolean;
-  /** When true, show Financials nav (finance | admin). */
-  showFinancials?: boolean;
+  isSandbox: boolean;
+  /** When true, show Financials nav (finance | admin | board). */
+  showFinancials: boolean;
+  /** When true, show Board nav (board | admin). */
+  showBoard: boolean;
 }
 
 const nav = {
