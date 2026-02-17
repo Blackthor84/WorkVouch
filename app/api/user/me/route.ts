@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, getCurrentUserProfile } from "@/lib/auth";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
   try {
