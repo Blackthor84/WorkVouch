@@ -14,7 +14,7 @@ import { APP_MODE } from "@/lib/app-mode";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  const admin = await getAdminContext();
+  const admin = await getAdminContext(req);
   if (APP_MODE !== "sandbox" || !admin.isSandbox) return adminForbiddenResponse();
 
   try {

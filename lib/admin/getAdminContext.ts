@@ -2,8 +2,10 @@
  * SINGLE SOURCE OF TRUTH — Admin context. Server-side only.
  * Role: Supabase Auth auth.users.raw_app_meta_data.role first, then profiles.role fallback.
  * Never use getSession() or trust cookies for role. Never throws.
+ * API routes MUST call getAdminContext(req) and pass the request.
  */
 
+import { type NextRequest } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { normalizeRole } from "@/lib/auth/normalizeRole";
 import { isAdminRole } from "@/lib/auth/roles";
@@ -55,8 +57,12 @@ const UNAUTHORIZED_CONTEXT: AdminContext = {
 /**
  * Returns the single authoritative admin context. Never throws.
  * Role: auth.app_metadata.role first (Supabase Auth as source of truth), then profiles.role fallback.
+ * API routes must pass the request: getAdminContext(req).
  */
-export async function getAdminContext(): Promise<AdminContext> {
+export async function getAdminContext(req?: NextRequest): Promise<AdminContext> {
+  if (process.env.NODE_ENV !== "production" && req == null) {
+    console.warn("getAdminContext called without request; API routes must pass req.");
+  }
   try {
     const supabase = await supabaseServer();
     const {

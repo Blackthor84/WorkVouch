@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const ent = await getEnterpriseSession();
     const supabase = getSupabaseServer();
 
-    const admin = await import("@/lib/admin/getAdminContext").then((m) => m.getAdminContext());
+    const admin = await import("@/lib/admin/getAdminContext").then((m) => m.getAdminContext(req));
     const isSuperAdmin = admin.isSuperAdmin;
     const orgIds = isSuperAdmin ? null : ent.enterpriseOwnerOrgIds;
     if (orgIds != null && orgIds.length === 0) {

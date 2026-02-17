@@ -1,7 +1,6 @@
 /**
  * GET /api/admin/organizations — list organizations (admin/super_admin). Org search by name/slug.
  * Demo orgs only when isSandboxRequest(); production never sees demo rows.
- * Diagnostic: env validation, safe Supabase use, no audit (temporarily disabled).
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -10,6 +9,8 @@ export const runtime = "nodejs";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isSandboxRequest } from "@/lib/sandboxRequest";
+import { getRequestId } from "@/lib/requestContext";
+import { logAdminAction } from "@/lib/adminAudit";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
 }
 
 export async function GET(req: NextRequest) {
-  const admin = await getAdminContext();
+  const admin = await getAdminContext(req);
   if (!admin || !admin.isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -53,23 +54,27 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Organizations query failed:", error);
+      console.error("Supabase error:", error);
       return NextResponse.json(
-        {
-          error: "Organizations query failed",
-          details: error.message,
-        },
+        { error: "Database query failed" },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
-      organizations: Array.isArray(data) ? data : [],
+    const organizations = Array.isArray(data) ? data : [];
+
+    logAdminAction({
+      adminId: admin.userId,
+      action: "READ",
+      resource: "ORGANIZATIONS",
+      requestId: getRequestId(req),
     });
+
+    return NextResponse.json({ organizations });
   } catch (err) {
-    console.error("[ADMIN_ORGS_FATAL]", err);
+    console.error("[ADMIN_API_ERROR]", err);
     return NextResponse.json(
-      { error: "Unhandled organizations failure" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

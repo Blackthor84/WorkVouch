@@ -5,7 +5,6 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getAdminRole } from "@/lib/admin";
 import { AdminRole } from "@/lib/permissions";
-import { requireAdmin } from "@/lib/adminApiGuard";
 import { getRequestId } from "@/lib/requestContext";
 import { logAdminAction } from "@/lib/adminAudit";
 
@@ -13,15 +12,13 @@ export const dynamic = "force-dynamic";
 
 /** GET: SOC-2 export only. ?type=soc2. Read-only, auditable. Other types return 400. */
 export async function GET(req: NextRequest) {
-  const requestId = getRequestId(req);
+  const admin = await getAdminContext(req);
+  if (!admin || !admin.isAdmin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   try {
-    const admin = await getAdminContext();
-    const guard = requireAdmin(admin);
-    if (!guard.ok) {
-      return NextResponse.json({ error: guard.error }, { status: guard.status });
-    }
-
+    const requestId = getRequestId(req);
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type") ?? "";
 
@@ -88,7 +85,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (err) {
-    console.error("Admin API error:", { requestId, err });
+    console.error("[ADMIN_API_ERROR]", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

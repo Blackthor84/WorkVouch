@@ -17,7 +17,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const admin = await getAdminContext();
+    const admin = await getAdminContext(req);
     if (!admin.isAdmin) return adminForbiddenResponse();
 
     const { id } = await params;
@@ -35,7 +35,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const admin = await getAdminContext();
+    const admin = await getAdminContext(req);
     if (!admin.isAdmin) return adminForbiddenResponse();
 
     const { id } = await params;

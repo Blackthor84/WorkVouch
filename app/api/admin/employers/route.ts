@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const admin = await getAdminContext();
+  const admin = await getAdminContext(req);
   if (!admin.isAdmin) return adminForbiddenResponse();
 
   try {
