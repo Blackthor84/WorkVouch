@@ -36,11 +36,8 @@ export default async function UserDashboardPage() {
     }
   }
 
-  // No server-side auth redirect — proxy protects /dashboard
   if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-[40vh]">Loading...</div>
-    );
+    redirect("/login");
   }
 
   const profile = await getCurrentUserProfile();
