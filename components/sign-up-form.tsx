@@ -62,8 +62,7 @@ export function SignUpForm() {
 
       console.log("User created:", data.user);
 
-      {
-        console.log("User created, waiting for profile and role...");
+      console.log("User created, waiting for profile and role...");
         console.log("Session:", data.session);
 
         // Wait for profile and role trigger to complete
