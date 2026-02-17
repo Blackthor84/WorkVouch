@@ -19,10 +19,7 @@ export async function GET(req: NextRequest) {
   const requestId = getRequestId(req);
 
   const admin = await getAdminContext();
-  if (!admin || !admin.isAuthenticated) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!admin.isAdmin) {
+  if (!admin || !admin.isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -33,7 +30,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from("organizations")
-      .select("id, name, slug, billing_tier, mode, demo, created_at, updated_at")
+      .select("*")
       .order("name");
 
     if (!isSandboxRequest(req)) {
@@ -68,7 +65,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json(organizations);
+    return NextResponse.json({ organizations });
   } catch (err) {
     console.error("[ADMIN_ORGS_ERROR]", err);
     return NextResponse.json(

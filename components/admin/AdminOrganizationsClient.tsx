@@ -27,7 +27,7 @@ export function AdminOrganizationsClient() {
       const res = await fetch(`/api/admin/organizations?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
-      setOrgs(Array.isArray(data) ? data : []);
+      setOrgs(Array.isArray(data) ? data : (data?.organizations ?? []));
     } catch {
       setOrgs([]);
     } finally {
