@@ -1,8 +1,7 @@
 /**
  * GET /api/employer/listing-summary
- * Returns counts for "Employees Who Listed You": total_listed, verified, pending.
- * Free tier: blur analytics beyond basic count (return counts only, no average_profile_strength).
- * Pro+: include average_profile_strength when plan allows.
+ * Returns counts for former workers who listed this employer (is_current = false only).
+ * total_listed, verified, pending, disputed. Pro+: average_profile_strength.
  */
 
 import { NextResponse } from "next/server";
@@ -51,7 +50,8 @@ export async function GET() {
     const { data: rows } = await adminSupabase
       .from("employment_records")
       .select("id, user_id, verification_status")
-      .eq("employer_id", employerId);
+      .eq("employer_id", employerId)
+      .eq("is_current", false);
 
     const list = Array.isArray(rows) ? rows : [];
     const total_listed = list.length;

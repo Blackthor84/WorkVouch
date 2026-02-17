@@ -7,6 +7,9 @@ import { TrustScoreCard } from "@/components/trust-score-card";
 import { ProfileStrengthCard } from "@/components/profile";
 import { CareerHealthDashboard } from "@/components/employee/CareerHealthDashboard";
 import { ProfileVisibilityCard } from "@/components/employee/ProfileVisibilityCard";
+import { EmployeeProfileCompletenessCard } from "@/components/employee/EmployeeProfileCompletenessCard";
+import { EmployerProfileViewCountCard } from "@/components/employee/EmployerProfileViewCountCard";
+import { AccountSafetyCard } from "@/components/employee/AccountSafetyCard";
 import { MyResumesCard } from "@/components/dashboard/MyResumesCard";
 import {
   UserCircleIcon,
@@ -100,9 +103,8 @@ export default async function UserDashboardPage() {
       : []),
   ];
 
-  // UI renders only real DB data; no mock/fake. Activity and profile stats from DB or empty state.
+  // UI renders only real DB data; no mock/fake. Activity from DB or empty state.
   const recentActivity: { id: string; message: string; time: string }[] = [];
-  const profileStats = { percent: 0, references: 0, jobs: 0 };
 
   return (
     <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-[#F8FAFC] min-w-0 overflow-x-hidden">
@@ -206,39 +208,17 @@ export default async function UserDashboardPage() {
               <ProfileVisibilityCard />
             </div>
 
-            <Card id="onboarding-profile" className="p-6">
-              <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
-                Profile completeness
-              </h3>
-              <div className="space-y-3">
-                {profileStats.percent > 0 || profileStats.references > 0 || profileStats.jobs > 0 ? (
-                  <>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-grey-medium dark:text-gray-400">
-                        Profile complete
-                      </span>
-                      <Badge variant="success">{profileStats.percent}%</Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-grey-medium dark:text-gray-400">
-                        References
-                      </span>
-                      <Badge variant="info">{profileStats.references}</Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-grey-medium dark:text-gray-400">
-                        Job history
-                      </span>
-                      <Badge variant="info">{profileStats.jobs}</Badge>
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-sm text-grey-medium dark:text-gray-400 py-2">
-                    Complete your profile to see stats
-                  </p>
-                )}
-              </div>
-            </Card>
+            <div id="onboarding-profile">
+              <EmployeeProfileCompletenessCard />
+            </div>
+
+            <div id="employer-profile-views">
+              <EmployerProfileViewCountCard />
+            </div>
+
+            <div id="account-safety">
+              <AccountSafetyCard />
+            </div>
 
             {/* Action buttons — growth-focused */}
             <Card className="p-6">

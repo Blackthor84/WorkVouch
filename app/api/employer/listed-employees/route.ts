@@ -1,6 +1,7 @@
 /**
  * GET /api/employer/listed-employees
- * Returns employees who listed this employer (employment_records.employer_id = current employer).
+ * Returns former workers who listed this employer (employment_records.employer_id = current employer).
+ * Excludes current employment (is_current === true) so only past workers are visible.
  * Respects profiles.employer_visibility. Plan-gated: free = basic; starter+ = verification + refs; pro+ = risk/profile; custom = full.
  */
 
@@ -49,7 +50,8 @@ export async function GET() {
     const { data: rows } = await adminSupabase
       .from("employment_records")
       .select("id, user_id, company_name, job_title, start_date, end_date, verification_status, created_at")
-      .eq("employer_id", employerId);
+      .eq("employer_id", employerId)
+      .eq("is_current", false);
 
     const list = Array.isArray(rows) ? rows : [];
     const userIds = [...new Set(list.map((r: { user_id: string }) => r.user_id))];

@@ -46,9 +46,16 @@ export function ProfileVisibilityCard() {
         How often employers have seen your profile in directory search results. No individual employer names are shown.
       </p>
       <ul className="mt-4 space-y-3">
-        <li className="flex justify-between text-sm">
-          <span className="text-slate-600 dark:text-slate-400">Employer searches including you</span>
-          <span className="font-medium text-slate-900 dark:text-slate-200">{stats.employerSearchCount}</span>
+        <li className="flex flex-col gap-0.5 text-sm">
+          <div className="flex justify-between">
+            <span className="text-slate-600 dark:text-slate-400">Employer profile views</span>
+            <span className="font-medium text-slate-900 dark:text-slate-200">
+              {stats.employerSearchCount > 0 ? stats.employerSearchCount : "—"}
+            </span>
+          </div>
+          {stats.employerSearchCount === 0 && (
+            <span className="text-xs text-slate-500 dark:text-slate-500">Not yet tracked. Views will appear here when employers see your profile.</span>
+          )}
         </li>
         <li className="flex flex-col gap-1 text-sm">
           <span className="text-slate-600 dark:text-slate-400">Industry types viewing</span>

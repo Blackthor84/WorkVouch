@@ -41,6 +41,9 @@ export default async function EmployerCandidatesPage() {
                 Search by Name
               </Button>
             </div>
+            {/* Restriction feedback when profile incomplete */}
+            <ProfileCompleteBanner feature="Candidate search" />
+
             {/* Candidate Search */}
             <div>
               <CandidateSearch />

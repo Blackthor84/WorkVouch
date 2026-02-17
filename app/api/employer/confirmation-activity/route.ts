@@ -96,11 +96,12 @@ export async function GET() {
     }
     const average_confirmation_time = countWithTime > 0 ? Math.round(totalMs / countWithTime / (24 * 60 * 60 * 1000)) : 0;
 
-    // Employment records linked to this employer
+    // Employment records linked to this employer (former workers only; exclude current employment)
     const { data: employmentRows } = await adminSupabase
       .from("employment_records")
       .select("id, user_id, confirmation_level, verification_status, employer_id, employer_confirmation_status")
-      .eq("employer_id", employerId);
+      .eq("employer_id", employerId)
+      .eq("is_current", false);
     const employmentList: unknown[] = Array.isArray(employmentRows) ? employmentRows : [];
     const totalLinked = employmentList.length;
 

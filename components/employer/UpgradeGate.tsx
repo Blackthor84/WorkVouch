@@ -14,8 +14,11 @@ export function UpgradeGate({ feature, className = "" }: UpgradeGateProps) {
   return (
     <Card className={`p-6 flex flex-col items-center justify-center text-center min-h-[120px] ${className}`}>
       <LockClosedIcon className="h-10 w-10 text-grey-medium dark:text-gray-500 mb-2" />
-      <p className="text-sm font-medium text-grey-dark dark:text-gray-200 mb-2">
+      <p className="text-sm font-medium text-grey-dark dark:text-gray-200 mb-1">
         {feature} is available on Lite, Pro, or Enterprise.
+      </p>
+      <p className="text-xs text-grey-medium dark:text-gray-400 mb-2">
+        Upgrade your plan to unlock this feature.
       </p>
       <Button variant="primary" size="sm" asChild>
         <Link href="/employer/upgrade">Upgrade to unlock</Link>

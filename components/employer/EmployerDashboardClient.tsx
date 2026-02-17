@@ -21,6 +21,8 @@ import { UpgradeBanner } from "@/components/employer/UpgradeBanner";
 import { UpgradeGate } from "@/components/employer/UpgradeGate";
 import { ListedEmployeesCard } from "@/components/employer/ListedEmployeesCard";
 import { EditCompanyInfo } from "@/components/employer/EditCompanyInfo";
+import { EmployerProfileCompletionCard } from "@/components/employer/EmployerProfileCompletionCard";
+import { CandidateViewHistoryCard } from "@/components/employer/CandidateViewHistoryCard";
 import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
 import { getVerticalConfig } from "@/lib/verticals/config";
 import { runSimulation } from "@/lib/simulation/engine";
@@ -308,6 +310,16 @@ export function EmployerDashboardClient({
         {/* Employees Who Listed You */}
         <div className="mt-6">
           <ListedEmployeesCard apiBaseUrl={sandboxMode ? apiBaseUrl : undefined} sandboxId={sandboxMode ? sandboxId ?? undefined : undefined} />
+        </div>
+
+        {/* Company profile completion status (name, industry, location, verification) */}
+        <div className="mt-6">
+          <EmployerProfileCompletionCard />
+        </div>
+
+        {/* Candidate view history (placeholder until tracking exists) */}
+        <div className="mt-6">
+          <CandidateViewHistoryCard />
         </div>
 
         {/* Workforce Integrity Dashboard: hidden enterprise — admin/superadmin or enterprise_intelligence_hidden only */}

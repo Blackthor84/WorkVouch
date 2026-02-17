@@ -71,6 +71,11 @@ function LoginForm() {
             required
             autoComplete="current-password"
           />
+          <p className="text-sm text-gray-600 dark:text-gray-400 -mt-1">
+            <Link href="/forgot-password" className="text-blue-600 dark:text-blue-400 hover:underline">
+              Forgot password?
+            </Link>
+          </p>
           {error && (
             <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm border border-red-200 dark:border-red-800">
               {error}

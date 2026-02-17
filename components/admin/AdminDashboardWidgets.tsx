@@ -20,7 +20,8 @@ interface AdminDashboardWidgetsProps {
 }
 
 /**
- * Situational awareness: flagged users, disputes, recent actions, sandbox status. CTAs for review and enter sandbox.
+ * Basic metrics (users, employers, employees, recent signups) and situational awareness:
+ * flagged users, disputes, recent actions, sandbox status. CTAs for review and enter sandbox.
  */
 export function AdminDashboardWidgets({
   counts,
@@ -32,7 +33,48 @@ export function AdminDashboardWidgets({
 
   return (
     <section className="mb-8">
-      <h2 className="text-lg font-semibold text-[#0F172A] mb-4">Situational awareness</h2>
+      <h2 className="text-lg font-semibold text-[#0F172A] mb-4">Basic metrics</h2>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+        <Link
+          href="/admin/users"
+          className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:border-slate-300 hover:shadow transition"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-600">Total users</span>
+            <span className="text-2xl font-bold text-[#0F172A]">{counts.totalUsers}</span>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">All profiles</p>
+        </Link>
+        <Link
+          href="/admin/organizations"
+          className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:border-slate-300 hover:shadow transition"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-600">Total employers</span>
+            <span className="text-2xl font-bold text-[#0F172A]">{counts.totalEmployers}</span>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">Employer accounts</p>
+        </Link>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-600">Total employees</span>
+            <span className="text-2xl font-bold text-[#0F172A]">{counts.totalEmployees}</span>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">Non-employer users</p>
+        </div>
+        <Link
+          href="/admin/signups"
+          className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:border-slate-300 hover:shadow transition"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-600">Recent signups</span>
+            <span className="text-2xl font-bold text-[#0F172A]">{counts.recentSignups}</span>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">Last 7 days</p>
+        </Link>
+      </div>
+
+      <h2 className="text-lg font-semibold text-[#0F172A] mb-4 mt-8">Situational awareness</h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
         <Link
           href="/admin/users?flagged=1"

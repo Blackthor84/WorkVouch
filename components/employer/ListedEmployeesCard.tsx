@@ -83,6 +83,11 @@ export function ListedEmployeesCard({ apiBaseUrl, sandboxId }: ListedEmployeesCa
           Avg profile strength: {summary.average_profile_strength}%
         </p>
       )}
+      {total === 0 && (
+        <p className="text-sm text-grey-medium dark:text-gray-400 mt-3">
+          No employees have listed your company yet. When they add you to their work history, they will appear here.
+        </p>
+      )}
     </Card>
   );
 }

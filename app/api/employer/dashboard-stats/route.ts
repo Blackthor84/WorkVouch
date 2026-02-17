@@ -29,10 +29,11 @@ export async function GET() {
     if (eaResult.error || !ea) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
     const employerId = (ea as { id: string }).id;
 
-    const { data: employmentRows } = await supabase
+    const { data: employmentRows } = await (supabase as any)
       .from("employment_records")
       .select("id, user_id, employer_confirmation_status, verification_status")
-      .eq("employer_id", employerId);
+      .eq("employer_id", employerId)
+      .eq("is_current", false);
     const employmentList = Array.isArray(employmentRows) ? employmentRows : [];
     const totalVerified = employmentList.filter(
       (r: { employer_confirmation_status?: string; verification_status?: string }) =>

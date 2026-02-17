@@ -105,8 +105,8 @@ export function ListedEmployeesPageClient({ employerId, planTier }: ListedEmploy
   if (employees.length === 0) {
     return (
       <Card className="p-8 text-center">
-        <p className="text-grey-medium dark:text-gray-400">No employees have listed your company yet.</p>
-        <p className="text-sm text-grey-medium dark:text-gray-500 mt-2">When they add your company to their work history, they will appear here.</p>
+        <p className="text-grey-medium dark:text-gray-400">No former workers listed yet.</p>
+        <p className="text-sm text-grey-medium dark:text-gray-500 mt-2">Only past employment is shown here. When someone adds your company as a previous employer (not their current job), they will appear in this list.</p>
         <Link href="/employer/dashboard">
           <Button variant="secondary" className="mt-4">Back to Dashboard</Button>
         </Link>
