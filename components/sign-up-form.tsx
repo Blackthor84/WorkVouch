@@ -41,22 +41,7 @@ export function SignUpForm() {
       if (error) throw error;
       if (!data?.user) throw new Error("Signup failed");
 
-      // Post-signup: profile insert and redirect (no second signUp call)
-      const role = userType === "employer" ? "employer" : "worker";
-      const career = userType === "employee" ? industry || null : null;
-      try {
-        const { error: profileError } = await supabase.from("profiles").insert({
-          id: data.user.id,
-          full_name: fullName.trim() || " ",
-          email: data.user.email ?? cleanEmail,
-          role,
-          industry: career,
-        });
-        if (profileError) console.error("Profile insert error:", profileError);
-      } catch (profileErr) {
-        console.error("Profile insert failed:", profileErr);
-      }
-
+      // Post-signup: redirect (profile is created by DB trigger on auth.users)
       await new Promise((r) => setTimeout(r, 1000));
 
       if (data.session) {

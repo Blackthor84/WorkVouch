@@ -44,67 +44,10 @@ export default function FixProfilePage() {
         return;
       }
 
-      // Try to create profile
-      console.log("Attempting to create profile with:", {
-        id: user.id,
-        full_name: user.user_metadata?.full_name || "User",
-        email: user.email || "",
-      });
-
-      const supabaseAny = supabase as any;
-      const { data: profile, error: profileError } = await supabaseAny
-        .from("profiles")
-        .insert([
-          {
-            id: user.id,
-            full_name: user.user_metadata?.full_name || "User",
-            email: user.email || "",
-          },
-        ])
-        .select()
-        .single();
-
-      console.log("Profile creation response:", { profile, profileError });
-
-      if (profileError) {
-        console.error("Full error details:", profileError);
-        throw new Error(
-          `Profile creation failed: ${profileError.message} (Code: ${profileError.code})`,
-        );
-      }
-
-      setMessage(`Profile created! ${JSON.stringify(profile)}`);
-
-      // Check if role exists
-      const { data: existingRole } = await supabaseAny
-        .from("user_roles")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!existingRole) {
-        const { error: roleError } = await supabaseAny
-          .from("user_roles")
-          .insert([
-            {
-              user_id: user.id,
-              role: "user",
-            },
-          ]);
-
-        if (roleError) {
-          setMessage(`Profile created but role failed: ${roleError.message}`);
-        } else {
-          setMessage("Profile and role created successfully!");
-        }
-      } else {
-        setMessage("Profile and role created successfully!");
-      }
-
-      // Redirect after 2 seconds
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 2000);
+      // Profiles are created by DB trigger on auth.users; no client-side insert.
+      setMessage(
+        "No profile found. It should be created automatically when you sign up. Try signing out and back in, or contact support if the problem persists.",
+      );
     } catch (err: any) {
       setError(err.message);
       console.error("Error:", err);

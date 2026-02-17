@@ -79,24 +79,7 @@ export default function SignupPage() {
         return;
       }
 
-      // Step 4: Insert profile ONLY after signup succeeds. id = auth user id.
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .insert({
-          id: user.id,
-          email: user.email ?? email.trim().toLowerCase(),
-          full_name: fullName.trim() || " ",
-          role: null,
-        });
-
-      if (profileError) {
-        console.error("Profile insert error:", profileError);
-        setError(profileError.message || "Could not create profile. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      // Store credentials + userId so select-role can work even if Supabase session isn't set yet (e.g. email confirm)
+      // Profile is created by DB trigger on auth.users; store credentials for select-role (e.g. after email confirm)
       try {
         sessionStorage.setItem(
           "workvouch_signup_credentials",
