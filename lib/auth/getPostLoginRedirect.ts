@@ -7,7 +7,7 @@ export type PostLoginUser = {
 
 /**
  * Central post-login redirect. Admin check must come first.
- * Admins never go through onboarding logic.
+ * Role-based: worker -> /worker/dashboard, employer -> /employer/dashboard, admin -> /admin.
  * Superadmin lands on /admin?godmode=off (God Mode is opt-in, never automatic).
  */
 export function getPostLoginRedirect(user: PostLoginUser): string {
@@ -18,5 +18,12 @@ export function getPostLoginRedirect(user: PostLoginUser): string {
   if (!user.profile_complete) {
     return "/onboarding";
   }
-  return "/dashboard";
+  const role = String(user.role ?? "").trim().toLowerCase();
+  if (role === "employer") {
+    return "/employer/dashboard";
+  }
+  if (role === "worker" || role === "user") {
+    return "/worker/dashboard";
+  }
+  return "/worker/dashboard";
 }

@@ -60,12 +60,7 @@ export default function SignupEmployerPage() {
   }
 
   if (!isSandbox) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 px-4">
-        <p className="text-gray-600 dark:text-gray-400 mb-4">Employer signup in sandbox mode requires a sandbox session.</p>
-        <Link href="/admin/sandbox-v2" className="text-blue-600 dark:text-blue-400 underline">Go to Sandbox</Link>
-      </div>
-    );
+    return null;
   }
 
   return (

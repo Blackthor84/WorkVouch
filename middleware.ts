@@ -80,6 +80,36 @@ export async function middleware(req: NextRequest) {
       data: { session },
     } = await supabase.auth.getSession();
 
+    const user = session?.user as { email_confirmed_at?: string | null } | undefined;
+    const emailVerified = Boolean(user?.email_confirmed_at);
+    const isVerifyEmailPage = path === "/verify-email";
+    const isProtectedPath =
+      path.startsWith("/dashboard") ||
+      path.startsWith("/employer") ||
+      path.startsWith("/worker") ||
+      path.startsWith("/onboarding") ||
+      path.startsWith("/fix-profile") ||
+      path.startsWith("/admin") ||
+      path.startsWith("/settings");
+
+    if (session?.user && isVerifyEmailPage && emailVerified) {
+      return NextResponse.redirect(new URL("/api/auth/redirect-destination", req.url));
+    }
+    if (session?.user && isProtectedPath && !emailVerified) {
+      return NextResponse.redirect(new URL("/verify-email", req.url));
+    }
+
+    // Role-based route protection: fetch profile once for role checks
+    let profileRole: string | null = null;
+    if (session?.user && (isAdminRoute || path.startsWith("/employer") || path.startsWith("/worker") || path.startsWith("/dashboard/worker"))) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .single();
+      profileRole = (profile?.role ?? "").trim().toLowerCase();
+    }
+
     if (isAdminRoute) {
       if (!session?.user) {
         return NextResponse.redirect(new URL("/login", req.url));
@@ -90,7 +120,26 @@ export async function middleware(req: NextRequest) {
       const allowedFull = allowlist.length > 0 && email ? allowlist.includes(email) : false;
       const allowedReadOnly = readOnlyList.length > 0 && email ? readOnlyList.includes(email) : false;
       if (!allowedFull && !allowedReadOnly && (allowlist.length > 0 || readOnlyList.length > 0)) {
-        return NextResponse.redirect(new URL("/dashboard", req.url));
+        return NextResponse.redirect(new URL("/api/auth/redirect-destination", req.url));
+      }
+      // Block /admin for non-admin roles (worker/employer must not access admin)
+      if (profileRole && profileRole !== "admin" && profileRole !== "superadmin") {
+        return NextResponse.redirect(new URL("/api/auth/redirect-destination", req.url));
+      }
+    }
+
+    // Block routes that do not match role: worker only /worker/* and /dashboard/worker, employer only /employer/*
+    const isEmployerRoute = path.startsWith("/employer");
+    const isWorkerRoute = path.startsWith("/worker") || path === "/dashboard/worker" || path.startsWith("/dashboard/worker/");
+    if (session?.user && profileRole !== null && (isEmployerRoute || isWorkerRoute)) {
+      const isAdminRole = profileRole === "admin" || profileRole === "superadmin";
+      if (!isAdminRole) {
+        if (isEmployerRoute && profileRole !== "employer") {
+          return NextResponse.redirect(new URL("/worker/dashboard", req.url));
+        }
+        if (isWorkerRoute && profileRole !== "worker" && profileRole !== "user") {
+          return NextResponse.redirect(new URL("/employer/dashboard", req.url));
+        }
       }
     }
 

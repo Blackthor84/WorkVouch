@@ -20,10 +20,11 @@ export function SignUpForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
+    if (loading) return;
 
     try {
+      setLoading(true);
+      setError(null);
       console.log("Attempting signup...");
       // Prepare metadata based on user type
       const metadata: Record<string, unknown> = {
@@ -61,6 +62,24 @@ export function SignUpForm() {
       }
 
       console.log("User created:", data.user);
+
+      // Insert profile row only after signup succeeds. Log failures; do not crash.
+      const role = userType === "employer" ? "employer" : "worker";
+      const career = userType === "employee" ? industry || null : null;
+      try {
+        const { error: profileError } = await supabase.from("profiles").insert({
+          id: data.user.id,
+          full_name: fullName.trim() || " ",
+          email: data.user.email ?? email,
+          role,
+          industry: career,
+        });
+        if (profileError) {
+          console.error("Profile insert error:", profileError);
+        }
+      } catch (profileErr) {
+        console.error("Profile insert failed:", profileErr);
+      }
 
       console.log("User created, waiting for profile and role...");
         console.log("Session:", data.session);
@@ -271,7 +290,7 @@ export function SignUpForm() {
       </div>
 
       <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Creating account..." : "Create Account"}
+        {loading ? "Creating account..." : "Sign Up"}
       </Button>
     </form>
   );

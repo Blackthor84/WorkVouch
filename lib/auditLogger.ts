@@ -13,6 +13,7 @@ export type AuditAction =
   | "email_change"
   | "profile_delete"
   | "profile_soft_delete"
+  | "account_deletion"
   | "fraud_block"
   | "dispute_resolve"
   | "employment_confirm"
