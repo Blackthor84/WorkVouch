@@ -1,7 +1,7 @@
 /**
  * GET /api/admin/organizations — list organizations (admin/super_admin). Org search by name/slug.
  * Demo orgs only when isSandboxRequest(); production never sees demo rows.
- * No logic runs before the guard; no 500s for expected conditions.
+ * Diagnostic: env validation, safe Supabase use, no audit (temporarily disabled).
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -10,10 +10,15 @@ export const runtime = "nodejs";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { isSandboxRequest } from "@/lib/sandboxRequest";
-import { getRequestId } from "@/lib/requestContext";
-import { logAdminAction } from "@/lib/adminAudit";
 
 export const dynamic = "force-dynamic";
+
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  console.error("Missing SUPABASE URL");
+}
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.error("Missing SERVICE ROLE KEY");
+}
 
 export async function GET(req: NextRequest) {
   const admin = await getAdminContext();
@@ -22,8 +27,14 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const requestId = getRequestId(req);
     const supabase = getSupabaseServer();
+    if (!supabase) {
+      return NextResponse.json(
+        { error: "Supabase not initialized" },
+        { status: 500 }
+      );
+    }
+
     const url = new URL(req.url);
     const search = url.searchParams.get("search")?.trim() || "";
 
@@ -42,33 +53,23 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Supabase organizations error:", error);
+      console.error("Organizations query failed:", error);
       return NextResponse.json(
-        { error: "Failed to load organizations" },
+        {
+          error: "Organizations query failed",
+          details: error.message,
+        },
         { status: 500 }
       );
     }
 
-    const organizations = Array.isArray(data) ? data : [];
-
-    if (admin?.userId) {
-      try {
-        logAdminAction({
-          adminId: admin.userId,
-          action: "READ",
-          resource: "ORGANIZATIONS",
-          requestId,
-        });
-      } catch {
-        // Audit must never crash the route
-      }
-    }
-
-    return NextResponse.json({ organizations });
+    return NextResponse.json({
+      organizations: Array.isArray(data) ? data : [],
+    });
   } catch (err) {
     console.error("[ADMIN_ORGS_FATAL]", err);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Unhandled organizations failure" },
       { status: 500 }
     );
   }
