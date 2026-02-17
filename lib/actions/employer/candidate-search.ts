@@ -44,14 +44,13 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
   const supabaseAny = supabase as any
 
   // Verify user is an employer
-  const { data: roles } = await supabaseAny
-    .from('user_roles')
+  const { data: profile } = await supabaseAny
+    .from('profiles')
     .select('role')
-    .eq('user_id', user.id)
-    .eq('role', 'employer')
+    .eq('id', user.id)
     .single()
 
-  if (!roles) {
+  if ((profile as { role?: string })?.role !== 'employer') {
     throw new Error('Only employers can search candidates')
   }
 
@@ -174,14 +173,13 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
   const supabaseAny = supabase as any
 
   // Verify user is an employer
-  const { data: roles } = await supabaseAny
-    .from('user_roles')
+  const { data: profile } = await supabaseAny
+    .from('profiles')
     .select('role')
-    .eq('user_id', user.id)
-    .eq('role', 'employer')
+    .eq('id', user.id)
     .single()
 
-  if (!roles) {
+  if ((profile as { role?: string })?.role !== 'employer') {
     throw new Error('Only employers can view candidate profiles')
   }
 

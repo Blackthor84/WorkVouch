@@ -32,11 +32,8 @@ export async function GET(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { data: rolesData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", id);
-    const roles = ((rolesData ?? []) as { role: string }[]).map((r) => r.role);
+    const profileRole = (profile as { role?: string }).role;
+    const roles = profileRole ? [profileRole] : [];
 
     const { data: snapshot } = await supabase
       .from("intelligence_snapshots")
@@ -123,13 +120,6 @@ export async function PATCH(
 
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-    }
-
-    // Sync role to user_roles so session reflects it
-    if (body.role !== undefined) {
-      const roleValue = (body.role === "candidate" ? "user" : body.role) as "user" | "employer" | "admin" | "superadmin";
-      await supabase.from("user_roles").delete().eq("user_id", targetUserId);
-      await supabase.from("user_roles").insert({ user_id: targetUserId, role: roleValue });
     }
 
     const { ipAddress, userAgent } = getAuditRequestMeta(req);

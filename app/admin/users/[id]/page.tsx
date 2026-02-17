@@ -43,11 +43,8 @@ export default async function AdminUserPage({
   }
 
   const row = targetProfile as unknown as ProfileRow;
-  const { data: rolesData } = await supabaseAny
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", id);
-  const userRoles = ((rolesData ?? []) as { role: string }[]).map((r) => r.role);
+  const profileRole = (row as { role?: string }).role;
+  const userRoles = profileRole ? [profileRole] : [];
 
   const { data: snapshot } = await supabaseAny
     .from("intelligence_snapshots")

@@ -1,6 +1,6 @@
 /**
  * Server-side feature flag checks for WorkVouch.
- * Role authority from user_roles via NextAuth session.
+ * Role authority from profiles.role or auth session.
  * All checks enforced server-side; never trust client-only.
  * Optional in-memory cache to avoid repeated DB calls per request (scalable).
  */

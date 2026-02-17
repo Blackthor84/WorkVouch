@@ -64,19 +64,8 @@ export async function POST(request: Request) {
       return new Response("Profile not found", { status: 404 });
     }
 
-    const { data: rolesData, error: rolesError } = await adminSupabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
-
-    if (rolesError) {
-      return NextResponse.json(
-        { error: "Failed to fetch target user roles" },
-        { status: 500 }
-      );
-    }
-
-    const targetRoles: string[] = (rolesData || []).map((r: { role: string }) => r.role);
+    const targetRole = (targetProfile as { role?: string }).role ?? "";
+    const targetRoles = targetRole ? [targetRole] : [];
 
     if (targetRoles.includes("superadmin") && !godModeEnabled) {
       return NextResponse.json(

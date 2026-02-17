@@ -14,9 +14,6 @@ export async function getAllUsers() {
     .from('profiles')
     .select(`
       *,
-      user_roles (
-        role
-      ),
       trust_scores (
         score,
         job_count,

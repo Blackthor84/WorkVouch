@@ -13,14 +13,13 @@ export async function saveCandidate(candidateId: string, notes?: string) {
   const supabaseAny = supabase as any
 
   // Verify user is an employer
-  const { data: roles } = await supabaseAny
-    .from('user_roles')
+  const { data: profile } = await supabaseAny
+    .from('profiles')
     .select('role')
-    .eq('user_id', user.id)
-    .eq('role', 'employer')
+    .eq('id', user.id)
     .single()
 
-  if (!roles) {
+  if ((profile as { role?: string })?.role !== 'employer') {
     throw new Error('Only employers can save candidates')
   }
 

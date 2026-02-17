@@ -67,10 +67,7 @@ export async function POST(request: Request) {
     );
 
     const roleValue = type === "employee" ? "user" : "employer";
-    await supabase.from("user_roles").upsert(
-      { user_id: userId, role: roleValue },
-      { onConflict: "user_id,role" }
-    );
+    await supabase.from("profiles").update({ role: roleValue }).eq("id", userId);
 
     if (type !== "employee") {
       const { data: empRow } = await supabase

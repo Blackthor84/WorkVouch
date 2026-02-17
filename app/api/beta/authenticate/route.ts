@@ -49,14 +49,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify user has beta role
-    const { data: roles } = await supabaseAny
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', profile.id)
-      .eq('role', 'beta');
-
-    if (!roles || roles.length === 0) {
+    // Verify user has beta access (profile.role or beta_expiration)
+    const hasBeta = (profile as { role?: string }).role === "beta" || (profile as { beta_expiration?: string }).beta_expiration;
+    if (!hasBeta) {
       return NextResponse.json(
         { error: "User does not have beta access" },
         { status: 403 }

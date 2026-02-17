@@ -75,16 +75,6 @@ export default function SelectRolePage() {
         return;
       }
 
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({ user_id: user.id, role: role === "employer" ? "employer" : "user" });
-
-      if (roleError) {
-        setError(roleError.message || "Could not set role.");
-        setSelecting(null);
-        return;
-      }
-
       let employerPlanTier: string | undefined;
       if (role === "employer") {
         try {

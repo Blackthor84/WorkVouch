@@ -37,11 +37,6 @@ export async function POST() {
         /* ignore */
       }
       try {
-        await supabase.from("user_roles").delete().eq("user_id", userId);
-      } catch {
-        /* ignore */
-      }
-      try {
         await supabase.from("profiles").delete().eq("id", userId);
       } catch {
         /* ignore */

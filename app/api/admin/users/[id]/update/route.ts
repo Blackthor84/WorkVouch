@@ -60,10 +60,7 @@ export async function PATCH(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const targetRole = (targetProfile.role ?? "") || (await (async () => {
-      const { data: roles } = await supabaseAny.from("user_roles").select("role").eq("user_id", targetUserId);
-      return (roles?.[0] as { role?: string })?.role ?? "";
-    })());
+    const targetRole = targetProfile.role ?? "";
     assertAdminCanModify(admin, targetUserId, targetRole, role);
 
     const previous_value = { full_name: targetProfile.full_name, role: targetProfile.role, status: targetProfile.status };
@@ -84,12 +81,6 @@ export async function PATCH(
     if (updateErr) {
       console.error("[ADMIN_UPDATE_USER] Profile update failed:", updateErr);
       return NextResponse.json({ error: updateErr.message || "Failed to update profile" }, { status: 500 });
-    }
-
-    if (role !== undefined) {
-      const roleValue = (role === "candidate" ? "user" : role) as "user" | "employer" | "admin" | "superadmin";
-      await supabaseAny.from("user_roles").delete().eq("user_id", targetUserId);
-      await supabaseAny.from("user_roles").insert({ user_id: targetUserId, role: roleValue });
     }
 
     const new_value = {

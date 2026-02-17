@@ -15,26 +15,20 @@ export async function POST(req: NextRequest) {
     const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
 
-    // Verify user has beta role
-    const { data: roles } = await supabaseAny
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .eq('role', 'beta');
+    // Verify user has beta access and check expiration
+    const { data: profile } = await supabaseAny
+      .from('profiles')
+      .select('role, beta_expiration')
+      .eq('id', userId)
+      .single();
 
-    if (!roles || roles.length === 0) {
+    const hasBeta = (profile as { role?: string })?.role === "beta" || (profile as { beta_expiration?: string })?.beta_expiration;
+    if (!hasBeta) {
       return NextResponse.json(
         { error: "User does not have beta access" },
         { status: 403 }
       );
     }
-
-    // Check if beta access is expired
-    const { data: profile } = await supabaseAny
-      .from('profiles')
-      .select('beta_expiration')
-      .eq('id', userId)
-      .single();
 
     if (profile?.beta_expiration) {
       const expirationDate = new Date(profile.beta_expiration);

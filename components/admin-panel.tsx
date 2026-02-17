@@ -10,7 +10,7 @@ interface User {
   city: string | null;
   state: string | null;
   created_at: string;
-  user_roles: Array<{ role: string }>;
+  role?: string;
   trust_scores: Array<{
     score: number;
     job_count: number;
@@ -160,7 +160,7 @@ export function AdminPanel({
                         "N/A"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-grey-medium dark:text-gray-400">
-                      {user.user_roles.map((r) => r.role).join(", ")}
+                      {user.role ?? "—"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-grey-medium dark:text-gray-400">
                       {user.trust_scores?.[0]?.score.toFixed(1) || "N/A"}

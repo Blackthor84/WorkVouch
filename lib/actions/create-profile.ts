@@ -47,21 +47,6 @@ export async function createProfileIfMissing() {
     throw new Error(`Failed to create profile: ${profileError.message}`)
   }
 
-  // Check if role exists
-  const { data: existingRole } = await supabaseAny
-    .from('user_roles')
-    .select('id')
-    .eq('user_id', user.id)
-    .eq('role', 'user')
-    .single()
-
-  if (!existingRole) {
-    // Try to add role (might fail due to RLS, but trigger should handle it)
-    await supabaseAny.from('user_roles').insert([{
-      user_id: user.id,
-      role: 'user',
-    }])
-  }
-
+  // Role is set by DB trigger or profiles; no user_roles write.
   return { success: true, profile }
 }

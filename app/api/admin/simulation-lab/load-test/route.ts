@@ -72,10 +72,7 @@ export async function POST(req: NextRequest) {
         { onConflict: "id" }
       );
 
-      await supabase.from("user_roles").upsert(
-        { user_id: userId, role: "user" },
-        { onConflict: "user_id,role" }
-      );
+      await supabase.from("profiles").update({ role: "user" }).eq("id", userId);
 
       const { error: erErr } = await supabase.from("employment_records").insert({
         user_id: userId,

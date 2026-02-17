@@ -82,19 +82,7 @@ export async function PATCH(
         return NextResponse.json({ error: "Failed to assign employer account" }, { status: 500 });
       }
 
-      const { data: existingRole } = await sb
-        .from("user_roles")
-        .select("id")
-        .eq("user_id", row.requested_by_user_id)
-        .eq("role", "employer")
-        .maybeSingle();
-
-      if (!existingRole) {
-        await sb.from("user_roles").insert({
-          user_id: row.requested_by_user_id,
-          role: "employer",
-        });
-      }
+      await sb.from("profiles").update({ role: "employer" }).eq("id", row.requested_by_user_id);
     }
 
     return NextResponse.json({ success: true, action });

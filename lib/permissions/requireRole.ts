@@ -28,7 +28,7 @@ export interface RequireRoleResult {
 }
 
 /**
- * Get effective roles for the current user: platform (user_roles + profile.role) + employer_users + tenant_memberships (mapped to spec roles).
+ * Get effective roles for the current user: profile.role + employer_users + tenant_memberships (mapped to spec roles).
  */
 export async function getEffectiveRoles(userId: string): Promise<string[]> {
   const supabase = await createServerSupabase();
@@ -41,16 +41,6 @@ export async function getEffectiveRoles(userId: string): Promise<string[]> {
     .eq("id", userId)
     .single();
   if (profile?.role) roles.push(profile.role);
-
-  const { data: userRoles } = await supabaseAny
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId);
-  if (Array.isArray(userRoles)) {
-    userRoles.forEach((r: { role: string }) => {
-      if (r.role && !roles.includes(r.role)) roles.push(r.role);
-    });
-  }
 
   const { data: employerUserRows } = await supabaseAny
     .from("employer_users")

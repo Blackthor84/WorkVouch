@@ -69,20 +69,15 @@ export async function getSupabaseSession() {
         const admin = getSupabaseServer();
         const { data: profile } = await admin
           .from("profiles")
-          .select("id, email, full_name")
+          .select("id, email, full_name, role")
           .eq("id", impersonatedUserId)
           .single();
-        const { data: rolesData } = await admin
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", impersonatedUserId);
-        const roleList: string[] = (rolesData ?? []).map((r: { role: string }) => r.role);
         const user = profile
           ? {
               id: profile.id,
               email: profile.email ?? undefined,
               user_metadata: { full_name: profile.full_name },
-              role: roleList[0] ?? undefined,
+              role: (profile as { role?: string }).role ?? undefined,
             }
           : null;
         if (user) {

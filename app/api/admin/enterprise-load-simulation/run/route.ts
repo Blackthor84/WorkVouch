@@ -142,8 +142,6 @@ export async function POST(req: NextRequest) {
         expires_at: expiresAt,
         updated_at: new Date().toISOString(),
       }, { onConflict: "id" });
-      await supabase.from("user_roles").upsert({ user_id: uid, role: "user" }, { onConflict: "user_id,role" });
-      if (i === 0) await supabase.from("user_roles").upsert({ user_id: uid, role: "employer" }, { onConflict: "user_id,role" });
       await supabase.from("employer_users").insert({
         organization_id: orgId,
         profile_id: uid,
@@ -213,6 +211,7 @@ export async function POST(req: NextRequest) {
           id: userId,
           full_name: fullName,
           email,
+          role: "user",
           industry: preset.industry,
           state: randomPick(STATES),
           is_simulation: true,
@@ -220,7 +219,6 @@ export async function POST(req: NextRequest) {
           expires_at: expiresAt,
           updated_at: new Date().toISOString(),
         }, { onConflict: "id" });
-        await supabase.from("user_roles").upsert({ user_id: userId, role: "user" }, { onConflict: "user_id,role" });
 
         const startDate = new Date(Date.now() - randomInt(12, 60) * 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
         const endDate = Math.random() > 0.3 ? new Date(Date.now() - randomInt(0, 24) * 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10) : null;

@@ -47,16 +47,17 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 }
 
 /**
- * Get user roles
+ * Get user roles from profiles.role
  */
 export async function getUserRoles(userId: string): Promise<UserRole[]> {
   const { data, error } = await supabase
-    .from('user_roles')
+    .from('profiles')
     .select('role')
-    .eq('user_id', userId)
+    .eq('id', userId)
+    .single()
 
-  if (error || !data) return []
-  return data as UserRole[]
+  if (error || !data?.role) return []
+  return [{ role: data.role }] as UserRole[]
 }
 
 /**

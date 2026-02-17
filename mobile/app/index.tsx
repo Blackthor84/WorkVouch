@@ -22,13 +22,13 @@ export default function SplashScreen() {
       
       if (session) {
         // Check if user is employer
-        const { data: roles } = await supabase
-          .from('user_roles')
+        const { data: profile } = await supabase
+          .from('profiles')
           .select('role')
-          .eq('user_id', session.user.id)
+          .eq('id', session.user.id)
           .single()
         
-        if (roles?.role === 'employer') {
+        if ((profile as { role?: string })?.role === 'employer') {
           router.replace('/(employer)/dashboard')
         } else {
           router.replace('/(tabs)/dashboard')

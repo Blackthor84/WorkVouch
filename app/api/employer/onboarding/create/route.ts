@@ -108,16 +108,6 @@ export async function POST(req: NextRequest) {
       console.error("[employer/onboarding] profile update error:", profileError);
     }
 
-    const { data: existingRole } = await supabaseAny
-      .from("user_roles")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("role", "employer")
-      .maybeSingle();
-    if (!existingRole) {
-      await supabaseAny.from("user_roles").insert({ user_id: user.id, role: "employer" });
-    }
-
     const industryType = industry.toLowerCase().replace(/\s+/g, "_").replace(/-/g, "_");
     const { error: employerError } = await supabaseAny.from("employer_accounts").insert({
       user_id: user.id,

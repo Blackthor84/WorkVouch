@@ -48,16 +48,6 @@ export async function POST(req: NextRequest) {
           login_token: loginToken,
         })
         .eq('id', userId);
-
-      // Add beta role if not exists
-      await supabaseAny
-        .from('user_roles')
-        .upsert({
-          user_id: userId,
-          role: 'beta',
-        }, {
-          onConflict: 'user_id,role',
-        });
     } else {
       // Create new user in Supabase Auth
       const { data: newUser, error: createError } = await supabaseAny.auth.admin.createUser({
@@ -87,14 +77,6 @@ export async function POST(req: NextRequest) {
           login_token: loginToken,
         }, {
           onConflict: 'id',
-        });
-
-      // Add beta role
-      await supabaseAny
-        .from('user_roles')
-        .insert({
-          user_id: userId,
-          role: 'beta',
         });
     }
 
