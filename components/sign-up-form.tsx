@@ -33,13 +33,13 @@ export function SignUpForm() {
       const { data, error } = await supabaseBrowser.auth.signUp({
         email: cleanEmail,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
       if (error) throw error;
-
-      if (!data?.user) {
-        throw new Error("Account creation failed. Please try again.");
-      }
+      if (!data?.user) throw new Error("Signup failed");
 
       // Post-signup: profile insert and redirect (no second signUp call)
       const role = userType === "employer" ? "employer" : "worker";
