@@ -5,14 +5,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { isAdmin } from "@/lib/auth/isAdmin";
+
+let signupAlreadyAttempted = false;
 
 const SIGNUP_PLAN_KEY = "workvouch_signup_plan";
 
 export default function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = supabaseBrowser;
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,69 +37,43 @@ export default function SignupPage() {
     }
   }, [searchParams]);
 
-  async function handleSignup(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  const handleSignup = async () => {
+    if (signupAlreadyAttempted) return;
+    signupAlreadyAttempted = true;
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      setLoading(false);
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail || !password) {
+      setError("Email and password are required");
+      signupAlreadyAttempted = false;
       return;
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
+      setLoading(true);
+
+      const { data, error } = await supabaseBrowser.auth.signUp({
+        email: cleanEmail,
         password,
         options: {
-          data: { full_name: fullName.trim() || undefined },
+          emailRedirectTo:
+            "https://work-vouch-git-main-aquil-eaglins-projects.vercel.app/auth/callback",
         },
       });
 
-      if (error) {
-        console.error("Signup error:", error);
-        setError(error.message);
-        setLoading(false);
-        return;
-      }
+      if (error) throw error;
 
-      if (!data.user) {
-        setError("Account creation failed. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      const user = data.user;
-      console.log("User created:", user);
-
-      const userRole = (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? null;
-      if (isAdmin({ role: userRole ?? undefined })) {
-        router.push("/admin");
-        return;
-      }
-
-      // Profile is created by DB trigger on auth.users; store credentials for select-role (e.g. after email confirm)
-      try {
-        sessionStorage.setItem(
-          "workvouch_signup_credentials",
-          JSON.stringify({
-            email: email.trim().toLowerCase(),
-            password,
-            userId: user.id,
-          })
-        );
-      } catch {
-        // ignore if sessionStorage unavailable
-      }
-
-      router.push("/select-role");
+      console.log("Signup success:", data);
+      // STOP HERE — DO NOT CREATE ANY OTHER RECORDS
+      return;
     } catch (err) {
       console.error("Signup error:", err);
-      setError("An unexpected error occurred. Please try again.");
+      setError(err instanceof Error ? err.message : "Signup failed");
+      signupAlreadyAttempted = false;
+    } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 px-4 overflow-x-hidden">
@@ -124,7 +98,7 @@ export default function SignupPage() {
         <p className="text-gray-600 dark:text-gray-400 text-sm text-center mb-6">
           Full name, email, and password. Next you&apos;ll choose your role and complete setup.
         </p>
-        <form onSubmit={handleSignup} className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); handleSignup(); }} className="space-y-4">
           <input
             type="text"
             placeholder="Full Name (required)"
