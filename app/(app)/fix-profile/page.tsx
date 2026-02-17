@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 export default function FixProfilePage() {
+  const router = useRouter();
   const supabase = supabaseBrowser;
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -15,17 +17,14 @@ export default function FixProfilePage() {
     setMessage("");
 
     try {
-      // Using single supabase instance
-
-      // Get current user
-      console.log("Supabase auth check triggered in: app/(app)/fix-profile/page.tsx");
       const {
         data: { user },
         error: userError,
       } = await supabase.auth.getUser();
 
       if (userError || !user) {
-        throw new Error("Not signed in. Please sign in first.");
+        router.push("/login");
+        return;
       }
 
       setMessage(`Found user: ${user.email} (${user.id})`);

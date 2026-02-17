@@ -1,8 +1,7 @@
 /**
  * POST /api/analytics/capture — record page view (enterprise schema).
- * Creates/updates site_sessions, inserts site_page_views.
- * SECURITY: Session token from HttpOnly cookie. IP hashed only. DNT respected (no persist if DNT: 1).
- * Fail closed: return 500 if write fails (no silent failure). No PII in stored payload.
+ * Best-effort only: NEVER return 500. Missing body, no session, or DB errors → still return 200 { ok: true }.
+ * DNT respected (no persist if DNT: 1). No PII in stored payload.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -26,56 +25,63 @@ export const runtime = "nodejs";
 
 const SESSION_COOKIE = "wv_sid";
 
+function ok(): NextResponse {
+  return NextResponse.json({ ok: true });
+}
+
 export async function POST(req: NextRequest) {
-  // GDPR/CCPA: respect Do Not Track — do not persist session or page view when DNT is 1
-  const dnt = req.headers.get("DNT") ?? req.headers.get("dnt");
-  if (dnt === "1") {
-    return NextResponse.json({ ok: true });
-  }
-
-  const cookieStore = await cookies();
-  let session_token = cookieStore.get(SESSION_COOKIE)?.value?.trim();
-  if (!session_token) {
-    session_token = crypto.randomUUID();
-  }
-
-  const body = await req.json().catch(() => ({}));
-  // path is REQUIRED: prefer client-sent page path, else fallback to request pathname or "/". Canonical contract: non-empty (DB CHECK).
-  let path =
-    (typeof body.path === "string" ? body.path.trim().slice(0, 2048) : null) ||
-    req.nextUrl.pathname ||
-    "/";
-  if (!path || path.trim() === "") path = "/";
-  const referrer = typeof body.referrer === "string" ? body.referrer.trim().slice(0, 2048) : req.headers.get("referer") ?? null;
-  const duration_ms = typeof body.duration_ms === "number" && body.duration_ms >= 0 ? Math.round(body.duration_ms) : null;
-
-  const headers = req.headers;
-  const userAgent = headers.get("user-agent") ?? null;
-  const ip = getClientIp(headers);
-  const ip_hash = hashIp(ip || "unknown");
-  const geo = getGeoFromHeaders(headers);
-  const device_type = getDeviceType(userAgent);
-  const os = getOs(userAgent);
-  const browser = getBrowser(userAgent);
-  const timezone = getTimezone(headers);
-  const is_vpn = getIsVpn(headers);
-  const appEnv = getEnvironmentForServer(headers, cookieStore, req.url);
-  const is_sandbox = appEnv === "sandbox";
-
-  const supabaseAuth = await supabaseServer();
-  const { data: { user } } = await supabaseAuth.auth.getUser();
-  let user_id: string | null = null;
-  let user_role: string | null = null;
-  if (user?.id) {
-    user_id = user.id;
-    const { data: profile } = await supabaseAuth.from("profiles").select("role").eq("id", user.id).maybeSingle();
-    user_role = (profile as { role?: string | null } | null)?.role ?? null;
-  }
-  const is_authenticated = !!user_id;
-
-  const supabase = getSupabaseServer();
-
   try {
+    const dnt = req.headers.get("DNT") ?? req.headers.get("dnt");
+    if (dnt === "1") return ok();
+
+    const cookieStore = await cookies();
+    let session_token = cookieStore.get(SESSION_COOKIE)?.value?.trim();
+    if (!session_token) session_token = crypto.randomUUID();
+
+    const body = await req.json().catch(() => ({}));
+    let path =
+      (typeof body.path === "string" ? body.path.trim().slice(0, 2048) : null) ||
+      req.nextUrl.pathname ||
+      "/";
+    if (!path || path.trim() === "") path = "/";
+    const referrer = typeof body.referrer === "string" ? body.referrer.trim().slice(0, 2048) : req.headers.get("referer") ?? null;
+    const duration_ms = typeof body.duration_ms === "number" && body.duration_ms >= 0 ? Math.round(body.duration_ms) : null;
+
+    const headers = req.headers;
+    const userAgent = headers.get("user-agent") ?? null;
+    const ip = getClientIp(headers);
+    const ip_hash = hashIp(ip || "unknown");
+    const geo = getGeoFromHeaders(headers);
+    const device_type = getDeviceType(userAgent);
+    const os = getOs(userAgent);
+    const browser = getBrowser(userAgent);
+    const timezone = getTimezone(headers);
+    const is_vpn = getIsVpn(headers);
+    const appEnv = getEnvironmentForServer(headers, cookieStore, req.url);
+    const is_sandbox = appEnv === "sandbox";
+
+    let user_id: string | null = null;
+    let user_role: string | null = null;
+    try {
+      const supabaseAuth = await supabaseServer();
+      const { data: { user } } = await supabaseAuth.auth.getUser();
+      if (user?.id) {
+        user_id = user.id;
+        const { data: profile } = await supabaseAuth.from("profiles").select("role").eq("id", user.id).maybeSingle();
+        user_role = (profile as { role?: string | null } | null)?.role ?? null;
+      }
+    } catch {
+      // auth unavailable — continue without user, still return ok
+    }
+    const is_authenticated = !!user_id;
+
+    let supabase;
+    try {
+      supabase = getSupabaseServer();
+    } catch {
+      return ok();
+    }
+
     const { data: existing } = await supabase
       .from("site_sessions")
       .select("id")
@@ -107,7 +113,7 @@ export async function POST(req: NextRequest) {
           browser: browser ?? null,
           country: geo.country,
           region: geo.region,
-          city: null, // Privacy: never persist city-level data (heat map is country/state only)
+          city: null,
           timezone: timezone ?? null,
           asn: null,
           isp: null,
@@ -119,7 +125,7 @@ export async function POST(req: NextRequest) {
         .single();
       if (insertErr) {
         console.error("[analytics/capture] site_sessions insert", insertErr);
-        return NextResponse.json({ ok: false }, { status: 500 });
+        return ok();
       }
       session_id = inserted?.id ?? null;
     }
@@ -127,7 +133,7 @@ export async function POST(req: NextRequest) {
     const { error: pvError } = await supabase.from("site_page_views").insert({
       session_id,
       user_id: user_id ?? null,
-      path, // REQUIRED: page path (from body.path or req.nextUrl.pathname)
+      path,
       referrer: referrer || null,
       duration_ms,
       is_sandbox,
@@ -135,17 +141,20 @@ export async function POST(req: NextRequest) {
 
     if (pvError) {
       console.error("[analytics/capture] site_page_views insert", pvError);
-      return NextResponse.json({ ok: false }, { status: 500 });
+      return ok();
     }
 
-    const { maybeRecordRapidRefresh } = await import("@/lib/analytics/abuse");
-    void maybeRecordRapidRefresh(supabase, session_id, is_sandbox);
-
-    if (user_id && geo?.country) {
-      void upsertUserLocationFromGeo(supabase, user_id, geo.country, geo.region ?? null);
+    try {
+      const { maybeRecordRapidRefresh } = await import("@/lib/analytics/abuse");
+      void maybeRecordRapidRefresh(supabase, session_id, is_sandbox);
+      if (user_id && geo?.country) {
+        void upsertUserLocationFromGeo(supabase, user_id, geo.country, geo.region ?? null);
+      }
+    } catch {
+      // best-effort only
     }
 
-    const res = NextResponse.json({ ok: true });
+    const res = ok();
     if (!cookieStore.get(SESSION_COOKIE)?.value) {
       res.cookies.set(SESSION_COOKIE, session_token, {
         httpOnly: true,
@@ -158,6 +167,6 @@ export async function POST(req: NextRequest) {
     return res;
   } catch (e) {
     console.error("[analytics/capture]", e);
-    return NextResponse.json({ ok: false }, { status: 500 });
+    return ok();
   }
 }
