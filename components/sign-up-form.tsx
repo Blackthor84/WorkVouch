@@ -23,114 +23,91 @@ export function SignUpForm() {
     if (loading) return;
 
     const cleanEmail = email.trim().toLowerCase();
-
     if (!cleanEmail || !password) {
       setError("Email and password are required");
       return;
     }
 
+    setLoading(true);
+    let data: { user?: { id: string; email?: string }; session?: unknown };
     try {
-      setLoading(true);
-
-      const { data, error } = await supabaseBrowser.auth.signUp({
-        email: cleanEmail,
-        password,
-      });
-
-      if (error) throw error;
-
-      if (!data.user) {
-        throw new Error("Account creation failed. Please try again.");
-      }
-
-      console.log("User created:", data.user);
-
-      // Insert profile row only after signup succeeds. Log failures; do not crash.
-      const role = userType === "employer" ? "employer" : "worker";
-      const career = userType === "employee" ? industry || null : null;
-      try {
-        const { error: profileError } = await supabase.from("profiles").insert({
-          id: data.user.id,
-          full_name: fullName.trim() || " ",
-          email: data.user.email ?? cleanEmail,
-          role,
-          industry: career,
-        });
-        if (profileError) {
-          console.error("Profile insert error:", profileError);
-        }
-      } catch (profileErr) {
-        console.error("Profile insert failed:", profileErr);
-      }
-
-      console.log("User created, waiting for profile and role...");
-        console.log("Session:", data.session);
-
-        // Wait for profile and role trigger to complete
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Check if email confirmation is required
-        if (data.session) {
-          await supabase.auth.getSession();
-          await new Promise((r) => setTimeout(r, 150));
-          const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
-          const callbackUrl =
-            userType === "employer"
-              ? "/employer/dashboard"
-              : key === "warehousing"
-                ? "/onboarding/warehouse"
-                : key === "healthcare"
-                  ? "/onboarding/healthcare/role"
-                  : key
-                    ? `/onboarding/${key}/role`
-                    : "/dashboard";
-          window.location.href = callbackUrl;
-          return;
-        } else {
-          // Email confirmation might be required, but try to sign in anyway
-          console.log("No session, attempting to sign in...");
-          const { data: signInData, error: signInError } =
-            await supabase.auth.signInWithPassword({
-              email: cleanEmail,
-              password,
-            });
-
-          if (signInError) {
-            console.error("Sign in error:", signInError);
-            setError(
-              "Account created! Please check your email to confirm your account, then sign in.",
-            );
-          } else if (signInData.session) {
-            await supabase.auth.getSession();
-            await new Promise((r) => setTimeout(r, 150));
-            const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
-            const callbackUrl =
-              userType === "employer"
-                ? "/employer/dashboard"
-                : key === "warehousing"
-                  ? "/onboarding/warehouse"
-                  : key === "healthcare"
-                    ? "/onboarding/healthcare/role"
-                    : key
-                      ? `/onboarding/${key}/role`
-                      : "/dashboard";
-            window.location.href = callbackUrl;
-            return;
-          } else {
-            setError(
-              "Account created! Please check your email to confirm your account, then sign in.",
-            );
-          }
-        }
+      const result = await supabaseBrowser.auth.signUp({ email: cleanEmail, password });
+      if (result.error) throw result.error;
+      data = result.data;
+      if (!data?.user) throw new Error("Account creation failed. Please try again.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Signup failed");
-    } finally {
       setLoading(false);
+      setError(err instanceof Error ? err.message : "Signup failed");
+      return;
     }
+
+    // Post-signup: profile insert and redirect (no second signUp call)
+    const role = userType === "employer" ? "employer" : "worker";
+    const career = userType === "employee" ? industry || null : null;
+    try {
+      const { error: profileError } = await supabase.from("profiles").insert({
+        id: data!.user!.id,
+        full_name: fullName.trim() || " ",
+        email: data!.user!.email ?? cleanEmail,
+        role,
+        industry: career,
+      });
+      if (profileError) console.error("Profile insert error:", profileError);
+    } catch (profileErr) {
+      console.error("Profile insert failed:", profileErr);
+    }
+
+    await new Promise((r) => setTimeout(r, 1000));
+
+    if (data!.session) {
+      await supabase.auth.getSession();
+      await new Promise((r) => setTimeout(r, 150));
+      const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
+      const callbackUrl =
+        userType === "employer"
+          ? "/employer/dashboard"
+          : key === "warehousing"
+            ? "/onboarding/warehouse"
+            : key === "healthcare"
+              ? "/onboarding/healthcare/role"
+              : key
+                ? `/onboarding/${key}/role`
+                : "/dashboard";
+      window.location.href = callbackUrl;
+      return;
+    }
+
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: cleanEmail,
+      password,
+    });
+    if (signInError) {
+      setError("Account created! Please check your email to confirm your account, then sign in.");
+      return;
+    }
+    if (signInData?.session) {
+      await supabase.auth.getSession();
+      await new Promise((r) => setTimeout(r, 150));
+      const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
+      const callbackUrl =
+        userType === "employer"
+          ? "/employer/dashboard"
+          : key === "warehousing"
+            ? "/onboarding/warehouse"
+            : key === "healthcare"
+              ? "/onboarding/healthcare/role"
+              : key
+                ? `/onboarding/${key}/role`
+                : "/dashboard";
+      window.location.href = callbackUrl;
+      return;
+    }
+    setLoading(false);
+    setError("Account created! Please check your email to confirm your account, then sign in.");
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }} className="space-y-6">
       {error && (
         <div
           className={`rounded-xl border p-4 text-sm ${

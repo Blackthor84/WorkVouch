@@ -15,8 +15,9 @@ function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setError("");
-    setLoading(true);
+    setLoading(true); // BEFORE await
 
     const supabase = supabaseBrowser;
     const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -51,7 +52,7 @@ function LoginForm() {
       <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200 dark:border-gray-700">
         <h1 className="text-3xl font-bold mb-2 text-center text-gray-900 dark:text-white">Log in</h1>
         <p className="text-gray-600 dark:text-gray-400 text-sm text-center mb-6">Use your WorkVouch account.</p>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }} className="space-y-4">
           <input
             type="email"
             placeholder="Email"
