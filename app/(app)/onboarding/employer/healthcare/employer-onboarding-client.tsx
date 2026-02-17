@@ -55,41 +55,7 @@ export function EmployerOnboardingClient() {
     setLoading(true);
 
     try {
-      const supabaseAny = supabase as any;
-      const { error: employerError } = await supabaseAny
-        .from("employer_accounts")
-        .update({
-          company_name: companyName,
-          industry: "healthcare",
-          work_setting: workSetting,
-          location: location,
-        })
-        .eq("user_id", user.id);
-
-      if (employerError) {
-        console.error("Error updating employer account:", employerError);
-        // If employer_accounts doesn't exist, create it
-        const { error: createError } = await (supabase as any)
-          .from("employer_accounts")
-          .insert([
-            {
-              user_id: user.id,
-              company_name: companyName,
-              industry: "healthcare",
-              work_setting: workSetting,
-              location: location,
-              plan_tier: "free",
-            },
-          ]);
-
-        if (createError) {
-          console.error("Error creating employer account:", createError);
-          alert("Error saving information. Please try again.");
-          setLoading(false);
-          return;
-        }
-      }
-
+      // employer_accounts created by DB trigger; no client-side write
       router.push("/onboarding/employer/healthcare/job-post");
     } catch (err: any) {
       console.error("Error:", err);

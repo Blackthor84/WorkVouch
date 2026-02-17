@@ -88,19 +88,7 @@ export default function SelectRolePage() {
         } catch {
           /* ignore */
         }
-        const { error: employerError } = await supabase
-          .from("employer_accounts")
-          .insert({
-            user_id: user.id,
-            company_name: user.email?.split("@")[0] ?? "New Company",
-            plan_tier: employerPlanTier ?? "free",
-          });
-
-        if (employerError) {
-          setError(employerError.message || "Could not create employer account.");
-          setSelecting(null);
-          return;
-        }
+        // employer_accounts created by DB trigger after signup; no client-side insert
       }
 
       // Redirect to onboarding: employee → profile (add first job); employer → dashboard with welcome
