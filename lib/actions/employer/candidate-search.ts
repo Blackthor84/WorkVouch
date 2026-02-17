@@ -184,13 +184,13 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
   }
 
   // Get profile
-  const { data: profile, error: profileError } = await supabaseAny
+  const { data: candidateProfile, error: profileError } = await supabaseAny
     .from('profiles')
     .select('*')
     .eq('id', candidateId)
     .single()
 
-  if (profileError || !profile) {
+  if (profileError || !candidateProfile) {
     throw new Error('Candidate not found')
   }
 
@@ -235,7 +235,7 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
     .eq('user_id', candidateId)
 
   // Normalize profile: convert string | null to string
-  const profileAny = profile as any
+  const profileAny = candidateProfile as any
   const safeProfile = profileAny ? {
     ...profileAny,
     full_name: profileAny.full_name ?? "",
