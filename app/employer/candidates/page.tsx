@@ -3,6 +3,7 @@ import { getCurrentUser, hasRole } from "@/lib/auth";
 import { EmployerHeader } from "@/components/employer/employer-header";
 import { EmployerSidebar } from "@/components/employer/employer-sidebar";
 import { CandidateSearch } from "@/components/employer/candidate-search";
+import { ProfileCompleteBanner } from "@/components/employer/ProfileCompleteBanner";
 import { Button } from "@/components/ui/button";
 
 export default async function EmployerCandidatesPage() {
