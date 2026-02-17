@@ -19,18 +19,27 @@ function LoginForm() {
     setError("");
     setLoading(true);
 
-    const { error: signInError } = await supabaseBrowser.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    });
+    try {
+      const { error: signInError } = await supabaseBrowser.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
 
-    setLoading(false);
-    if (signInError) {
-      setError(signInError.message);
-      return;
+      if (signInError) throw signInError;
+
+      router.push("/dashboard");
+    } catch (err) {
+      if (
+        err instanceof Error &&
+        err.message.toLowerCase().includes("email not confirmed")
+      ) {
+        setError("Please confirm your email before logging in.");
+      } else {
+        setError("Invalid email or password.");
+      }
+    } finally {
+      setLoading(false);
     }
-
-    router.push("/dashboard");
   };
 
   return (
