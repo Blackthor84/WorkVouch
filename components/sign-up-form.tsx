@@ -22,40 +22,22 @@ export function SignUpForm() {
     e.preventDefault();
     if (loading) return;
 
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail || !password) {
+      setError("Email and password are required");
+      return;
+    }
+
     try {
       setLoading(true);
-      setError(null);
-      console.log("Attempting signup...");
-      // Prepare metadata based on user type
-      const metadata: Record<string, unknown> = {
-        full_name: fullName,
-        user_type: userType, // Track user type
-      };
 
-      // Only add industry for employees
-      if (userType === "employee") {
-        metadata.industry = industry;
-        metadata.role = "user";
-      } else {
-        // For employers, set role to employer and add company name
-        metadata.role = "employer";
-        if (companyName) {
-          metadata.company_name = companyName;
-        }
-      }
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
+      const { data, error } = await supabaseBrowser.auth.signUp({
+        email: cleanEmail,
         password,
-        options: {
-          data: metadata,
-        },
       });
 
-      if (error) {
-        console.error("Signup error:", error);
-        throw error;
-      }
+      if (error) throw error;
 
       if (!data.user) {
         throw new Error("Account creation failed. Please try again.");
@@ -70,7 +52,7 @@ export function SignUpForm() {
         const { error: profileError } = await supabase.from("profiles").insert({
           id: data.user.id,
           full_name: fullName.trim() || " ",
-          email: data.user.email ?? email,
+          email: data.user.email ?? cleanEmail,
           role,
           industry: career,
         });
@@ -109,7 +91,7 @@ export function SignUpForm() {
           console.log("No session, attempting to sign in...");
           const { data: signInData, error: signInError } =
             await supabase.auth.signInWithPassword({
-              email,
+              email: cleanEmail,
               password,
             });
 
@@ -140,9 +122,8 @@ export function SignUpForm() {
             );
           }
         }
-    } catch (err: unknown) {
-      console.error("Signup failed:", err);
-      setError(err instanceof Error ? err.message : "An error occurred");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
       setLoading(false);
     }

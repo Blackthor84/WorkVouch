@@ -32,6 +32,11 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}/dashboard`);
     }
 
+    const emailConfirmedAt = (user as { email_confirmed_at?: string | null }).email_confirmed_at;
+    if (!emailConfirmedAt) {
+      return NextResponse.redirect(`${origin}/verify-email`);
+    }
+
     const { data, error } = await supabase
       .from("profiles")
       .select("role, onboarding_completed, full_name, industry")
