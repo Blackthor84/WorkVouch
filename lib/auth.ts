@@ -44,6 +44,28 @@ export async function getCurrentUser(): Promise<User | null> {
 }
 
 /**
+ * Get profile role and onboarding status by user id (server-side).
+ * Use when you have userId (e.g. from session) and need only role + onboarding_completed.
+ */
+export async function getProfile(userId: string): Promise<{
+  role: string | null;
+  onboarding_completed: boolean;
+}> {
+  const supabase = await supabaseServer();
+  const supabaseAny = supabase as any;
+  const { data, error } = await supabaseAny
+    .from("profiles")
+    .select("role, onboarding_completed")
+    .eq("id", userId)
+    .single();
+  if (error) throw error;
+  return {
+    role: (data?.role as string | null) ?? null,
+    onboarding_completed: (data?.onboarding_completed as boolean) ?? false,
+  };
+}
+
+/**
  * Get current user profile from Supabase
  */
 export async function getCurrentUserProfile(): Promise<UserProfile | null> {

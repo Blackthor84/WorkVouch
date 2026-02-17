@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Text extraction failed" }, { status: 400 });
     }
 
-    let parsedJson: { full_name?: string; email?: string; phone?: string; work_history?: { company?: string; title?: string; start_date?: string; end_date?: string | null }[]; skills?: string[]; certifications?: string[] };
+    let parsedJson: { full_name?: string; email?: string; phone?: string; job_history?: { company?: string; title?: string; start_date?: string; end_date?: string | null }[]; skills?: string[]; certifications?: string[] };
     try {
       parsedJson = await parseResumeWithAI(extractedText);
     } catch (e) {
@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
       .eq("environment", env)
       .neq("id", employeeId);
     const otherIds = (otherEmployees ?? []).map((r) => r.id);
-    const otherResumes: { id: string; parsedWorkHistory: { company: string; start_date: string; end_date: string | null }[] }[] = [];
+    const otherResumes: { id: string; parsedJobHistory: { company: string; start_date: string; end_date: string | null }[] }[] = [];
     for (const id of otherIds) {
       const { data: res } = await supabase
         .from("workforce_resumes")
@@ -152,11 +152,11 @@ export async function POST(req: NextRequest) {
         .not("parsed_json", "is", null)
         .limit(1)
         .single();
-      if (res?.parsed_json && typeof res.parsed_json === "object" && Array.isArray((res.parsed_json as { work_history?: unknown }).work_history)) {
-        const wh = (res.parsed_json as { work_history: { company?: string; start_date?: string; end_date?: string | null }[] }).work_history;
+      if (res?.parsed_json && typeof res.parsed_json === "object" && Array.isArray((res.parsed_json as { job_history?: unknown }).job_history)) {
+        const jh = (res.parsed_json as { job_history: { company?: string; start_date?: string; end_date?: string | null }[] }).job_history;
         otherResumes.push({
           id,
-          parsedWorkHistory: wh.map((e) => ({
+          parsedJobHistory: jh.map((e) => ({
             company: String(e.company ?? ""),
             start_date: String(e.start_date ?? ""),
             end_date: e.end_date == null ? null : String(e.end_date),
@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
       email: typeof parsedJson.email === "string" ? parsedJson.email : "",
       skills: Array.isArray(parsedJson.skills) ? parsedJson.skills : [],
       certifications: Array.isArray(parsedJson.certifications) ? parsedJson.certifications : [],
-      work_history: (parsedJson.work_history ?? []).map((entry) => ({
+      job_history: (parsedJson.job_history ?? []).map((entry) => ({
         company: typeof entry.company === "string" ? entry.company : "",
         start_date: typeof entry.start_date === "string" ? entry.start_date : "",
         end_date: entry.end_date != null && typeof entry.end_date === "string" ? entry.end_date : null,

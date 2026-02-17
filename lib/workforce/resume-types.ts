@@ -4,7 +4,7 @@
  * Same schema in sandbox and production.
  */
 
-export interface WorkHistoryEntry {
+export interface JobHistoryEntry {
   company: string;
   title: string;
   start_date: string;
@@ -16,7 +16,7 @@ export interface ParsedResumeJson {
   full_name: string;
   email: string;
   phone?: string;
-  work_history: WorkHistoryEntry[];
+  job_history: JobHistoryEntry[];
   skills: string[];
   certifications: string[];
 }
@@ -25,7 +25,7 @@ export const PARSED_RESUME_KEYS = [
   "full_name",
   "email",
   "phone",
-  "work_history",
+  "job_history",
   "skills",
   "certifications",
 ] as const;

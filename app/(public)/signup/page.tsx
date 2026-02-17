@@ -51,21 +51,39 @@ export default function SignupPage() {
 
     try {
       setLoading(true);
+      setError("");
+
+      const role = "employee"; // role chosen later at select-role; pass default for metadata
 
       const { data, error } = await supabaseBrowser.auth.signUp({
         email: cleanEmail,
         password,
         options: {
+          data: {
+            full_name: fullName.trim() || undefined,
+            role,
+          },
           emailRedirectTo:
-            "https://work-vouch-git-main-aquil-eaglins-projects.vercel.app/auth/callback",
+            typeof window !== "undefined"
+              ? `${window.location.origin}/auth/callback`
+              : undefined,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        setError(error.message);
+        signupAlreadyAttempted = false;
+        return;
+      }
 
-      console.log("Signup success:", data);
-      // STOP HERE — DO NOT CREATE ANY OTHER RECORDS
-      return;
+      // Email confirmation OFF: session exists, go to onboarding (e.g. select-role)
+      if (data.session) {
+        router.push("/onboarding");
+        return;
+      }
+
+      // Email confirmation ON: no session yet, ask user to check email
+      router.push("/check-email");
     } catch (err) {
       console.error("Signup error:", err);
       setError(err instanceof Error ? err.message : "Signup failed");

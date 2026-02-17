@@ -33,7 +33,7 @@ Use for investor or customer demos (e.g. MGM Resorts International, Caesars Ente
 ## Step 3 – Resume Import
 
 - Upload a sample resume (PDF or DOCX).
-- **Show:** Parsed output (full_name, email, work_history, skills, certifications) in clean structured display.
+- **Show:** Parsed output (full_name, email, job_history, skills, certifications) in clean structured display.
 - **Show:** Overlap detection and suggested peer matches (same company, overlapping dates).
 
 **Say:** "The system automatically identifies coworkers based on overlap."

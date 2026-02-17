@@ -17,23 +17,20 @@ function LoginForm() {
     e.preventDefault();
     if (loading) return;
     setError("");
-    setLoading(true); // BEFORE await
+    setLoading(true);
 
-    const supabase = supabaseBrowser;
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+    const { error: signInError } = await supabaseBrowser.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password,
     });
 
     setLoading(false);
     if (signInError) {
-      setError(signInError.message || "Invalid email or password");
+      setError(signInError.message);
       return;
     }
-    if (data.session) {
-      window.location.href = "/api/auth/redirect-destination";
-      return;
-    }
+
+    router.push("/dashboard");
   };
 
   return (

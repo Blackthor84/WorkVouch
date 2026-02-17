@@ -6,7 +6,7 @@ import OpenAI from "openai";
 import { env } from "@/lib/env";
 import type { ParsedResumeJson } from "./resume-types";
 
-const PROMPT = `Extract structured data from the resume text. Return JSON with: full_name, email, phone (or ""), work_history (array of {company, title, start_date YYYY-MM-DD, end_date YYYY-MM-DD or null, location?}), skills (string[]), certifications (string[]). Normalize dates. Use null for Present/Current.`;
+const PROMPT = `Extract structured data from the resume text. Return JSON with: full_name, email, phone (or ""), job_history (array of {company, title, start_date YYYY-MM-DD, end_date YYYY-MM-DD or null, location?}), skills (string[]), certifications (string[]). Normalize dates. Use null for Present/Current.`;
 
 export async function parseResumeWithAI(extractedText: string): Promise<ParsedResumeJson> {
   if (!env.OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not set");
@@ -20,12 +20,12 @@ export async function parseResumeWithAI(extractedText: string): Promise<ParsedRe
   ).choices?.[0]?.message?.content;
   if (!content) throw new Error("OpenAI empty content");
   const parsed = JSON.parse(content) as Record<string, unknown>;
-  const work = Array.isArray(parsed.work_history) ? parsed.work_history : [];
+  const jobs = Array.isArray(parsed.job_history) ? parsed.job_history : [];
   return {
     full_name: String(parsed.full_name ?? "").trim(),
     email: String(parsed.email ?? "").trim().toLowerCase(),
     phone: String(parsed.phone ?? "").trim(),
-    work_history: work.map((e: Record<string, unknown>) => ({
+    job_history: jobs.map((e: Record<string, unknown>) => ({
       company: String(e.company ?? "").trim(),
       title: String(e.title ?? "").trim(),
       start_date: String(e.start_date ?? "").trim(),

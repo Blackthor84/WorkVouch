@@ -7,7 +7,7 @@ Resume Uploaded
     ↓
 Text Extracted (PDF/DOCX – no mock; fail in both envs if extraction fails)
     ↓
-AI Parsing (structured JSON: full_name, email, work_history, skills, certifications)
+AI Parsing (structured JSON: full_name, email, job_history, skills, certifications)
     ↓
 Stored (workforce_resumes.raw_file_url, workforce_resumes.parsed_json)
     ↓
