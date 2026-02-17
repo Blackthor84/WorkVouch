@@ -21,7 +21,7 @@ const HEALTHCARE_SETTINGS = [
 
 export function EmployerOnboardingClient() {
   const router = useRouter();
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [companyName, setCompanyName] = useState("");
   const [workSetting, setWorkSetting] = useState("");
   const [location, setLocation] = useState("");

@@ -18,7 +18,7 @@ function LoginForm() {
     setError("");
     setLoading(true);
 
-    const supabase = supabaseBrowser();
+    const supabase = supabaseBrowser;
     const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password,

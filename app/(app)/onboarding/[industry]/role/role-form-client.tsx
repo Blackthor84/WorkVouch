@@ -18,7 +18,7 @@ interface RoleFormClientProps {
 
 export function RoleFormClient({ industry }: RoleFormClientProps) {
   const router = useRouter();
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);

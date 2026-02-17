@@ -24,7 +24,7 @@ export function UserSettings() {
         setLoading(false);
         return;
       }
-      await supabaseBrowser().auth.signOut();
+      await supabaseBrowser.auth.signOut();
       router.push("/");
       router.refresh();
     } catch {

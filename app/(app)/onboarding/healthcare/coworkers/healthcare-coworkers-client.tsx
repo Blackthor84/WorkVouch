@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 
 export function HealthcareCoworkersClient() {
   const router = useRouter();
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [coworkers, setCoworkers] = useState<
     Array<{ id?: string; coworker_name: string }>
   >([]);

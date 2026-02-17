@@ -4,7 +4,7 @@ import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 export default function FixProfilePage() {
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");

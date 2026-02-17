@@ -25,7 +25,7 @@ const HEALTHCARE_ROLES = [
 
 export function JobPostClient() {
   const router = useRouter();
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [jobTitle, setJobTitle] = useState("");
   const [workSetting, setWorkSetting] = useState("");
   const [location, setLocation] = useState("");

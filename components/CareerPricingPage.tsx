@@ -13,7 +13,7 @@ export default function CareerPricingPage({
   userId: propUserId, 
   userType: propUserType 
 }: CareerPricingPageProps) {
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | undefined>(propUserId);
   const [userType, setUserType] = useState<"employee" | "employer" | undefined>(propUserType);

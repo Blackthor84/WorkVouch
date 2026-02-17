@@ -12,7 +12,7 @@ import { Button } from "../ui/button";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 
 export function UserMessages() {
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedThread, setSelectedThread] = useState<string | null>(null);

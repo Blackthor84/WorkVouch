@@ -17,7 +17,7 @@ interface SettingFormClientProps {
 
 export function SettingFormClient({ industry }: SettingFormClientProps) {
   const router = useRouter();
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [setting, setSetting] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);

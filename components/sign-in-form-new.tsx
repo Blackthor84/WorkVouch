@@ -19,7 +19,7 @@ export function SignInFormNew() {
     setError(null);
 
     try {
-      const { data, error: signInError } = await supabaseBrowser().auth.signInWithPassword({
+      const { data, error: signInError } = await supabaseBrowser.auth.signInWithPassword({
         email,
         password,
       });

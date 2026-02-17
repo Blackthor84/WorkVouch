@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 
 export function HealthcareJobClient() {
   const router = useRouter();
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [jobTitle, setJobTitle] = useState("");
   const [employer, setEmployer] = useState("");
   const [startDate, setStartDate] = useState("");

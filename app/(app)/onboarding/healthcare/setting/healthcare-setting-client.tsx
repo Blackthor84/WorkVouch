@@ -20,7 +20,7 @@ const HEALTHCARE_SETTINGS = [
 
 export function HealthcareSettingClient() {
   const router = useRouter();
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [setting, setSetting] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);

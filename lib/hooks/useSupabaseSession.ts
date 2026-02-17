@@ -13,7 +13,7 @@ export function useSupabaseSession(): {
 } {
   const [session, setSession] = useState<Session | null>(null);
   const [status, setStatus] = useState<SessionStatus>("loading");
-  const supabase = useMemo(() => supabaseBrowser(), []);
+  const supabase = useMemo(() => supabaseBrowser, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: s } }) => {

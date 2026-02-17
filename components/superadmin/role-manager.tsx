@@ -13,7 +13,7 @@ interface User {
 }
 
 export function RoleManager() {
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);

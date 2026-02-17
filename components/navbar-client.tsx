@@ -179,7 +179,7 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
                   variant="ghost"
                   size="sm"
                   onClick={async () => {
-                  await supabaseBrowser().auth.signOut();
+                  await supabaseBrowser.auth.signOut();
                   router.push("/");
                   router.refresh();
                 }}

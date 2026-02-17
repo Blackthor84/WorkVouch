@@ -35,7 +35,7 @@ type HealthcareCandidateRow = Omit<HealthcareCandidate, "healthcare_profile"> & 
 };
 
 export function HealthcareSearchClient() {
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [candidates, setCandidates] = useState<HealthcareCandidate[]>([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({

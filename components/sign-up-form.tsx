@@ -8,7 +8,7 @@ import { getIndustriesForSignup, INDUSTRY_TO_ONBOARDING_KEY } from "@/lib/consta
 
 export function SignUpForm() {
   const router = useRouter();
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -26,7 +26,7 @@ export function SignUpForm() {
     try {
       console.log("Attempting signup...");
       // Prepare metadata based on user type
-      const metadata: any = {
+      const metadata: Record<string, unknown> = {
         full_name: fullName,
         user_type: userType, // Track user type
       };
@@ -43,8 +43,7 @@ export function SignUpForm() {
         }
       }
 
-      // Using single supabase instance
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -52,14 +51,18 @@ export function SignUpForm() {
         },
       });
 
-      console.log("Signup response:", { data, error: signUpError });
-
-      if (signUpError) {
-        console.error("Signup error:", signUpError);
-        throw signUpError;
+      if (error) {
+        console.error("Signup error:", error);
+        throw error;
       }
 
-      if (data.user) {
+      if (!data.user) {
+        throw new Error("Account creation failed. Please try again.");
+      }
+
+      console.log("User created:", data.user);
+
+      {
         console.log("User created, waiting for profile and role...");
         console.log("Session:", data.session);
 
@@ -119,12 +122,9 @@ export function SignUpForm() {
             );
           }
         }
-      } else {
-        throw new Error("No user data returned");
-      }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Signup failed:", err);
-      setError(err.message || "An error occurred");
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }

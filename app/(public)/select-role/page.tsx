@@ -15,7 +15,7 @@ type UserOrId = User | { id: string; email?: string };
 
 export default function SelectRolePage() {
   const router = useRouter();
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [user, setUser] = useState<UserOrId | null>(null);
   const [loading, setLoading] = useState(true);
   const [selecting, setSelecting] = useState<string | null>(null);

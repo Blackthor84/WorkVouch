@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 export default function TestPage() {
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [status, setStatus] = useState("Loading...");
   const [details, setDetails] = useState<any>(null);
 

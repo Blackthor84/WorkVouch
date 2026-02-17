@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 
 export function SignOutButton() {
   const router = useRouter();
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

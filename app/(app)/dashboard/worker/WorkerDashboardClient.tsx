@@ -12,7 +12,7 @@ import Link from "next/link";
  * Growth-focused; no employer metrics.
  */
 export default function WorkerDashboard() {
-  const supabase = useMemo(() => supabaseBrowser(), []);
+  const supabase = useMemo(() => supabaseBrowser, []);
   const { data: session } = useSupabaseSession();
   const user = session?.user ?? null;
   const [profile, setProfile] = useState<any>(null);

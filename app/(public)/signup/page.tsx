@@ -12,7 +12,7 @@ const SIGNUP_PLAN_KEY = "workvouch_signup_plan";
 export default function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,7 +49,7 @@ export default function SignupPage() {
     }
 
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
         options: {
@@ -57,8 +57,9 @@ export default function SignupPage() {
         },
       });
 
-      if (signUpError) {
-        setError(signUpError.message);
+      if (error) {
+        console.error("Signup error:", error);
+        setError(error.message);
         setLoading(false);
         return;
       }
@@ -69,17 +70,22 @@ export default function SignupPage() {
         return;
       }
 
-      const userRole = (data.user as { app_metadata?: { role?: string } }).app_metadata?.role ?? null;
+      const user = data.user;
+      console.log("User created:", user);
+
+      const userRole = (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? null;
       if (isAdmin({ role: userRole ?? undefined })) {
         router.push("/admin");
         return;
       }
+
+      // Step 4: Insert profile ONLY after signup succeeds. id = auth user id.
       const { error: profileError } = await supabase
         .from("profiles")
         .insert({
-          id: data.user.id,
+          id: user.id,
+          email: user.email ?? email.trim().toLowerCase(),
           full_name: fullName.trim() || " ",
-          email: email.trim().toLowerCase(),
           role: null,
         });
 
@@ -97,7 +103,7 @@ export default function SignupPage() {
           JSON.stringify({
             email: email.trim().toLowerCase(),
             password,
-            userId: data.user.id,
+            userId: user.id,
           })
         );
       } catch {
