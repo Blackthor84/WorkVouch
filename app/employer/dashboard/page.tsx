@@ -44,10 +44,8 @@ export default async function EmployerDashboardPage({
     if (!isEmployer && !isSuperAdmin) {
       redirect("/dashboard");
     }
-    const supabase = await createServerSupabase();
-    const supabaseAny = supabase as any;
     type EmployerAccountRow = { id: string; plan_tier: string; industry_type?: string | null };
-    const { data: employerAccount } = await supabaseAny
+    const { data: employerAccount } = await (supabase as any)
       .from("employer_accounts")
       .select("id, plan_tier, industry_type")
       .eq("user_id", user.id)
