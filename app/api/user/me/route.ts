@@ -16,43 +16,42 @@ function normalizeRole(raw: string | null | undefined): NormalizedRole {
 export async function GET() {
   try {
     const supabase = await supabaseServer();
-    const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser();
+    const authResult = await supabase.auth.getUser();
 
-    if (!authUser?.id) {
+    if (authResult.error) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = authResult.data?.user;
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const supabaseAny = supabase as any;
-    const { data: profile, error: profileError } = await supabaseAny
+    const profileResult = await supabaseAny
       .from("profiles")
       .select("id, email, role, onboarding_completed")
-      .eq("id", authUser.id)
-      .maybeSingle();
+      .eq("id", user.id)
+      .limit(1);
 
-    if (profileError) {
+    if (profileResult.error) {
       return NextResponse.json(
         { error: "Failed to fetch user" },
         { status: 500 }
       );
     }
 
-    if (profile) {
-      const row = profile as { id?: string; email?: string | null; role?: string | null; onboarding_completed?: boolean };
-      return NextResponse.json({
-        id: row.id ?? authUser.id,
-        email: row.email ?? authUser.email ?? null,
-        role: normalizeRole(row.role),
-        onboarding_complete: Boolean(row.onboarding_completed),
-      });
+    const rows = profileResult.data;
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    const row = rows[0] as { id?: string; email?: string | null; role?: string | null; onboarding_completed?: boolean };
     return NextResponse.json({
-      id: authUser.id,
-      email: authUser.email ?? null,
-      role: "user" as NormalizedRole,
-      onboarding_complete: false,
+      id: row.id ?? user.id,
+      email: row.email ?? user.email ?? null,
+      role: normalizeRole(row.role),
+      onboarding_complete: Boolean(row.onboarding_completed),
     });
   } catch {
     return NextResponse.json(
