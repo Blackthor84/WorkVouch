@@ -7,6 +7,17 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { getAppModeFromHeaders, getSandboxIdFromHeaders } from "@/lib/app-mode";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
+type UserRole = "superadmin" | "admin" | "employer" | "user";
+
+const isUserRole = (value: unknown): value is UserRole => {
+  return (
+    value === "superadmin" ||
+    value === "admin" ||
+    value === "employer" ||
+    value === "user"
+  );
+};
+
 // Mark as dynamic
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -46,16 +57,12 @@ export default async function EmployerDashboardPage({
       .select("role")
       .eq("id", user.id)
       .single();
-    const profileRole =
-      (profileRow as ProfileRow | null)?.role ?? null;
-    const rawProfileRole = profileRole;
-    const normalizedProfileRole:
-      | "superadmin"
-      | "admin"
-      | "employer"
-      | "user"
-      | null =
-      rawProfileRole;
+    const profileRoleRaw = (profileRow as ProfileRow | null)?.role ?? null;
+
+    const normalizedProfileRole: UserRole | null = isUserRole(profileRoleRaw)
+      ? profileRoleRaw
+      : null;
+
     const isEmployer = normalizedProfileRole === "employer";
     const isSuperAdmin = normalizedProfileRole === "superadmin";
     if (!isEmployer && !isSuperAdmin) {
@@ -70,7 +77,14 @@ export default async function EmployerDashboardPage({
     const planTier = (employerAccount as EmployerAccountRow | null)?.plan_tier || "free";
     const employerId = (employerAccount as EmployerAccountRow | null)?.id;
     const employerIndustry = (employerAccount as EmployerAccountRow | null)?.industry_type ?? null;
-    const userRole = normalizedProfileRole === "superadmin" ? "superadmin" : normalizedProfileRole === "admin" ? "admin" : normalizedProfileRole === "employer" ? "employer" : "user";
+    const userRole =
+      normalizedProfileRole === "superadmin"
+        ? "superadmin"
+        : normalizedProfileRole === "admin"
+          ? "admin"
+          : normalizedProfileRole === "employer"
+            ? "employer"
+            : "user";
 
     return (
       <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
