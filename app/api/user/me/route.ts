@@ -1,63 +1,56 @@
-import { NextRequest, NextResponse } from "next/server";
-
-export const runtime = "nodejs";
-import { getCurrentUser, getCurrentUserProfile } from "@/lib/auth";
+import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 
-export async function GET(req: NextRequest) {
-  try {
-    const user = await getCurrentUser();
+export const runtime = "nodejs";
 
-    if (!user) {
+type NormalizedRole = "user" | "employer" | "admin" | "superadmin";
+
+function normalizeRole(raw: string | null | undefined): NormalizedRole {
+  const r = (raw ?? "").trim().toLowerCase();
+  if (r === "superadmin") return "superadmin";
+  if (r === "admin") return "admin";
+  if (r === "employer") return "employer";
+  return "user";
+}
+
+export async function GET() {
+  try {
+    const supabase = await supabaseServer();
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+
+    if (!authUser?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const profile = await getCurrentUserProfile();
+    const supabaseAny = supabase as any;
+    const { data: profile, error: profileError } = await supabaseAny
+      .from("profiles")
+      .select("id, email, role, onboarding_completed")
+      .eq("id", authUser.id)
+      .single();
 
-    if (!profile) {
+    if (profileError || !profile) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const profileAny = profile as {
-      visibility?: string;
-      is_public_passport?: boolean;
-      searchable_by_verified_employers?: boolean;
-      searchable_by_shared_employers?: boolean;
-      email_verified?: boolean;
-    };
-    const supabase = await supabaseServer();
-    const supabaseAny = supabase as any;
-    const { data: profileRow } = await supabaseAny
-      .from("profiles")
-      .select("email_verified")
-      .eq("id", user.id)
-      .single();
-    const emailVerified = (profileRow as { email_verified?: boolean } | null)?.email_verified !== false;
+    const row = profile as { id?: string; email?: string | null; role?: string | null; onboarding_completed?: boolean };
+    const id = row.id ?? authUser.id;
+    const email = row.email ?? authUser.email ?? null;
+    const role = normalizeRole(row.role);
+    const onboarding_complete = Boolean(row.onboarding_completed);
 
     return NextResponse.json({
-      id: profile.id,
-      user: {
-        id: profile.id,
-        name: profile.full_name,
-        email: profile.email,
-        industry: profile.industry,
-        currentEmployerHidden: true,
-        createdAt: profile.created_at,
-      },
-      profile: {
-        visibility: profileAny.visibility ?? "private",
-        is_public_passport: profileAny.is_public_passport ?? false,
-        searchable_by_verified_employers: profileAny.searchable_by_verified_employers ?? true,
-        searchable_by_shared_employers: profileAny.searchable_by_shared_employers ?? true,
-        email_verified: emailVerified,
-      },
-      role: profile.role ?? null,
+      id,
+      email,
+      role,
+      onboarding_complete,
     });
-  } catch (error) {
-    console.error("Get user error:", error);
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch user" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
