@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { getCurrentUser, hasRole, getCurrentUserProfile } from "@/lib/auth";
+import { hasRole, getCurrentUserProfile } from "@/lib/auth";
 import { EmployerHeader } from "@/components/employer/employer-header";
 import { EmployerSidebar } from "@/components/employer/employer-sidebar";
 import { EmployerDashboardClient } from "@/components/employer/EmployerDashboardClient";
@@ -24,11 +24,21 @@ export default async function EmployerDashboardPage({
   const showWelcome = params.welcome === "1";
 
   if (!isSandbox) {
-    const user = await getCurrentUser();
-    if (!user) {
-      console.log("REDIRECT TRIGGERED IN: app/employer/dashboard/page.tsx");
+    const supabase = await createServerSupabase();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
       redirect("/login");
     }
+
+    const user = session.user;
+    const emailVerified = Boolean((user as { email_confirmed_at?: string | null }).email_confirmed_at);
+    if (!emailVerified) {
+      redirect("/verify-email");
+    }
+
     const isEmployer = await hasRole("employer");
     const isSuperAdmin = await hasRole("superadmin");
     if (!isEmployer && !isSuperAdmin) {

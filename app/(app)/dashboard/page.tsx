@@ -37,6 +37,10 @@ export default async function UserDashboardPage() {
   }
 
   const user = session.user;
+  const emailVerified = Boolean((user as { email_confirmed_at?: string | null }).email_confirmed_at);
+  if (!emailVerified) {
+    redirect("/verify-email");
+  }
 
   // Redirect employers to their dashboard
   const userIsEmployer = await isEmployer();
