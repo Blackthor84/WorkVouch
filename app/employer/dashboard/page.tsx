@@ -77,14 +77,20 @@ export default async function EmployerDashboardPage({
     const planTier = (employerAccount as EmployerAccountRow | null)?.plan_tier || "free";
     const employerId = (employerAccount as EmployerAccountRow | null)?.id;
     const employerIndustry = (employerAccount as EmployerAccountRow | null)?.industry_type ?? null;
-    const userRole =
-      normalizedProfileRole === "superadmin"
-        ? "superadmin"
-        : normalizedProfileRole === "admin"
-          ? "admin"
-          : normalizedProfileRole === "employer"
-            ? "employer"
-            : "user";
+    let userRole: "superadmin" | "admin" | "employer" | "user" = "user";
+    switch (normalizedProfileRole) {
+      case "superadmin":
+        userRole = "superadmin";
+        break;
+      case "admin":
+        userRole = "admin";
+        break;
+      case "employer":
+        userRole = "employer";
+        break;
+      default:
+        userRole = "user";
+    }
 
     return (
       <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
