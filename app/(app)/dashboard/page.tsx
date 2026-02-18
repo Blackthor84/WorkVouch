@@ -1,4 +1,4 @@
-import { getCurrentUser, getCurrentUserProfile, isEmployer } from "@/lib/auth";
+import { getCurrentUserProfile, isEmployer } from "@/lib/auth";
 import { getVerticalDashboardConfig } from "@/lib/verticals/dashboard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,24 +20,28 @@ import {
   DocumentArrowUpIcon,
 } from "@heroicons/react/24/outline";
 import { redirect } from "next/navigation";
+import { supabaseServer } from "@/lib/supabase/server";
 
 // Ensure runtime rendering - prevents build-time prerendering
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 export default async function UserDashboardPage() {
-  const user = await getCurrentUser();
+  const supabase = await supabaseServer();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  // Check if user is an employer and redirect them (server-side, no auth redirect)
-  if (user) {
-    const userIsEmployer = await isEmployer();
-    if (userIsEmployer) {
-      redirect("/employer/dashboard");
-    }
+  if (!session) {
+    redirect("/login");
   }
 
-  if (!user) {
-    redirect("/login");
+  const user = session.user;
+
+  // Redirect employers to their dashboard
+  const userIsEmployer = await isEmployer();
+  if (userIsEmployer) {
+    redirect("/employer/dashboard");
   }
 
   const profile = await getCurrentUserProfile();
