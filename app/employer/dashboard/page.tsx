@@ -27,14 +27,12 @@ export default async function EmployerDashboardPage({
   if (!isSandbox) {
     const supabase = await createServerSupabase();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
       redirect("/login");
     }
-
-    const user = session.user;
 
     const emailVerified = Boolean((user as { email_confirmed_at?: string | null }).email_confirmed_at);
     if (!emailVerified) {

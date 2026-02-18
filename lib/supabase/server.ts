@@ -14,23 +14,18 @@ export async function supabaseServer() {
 
   const cookieStore = await cookies();
 
-  return createServerClient(
-    url,
-    anonKey,
-    {
-      cookies: {
-        get(name) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name, value, options) {
-          cookieStore.set(name, value, options ?? {});
-        },
-        remove(name, options) {
-          cookieStore.set(name, "", { ...options, maxAge: 0 });
-        },
+  return createServerClient(url, anonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
       },
-    }
-  );
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) =>
+          cookieStore.set(name, value, options ?? {})
+        );
+      },
+    },
+  });
 }
 
 /** Use in protected API routes when session is missing. */
