@@ -77,8 +77,9 @@ export default async function EmployerDashboardPage({
     const planTier = (employerAccount as EmployerAccountRow | null)?.plan_tier || "free";
     const employerId = (employerAccount as EmployerAccountRow | null)?.id;
     const employerIndustry = (employerAccount as EmployerAccountRow | null)?.industry_type ?? null;
-    let userRole: "superadmin" | "admin" | "employer" | "user" = "user";
-    switch (normalizedProfileRole) {
+    const roleForMapping: UserRole | null = normalizedProfileRole;
+    let userRole: UserRole = "user";
+    switch (roleForMapping) {
       case "superadmin":
         userRole = "superadmin";
         break;
