@@ -41,12 +41,13 @@ export default async function EmployerDashboardPage({
 
     type EmployerAccountRow = { id: string; plan_tier: string; industry_type?: string | null };
     type ProfileRow = { role?: string | null };
+    type UserRole = "superadmin" | "admin" | "employer" | "user";
     const { data: profileRow } = await (supabase as any)
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    const profileRole = (profileRow as ProfileRow | null)?.role ?? "";
+    const profileRole: UserRole | "" = ((profileRow as ProfileRow | null)?.role ?? "") as UserRole | "";
     const isEmployer = profileRole === "employer";
     const isSuperAdmin = profileRole === "superadmin";
     if (!isEmployer && !isSuperAdmin) {
