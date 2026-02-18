@@ -9,15 +9,6 @@ import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 type UserRole = "superadmin" | "admin" | "employer" | "user";
 
-const isUserRole = (value: unknown): value is UserRole => {
-  return (
-    value === "superadmin" ||
-    value === "admin" ||
-    value === "employer" ||
-    value === "user"
-  );
-};
-
 // Mark as dynamic
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -57,14 +48,18 @@ export default async function EmployerDashboardPage({
       .select("role")
       .eq("id", user.id)
       .single();
-    const profileRoleRaw = (profileRow as ProfileRow | null)?.role ?? null;
+    const roleFromDb = (profileRow as ProfileRow | null)?.role;
 
-    const normalizedProfileRole: UserRole | null = isUserRole(profileRoleRaw)
-      ? profileRoleRaw
-      : null;
+    const resolvedRole: UserRole =
+      roleFromDb === "superadmin" ||
+      roleFromDb === "admin" ||
+      roleFromDb === "employer" ||
+      roleFromDb === "user"
+        ? roleFromDb
+        : "user";
 
-    const isEmployer = normalizedProfileRole === "employer";
-    const isSuperAdmin = normalizedProfileRole === "superadmin";
+    const isEmployer = resolvedRole === "employer";
+    const isSuperAdmin = resolvedRole === "superadmin";
     if (!isEmployer && !isSuperAdmin) {
       redirect("/dashboard");
     }
@@ -77,21 +72,7 @@ export default async function EmployerDashboardPage({
     const planTier = (employerAccount as EmployerAccountRow | null)?.plan_tier || "free";
     const employerId = (employerAccount as EmployerAccountRow | null)?.id;
     const employerIndustry = (employerAccount as EmployerAccountRow | null)?.industry_type ?? null;
-    const roleForMapping: UserRole | null = normalizedProfileRole;
-    let userRole: UserRole = "user";
-    switch (roleForMapping) {
-      case "superadmin":
-        userRole = "superadmin";
-        break;
-      case "admin":
-        userRole = "admin";
-        break;
-      case "employer":
-        userRole = "employer";
-        break;
-      default:
-        userRole = "user";
-    }
+    const userRole: UserRole = resolvedRole;
 
     return (
       <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
