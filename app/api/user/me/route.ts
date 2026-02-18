@@ -16,44 +16,40 @@ function normalizeRole(raw: string | null | undefined): NormalizedRole {
 export async function GET() {
   try {
     const supabase = await supabaseServer();
-    const authResult = await supabase.auth.getUser();
+    const { data, error } = await supabase.auth.getUser();
 
-    if (authResult.error) {
+    if (error || !data?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = authResult.data?.user;
-    if (!user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const user = data.user;
 
-    const supabaseAny = supabase as any;
-    const profileResult = await supabaseAny
+    const { data: rows, error: profileError } = await supabase
       .from("profiles")
       .select("id, email, role, onboarding_completed")
       .eq("id", user.id)
       .limit(1);
 
-    if (profileResult.error) {
+    if (profileError) {
       return NextResponse.json(
         { error: "Failed to fetch user" },
         { status: 500 }
       );
     }
 
-    const rows = profileResult.data;
-    if (!Array.isArray(rows) || rows.length === 0) {
+    if (!rows || rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const row = rows[0] as { id?: string; email?: string | null; role?: string | null; onboarding_completed?: boolean };
+    const row = rows[0];
+
     return NextResponse.json({
-      id: row.id ?? user.id,
+      id: row.id,
       email: row.email ?? user.email ?? null,
       role: normalizeRole(row.role),
       onboarding_complete: Boolean(row.onboarding_completed),
     });
-  } catch {
+  } catch (err) {
     return NextResponse.json(
       { error: "Failed to fetch user" },
       { status: 500 }
