@@ -16,6 +16,7 @@ export function NotificationsBell() {
         setUnreadCount(count);
       } catch (error) {
         console.error("Failed to fetch notification count:", error);
+        setUnreadCount(0);
       } finally {
         setLoading(false);
       }
