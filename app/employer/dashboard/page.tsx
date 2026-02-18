@@ -46,7 +46,8 @@ export default async function EmployerDashboardPage({
       .select("role")
       .eq("id", user.id)
       .single();
-    const profileRole = (profileRow as ProfileRow | null)?.role ?? "";
+    const profileRole =
+      (profileRow as ProfileRow | null)?.role ?? null;
     const rawProfileRole = profileRole;
     const normalizedProfileRole:
       | "superadmin"
@@ -54,7 +55,7 @@ export default async function EmployerDashboardPage({
       | "employer"
       | "user"
       | null =
-      rawProfileRole ?? null;
+      rawProfileRole;
     const isEmployer = normalizedProfileRole === "employer";
     const isSuperAdmin = normalizedProfileRole === "superadmin";
     if (!isEmployer && !isSuperAdmin) {
