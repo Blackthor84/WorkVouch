@@ -26,13 +26,13 @@ export async function GET() {
 
     const { data: rows, error: profileError } = await supabase
       .from("profiles")
-      .select("id, email, role, onboarding_completed")
+      .select("id, role, onboarding_completed")
       .eq("id", user.id)
       .limit(1);
 
     if (profileError) {
       return NextResponse.json(
-        { error: "Failed to fetch user" },
+        { error: profileError.message },
         { status: 500 }
       );
     }
@@ -45,7 +45,7 @@ export async function GET() {
 
     return NextResponse.json({
       id: row.id,
-      email: row.email ?? user.email ?? null,
+      email: user.email ?? null,
       role: normalizeRole(row.role),
       onboarding_complete: Boolean(row.onboarding_completed),
     });
