@@ -41,15 +41,22 @@ export default async function EmployerDashboardPage({
 
     type EmployerAccountRow = { id: string; plan_tier: string; industry_type?: string | null };
     type ProfileRow = { role?: string | null };
-    type UserRole = "superadmin" | "admin" | "employer" | "user";
     const { data: profileRow } = await (supabase as any)
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
-    const profileRole: UserRole | "" = ((profileRow as ProfileRow | null)?.role ?? "") as UserRole | "";
-    const isEmployer = profileRole === "employer";
-    const isSuperAdmin = profileRole === "superadmin";
+    const profileRole = (profileRow as ProfileRow | null)?.role ?? "";
+    const rawProfileRole = profileRole;
+    const normalizedProfileRole:
+      | "superadmin"
+      | "admin"
+      | "employer"
+      | "user"
+      | null =
+      rawProfileRole ?? null;
+    const isEmployer = normalizedProfileRole === "employer";
+    const isSuperAdmin = normalizedProfileRole === "superadmin";
     if (!isEmployer && !isSuperAdmin) {
       redirect("/dashboard");
     }
@@ -62,7 +69,7 @@ export default async function EmployerDashboardPage({
     const planTier = (employerAccount as EmployerAccountRow | null)?.plan_tier || "free";
     const employerId = (employerAccount as EmployerAccountRow | null)?.id;
     const employerIndustry = (employerAccount as EmployerAccountRow | null)?.industry_type ?? null;
-    const userRole = profileRole === "superadmin" ? "superadmin" : profileRole === "admin" ? "admin" : profileRole === "employer" ? "employer" : "user";
+    const userRole = normalizedProfileRole === "superadmin" ? "superadmin" : normalizedProfileRole === "admin" ? "admin" : normalizedProfileRole === "employer" ? "employer" : "user";
 
     return (
       <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
