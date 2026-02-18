@@ -20,16 +20,22 @@ export async function POST() {
     }
 
     const supabaseAny = supabase as any;
-    const { error } = await supabaseAny
+    const { data, error } = await supabaseAny
       .from("profiles")
       .update({ onboarding_completed: true })
-      .eq("id", user.id);
+      .eq("id", user.id)
+      .select("id");
 
     if (error) {
       return NextResponse.json(
         { error: "Failed to update onboarding" },
         { status: 500 }
       );
+    }
+
+    const updated = Array.isArray(data) ? data.length > 0 : data != null;
+    if (!updated) {
+      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });

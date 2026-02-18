@@ -29,23 +29,30 @@ export async function GET() {
       .from("profiles")
       .select("id, email, role, onboarding_completed")
       .eq("id", authUser.id)
-      .single();
+      .maybeSingle();
 
-    if (profileError || !profile) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (profileError) {
+      return NextResponse.json(
+        { error: "Failed to fetch user" },
+        { status: 500 }
+      );
     }
 
-    const row = profile as { id?: string; email?: string | null; role?: string | null; onboarding_completed?: boolean };
-    const id = row.id ?? authUser.id;
-    const email = row.email ?? authUser.email ?? null;
-    const role = normalizeRole(row.role);
-    const onboarding_complete = Boolean(row.onboarding_completed);
+    if (profile) {
+      const row = profile as { id?: string; email?: string | null; role?: string | null; onboarding_completed?: boolean };
+      return NextResponse.json({
+        id: row.id ?? authUser.id,
+        email: row.email ?? authUser.email ?? null,
+        role: normalizeRole(row.role),
+        onboarding_complete: Boolean(row.onboarding_completed),
+      });
+    }
 
     return NextResponse.json({
-      id,
-      email,
-      role,
-      onboarding_complete,
+      id: authUser.id,
+      email: authUser.email ?? null,
+      role: "user" as NormalizedRole,
+      onboarding_complete: false,
     });
   } catch {
     return NextResponse.json(
