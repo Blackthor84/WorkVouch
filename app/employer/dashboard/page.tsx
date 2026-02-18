@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { hasRole, getCurrentUserProfile } from "@/lib/auth";
 import { EmployerHeader } from "@/components/employer/employer-header";
 import { EmployerSidebar } from "@/components/employer/employer-sidebar";
 import { EmployerDashboardClient } from "@/components/employer/EmployerDashboardClient";
@@ -34,17 +33,26 @@ export default async function EmployerDashboardPage({
     }
 
     const user = session.user;
+
     const emailVerified = Boolean((user as { email_confirmed_at?: string | null }).email_confirmed_at);
     if (!emailVerified) {
       redirect("/verify-email");
     }
 
-    const isEmployer = await hasRole("employer");
-    const isSuperAdmin = await hasRole("superadmin");
+    type EmployerAccountRow = { id: string; plan_tier: string; industry_type?: string | null };
+    type ProfileRow = { role?: string | null };
+    const { data: profileRow } = await (supabase as any)
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    const profileRole = (profileRow as ProfileRow | null)?.role ?? "";
+    const isEmployer = profileRole === "employer";
+    const isSuperAdmin = profileRole === "superadmin";
     if (!isEmployer && !isSuperAdmin) {
       redirect("/dashboard");
     }
-    type EmployerAccountRow = { id: string; plan_tier: string; industry_type?: string | null };
+
     const { data: employerAccount } = await (supabase as any)
       .from("employer_accounts")
       .select("id, plan_tier, industry_type")
@@ -53,8 +61,7 @@ export default async function EmployerDashboardPage({
     const planTier = (employerAccount as EmployerAccountRow | null)?.plan_tier || "free";
     const employerId = (employerAccount as EmployerAccountRow | null)?.id;
     const employerIndustry = (employerAccount as EmployerAccountRow | null)?.industry_type ?? null;
-    const profile = await getCurrentUserProfile();
-    const userRole = profile?.role === "superadmin" ? "superadmin" : profile?.role === "admin" ? "admin" : profile?.role === "employer" ? "employer" : "user";
+    const userRole = profileRole === "superadmin" ? "superadmin" : profileRole === "admin" ? "admin" : profileRole === "employer" ? "employer" : "user";
 
     return (
       <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
