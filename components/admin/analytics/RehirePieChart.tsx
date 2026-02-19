@@ -30,16 +30,35 @@ export function RehirePieChart({ data, title = "Rehire distribution" }: Props) {
       </div>
     );
   }
-  const formatted: { name: string; value: number; fill?: string }[] = isWouldRehireShape(data[0])
-    ? [
-        { name: "Would Rehire", value: data.find((d) => (d as RehireByWouldRehireRow).would_rehire)?.total ?? 0, fill: COLORS.rehire },
-        { name: "Would NOT Rehire", value: data.find((d) => !(d as RehireByWouldRehireRow).would_rehire)?.total ?? 0, fill: COLORS.noRehire },
-      ]
-    : (data as RehireSlice[]).map((d, i) => ({
-        name: d.label,
-        value: d.value,
-        fill: d.color ?? (i === 0 ? COLORS.rehire : COLORS.noRehire),
-      }));
+  const formatted: { name: string; value: number; fill?: string }[] =
+    isWouldRehireShape(data[0])
+      ? (() => {
+          const rows = data as RehireByWouldRehireRow[];
+
+          const wouldRehire =
+            rows.find((d) => d.would_rehire === true)?.total ?? 0;
+
+          const wouldNotRehire =
+            rows.find((d) => d.would_rehire === false)?.total ?? 0;
+
+          return [
+            {
+              name: "Would Rehire",
+              value: wouldRehire,
+              fill: COLORS.rehire,
+            },
+            {
+              name: "Would NOT Rehire",
+              value: wouldNotRehire,
+              fill: COLORS.noRehire,
+            },
+          ];
+        })()
+      : (data as RehireSlice[]).map((d, i) => ({
+          name: d.label,
+          value: d.value,
+          fill: d.color ?? [COLORS.rehire, COLORS.noRehire][i % 2],
+        }));
 
   const total = formatted.reduce((s, d) => s + d.value, 0);
   if (total === 0) {
