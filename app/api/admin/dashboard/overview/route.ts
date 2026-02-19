@@ -13,6 +13,25 @@ export const runtime = "nodejs";
 
 const BUCKETS = [0, 20, 40, 60, 80, 100]; // 0–20, 20–40, …, 80–100
 
+/** Guaranteed shape for admin overview. Never return null or omit reputationHistogram. */
+type OverviewPayload = {
+  totalUsers: number;
+  totalEmployers: number;
+  paidSubscriptions: number;
+  revenue: number;
+  reviewsPerDay: number;
+  reputationHistogram: { bucket: string; count: number }[];
+};
+
+const DEFAULT_OVERVIEW_PAYLOAD: OverviewPayload = {
+  totalUsers: 0,
+  totalEmployers: 0,
+  paidSubscriptions: 0,
+  revenue: 0,
+  reviewsPerDay: 0,
+  reputationHistogram: [],
+};
+
 export async function GET() {
   const supabase = await supabaseServer();
   const {
@@ -75,14 +94,16 @@ export async function GET() {
       return { bucket: `${low}–${high}`, count };
     });
 
-    return NextResponse.json({
+    const payload: OverviewPayload = {
+      ...DEFAULT_OVERVIEW_PAYLOAD,
       totalUsers,
       totalEmployers,
       paidSubscriptions,
       revenue,
       reviewsPerDay,
-      reputationHistogram: histogram,
-    });
+      reputationHistogram: Array.isArray(histogram) ? histogram : [],
+    };
+    return NextResponse.json(payload);
   } catch (e) {
     console.error("[admin/dashboard/overview]", e);
     return NextResponse.json({ error: "Failed to load overview" }, { status: 500 });

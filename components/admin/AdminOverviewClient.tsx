@@ -12,6 +12,31 @@ type Overview = {
   reputationHistogram: { bucket: string; count: number }[];
 };
 
+const DEFAULT_OVERVIEW: Overview = {
+  totalUsers: 0,
+  totalEmployers: 0,
+  paidSubscriptions: 0,
+  revenue: 0,
+  reviewsPerDay: 0,
+  reputationHistogram: [],
+};
+
+function normalizeOverviewPayload(json: unknown): Overview {
+  if (json == null || typeof json !== "object") return DEFAULT_OVERVIEW;
+  const o = json as Record<string, unknown>;
+  const hist = Array.isArray(o.reputationHistogram)
+    ? (o.reputationHistogram as { bucket: string; count: number }[])
+    : [];
+  return {
+    totalUsers: typeof o.totalUsers === "number" ? o.totalUsers : 0,
+    totalEmployers: typeof o.totalEmployers === "number" ? o.totalEmployers : 0,
+    paidSubscriptions: typeof o.paidSubscriptions === "number" ? o.paidSubscriptions : 0,
+    revenue: typeof o.revenue === "number" ? o.revenue : 0,
+    reviewsPerDay: typeof o.reviewsPerDay === "number" ? o.reviewsPerDay : 0,
+    reputationHistogram: hist,
+  };
+}
+
 const POLL_MS = 30_000;
 
 function isAdminRole(role: string | undefined | null): boolean {
@@ -34,7 +59,7 @@ export function AdminOverviewClient() {
       const res = await fetch("/api/admin/dashboard/overview");
       if (!res.ok) throw new Error("Failed to load");
       const json = await res.json();
-      setOverviewData(json);
+      setOverviewData(normalizeOverviewPayload(json));
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error loading overview");
@@ -99,7 +124,7 @@ export function AdminOverviewClient() {
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-slate-900 mb-4">Reputation distribution</h2>
         <div className="flex items-end gap-2 h-48">
-          {o.reputationHistogram.map(({ bucket, count }) => (
+          {histogram.map(({ bucket, count }) => (
             <div key={bucket} className="flex-1 flex flex-col items-center gap-1">
               <div
                 className="w-full bg-slate-200 rounded-t min-h-[4px] flex flex-col justify-end"
