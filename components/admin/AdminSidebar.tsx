@@ -15,10 +15,14 @@ function isActive(pathname: string, href: string): boolean {
   return pathname.startsWith(href + "/");
 }
 
+export type AppEnvironment = "production" | "sandbox";
+
 interface AdminSidebarProps {
   isSuperAdmin: boolean;
-  /** When true, show only: Dashboard, Users, Sandbox, Audit Logs, Playground. */
+  /** When true, show sandbox nav and amber styling. Must be true to show Playground, Abuse, Generators. */
   isSandbox: boolean;
+  /** Environment-based. Production = metrics-only; sandbox = full power tools. */
+  appEnvironment?: AppEnvironment;
   /** When true, show Financials nav (finance | admin | board). */
   showFinancials: boolean;
   /** When true, show Board nav (board | admin). */
@@ -87,8 +91,43 @@ const sandboxNav = {
   AuditLogs: nav.AuditLogs,
 };
 
-export function AdminSidebar({ isSuperAdmin, isSandbox = false, showFinancials = false, showBoard = false }: AdminSidebarProps) {
+/** Production admin: read-only nav (no Playground, Abuse, Generators, mutation tools). */
+const productionOnlyNav = {
+  Dashboard: [{ href: "/admin", label: "Dashboard" }],
+  Users: [
+    { href: "/admin/users", label: "Users" },
+    { href: "/admin/signups", label: "Signups" },
+  ],
+  Employers: [
+    { href: "/admin/organizations", label: "Employers" },
+    { href: "/admin/claim-requests", label: "Claim Requests" },
+    { href: "/admin/employer-usage", label: "Employer Usage" },
+  ],
+  ReviewsAndTrust: [
+    { href: "/admin/reviews", label: "Reviews & Moderation" },
+    { href: "/admin/trust-scores", label: "Trust Scores" },
+    { href: "/admin/scoring-explained", label: "Scoring Explained" },
+  ],
+  Analytics: [
+    { href: "/admin/analytics/overview", label: "Overview" },
+    { href: "/admin/analytics/real-time", label: "Real-Time" },
+    { href: "/admin/analytics/geography", label: "Geography" },
+    { href: "/admin/analytics/funnels", label: "Funnels" },
+    { href: "/admin/analytics/heatmaps", label: "Heatmaps" },
+    { href: "/admin/analytics/journeys", label: "User Journeys" },
+    { href: "/admin/analytics/abuse", label: "Abuse & Security" },
+  ],
+  Alerts: [{ href: "/admin/alerts", label: "Alerts" }],
+  Incidents: [{ href: "/admin/incidents", label: "Incidents" }],
+  AuditLogs: [{ href: "/admin/audit-logs", label: "Audit Logs" }],
+  Financials: [{ href: "/admin/financials", label: "Financials" }],
+  Board: [{ href: "/admin/board", label: "Board" }],
+  SystemSettings: [{ href: "/admin/system", label: "System Settings" }],
+};
+
+export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment = "production", showFinancials = false, showBoard = false }: AdminSidebarProps) {
   const pathname = usePathname();
+  const isSandboxEnvironment = appEnvironment === "sandbox";
 
   const section = (title: string, items: { href: string; label: string }[]) => (
     <div key={title}>
@@ -125,7 +164,7 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, showFinancials =
           Dashboard
         </Link>
         <nav className="flex-1 overflow-y-auto mt-4 space-y-6 px-2">
-          {isSuperAdmin && !isSandbox ? (
+          {isSuperAdmin && !isSandboxEnvironment && (
             <div>
               <div className={`px-3 py-1.5 ${SECTION_TITLE}`}>Enterprise</div>
               <ul className="mt-1 space-y-0.5">
@@ -143,7 +182,8 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, showFinancials =
                 ))}
               </ul>
             </div>
-          ) : isSandbox ? (
+          )}
+          {isSandboxEnvironment ? (
             <>
               {section("Dashboard", sandboxNav.Dashboard)}
               {section("Users", sandboxNav.Users)}
@@ -152,18 +192,17 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, showFinancials =
             </>
           ) : (
             <>
-              {section("Dashboard", nav.Dashboard)}
-              {section("Users", nav.Users)}
-              {section("Employers", nav.Employers)}
-              {section("Reviews & Trust", nav.ReviewsAndTrust)}
-              {section("Sandbox", nav.Sandbox)}
-              {section("Analytics", nav.Analytics)}
-              {section("Alerts", nav.Alerts)}
-              {section("Incidents", nav.Incidents)}
-              {section("Audit Logs", nav.AuditLogs)}
-              {showFinancials && section("Financials", nav.Financials)}
-              {showBoard && section("Board", nav.Board)}
-              {isSuperAdmin && section("System Settings", nav.SystemSettings)}
+              {section("Dashboard", productionOnlyNav.Dashboard)}
+              {section("Users", productionOnlyNav.Users)}
+              {section("Employers", productionOnlyNav.Employers)}
+              {section("Reviews & Trust", productionOnlyNav.ReviewsAndTrust)}
+              {section("Analytics", productionOnlyNav.Analytics)}
+              {section("Alerts", productionOnlyNav.Alerts)}
+              {section("Incidents", productionOnlyNav.Incidents)}
+              {section("Audit Logs", productionOnlyNav.AuditLogs)}
+              {showFinancials && section("Financials", productionOnlyNav.Financials)}
+              {showBoard && section("Board", productionOnlyNav.Board)}
+              {isSuperAdmin && section("System Settings", productionOnlyNav.SystemSettings)}
             </>
           )}
         </nav>

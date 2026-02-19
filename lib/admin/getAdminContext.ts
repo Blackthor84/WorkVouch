@@ -12,6 +12,7 @@ import { getRoleFromSession } from "@/lib/auth/admin-role-guards";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
 import { isSandboxEnv } from "@/lib/sandbox/env";
 import { getGodModeState } from "@/lib/auth/godModeCookie";
+import { getAppEnvironment, type AppEnvironment } from "@/lib/admin/appEnvironment";
 
 export type AdminRole = "user" | "admin" | "super_admin";
 
@@ -26,6 +27,9 @@ export type AdminContext = {
   profileRole: string;
   isAdmin: boolean;
   isSuperAdmin: boolean;
+  /** Environment-based only. Production = read-only admin; sandbox = full power (playground, mutations). */
+  appEnvironment: AppEnvironment;
+  /** User-facing sandbox mode (cookie + env). For display only; power tools gated by appEnvironment. */
   isSandbox: boolean;
   canImpersonate: boolean;
   canBypassLimits: boolean;
@@ -78,6 +82,7 @@ export async function getAdminContext(req?: NextRequest): Promise<AdminContext> 
     const isSuperAdmin = authRole === "superadmin";
 
     const roles: AdminRole[] = isAdmin ? (isSuperAdmin ? ["user", "admin", "super_admin"] : ["user", "admin"]) : ["user"];
+    const appEnvironment = getAppEnvironment();
     const appSandbox = resolveSandbox();
     const adminToggledSandbox = await getAdminSandboxModeFromCookies();
     const sandbox = appSandbox || adminToggledSandbox;
@@ -91,10 +96,11 @@ export async function getAdminContext(req?: NextRequest): Promise<AdminContext> 
       profileRole,
       isAdmin,
       isSuperAdmin,
+      appEnvironment,
       isSandbox: sandbox,
       canImpersonate: isSuperAdmin || sandbox,
       canBypassLimits: isSuperAdmin || sandbox,
-      canSeedData: sandbox || isSuperAdmin,
+      canSeedData: appEnvironment === "sandbox" ? (sandbox || isSuperAdmin) : false,
       godMode,
     };
   } catch {

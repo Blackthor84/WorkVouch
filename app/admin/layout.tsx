@@ -72,9 +72,10 @@ export default async function AdminLayout({
     redirect("/404");
   }
 
-  const env = admin.isSandbox ? "SANDBOX" : "PRODUCTION";
+  const env = admin.appEnvironment === "sandbox" ? "SANDBOX" : "PRODUCTION";
   const role = admin.isSuperAdmin ? "SUPERADMIN" : "ADMIN";
   const godModeEnabled = admin.godMode?.enabled ?? adminUserRow.god_mode;
+  const isSandboxEnv = admin.appEnvironment === "sandbox";
 
   return (
     <>
@@ -88,12 +89,13 @@ export default async function AdminLayout({
         env={env}
         role={role}
         email={admin.email}
-        isSandbox={admin.isSandbox}
+        isSandbox={isSandboxEnv}
       />
-      <div className={`min-h-screen flex ${admin.isSandbox ? "bg-amber-50/50" : "bg-[#F8FAFC]"}`}>
+      <div className={`min-h-screen flex ${isSandboxEnv ? "bg-amber-50/50" : "bg-[#F8FAFC]"}`}>
         <AdminSidebar
           isSuperAdmin={admin.isSuperAdmin}
-          isSandbox={admin.isSandbox}
+          isSandbox={isSandboxEnv}
+          appEnvironment={admin.appEnvironment}
           showFinancials={canViewFinancials({
             isAdmin: admin.isAdmin,
             isSuperAdmin: admin.isSuperAdmin,

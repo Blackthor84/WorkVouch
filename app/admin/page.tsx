@@ -17,7 +17,7 @@ export default async function AdminOverviewPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {admin.isSandbox && (
+      {admin.appEnvironment === "sandbox" && (
         <div className="mb-6 rounded-lg border border-amber-400 bg-amber-50 p-4">
           <p className="font-semibold text-amber-900">Sandbox mode</p>
           <p className="text-sm text-amber-800">Data may be sandbox-only. No production impact.</p>

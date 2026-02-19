@@ -8,7 +8,7 @@ import { NavbarClient, type OrgSwitcherItem } from "./navbar-client";
 export async function NavbarServer() {
   const admin = await getAdminContext();
   const showAdmin = admin.isAdmin;
-  const showSandboxAdmin = admin.isSandbox || admin.isSuperAdmin;
+  const showSandboxAdmin = admin.appEnvironment === "sandbox" && admin.isAdmin;
 
   const { session } = await getSupabaseSession();
   const profile = session?.user ? await getCurrentUserProfile() : null;

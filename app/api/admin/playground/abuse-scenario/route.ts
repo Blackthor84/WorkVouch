@@ -3,12 +3,15 @@ import { requireAdminForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { runScenarioRpc } from "@/lib/sandbox/runScenarioRpc";
+import { requireSandboxEnvironment } from "@/lib/server/requireSandboxEnvironment";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** POST /api/admin/playground/abuse-scenario — run playground_generate_abuse_scenario RPC. Admin-only. */
+/** POST /api/admin/playground/abuse-scenario — run playground_generate_abuse_scenario RPC. Sandbox environment + admin only. */
 export async function POST(req: NextRequest) {
+  const envCheck = requireSandboxEnvironment();
+  if (!envCheck.allowed) return envCheck.response;
   const admin = await requireAdminForApi();
   if (!admin) return adminForbiddenResponse();
 

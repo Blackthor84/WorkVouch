@@ -47,7 +47,7 @@ export function AdminGlobalBar({ env, role, email, isSandbox }: AdminGlobalBarPr
           aria-live="polite"
         >
           <span aria-hidden>🧪</span>
-          <span>SANDBOX MODE — NO PRODUCTION DATA WILL BE AFFECTED</span>
+          <span>SANDBOX MODE – NOT PRODUCTION</span>
         </div>
       )}
     </>
