@@ -1,10 +1,11 @@
 /**
- * GET /api/admin/dashboard/overview — superadmin-only. Production data: users, employers,
+ * GET /api/admin/dashboard/overview — admin or superadmin. Production data: users, employers,
  * paid subs, revenue, reviews/day, reputation histogram. No mock data.
+ * Role from session.user.app_metadata.role only.
  */
 
 import { NextResponse } from "next/server";
-import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
+import { requireAdminForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
@@ -14,8 +15,10 @@ export const runtime = "nodejs";
 const BUCKETS = [0, 20, 40, 60, 80, 100]; // 0–20, 20–40, …, 80–100
 
 export async function GET() {
-  const admin = await requireSuperAdminForApi();
+  const admin = await requireAdminForApi();
   if (!admin) return adminForbiddenResponse();
+  const role = admin.role;
+  console.log("ADMIN API ROLE:", role);
 
   try {
     const supabase = getSupabaseServer();
