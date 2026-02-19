@@ -70,6 +70,12 @@ const nav = {
   SystemSettings: [{ href: "/admin/system", label: "System Settings" }],
 };
 
+const enterpriseNav = [
+  { label: "Companies", href: "/admin/enterprise/companies" },
+  { label: "Plans", href: "/admin/enterprise/plans" },
+  { label: "Billing", href: "/admin/enterprise/billing" },
+];
+
 /** Sandbox-only nav: Dashboard, Users (sandbox only), Sandbox, Audit Logs, Playground. */
 const sandboxNav = {
   Dashboard: nav.Dashboard,
