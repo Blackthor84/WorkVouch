@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
     );
   } catch (_) {}
 
+  try {
   const url = new URL(req.url);
   const envFilter = url.searchParams.get("env");
   const signalType = url.searchParams.get("signal_type")?.trim();
@@ -41,7 +42,10 @@ export async function GET(req: NextRequest) {
   if (signalType) q = q.eq("signal_type", signalType);
   const { data: signals, error } = await q;
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[admin/analytics/abuse]", error);
+    return NextResponse.json({ windowHours: 24, signals: [], bySignalType: [] }, { status: 200 });
+  }
 
   let byType: Record<string, number> = {};
   for (const s of signals ?? []) {
@@ -54,4 +58,8 @@ export async function GET(req: NextRequest) {
     signals: signals ?? [],
     bySignalType: Object.entries(byType).map(([type, count]) => ({ type, count })),
   });
+  } catch (e) {
+    console.error("[admin/analytics/abuse]", e);
+    return NextResponse.json({ windowHours: 24, signals: [], bySignalType: [] }, { status: 200 });
+  }
 }

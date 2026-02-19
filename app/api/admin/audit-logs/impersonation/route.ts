@@ -10,10 +10,10 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
-  try {
-    const admin = await getAdminContext(req);
-    if (!admin.isAdmin) return adminForbiddenResponse();
+  const admin = await getAdminContext(req);
+  if (!admin.isAdmin) return adminForbiddenResponse();
 
+  try {
     const url = new URL(req.url);
     const limit = Math.min(500, Math.max(1, parseInt(url.searchParams.get("limit") || "100", 10)));
     const adminId = url.searchParams.get("admin_user_id")?.trim() || undefined;
@@ -33,12 +33,12 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error("[admin/audit-logs/impersonation]", error);
-      return NextResponse.json({ error: "Failed to load impersonation audit" }, { status: 500 });
+      return NextResponse.json([], { status: 200 });
     }
 
-    return NextResponse.json(data ?? []);
+    return NextResponse.json(Array.isArray(data) ? data : []);
   } catch (e) {
     console.error("[admin/audit-logs/impersonation]", e);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json([], { status: 200 });
   }
 }

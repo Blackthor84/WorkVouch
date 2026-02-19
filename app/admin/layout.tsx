@@ -76,7 +76,10 @@ export default async function AdminLayout({
   const env = admin.appEnvironment === "sandbox" ? "SANDBOX" : "PRODUCTION";
   const role = admin.isSuperAdmin ? "SUPERADMIN" : "ADMIN";
   const godModeEnabled = admin.godMode?.enabled ?? adminUserRow.god_mode;
-  const overrideStatus = await getAdminOverrideStatus();
+  let overrideStatus = { active: false as boolean, expiresAt: null as string | null };
+  try {
+    overrideStatus = await getAdminOverrideStatus();
+  } catch (_) {}
   const overrideActive = overrideStatus.active;
   const founderEmail = process.env.FOUNDER_EMAIL?.trim()?.toLowerCase();
   const isFounder = Boolean(

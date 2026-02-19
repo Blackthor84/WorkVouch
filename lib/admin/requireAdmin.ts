@@ -1,7 +1,8 @@
 /**
  * Admin and superadmin access guards. BACKEND ENFORCEMENT ONLY.
  * - Page/layout: requireAdmin() / requireSuperAdmin() redirect to /unauthorized if not allowed.
- * - API routes: use requireAdminForApi() / requireSuperAdminForApi(); if null, return adminForbiddenResponse() (403).
+ * - API routes: use requireAdminForApi(); if null, return adminForbiddenResponse() (403).
+ * Standard admin 403 body: { "error": "Admin access required" }. Never return HTML or empty body.
  * Never rely on UI-only checks. Fail closed: deny by default.
  */
 import { redirect } from "next/navigation";

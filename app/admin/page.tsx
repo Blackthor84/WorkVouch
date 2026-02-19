@@ -6,10 +6,10 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminOverviewPage() {
   const admin = await getAdminContext();
-  if (!admin.isAuthenticated || !admin.isSuperAdmin) {
+  if (!admin.isAuthenticated || !admin.isAdmin) {
     return (
       <div className="p-8 text-slate-700">
-        <p>Superadmin access required.</p>
+        <p>Admin access required.</p>
         <Link href="/dashboard" className="text-blue-600 hover:underline mt-2 inline-block">Go to dashboard</Link>
       </div>
     );

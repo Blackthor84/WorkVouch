@@ -61,6 +61,11 @@ export async function GET(req: NextRequest) {
     });
   } catch (e) {
     console.error("[FINANCIALS HEALTH]", e);
-    return NextResponse.json({ error: "Unavailable" }, { status: 503 });
+    return NextResponse.json({
+      activeSubscriptions: 0,
+      churnRate: 0,
+      ARPA: 0,
+      estimatedLTV: null,
+    }, { status: 200 });
   }
 }

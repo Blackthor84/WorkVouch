@@ -1,6 +1,6 @@
 /**
  * GET /api/admin/analytics/overview — internal analytics (enterprise schema).
- * Uses site_sessions + site_page_views. Admin-only. Audited. Sandbox-aware.
+ * Uses site_sessions + site_page_views. Admin-only. Always returns safe shape (visitorMap, last24h, pagePerformance).
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -11,6 +11,13 @@ import { logAdminViewedAnalytics } from "@/lib/admin/analytics-audit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+const SAFE_OVERVIEW = {
+  realTimeVisitors: 0,
+  last24h: { totalViews: 0, uniqueSessions: 0, sandboxViews: 0, productionViews: 0 },
+  pagePerformance: [] as { path: string; views: number; uniqueSessions: number }[],
+  visitorMap: [] as { country: string; count: number }[],
+};
 
 export async function GET(req: NextRequest) {
   const admin = await requireAdminForApi();
@@ -24,6 +31,7 @@ export async function GET(req: NextRequest) {
     );
   } catch (_) {}
 
+  try {
   const url = new URL(req.url);
   const envFilter = url.searchParams.get("env");
   const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -85,7 +93,11 @@ export async function GET(req: NextRequest) {
       sandboxViews: sandboxCount,
       productionViews: prodCount,
     },
-    pagePerformance,
-    visitorMap,
+    pagePerformance: pagePerformance ?? SAFE_OVERVIEW.pagePerformance,
+    visitorMap: visitorMap ?? SAFE_OVERVIEW.visitorMap,
   });
+  } catch (e) {
+    console.error("[admin/analytics/overview]", e);
+    return NextResponse.json(SAFE_OVERVIEW, { status: 200 });
+  }
 }

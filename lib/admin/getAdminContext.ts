@@ -5,7 +5,7 @@
  * API routes MUST call getAdminContext(req) and pass the request.
  */
 
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { isSandbox } from "@/lib/app-mode";
 import { getRoleFromSession } from "@/lib/auth/admin-role-guards";
@@ -109,12 +109,9 @@ export async function getAdminContext(req?: NextRequest): Promise<AdminContext> 
   }
 }
 
-/** Clean 403 response for admin routes. Use when !admin.isAdmin. Never leak details. */
+/** Standard 403 for admin routes. Use when !admin.isAdmin. Never leak details. */
 export function adminForbiddenResponse() {
-  return new Response(JSON.stringify({ error: "Forbidden" }), {
-    status: 403,
-    headers: { "Content-Type": "application/json" },
-  });
+  return NextResponse.json({ error: "Admin access required" }, { status: 403 });
 }
 
 /** Type guard: context has admin access. */

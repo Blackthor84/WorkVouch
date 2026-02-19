@@ -5,15 +5,22 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 type Overview = {
-  realTimeVisitors: number;
-  last24h: {
+  realTimeVisitors?: number;
+  last24h?: {
     totalViews: number;
     uniqueSessions: number;
     sandboxViews: number;
     productionViews: number;
   };
-  pagePerformance: { path: string; views: number; uniqueSessions: number }[];
-  visitorMap: { country: string; count: number }[];
+  pagePerformance?: { path: string; views: number; uniqueSessions: number }[];
+  visitorMap?: { country: string; count: number }[];
+};
+
+const SAFE_OVERVIEW: Required<Overview> = {
+  realTimeVisitors: 0,
+  last24h: { totalViews: 0, uniqueSessions: 0, sandboxViews: 0, productionViews: 0 },
+  pagePerformance: [],
+  visitorMap: [],
 };
 
 type ErrorsData = {
@@ -317,7 +324,10 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
     );
   }
 
-  const o = data!;
+  const o = data ?? SAFE_OVERVIEW;
+  const visitorMap = Array.isArray(o.visitorMap) ? o.visitorMap : [];
+  const last24h = o.last24h ?? SAFE_OVERVIEW.last24h;
+  const pagePerformance = Array.isArray(o.pagePerformance) ? o.pagePerformance : [];
 
   return (
     <div className="space-y-6">
@@ -403,21 +413,21 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
               <p className="text-sm font-medium text-slate-500">Real-time (5 min)</p>
-              <p className="text-2xl font-bold text-slate-900">{o.realTimeVisitors}</p>
+              <p className="text-2xl font-bold text-slate-900">{o.realTimeVisitors ?? 0}</p>
               <p className="text-xs text-slate-400">unique sessions</p>
             </div>
             <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
               <p className="text-sm font-medium text-slate-500">Last 24h views</p>
-              <p className="text-2xl font-bold text-slate-900">{o.last24h.totalViews}</p>
-              <p className="text-xs text-slate-400">{o.last24h.uniqueSessions} unique sessions</p>
+              <p className="text-2xl font-bold text-slate-900">{last24h.totalViews}</p>
+              <p className="text-xs text-slate-400">{last24h.uniqueSessions} unique sessions</p>
             </div>
             <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
               <p className="text-sm font-medium text-slate-500">Sandbox (24h)</p>
-              <p className="text-2xl font-bold text-amber-700">{o.last24h.sandboxViews}</p>
+              <p className="text-2xl font-bold text-amber-700">{last24h.sandboxViews}</p>
             </div>
             <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
               <p className="text-sm font-medium text-slate-500">Production (24h)</p>
-              <p className="text-2xl font-bold text-emerald-700">{o.last24h.productionViews}</p>
+              <p className="text-2xl font-bold text-emerald-700">{last24h.productionViews}</p>
             </div>
           </div>
           {errorsData != null && (
@@ -447,10 +457,10 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
                   </tr>
                 </thead>
                 <tbody>
-                  {o.pagePerformance.length === 0 ? (
+                  {pagePerformance.length === 0 ? (
                     <tr><td colSpan={3} className="py-4 text-slate-500">No visits in window</td></tr>
                   ) : (
-                    o.pagePerformance.map(({ path, views, uniqueSessions }) => (
+                    pagePerformance.map(({ path, views, uniqueSessions }) => (
                       <tr key={path} className="border-b border-slate-100">
                         <td className="py-2 pr-4 font-mono text-slate-800">{path}</td>
                         <td className="py-2 pr-4 text-right">{views}</td>
@@ -492,11 +502,11 @@ export function AdminAnalyticsDashboard({ initialTab = "overview", forceSandbox 
         <div className="space-y-4">
           <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <h2 className="mb-3 text-lg font-semibold text-slate-900">Visitor map (last 24h, by country)</h2>
-            {o.visitorMap.length === 0 ? (
+            {visitorMap.length === 0 ? (
               <p className="text-sm text-slate-500">No geo data in window</p>
             ) : (
               <ul className="space-y-1 text-sm max-h-64 overflow-auto">
-                {o.visitorMap.map(({ country, count }) => (
+                {visitorMap.map(({ country, count }) => (
                   <li key={country} className="flex justify-between">
                     <span className="font-medium">{country === "unknown" ? "(unknown)" : country}</span>
                     <span className="text-slate-500">{count}</span>

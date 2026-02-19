@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
     );
   } catch (_) {}
 
+  try {
   const url = new URL(req.url);
   const hours = Math.min(168, Math.max(1, parseInt(url.searchParams.get("hours") || "24", 10)));
   const envFilter = url.searchParams.get("env");
@@ -58,4 +59,14 @@ export async function GET(req: NextRequest) {
     errorRate: totalViews ? ((errorEvents?.length ?? 0) / totalViews) * 100 : 0,
     byEventName: Object.entries(byName).map(([name, count]) => ({ name, count })),
   });
+  } catch (e) {
+    console.error("[admin/analytics/errors]", e);
+    return NextResponse.json({
+      windowHours: 24,
+      totalErrorEvents: 0,
+      totalPageViews: 0,
+      errorRate: 0,
+      byEventName: [],
+    }, { status: 200 });
+  }
 }

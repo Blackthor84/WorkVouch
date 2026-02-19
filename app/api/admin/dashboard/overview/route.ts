@@ -1,7 +1,7 @@
 /**
  * GET /api/admin/dashboard/overview — admin or superadmin. Production data: users, employers,
  * paid subs, revenue, reviews/day, reputation histogram. No mock data.
- * Auth: session from cookies (Supabase server client); role from session.user.app_metadata.role only.
+ * Auth: requireAdminForApi(); 403 JSON when not admin.
  */
 
 import { NextResponse } from "next/server";
@@ -33,22 +33,8 @@ const DEFAULT_OVERVIEW_PAYLOAD: OverviewPayload = {
 };
 
 export async function GET() {
-  const supabase = await supabaseServer();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
-  const role = (session.user as { app_metadata?: { role?: string } }).app_metadata?.role;
-  console.log("ADMIN API ROLE:", role);
-
-  const roleLower = String(role ?? "").toLowerCase();
-  if (!["admin", "superadmin"].includes(roleLower)) {
-    return new Response("Forbidden", { status: 403 });
-  }
+  const admin = await requireAdminForApi();
+  if (!admin) return adminForbiddenResponse();
 
   try {
     const supabase = getSupabaseServer();
@@ -106,6 +92,6 @@ export async function GET() {
     return NextResponse.json(payload);
   } catch (e) {
     console.error("[admin/dashboard/overview]", e);
-    return NextResponse.json({ error: "Failed to load overview" }, { status: 500 });
+    return NextResponse.json({ ...DEFAULT_OVERVIEW_PAYLOAD, error: "Failed to load overview" }, { status: 200 });
   }
 }
