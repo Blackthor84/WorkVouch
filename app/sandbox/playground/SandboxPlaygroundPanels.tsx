@@ -78,6 +78,7 @@ export function SandboxPlaygroundPanels() {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | undefined>(undefined);
   const [sandboxAccessDenied, setSandboxAccessDenied] = useState(false);
+  const [safeMode, setSafeMode] = useState(false);
   const observerFetchedRef = useRef(false);
   const listFetchedRef = useRef(false);
 
@@ -190,6 +191,7 @@ export function SandboxPlaygroundPanels() {
       setCompany(newId ? { sandboxId: newId } : null);
       setListUsers([]);
       setObserverData(undefined);
+      setSafeMode(false);
       await fetchObserver();
     } catch {
       setError("Request failed");
@@ -244,6 +246,11 @@ export function SandboxPlaygroundPanels() {
       {sandboxAccessDenied && (
         <div style={{ marginBottom: 16, padding: 12, background: "#FEF3C7", borderRadius: 8, color: "#92400E" }}>
           Sandbox access denied. You need admin or superadmin role to use the Playground.
+        </div>
+      )}
+      {safeMode && (
+        <div style={{ marginBottom: 16, padding: 12, background: "#E0F2FE", borderRadius: 8, color: "#0369A1" }}>
+          Safe mode: database unavailable. IDs are in-memory only. Observer and scenarios may show no data.
         </div>
       )}
       {error && (
