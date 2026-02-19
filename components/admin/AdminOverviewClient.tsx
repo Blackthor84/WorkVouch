@@ -20,11 +20,11 @@ function isAdminRole(role: string | undefined | null): boolean {
 }
 
 export function AdminOverviewClient() {
-  const { data } = useSupabaseSession();
-  const role = (data?.user as { app_metadata?: { role?: string } } | undefined)?.app_metadata?.role;
+  const { data: sessionData } = useSupabaseSession();
+  const role = (sessionData?.user as { app_metadata?: { role?: string } } | undefined)?.app_metadata?.role;
   const canFetch = isAdminRole(role);
 
-  const [data, setData] = useState<Overview | null>(null);
+  const [overviewData, setOverviewData] = useState<Overview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +34,7 @@ export function AdminOverviewClient() {
       const res = await fetch("/api/admin/dashboard/overview");
       if (!res.ok) throw new Error("Failed to load");
       const json = await res.json();
-      setData(json);
+      setOverviewData(json);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error loading overview");
@@ -79,7 +79,7 @@ export function AdminOverviewClient() {
     );
   }
 
-  const o = data!;
+  const o = overviewData!;
   const maxCount = Math.max(1, ...o.reputationHistogram.map((h) => h.count));
 
   return (
