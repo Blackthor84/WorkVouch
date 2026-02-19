@@ -38,7 +38,7 @@ export type AdminContext = {
 };
 
 function resolveSandbox(): boolean {
-  return isSandbox() || isSandboxEnv();
+  return isSandbox() || isSandboxEnv;
 }
 
 const UNAUTHORIZED_CONTEXT: AdminContext = {
@@ -49,6 +49,7 @@ const UNAUTHORIZED_CONTEXT: AdminContext = {
   profileRole: "user",
   isAdmin: false,
   isSuperAdmin: false,
+  appEnvironment: getAppEnvironment(),
   isSandbox: resolveSandbox(),
   canImpersonate: false,
   canBypassLimits: false,

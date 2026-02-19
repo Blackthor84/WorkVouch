@@ -134,7 +134,7 @@ export async function POST(request: Request) {
       // Table may not exist; ignore
     }
 
-    const environment = isSandboxEnv() ? "sandbox" : "production";
+    const environment = isSandboxEnv ? "sandbox" : "production";
     try {
       await writeImpersonationAudit({
         admin_user_id: user.id,

@@ -30,5 +30,5 @@
 
 ## Helper
 
-- **`isSandboxEnv()`** — `lib/sandbox/env.ts` — use everywhere for SANDBOX detection.
+- **`isSandboxEnv`** — `lib/sandbox/env.ts` — boolean constant (do not call); use everywhere for SANDBOX detection.
 - **`adminSandboxFailSoft()`** — `lib/admin/failSoft.ts` — use at start of admin API handlers (or rely on middleware).

@@ -12,7 +12,7 @@ export default async function SandboxLayout({
 }: {
   children: React.ReactNode;
 }) {
-  if (isSandboxEnv()) {
+  if (isSandboxEnv) {
     try {
       const admin = await getAdminContext();
       if (!admin.isAuthenticated) redirect("/login");

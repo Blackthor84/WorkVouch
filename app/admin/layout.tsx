@@ -30,7 +30,7 @@ export default async function AdminLayout({
   try {
     admin = await getAdminContext();
   } catch {
-    if (isSandboxEnv()) {
+    if (isSandboxEnv) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-amber-50/50 p-6">
           <div className="text-center text-slate-700">
@@ -76,7 +76,6 @@ export default async function AdminLayout({
   const env = admin.appEnvironment === "sandbox" ? "SANDBOX" : "PRODUCTION";
   const role = admin.isSuperAdmin ? "SUPERADMIN" : "ADMIN";
   const godModeEnabled = admin.godMode?.enabled ?? adminUserRow.god_mode;
-  const isSandboxEnv = admin.appEnvironment === "sandbox";
   const overrideStatus = await getAdminOverrideStatus();
   const overrideActive = overrideStatus.active;
   const founderEmail = process.env.FOUNDER_EMAIL?.trim()?.toLowerCase();

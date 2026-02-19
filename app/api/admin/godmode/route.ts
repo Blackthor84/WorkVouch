@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const enabled = Boolean(body?.enabled);
 
-    const environment = isSandboxEnv() ? "sandbox" : "production";
+    const environment = isSandboxEnv ? "sandbox" : "production";
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || null;
     const userAgent = request.headers.get("user-agent") || null;
 

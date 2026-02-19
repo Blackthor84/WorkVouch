@@ -6,7 +6,7 @@ import { isSandboxEnv } from "@/lib/sandbox/env";
  * In SANDBOX: never throw, never assume tables exist, never return 500.
  */
 export function adminSandboxFailSoft(): NextResponse | null {
-  if (isSandboxEnv()) {
+  if (isSandboxEnv) {
     return NextResponse.json(
       { data: [], notice: "Not available in sandbox" },
       { status: 200 }
