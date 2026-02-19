@@ -104,8 +104,9 @@ export function AdminOverviewClient() {
     );
   }
 
-  const o = overviewData!;
-  const maxCount = Math.max(1, ...o.reputationHistogram.map((h) => h.count));
+  const o = overviewData ?? DEFAULT_OVERVIEW;
+  const histogram = Array.isArray(o.reputationHistogram) ? o.reputationHistogram : [];
+  const maxCount = Math.max(1, ...histogram.map((h) => h.count));
 
   return (
     <div className="space-y-6">
