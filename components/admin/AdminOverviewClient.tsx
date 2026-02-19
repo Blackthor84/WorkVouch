@@ -56,7 +56,7 @@ export function AdminOverviewClient() {
   if (!canFetch) {
     return null;
   }
-  if (loading && !data) {
+  if (loading && !overviewData) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
         <p className="text-slate-500">Loading overview…</p>
@@ -64,7 +64,7 @@ export function AdminOverviewClient() {
     );
   }
 
-  if (error && !data) {
+  if (error && !overviewData) {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-6">
         <p className="text-red-800">{error}</p>
