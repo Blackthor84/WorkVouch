@@ -1,35 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
-import { INDUSTRIES } from "@/lib/constants/industries";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const COMPANY_NAMES = ["Sandbox Co", "Demo Corp", "Acme Sandbox", "Beta Demo", "Playground Inc"];
-const FIRST_NAMES = ["Alex", "Jordan", "Sam", "Taylor", "Morgan"];
-const LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones"];
-const ROLES = ["Engineer", "Analyst", "Manager", "Designer", "Developer"];
-
-function pick<T>(arr: readonly T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+/** Minimal success shape. Returned on 200 even in degraded mode. */
+function successPayload(opts: {
+  sandbox: true;
+  employer_created: boolean;
+  employees_created: number;
+  employer_id?: string;
+  employee_ids?: string[];
+  sandboxId?: string;
+  linking_created?: boolean;
+}) {
+  return {
+    sandbox: true,
+    employer_created: opts.employer_created,
+    employees_created: opts.employees_created,
+    employer_id: opts.employer_id ?? "",
+    employee_ids: opts.employee_ids ?? [],
+    sandboxId: opts.sandboxId ?? null,
+    linking_created: opts.linking_created ?? false,
+    employer: opts.employer_id ? { id: opts.employer_id, company_name: "Sandbox Co" } : undefined,
+    workers: (opts.employee_ids ?? []).map((id) => ({ id, full_name: "Worker" })),
+  };
 }
-function randomInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-/** Safe success payload. Never null. */
-const SAFE_SUCCESS = {
-  employer_id: "",
-  employee_ids: [] as string[],
-  sandbox: true as const,
-};
 
 /**
  * POST /api/sandbox/generate-company
- * Creates 1 sandbox employer + 5 sandbox employees + employment links.
- * Order: session (if needed) → employer → employees → employment_records.
- * All data is sandbox-only (sandbox_* tables). Never touches production.
+ * Creates 1 sandbox employer + 5 sandbox employees. Linking is best-effort.
+ * Uses only minimal columns (no enums, no optional columns). Never throws.
  */
 export async function POST(req: NextRequest) {
   const guard = await sandboxAdminGuard();
@@ -41,7 +43,7 @@ export async function POST(req: NextRequest) {
     let sandboxId = (body.sandboxId ?? body.sandbox_id) as string | undefined;
     if (typeof sandboxId !== "string" || !sandboxId.trim()) sandboxId = undefined;
 
-    // 1) Get or create sandbox session
+    // --- 1) Get or create sandbox session (minimal: name only) ---
     if (!sandboxId) {
       const { data: existing } = await supabase
         .from("sandbox_sessions")
@@ -57,19 +59,18 @@ export async function POST(req: NextRequest) {
       } else {
         const { data: created, error: createErr } = await supabase
           .from("sandbox_sessions")
-          .insert({
-            name: "Sandbox Co",
-            status: "active",
-            starts_at: new Date().toISOString(),
-            ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          })
+          .insert({ name: "Sandbox Co" })
           .select("id")
           .single();
 
         if (createErr || !created?.id) {
-          console.error("sandbox generate-company: session create failed", createErr);
+          console.error("SANDBOX GENERATE COMPANY ERROR", { stage: "session", error: createErr });
           return NextResponse.json(
-            { error: "Sandbox generation failed", ...SAFE_SUCCESS },
+            {
+              error: "Sandbox generation failed",
+              details: createErr?.message ?? (created ? "" : "No session id"),
+              ...successPayload({ sandbox: true, employer_created: false, employees_created: 0 }),
+            },
             { status: 500 }
           );
         }
@@ -78,96 +79,103 @@ export async function POST(req: NextRequest) {
     } else {
       const { data: session } = await supabase
         .from("sandbox_sessions")
-        .select("id, status")
+        .select("id")
         .eq("id", sandboxId)
         .maybeSingle();
 
-      if (!session || (session as { status?: string }).status !== "active") {
+      if (!session?.id) {
         return NextResponse.json(
-          { error: "Sandbox not found or not active", ...SAFE_SUCCESS },
+          {
+            error: "Sandbox not found",
+            details: "No session with id " + sandboxId,
+            ...successPayload({ sandbox: true, employer_created: false, employees_created: 0 }),
+          },
           { status: 400 }
         );
       }
     }
 
-    // 2) Create employer (required columns only; no is_sandbox on sandbox_* tables)
-    const company_name = pick(COMPANY_NAMES);
-    const industry = pick(INDUSTRIES);
-    const plan_tier = "starter";
-
+    // --- 2) Create employer (only required: sandbox_id) ---
+    let employerId: string | undefined;
     const { data: employerRow, error: employerErr } = await supabase
       .from("sandbox_employers")
-      .insert({
-        sandbox_id: sandboxId,
-        company_name,
-        industry,
-        plan_tier,
-      })
+      .insert({ sandbox_id: sandboxId })
       .select("id")
       .single();
 
     if (employerErr || !employerRow?.id) {
-      console.error("sandbox generate-company: employer insert failed", employerErr);
+      console.error("SANDBOX GENERATE COMPANY ERROR", { stage: "employer", error: employerErr });
       return NextResponse.json(
-        { error: "Sandbox generation failed", ...SAFE_SUCCESS },
+        {
+          error: "Sandbox generation failed",
+          details: employerErr?.message ?? "Employer insert failed",
+          ...successPayload({
+            sandbox: true,
+            employer_created: false,
+            employees_created: 0,
+            sandboxId,
+          }),
+        },
         { status: 500 }
       );
     }
-    const employerId = (employerRow as { id: string }).id;
+    employerId = (employerRow as { id: string }).id;
 
-    // 3) Create 5 employees
+    // --- 3) Create 5 employees (only sandbox_id + full_name as string) ---
     const employeeIds: string[] = [];
+    const names = ["Alex Smith", "Jordan Jones", "Sam Williams", "Taylor Brown", "Morgan Davis"];
     for (let i = 0; i < 5; i++) {
-      const first = FIRST_NAMES[i] ?? pick(FIRST_NAMES);
-      const last = LAST_NAMES[i] ?? pick(LAST_NAMES);
-      const full_name = `${first} ${last}`;
-      const empIndustry = pick(INDUSTRIES);
-
+      const full_name = names[i];
       const { data: empRow, error: empErr } = await supabase
         .from("sandbox_employees")
-        .insert({
-          sandbox_id: sandboxId,
-          full_name,
-          industry: empIndustry,
-        })
+        .insert({ sandbox_id: sandboxId, full_name })
         .select("id")
         .single();
 
       if (empErr || !empRow?.id) {
-        console.error("sandbox generate-company: employee insert failed", empErr);
+        console.error("SANDBOX GENERATE COMPANY ERROR", { stage: "employee", index: i, error: empErr });
         continue;
       }
       employeeIds.push((empRow as { id: string }).id);
     }
 
-    // 4) Create employment links (employee → employer). Only for created employees.
-    const role = "employee";
-    const tenure_months = randomInt(6, 48);
-    const rehire_eligible = true;
-
-    for (const employeeId of employeeIds) {
-      await supabase.from("sandbox_employment_records").insert({
-        sandbox_id: sandboxId,
-        employee_id: employeeId,
-        employer_id: employerId,
-        role,
-        tenure_months,
-        rehire_eligible,
-      });
+    // --- 4) Linking: best-effort; do not fail the request ---
+    let linkingCreated = false;
+    if (employerId && employeeIds.length > 0) {
+      for (const employeeId of employeeIds) {
+        const { error: linkErr } = await supabase.from("sandbox_employment_records").insert({
+          sandbox_id: sandboxId,
+          employee_id: employeeId,
+          employer_id: employerId,
+          role: "employee",
+          tenure_months: 12,
+          rehire_eligible: true,
+        });
+        if (!linkErr) linkingCreated = true;
+        else console.error("SANDBOX GENERATE COMPANY ERROR", { stage: "link", employeeId, error: linkErr });
+      }
     }
 
-    return NextResponse.json({
-      employer_id: employerId,
-      employee_ids: employeeIds,
-      sandbox: true,
-      employer: { id: employerId, company_name },
-      workers: employeeIds.map((id) => ({ id, full_name: "Worker" })),
-      sandboxId,
-    });
-  } catch (err) {
-    console.error("sandbox generate-company failed", err);
     return NextResponse.json(
-      { error: "Sandbox generation failed", ...SAFE_SUCCESS },
+      successPayload({
+        sandbox: true,
+        employer_created: true,
+        employees_created: employeeIds.length,
+        employer_id: employerId,
+        employee_ids: employeeIds,
+        sandboxId,
+        linking_created: linkingCreated,
+      }),
+      { status: 200 }
+    );
+  } catch (err) {
+    console.error("SANDBOX GENERATE COMPANY ERROR", err);
+    return NextResponse.json(
+      {
+        error: "Sandbox generation failed",
+        details: err instanceof Error ? err.message : String(err),
+        ...successPayload({ sandbox: true, employer_created: false, employees_created: 0 }),
+      },
       { status: 500 }
     );
   }
