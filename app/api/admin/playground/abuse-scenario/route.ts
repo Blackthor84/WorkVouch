@@ -3,14 +3,14 @@ import { requireAdminForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { runScenarioRpc } from "@/lib/sandbox/runScenarioRpc";
-import { requireSandboxEnvironment } from "@/lib/server/requireSandboxEnvironment";
+import { requireSandboxOrOverrideEnvironment } from "@/lib/server/requireSandboxOrOverride";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** POST /api/admin/playground/abuse-scenario — run playground_generate_abuse_scenario RPC. Sandbox environment + admin only. */
+/** POST /api/admin/playground/abuse-scenario — run playground_generate_abuse_scenario RPC. Sandbox or production override + admin only. */
 export async function POST(req: NextRequest) {
-  const envCheck = requireSandboxEnvironment();
+  const envCheck = await requireSandboxOrOverrideEnvironment();
   if (!envCheck.allowed) return envCheck.response;
   const admin = await requireAdminForApi();
   if (!admin) return adminForbiddenResponse();
@@ -28,5 +28,19 @@ export async function POST(req: NextRequest) {
   });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (envCheck.overrideActive && admin) {
+    const { insertAdminAuditLog } = await import("@/lib/admin/audit");
+    await insertAdminAuditLog({
+      adminId: admin.userId,
+      adminEmail: admin.user?.email ?? null,
+      targetType: "system",
+      action: "playground_mutation_under_override",
+      newValue: { rpc: "playground_generate_abuse_scenario", employer_name, employee_count, mass_rehire },
+      reason: "Abuse scenario run under production override",
+      adminRole: admin.isSuperAdmin ? "superadmin" : "admin",
+      isSandbox: false,
+    });
+  }
   return NextResponse.json({ ok: true, message: "Abuse simulation complete" });
 }

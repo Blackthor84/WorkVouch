@@ -32,7 +32,9 @@ export type AuditAction =
   | "rehire_status_change"
   | "dispute_resolution"
   | "fraud_override"
-  | "location_reassignment";
+  | "location_reassignment"
+  | "admin_override_enabled"
+  | "playground_mutation_under_override";
 
 export async function insertAdminAuditLog(params: {
   adminId: string;

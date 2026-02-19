@@ -3,7 +3,8 @@ import { requireAdminForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { runScenarioRpc } from "@/lib/sandbox/runScenarioRpc";
-import { requireSandboxEnvironment } from "@/lib/server/requireSandboxEnvironment";
+import { requireSandboxOrOverrideEnvironment } from "@/lib/server/requireSandboxOrOverride";
+import { insertAdminAuditLog } from "@/lib/admin/audit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -18,7 +19,7 @@ const ALLOWED = new Set([
 ]);
 
 export async function POST(req: NextRequest) {
-  const envCheck = requireSandboxEnvironment();
+  const envCheck = await requireSandboxOrOverrideEnvironment();
   if (!envCheck.allowed) return envCheck.response;
   const admin = await requireAdminForApi();
   if (!admin) return adminForbiddenResponse();
@@ -34,5 +35,18 @@ export async function POST(req: NextRequest) {
   const supabase = getSupabaseServer();
   const { data, error } = await runScenarioRpc(supabase, fn, params);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (envCheck.overrideActive && admin) {
+    await insertAdminAuditLog({
+      adminId: admin.userId,
+      adminEmail: admin.user?.email ?? null,
+      targetType: "system",
+      action: "playground_mutation_under_override",
+      newValue: { fn, params },
+      reason: `Playground RPC: ${fn}`,
+      adminRole: admin.isSuperAdmin ? "superadmin" : "admin",
+      isSandbox: false,
+    });
+  }
   return NextResponse.json({ ok: true, data });
 }

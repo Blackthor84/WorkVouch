@@ -5,14 +5,14 @@
 
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth/getAdminSession";
-import { requireSandboxEnvironment } from "@/lib/server/requireSandboxEnvironment";
+import { requireSandboxOrOverrideEnvironment } from "@/lib/server/requireSandboxOrOverride";
 
 export type SandboxGuardResult =
   | { allowed: true }
   | { allowed: false; response: NextResponse };
 
 export async function sandboxAdminGuard(): Promise<SandboxGuardResult> {
-  const envCheck = requireSandboxEnvironment();
+  const envCheck = await requireSandboxOrOverrideEnvironment();
   if (!envCheck.allowed) return envCheck;
 
   const session = await getAdminSession();

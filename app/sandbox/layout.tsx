@@ -16,7 +16,7 @@ export default async function SandboxLayout({
     try {
       const admin = await getAdminContext();
       if (!admin.isAuthenticated) redirect("/login");
-      if (!admin.isAdmin) redirect("/dashboard");
+      if (!admin.isAdmin) redirect("/unauthorized");
     } catch {
       // SANDBOX: allow render so /sandbox/playground shows even when APIs/tables are broken
       return <>{children}</>;
@@ -24,7 +24,7 @@ export default async function SandboxLayout({
   } else {
     const admin = await getAdminContext();
     if (!admin.isAuthenticated) redirect("/login");
-    if (!admin.isAdmin) redirect("/dashboard");
+    if (!admin.isAdmin) redirect("/unauthorized");
   }
   return <>{children}</>;
 }

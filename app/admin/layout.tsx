@@ -12,6 +12,7 @@ import {
   canViewBoard,
 } from "@/lib/adminPermissions";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getAdminOverrideStatus } from "@/lib/admin/overrideStatus";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -48,7 +49,7 @@ export default async function AdminLayout({
     redirect("/login");
   }
   if (!["admin", "super_admin"].includes(admin.profileRole)) {
-    redirect("/dashboard");
+    redirect("/unauthorized");
   }
   const sessionLike = { user: { role: admin.isSuperAdmin ? "SUPERADMIN" : admin.isAdmin ? "ADMIN" : "USER" }, godMode: admin.godMode };
   const allowed =
@@ -58,7 +59,7 @@ export default async function AdminLayout({
       profileRole: admin.profileRole,
     }) || isGodMode(sessionLike);
   if (!allowed) {
-    redirect("/dashboard");
+    redirect("/unauthorized");
   }
 
   const supabase = await supabaseServer();
@@ -76,6 +77,12 @@ export default async function AdminLayout({
   const role = admin.isSuperAdmin ? "SUPERADMIN" : "ADMIN";
   const godModeEnabled = admin.godMode?.enabled ?? adminUserRow.god_mode;
   const isSandboxEnv = admin.appEnvironment === "sandbox";
+  const overrideStatus = await getAdminOverrideStatus();
+  const overrideActive = overrideStatus.active;
+  const founderEmail = process.env.FOUNDER_EMAIL?.trim()?.toLowerCase();
+  const isFounder = Boolean(
+    admin.email && founderEmail && admin.email.trim().toLowerCase() === founderEmail
+  );
 
   return (
     <>
@@ -90,12 +97,16 @@ export default async function AdminLayout({
         role={role}
         email={admin.email}
         isSandbox={isSandboxEnv}
+        overrideActive={overrideActive}
+        overrideExpiresAt={overrideStatus.expiresAt ?? null}
+        isFounder={isFounder}
       />
       <div className={`min-h-screen flex ${isSandboxEnv ? "bg-amber-50/50" : "bg-[#F8FAFC]"}`}>
         <AdminSidebar
           isSuperAdmin={admin.isSuperAdmin}
           isSandbox={isSandboxEnv}
           appEnvironment={admin.appEnvironment}
+          overrideActive={overrideActive}
           showFinancials={canViewFinancials({
             isAdmin: admin.isAdmin,
             isSuperAdmin: admin.isSuperAdmin,

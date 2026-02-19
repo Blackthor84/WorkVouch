@@ -1,4 +1,4 @@
-import { getCurrentUserProfile, isEmployer } from "@/lib/auth";
+import { getCurrentUserProfile } from "@/lib/auth";
 import { getVerticalDashboardConfig } from "@/lib/verticals/dashboard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,25 +32,29 @@ export default async function UserDashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const role = (user as { app_metadata?: { role?: string } } | undefined)?.app_metadata?.role ?? "";
-  console.log("ROUTE CHECK", { path: "/dashboard", role });
-
   if (!user) {
     redirect("/login");
-  }
-  const roleLower = role.trim().toLowerCase();
-  if (roleLower === "admin" || roleLower === "superadmin") {
-    redirect("/admin");
   }
   const emailVerified = Boolean((user as { email_confirmed_at?: string | null }).email_confirmed_at);
   if (!emailVerified) {
     redirect("/verify-email");
   }
 
-  // Redirect employers to their dashboard
-  const userIsEmployer = await isEmployer();
-  if (userIsEmployer) {
-    redirect("/employer/dashboard");
+  const { data: profileRow } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  const role = (profileRow?.role ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "").toString().trim().toLowerCase();
+
+  if (role === "admin" || role === "superadmin") {
+    redirect("/admin");
+  }
+  if (role === "employer") {
+    redirect("/dashboard/employer");
+  }
+  if (role === "employee") {
+    redirect("/dashboard/employee");
   }
 
   const profile = await getCurrentUserProfile();

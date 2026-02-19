@@ -5,17 +5,6 @@ import { getPostLoginRedirect } from "@/lib/auth/getPostLoginRedirect";
 
 export const runtime = "nodejs";
 
-function isProfileComplete(profile: Record<string, unknown> | null, role: string): boolean {
-  if (!profile) return false;
-  const r = String(role || "").toLowerCase();
-  if (r === "employer") {
-    return (profile.onboarding_completed as boolean) === true;
-  }
-  const hasName = Boolean((profile.full_name as string)?.trim());
-  const hasIndustry = Boolean((profile.industry as string)?.trim());
-  return hasName && hasIndustry;
-}
-
 export async function GET(request: Request) {
   try {
     const { searchParams, origin } = new URL(request.url);
@@ -61,13 +50,12 @@ export async function GET(request: Request) {
 
     if (error || !data) {
       const role = (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "";
-      const path = getPostLoginRedirect({ role, profile_complete: false });
+      const path = getPostLoginRedirect({ role });
       return NextResponse.redirect(`${origin}${path}`);
     }
 
-    const role = (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? data.role ?? "";
-    const profile_complete = isProfileComplete(data, role);
-    const path = getPostLoginRedirect({ role, profile_complete });
+    const role = (data.role ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "") as string;
+    const path = getPostLoginRedirect({ role });
     return NextResponse.redirect(`${origin}${path}`);
   } catch {
     const origin = new URL(request.url).origin;

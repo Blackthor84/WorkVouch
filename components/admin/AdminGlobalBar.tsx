@@ -2,20 +2,32 @@
 
 /**
  * Persistent global admin bar. Admin mode must ALWAYS be visually obvious.
- * Red accent for production; yellow/amber for sandbox. Never rely on UI-only checks.
+ * Red accent for production; yellow/amber for sandbox. Override banner when production + founder override active.
  */
+
+import { ProductionOverrideBannerAndTrigger } from "./ProductionOverrideBannerAndTrigger";
 
 interface AdminGlobalBarProps {
   env: "PRODUCTION" | "SANDBOX";
   role: "ADMIN" | "SUPERADMIN";
   email: string;
   isSandbox: boolean;
+  overrideActive?: boolean;
+  overrideExpiresAt?: string | null;
+  isFounder?: boolean;
 }
 
-export function AdminGlobalBar({ env, role, email, isSandbox }: AdminGlobalBarProps) {
-  const isProd = env === "PRODUCTION" && !isSandbox;
+export function AdminGlobalBar({
+  env,
+  role,
+  email,
+  isSandbox,
+  overrideActive = false,
+  overrideExpiresAt = null,
+  isFounder = false,
+}: AdminGlobalBarProps) {
+  const isProd = env === "PRODUCTION" && !isSandbox && !overrideActive;
   const barBg = isProd ? "bg-red-700" : "bg-amber-600";
-  const barText = "text-white";
   const envBadge = isProd ? "bg-red-800" : "bg-amber-500 text-black";
 
   return (
@@ -39,6 +51,12 @@ export function AdminGlobalBar({ env, role, email, isSandbox }: AdminGlobalBarPr
         <span className="truncate max-w-[280px]" title={email}>
           {email || "—"}
         </span>
+        {env === "PRODUCTION" && isFounder && (
+          <ProductionOverrideBannerAndTrigger
+            overrideActive={overrideActive}
+            overrideExpiresAt={overrideExpiresAt}
+          />
+        )}
       </div>
       {isSandbox && (
         <div
@@ -48,6 +66,16 @@ export function AdminGlobalBar({ env, role, email, isSandbox }: AdminGlobalBarPr
         >
           <span aria-hidden>🧪</span>
           <span>SANDBOX MODE – NOT PRODUCTION</span>
+        </div>
+      )}
+      {env === "PRODUCTION" && overrideActive && (
+        <div
+          className="sticky top-[42px] z-40 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-bold shadow"
+          role="alert"
+          aria-live="polite"
+        >
+          <span aria-hidden>⚠</span>
+          <span>PRODUCTION OVERRIDE ACTIVE — MUTATIONS ENABLED</span>
         </div>
       )}
     </>

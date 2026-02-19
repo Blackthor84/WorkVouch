@@ -3,12 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getAdminContext, adminForbiddenResponse } from "@/lib/admin/getAdminContext";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireSandboxEnvironment } from "@/lib/server/requireSandboxEnvironment";
+import { requireSandboxOrOverrideEnvironment } from "@/lib/server/requireSandboxOrOverride";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  const envCheck = requireSandboxEnvironment();
+  const envCheck = await requireSandboxOrOverrideEnvironment();
   if (!envCheck.allowed) return envCheck.response;
   const admin = await getAdminContext(req);
   if (!admin.isAdmin || !admin.canSeedData) return adminForbiddenResponse();

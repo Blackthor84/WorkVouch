@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getCanUseDangerousAdmin } from "@/lib/admin/adminPowerGate";
 
 const SIDEBAR_BG = "bg-white";
 const BORDER = "border-[#E2E8F0]";
@@ -23,6 +24,8 @@ interface AdminSidebarProps {
   isSandbox: boolean;
   /** Environment-based. Production = metrics-only; sandbox = full power tools. */
   appEnvironment?: AppEnvironment;
+  /** When true (production + founder override active), show full power nav like sandbox. */
+  overrideActive?: boolean;
   /** When true, show Financials nav (finance | admin | board). */
   showFinancials: boolean;
   /** When true, show Board nav (board | admin). */
@@ -125,9 +128,10 @@ const productionOnlyNav = {
   SystemSettings: [{ href: "/admin/system", label: "System Settings" }],
 };
 
-export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment = "production", showFinancials = false, showBoard = false }: AdminSidebarProps) {
+export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment = "production", overrideActive = false, showFinancials = false, showBoard = false }: AdminSidebarProps) {
   const pathname = usePathname();
-  const isSandboxEnvironment = appEnvironment === "sandbox";
+  const canUseDangerousAdmin = getCanUseDangerousAdmin(overrideActive);
+  const showFullPowerNav = canUseDangerousAdmin;
 
   const section = (title: string, items: { href: string; label: string }[]) => (
     <div key={title}>
@@ -164,7 +168,7 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
           Dashboard
         </Link>
         <nav className="flex-1 overflow-y-auto mt-4 space-y-6 px-2">
-          {isSuperAdmin && !isSandboxEnvironment && (
+          {isSuperAdmin && !showFullPowerNav && (
             <div>
               <div className={`px-3 py-1.5 ${SECTION_TITLE}`}>Enterprise</div>
               <ul className="mt-1 space-y-0.5">
@@ -183,7 +187,7 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
               </ul>
             </div>
           )}
-          {isSandboxEnvironment ? (
+          {showFullPowerNav ? (
             <>
               {section("Dashboard", sandboxNav.Dashboard)}
               {section("Users", sandboxNav.Users)}
