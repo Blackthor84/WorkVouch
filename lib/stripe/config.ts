@@ -1,10 +1,13 @@
-// Re-export from centralized stripe.ts for backward compatibility
-export { stripe } from "@/lib/stripe";
+import Stripe from "stripe";
 
 export const isStripeConfigured = !!(
   process.env.STRIPE_SECRET_KEY &&
   (process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_STRIPE_PK)
 );
+
+export const stripe = isStripeConfigured
+  ? new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2023-10-16" })
+  : null;
 
 // Canonical employer plans: starter, pro, custom only.
 export const STRIPE_PRICE_STARTER_MONTHLY =
