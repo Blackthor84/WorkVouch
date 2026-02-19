@@ -7,6 +7,7 @@
  */
 import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { isAdminRole } from "@/lib/auth/isAdminRole";
 import { isGodMode } from "@/lib/auth/isGodMode";
 import { supabaseServer } from "@/lib/supabase/server";
 import { canModifyUser, canAssignRole } from "@/lib/roles";
@@ -14,7 +15,7 @@ import { recordFailedAdminAccess } from "@/lib/admin/adminAlertsStore";
 import type { AdminContext } from "@/lib/admin/getAdminContext";
 
 function adminOrGodMode(admin: AdminContext): boolean {
-  return admin.isAdmin || admin.godMode.enabled;
+  return admin.isAdmin || admin.isSuperAdmin || admin.godMode.enabled;
 }
 
 export type AdminSession = {
@@ -102,7 +103,7 @@ export async function requireSuperAdmin(): Promise<AdminSession> {
   return requireAdmin();
 }
 
-/** API-safe: returns null instead of redirecting. Use with adminForbiddenResponse(). */
+/** API-safe: returns null instead of redirecting. Use with adminForbiddenResponse(). Allows admin and superadmin. */
 export async function requireAdminForApi(): Promise<AdminSession | null> {
   const admin = await getAdminContext();
   if (!adminOrGodMode(admin)) {
@@ -114,16 +115,20 @@ export async function requireAdminForApi(): Promise<AdminSession | null> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return null;
     const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-    if (error || !profile) return null;
     const role = admin.isSuperAdmin ? "super_admin" : "admin";
     const sessionLike = { user: { ...user, id: user.id, email: user.email } };
+    const profileRole = role === "super_admin" ? "super_admin" : "admin";
+    const resolvedProfile: AdminSession["profile"] =
+      profile != null
+        ? (profile as AdminSession["profile"])
+        : { id: user.id, role: profileRole };
     return {
       session: sessionLike,
       user: { ...user, id: user.id, email: user.email },
-      profile: profile as AdminSession["profile"],
+      profile: resolvedProfile,
       supabase,
       userId: user.id,
-      role,
+      role: profileRole === "super_admin" ? "superadmin" : "admin",
       isSuperAdmin: admin.isSuperAdmin,
     };
   } catch {

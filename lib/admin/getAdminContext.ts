@@ -9,6 +9,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { isSandbox } from "@/lib/app-mode";
 import { getRoleFromSession } from "@/lib/auth/admin-role-guards";
+import { isAdminRole } from "@/lib/auth/isAdminRole";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
 import { isSandboxEnv } from "@/lib/sandbox/env";
 import { getGodModeState } from "@/lib/auth/godModeCookie";
@@ -79,7 +80,7 @@ export async function getAdminContext(req?: NextRequest): Promise<AdminContext> 
     const sessionLike = { user: { id: user.id, app_metadata: { role: appRole } } };
     const authRole = getRoleFromSession(sessionLike);
     const profileRole = authRole === "superadmin" ? "super_admin" : authRole === "admin" ? "admin" : "user";
-    const isAdmin = authRole === "admin" || authRole === "superadmin";
+    const isAdmin = isAdminRole(authRole);
     const isSuperAdmin = authRole === "superadmin";
 
     const roles: AdminRole[] = isAdmin ? (isSuperAdmin ? ["user", "admin", "super_admin"] : ["user", "admin"]) : ["user"];

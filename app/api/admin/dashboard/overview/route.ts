@@ -33,6 +33,16 @@ const DEFAULT_OVERVIEW_PAYLOAD: OverviewPayload = {
   reputationHistogram: [],
 };
 
+const SAFE_ERROR_PAYLOAD = {
+  ...DEFAULT_OVERVIEW_PAYLOAD,
+  metrics: {} as Record<string, unknown>,
+  analytics: {
+    visitorMap: {} as Record<string, unknown>,
+    totals: {} as Record<string, unknown>,
+    timeseries: [] as unknown[],
+  },
+};
+
 export async function GET() {
   const admin = await requireAdminForApi();
   if (!admin) return adminForbiddenResponse();
@@ -93,6 +103,6 @@ export async function GET() {
     return NextResponse.json(payload);
   } catch (e) {
     console.error("[admin/dashboard/overview]", e);
-    return NextResponse.json({ ...DEFAULT_OVERVIEW_PAYLOAD, error: "Failed to load overview" }, { status: 200 });
+    return NextResponse.json(SAFE_ERROR_PAYLOAD, { status: 200 });
   }
 }

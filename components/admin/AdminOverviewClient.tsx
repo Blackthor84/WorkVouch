@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
+import { isAdminRole } from "@/lib/auth/isAdminRole";
 
 type Overview = {
   totalUsers: number;
@@ -38,31 +39,42 @@ function normalizeOverviewPayload(json: unknown): Overview {
 }
 
 const POLL_MS = 30_000;
-
-function isAdminRole(role: string | undefined | null): boolean {
-  const r = String(role ?? "").toLowerCase();
-  return r === "admin" || r === "superadmin";
-}
+const MAX_RETRIES = 3;
 
 export function AdminOverviewClient() {
   const { data: sessionData } = useSupabaseSession();
   const role = (sessionData?.user as { app_metadata?: { role?: string } } | undefined)?.app_metadata?.role;
   const canFetch = isAdminRole(role);
+  const retryCountRef = useRef(0);
 
   const [overviewData, setOverviewData] = useState<Overview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   const fetchOverview = useCallback(async () => {
     if (!canFetch) return;
     try {
       const res = await fetch("/api/admin/dashboard/overview");
-      if (!res.ok) throw new Error("Failed to load");
+      if (res.status === 403) {
+        setAccessDenied(true);
+        setError(null);
+        setOverviewData(DEFAULT_OVERVIEW);
+        setLoading(false);
+        return;
+      }
       const json = await res.json();
       setOverviewData(normalizeOverviewPayload(json));
       setError(null);
+      setAccessDenied(false);
+      retryCountRef.current = 0;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error loading overview");
+      const msg = e instanceof Error ? e.message : "Error loading overview";
+      setError(msg);
+      retryCountRef.current += 1;
+      if (retryCountRef.current <= 1) {
+        setOverviewData(DEFAULT_OVERVIEW);
+      }
     } finally {
       setLoading(false);
     }
@@ -74,12 +86,23 @@ export function AdminOverviewClient() {
       return;
     }
     fetchOverview();
-    const t = setInterval(fetchOverview, POLL_MS);
+    const t = setInterval(() => {
+      if (retryCountRef.current >= MAX_RETRIES) return;
+      fetchOverview();
+    }, POLL_MS);
     return () => clearInterval(t);
   }, [canFetch, fetchOverview]);
 
   if (!canFetch) {
     return null;
+  }
+  if (accessDenied) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6">
+        <p className="font-medium text-amber-900">Access denied</p>
+        <p className="text-sm text-amber-800 mt-1">You do not have permission to view this dashboard.</p>
+      </div>
+    );
   }
   if (loading && !overviewData) {
     return (
@@ -95,7 +118,7 @@ export function AdminOverviewClient() {
         <p className="text-red-800">{error}</p>
         <button
           type="button"
-          onClick={() => { setLoading(true); fetchOverview(); }}
+          onClick={() => { setLoading(true); retryCountRef.current = 0; fetchOverview(); }}
           className="mt-2 text-sm font-medium text-red-700 underline"
         >
           Retry

@@ -206,6 +206,7 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
               {section("Audit Logs", productionOnlyNav.AuditLogs)}
               {showFinancials && section("Financials", productionOnlyNav.Financials)}
               {showBoard && section("Board", productionOnlyNav.Board)}
+              {isSuperAdmin && section("Sandbox", sandboxNav.Sandbox)}
               {isSuperAdmin && section("System Settings", productionOnlyNav.SystemSettings)}
             </>
           )}
