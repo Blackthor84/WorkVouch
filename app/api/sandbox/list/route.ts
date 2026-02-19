@@ -5,7 +5,14 @@ import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** GET /api/sandbox/list — sandboxId optional (default: first active session). Returns users for ImpersonationPanel. */
+const EMPTY_LIST_PAYLOAD = {
+  users: [] as { id: string; name: string; role: "worker" | "employer" }[],
+  employers: [] as { id: string; company_name: string }[],
+  employees: [] as { id: string; full_name: string }[],
+  sandboxId: null as string | null,
+};
+
+/** GET /api/sandbox/list — sandboxId optional (default: first active session). Returns users for ImpersonationPanel. Never null. */
 export async function GET(req: NextRequest) {
   const guard = await sandboxAdminGuard();
   if (!guard.allowed) return guard.response;
@@ -30,7 +37,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (!resolvedId) {
-      return NextResponse.json({ users: [] });
+      return NextResponse.json(EMPTY_LIST_PAYLOAD, { status: 200 });
     }
 
     const [employeesRes, employersRes] = await Promise.all([
@@ -53,7 +60,7 @@ export async function GET(req: NextRequest) {
       sandboxId: resolvedId,
     });
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("[sandbox/list]", e);
+    return NextResponse.json(EMPTY_LIST_PAYLOAD, { status: 200 });
   }
 }

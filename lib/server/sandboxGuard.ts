@@ -1,10 +1,11 @@
 /**
- * Sandbox API guard: environment + ADMIN role. Mutations only in sandbox environment.
- * Use at the start of every /api/sandbox/* and playground mutation route.
+ * Sandbox API guard: environment + admin/superadmin role. Use at the start of every /api/sandbox/* route.
+ * Role from getAdminContext (app_metadata) so superadmin is allowed even when profiles.role is missing.
  */
 
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth/getAdminSession";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { canAccessSandbox } from "@/lib/auth/canAccessSandbox";
 import { requireSandboxOrOverrideEnvironment } from "@/lib/server/requireSandboxOrOverride";
 
 export type SandboxGuardResult =
@@ -15,16 +16,16 @@ export async function sandboxAdminGuard(): Promise<SandboxGuardResult> {
   const envCheck = await requireSandboxOrOverrideEnvironment();
   if (!envCheck.allowed) return envCheck;
 
-  const session = await getAdminSession();
-  if (!session || (session.role !== "admin" && session.role !== "super_admin")) {
+  const admin = await getAdminContext();
+  const allowed = admin.isAuthenticated && (canAccessSandbox(admin.profileRole) || admin.isAdmin || admin.isSuperAdmin);
+  if (!allowed) {
     return {
       allowed: false,
       response: NextResponse.json(
-        { error: "Admin access required" },
+        { error: "Sandbox access denied" },
         { status: 403 }
       ),
     };
   }
-
   return { allowed: true };
 }

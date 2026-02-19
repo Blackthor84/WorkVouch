@@ -5,7 +5,17 @@ import { getSandboxObserverData } from "@/lib/sandbox/observerData";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** GET /api/sandbox/observer — read-only real data from sandbox_intelligence_outputs. ADMIN only. */
+const SAFE_OBSERVER_PAYLOAD = {
+  status: "idle",
+  events: [] as unknown[],
+  metrics: {} as Record<string, unknown>,
+  trustDelta: 0,
+  culture: [] as string[],
+  signals: [] as string[],
+  abuseRisk: 0,
+};
+
+/** GET /api/sandbox/observer — read-only real data from sandbox_intelligence_outputs. Admin/superadmin only. Always returns JSON. */
 export async function GET(req: NextRequest) {
   const guard = await sandboxAdminGuard();
   if (!guard.allowed) return guard.response;
@@ -15,6 +25,17 @@ export async function GET(req: NextRequest) {
     req.nextUrl.searchParams.get("sandbox_id")?.trim() ||
     undefined;
 
-  const data = await getSandboxObserverData(sandboxId);
-  return NextResponse.json(data);
+  try {
+    const data = await getSandboxObserverData(sandboxId);
+    return NextResponse.json({
+      ...SAFE_OBSERVER_PAYLOAD,
+      ...data,
+      status: "ok",
+      events: [],
+      metrics: {},
+    });
+  } catch (e) {
+    console.error("[sandbox/observer]", e);
+    return NextResponse.json(SAFE_OBSERVER_PAYLOAD, { status: 200 });
+  }
 }

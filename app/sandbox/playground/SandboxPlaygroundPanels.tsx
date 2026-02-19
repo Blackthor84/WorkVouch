@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { HiddenSystemsObserverPanel, type ObserverData } from "./panels/HiddenSystemsObserverPanel";
 import { ImpersonationPanel } from "./panels/ImpersonationPanel";
 
@@ -30,34 +30,49 @@ const btn = {
   marginBottom: 8,
 };
 
-/** Three sections: Demo Setup, Run Scenarios, Hidden Systems Observer. Guided UX. */
+const EMPTY_OBSERVER: ObserverData = { trustDelta: 0, culture: [], signals: [], abuseRisk: undefined };
+
+/** Three sections: Demo Setup, Run Scenarios, Hidden Systems Observer. Renders immediately; not blocked by observer/list. */
 export function SandboxPlaygroundPanels() {
   const [company, setCompany] = useState<CompanyData | null>(null);
   const [listUsers, setListUsers] = useState<SandboxUser[]>([]);
   const [observerData, setObserverData] = useState<ObserverData | undefined>(undefined);
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | undefined>(undefined);
+  const [sandboxAccessDenied, setSandboxAccessDenied] = useState(false);
+  const observerFetchedRef = useRef(false);
+  const listFetchedRef = useRef(false);
 
   const fetchObserver = useCallback(async () => {
+    if (sandboxAccessDenied) return;
     try {
       const res = await fetch("/api/sandbox/observer", { credentials: "include" });
-      if (!res.ok) return;
+      if (res.status === 403) {
+        setSandboxAccessDenied(true);
+        setObserverData(EMPTY_OBSERVER);
+        return;
+      }
       const json = await res.json().catch(() => ({}));
       setObserverData({
-        trustDelta: json.trustDelta,
+        trustDelta: typeof json.trustDelta === "number" ? json.trustDelta : 0,
         culture: Array.isArray(json.culture) ? json.culture : [],
         signals: Array.isArray(json.signals) ? json.signals : [],
         abuseRisk: typeof json.abuseRisk === "number" ? json.abuseRisk : undefined,
       });
     } catch {
-      setObserverData(undefined);
+      setObserverData(EMPTY_OBSERVER);
     }
-  }, []);
+  }, [sandboxAccessDenied]);
 
   const fetchList = useCallback(async () => {
+    if (sandboxAccessDenied) return;
     try {
       const res = await fetch("/api/sandbox/list", { credentials: "include" });
-      if (!res.ok) return;
+      if (res.status === 403) {
+        setSandboxAccessDenied(true);
+        setListUsers([]);
+        return;
+      }
       const json = await res.json().catch(() => ({}));
       setListUsers(Array.isArray(json.users) ? json.users : []);
       if (company?.sandboxId && !company.employer && json.sandboxId === company.sandboxId) {
@@ -66,12 +81,20 @@ export function SandboxPlaygroundPanels() {
     } catch {
       setListUsers([]);
     }
-  }, [company?.sandboxId]);
+  }, [company?.sandboxId, sandboxAccessDenied]);
 
   useEffect(() => {
-    fetchObserver();
-    fetchList();
+    if (!observerFetchedRef.current) {
+      observerFetchedRef.current = true;
+      fetchObserver();
+    }
   }, [fetchObserver]);
+  useEffect(() => {
+    if (!listFetchedRef.current) {
+      listFetchedRef.current = true;
+      fetchList();
+    }
+  }, [fetchList]);
 
   const handleGenerateCompany = useCallback(async () => {
     setLoading("company");
@@ -158,13 +181,18 @@ export function SandboxPlaygroundPanels() {
   );
 
   useEffect(() => {
-    if (company?.sandboxId && listUsers.length === 0) fetchList();
-  }, [company?.sandboxId, listUsers.length, fetchList]);
+    if (company?.sandboxId && listUsers.length === 0 && !sandboxAccessDenied) fetchList();
+  }, [company?.sandboxId, listUsers.length, sandboxAccessDenied, fetchList]);
 
   const users = listUsers.length > 0 ? listUsers : (company?.workers?.map((w) => ({ id: w.id, name: w.full_name ?? "Worker", role: "worker" as const })) ?? []);
 
   return (
     <div style={{ marginTop: 24 }}>
+      {sandboxAccessDenied && (
+        <div style={{ marginBottom: 16, padding: 12, background: "#FEF3C7", borderRadius: 8, color: "#92400E" }}>
+          Sandbox access denied. You need admin or superadmin role to use the Playground.
+        </div>
+      )}
       {error && (
         <div style={{ marginBottom: 16, padding: 12, background: "#FEF2F2", borderRadius: 8, color: "#DC2626" }}>
           {error}
@@ -234,15 +262,15 @@ export function SandboxPlaygroundPanels() {
         </section>
         <section style={sectionStyle}>
           <h2 style={{ margin: "0 0 12px 0", fontSize: 18, fontWeight: 600 }}>Hidden Systems Observer (Live)</h2>
-          {loading === "company" || (loading === null && !observerData && !company) ? (
-            <p style={{ margin: 0, color: "#64748B" }}>Generate a company or run a scenario to see data.</p>
+          {loading === "company" ? (
+            <p style={{ margin: 0, color: "#64748B" }}>Creating company…</p>
           ) : (
             <>
-              <HiddenSystemsObserverPanel data={observerData} />
+              <HiddenSystemsObserverPanel data={observerData ?? EMPTY_OBSERVER} />
               <button
                 type="button"
                 onClick={fetchObserver}
-                disabled={loading !== null}
+                disabled={loading !== null || sandboxAccessDenied}
                 style={{ marginTop: 12, ...btn }}
               >
                 Refresh
