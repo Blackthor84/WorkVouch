@@ -49,9 +49,11 @@ export function useEmployerDamage(scenarioId: string | null) {
     let cancelled = false;
     setIsLoading(true);
     setError(null);
-    supabaseBrowser
-      .rpc("get_employer_damage", { scenario_id: scenarioId })
-      .then(({ data: rows, error: e }) => {
+    (async () => {
+      try {
+        const { data: rows, error: e } = await supabaseBrowser.rpc("get_employer_damage", {
+          scenario_id: scenarioId,
+        });
         if (cancelled) return;
         if (e) {
           setError(e);
@@ -64,10 +66,13 @@ export function useEmployerDamage(scenarioId: string | null) {
             avg_rating: toNumber(r.avg_rating),
           }))
         );
-      })
-      .finally(() => {
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) setError(err instanceof Error ? err : new Error(String(err)));
+      } finally {
         if (!cancelled) setIsLoading(false);
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };
@@ -91,9 +96,11 @@ export function useReputationHeatmap(scenarioId: string | null) {
     let cancelled = false;
     setIsLoading(true);
     setError(null);
-    supabaseBrowser
-      .rpc("get_reputation_heatmap_cells", { scenario_id: scenarioId })
-      .then(({ data: rows, error: e }) => {
+    (async () => {
+      try {
+        const { data: rows, error: e } = await supabaseBrowser.rpc("get_reputation_heatmap_cells", {
+          scenario_id: scenarioId,
+        });
         if (cancelled) return;
         if (e) {
           setError(e);
@@ -109,10 +116,13 @@ export function useReputationHeatmap(scenarioId: string | null) {
             })
           )
         );
-      })
-      .finally(() => {
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) setError(err instanceof Error ? err : new Error(String(err)));
+      } finally {
         if (!cancelled) setIsLoading(false);
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };
