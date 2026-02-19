@@ -42,8 +42,13 @@ export default async function AdminLayout({
     }
     throw new Error("Admin context failed");
   }
+  console.log("ROUTE CHECK", { path: "/admin", role: admin.profileRole });
+
   if (!admin.isAuthenticated) {
     redirect("/login");
+  }
+  if (!["admin", "super_admin"].includes(admin.profileRole)) {
+    redirect("/dashboard");
   }
   const sessionLike = { user: { role: admin.isSuperAdmin ? "SUPERADMIN" : admin.isAdmin ? "ADMIN" : "USER" }, godMode: admin.godMode };
   const allowed =
@@ -53,10 +58,6 @@ export default async function AdminLayout({
       profileRole: admin.profileRole,
     }) || isGodMode(sessionLike);
   if (!allowed) {
-    redirect("/dashboard");
-  }
-  // Enterprise dashboard: superadmin-only access
-  if (!admin.isSuperAdmin) {
     redirect("/dashboard");
   }
 

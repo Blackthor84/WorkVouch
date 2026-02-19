@@ -65,7 +65,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}${path}`);
     }
 
-    const role = data.role ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "";
+    const role = (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? data.role ?? "";
     const profile_complete = isProfileComplete(data, role);
     const path = getPostLoginRedirect({ role, profile_complete });
     return NextResponse.redirect(`${origin}${path}`);

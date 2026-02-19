@@ -22,8 +22,5 @@ export function getPostLoginRedirect(user: PostLoginUser): string {
   if (role === "employer") {
     return "/employer/dashboard";
   }
-  if (role === "worker" || role === "user") {
-    return "/worker/dashboard";
-  }
-  return "/worker/dashboard";
+  return "/dashboard";
 }

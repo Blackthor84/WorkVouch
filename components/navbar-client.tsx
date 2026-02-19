@@ -63,9 +63,9 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
   const normalizedRole = normalizeRole(role ?? "");
   const roleFromMetadata = (session?.user as { app_metadata?: { role?: string } } | undefined)?.app_metadata?.role;
   const showAdmin =
-    roleFromMetadata === "admin" ||
-    normalizedRole === "admin" ||
-    normalizedRole === "super_admin";
+    session && roleFromMetadata != null
+      ? ["admin", "superadmin"].includes(String(roleFromMetadata).toLowerCase())
+      : Boolean(showAdminProp);
   const showSandboxAdmin = normalizedRole === "super_admin";
 
   return (

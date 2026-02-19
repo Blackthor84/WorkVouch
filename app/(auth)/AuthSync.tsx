@@ -8,26 +8,32 @@ export default function AuthSync() {
   const router = useRouter();
 
   useEffect(() => {
-    supabaseBrowser.auth.getSession();
+    supabaseBrowser.auth.getSession().then(({ data: { session } }) => {
+      console.log("AUTH ROLE:", session?.user?.app_metadata?.role);
+    });
   }, []);
 
   useEffect(() => {
     const {
       data: { subscription },
     } = supabaseBrowser.auth.onAuthStateChange(async (event, session) => {
+      console.log("AUTH ROLE:", session?.user?.app_metadata?.role);
       if (event !== "SIGNED_IN" || !session?.user) return;
+
+      const role = String((session.user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "").trim().toLowerCase();
+      if (role === "admin" || role === "superadmin") {
+        router.push("/admin");
+        return;
+      }
 
       try {
         const res = await fetch("/api/user/profile", { credentials: "include" });
-        if (!res.ok) return;
-        const profile = await res.json();
-        const role = (profile?.role ?? "").trim().toLowerCase();
-        const onboardingCompleted = profile?.onboarding_completed === true;
-
-        if (role === "admin" || role === "superadmin") {
-          router.push("/admin");
+        if (!res.ok) {
+          router.push("/dashboard");
           return;
         }
+        const profile = await res.json();
+        const onboardingCompleted = profile?.onboarding_completed === true;
 
         if (!onboardingCompleted) {
           if (role === "employer") {

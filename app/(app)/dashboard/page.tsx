@@ -32,8 +32,15 @@ export default async function UserDashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const role = (user as { app_metadata?: { role?: string } } | undefined)?.app_metadata?.role ?? "";
+  console.log("ROUTE CHECK", { path: "/dashboard", role });
+
   if (!user) {
     redirect("/login");
+  }
+  const roleLower = role.trim().toLowerCase();
+  if (roleLower === "admin" || roleLower === "superadmin") {
+    redirect("/admin");
   }
   const emailVerified = Boolean((user as { email_confirmed_at?: string | null }).email_confirmed_at);
   if (!emailVerified) {

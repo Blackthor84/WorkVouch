@@ -1,14 +1,12 @@
 /**
  * SINGLE SOURCE OF TRUTH — Admin context. Server-side only.
- * Role: Supabase Auth auth.users.raw_app_meta_data.role first, then profiles.role fallback.
+ * Role: session.user.app_metadata.role only (user, admin, superadmin). Do NOT use profiles.role for auth.
  * Never use getSession() or trust cookies for role. Never throws.
  * API routes MUST call getAdminContext(req) and pass the request.
  */
 
 import { type NextRequest } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
-import { normalizeRole } from "@/lib/auth/normalizeRole";
-import { isAdminRole } from "@/lib/auth/roles";
 import { isSandbox } from "@/lib/app-mode";
 import { getRoleFromSession } from "@/lib/auth/admin-role-guards";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
@@ -56,8 +54,7 @@ const UNAUTHORIZED_CONTEXT: AdminContext = {
 
 /**
  * Returns the single authoritative admin context. Never throws.
- * Role: auth.app_metadata.role first (Supabase Auth as source of truth), then profiles.role fallback.
- * API routes must pass the request: getAdminContext(req).
+ * Role: app_metadata.role only. API routes must pass the request: getAdminContext(req).
  */
 export async function getAdminContext(req?: NextRequest): Promise<AdminContext> {
   if (process.env.NODE_ENV !== "production" && req == null) {
@@ -76,22 +73,9 @@ export async function getAdminContext(req?: NextRequest): Promise<AdminContext> 
     const appRole = (user as { app_metadata?: { role?: string } }).app_metadata?.role;
     const sessionLike = { user: { id: user.id, app_metadata: { role: appRole } } };
     const authRole = getRoleFromSession(sessionLike);
-
-    let role: string;
-    if (authRole !== "user") {
-      role = authRole === "superadmin" ? "super_admin" : "admin";
-    } else {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle();
-      const rawRole = (profile as { role?: string | null })?.role ?? "";
-      role = normalizeRole(rawRole);
-    }
-
-    const isAdmin = isAdminRole(role);
-    const isSuperAdmin = role === "super_admin";
+    const profileRole = authRole === "superadmin" ? "super_admin" : authRole === "admin" ? "admin" : "user";
+    const isAdmin = authRole === "admin" || authRole === "superadmin";
+    const isSuperAdmin = authRole === "superadmin";
 
     const roles: AdminRole[] = isAdmin ? (isSuperAdmin ? ["user", "admin", "super_admin"] : ["user", "admin"]) : ["user"];
     const appSandbox = resolveSandbox();
@@ -104,7 +88,7 @@ export async function getAdminContext(req?: NextRequest): Promise<AdminContext> 
       userId: user.id,
       email: user.email ?? "",
       roles,
-      profileRole: role,
+      profileRole,
       isAdmin,
       isSuperAdmin,
       isSandbox: sandbox,
