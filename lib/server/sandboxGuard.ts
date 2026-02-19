@@ -1,24 +1,20 @@
 /**
- * Sandbox API guard: environment + admin/superadmin role. Use at the start of every /api/sandbox/* route.
- * Role from getAdminContext (app_metadata) so superadmin is allowed even when profiles.role is missing.
+ * Sandbox API guard: auth + admin/superadmin role only. Use at the start of every /api/sandbox/* route.
+ * Same auth source as admin APIs: getAuthedUser (Supabase auth.getUser() + app_metadata.role).
+ * No env flags, no cookies/headers read here.
  */
 
 import { NextResponse } from "next/server";
-import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { getAuthedUser } from "@/lib/auth/getAuthedUser";
 import { canAccessSandbox } from "@/lib/auth/canAccessSandbox";
-import { requireSandboxOrOverrideEnvironment } from "@/lib/server/requireSandboxOrOverride";
 
 export type SandboxGuardResult =
   | { allowed: true }
   | { allowed: false; response: NextResponse };
 
 export async function sandboxAdminGuard(): Promise<SandboxGuardResult> {
-  const envCheck = await requireSandboxOrOverrideEnvironment();
-  if (!envCheck.allowed) return envCheck;
-
-  const admin = await getAdminContext();
-  const allowed = admin.isAuthenticated && (canAccessSandbox(admin.profileRole) || admin.isAdmin || admin.isSuperAdmin);
-  if (!allowed) {
+  const authed = await getAuthedUser();
+  if (!authed || !canAccessSandbox(authed.role)) {
     return {
       allowed: false,
       response: NextResponse.json(

@@ -5,6 +5,7 @@ import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+/** Guaranteed shape. Never return null or omit keys. */
 const EMPTY_LIST_PAYLOAD = {
   users: [] as { id: string; name: string; role: "worker" | "employer" }[],
   employers: [] as { id: string; company_name: string }[],

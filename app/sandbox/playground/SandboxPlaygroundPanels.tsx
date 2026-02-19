@@ -96,6 +96,10 @@ export function SandboxPlaygroundPanels() {
         culture: Array.isArray(json.culture) ? json.culture : [],
         signals: Array.isArray(json.signals) ? json.signals : [],
         abuseRisk: typeof json.abuseRisk === "number" ? json.abuseRisk : undefined,
+        reputation_changes: Array.isArray(json.reputation_changes) ? json.reputation_changes : [],
+        abuse_flags: Array.isArray(json.abuse_flags) ? json.abuse_flags : [],
+        risk_signals: Array.isArray(json.risk_signals) ? json.risk_signals : [],
+        trust_scores: Array.isArray(json.trust_scores) ? json.trust_scores : [],
       });
     } catch {
       setObserverData(EMPTY_OBSERVER);
@@ -173,6 +177,11 @@ export function SandboxPlaygroundPanels() {
         headers: { "Content-Type": "application/json" },
       });
       const data = await res.json().catch(() => ({}));
+      if (res.status === 403) {
+        setSandboxAccessDenied(true);
+        setError((data as { error?: string }).error ?? "Sandbox access denied");
+        return;
+      }
       if (!res.ok) {
         setError((data as { error?: string }).error ?? "Failed");
         return;
@@ -205,6 +214,11 @@ export function SandboxPlaygroundPanels() {
           }),
         });
         const data = await res.json().catch(() => ({}));
+        if (res.status === 403) {
+          setSandboxAccessDenied(true);
+          setError((data as { error?: string }).error ?? "Sandbox access denied");
+          return;
+        }
         if (!res.ok) {
           setError((data as { error?: string }).error ?? "Failed");
           return;
