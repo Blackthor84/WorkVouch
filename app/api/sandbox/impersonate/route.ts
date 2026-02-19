@@ -4,11 +4,12 @@ import { getAdminSession } from "@/lib/auth/getAdminSession";
 import { supabaseServer } from "@/lib/supabase/server";
 import { writeImpersonationAudit } from "@/lib/impersonationAudit";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** POST /api/sandbox/impersonate — body: { targetUserId?, targetType?, targetName?, sandboxId? }. Sets cookie for banner/session. */
+/** POST /api/sandbox/impersonate — body: { targetUserId?, targetType?, targetName?, sandboxId? }. Sandbox users only. Sets cookie for banner/session. */
 export async function POST(req: NextRequest) {
   const guard = await sandboxAdminGuard();
   if (!guard.allowed) return guard.response;
@@ -24,6 +25,17 @@ export async function POST(req: NextRequest) {
 
     if (!targetUserId || typeof targetUserId !== "string") {
       return NextResponse.json({ error: "Missing targetUserId" }, { status: 400 });
+    }
+
+    const supabaseAdmin = getServiceRoleClient();
+    const [empRes, empOwnerRes] = await Promise.all([
+      supabaseAdmin.from("sandbox_employees").select("id").eq("id", targetUserId).limit(1),
+      supabaseAdmin.from("sandbox_employers").select("id").eq("id", targetUserId).limit(1),
+    ]);
+    const isEmployee = (empRes.data ?? []).length > 0;
+    const isEmployer = (empOwnerRes.data ?? []).length > 0;
+    if (!isEmployee && !isEmployer) {
+      return NextResponse.json({ error: "Target user is not a sandbox user" }, { status: 403 });
     }
 
     const payload = JSON.stringify({

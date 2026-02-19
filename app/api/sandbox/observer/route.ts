@@ -13,6 +13,10 @@ const SAFE_OBSERVER_PAYLOAD = {
   culture: [] as string[],
   signals: [] as string[],
   abuseRisk: 0,
+  reputation_changes: [] as { employee_id: string; delta: number; label?: string }[],
+  abuse_flags: [] as { id: string; signal_type: string; severity: number; created_at: string }[],
+  risk_signals: [] as string[],
+  trust_scores: [] as { employee_id: string; score: number }[],
 };
 
 /** GET /api/sandbox/observer — read-only real data from sandbox_intelligence_outputs. Admin/superadmin only. Always returns JSON. */

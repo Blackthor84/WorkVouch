@@ -4,6 +4,35 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { HiddenSystemsObserverPanel, type ObserverData } from "./panels/HiddenSystemsObserverPanel";
 import { ImpersonationPanel } from "./panels/ImpersonationPanel";
 
+function CopyableId({
+  label,
+  value,
+  suffix = "",
+}: { label?: string; value: string; suffix?: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = useCallback(() => {
+    navigator.clipboard.writeText(value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }, [value]);
+  return (
+    <>
+      {label ? <strong>{label}</strong> : null}
+      {label ? " " : null}
+      <code style={{ background: "#E2E8F0", padding: "2px 6px", borderRadius: 4 }}>{value}</code>
+      <button
+        type="button"
+        onClick={copy}
+        style={{ marginLeft: 6, padding: "2px 8px", fontSize: 11, cursor: "pointer", border: "1px solid #94A3B8", borderRadius: 4 }}
+      >
+        {copied ? "Copied" : "Copy"}
+      </button>
+      {suffix ? <span style={{ color: "#64748B" }}>{suffix}</span> : null}
+    </>
+  );
+}
+
 export type SandboxUser = { id: string; name: string; role: "worker" | "employer" };
 
 type CompanyData = {
@@ -30,7 +59,16 @@ const btn = {
   marginBottom: 8,
 };
 
-const EMPTY_OBSERVER: ObserverData = { trustDelta: 0, culture: [], signals: [], abuseRisk: undefined };
+const EMPTY_OBSERVER: ObserverData = {
+  trustDelta: 0,
+  culture: [],
+  signals: [],
+  abuseRisk: undefined,
+  reputation_changes: [],
+  abuse_flags: [],
+  risk_signals: [],
+  trust_scores: [],
+};
 
 /** Three sections: Demo Setup, Run Scenarios, Hidden Systems Observer. Renders immediately; not blocked by observer/list. */
 export function SandboxPlaygroundPanels() {
@@ -139,7 +177,8 @@ export function SandboxPlaygroundPanels() {
         setError((data as { error?: string }).error ?? "Failed");
         return;
       }
-      setCompany(null);
+      const newId = (data as { sandboxId?: string }).sandboxId;
+      setCompany(newId ? { sandboxId: newId } : null);
       setListUsers([]);
       setObserverData(undefined);
       await fetchObserver();
@@ -215,17 +254,22 @@ export function SandboxPlaygroundPanels() {
         </div>
         {company?.sandboxId && (
           <div style={{ fontSize: 12, fontFamily: "monospace", marginTop: 8 }}>
-            <div><strong>sandboxId</strong> <code style={{ background: "#E2E8F0", padding: "2px 6px", borderRadius: 4 }}>{company.sandboxId}</code></div>
+            <div style={{ marginBottom: 4 }}>
+              <CopyableId label="sandboxId" value={company.sandboxId} />
+            </div>
             {company.employer && (
-              <div style={{ marginTop: 4 }}><strong>employer</strong> <code style={{ background: "#E2E8F0", padding: "2px 6px", borderRadius: 4 }}>{company.employer.id}</code> {company.employer.company_name}</div>
+              <div style={{ marginTop: 4 }}>
+                <strong>employer</strong>{" "}
+                <CopyableId value={company.employer.id} /> {company.employer.company_name}
+              </div>
             )}
             {company.workers?.length ? (
               <div style={{ marginTop: 4 }}>
-                <strong>workers</strong>{" "}
-                {company.workers.map((w, i) => (
-                  <code key={w.id} style={{ background: "#E2E8F0", padding: "2px 6px", borderRadius: 4, marginRight: 4 }} title={w.id}>
-                    {w.id.slice(0, 8)}…
-                  </code>
+                <strong>workers</strong>
+                {company.workers.map((w) => (
+                  <div key={w.id} style={{ marginTop: 2 }}>
+                    <CopyableId value={w.id} suffix={w.full_name ? ` ${w.full_name}` : ""} />
+                  </div>
                 ))}
               </div>
             ) : null}

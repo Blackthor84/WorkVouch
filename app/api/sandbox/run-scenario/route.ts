@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
 import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";
 import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -106,6 +107,14 @@ export async function POST(req: NextRequest) {
         rating: 2,
         review_text: "Unsupportive. High turnover risk.",
       });
+      const sbToxic = getServiceRoleClient();
+      await sbToxic.from("abuse_signals").insert({
+        session_id: null,
+        signal_type: "sandbox_scenario_toxic_manager",
+        severity: 2,
+        metadata: { sandbox_id: sandboxId, scenario: "toxic-manager" },
+        is_sandbox: true,
+      });
     }
 
     if (scenario === "high-turnover") {
@@ -118,6 +127,14 @@ export async function POST(req: NextRequest) {
           review_text: "Considering leaving. Culture issues.",
         });
       }
+      const sb = getServiceRoleClient();
+      await sb.from("abuse_signals").insert({
+        session_id: null,
+        signal_type: "sandbox_scenario_high_turnover",
+        severity: 1,
+        metadata: { sandbox_id: sandboxId, scenario: "high-turnover" },
+        is_sandbox: true,
+      });
     }
 
     if (scenario === "mixed-reputation") {
