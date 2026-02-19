@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
     let payload: WorkVouchInsightsPayload | null = getCachedInsights(candidateId);
     if (!payload) {
       const { data: references } = await supabaseAny
-        .from("references")
+        .from("user_references")
         .select("id, rating, job_id")
         .eq("to_user_id", candidateId)
         .eq("is_deleted", false);

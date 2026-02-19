@@ -64,7 +64,7 @@ export async function getAllReferences() {
   const supabase = await createServerSupabase()
 
   const { data: references, error } = await supabase
-    .from('references')
+    .from('user_references')
     .select(`
       *,
       from_user:profiles!references_from_user_id_fkey (
@@ -101,7 +101,7 @@ export async function softDeleteReference(referenceId: string) {
   const supabaseAny = supabase as any
 
   const { data: reference, error } = await supabaseAny
-    .from('references')
+    .from('user_references')
     .update({ is_deleted: true })
     .eq('id', referenceId)
     .select()

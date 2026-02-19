@@ -75,7 +75,7 @@ export async function calculateEmployeeAuditScore(userId: string): Promise<Emplo
   const [profileRes, jobsRes, refsRes, skillsRes] = await Promise.all([
     supabase.from("profiles").select("full_name, email_verified, flagged_for_fraud").eq("id", userId).maybeSingle(),
     supabase.from("jobs").select("id, start_date, end_date, company_name, verification_status, supervisor_name").eq("user_id", userId).order("start_date", { ascending: true }),
-    supabase.from("references").select("id, from_user_id, job_id, relationship_type, written_feedback").eq("to_user_id", userId).eq("is_deleted", false),
+    supabase.from("user_references").select("id, from_user_id, job_id, relationship_type, written_feedback").eq("to_user_id", userId).eq("is_deleted", false),
     (supabase as any).from("skills").select("skill_name").eq("user_id", userId).then((r: { data: unknown }) => r).catch(() => ({ data: [] })),
   ]);
 

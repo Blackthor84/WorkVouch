@@ -220,7 +220,7 @@ export async function updateRiskForVerificationReport(
     let refResponded = 0;
     if (jids.length > 0) {
       refTotal = jids.length;
-      const { count } = await supabase.from("references").select("id", { count: "exact", head: true }).eq("to_user_id", workerId);
+      const { count } = await supabase.from("user_references").select("id", { count: "exact", head: true }).eq("to_user_id", workerId);
       refResponded = count ?? 0;
     }
     const referenceRate = refTotal > 0 ? refResponded / refTotal : 0;

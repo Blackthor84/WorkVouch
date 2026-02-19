@@ -84,7 +84,7 @@ async function buildLimitedView(sb: any, profileId: string): Promise<Record<stri
     .maybeSingle();
   const score = (trustRow as { score?: number } | null)?.score ?? 0;
   const { count: refCount } = await sb
-    .from("references")
+    .from("user_references")
     .select("id", { count: "exact", head: true })
     .eq("to_user_id", profileId);
   let credentialCount = 0;
@@ -198,7 +198,7 @@ export async function searchPassport(params: {
         .order("start_date", { ascending: false })
         .limit(3);
       const { count: refCount } = await sb
-        .from("references")
+        .from("user_references")
         .select("id", { count: "exact", head: true })
         .eq("to_user_id", p.id);
       let credCount = 0;
@@ -238,7 +238,7 @@ export async function searchPassport(params: {
         .order("start_date", { ascending: false })
         .limit(3);
       const { count: refCount } = await sb
-        .from("references")
+        .from("user_references")
         .select("id", { count: "exact", head: true })
         .eq("to_user_id", p.id);
       let credCount = 0;
@@ -280,7 +280,7 @@ export async function searchPassport(params: {
           .order("start_date", { ascending: false })
           .limit(3);
         const { count: refCount } = await sb
-          .from("references")
+          .from("user_references")
           .select("id", { count: "exact", head: true })
           .eq("to_user_id", p.id);
         let credCount = 0;

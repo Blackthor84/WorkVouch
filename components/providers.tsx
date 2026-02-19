@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { initSessionDebug } from "@/lib/supabase/session-debug";
+
+const queryClient = new QueryClient();
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -9,5 +12,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return () => cleanup?.();
   }, []);
 
-  return <>{children}</>;
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
 }

@@ -260,3 +260,32 @@ export function assertAdminCanModify(
     );
   }
 }
+
+/**
+ * API-only admin gate: throws so routes can catch and return 403.
+ * Use on every admin API route. Profiles use id = auth user id (no user_id column).
+ */
+export async function requireAdminThrow(): Promise<{
+  supabase: Awaited<ReturnType<typeof supabaseServer>>;
+  userId: string;
+  role: string;
+}> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.auth.getUser();
+
+  if (!data?.user) {
+    throw new Error("Unauthorized");
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", data.user.id)
+    .single();
+
+  if (!profile || !["admin", "superadmin"].includes(String(profile.role ?? "").toLowerCase())) {
+    throw new Error("Forbidden");
+  }
+
+  return { supabase, userId: data.user.id, role: String(profile.role) };
+}

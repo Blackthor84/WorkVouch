@@ -78,7 +78,7 @@ export async function getPublicProfile(userId: string) {
 
   // Get public references (for public jobs)
   const { data: references, error: refsError } = await supabaseAny
-    .from('references')
+    .from('user_references')
     .select(`
       *,
       from_user:profiles!references_from_user_id_fkey (

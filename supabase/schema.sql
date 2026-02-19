@@ -120,8 +120,8 @@ CREATE TABLE public.connections (
   CONSTRAINT no_self_connection CHECK (user_id != connected_user_id)
 );
 
--- Peer references table
-CREATE TABLE public.references (
+-- Peer references table (name user_references to avoid reserved keyword "references")
+CREATE TABLE public.user_references (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   from_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   to_user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -180,11 +180,11 @@ CREATE UNIQUE INDEX idx_connections_unique_pair ON public.connections(
   GREATEST(user_id, connected_user_id)
 );
 
--- References indexes
-CREATE INDEX idx_references_from_user ON public.references(from_user_id);
-CREATE INDEX idx_references_to_user ON public.references(to_user_id);
-CREATE INDEX idx_references_job_id ON public.references(job_id);
-CREATE INDEX idx_references_deleted ON public.references(is_deleted);
+-- User references indexes
+CREATE INDEX idx_user_references_from_user ON public.user_references(from_user_id);
+CREATE INDEX idx_user_references_to_user ON public.user_references(to_user_id);
+CREATE INDEX idx_user_references_job_id ON public.user_references(job_id);
+CREATE INDEX idx_user_references_deleted ON public.user_references(is_deleted);
 
 -- Trust scores indexes
 CREATE INDEX idx_trust_scores_user_id ON public.trust_scores(user_id);
@@ -281,12 +281,12 @@ BEGIN
 
   -- Count references
   SELECT COUNT(*) INTO v_reference_count
-  FROM public.references
+  FROM public.user_references
   WHERE to_user_id = p_user_id AND is_deleted = false;
 
   -- Calculate average rating
   SELECT COALESCE(AVG(rating), 0) INTO v_avg_rating
-  FROM public.references
+  FROM public.user_references
   WHERE to_user_id = p_user_id AND is_deleted = false;
 
   -- V1 Calculation: Simple weighted formula
@@ -372,7 +372,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER update_trust_score_on_reference_change
-  AFTER INSERT OR UPDATE OR DELETE ON public.references
+  AFTER INSERT OR UPDATE OR DELETE ON public.user_references
   FOR EACH ROW
   EXECUTE FUNCTION trigger_update_trust_score_on_reference();
 
@@ -537,19 +537,19 @@ CREATE POLICY "Admins can view all connections"
 
 -- Users can view references they gave or received
 CREATE POLICY "Users can view own references"
-  ON public.references FOR SELECT
+  ON public.user_references FOR SELECT
   USING (
     auth.uid() = from_user_id OR auth.uid() = to_user_id
   );
 
 -- Employers can view public references (for public jobs)
 CREATE POLICY "Employers can view public references"
-  ON public.references FOR SELECT
+  ON public.user_references FOR SELECT
   USING (
     is_deleted = false AND
     EXISTS (
-      SELECT 1 FROM public.jobs
-      WHERE jobs.id = public.references.job_id AND jobs.is_private = false
+      SELECT 1 FROM public.jobs j
+      WHERE j.id = public.user_references.job_id AND j.is_private = false
     ) AND
     EXISTS (
       SELECT 1 FROM public.user_roles
@@ -559,7 +559,7 @@ CREATE POLICY "Employers can view public references"
 
 -- Admins can view all references
 CREATE POLICY "Admins can view all references"
-  ON public.references FOR SELECT
+  ON public.user_references FOR SELECT
   USING (
     EXISTS (
       SELECT 1 FROM public.user_roles
@@ -569,7 +569,7 @@ CREATE POLICY "Admins can view all references"
 
 -- Users can create references (only if they are connected)
 CREATE POLICY "Users can create references"
-  ON public.references FOR INSERT
+  ON public.user_references FOR INSERT
   WITH CHECK (
     auth.uid() = from_user_id AND
     EXISTS (
@@ -584,7 +584,7 @@ CREATE POLICY "Users can create references"
 -- References are immutable (no update policy)
 -- Only admins can soft-delete
 CREATE POLICY "Admins can soft-delete references"
-  ON public.references FOR UPDATE
+  ON public.user_references FOR UPDATE
   USING (
     EXISTS (
       SELECT 1 FROM public.user_roles

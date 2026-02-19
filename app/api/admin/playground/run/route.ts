@@ -1,0 +1,26 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requireAdminForApi } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { getSupabaseServer } from "@/lib/supabase/admin";
+import { runScenarioRpc } from "@/lib/sandbox/runScenarioRpc";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+const ALLOWED = new Set(["playground_small", "playground_medium", "playground_large", "reset_playground"]);
+
+export async function POST(req: NextRequest) {
+  const admin = await requireAdminForApi();
+  if (!admin) return adminForbiddenResponse();
+
+  const body = await req.json().catch(() => ({}));
+  const fn = typeof body.fn === "string" ? body.fn.trim() : "";
+  if (!fn || !ALLOWED.has(fn)) {
+    return NextResponse.json({ error: "Invalid fn" }, { status: 400 });
+  }
+
+  const supabase = getSupabaseServer();
+  const { error } = await runScenarioRpc(supabase, fn, {});
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true, fn });
+}

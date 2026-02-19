@@ -38,7 +38,7 @@ export default function ProfileScreen() {
 
     // Load references
     const { data: refsData } = await supabase
-      .from('references')
+      .from('user_references')
       .select('*, from_user:profiles!references_from_user_id_fkey(full_name, profile_photo_url)')
       .eq('to_user_id', currentUser.id)
       .eq('is_deleted', false)

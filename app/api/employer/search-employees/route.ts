@@ -126,7 +126,7 @@ export async function GET(req: NextRequest) {
     const employeesWithReferences = await Promise.all(
       visibleJobs.map(async (job: any) => {
         const { data: references } = await supabase
-          .from("references")
+          .from("user_references")
           .select(
             `
             id,

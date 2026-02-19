@@ -134,7 +134,7 @@ export async function getCandidateReport(candidateId: string) {
     .order('start_date', { ascending: false })
 
   const { data: references } = await supabaseAny
-    .from('references')
+    .from('user_references')
     .select(`
       *,
       from_user:profiles!references_from_user_id_fkey (

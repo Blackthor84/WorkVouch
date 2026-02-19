@@ -65,7 +65,7 @@ export async function calculateAndStoreRisk(profileId: string): Promise<{ error?
 
   // References where this profile is the recipient
   const { data: refsData, error: refsError } = await supabase
-    .from("references")
+    .from("user_references")
     .select("id, to_user_id, job_id")
     .eq("to_user_id", profileId);
 

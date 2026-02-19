@@ -27,6 +27,15 @@ function LoginForm() {
 
       if (signInError) throw signInError;
 
+      const profileRes = await fetch("/api/user/profile", { credentials: "include" });
+      if (profileRes.ok) {
+        const profile = await profileRes.json();
+        const role = (profile?.role ?? "").trim().toLowerCase();
+        if (role === "admin" || role === "superadmin") {
+          router.push("/admin");
+          return;
+        }
+      }
       router.push("/dashboard");
     } catch (err) {
       if (

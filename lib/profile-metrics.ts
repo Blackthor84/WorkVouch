@@ -36,7 +36,7 @@ export async function upsertProfileMetrics(profileId: string): Promise<void> {
     let refTotal = jids.length;
     let refResponded = 0;
     if (jids.length > 0) {
-      const { count } = await supabase.from("references").select("id", { count: "exact", head: true }).eq("to_user_id", profileId);
+      const { count } = await supabase.from("user_references").select("id", { count: "exact", head: true }).eq("to_user_id", profileId);
       refResponded = count ?? 0;
     }
     const reference_score = refTotal > 0 ? clamp((refResponded / refTotal) * 100) : 100;
@@ -81,7 +81,7 @@ export async function upsertProfileMetrics(profileId: string): Promise<void> {
       // ignore
     }
     if (network_score === 0 && jids.length > 0) {
-      const { data: refs } = await supabase.from("references").select("id").eq("to_user_id", profileId);
+      const { data: refs } = await supabase.from("user_references").select("id").eq("to_user_id", profileId);
       const refCount = Array.isArray(refs) ? refs.length : 0;
       network_score = clamp((refCount / Math.max(jids.length * 2, 1)) * 100);
     }

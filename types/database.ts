@@ -559,7 +559,7 @@ export interface Database {
           updated_at?: string
         }
       }
-      references: {
+      user_references: {
         Row: {
           id: string
           from_user_id: string

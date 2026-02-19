@@ -50,7 +50,7 @@ export async function createReference(input: CreateReferenceInput) {
 
   // Check if reference already exists for this job
   const { data: existing } = await supabase
-    .from('references')
+    .from('user_references')
     .select('id')
     .eq('from_user_id', user.id)
     .eq('to_user_id', input.to_user_id)
@@ -68,7 +68,7 @@ export async function createReference(input: CreateReferenceInput) {
 
   // Create reference
   const { data: reference, error } = await supabase
-    .from('references')
+    .from('user_references')
     .insert({
       ...input,
       from_user_id: user.id,
@@ -96,7 +96,7 @@ export async function getUserReferences(userId: string) {
   // Users can see references they gave or received
   // Employers can see public references for public jobs
   const { data: references, error } = await supabase
-    .from('references')
+    .from('user_references')
     .select(`
       *,
       from_user:profiles!references_from_user_id_fkey (

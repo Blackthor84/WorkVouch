@@ -49,7 +49,7 @@ async function computePlaceholders(
   let refTotal = jids.length;
   let refResponded = 0;
   if (jids.length > 0) {
-    const { count } = await sb.from("references").select("id", { count: "exact", head: true }).eq("to_user_id", candidateId);
+    const { count } = await sb.from("user_references").select("id", { count: "exact", head: true }).eq("to_user_id", candidateId);
     refResponded = count ?? 0;
   }
   const referenceStrength = refTotal > 0 ? clamp((refResponded / refTotal) * 100) : 100;
@@ -90,7 +90,7 @@ async function computePlaceholders(
 
   let networkDensityScore = 0;
   try {
-    const { data: refs } = await sb.from("references").select("id").eq("to_user_id", candidateId);
+    const { data: refs } = await sb.from("user_references").select("id").eq("to_user_id", candidateId);
     const refCount = Array.isArray(refs) ? refs.length : 0;
     const totalPossible = Math.max(jobList.length * 2, 1);
     networkDensityScore = clamp((refCount / totalPossible) * 100);

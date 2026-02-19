@@ -54,6 +54,7 @@ export default function SignupPage() {
       setError("");
 
       const role = "employee"; // role chosen later at select-role; pass default for metadata
+      const username = cleanEmail.split("@")[0] || undefined;
 
       const { data, error } = await supabaseBrowser.auth.signUp({
         email: cleanEmail,
@@ -62,6 +63,7 @@ export default function SignupPage() {
           data: {
             full_name: fullName.trim() || undefined,
             role,
+            username,
           },
           emailRedirectTo:
             typeof window !== "undefined"

@@ -2,44 +2,43 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
-/**
- * POST /api/onboarding/complete — set onboarding_completed = true for the current user.
- * Idempotent; safe to call multiple times.
- */
-export async function POST() {
+type Role = "user" | "employer";
+
+export async function POST(req: Request) {
   try {
     const supabase = await supabaseServer();
-    const authResult = await supabase.auth.getUser();
+    const { data: authData, error: authError } = await supabase.auth.getUser();
 
-    if (authResult.error) {
+    if (authError || !authData?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = authResult.data?.user;
-    if (!user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const userId = authData.user.id;
+    const body = await req.json().catch(() => ({}));
+    const role = body?.role as Role | undefined;
 
-    const supabaseAny = supabase as any;
-    const updateResult = await supabaseAny
-      .from("profiles")
-      .update({ onboarding_completed: true })
-      .eq("id", user.id)
-      .select("id");
-
-    if (updateResult.error) {
+    if (role !== "user" && role !== "employer") {
       return NextResponse.json(
-        { error: "Failed to update onboarding" },
-        { status: 500 }
+        { error: "Invalid role" },
+        { status: 400 }
       );
     }
 
-    const data = updateResult.data;
-    const hasRow = Array.isArray(data) ? data.length > 0 : data != null;
-    if (!hasRow) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+    const supabaseAny = supabase as any;
+    const { error: updateError } = await supabaseAny
+      .from("profiles")
+      .update({
+        role,
+        onboarding_completed: true,
+      })
+      .eq("id", userId);
+
+    if (updateError) {
+      return NextResponse.json(
+        { error: "Onboarding already completed or not allowed" },
+        { status: 403 }
+      );
     }
 
     return NextResponse.json({ success: true });

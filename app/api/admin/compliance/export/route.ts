@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
         .select("id, full_name, email, profile_id")
         .eq("organization_id", allowedOrgId),
       supabase.from("employee_audit_scores").select("user_id, score, band, calculated_at"),
-      supabase.from("references").select("to_user_id").eq("is_deleted", false),
+      supabase.from("user_references").select("to_user_id").eq("is_deleted", false),
     ]);
 
     const profileIds = ((workforce.data ?? []) as { profile_id: string | null }[])

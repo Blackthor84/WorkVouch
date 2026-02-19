@@ -57,7 +57,7 @@ export async function calculateMatchScore(
 
   // Get references
   const { data: references } = await supabaseAny
-    .from('references')
+    .from('user_references')
     .select('rating')
     .eq('to_user_id', candidateId)
     .eq('is_deleted', false)

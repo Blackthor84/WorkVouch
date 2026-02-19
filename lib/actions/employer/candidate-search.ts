@@ -109,7 +109,7 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
 
     // Get references
     const { data: references } = await supabaseAny
-      .from('references')
+      .from('user_references')
       .select('id, rating, written_feedback')
       .eq('to_user_id', profileAny.id)
       .eq('is_deleted', false)
@@ -210,7 +210,7 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
 
   // Get references
   const { data: references } = await supabaseAny
-    .from('references')
+    .from('user_references')
     .select(`
       *,
       from_user:profiles!references_from_user_id_fkey(full_name, profile_photo_url)

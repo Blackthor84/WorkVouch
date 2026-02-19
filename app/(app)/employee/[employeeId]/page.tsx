@@ -31,7 +31,7 @@ export default async function EmployeePage(props: any) {
 
     // Fetch references (vouches)
     const { data: references } = await supabaseAny
-      .from("references")
+      .from("user_references")
       .select(`
         *,
         from_user:profiles!references_from_user_id_fkey (

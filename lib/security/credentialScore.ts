@@ -58,7 +58,7 @@ export async function calculateCredentialScore(
     const avgTenure = jobList.length > 0 ? totalMonths / jobList.length : 0;
     if (avgTenure >= 18) raw += WEIGHTS.tenureStability;
 
-    const { data: refs } = await supabase.from("references").select("id, response_status").or("from_user_id.eq." + userId + ",to_user_id.eq." + userId);
+    const { data: refs } = await supabase.from("user_references").select("id, response_status").or("from_user_id.eq." + userId + ",to_user_id.eq." + userId);
     const refList = (refs ?? []) as { response_status: string | null }[];
     const responded = refList.filter((r) => r.response_status === "completed" || r.response_status === "responded").length;
     const rate = refList.length > 0 ? responded / refList.length : 0;

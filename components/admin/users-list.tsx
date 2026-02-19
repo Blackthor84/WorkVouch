@@ -21,6 +21,7 @@ export function AdminUsersList() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [org, setOrg] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("");
   const router = useRouter();
 
   const fetchUsers = useCallback(async () => {
@@ -76,7 +77,47 @@ export function AdminUsersList() {
     );
   }
 
+  const filteredUsers = roleFilter
+    ? users.filter((u) => (u.role ?? "").toLowerCase() === roleFilter.toLowerCase())
+    : users;
+
   return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <input
+          type="text"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="rounded border border-slate-300 px-2 py-1.5 text-sm w-40"
+        />
+        <input
+          type="text"
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="rounded border border-slate-300 px-2 py-1.5 text-sm w-40"
+        />
+        <input
+          type="text"
+          placeholder="Org"
+          value={org}
+          onChange={(e) => setOrg(e.target.value)}
+          className="rounded border border-slate-300 px-2 py-1.5 text-sm w-40"
+        />
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          className="rounded border border-slate-300 px-2 py-1.5 text-sm w-32"
+        >
+          <option value="">All roles</option>
+          <option value="candidate">candidate</option>
+          <option value="employer">employer</option>
+          <option value="admin">admin</option>
+          <option value="superadmin">superadmin</option>
+        </select>
+        <Button variant="secondary" size="sm" onClick={() => fetchUsers()}>Search</Button>
+      </div>
     <div className="overflow-x-auto rounded-2xl border border-[#E2E8F0] bg-white shadow-lg">
       <table className="min-w-full divide-y divide-[#E2E8F0]">
         <thead className="bg-slate-50">
@@ -190,6 +231,7 @@ export function AdminUsersList() {
           )}
         </tbody>
       </table>
+    </div>
     </div>
   );
 }

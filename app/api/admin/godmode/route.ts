@@ -74,6 +74,15 @@ export async function POST(request: Request) {
       user_agent: userAgent,
     });
 
+    const { getSupabaseServer } = await import("@/lib/supabase/admin");
+    const adminSupabase = getSupabaseServer();
+    await adminSupabase
+      .from("admin_users")
+      .upsert(
+        { user_id: user.id, god_mode: enabled, updated_at: new Date().toISOString() },
+        { onConflict: "user_id" }
+      );
+
     const cookieStore = await cookies();
     const res = NextResponse.json({ enabled });
 

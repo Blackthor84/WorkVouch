@@ -61,7 +61,7 @@ export async function calculateTrustScore(profileId: string): Promise<void> {
         const { count } = await supabase.from("verification_requests").select("*", { count: "exact", head: true }).in("job_id", jobIds).eq("status", "approved");
         approved = count ?? 0;
       }
-      const refCount = ((await supabase.from("references").select("id", { count: "exact", head: true }).eq("to_user_id", profileId)).count) ?? 0;
+      const refCount = ((await supabase.from("user_references").select("id", { count: "exact", head: true }).eq("to_user_id", profileId)).count) ?? 0;
       const refRate = jobIds.length > 0 ? approved / jobIds.length : 0;
       raw = clamp((refRate * 50) + Math.min(refCount * 5, 50));
     }
@@ -95,7 +95,7 @@ export async function calculateCareerStability(profileId: string): Promise<void>
       if (e > s) totalMonths += (e - s) / (30.44 * 24 * 60 * 60 * 1000);
     }
     const jobCount = list.length;
-    const { count: refCount } = await supabase.from("references").select("id", { count: "exact", head: true }).eq("to_user_id", profileId);
+    const { count: refCount } = await supabase.from("user_references").select("id", { count: "exact", head: true }).eq("to_user_id", profileId);
     const refResponseRate = jobCount > 0 ? (refCount ?? 0) / jobCount : 0;
     const gapMonths = 0;
 
@@ -120,7 +120,7 @@ export async function calculateCareerStability(profileId: string): Promise<void>
 export async function calculateNetworkDensityScore(profileId: string): Promise<void> {
   try {
     const supabase = getSupabaseServer() as any;
-    const { data: refs } = await supabase.from("references").select("id, from_user_id, to_user_id, created_at").eq("to_user_id", profileId);
+    const { data: refs } = await supabase.from("user_references").select("id, from_user_id, to_user_id, created_at").eq("to_user_id", profileId);
     const refList = (refs ?? []) as { from_user_id: string; created_at?: string }[];
     const { data: jobs } = await supabase.from("jobs").select("id").eq("user_id", profileId);
     const jobCount = Array.isArray(jobs) ? jobs.length : 0;

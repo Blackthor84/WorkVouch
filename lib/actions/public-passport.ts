@@ -118,7 +118,7 @@ export async function getPassportPageData(slug: string): Promise<PassportPageDat
     (profileRow as { trust_score?: number })?.trust_score ??
     0;
 
-  const { count: refCount } = await sb.from("references").select("id", { count: "exact", head: true }).eq("to_user_id", profileId);
+  const { count: refCount } = await sb.from("user_references").select("id", { count: "exact", head: true }).eq("to_user_id", profileId);
   const referenceCount = refCount ?? 0;
   const jobIds = jobList.map((j) => j.id);
   const totalPossible = jobIds.length;

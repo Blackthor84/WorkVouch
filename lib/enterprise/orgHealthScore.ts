@@ -139,7 +139,7 @@ export async function getOrgHealthScore(organizationId: string): Promise<OrgHeal
   let referenceCompletionPct: number | null = null;
   if (profileIds.length > 0) {
     const { data: refRows } = await supabase
-      .from("references")
+      .from("user_references")
       .select("to_user_id")
       .eq("is_deleted", false)
       .in("to_user_id", profileIds);

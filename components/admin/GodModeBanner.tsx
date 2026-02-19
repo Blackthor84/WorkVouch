@@ -29,10 +29,9 @@ export function GodModeBanner({ environment }: GodModeBannerProps) {
   return (
     <div
       role="alert"
-      className="sticky top-0 z-[70] w-full bg-amber-600 text-white text-center py-2.5 px-4 text-sm font-medium shadow-md flex items-center justify-center gap-4 flex-wrap"
+      className="sticky top-0 z-[70] w-full bg-red-600 text-white text-center py-2 px-4 text-sm font-medium shadow-md flex items-center justify-center gap-4 flex-wrap"
     >
-      <span className="font-bold">⚠️ GOD MODE ENABLED</span>
-      <span>All actions are logged. Production system access.</span>
+      <span>⚠️ GOD MODE ENABLED — LIVE DATA ACCESS</span>
       <span className="opacity-90">({environment})</span>
       <button
         type="button"

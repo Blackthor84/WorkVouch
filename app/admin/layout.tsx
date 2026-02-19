@@ -4,7 +4,6 @@ import { NavbarServer } from "@/components/navbar-server";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminGlobalBar } from "@/components/admin/AdminGlobalBar";
-import { GodModeBanner } from "@/components/admin/GodModeBanner";
 import { isGodMode } from "@/lib/auth/isGodMode";
 import { isSandboxEnv } from "@/lib/sandbox/env";
 import {
@@ -12,14 +11,14 @@ import {
   canViewFinancials,
   canViewBoard,
 } from "@/lib/adminPermissions";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /**
  * Admin layout: backend enforcement only. getAdminContext() is source of truth; UI is useless without it.
- * In SANDBOX: do not call admin APIs here; never throw; rendering must continue even with empty data.
- * Any non-critical fetch must be wrapped: try { ... } catch { return null; }
+ * Requires a row in admin_users for the current user (else 404). In SANDBOX: do not call admin APIs here; never throw.
  */
 export default async function AdminLayout({
   children,
@@ -56,14 +55,34 @@ export default async function AdminLayout({
   if (!allowed) {
     redirect("/dashboard");
   }
+  // Enterprise dashboard: superadmin-only access
+  if (!admin.isSuperAdmin) {
+    redirect("/dashboard");
+  }
+
+  const supabase = await supabaseServer();
+  const { data: adminUserRow, error: adminUserError } = await supabase
+    .from("admin_users")
+    .select("god_mode")
+    .eq("user_id", admin.userId)
+    .maybeSingle();
+
+  if (adminUserError || !adminUserRow) {
+    redirect("/404");
+  }
 
   const env = admin.isSandbox ? "SANDBOX" : "PRODUCTION";
   const role = admin.isSuperAdmin ? "SUPERADMIN" : "ADMIN";
+  const godModeEnabled = admin.godMode?.enabled ?? adminUserRow.god_mode;
 
   return (
     <>
       <NavbarServer />
-      {admin.godMode?.enabled && <GodModeBanner environment={env} />}
+      {godModeEnabled && (
+        <div className="bg-red-600 text-white text-center py-2 font-bold">
+          ⚠️ GOD MODE ENABLED — LIVE DATA ACCESS
+        </div>
+      )}
       <AdminGlobalBar
         env={env}
         role={role}

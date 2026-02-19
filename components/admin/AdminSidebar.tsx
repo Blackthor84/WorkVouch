@@ -119,7 +119,25 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, showFinancials =
           Dashboard
         </Link>
         <nav className="flex-1 overflow-y-auto mt-4 space-y-6 px-2">
-          {isSandbox ? (
+          {isSuperAdmin && !isSandbox ? (
+            <div>
+              <div className={`px-3 py-1.5 ${SECTION_TITLE}`}>Enterprise</div>
+              <ul className="mt-1 space-y-0.5">
+                {enterpriseNav.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                        isActive(pathname, item.href) ? LINK_ACTIVE : LINK_INACTIVE
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : isSandbox ? (
             <>
               {section("Dashboard", sandboxNav.Dashboard)}
               {section("Users", sandboxNav.Users)}

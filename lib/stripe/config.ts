@@ -113,3 +113,22 @@ export function getCheckoutBaseUrl(origin?: string | null): string {
     "http://localhost:3000";
   return base.replace(/\/$/, "");
 }
+
+/**
+ * Create a Stripe Customer Portal session (server-only).
+ * Use for subscription management, payment methods, billing. Do not trust frontend for state.
+ * @param customer_id - Stripe customer id (e.g. from profiles.stripe_customer_id)
+ * @param return_url - Full URL to redirect after portal (e.g. getCheckoutBaseUrl() + '/dashboard')
+ * @returns Portal session URL or null if Stripe not configured or missing params
+ */
+export async function createBillingPortalSession(
+  customer_id: string,
+  return_url: string
+): Promise<string | null> {
+  if (!isStripeConfigured || !stripe || !customer_id?.trim() || !return_url?.trim()) return null;
+  const session = await stripe.billingPortal.sessions.create({
+    customer: customer_id.trim(),
+    return_url: return_url.trim(),
+  });
+  return session.url ?? null;
+}

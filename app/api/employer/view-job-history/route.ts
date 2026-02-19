@@ -142,7 +142,7 @@ export async function GET(req: NextRequest) {
       profiles?: { full_name: string };
     };
     const { data: references } = await supabaseAny
-      .from("references")
+      .from("user_references")
       .select(
         `
         id,

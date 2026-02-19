@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   related_user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   related_job_id UUID REFERENCES public.jobs(id) ON DELETE SET NULL,
   related_connection_id UUID REFERENCES public.connections(id) ON DELETE SET NULL,
-  related_reference_id UUID REFERENCES public.references(id) ON DELETE SET NULL,
+  related_reference_id UUID REFERENCES public.user_references(id) ON DELETE SET NULL,
   is_read BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   read_at TIMESTAMPTZ
@@ -324,9 +324,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS notify_on_reference_created ON public.references;
+DROP TRIGGER IF EXISTS notify_on_reference_created ON public.user_references;
 CREATE TRIGGER notify_on_reference_created
-  AFTER INSERT ON public.references
+  AFTER INSERT ON public.user_references
   FOR EACH ROW
   EXECUTE FUNCTION trigger_notify_reference_created();
 
@@ -440,11 +440,11 @@ BEGIN
   WHERE user_id = p_user_id AND is_private = false;
 
   SELECT COUNT(*) INTO v_reference_count
-  FROM public.references
+  FROM public.user_references
   WHERE to_user_id = p_user_id AND is_deleted = false;
 
   SELECT COALESCE(AVG(rating), 0) INTO v_avg_rating
-  FROM public.references
+  FROM public.user_references
   WHERE to_user_id = p_user_id AND is_deleted = false;
 
   -- Upsert trust score
