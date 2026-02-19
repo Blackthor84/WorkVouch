@@ -13,7 +13,6 @@ import { usePreview } from "@/lib/preview-context";
 import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 import { useAuth } from "@/components/AuthContext";
 import { supabaseBrowser } from "@/lib/supabase/browser";
-import { normalizeRole } from "@/lib/auth/normalizeRole";
 
 export interface OrgSwitcherItem {
   id: string;
@@ -60,13 +59,12 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
       .catch(() => setComplianceCount(0));
   }, [isEmployerArea, user?.id, role]);
 
-  const normalizedRole = normalizeRole(role ?? "");
   const roleFromMetadata = (session?.user as { app_metadata?: { role?: string } } | undefined)?.app_metadata?.role;
   const showAdmin =
-    session && roleFromMetadata != null
-      ? ["admin", "superadmin"].includes(String(roleFromMetadata).toLowerCase())
-      : Boolean(showAdminProp);
-  const showSandboxAdmin = normalizedRole === "super_admin";
+    !!session &&
+    roleFromMetadata != null &&
+    ["admin", "superadmin"].includes(String(roleFromMetadata).toLowerCase());
+  const showSandboxAdmin = String(roleFromMetadata ?? "").toLowerCase() === "superadmin";
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white shadow-sm py-2">
