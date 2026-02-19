@@ -6,7 +6,7 @@ export const isStripeConfigured = !!(
 );
 
 export const stripe = isStripeConfigured
-  ? new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2023-10-16" })
+  ? new Stripe(process.env.STRIPE_SECRET_KEY!)
   : null;
 
 // Canonical employer plans: starter, pro, custom only.
