@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { requireAdminForApi } from "@/lib/admin/requireAdmin";
-import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
+import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";

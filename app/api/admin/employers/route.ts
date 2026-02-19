@@ -3,7 +3,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminContext, adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
 

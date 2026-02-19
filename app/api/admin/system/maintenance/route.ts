@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { requireAdminFromSupabase, requireSuperAdminFromSupabase } from "@/lib/auth/admin-role-guards";
-import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

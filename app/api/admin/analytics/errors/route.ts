@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
-import { requireAdminForApi } from "@/lib/admin/requireAdmin";
+import { adminForbiddenResponse } from "@/lib/api/adminResponses";
+import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { logAdminViewedAnalytics } from "@/lib/admin/analytics-audit";
 

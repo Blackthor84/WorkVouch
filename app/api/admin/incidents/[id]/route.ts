@@ -4,7 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminContext, adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { getIncidentWithActions, updateIncidentStatus } from "@/lib/admin/incidents";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";

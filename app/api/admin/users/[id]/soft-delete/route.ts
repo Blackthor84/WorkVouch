@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireAdminForApi, assertAdminCanModify } from "@/lib/admin/requireAdmin";
-import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { requireAdminForApi, assertAdminCanModify } from "@/lib/auth/requireAdminForApi";
+import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
 

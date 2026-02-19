@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminForApi } from "@/lib/admin/requireAdmin";
-import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
+import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
 import { insertAdminAuditLog } from "@/lib/admin/audit";

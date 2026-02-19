@@ -5,7 +5,8 @@
  */
 
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
+import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";

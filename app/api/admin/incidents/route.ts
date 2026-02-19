@@ -3,7 +3,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminContext, adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { listIncidents } from "@/lib/admin/incidents";
 
 export const dynamic = "force-dynamic";

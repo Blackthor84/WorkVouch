@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { requireAdminForApi } from "@/lib/admin/requireAdmin";
-import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
+import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { v4 as uuid } from "uuid";
 import { Ad } from "../../../../types/ad";
 

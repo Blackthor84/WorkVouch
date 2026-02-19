@@ -8,8 +8,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { requireAdminForApi } from "@/lib/admin/requireAdmin";
-import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
+import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { getOrgHealthScore } from "@/lib/enterprise/orgHealthScore";
 import { getOrgPlanLimits } from "@/lib/enterprise/orgPlanLimits";
 import { planLimit403Response } from "@/lib/enterprise/checkOrgLimits";

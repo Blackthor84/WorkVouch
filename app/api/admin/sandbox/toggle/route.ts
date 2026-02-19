@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { requireAdminFromSupabase } from "@/lib/auth/admin-role-guards";
-import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 
 export const runtime = "nodejs";
 

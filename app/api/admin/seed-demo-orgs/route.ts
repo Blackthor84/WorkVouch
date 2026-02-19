@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
-import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { APP_MODE } from "@/lib/app-mode";
 
