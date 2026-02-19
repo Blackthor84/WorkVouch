@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
-import { AdminReputationEngineClient } from "@/components/admin/AdminReputationEngineClient";
+import AdminReputationEngineClient from "@/components/admin/AdminReputationEngineClient";
 
 export const dynamic = "force-dynamic";
 
