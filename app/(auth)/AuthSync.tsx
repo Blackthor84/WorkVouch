@@ -9,7 +9,9 @@ export default function AuthSync() {
 
   useEffect(() => {
     supabaseBrowser.auth.getSession().then(({ data: { session } }) => {
-      console.log("AUTH ROLE:", session?.user?.app_metadata?.role);
+      if (session?.user) {
+        console.log("AUTH ROLE:", (session.user as { app_metadata?: { role?: string } }).app_metadata?.role);
+      }
     });
   }, []);
 
@@ -17,7 +19,9 @@ export default function AuthSync() {
     const {
       data: { subscription },
     } = supabaseBrowser.auth.onAuthStateChange(async (event, session) => {
-      console.log("AUTH ROLE:", session?.user?.app_metadata?.role);
+      if (session?.user) {
+        console.log("AUTH ROLE:", (session.user as { app_metadata?: { role?: string } }).app_metadata?.role);
+      }
       if (event !== "SIGNED_IN" || !session?.user) return;
 
       const role = String((session.user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "").trim().toLowerCase();

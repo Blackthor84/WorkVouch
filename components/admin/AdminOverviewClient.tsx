@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 
 type Overview = {
   totalUsers: number;
@@ -13,12 +14,22 @@ type Overview = {
 
 const POLL_MS = 30_000;
 
+function isAdminRole(role: string | undefined | null): boolean {
+  const r = String(role ?? "").toLowerCase();
+  return r === "admin" || r === "superadmin";
+}
+
 export function AdminOverviewClient() {
+  const { data } = useSupabaseSession();
+  const role = (data?.user as { app_metadata?: { role?: string } } | undefined)?.app_metadata?.role;
+  const canFetch = isAdminRole(role);
+
   const [data, setData] = useState<Overview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchOverview = useCallback(async () => {
+    if (!canFetch) return;
     try {
       const res = await fetch("/api/admin/dashboard/overview");
       if (!res.ok) throw new Error("Failed to load");
@@ -30,14 +41,21 @@ export function AdminOverviewClient() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [canFetch]);
 
   useEffect(() => {
+    if (!canFetch) {
+      setLoading(false);
+      return;
+    }
     fetchOverview();
     const t = setInterval(fetchOverview, POLL_MS);
     return () => clearInterval(t);
-  }, [fetchOverview]);
+  }, [canFetch, fetchOverview]);
 
+  if (!canFetch) {
+    return null;
+  }
   if (loading && !data) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">

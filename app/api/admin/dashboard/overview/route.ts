@@ -1,12 +1,11 @@
 /**
  * GET /api/admin/dashboard/overview — admin or superadmin. Production data: users, employers,
  * paid subs, revenue, reviews/day, reputation histogram. No mock data.
- * Role from session.user.app_metadata.role only.
+ * Auth: session from cookies (Supabase server client); role from session.user.app_metadata.role only.
  */
 
 import { NextResponse } from "next/server";
-import { requireAdminForApi } from "@/lib/admin/requireAdmin";
-import { adminForbiddenResponse } from "@/lib/admin/getAdminContext";
+import { supabaseServer } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -15,10 +14,22 @@ export const runtime = "nodejs";
 const BUCKETS = [0, 20, 40, 60, 80, 100]; // 0–20, 20–40, …, 80–100
 
 export async function GET() {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
-  const role = admin.role;
+  const supabase = await supabaseServer();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const role = (session.user as { app_metadata?: { role?: string } }).app_metadata?.role;
   console.log("ADMIN API ROLE:", role);
+
+  const roleLower = String(role ?? "").toLowerCase();
+  if (!["admin", "superadmin"].includes(roleLower)) {
+    return new Response("Forbidden", { status: 403 });
+  }
 
   try {
     const supabase = getSupabaseServer();
