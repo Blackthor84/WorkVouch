@@ -197,7 +197,7 @@ export function TrustCurveVisualizer({
         )}
       </div>
 
-      {loading === "detail" && (
+      {loading && (
         <div className="text-sm text-slate-500 mb-4">Loading run and snapshots…</div>
       )}
 
