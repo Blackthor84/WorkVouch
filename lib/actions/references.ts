@@ -5,7 +5,7 @@ import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { RelationshipType } from '@/types/database'
 import { calculateAndStoreRisk } from '@/lib/risk/calculateAndPersist'
-import { insertActivityLog } from '@/lib/admin/activityLog'
+import { insertActivityLog } from "@/lib/activity"
 
 export interface CreateReferenceInput {
   to_user_id: string

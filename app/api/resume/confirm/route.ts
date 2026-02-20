@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getSupabaseSession } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { insertActivityLog } from "@/lib/activity";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -108,7 +109,11 @@ export async function POST(req: NextRequest) {
       change_reason: "resume_import_confirmed",
     });
 
-    insertActivityLog({ userId, action: "employment_added", metadata: { count: insertedIds.length, record_ids: insertedIds } }).catch(() => {});
+    insertActivityLog({
+      userId,
+      action: "employment_added",
+      metadata: { count: insertedIds.length, record_ids: insertedIds },
+    }).catch(() => {});
 
     return NextResponse.json({
       success: true,

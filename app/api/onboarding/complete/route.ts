@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
-import { insertActivityLog } from "@/lib/admin/activityLog";
+import { insertActivityLog } from "@/lib/activity";
 
 export const runtime = "nodejs";
 

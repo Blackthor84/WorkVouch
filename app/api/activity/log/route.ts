@@ -5,7 +5,7 @@
 
 import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/auth/getAuthedUser";
-import { insertActivityLog } from "@/lib/admin/activityLog";
+import { insertActivityLog } from "@/lib/activity";
 
 export async function POST(req: Request) {
   const authed = await getAuthedUser();

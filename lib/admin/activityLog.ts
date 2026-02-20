@@ -35,19 +35,3 @@ export async function insertUserActivity(params: {
     metadata: params.metadata ?? null,
   });
 }
-
-/** Insert into activity_log (user-facing). Used by POST /api/activity/log and major user actions. */
-export async function insertActivityLog(params: {
-  userId: string;
-  action: string;
-  target?: string | null;
-  metadata?: Record<string, unknown> | null;
-}): Promise<void> {
-  const supabase = getServiceRoleClient();
-  await supabase.from("activity_log").insert({
-    user_id: params.userId,
-    action: params.action,
-    target: params.target ?? null,
-    metadata: params.metadata ?? null,
-  });
-}

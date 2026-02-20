@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getSupabaseSession } from "@/lib/supabase/server";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
-import { insertActivityLog } from "@/lib/admin/activityLog";
+import { insertActivityLog } from "@/lib/activity";
 
 /**
  * POST /api/account/update-profile
