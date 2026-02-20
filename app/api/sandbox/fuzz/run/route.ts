@@ -37,7 +37,11 @@ export async function POST(req: NextRequest) {
     if (!sandbox_id) {
       return NextResponse.json({ error: "Missing sandbox_id" }, { status: 400 });
     }
-    if (!ATTACK_TYPES.includes(attack_type ?? "")) {
+    if (attack_type == null || attack_type === "") {
+      return NextResponse.json({ error: "Missing attack_type" }, { status: 400 });
+    }
+    const attackTypeGuard = attack_type as FuzzAttackType;
+    if (!ATTACK_TYPES.includes(attackTypeGuard)) {
       return NextResponse.json(
         { error: `attack_type must be one of: ${ATTACK_TYPES.join(", ")}` },
         { status: 400 }
@@ -62,7 +66,7 @@ export async function POST(req: NextRequest) {
       sandbox_id,
       admin_user_id: authed.user.id,
       actor_resolution: resolution,
-      attack_type: attack_type!,
+      attack_type: attackTypeGuard,
       seed,
       mode,
     });
