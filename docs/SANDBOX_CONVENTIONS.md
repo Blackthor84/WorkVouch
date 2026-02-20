@@ -1,5 +1,14 @@
 # Sandbox & Admin Conventions
 
+## Playground architecture (do not regress)
+
+- **Single entry:** All simulation UI lives under **Playground**. One nav link: **Playground** → `/admin/playground`.
+- **No Sandbox destination:** Sandbox is an internal simulation context (simulation_id, mode, impersonation), not a navigation target. Do not add "Sandbox" or "Enter Sandbox" as top-level nav.
+- **Activity Monitor:** Under Playground at `/admin/playground/monitor`. Legacy `/admin/sandbox/monitor` redirects there.
+- **User-facing copy:** Use **"Simulation"** (not "Sandbox") in titles, labels, and empty states (e.g. "Simulation Activity Monitor", "Simulation ID").
+- **Dual logging:** Every simulated mutation must log to **sandbox_events** (system audit) and, when user-facing, **activity_log** (timeline). Use `logSandboxMutation` in `lib/sandbox/dsl/dualLog.ts`.
+- **Safety:** Safe mode prevents irreversible writes. Real mode or dangerous actions (e.g. Simulate Mass Abuse) require explicit admin confirmation. Impersonation is admin-only and auto-expires.
+
 ## Sandbox API guard
 
 - **`sandboxAdminGuard()`** — `lib/server/sandboxGuard.ts`. Use at the start of every `/api/sandbox/*` route.

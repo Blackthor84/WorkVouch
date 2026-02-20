@@ -246,7 +246,7 @@ export function SandboxPlaygroundPanels() {
     <div style={{ marginTop: 24 }}>
       {sandboxAccessDenied && (
         <div style={{ marginBottom: 16, padding: 12, background: "#FEF3C7", borderRadius: 8, color: "#92400E" }}>
-          Sandbox access denied. You need admin or superadmin role to use the Playground.
+          Simulation access denied. You need admin or superadmin role to use the Playground.
         </div>
       )}
       {safeMode && (
@@ -264,20 +264,20 @@ export function SandboxPlaygroundPanels() {
       <section style={sectionStyle}>
         <h2 style={{ margin: "0 0 12px 0", fontSize: 18, fontWeight: 600 }}>Demo Setup</h2>
         <p style={{ margin: "0 0 12px 0", color: "#64748B", fontSize: 14 }}>
-          One click creates 1 employer + 5 workers. All sandbox-flagged. Copy IDs below.
+          One click creates 1 employer + 5 workers (simulation-only). Copy IDs below.
         </p>
         <div style={{ marginBottom: 12 }}>
           <button type="button" onClick={handleGenerateCompany} disabled={loading !== null} style={btn}>
             {loading === "company" ? "Creating…" : "Generate Full Company"}
           </button>
           <button type="button" onClick={handleReset} disabled={loading !== null} style={btn}>
-            {loading === "reset" ? "Resetting…" : "Reset Sandbox Data"}
+            {loading === "reset" ? "Resetting…" : "Reset simulation data"}
           </button>
         </div>
         {company?.sandboxId && (
           <div style={{ fontSize: 12, fontFamily: "monospace", marginTop: 8 }}>
             <div style={{ marginBottom: 4 }}>
-              <CopyableId label="sandboxId" value={company.sandboxId} />
+              <CopyableId label="Simulation ID" value={company.sandboxId} />
             </div>
             {company.employer && (
               <div style={{ marginTop: 4 }}>

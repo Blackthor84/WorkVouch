@@ -10,6 +10,8 @@ type InsertActivityArgs = {
   action: string;
   target?: string | null;
   metadata?: Record<string, unknown> | null;
+  sandboxId?: string | null;
+  scenarioId?: string | null;
 };
 
 export async function insertActivityLog({
@@ -17,6 +19,8 @@ export async function insertActivityLog({
   action,
   target,
   metadata = null,
+  sandboxId = null,
+  scenarioId = null,
 }: InsertActivityArgs): Promise<void> {
   const supabase = await supabaseServer();
   await supabase.from("activity_log").insert({
@@ -24,5 +28,7 @@ export async function insertActivityLog({
     action,
     target: target ?? null,
     metadata: metadata ?? null,
+    sandbox_id: sandboxId ?? null,
+    scenario_id: scenarioId ?? null,
   });
 }

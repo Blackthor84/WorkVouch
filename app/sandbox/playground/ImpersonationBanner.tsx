@@ -35,7 +35,7 @@ export function ImpersonationBanner() {
         fontSize: 14,
       }}
     >
-      Impersonating sandbox user — no production data affected
+      Impersonating simulation user — admin-only; no production data affected
     </div>
   );
 }

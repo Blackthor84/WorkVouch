@@ -28,6 +28,10 @@ export function AdminPlaygroundClient({ isAdmin = true }: Props) {
 
   const runAbuse = async () => {
     if (!isAdmin) return;
+    const confirmed = typeof window !== "undefined" && window.confirm(
+      "Run in Real mode? This will perform irreversible simulation actions. Only continue if you intend to run the abuse scenario."
+    );
+    if (!confirmed) return;
     setLoading("Abuse");
     setMessage(null);
     try {

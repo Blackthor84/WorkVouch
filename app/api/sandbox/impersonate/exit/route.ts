@@ -49,7 +49,8 @@ export async function POST(req: NextRequest) {
   void logSandboxEvent({
     type: "impersonation_ended",
     message: "Sandbox impersonation ended.",
-    actor: targetIdentifier ?? undefined,
+    actor: targetUserId ?? undefined,
+    entity_type: "user",
     metadata: { targetUserId: targetUserId ?? null },
   });
 

@@ -345,7 +345,7 @@ export default function HiddenFeaturesClient({
           <Button type="button" variant="secondary" size="sm" onClick={() => { console.log("[Elite Demo] Preview Overflow clicked"); activateElite({ seatsUsed: 10, seatsLimit: 10, reportsUsed: 20, reportLimit: 20 }, "/admin/simulate"); }}>
             Preview Overflow
           </Button>
-          <Button type="button" variant="secondary" size="sm" onClick={() => { console.log("[Elite Demo] Preview Ads Mode clicked"); activateElite({}, "/admin/sandbox-v2"); }}>
+          <Button type="button" variant="secondary" size="sm" onClick={() => { console.log("[Elite Demo] Preview Ads Mode clicked"); activateElite({}, "/admin/playground"); }}>
             Preview Ads Mode
           </Button>
         </CardContent>

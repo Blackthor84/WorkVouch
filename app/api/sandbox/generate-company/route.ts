@@ -141,6 +141,8 @@ export async function POST(req: NextRequest) {
     message: safe_mode
       ? "Sandbox company created (simulated). 1 employer, 5 employees."
       : "Sandbox company created. 1 employer, " + employeeIds.length + " employees.",
+    entity_type: "company",
+    sandbox_id: sandboxId ?? null,
     metadata: {
       employer_id: employerId ?? "",
       employees_created: employeeIds.length,

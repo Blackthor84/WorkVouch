@@ -49,7 +49,7 @@ export default function SignupEmployeePage() {
         setLoading(false);
         return;
       }
-      router.push(`/admin/sandbox-v2?sandboxId=${encodeURIComponent(sandboxId)}`);
+      router.push(`/admin/playground?sandboxId=${encodeURIComponent(sandboxId)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed.");
       setLoading(false);
@@ -59,8 +59,8 @@ export default function SignupEmployeePage() {
   if (!isSandbox) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 px-4">
-        <p className="text-gray-600 dark:text-gray-400 mb-4">Employee signup in sandbox mode requires a sandbox session.</p>
-        <Link href="/admin/sandbox-v2" className="text-blue-600 dark:text-blue-400 underline">Go to Sandbox</Link>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">Employee signup in simulation mode requires a simulation session.</p>
+        <Link href="/admin/playground" className="text-blue-600 dark:text-blue-400 underline">Go to Playground</Link>
       </div>
     );
   }
@@ -80,10 +80,10 @@ export default function SignupEmployeePage() {
       </Link>
       <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200 dark:border-gray-700">
         <h1 className="text-2xl font-bold mb-2 text-center text-gray-900 dark:text-white">
-          Employee signup (sandbox)
+          Employee signup (simulation)
         </h1>
         <p className="text-gray-600 dark:text-gray-400 text-sm text-center mb-6">
-          Same flow as production, data stored in sandbox. No Stripe, no real auth.
+          Same flow as production, data stored in simulation. No Stripe, no real auth.
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -120,12 +120,12 @@ export default function SignupEmployeePage() {
             disabled={loading}
             className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Creating…" : "Continue to sandbox"}
+            {loading ? "Creating…" : "Continue to Playground"}
           </button>
         </form>
         <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
-          <Link href="/admin/sandbox-v2" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-            ← Back to Sandbox
+          <Link href="/admin/playground" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            ← Back to Playground
           </Link>
         </p>
       </div>

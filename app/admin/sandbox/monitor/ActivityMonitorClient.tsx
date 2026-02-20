@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
+import { supabaseBrowser } from "@/lib/supabase/browser";
 
 export type SandboxEvent = {
   id: string;
@@ -11,6 +12,9 @@ export type SandboxEvent = {
   metadata?: object;
   safe_mode?: boolean;
   created_at: string;
+  entity_type?: string | null;
+  sandbox_id?: string | null;
+  scenario_id?: string | null;
 };
 
 const EVENT_TYPE_PILLS = ["All", "Company", "Scenario", "Review", "Reputation", "Abuse", "Impersonation"] as const;
@@ -180,6 +184,32 @@ function ActivityEventCard({
         <p style={{ margin: "6px 0 0 0", fontSize: 13, color: "#475569", lineHeight: 1.4 }}>
           {event.message}
         </p>
+        {(event.actor || event.entity_type || event.sandbox_id || event.step_id) && (
+          <p style={{ margin: "4px 0 0 0", fontSize: 11, color: "#64748B" }}>
+            {event.actor && <span>Actor: {event.actor}</span>}
+            {(event.metadata as { actor_display?: string } | undefined)?.actor_display?.includes("impersonated") && (
+              <span style={{ marginLeft: 6, background: "#FEF3C7", color: "#92400E", padding: "1px 6px", borderRadius: 4 }}>Impersonated</span>
+            )}
+            {event.entity_type && <span style={{ marginLeft: 8 }}>Entity: {event.entity_type}</span>}
+            {event.step_id && <span style={{ marginLeft: 8 }}>Step: {event.step_id}</span>}
+            {event.sandbox_id && (
+              <span style={{ marginLeft: 8 }}>
+                Simulation: <code style={{ fontSize: 10 }}>{event.sandbox_id.slice(0, 8)}…</code>
+              </span>
+            )}
+          </p>
+        )}
+        {(event.step_id || event.before_state || event.after_state) && detailsOpen && (
+          <div style={{ marginTop: 8, fontSize: 11, color: "#475569" }}>
+            {event.step_id && <div>Step: <code>{event.step_id}</code></div>}
+            {event.before_state && Object.keys(event.before_state).length > 0 && (
+              <div style={{ marginTop: 4 }}>Before: <pre style={{ margin: 0, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{JSON.stringify(event.before_state)}</pre></div>
+            )}
+            {event.after_state && Object.keys(event.after_state).length > 0 && (
+              <div style={{ marginTop: 4 }}>After: <pre style={{ margin: 0, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{JSON.stringify(event.after_state)}</pre></div>
+            )}
+          </div>
+        )}
         {(event.metadata && Object.keys(event.metadata).length > 0) && (
           <div style={{ marginTop: 8 }}>
             <button
@@ -198,19 +228,31 @@ function ActivityEventCard({
               {detailsOpen ? "Hide details" : "View details"}
             </button>
             {detailsOpen && (
-              <pre
-                style={{
-                  marginTop: 6,
-                  padding: 10,
-                  background: "#F8FAFC",
-                  borderRadius: 6,
-                  fontSize: 11,
-                  overflow: "auto",
-                  maxHeight: 200,
-                }}
-              >
-                {JSON.stringify(event.metadata, null, 2)}
-              </pre>
+              <>
+                {(event.metadata as { targetUserId?: string } | undefined)?.targetUserId && (
+                  <p style={{ marginTop: 6, fontSize: 12 }}>
+                    <Link
+                      href={`/admin/users/${(event.metadata as { targetUserId: string }).targetUserId}`}
+                      style={{ color: "#2563EB" }}
+                    >
+                      View user →
+                    </Link>
+                  </p>
+                )}
+                <pre
+                  style={{
+                    marginTop: 6,
+                    padding: 10,
+                    background: "#F8FAFC",
+                    borderRadius: 6,
+                    fontSize: 11,
+                    overflow: "auto",
+                    maxHeight: 200,
+                  }}
+                >
+                  {JSON.stringify(event.metadata, null, 2)}
+                </pre>
+              </>
             )}
           </div>
         )}
@@ -262,7 +304,8 @@ function MonitorImpersonationBanner({ events }: { events: SandboxEvent[] }) {
   const started = events.some((e) => /impersonation.*start|impersonation_started/i.test(e.type));
   const ended = events.some((e) => /impersonation.*end|impersonation_ended/i.test(e.type));
   const lastStart = events.find((e) => /impersonation.*start|impersonation_started/i.test(e.type));
-  const name = lastStart?.actor ?? lastStart?.message?.replace(/.*impersonat(?:ing)?\s+/i, "") ?? "Sandbox user";
+  const meta = lastStart?.metadata as { targetName?: string } | undefined;
+  const name = meta?.targetName ?? lastStart?.actor ?? lastStart?.message?.replace(/.*impersonat(?:ing)?\s+/i, "") ?? "Sandbox user";
   if (!started || ended) return null;
   return (
     <div
@@ -279,7 +322,7 @@ function MonitorImpersonationBanner({ events }: { events: SandboxEvent[] }) {
     >
       <span style={{ color: "#0369A1", fontWeight: 600 }}>🎭 You are impersonating {name}</span>
       <Link
-        href="/sandbox/playground"
+        href="/admin/playground"
         style={{
           padding: "6px 12px",
           borderRadius: 6,
@@ -296,6 +339,24 @@ function MonitorImpersonationBanner({ events }: { events: SandboxEvent[] }) {
   );
 }
 
+function rowToEvent(r: Record<string, unknown>): SandboxEvent {
+  return {
+    id: String(r.id ?? ""),
+    type: String(r.type ?? ""),
+    message: String(r.message ?? ""),
+    actor: r.actor != null ? String(r.actor) : undefined,
+    metadata: (r.metadata as object) ?? undefined,
+    safe_mode: (r.metadata as { safe_mode?: boolean } | undefined)?.safe_mode,
+    created_at: String(r.created_at ?? ""),
+    entity_type: r.entity_type != null ? String(r.entity_type) : undefined,
+    sandbox_id: r.sandbox_id != null ? String(r.sandbox_id) : undefined,
+    scenario_id: r.scenario_id != null ? String(r.scenario_id) : undefined,
+    step_id: r.step_id != null ? String(r.step_id) : undefined,
+    before_state: (r.before_state as object) ?? undefined,
+    after_state: (r.after_state as object) ?? undefined,
+  };
+}
+
 export function ActivityMonitorPage() {
   const [events, setEvents] = useState<SandboxEvent[]>([]);
   const [eventType, setEventType] = useState("All");
@@ -303,10 +364,23 @@ export function ActivityMonitorPage() {
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
   const [pollError, setPollError] = useState(false);
   const previousIdsRef = useRef<Set<string>>(new Set());
+  const channelRef = useRef<ReturnType<typeof supabaseBrowser.channel> | null>(null);
+
+  const [filterSimulationId, setFilterSimulationId] = useState("");
+  const [filterScenarioId, setFilterScenarioId] = useState("");
+  const [filterType, setFilterType] = useState("");
+  const [filterActor, setFilterActor] = useState("");
 
   const fetchEvents = useCallback(async () => {
     try {
-      const res = await fetch("/api/sandbox/events", { credentials: "include" });
+      const sp = new URLSearchParams();
+      if (filterSimulationId.trim()) sp.set("sandbox_id", filterSimulationId.trim());
+      if (filterScenarioId.trim()) sp.set("scenario_id", filterScenarioId.trim());
+      if (filterType.trim()) sp.set("type", filterType.trim());
+      if (filterActor.trim()) sp.set("actor", filterActor.trim());
+      const qs = sp.toString();
+      const url = qs ? `/api/sandbox/events?${qs}` : "/api/sandbox/events";
+      const res = await fetch(url, { credentials: "include" });
       const data = await res.json().catch(() => []);
       const list = Array.isArray(data) ? data : [];
       setEvents(list);
@@ -315,13 +389,35 @@ export function ActivityMonitorPage() {
     } catch {
       setPollError(true);
     }
-  }, []);
+  }, [filterSimulationId, filterScenarioId, filterType, filterActor]);
 
   useEffect(() => {
     fetchEvents();
-    const interval = setInterval(fetchEvents, 2000);
+    const interval = setInterval(fetchEvents, 5000);
     return () => clearInterval(interval);
   }, [fetchEvents]);
+
+  useEffect(() => {
+    const channel = supabaseBrowser
+      .channel("sandbox-events-monitor")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "sandbox_events" },
+        (payload) => {
+          const row = payload.new as Record<string, unknown>;
+          setEvents((prev) => [rowToEvent(row), ...prev]);
+          setUpdatedAt(Date.now());
+        }
+      )
+      .subscribe();
+    channelRef.current = channel;
+    return () => {
+      if (channelRef.current) {
+        supabaseBrowser.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, []);
 
   const seenIds = useMemo(() => {
     const next = new Set(events.map((e) => e.id));
@@ -349,15 +445,15 @@ export function ActivityMonitorPage() {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>Sandbox Activity Monitor</h1>
+            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>Simulation Activity Monitor</h1>
             <p style={{ margin: "4px 0 0 0", color: "#64748B", fontSize: 14 }}>
-              Live view of system behavior triggered by sandbox actions
+              Realtime timeline of simulation events (activity_log + system audit). Filter by simulation, scenario, mode, actor.
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <LiveStatusIndicator updatedAt={updatedAt} isPolling={!pollError} />
             <Link
-              href="/sandbox/playground"
+              href="/admin/playground"
               style={{
                 padding: "8px 16px",
                 borderRadius: 6,
@@ -391,6 +487,38 @@ export function ActivityMonitorPage() {
 
       <FilterBar eventType={eventType} mode={mode} onEventType={setEventType} onMode={setMode} />
 
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 16, alignItems: "center" }}>
+        <span style={{ fontSize: 12, color: "#64748B" }}>Filters:</span>
+        <input
+          type="text"
+          placeholder="Simulation ID"
+          value={filterSimulationId}
+          onChange={(e) => setFilterSimulationId(e.target.value)}
+          style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #E2E8F0", fontSize: 12, width: 160 }}
+        />
+        <input
+          type="text"
+          placeholder="Scenario"
+          value={filterScenarioId}
+          onChange={(e) => setFilterScenarioId(e.target.value)}
+          style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #E2E8F0", fontSize: 12, width: 140 }}
+        />
+        <input
+          type="text"
+          placeholder="Event type"
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+          style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #E2E8F0", fontSize: 12, width: 120 }}
+        />
+        <input
+          type="text"
+          placeholder="Actor (user id)"
+          value={filterActor}
+          onChange={(e) => setFilterActor(e.target.value)}
+          style={{ padding: "6px 10px", borderRadius: 6, border: "1px solid #E2E8F0", fontSize: 12, width: 180 }}
+        />
+      </div>
+
       {events.length === 0 ? (
         <div
           style={{
@@ -399,12 +527,12 @@ export function ActivityMonitorPage() {
             color: "#64748B",
           }}
         >
-          <p style={{ margin: 0, fontSize: 18 }}>🧪 No sandbox activity yet</p>
+          <p style={{ margin: 0, fontSize: 18 }}>No simulation activity yet</p>
           <p style={{ margin: "8px 0 16px 0", fontSize: 14 }}>
-            Generate a company or run a scenario to see how the system reacts.
+            Run a simulation or scenario from Playground to see events here.
           </p>
           <Link
-            href="/sandbox/playground"
+            href="/admin/playground"
             style={{
               display: "inline-block",
               padding: "10px 20px",

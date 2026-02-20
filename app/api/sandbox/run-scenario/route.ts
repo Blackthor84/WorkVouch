@@ -80,6 +80,7 @@ export async function POST(req: NextRequest) {
         void logSandboxEvent({
           type: "run_scenario",
           message: "Scenario run (simulated, no sandbox): " + scenario.replace(/-/g, " "),
+          entity_type: "scenario",
           metadata: { scenario, safe_mode: true },
         });
         return NextResponse.json(
@@ -237,6 +238,8 @@ export async function POST(req: NextRequest) {
       void logSandboxEvent({
         type: "run_scenario",
         message: "Scenario completed: " + scenario.replace(/-/g, " "),
+        entity_type: "scenario",
+        sandbox_id: sandboxId,
         metadata: { scenario, sandboxId, safe_mode: false, events: events.length },
       });
       return NextResponse.json(
@@ -250,6 +253,8 @@ export async function POST(req: NextRequest) {
       void logSandboxEvent({
         type: "run_scenario",
         message: "Scenario run (simulated): " + scenario.replace(/-/g, " "),
+        entity_type: "scenario",
+        sandbox_id: sandboxId ?? null,
         metadata: { scenario, safe_mode: true },
       });
       return NextResponse.json(
@@ -264,6 +269,7 @@ export async function POST(req: NextRequest) {
     void logSandboxEvent({
       type: "run_scenario",
       message: "Scenario run (simulated): " + scenario.replace(/-/g, " "),
+      entity_type: "scenario",
       metadata: { scenario, safe_mode: true },
     });
     return NextResponse.json(

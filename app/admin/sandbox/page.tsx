@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+/** Legacy: redirect to unified Playground. */
 export default function SandboxRedirect() {
-  redirect("/admin/sandbox-v2");
+  redirect("/admin/playground");
 }

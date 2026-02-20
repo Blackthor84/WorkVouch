@@ -134,8 +134,8 @@ export default function SignupEmployerPage() {
           </button>
         </form>
         <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
-          <Link href="/admin/sandbox-v2" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-            ← Back to Sandbox
+          <Link href="/admin/playground" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            ← Back to Playground
           </Link>
         </p>
       </div>

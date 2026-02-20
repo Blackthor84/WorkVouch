@@ -1,7 +1,6 @@
-import { ActivityMonitorPage } from "./ActivityMonitorClient";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default function SandboxMonitorPage() {
-  return <ActivityMonitorPage />;
+/** Legacy: Activity Monitor lives under Playground. */
+export default function SandboxMonitorRedirect() {
+  redirect("/admin/playground/monitor");
 }

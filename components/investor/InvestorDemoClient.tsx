@@ -99,7 +99,7 @@ export default function InvestorDemoClient() {
         <div className="rounded-xl border border-slate-700/80 bg-slate-900/50 p-4">
           <p className="mb-4 text-slate-300">Run ads simulation in the Enterprise Simulation Environment.</p>
           <Link
-            href="/admin/sandbox-v2"
+            href="/admin/playground"
             className="inline-flex items-center rounded-lg border border-emerald-600 bg-slate-800 px-4 py-2 text-emerald-400 hover:bg-slate-700"
           >
             Open Sandbox v2 →

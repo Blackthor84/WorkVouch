@@ -78,6 +78,8 @@ export async function POST(req: NextRequest) {
       type: "impersonation_started",
       message: "Impersonating sandbox user: " + targetName,
       actor: targetUserId,
+      entity_type: "user",
+      sandbox_id: sandboxId ?? null,
       metadata: { targetUserId, targetName, sandboxId: sandboxId ?? null },
     });
     return res;

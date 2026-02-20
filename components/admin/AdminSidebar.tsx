@@ -32,6 +32,7 @@ interface AdminSidebarProps {
   showBoard: boolean;
 }
 
+/** Simulation is under Playground only (no top-level "Sandbox" nav). Do not re-add Sandbox as a destination. */
 const nav = {
   Dashboard: [{ href: "/admin", label: "Dashboard" }],
   Users: [
@@ -48,16 +49,9 @@ const nav = {
     { href: "/admin/trust-scores", label: "Trust Scores" },
     { href: "/admin/scoring-explained", label: "Scoring Explained" },
   ],
-  Sandbox: [
-    { href: "/admin/sandbox/enter", label: "Enter Sandbox" },
-    { href: "/admin/sandbox-v2", label: "Sandbox" },
-    { href: "/sandbox/playground", label: "Playground" },
-    { href: "/admin/sandbox-v2/replays", label: "Replays" },
-    { href: "/admin/sandbox-v2/rule-versions", label: "Rule Versions" },
-    { href: "/admin/sandbox-v2/population-generator", label: "Population Generator" },
-    { href: "/admin/sandbox-v2/redteam", label: "Red-Team" },
-    { href: "/admin/sandbox-v2/playbook", label: "Stress-Test Playbook" },
-    { href: "/admin/simulate", label: "Simulate" },
+  Playground: [
+    { href: "/admin/playground", label: "Playground" },
+    { href: "/admin/playground/monitor", label: "Activity Monitor" },
   ],
   Analytics: [
     { href: "/admin/analytics/overview", label: "Overview" },
@@ -67,7 +61,7 @@ const nav = {
     { href: "/admin/analytics/heatmaps", label: "Heatmaps" },
     { href: "/admin/analytics/journeys", label: "User Journeys" },
     { href: "/admin/analytics/abuse", label: "Abuse & Security" },
-    { href: "/admin/analytics/sandbox", label: "Sandbox Analytics" },
+    { href: "/admin/analytics/sandbox", label: "Simulation Analytics" },
   ],
   Alerts: [{ href: "/admin/alerts", label: "Alerts" }],
   Incidents: [{ href: "/admin/incidents", label: "Incidents" }],
@@ -83,14 +77,11 @@ const enterpriseNav = [
   { label: "Billing", href: "/admin/enterprise/billing" },
 ];
 
-/** Sandbox-only nav: Dashboard, Users (sandbox only), Sandbox, Audit Logs, Playground. */
+/** Sandbox-only nav: Dashboard, Users, Playground (simulation), Audit Logs. */
 const sandboxNav = {
   Dashboard: nav.Dashboard,
   Users: nav.Users,
-  Sandbox: [
-    { href: "/admin/sandbox-v2", label: "Sandbox" },
-    { href: "/sandbox/playground", label: "Playground" },
-  ],
+  Playground: nav.Playground,
   AuditLogs: nav.AuditLogs,
 };
 
@@ -206,7 +197,7 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
               {section("Audit Logs", productionOnlyNav.AuditLogs)}
               {showFinancials && section("Financials", productionOnlyNav.Financials)}
               {showBoard && section("Board", productionOnlyNav.Board)}
-              {isSuperAdmin && section("Sandbox", sandboxNav.Sandbox)}
+              {isSuperAdmin && section("Playground", sandboxNav.Playground)}
               {isSuperAdmin && section("System Settings", productionOnlyNav.SystemSettings)}
             </>
           )}

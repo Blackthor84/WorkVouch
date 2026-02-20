@@ -152,10 +152,10 @@ export function AdminDashboardWidgets({
         </Link>
         {canEnterSandbox && !isSandbox && (
           <Link
-            href="/admin/sandbox/enter"
+            href="/admin/playground"
             className="inline-flex items-center rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
           >
-            Enter sandbox mode
+            Open Playground
           </Link>
         )}
       </div>
