@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
+import { logSandboxEvent } from "@/lib/sandbox/sandboxEvents";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -134,6 +135,19 @@ export async function POST(req: NextRequest) {
     employees_created: employeeIds.length,
   };
   if (errorDetail) (payload as Record<string, unknown>).details = errorDetail;
+
+  void logSandboxEvent({
+    type: "generate_company",
+    message: safe_mode
+      ? "Sandbox company created (simulated). 1 employer, 5 employees."
+      : "Sandbox company created. 1 employer, " + employeeIds.length + " employees.",
+    metadata: {
+      employer_id: employerId ?? "",
+      employees_created: employeeIds.length,
+      sandboxId: sandboxId ?? undefined,
+      safe_mode,
+    },
+  });
 
   return NextResponse.json(payload, { status: 200 });
 }

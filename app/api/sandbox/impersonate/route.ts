@@ -1,22 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
-import { getAdminSession } from "@/lib/auth/getAdminSession";
+import { getAuthedUser } from "@/lib/auth/getAuthedUser";
 import { supabaseServer } from "@/lib/supabase/server";
 import { writeImpersonationAudit } from "@/lib/impersonationAudit";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
+import { logSandboxEvent } from "@/lib/sandbox/sandboxEvents";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** POST /api/sandbox/impersonate — body: { targetUserId?, targetType?, targetName?, sandboxId? }. Sandbox users only. Sets cookie for banner/session. */
+/** POST /api/sandbox/impersonate — admin/superadmin only. Target must be a sandbox user. Session stored in cookie. */
 export async function POST(req: NextRequest) {
-  const guard = await sandboxAdminGuard();
-  if (!guard.allowed) return guard.response;
+  const authed = await getAuthedUser();
+  if (!authed || (authed.role !== "admin" && authed.role !== "superadmin")) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   try {
-    const session = await getAdminSession();
-    const adminId = session?.userId ?? "";
+    const adminId = authed.user.id;
     const body = await req.json().catch(() => ({}));
     const targetUserId = body.targetUserId ?? body.target_id;
     const targetType = (body.targetType ?? body.target_type ?? "employee") as string;
@@ -35,7 +36,10 @@ export async function POST(req: NextRequest) {
     const isEmployee = (empRes.data ?? []).length > 0;
     const isEmployer = (empOwnerRes.data ?? []).length > 0;
     if (!isEmployee && !isEmployer) {
-      return NextResponse.json({ error: "Target user is not a sandbox user" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Can only impersonate sandbox users" },
+        { status: 400 }
+      );
     }
 
     const payload = JSON.stringify({
@@ -70,6 +74,12 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       console.error("[sandbox/impersonate] impersonation_audit insert failed", e);
     }
+    void logSandboxEvent({
+      type: "impersonation_started",
+      message: "Impersonating sandbox user: " + targetName,
+      actor: targetUserId,
+      metadata: { targetUserId, targetName, sandboxId: sandboxId ?? null },
+    });
     return res;
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -77,13 +87,14 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/** DELETE or POST with body { exit: true } to clear impersonation */
+/** DELETE — clear sandbox impersonation. Admin/superadmin only. */
 export async function DELETE(req: NextRequest) {
-  const guard = await sandboxAdminGuard();
-  if (!guard.allowed) return guard.response;
+  const authed = await getAuthedUser();
+  if (!authed || (authed.role !== "admin" && authed.role !== "superadmin")) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
-    const session = await getAdminSession();
-    const adminId = session?.userId ?? "";
+    const adminId = authed.user.id;
     const cookie = req.cookies.get("sandbox_playground_impersonation")?.value;
     let targetUserId: string | null = null;
     let targetIdentifier: string | null = null;

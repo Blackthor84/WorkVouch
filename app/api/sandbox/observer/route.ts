@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
 import { getSandboxObserverData } from "@/lib/sandbox/observerData";
+import { logSandboxEvent } from "@/lib/sandbox/sandboxEvents";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -32,6 +33,11 @@ export async function GET(req: NextRequest) {
 
   try {
     const data = await getSandboxObserverData(sandboxId);
+    void logSandboxEvent({
+      type: "observer_update",
+      message: "Observer data refreshed.",
+      metadata: { sandboxId: sandboxId ?? null },
+    });
     return NextResponse.json({
       ...SAFE_OBSERVER_PAYLOAD,
       ...data,

@@ -3,6 +3,7 @@ import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
 import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";
 import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
+import { logSandboxEvent } from "@/lib/sandbox/sandboxEvents";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -76,6 +77,11 @@ export async function POST(req: NextRequest) {
       if (!sandboxId) {
         events = simulatedEvents(scenario);
         safe_mode = true;
+        void logSandboxEvent({
+          type: "run_scenario",
+          message: "Scenario run (simulated, no sandbox): " + scenario.replace(/-/g, " "),
+          metadata: { scenario, safe_mode: true },
+        });
         return NextResponse.json(
           { sandbox: true, scenario, events, safe_mode },
           { status: 200 }
@@ -93,6 +99,11 @@ export async function POST(req: NextRequest) {
       if (!workerIds || workerIds.length < 2) {
         events = simulatedEvents(scenario);
         safe_mode = true;
+        void logSandboxEvent({
+          type: "run_scenario",
+          message: "Scenario run (simulated, no workers): " + scenario.replace(/-/g, " "),
+          metadata: { scenario, safe_mode: true },
+        });
         return NextResponse.json(
           { sandbox: true, scenario, events, safe_mode },
           { status: 200 }
@@ -223,6 +234,11 @@ export async function POST(req: NextRequest) {
       }
 
       events.push({ type: "scenario_completed", scenario });
+      void logSandboxEvent({
+        type: "run_scenario",
+        message: "Scenario completed: " + scenario.replace(/-/g, " "),
+        metadata: { scenario, sandboxId, safe_mode: false, events: events.length },
+      });
       return NextResponse.json(
         { sandbox: true, scenario, events, safe_mode: false, sandboxId },
         { status: 200 }
@@ -231,6 +247,11 @@ export async function POST(req: NextRequest) {
       console.error("SANDBOX SCENARIO DB FAILURE", dbErr);
       events = simulatedEvents(scenario);
       safe_mode = true;
+      void logSandboxEvent({
+        type: "run_scenario",
+        message: "Scenario run (simulated): " + scenario.replace(/-/g, " "),
+        metadata: { scenario, safe_mode: true },
+      });
       return NextResponse.json(
         { sandbox: true, scenario, events, safe_mode },
         { status: 200 }
@@ -240,6 +261,11 @@ export async function POST(req: NextRequest) {
     console.error("SANDBOX RUN SCENARIO ROOT ERROR", err);
     events = simulatedEvents(scenario);
     safe_mode = true;
+    void logSandboxEvent({
+      type: "run_scenario",
+      message: "Scenario run (simulated): " + scenario.replace(/-/g, " "),
+      metadata: { scenario, safe_mode: true },
+    });
     return NextResponse.json(
       { sandbox: true, scenario, events, safe_mode },
       { status: 200 }
