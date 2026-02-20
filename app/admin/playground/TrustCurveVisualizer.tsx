@@ -71,12 +71,12 @@ export function TrustCurveVisualizer({
     abuse: [],
     rate_limit: [],
   });
-  const [loading, setLoading] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
   const [replayStep, setReplayStep] = useState<string>("");
   const [replayResult, setReplayResult] = useState<string | null>(null);
 
   const fetchRuns = useCallback(async () => {
-    setLoading("runs");
+    setLoading(true);
     try {
       const url = sandboxId
         ? `/api/sandbox/fuzzer/runs?sandbox_id=${encodeURIComponent(sandboxId)}`
@@ -88,7 +88,7 @@ export function TrustCurveVisualizer({
         setSelectedId((data[0] as FuzzRun).id);
       }
     } finally {
-      setLoading(null);
+      setLoading(false);
     }
   }, [sandboxId]);
 
@@ -102,7 +102,7 @@ export function TrustCurveVisualizer({
       setEvents({ abuse: [], rate_limit: [] });
       return;
     }
-    setLoading("detail");
+    setLoading(true);
     Promise.all([
       fetch(`/api/sandbox/fuzzer/runs/${selectedId}`, { credentials: "include" }).then((r) =>
         r.json()
@@ -123,7 +123,7 @@ export function TrustCurveVisualizer({
         setRunDetail(null);
         setEvents({ abuse: [], rate_limit: [] });
       })
-      .finally(() => setLoading(null));
+      .finally(() => setLoading(false));
   }, [selectedId]);
 
   const handleReplay = async () => {
@@ -174,7 +174,7 @@ export function TrustCurveVisualizer({
         <button
           type="button"
           onClick={() => fetchRuns()}
-          disabled={loading === "runs"}
+          disabled={loading}
           className="rounded-md border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
         >
           Refresh
@@ -182,7 +182,7 @@ export function TrustCurveVisualizer({
         <select
           value={selectedId}
           onChange={(e) => setSelectedId(e.target.value)}
-          disabled={loading === "runs"}
+          disabled={loading}
           className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-900 min-w-[200px]"
         >
           <option value="">Select a run</option>
@@ -276,7 +276,7 @@ export function TrustCurveVisualizer({
         <button
           type="button"
           onClick={handleReplay}
-          disabled={!selectedId || loading !== null}
+          disabled={!selectedId || loading}
           className="rounded-md bg-slate-800 px-3 py-1.5 text-sm text-white hover:bg-slate-700 disabled:opacity-50"
         >
           Replay from step
