@@ -108,6 +108,8 @@ export async function POST(req: NextRequest) {
       change_reason: "resume_import_confirmed",
     });
 
+    insertActivityLog({ userId, action: "employment_added", metadata: { count: insertedIds.length, record_ids: insertedIds } }).catch(() => {});
+
     return NextResponse.json({
       success: true,
       record_ids: insertedIds,

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getSupabaseSession } from "@/lib/supabase/server";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
+import { insertActivityLog } from "@/lib/admin/activityLog";
 
 /**
  * POST /api/account/update-profile
@@ -47,6 +48,8 @@ export async function POST(request: Request) {
     if (updateError) {
       return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
     }
+
+    insertActivityLog({ userId, action: "profile_updated", metadata: { field: "full_name" } }).catch(() => {});
 
     return NextResponse.json({ success: true });
   } catch (e) {

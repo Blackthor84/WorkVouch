@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { insertActivityLog } from "@/lib/admin/activityLog";
 
 export const runtime = "nodejs";
 
@@ -40,6 +41,8 @@ export async function POST(req: Request) {
         { status: 403 }
       );
     }
+
+    insertActivityLog({ userId, action: "onboarding_completed", metadata: { role } }).catch(() => {});
 
     return NextResponse.json({ success: true });
   } catch {

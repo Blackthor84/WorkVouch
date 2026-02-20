@@ -5,6 +5,7 @@ import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { RelationshipType } from '@/types/database'
 import { calculateAndStoreRisk } from '@/lib/risk/calculateAndPersist'
+import { insertActivityLog } from '@/lib/admin/activityLog'
 
 export interface CreateReferenceInput {
   to_user_id: string
@@ -79,6 +80,8 @@ export async function createReference(input: CreateReferenceInput) {
   if (error) {
     throw new Error(`Failed to create reference: ${error.message}`)
   }
+
+  insertActivityLog({ userId: user.id, action: "reference_created", target: input.job_id, metadata: { to_user_id: input.to_user_id } }).catch(() => {})
 
   await calculateAndStoreRisk(input.to_user_id).catch((error) => { console.error("[SYSTEM_FAIL]", error); })
 

@@ -11,6 +11,8 @@ import { EmployeeProfileCompletenessCard } from "@/components/employee/EmployeeP
 import { EmployerProfileViewCountCard } from "@/components/employee/EmployerProfileViewCountCard";
 import { AccountSafetyCard } from "@/components/employee/AccountSafetyCard";
 import { MyResumesCard } from "@/components/dashboard/MyResumesCard";
+import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
+import type { ActivityRow } from "@/components/dashboard/RecentActivityFeed";
 import {
   UserCircleIcon,
   BriefcaseIcon,
@@ -117,8 +119,32 @@ export default async function UserDashboardPage() {
       : []),
   ];
 
-  // UI renders only real DB data; no mock/fake. Activity from DB or empty state.
-  const recentActivity: { id: string; message: string; time: string }[] = [];
+  // Recent activity from activity_log (RLS: user sees own only)
+  const { data: activityRows } = await supabase
+    .from("activity_log")
+    .select("id, action, target, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const recentActivity: { id: string; message: string; time: string }[] = (activityRows ?? []).map(
+    (row) => {
+      const actionLabel = String(row.action ?? "")
+        .replace(/_/g, " ")
+        .replace(/^\w/, (c) => c.toUpperCase());
+      const message = row.target
+        ? `${actionLabel}: ${row.target}`
+        : actionLabel;
+      const time =
+        row.created_at != null
+          ? new Date(row.created_at).toLocaleString(undefined, {
+              dateStyle: "short",
+              timeStyle: "short",
+            })
+          : "";
+      return { id: row.id, message, time };
+    }
+  );
 
   return (
     <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-[#F8FAFC] min-w-0 overflow-x-hidden">
@@ -164,42 +190,19 @@ export default async function UserDashboardPage() {
                 })}
               </div>
             </Card>
-            {/* Activity Feed */}
+            {/* Activity Feed (initial fetch + realtime INSERT subscription) */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-[#0F172A]">
                   Recent Activity
                 </h2>
-                {recentActivity.length > 0 && (
+                {initialActivities.length > 0 && (
                   <Button variant="ghost" size="sm">
                     View All
                   </Button>
                 )}
               </div>
-              <div className="space-y-3">
-                {recentActivity.length > 0 ? (
-                  recentActivity.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="flex items-start gap-3 p-3 rounded-xl bg-slate-50"
-                    >
-                      <div className="h-2 w-2 rounded-full bg-[#2563EB] mt-2" />
-                      <div className="flex-1">
-                        <p className="text-sm text-[#334155]">
-                          {activity.message}
-                        </p>
-                        <p className="text-xs text-[#64748B] mt-1">
-                          {activity.time}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-[#64748B] py-4 text-center">
-                    No activity yet
-                  </p>
-                )}
-              </div>
+              <RecentActivityFeed userId={user.id} initialActivities={initialActivities} />
             </Card>
           </div>
 

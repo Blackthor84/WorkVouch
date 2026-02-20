@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { insertActivityLog } from "@/lib/admin/activityLog";
 
 export const runtime = "nodejs";
 
@@ -57,6 +58,8 @@ export async function POST(req: Request) {
         resume_uploaded_at: new Date().toISOString(),
       })
       .eq("id", userId);
+
+    insertActivityLog({ userId, action: "resume_uploaded" }).catch(() => {});
 
     return NextResponse.json({ success: true });
   } catch {
