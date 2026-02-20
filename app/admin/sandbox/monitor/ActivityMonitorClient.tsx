@@ -184,31 +184,19 @@ function ActivityEventCard({
         <p style={{ margin: "6px 0 0 0", fontSize: 13, color: "#475569", lineHeight: 1.4 }}>
           {event.message}
         </p>
-        {(event.actor || event.entity_type || event.sandbox_id || event.step_id) && (
+        {(event.actor || event.entity_type || event.sandbox_id) && (
           <p style={{ margin: "4px 0 0 0", fontSize: 11, color: "#64748B" }}>
             {event.actor && <span>Actor: {event.actor}</span>}
             {(event.metadata as { actor_display?: string } | undefined)?.actor_display?.includes("impersonated") && (
               <span style={{ marginLeft: 6, background: "#FEF3C7", color: "#92400E", padding: "1px 6px", borderRadius: 4 }}>Impersonated</span>
             )}
             {event.entity_type && <span style={{ marginLeft: 8 }}>Entity: {event.entity_type}</span>}
-            {event.step_id && <span style={{ marginLeft: 8 }}>Step: {event.step_id}</span>}
             {event.sandbox_id && (
               <span style={{ marginLeft: 8 }}>
                 Simulation: <code style={{ fontSize: 10 }}>{event.sandbox_id.slice(0, 8)}…</code>
               </span>
             )}
           </p>
-        )}
-        {(event.step_id || event.before_state || event.after_state) && detailsOpen && (
-          <div style={{ marginTop: 8, fontSize: 11, color: "#475569" }}>
-            {event.step_id && <div>Step: <code>{event.step_id}</code></div>}
-            {event.before_state && Object.keys(event.before_state).length > 0 && (
-              <div style={{ marginTop: 4 }}>Before: <pre style={{ margin: 0, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{JSON.stringify(event.before_state)}</pre></div>
-            )}
-            {event.after_state && Object.keys(event.after_state).length > 0 && (
-              <div style={{ marginTop: 4 }}>After: <pre style={{ margin: 0, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{JSON.stringify(event.after_state)}</pre></div>
-            )}
-          </div>
         )}
         {(event.metadata && Object.keys(event.metadata).length > 0) && (
           <div style={{ marginTop: 8 }}>
@@ -351,9 +339,6 @@ function rowToEvent(r: Record<string, unknown>): SandboxEvent {
     entity_type: r.entity_type != null ? String(r.entity_type) : undefined,
     sandbox_id: r.sandbox_id != null ? String(r.sandbox_id) : undefined,
     scenario_id: r.scenario_id != null ? String(r.scenario_id) : undefined,
-    step_id: r.step_id != null ? String(r.step_id) : undefined,
-    before_state: (r.before_state as object) ?? undefined,
-    after_state: (r.after_state as object) ?? undefined,
   };
 }
 
