@@ -9,7 +9,7 @@ import { logSandboxEvent } from "@/lib/sandbox/sandboxEvents";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** POST /api/sandbox/impersonate — admin/superadmin only. Target must be a sandbox user. Session stored in cookie. */
+/** POST /api/sandbox/impersonate — admin/superadmin only. Body: { id } (required), { sandboxId?, type?, name? } optional. Target must be a sandbox user. */
 export async function POST(req: NextRequest) {
   const authed = await getAuthedUser();
   if (!authed || (authed.role !== "admin" && authed.role !== "superadmin")) {
@@ -18,11 +18,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const adminId = authed.user.id;
-    const body = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({})) as { id?: string; sandboxId?: string | null; type?: string; name?: string };
     const targetUserId = body.id;
+    const sandboxId = body.sandboxId ?? null;
     const targetType = (body.type === "employer" ? "employer" : "employee") as "employee" | "employer";
     const targetName = typeof body.name === "string" ? body.name : "Sandbox user";
-    const sandboxId = body.sandboxId ?? null;
 
     if (!targetUserId || typeof targetUserId !== "string") {
       return NextResponse.json({ error: "Missing id" }, { status: 400 });

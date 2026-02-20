@@ -20,18 +20,17 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
     setLoading(true);
     setMessage(undefined);
     try {
-      const selected = users.find((u) => u.id === targetUserId);
-      const type = selected?.role === "employer" ? "employer" : "employee";
+      const id = targetUserId.trim();
+      const payload: { id: string; sandboxId?: string; type?: string; name?: string } = { id };
+      if (sandboxId != null && sandboxId !== "") payload.sandboxId = sandboxId;
+      const selected = users.find((u) => u.id === id);
+      payload.type = selected?.role === "employer" ? "employer" : "employee";
+      payload.name = targetName.trim() || "Sandbox user";
       const res = await fetch("/api/sandbox/impersonate", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: targetUserId.trim(),
-          type,
-          name: targetName.trim() || "Sandbox user",
-          ...(sandboxId != null && { sandboxId }),
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
