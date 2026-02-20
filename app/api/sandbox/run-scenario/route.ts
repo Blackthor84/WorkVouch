@@ -50,10 +50,10 @@ export async function POST(req: NextRequest) {
     : rawScenario || "healthy-team";
   let events: ScenarioEvent[] = [];
   let safe_mode = false;
+  let sandboxId = (body.sandboxId ?? body.sandbox_id) as string | undefined;
 
   try {
     try {
-      let sandboxId = (body.sandboxId ?? body.sandbox_id) as string | undefined;
       let workerIds = body.workerIds as string[] | undefined;
       const origin = getOrigin(req);
       const cookie = req.headers.get("cookie") ?? "";
