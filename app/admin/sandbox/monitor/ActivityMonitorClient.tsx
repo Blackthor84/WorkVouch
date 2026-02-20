@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 
 export type SandboxEvent = {
@@ -424,7 +424,7 @@ export function ActivityMonitorPage() {
           events={events}
           eventTypeFilter={eventType}
           modeFilter={mode}
-          seenIds={previousIds}
+          seenIds={seenIds}
         />
       )}
     </div>
