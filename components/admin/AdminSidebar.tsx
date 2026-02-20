@@ -182,7 +182,7 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
             <>
               {section("Dashboard", sandboxNav.Dashboard)}
               {section("Users", sandboxNav.Users)}
-              {section("Sandbox", sandboxNav.Sandbox)}
+              {section("Playground", sandboxNav.Playground)}
               {section("Audit Logs", sandboxNav.AuditLogs)}
             </>
           ) : (
