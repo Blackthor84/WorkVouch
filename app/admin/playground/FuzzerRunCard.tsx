@@ -127,7 +127,7 @@ export function FuzzerRunCard({ onRunComplete }: Props) {
           type="button"
           onClick={handleRun}
           disabled={loading}
-          variant="default"
+          variant="primary"
           size="sm"
         >
           {loading ? "Running…" : "Run Fuzzer"}
