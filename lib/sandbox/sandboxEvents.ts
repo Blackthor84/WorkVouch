@@ -65,15 +65,19 @@ export type SandboxEventsFilter = {
 };
 
 /** Get latest events (newest first). Optional filters. Never returns null. */
-export async function getSandboxEvents(limit = 100): Promise<SandboxEventRow[]>;
+export async function getSandboxEvents(limit?: number): Promise<SandboxEventRow[]>;
 export async function getSandboxEvents(
   filter: SandboxEventsFilter
 ): Promise<SandboxEventRow[]>;
 export async function getSandboxEvents(
-  limitOrFilter: number | SandboxEventsFilter = 100
+  limitOrFilter?: number | SandboxEventsFilter
 ): Promise<SandboxEventRow[]> {
   const filter: SandboxEventsFilter =
-    typeof limitOrFilter === "number" ? { limit: limitOrFilter } : limitOrFilter;
+    limitOrFilter === undefined
+      ? { limit: 100 }
+      : typeof limitOrFilter === "number"
+        ? { limit: limitOrFilter }
+        : limitOrFilter;
   const limit = Math.min(filter.limit ?? 100, 200);
   try {
     const supabase = getServiceRoleClient();
