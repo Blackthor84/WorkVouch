@@ -24,7 +24,7 @@ export async function getSandboxImpersonation(): Promise<SandboxImpersonation | 
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as { type?: string; id?: string; name?: string; sandboxId?: string | null };
-    const userId = parsed.id ?? parsed.userId;
+    const userId = parsed.id;
     if (!userId || typeof userId !== "string") return null;
     return {
       userId,
