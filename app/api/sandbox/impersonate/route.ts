@@ -19,13 +19,13 @@ export async function POST(req: NextRequest) {
   try {
     const adminId = authed.user.id;
     const body = await req.json().catch(() => ({}));
-    const targetUserId = body.targetUserId ?? body.target_id;
-    const targetType = (body.targetType ?? body.target_type ?? "employee") as string;
-    const targetName = body.targetName ?? body.target_name ?? "Sandbox user";
-    const sandboxId = body.sandboxId ?? body.sandbox_id;
+    const targetUserId = body.id;
+    const targetType = (body.type === "employer" ? "employer" : "employee") as "employee" | "employer";
+    const targetName = typeof body.name === "string" ? body.name : "Sandbox user";
+    const sandboxId = body.sandboxId ?? null;
 
     if (!targetUserId || typeof targetUserId !== "string") {
-      return NextResponse.json({ error: "Missing targetUserId" }, { status: 400 });
+      return NextResponse.json({ error: "Missing id" }, { status: 400 });
     }
 
     const supabaseAdmin = getServiceRoleClient();
@@ -43,10 +43,10 @@ export async function POST(req: NextRequest) {
     }
 
     const payload = JSON.stringify({
-      type: targetType === "employer" ? "employer" : "employee",
       id: targetUserId,
+      type: targetType,
       name: targetName,
-      sandboxId: sandboxId ?? null,
+      sandboxId,
     });
     const maxAge = 60 * 60 * 8;
     const res = NextResponse.json({ ok: true });
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
       actor: targetUserId,
       entity_type: "user",
       sandbox_id: sandboxId ?? null,
-      metadata: { targetUserId, targetName, sandboxId: sandboxId ?? null },
+      metadata: { targetUserId, targetName, sandboxId },
     });
     return res;
   } catch (e: unknown) {

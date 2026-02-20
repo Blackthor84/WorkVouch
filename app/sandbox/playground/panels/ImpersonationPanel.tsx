@@ -20,14 +20,17 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
     setLoading(true);
     setMessage(undefined);
     try {
+      const selected = users.find((u) => u.id === targetUserId);
+      const type = selected?.role === "employer" ? "employer" : "employee";
       const res = await fetch("/api/sandbox/impersonate", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          targetUserId: targetUserId.trim(),
-          targetName: targetName.trim() || "Sandbox user",
-          sandboxId: sandboxId ?? undefined,
+          id: targetUserId.trim(),
+          type,
+          name: targetName.trim() || "Sandbox user",
+          ...(sandboxId != null && { sandboxId }),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -43,7 +46,7 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [targetUserId, targetName]);
+  }, [targetUserId, targetName, users, sandboxId]);
 
   const exitImpersonation = useCallback(async () => {
     setLoading(true);
