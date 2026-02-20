@@ -12,7 +12,6 @@ import { EmployerProfileViewCountCard } from "@/components/employee/EmployerProf
 import { AccountSafetyCard } from "@/components/employee/AccountSafetyCard";
 import { MyResumesCard } from "@/components/dashboard/MyResumesCard";
 import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
-import type { ActivityRow } from "@/components/dashboard/RecentActivityFeed";
 import {
   UserCircleIcon,
   BriefcaseIcon,
@@ -119,33 +118,6 @@ export default async function UserDashboardPage() {
       : []),
   ];
 
-  // Recent activity from activity_log (RLS: user sees own only)
-  const { data: activityRows } = await supabase
-    .from("activity_log")
-    .select("id, action, target, created_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(20);
-
-  const recentActivity: { id: string; message: string; time: string }[] = (activityRows ?? []).map(
-    (row) => {
-      const actionLabel = String(row.action ?? "")
-        .replace(/_/g, " ")
-        .replace(/^\w/, (c) => c.toUpperCase());
-      const message = row.target
-        ? `${actionLabel}: ${row.target}`
-        : actionLabel;
-      const time =
-        row.created_at != null
-          ? new Date(row.created_at).toLocaleString(undefined, {
-              dateStyle: "short",
-              timeStyle: "short",
-            })
-          : "";
-      return { id: row.id, message, time };
-    }
-  );
-
   return (
     <main className="flex-1 flex flex-col container mx-auto px-4 py-8 md:py-12 lg:py-16 bg-[#F8FAFC] min-w-0 overflow-x-hidden">
       <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20 min-w-0">
@@ -196,13 +168,11 @@ export default async function UserDashboardPage() {
                 <h2 className="text-xl font-semibold text-[#0F172A]">
                   Recent Activity
                 </h2>
-                {initialActivities.length > 0 && (
-                  <Button variant="ghost" size="sm">
-                    View All
-                  </Button>
-                )}
+                <Button variant="ghost" size="sm">
+                  View All
+                </Button>
               </div>
-              <RecentActivityFeed userId={user.id} initialActivities={initialActivities} />
+              <RecentActivityFeed userId={user.id} />
             </Card>
           </div>
 

@@ -29,21 +29,16 @@ function formatTime(createdAt: string | null): string {
 
 interface RecentActivityFeedProps {
   userId: string;
-  /** Optional server-fetched rows for first paint (avoids empty flash) */
-  initialActivities?: ActivityRow[];
 }
 
-export function RecentActivityFeed({ userId, initialActivities }: RecentActivityFeedProps) {
-  const [activities, setActivities] = useState<ActivityRow[]>(initialActivities ?? []);
+export function RecentActivityFeed({ userId }: RecentActivityFeedProps) {
+  const [activities, setActivities] = useState<ActivityRow[]>([]);
   const [newlyAddedIds, setNewlyAddedIds] = useState<Set<string>>(new Set());
   const channelRef = useRef<ReturnType<typeof supabaseBrowser.channel> | null>(null);
 
-  // Initial fetch (once); skip if server already passed initial data
+  // Initial fetch (once); activities state used for both this and realtime updates
   useEffect(() => {
     if (!userId) return;
-    if (initialActivities != null && initialActivities.length > 0) {
-      return; // use server data; realtime will add new rows
-    }
 
     supabaseBrowser
       .from("activity_log")
@@ -54,7 +49,7 @@ export function RecentActivityFeed({ userId, initialActivities }: RecentActivity
       .then(({ data }) => {
         setActivities((data as ActivityRow[] | null) ?? []);
       });
-  }, [userId, initialActivities]);
+  }, [userId]);
 
   // Realtime subscription: INSERT filtered by user_id; prepend new row and animate
   useEffect(() => {
