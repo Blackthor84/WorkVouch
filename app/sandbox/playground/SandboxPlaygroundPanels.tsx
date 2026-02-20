@@ -79,6 +79,7 @@ export function SandboxPlaygroundPanels() {
   const [error, setError] = useState<string | undefined>(undefined);
   const [sandboxAccessDenied, setSandboxAccessDenied] = useState(false);
   const [safeMode, setSafeMode] = useState(false);
+  const [scenarioEvents, setScenarioEvents] = useState<{ type: string; scenario?: string; count?: number; delta?: number }[]>([]);
   const observerFetchedRef = useRef(false);
   const listFetchedRef = useRef(false);
 
@@ -331,6 +332,21 @@ export function SandboxPlaygroundPanels() {
             <p style={{ margin: 0, color: "#64748B" }}>Creating company…</p>
           ) : (
             <>
+              {scenarioEvents.length > 0 && (
+                <div style={{ marginBottom: 12, fontSize: 12, color: "#64748B" }}>
+                  <strong>Last scenario run:</strong>
+                  <ul style={{ margin: "4px 0 0 0", paddingLeft: 18 }}>
+                    {scenarioEvents.map((e, i) => (
+                      <li key={i}>
+                        {e.type}
+                        {e.scenario != null ? ` (${e.scenario})` : ""}
+                        {e.count != null ? ` count=${e.count}` : ""}
+                        {e.delta != null ? ` Δ=${e.delta}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <HiddenSystemsObserverPanel data={observerData ?? EMPTY_OBSERVER} />
               <button
                 type="button"
