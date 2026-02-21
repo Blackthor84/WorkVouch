@@ -5,6 +5,7 @@ import { Providers } from "@/components/providers";
 import { PreviewProvider } from "@/lib/preview-context";
 import SimulationBanner from "@/components/SimulationBanner";
 import { SandboxImpersonationBanner } from "@/components/sandbox/SandboxImpersonationBanner";
+import { ImpersonationBannerServer } from "@/components/sandbox/ImpersonationBannerServer";
 import AuthSync from "./(auth)/AuthSync";
 import { PageViewCapture } from "@/components/analytics/PageViewCapture";
 import { PageViewTracker } from "@/components/PageViewTracker";
@@ -51,6 +52,7 @@ export default async function RootLayout({
             <PageViewTracker />
             <SimulationBanner />
             <SandboxImpersonationBanner />
+            <ImpersonationBannerServer />
             <LayoutWrapper user={null} role={null}>
               {children}
             </LayoutWrapper>

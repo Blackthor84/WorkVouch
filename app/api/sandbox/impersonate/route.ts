@@ -22,10 +22,10 @@ export async function POST(req: Request) {
     // 4️⃣ Write impersonation cookie
     const cookieStore = await cookies();
     cookieStore.set(
-      "sandbox_impersonation",
+      "sandbox_playground_impersonation",
       JSON.stringify({
         id,
-        type: type ?? "impersonated",
+        type: type === "employer" ? "employer" : "employee",
         name: name ?? null,
         sandboxId: sandboxId ?? null,
       }),

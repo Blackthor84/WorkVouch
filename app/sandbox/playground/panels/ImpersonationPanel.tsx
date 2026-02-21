@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { SandboxUser } from "../SandboxPlaygroundPanels";
 
 type Props = { users?: SandboxUser[]; sandboxId?: string };
@@ -40,6 +41,8 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
       setImpersonating(true);
       setMessage("Impersonating. Show global banner.");
       window.dispatchEvent(new CustomEvent("sandbox-impersonation-change"));
+      router.refresh();
+      window.location.href = "/dashboard";
     } catch {
       setMessage("Request failed");
     } finally {

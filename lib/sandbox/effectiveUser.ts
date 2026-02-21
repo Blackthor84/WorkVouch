@@ -45,3 +45,23 @@ export async function getEffectiveUserIdForSandbox(authUserId: string): Promise<
   const imp = await getSandboxImpersonation();
   return imp?.userId ?? authUserId;
 }
+
+export type EffectiveUser = {
+  userId: string;
+  name: string;
+  type: "impersonated";
+};
+
+/**
+ * Returns effective user when sandbox impersonation is active (for banners and actor logging).
+ * Use actor_id: effectiveUser.userId and actor_type: effectiveUser.type in actions.
+ */
+export async function getEffectiveUser(): Promise<EffectiveUser | null> {
+  const imp = await getSandboxImpersonation();
+  if (!imp) return null;
+  return {
+    userId: imp.userId,
+    name: imp.name,
+    type: "impersonated",
+  };
+}
