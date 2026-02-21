@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { requireSuperadmin } from "@/lib/auth/requireSuperadmin";
+import { getAuthedUser } from "@/lib/auth/getAuthedUser";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
+import { createImpersonationSession } from "@/lib/admin/impersonateLogic";
+import { writeImpersonationAudit } from "@/lib/impersonationAudit";
 
 export async function POST(req: Request) {
   try {
@@ -11,6 +14,11 @@ export async function POST(req: Request) {
 
     const forbidden = await requireSuperadmin();
     if (forbidden) return forbidden;
+
+    const authed = await getAuthedUser();
+    if (!authed?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const body = await req.json();
     const { id, type, name, sandboxId } = body ?? {};
@@ -25,7 +33,7 @@ export async function POST(req: Request) {
     const supabase = getServiceRoleClient();
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id, role")
+      .select("id, email, role")
       .eq("id", id)
       .single();
 
@@ -37,7 +45,33 @@ export async function POST(req: Request) {
       );
     }
 
-    // Write impersonation cookie (HTTP-only)
+    if (profile?.id) {
+      const targetProfile = { id: profile.id, email: (profile as { email?: string }).email ?? null, role: (profile as { role?: string }).role };
+      const { impersonateUser, impersonationToken, expiresAt } = await createImpersonationSession(
+        authed.user.id,
+        targetProfile,
+        authed.user.email
+      );
+      try {
+        await writeImpersonationAudit({
+          admin_user_id: authed.user.id,
+          admin_email: authed.user.email ?? null,
+          target_user_id: id,
+          target_identifier: targetProfile.email ?? null,
+          event: "start",
+          environment: "sandbox",
+          ip_address: null,
+          user_agent: null,
+        });
+      } catch (e) {
+        console.error("[sandbox/impersonate] impersonation_audit insert failed", e);
+      }
+      return NextResponse.json({
+        impersonateUser,
+        ...(impersonationToken && { impersonationToken, expiresAt: expiresAt.toISOString() }),
+      });
+    }
+
     const cookieStore = await cookies();
     cookieStore.set(
       "sandbox_playground_impersonation",
@@ -56,7 +90,6 @@ export async function POST(req: Request) {
       }
     );
 
-    // 5️⃣ Success
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("IMPERSONATE ERROR:", err);

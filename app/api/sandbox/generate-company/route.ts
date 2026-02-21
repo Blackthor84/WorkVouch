@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
+import { getAuthedUser } from "@/lib/auth/getAuthedUser";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { logSandboxEvent } from "@/lib/sandbox/sandboxEvents";
+import { isSandboxMutationsEnabled, getAllowedBulkCount, SANDBOX_BULK_MAX } from "@/lib/server/sandboxMutations";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+const DEFAULT_EMPLOYEES = 5;
 
 /**
  * In-memory fallback when DB fails. Ensures 200 and unblocks Playground.
@@ -23,8 +27,18 @@ function safeModeIds(): { employerId: string; employeeIds: string[]; sandboxId: 
  * Always returns 200. On DB failure, falls back to in-memory fake IDs (safe_mode: true).
  */
 export async function POST(req: NextRequest) {
+  if (!isSandboxMutationsEnabled()) {
+    return NextResponse.json({ error: "Sandbox mutations are disabled" }, { status: 403 });
+  }
+
   const guard = await sandboxAdminGuard();
   if (!guard.allowed) return guard.response;
+
+  const authed = await getAuthedUser();
+  const role = authed?.role ?? null;
+  const body = await req.json().catch(() => ({}));
+  const requestedCount = typeof body.employeeCount === "number" ? body.employeeCount : typeof body.employee_count === "number" ? body.employee_count : DEFAULT_EMPLOYEES;
+  const employeeCount = getAllowedBulkCount(role, requestedCount, DEFAULT_EMPLOYEES);
 
   let employerId: string | null = null;
   let employeeIds: string[] = [];
@@ -33,7 +47,6 @@ export async function POST(req: NextRequest) {
 
   try {
     const supabase = getServiceRoleClient();
-    const body = await req.json().catch(() => ({}));
     let resolvedSandboxId = (body.sandboxId ?? body.sandbox_id) as string | undefined;
     if (typeof resolvedSandboxId !== "string" || !resolvedSandboxId.trim()) resolvedSandboxId = undefined;
 
@@ -87,9 +100,12 @@ export async function POST(req: NextRequest) {
     }
     employerId = (employerRow as { id: string }).id;
 
-    // --- 3) Create 5 employees ---
-    const names = ["Alex Smith", "Jordan Jones", "Sam Williams", "Taylor Brown", "Morgan Davis"];
-    for (let i = 0; i < 5; i++) {
+    // --- 3) Create employees (default 5; up to SANDBOX_BULK_MAX when superadmin + ENABLE_SANDBOX_MUTATIONS) ---
+    const baseNames = ["Alex Smith", "Jordan Jones", "Sam Williams", "Taylor Brown", "Morgan Davis"];
+    const names = employeeCount <= baseNames.length
+      ? baseNames.slice(0, employeeCount)
+      : [...baseNames, ...Array.from({ length: employeeCount - baseNames.length }, (_, i) => `Worker ${i + 6}`)];
+    for (let i = 0; i < employeeCount; i++) {
       const { data: empRow, error: empErr } = await supabase
         .from("sandbox_employees")
         .insert({ sandbox_id: resolvedSandboxId, full_name: names[i] })

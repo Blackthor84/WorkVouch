@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
-import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
+import { getAuthedUser } from "@/lib/auth/getAuthedUser";
+import { isSandboxMutationsEnabled, getAllowedBulkCount } from "@/lib/server/sandboxMutations";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+const DEFAULT_WORKER = 1;
+const DEFAULT_PAIR = 2;
+const DEFAULT_TEAM = 4;
 
 function getOrigin(req: NextRequest): string {
   const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "localhost:3000";
@@ -11,16 +16,27 @@ function getOrigin(req: NextRequest): string {
   return `${proto}://${host}`;
 }
 
-/** POST /api/sandbox/spawn — real creation via admin sandbox-v2 generate-employee/employer. All data is_sandbox. */
+/** POST /api/sandbox/spawn — real creation via admin sandbox-v2 generate-employee/employer. Requires ENABLE_SANDBOX_MUTATIONS. Superadmin can request count up to 1000. */
 export async function POST(req: NextRequest) {
+  if (!isSandboxMutationsEnabled()) {
+    return NextResponse.json({ error: "Sandbox mutations are disabled" }, { status: 403 });
+  }
+
   const guard = await sandboxAdminGuard();
   if (!guard.allowed) return guard.response;
+
+  const authed = await getAuthedUser();
+  const role = authed?.role ?? null;
 
   const body = await req.json().catch(() => ({}));
   const type = (body.type as string)?.toLowerCase() ?? "worker";
   if (!["worker", "employer", "pair", "team"].includes(type)) {
     return NextResponse.json({ error: "Invalid type. Use worker | employer | pair | team" }, { status: 400 });
   }
+
+  const requestedCount = typeof body.count === "number" ? body.count : type === "worker" ? DEFAULT_WORKER : type === "pair" ? DEFAULT_PAIR : DEFAULT_TEAM;
+  const workerCount = type === "worker" ? getAllowedBulkCount(role, requestedCount, DEFAULT_WORKER) : type === "pair" ? getAllowedBulkCount(role, requestedCount, DEFAULT_PAIR) : type === "team" ? getAllowedBulkCount(role, requestedCount, DEFAULT_TEAM) : 0;
+  const employerCount = type === "employer" ? getAllowedBulkCount(role, typeof body.count === "number" ? body.count : 1, 1) : type === "team" ? getAllowedBulkCount(role, typeof body.count === "number" ? body.count : 1, 1) : 0;
 
   const origin = getOrigin(req);
   const cookie = req.headers.get("cookie") ?? "";
@@ -61,17 +77,19 @@ export async function POST(req: NextRequest) {
     const employers: unknown[] = [];
 
     if (type === "worker" || type === "pair" || type === "team") {
-      const count = type === "worker" ? 1 : type === "pair" ? 2 : 4;
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < workerCount; i++) {
         const out = await post("/api/admin/sandbox-v2/generate-employee", { sandboxId: resolvedId });
         const emp = (out as { employee?: unknown }).employee;
         if (emp) workers.push(emp);
       }
     }
     if (type === "employer" || type === "team") {
-      const out = await post("/api/admin/sandbox-v2/generate-employer", { sandboxId: resolvedId });
-      const emp = (out as { employer?: unknown }).employer;
-      if (emp) employers.push(emp);
+      const n = type === "team" ? Math.max(1, employerCount) : 1;
+      for (let i = 0; i < n; i++) {
+        const out = await post("/api/admin/sandbox-v2/generate-employer", { sandboxId: resolvedId });
+        const emp = (out as { employer?: unknown }).employer;
+        if (emp) employers.push(emp);
+      }
     }
 
     return NextResponse.json({

@@ -4,6 +4,7 @@ export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { requireSandboxV2Admin, requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
 import { seedSandboxFeatures } from "@/lib/sandbox/seedFeatures";
+import { isSandboxMutationsEnabled } from "@/lib/server/sandboxMutations";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,9 @@ function structuredError(success: false, error: string, details?: unknown) {
 
 export async function POST(req: Request) {
   try {
+    if (!isSandboxMutationsEnabled()) {
+      return NextResponse.json(structuredError(false, "Sandbox mutations are disabled"), { status: 403 });
+    }
     const { id: userId } = await requireSandboxV2Admin();
     if (!userId) {
       console.error("Sessions POST failure:", { stage: "auth", error: "No user id" });

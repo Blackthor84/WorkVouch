@@ -7,6 +7,7 @@ import { requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
 import { INDUSTRIES } from "@/lib/constants/industries";
 import { writeAdminAuditLog } from "@/lib/admin/audit-enterprise";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
+import { isSandboxMutationsEnabled } from "@/lib/server/sandboxMutations";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,9 @@ function pick<T>(arr: readonly T[]): T {
 
 export async function POST(req: NextRequest) {
   try {
+    if (!isSandboxMutationsEnabled()) {
+      return NextResponse.json({ success: false, error: "Sandbox mutations are disabled" }, { status: 403 });
+    }
     const adminSession = await requireSandboxV2AdminWithRole();
     const body = await req.json().catch(() => ({}));
     const sandboxId = (body.sandboxId ?? body.sandbox_id) as string | undefined;
