@@ -7,6 +7,7 @@ import type { SandboxUser } from "../SandboxPlaygroundPanels";
 type Props = { users?: SandboxUser[]; sandboxId?: string };
 
 export function ImpersonationPanel({ users = [], sandboxId }: Props) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [targetUserId, setTargetUserId] = useState("");
   const [targetName, setTargetName] = useState("Sandbox user");
@@ -48,7 +49,7 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [targetUserId, targetName, users, sandboxId]);
+  }, [targetUserId, targetName, users, sandboxId, router]);
 
   const exitImpersonation = useCallback(async () => {
     setLoading(true);
