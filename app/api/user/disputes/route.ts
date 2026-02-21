@@ -25,8 +25,8 @@ const bodySchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
+    const effectiveUserId = await getEffectiveUserId();
+    if (!effectiveUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     const { count: openCount } = await sb
       .from("disputes")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
+      .eq("user_id", effectiveUserId)
       .in("status", ["open", "under_review"]);
 
     if ((openCount ?? 0) >= MAX_OPEN_DISPUTES) {
