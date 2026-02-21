@@ -86,6 +86,8 @@ export type LogAdminActionPayload = {
 
 export type AdminContextForAudit = {
   userId: string;
+  /** Authenticated admin user id for audit logging. */
+  authUserId: string;
   email?: string | null;
   isSuperAdmin: boolean;
 };

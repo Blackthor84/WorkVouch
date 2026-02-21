@@ -9,6 +9,8 @@ import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
 
 export type AdminForAnalyticsAudit = {
   userId: string;
+  /** Authenticated admin user id for audit logging. */
+  authUserId: string;
   email: string | null;
   role: "admin" | "super_admin";
 };

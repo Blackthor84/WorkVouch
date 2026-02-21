@@ -12,6 +12,8 @@ export type AdminRole = "admin" | "super_admin";
 
 export interface AdminSessionMinimal {
   userId: string;
+  /** Authenticated admin user id for audit logging. */
+  authUserId: string;
   role: AdminRole;
 }
 
@@ -41,6 +43,7 @@ export async function getAdminSession(): Promise<AdminSessionMinimal | null> {
 
     return {
       userId: user.id,
+      authUserId: user.id,
       role: role as AdminRole,
     };
   } catch {

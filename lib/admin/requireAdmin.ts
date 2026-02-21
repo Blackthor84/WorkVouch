@@ -28,6 +28,8 @@ export type AdminSession = {
   };
   supabase: Awaited<ReturnType<typeof supabaseServer>>;
   userId: string;
+  /** Authenticated admin user id (for audit logging). Use this, not userId, when recording who performed the action. */
+  authUserId: string;
   role: string;
   isSuperAdmin: boolean;
 };
@@ -82,6 +84,7 @@ export async function requireAdmin(): Promise<AdminSession> {
       profile: profile as AdminSession["profile"],
       supabase,
       userId: user.id,
+      authUserId: user.id,
       role,
       isSuperAdmin: isSuperAdminRole,
     };
@@ -128,6 +131,7 @@ export async function requireAdminForApi(): Promise<AdminSession | null> {
       profile: resolvedProfile,
       supabase,
       userId: user.id,
+      authUserId: user.id,
       role: profileRole === "super_admin" ? "superadmin" : "admin",
       isSuperAdmin: admin.isSuperAdmin,
     };
@@ -167,6 +171,7 @@ export async function requireFinanceForApi(): Promise<AdminSession | null> {
       profile: profile as AdminSession["profile"],
       supabase,
       userId: user.id,
+      authUserId: user.id,
       role: profileRole,
       isSuperAdmin: false,
     };
@@ -194,6 +199,7 @@ export async function requireBoardForApi(): Promise<AdminSession | null> {
       profile: profile as AdminSession["profile"],
       supabase,
       userId: user.id,
+      authUserId: user.id,
       role: "board",
       isSuperAdmin: false,
     };
@@ -236,6 +242,7 @@ export async function requireRole(allowedRoles: string[]): Promise<AdminSession>
       profile: profile as AdminSession["profile"],
       supabase,
       userId: user.id,
+      authUserId: user.id,
       role,
       isSuperAdmin: isSuperAdminRole,
     };

@@ -48,6 +48,7 @@ export async function POST(
     await logAdminAction(
       {
         userId: admin.authUserId,
+        authUserId: admin.authUserId,
         email: (admin.user as { email?: string })?.email ?? null,
         isSuperAdmin: admin.isSuperAdmin,
       },

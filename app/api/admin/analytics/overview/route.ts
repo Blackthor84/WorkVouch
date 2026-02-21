@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
   try {
     await logAdminViewedAnalytics(
-      { userId: admin.authUserId, email: admin.user?.email ?? null, role: admin.isSuperAdmin ? "super_admin" : "admin" },
+      { userId: admin.authUserId, authUserId: admin.authUserId, email: admin.user?.email ?? null, role: admin.isSuperAdmin ? "super_admin" : "admin" },
       req,
       "overview"
     );
