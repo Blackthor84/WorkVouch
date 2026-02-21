@@ -11,11 +11,12 @@ const ANALYTICS_SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
-  // Fail-soft: all /api/admin/* (except sandbox-v2) return 200 empty in sandbox — no 500s, no blocking
+  // Fail-soft: all /api/admin/* (except sandbox-v2, impersonate) return 200 empty in sandbox — no 500s, no blocking
   if (
     path.startsWith("/api/admin") &&
     process.env.ENV === "SANDBOX" &&
-    !path.startsWith("/api/admin/sandbox-v2")
+    !path.startsWith("/api/admin/sandbox-v2") &&
+    !path.startsWith("/api/admin/impersonate")
   ) {
     return NextResponse.json(
       { data: [], notice: "Not available in sandbox" },
