@@ -2,24 +2,25 @@
  * Server-side effective user for ALL data queries. Production-safe.
  *
  * Resolves: effectiveUserId = impersonated_user_id ?? auth.uid()
- * - Impersonated user id is stored in HTTP-only cookie (sandbox_playground_impersonation).
- * - Only admins/superadmins can impersonate; target must be a worker (no impersonating admins).
- * - Production kill switch: set SANDBOX_IMPERSONATION_ENABLED=true to allow impersonation; otherwise ignored.
- * - Exit: POST /api/sandbox/impersonate/exit. Cookie cleared on logout (client calls exit before signOut).
+ * - Admin flow: cookie "impersonate_user" (plain userId) — superadmin-only; no env kill switch.
+ * - Sandbox flow: cookie "sandbox_playground_impersonation" (JSON with id) when SANDBOX_IMPERSONATION_ENABLED=true.
+ * - Only admins/superadmins can impersonate.
+ * - Exit: POST /api/admin/impersonate/exit clears both cookies.
  * - RLS: use effectiveUserId in all user-scoped queries; RLS remains enabled.
  */
 
 import { cookies } from "next/headers";
 import { getAuthedUser } from "@/lib/auth/getAuthedUser";
 
-const IMPERSONATION_COOKIE = "sandbox_playground_impersonation";
+const ADMIN_IMPERSONATION_COOKIE = "impersonate_user";
+const SANDBOX_IMPERSONATION_COOKIE = "sandbox_playground_impersonation";
 
-/** When false or unset, impersonation is disabled (production kill switch). */
-function isImpersonationEnabled(): boolean {
+/** When false or unset, sandbox impersonation is disabled (production kill switch). */
+function isSandboxImpersonationEnabled(): boolean {
   return process.env.SANDBOX_IMPERSONATION_ENABLED === "true";
 }
 
-function getImpersonatedUserIdFromCookie(cookieValue: string | undefined): string | null {
+function getImpersonatedUserIdFromSandboxCookie(cookieValue: string | undefined): string | null {
   if (!cookieValue || typeof cookieValue !== "string") return null;
   try {
     const parsed = JSON.parse(cookieValue) as { id?: string };
@@ -30,27 +31,33 @@ function getImpersonatedUserIdFromCookie(cookieValue: string | undefined): strin
   }
 }
 
+/** Returns impersonated user id from admin cookie (plain string) or null. */
+function getImpersonatedUserIdFromAdminCookie(cookieValue: string | undefined): string | null {
+  if (!cookieValue || typeof cookieValue !== "string") return null;
+  const id = cookieValue.trim();
+  return id.length > 0 ? id : null;
+}
+
 /**
  * Returns the user id to use for ALL Supabase data queries in this request.
  * effectiveUserId = impersonated_user_id ?? auth.uid()
- * Impersonation only when: SANDBOX_IMPERSONATION_ENABLED=true, user is admin/superadmin, and cookie is set.
+ * Checks admin cookie first (impersonate_user), then sandbox cookie when enabled.
  * Returns null if not authenticated.
  */
 export async function getEffectiveUserId(): Promise<string | null> {
   const authed = await getAuthedUser();
   if (!authed?.user?.id) return null;
 
-  if (!isImpersonationEnabled()) {
-    return authed.user.id;
-  }
-
-  const cookieStore = await cookies();
-  const raw = cookieStore.get(IMPERSONATION_COOKIE)?.value;
-  const impersonatedUserId = getImpersonatedUserIdFromCookie(raw);
-
   const isAdmin = authed.role === "admin" || authed.role === "superadmin";
-  if (impersonatedUserId && isAdmin) {
-    return impersonatedUserId;
+  const cookieStore = await cookies();
+
+  const adminUserId = getImpersonatedUserIdFromAdminCookie(cookieStore.get(ADMIN_IMPERSONATION_COOKIE)?.value);
+  if (adminUserId && isAdmin) return adminUserId;
+
+  if (isSandboxImpersonationEnabled()) {
+    const raw = cookieStore.get(SANDBOX_IMPERSONATION_COOKIE)?.value;
+    const sandboxUserId = getImpersonatedUserIdFromSandboxCookie(raw);
+    if (sandboxUserId && isAdmin) return sandboxUserId;
   }
 
   return authed.user.id;
@@ -68,24 +75,33 @@ export async function getEffectiveUserIdWithAuth(): Promise<{
   const authed = await getAuthedUser();
   if (!authed?.user?.id) return null;
 
-  if (!isImpersonationEnabled()) {
+  const isAdmin = authed.role === "admin" || authed.role === "superadmin";
+  const cookieStore = await cookies();
+
+  const adminUserId = getImpersonatedUserIdFromAdminCookie(cookieStore.get(ADMIN_IMPERSONATION_COOKIE)?.value);
+  if (adminUserId && isAdmin) {
     return {
-      effectiveUserId: authed.user.id,
+      effectiveUserId: adminUserId,
       authUserId: authed.user.id,
-      isImpersonating: false,
+      isImpersonating: true,
     };
   }
 
-  const cookieStore = await cookies();
-  const raw = cookieStore.get(IMPERSONATION_COOKIE)?.value;
-  const impersonatedUserId = getImpersonatedUserIdFromCookie(raw);
-
-  const isAdmin = authed.role === "admin" || authed.role === "superadmin";
-  const isImpersonating = Boolean(impersonatedUserId && isAdmin);
+  if (isSandboxImpersonationEnabled()) {
+    const raw = cookieStore.get(SANDBOX_IMPERSONATION_COOKIE)?.value;
+    const sandboxUserId = getImpersonatedUserIdFromSandboxCookie(raw);
+    if (sandboxUserId && isAdmin) {
+      return {
+        effectiveUserId: sandboxUserId,
+        authUserId: authed.user.id,
+        isImpersonating: true,
+      };
+    }
+  }
 
   return {
-    effectiveUserId: isImpersonating ? impersonatedUserId! : authed.user.id,
+    effectiveUserId: authed.user.id,
     authUserId: authed.user.id,
-    isImpersonating,
+    isImpersonating: false,
   };
 }

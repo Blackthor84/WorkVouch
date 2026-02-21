@@ -33,19 +33,8 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
         setMessage((data as { error?: string }).error ?? "Failed");
         return;
       }
-      if (data.impersonateUser || data.impersonationToken) {
-        await fetch("/api/admin/impersonate/set", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            impersonationToken: data.impersonationToken,
-            impersonateUser: data.impersonateUser,
-          }),
-        });
-      }
       setImpersonating(true);
-      setMessage("Impersonating. Redirecting…");
+      setMessage("Impersonating. Redirecting to dashboard…");
       router.refresh();
       window.location.href = "/dashboard";
     } catch {

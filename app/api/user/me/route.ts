@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
-import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
+import { getEffectiveUserIdWithAuth } from "@/lib/server/effectiveUserId";
 
 export const runtime = "nodejs";
 
@@ -9,10 +9,14 @@ export const runtime = "nodejs";
  * All data queries use effectiveUserId = impersonated_user_id ?? auth.uid().
  */
 export async function GET() {
-  const effectiveUserId = await getEffectiveUserId();
-  if (!effectiveUserId) {
+  const ctx = await getEffectiveUserIdWithAuth();
+  if (!ctx) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const { effectiveUserId, authUserId } = ctx;
+  // Temporary debug: confirm impersonation is active server-side
+  console.log("AUTH USER:", authUserId);
+  console.log("EFFECTIVE USER:", effectiveUserId);
 
   const supabase = await supabaseServer();
   const { data: profile, error } = await supabase
