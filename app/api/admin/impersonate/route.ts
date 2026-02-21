@@ -10,6 +10,9 @@ import { SignJWT } from "jose";
 import { writeImpersonationAudit } from "@/lib/impersonationAudit";
 import type { Database } from "@/types/supabase";
 
+const IMPERSONATION_COOKIE = "workvouch_impersonation";
+const COOKIE_MAX_AGE = 30 * 60; // 30 minutes
+
 type Profile = {
   id: string;
   email: string | null;
@@ -53,7 +56,7 @@ export async function POST(request: Request) {
       .single<Profile & { role?: string }>();
 
     if (error || !targetProfile) {
-      return new Response("Profile not found", { status: 404 });
+      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
     const targetRole = (targetProfile as { role?: string }).role ?? "";
@@ -155,10 +158,22 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       impersonateUser,
       ...(impersonationToken && { impersonationToken, expiresAt: expiresAt.toISOString() }),
     });
+
+    if (impersonationToken) {
+      res.cookies.set(IMPERSONATION_COOKIE, impersonationToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: COOKIE_MAX_AGE,
+        path: "/",
+      });
+    }
+
+    return res;
   } catch (error: unknown) {
     console.error("Impersonate API error:", error);
     return NextResponse.json(
