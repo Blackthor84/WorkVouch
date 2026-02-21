@@ -41,7 +41,7 @@ export async function PATCH(req: NextRequest) {
         key: "maintenance_mode",
         value: body.maintenance_mode,
         updated_at: new Date().toISOString(),
-        updated_by: admin.userId,
+        updated_by: admin.authUserId,
       }, { onConflict: "key" });
       if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }

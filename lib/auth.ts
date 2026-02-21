@@ -66,11 +66,13 @@ export async function getProfile(userId: string): Promise<{
 }
 
 /**
- * Get current user profile from Supabase
+ * Get current user profile from Supabase.
+ * Uses effective user id when impersonating (acting_user), so profile matches who we're acting as.
  */
 export async function getCurrentUserProfile(): Promise<UserProfile | null> {
-  const user = await getCurrentUser();
-  if (!user) return null;
+  const { getEffectiveUserId } = await import("@/lib/server/effectiveUserId");
+  const effectiveUserId = await getEffectiveUserId();
+  if (!effectiveUserId) return null;
   const supabase = await supabaseServer();
   const supabaseAny = supabase as any;
   const { data: profile, error } = await supabaseAny
@@ -78,7 +80,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
     .select(
       "id, full_name, email, role, industry, city, state, profile_photo_url, professional_summary, visibility, created_at, updated_at"
     )
-    .eq("id", user.id)
+    .eq("id", effectiveUserId)
     .single();
   if (error || !profile) return null;
   return profile as UserProfile;

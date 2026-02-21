@@ -58,7 +58,7 @@ export async function POST(
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     const isSandbox = await getAdminSandboxModeFromCookies();
     await insertAdminAuditLog({
-      adminId: admin.userId,
+      adminId: admin.authUserId,
       adminEmail: (admin.user as { email?: string })?.email ?? null,
       targetType: "user",
       targetId: targetUserId,

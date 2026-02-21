@@ -50,7 +50,7 @@ export async function POST(
 
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await insertAdminAuditLog({
-      adminId: admin.userId,
+      adminId: admin.authUserId,
       targetUserId,
       action: "soft_delete",
       oldValue: oldRow as Record<string, unknown>,

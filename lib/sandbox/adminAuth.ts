@@ -8,12 +8,12 @@ import { getAdminSession } from "@/lib/auth/getAdminSession";
 export async function requireSandboxV2Admin(): Promise<{ id: string }> {
   const admin = await getAdminSession();
   if (!admin) throw new Error("Forbidden: admin or super_admin required");
-  return { id: admin.userId };
+  return { id: admin.authUserId };
 }
 
 /** Same as requireSandboxV2Admin but also returns whether user is super_admin (sees all sessions). */
 export async function requireSandboxV2AdminWithRole(): Promise<{ id: string; isSuperAdmin: boolean }> {
   const admin = await getAdminSession();
   if (!admin) throw new Error("Forbidden: admin or super_admin required");
-  return { id: admin.userId, isSuperAdmin: admin.role === "super_admin" };
+  return { id: admin.authUserId, isSuperAdmin: admin.role === "super_admin" };
 }

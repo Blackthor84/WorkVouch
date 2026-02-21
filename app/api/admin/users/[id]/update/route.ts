@@ -21,7 +21,7 @@ export async function PATCH(
   try {
     const admin = await requireAdminForApi();
     if (!admin) return adminForbiddenResponse();
-    const rl = withRateLimit(request, { userId: admin.userId, ...RATE_LIMITS.admin, prefix: "rl:admin:" });
+    const rl = withRateLimit(request, { userId: admin.authUserId, ...RATE_LIMITS.admin, prefix: "rl:admin:" });
     if (!rl.allowed) return rl.response;
     const { id: targetUserId } = await params;
     if (!targetUserId) {
@@ -89,7 +89,7 @@ export async function PATCH(
       status: status ?? targetProfile.status,
     };
     await insertAdminAuditLog({
-      adminId: admin.userId,
+      adminId: admin.authUserId,
       targetUserId,
       action: "admin_update_profile",
       oldValue: previous_value,
@@ -100,7 +100,7 @@ export async function PATCH(
     });
     const { ipAddress, userAgent } = getAuditMetaFromRequest(request);
     await auditLog({
-      actorUserId: admin.userId,
+      actorUserId: admin.authUserId,
       actorRole: admin.role,
       action: "admin_user_edit",
       targetUserId,

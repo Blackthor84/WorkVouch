@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     duration_minutes: durationMinutes,
     reason,
     caller_email: admin.email ?? callerEmail,
-    enabled_by: admin.userId,
+    enabled_by: admin.authUserId,
   });
 
   if (error) {
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
   }
 
   await insertAdminAuditLog({
-    adminId: admin.userId,
+    adminId: admin.authUserId,
     adminEmail: admin.email ?? null,
     targetType: "system",
     targetId: id ?? null,

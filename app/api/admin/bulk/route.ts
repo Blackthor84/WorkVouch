@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
         } else {
           const uid = (row as { reviewed_user_id?: string } | null)?.reviewed_user_id;
           if (uid) await calculateUserIntelligence(uid);
-          await insertAdminAuditLog({ adminId: admin.userId, targetUserId: uid ?? id, action: "peer_review_delete", newValue: { review_id: id }, ipAddress, userAgent });
+          await insertAdminAuditLog({ adminId: admin.authUserId, targetUserId: uid ?? id, action: "peer_review_delete", newValue: { review_id: id }, ipAddress, userAgent });
           results.push({ id, success: true });
         }
       }
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         const { error } = await supabase.from("profiles").update({ status: "suspended" }).eq("id", targetUserId);
         if (error) results.push({ id: targetUserId, success: false, error: error.message });
         else {
-          await insertAdminAuditLog({ adminId: admin.userId, targetUserId, action: "suspend", newValue: { status: "suspended" }, ipAddress, userAgent });
+          await insertAdminAuditLog({ adminId: admin.authUserId, targetUserId, action: "suspend", newValue: { status: "suspended" }, ipAddress, userAgent });
           results.push({ id: targetUserId, success: true });
         }
       } else if (action === "soft_delete") {
@@ -75,13 +75,13 @@ export async function POST(req: NextRequest) {
         const { error } = await supabase.from("profiles").update({ status: "deleted", deleted_at: now }).eq("id", targetUserId);
         if (error) results.push({ id: targetUserId, success: false, error: error.message });
         else {
-          await insertAdminAuditLog({ adminId: admin.userId, targetUserId, action: "soft_delete", newValue: { status: "deleted", deleted_at: now }, ipAddress, userAgent });
+          await insertAdminAuditLog({ adminId: admin.authUserId, targetUserId, action: "soft_delete", newValue: { status: "deleted", deleted_at: now }, ipAddress, userAgent });
           results.push({ id: targetUserId, success: true });
         }
       } else if (action === "recalculate") {
         try {
           await calculateUserIntelligence(targetUserId);
-          await insertAdminAuditLog({ adminId: admin.userId, targetUserId, action: "recalculate", ipAddress, userAgent });
+          await insertAdminAuditLog({ adminId: admin.authUserId, targetUserId, action: "recalculate", ipAddress, userAgent });
           results.push({ id: targetUserId, success: true });
         } catch (e) {
           results.push({ id: targetUserId, success: false, error: e instanceof Error ? e.message : "Recalc failed" });
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
         const { error } = await supabase.from("profiles").update({ flagged_for_fraud: true }).eq("id", targetUserId);
         if (error) results.push({ id: targetUserId, success: false, error: error.message });
         else {
-          await insertAdminAuditLog({ adminId: admin.userId, targetUserId, action: "profile_update", newValue: { flagged_for_fraud: true }, ipAddress, userAgent });
+          await insertAdminAuditLog({ adminId: admin.authUserId, targetUserId, action: "profile_update", newValue: { flagged_for_fraud: true }, ipAddress, userAgent });
           results.push({ id: targetUserId, success: true });
         }
       } else if (action === "downgrade_employers") {

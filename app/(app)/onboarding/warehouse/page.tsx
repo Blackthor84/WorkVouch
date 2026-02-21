@@ -18,7 +18,7 @@ export default async function WarehouseOnboardingPage() {
     redirect("/admin");
   }
 
-  const userId = admin.userId;
+  const userId = admin.authUserId;
   const supabase = await createServerSupabase();
 
   const { data, error } = await supabase

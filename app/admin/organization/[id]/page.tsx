@@ -15,7 +15,7 @@ export default async function AdminOrganizationPage({
   const supabase = await supabaseServer();
   const supabaseAny = supabase as any;
   const { id: orgId } = await params;
-  const userId = admin.userId;
+  const userId = admin.authUserId;
 
   if (!admin.isSuperAdmin && userId) {
     const { data: myOrgs } = await supabaseAny

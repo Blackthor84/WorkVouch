@@ -205,18 +205,8 @@ export function AdminUsersList() {
                           return;
                         }
                         const data = await res.json();
-                        if (data.impersonateUser || data.impersonationToken) {
-                          await fetch("/api/admin/impersonate/set", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              impersonationToken: data.impersonationToken,
-                              impersonateUser: data.impersonateUser,
-                            }),
-                          });
-                          router.push("/dashboard");
-                          router.refresh();
-                        }
+                        const redirectUrl = data?.redirectUrl ?? "/dashboard";
+                        window.location.href = redirectUrl;
                       } catch (e) {
                         console.error("Impersonate error:", e);
                         alert("Impersonation failed");

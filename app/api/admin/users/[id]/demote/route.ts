@@ -26,7 +26,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: "Missing user id" }, { status: 400 });
     }
 
-    if (admin.userId === targetUserId) {
+    if (admin.authUserId === targetUserId) {
       return NextResponse.json(
         { success: false, error: "Cannot demote yourself" },
         { status: 403 }
@@ -81,7 +81,7 @@ export async function POST(
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     const isSandbox = await getAdminSandboxModeFromCookies();
     await insertAdminAuditLog({
-      adminId: admin.userId,
+      adminId: admin.authUserId,
       adminEmail: (admin.user as { email?: string })?.email ?? null,
       targetType: "user",
       targetId: targetUserId,

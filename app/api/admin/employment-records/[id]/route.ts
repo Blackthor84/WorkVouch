@@ -49,7 +49,7 @@ export async function DELETE(
 
     const { ipAddress, userAgent } = getAuditRequestMeta(_req);
     await insertAdminAuditLog({
-      adminId: admin.userId,
+      adminId: admin.authUserId,
       targetUserId,
       action: "employment_record_delete",
       oldValue: row as Record<string, unknown>,

@@ -41,7 +41,7 @@ export async function DELETE(
 
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await insertAdminAuditLog({
-      adminId: admin.userId,
+      adminId: admin.authUserId,
       targetUserId,
       action: "hard_delete",
       oldValue: oldRow as Record<string, unknown>,

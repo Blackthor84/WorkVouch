@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = (await req.json().catch(() => ({}))) as { userId?: string };
-    const userId = body.userId ?? admin.userId;
+    const userId = body.userId ?? admin.authUserId;
     const sb = getSupabaseServer();
     const { data: row, error } = await sb
       .from("employment_records")

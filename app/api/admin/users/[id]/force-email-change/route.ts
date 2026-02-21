@@ -145,7 +145,7 @@ export async function POST(
 
     try {
       await supabase.from("admin_audit_logs").insert({
-        admin_id: admin.userId,
+        admin_id: admin.authUserId,
         target_user_id: targetUserId,
         action: "user_email_change",
         old_value: { email: oldEmail },
@@ -161,13 +161,13 @@ export async function POST(
     try {
       await logSystemAudit({
         eventType: "EMAIL_CHANGE_FORCED_ADMIN",
-        userId: admin.userId,
+        userId: admin.authUserId,
         payload: { target_user_id: targetUserId, old_email: oldEmail, new_email: newEmail, reason },
         ipAddress,
         userAgent,
       });
       await auditLog({
-        actorUserId: admin.userId,
+        actorUserId: admin.authUserId,
         actorRole: admin.role,
         action: "email_change_forced_admin",
         targetUserId,

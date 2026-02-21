@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
         .from("tenant_memberships")
         .select("id")
         .eq("organization_id", organizationId)
-        .eq("user_id", admin.userId)
+        .eq("user_id", admin.authUserId)
         .in("role", ["org_admin", "admin", "superadmin"])
         .maybeSingle();
       if (!membership) {
@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
     }
 
     await auditLog({
-      actorUserId: admin.userId,
+      actorUserId: admin.authUserId,
       actorRole: admin.role,
       action: "compliance_export",
       metadata: {

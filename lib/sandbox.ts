@@ -24,7 +24,7 @@ export interface SandboxRow {
 export async function requireSandboxAdmin(): Promise<{ id: string }> {
   const admin = await getAdminSession();
   if (!admin) throw new Error("Forbidden: admin or super_admin required");
-  return { id: admin.userId };
+  return { id: admin.authUserId };
 }
 
 /**

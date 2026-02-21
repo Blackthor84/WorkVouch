@@ -14,6 +14,7 @@ import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
 import { isSandboxEnv } from "@/lib/sandbox/env";
 import { getGodModeState } from "@/lib/auth/godModeCookie";
 import { getAppEnvironment, type AppEnvironment } from "@/lib/admin/appEnvironment";
+import { getEffectiveSession } from "@/lib/auth/actingUser";
 
 export type AdminRole = "user" | "admin" | "super_admin";
 
@@ -21,10 +22,13 @@ export type GodModeState = { enabled: boolean; enabledAt?: string };
 
 export type AdminContext = {
   isAuthenticated: boolean;
+  /** Effective user id (acting_user?.id ?? auth_user.id). Use for "who we're acting as". */
   userId: string;
+  /** Auth user id (real logged-in user). Use for audit / god mode. */
+  authUserId: string;
   email: string;
   roles: AdminRole[];
-  /** Resolved role from auth or profiles.role (e.g. admin, super_admin, finance). */
+  /** effectiveRole = acting_user?.role ?? auth_user.role. Drives route guards and redirects. */
   profileRole: string;
   isAdmin: boolean;
   isSuperAdmin: boolean;
@@ -45,6 +49,7 @@ function resolveSandbox(): boolean {
 const UNAUTHORIZED_CONTEXT: AdminContext = {
   isAuthenticated: false,
   userId: "",
+  authUserId: "",
   email: "",
   roles: ["user"],
   profileRole: "user",
@@ -60,39 +65,41 @@ const UNAUTHORIZED_CONTEXT: AdminContext = {
 
 /**
  * Returns the single authoritative admin context. Never throws.
- * Role: app_metadata.role only. API routes must pass the request: getAdminContext(req).
+ * effectiveRole = acting_user?.role ?? auth_user.role — all route guards use this (admin blocked when acting as non-admin).
  */
 export async function getAdminContext(req?: NextRequest): Promise<AdminContext> {
   if (process.env.NODE_ENV !== "production" && req == null) {
     console.warn("getAdminContext called without request; API routes must pass req.");
   }
   try {
-    const supabase = await supabaseServer();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const effectiveSession = await getEffectiveSession();
+    if (!effectiveSession) {
+      return { ...UNAUTHORIZED_CONTEXT };
+    }
 
+    const { authUserId, authRole, effectiveUserId, effectiveRole } = effectiveSession;
+    const supabase = await supabaseServer();
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id || !user?.email) {
       return { ...UNAUTHORIZED_CONTEXT };
     }
 
-    const appRole = (user as { app_metadata?: { role?: string } }).app_metadata?.role;
-    const sessionLike = { user: { id: user.id, app_metadata: { role: appRole } } };
-    const authRole = getRoleFromSession(sessionLike);
-    const profileRole = authRole === "superadmin" ? "super_admin" : authRole === "admin" ? "admin" : "user";
-    const isAdmin = isAdminRole(authRole);
-    const isSuperAdmin = authRole === "superadmin";
+    const profileRole = effectiveRole === "superadmin" || effectiveRole === "super_admin" ? "super_admin" : effectiveRole === "admin" ? "admin" : "user";
+    const isAdmin = isAdminRole(effectiveRole);
+    const isSuperAdmin = effectiveRole === "superadmin" || effectiveRole === "super_admin";
+    const authIsSuperAdmin = authRole === "superadmin";
 
     const roles: AdminRole[] = isAdmin ? (isSuperAdmin ? ["user", "admin", "super_admin"] : ["user", "admin"]) : ["user"];
     const appEnvironment = getAppEnvironment();
     const appSandbox = resolveSandbox();
     const adminToggledSandbox = await getAdminSandboxModeFromCookies();
     const sandbox = appSandbox || adminToggledSandbox;
-    const godMode = await getGodModeState(user.id, isSuperAdmin);
+    const godMode = await getGodModeState(authUserId, authIsSuperAdmin);
 
     return {
       isAuthenticated: true,
-      userId: user.id,
+      userId: effectiveUserId,
+      authUserId,
       email: user.email ?? "",
       roles,
       profileRole,
@@ -100,9 +107,9 @@ export async function getAdminContext(req?: NextRequest): Promise<AdminContext> 
       isSuperAdmin,
       appEnvironment,
       isSandbox: sandbox,
-      canImpersonate: isSuperAdmin || sandbox,
-      canBypassLimits: isSuperAdmin || sandbox,
-      canSeedData: appEnvironment === "sandbox" ? (sandbox || isSuperAdmin) : false,
+      canImpersonate: authIsSuperAdmin || sandbox,
+      canBypassLimits: authIsSuperAdmin || sandbox,
+      canSeedData: appEnvironment === "sandbox" ? (sandbox || authIsSuperAdmin) : false,
       godMode,
     };
   } catch {

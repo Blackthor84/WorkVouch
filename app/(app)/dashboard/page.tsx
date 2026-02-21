@@ -22,6 +22,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getEffectiveSession } from "@/lib/auth/actingUser";
 
 // Ensure runtime rendering - prevents build-time prerendering
 export const revalidate = 0;
@@ -41,20 +42,17 @@ export default async function UserDashboardPage() {
     redirect("/verify-email");
   }
 
-  const { data: profileRow } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  const role = (profileRow?.role ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "").toString().trim().toLowerCase();
+  const effectiveSession = await getEffectiveSession();
+  const effectiveUserId = effectiveSession?.effectiveUserId ?? user.id;
+  const effectiveRole = (effectiveSession?.effectiveRole ?? "").toString().trim().toLowerCase();
 
-  if (role === "admin" || role === "superadmin") {
+  if (effectiveRole === "admin" || effectiveRole === "superadmin" || effectiveRole === "super_admin") {
     redirect("/admin");
   }
-  if (role === "employer") {
+  if (effectiveRole === "employer") {
     redirect("/dashboard/employer");
   }
-  if (role === "employee") {
+  if (effectiveRole === "employee") {
     redirect("/dashboard/employee");
   }
 

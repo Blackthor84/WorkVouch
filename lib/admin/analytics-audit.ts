@@ -26,7 +26,7 @@ export async function logAdminViewedAnalytics(
     const meta = getAuditRequestMeta(req);
     const isSandbox = await getAdminSandboxModeFromCookies();
     await writeAdminAuditLog({
-      admin_user_id: admin.userId,
+      admin_user_id: admin.authUserId,
       admin_email: admin.email ?? null,
       admin_role: admin.role === "super_admin" ? "superadmin" : "admin",
       action_type: "VIEW_ANALYTICS",

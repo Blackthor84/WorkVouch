@@ -31,7 +31,7 @@ export async function POST(
     const meta = getAuditRequestMeta(req);
     const actionId = await addIncidentAction({
       incidentId: id,
-      admin_user_id: admin.userId,
+      admin_user_id: admin.authUserId,
       admin_role: admin.isSuperAdmin ? "superadmin" : "admin",
       action_type,
       action_metadata,

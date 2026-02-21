@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
     const csv = toCSV(rows);
 
     logAdminAction({
-      adminId: admin.userId,
+      adminId: admin.authUserId,
       action: "EXPORT",
       resource: "SOC2",
       requestId,

@@ -34,9 +34,10 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
         return;
       }
       setImpersonating(true);
-      setMessage("Impersonating. Redirecting to dashboard…");
+      const redirectUrl = (data as { redirectUrl?: string }).redirectUrl ?? "/dashboard";
+      setMessage("Impersonating. Redirecting…");
       router.refresh();
-      window.location.href = "/dashboard";
+      window.location.href = redirectUrl;
     } catch {
       setMessage("Request failed");
     } finally {
@@ -48,12 +49,13 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
     setLoading(true);
     setMessage(undefined);
     try {
-      await fetch("/api/admin/impersonate/exit", { method: "POST", credentials: "include" });
+      const res = await fetch("/api/admin/impersonate/exit", { method: "POST", credentials: "include" });
+      const data = await res.json().catch(() => ({}));
       setImpersonating(false);
-      setMessage("Exited.");
+      const redirectUrl = (data as { redirectUrl?: string }).redirectUrl ?? "/admin";
+      window.location.href = redirectUrl;
     } catch {
       setMessage("Exit failed");
-    } finally {
       setLoading(false);
     }
   }, []);

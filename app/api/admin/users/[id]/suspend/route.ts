@@ -50,7 +50,7 @@ export async function POST(
     const isSandbox = await getAdminSandboxModeFromCookies();
     // If audit write fails, action must fail (audit throws).
     await insertAdminAuditLog({
-      adminId: admin.userId,
+      adminId: admin.authUserId,
       adminEmail: admin.user?.email ?? null,
       targetType: "user",
       targetId: targetUserId,

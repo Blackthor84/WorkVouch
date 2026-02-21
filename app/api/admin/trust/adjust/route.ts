@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
 
     await insertAdminAuditLog({
-      adminId: admin.userId,
+      adminId: admin.authUserId,
       adminEmail: (admin.user as { email?: string })?.email ?? null,
       targetType: "trust_score",
       targetId,

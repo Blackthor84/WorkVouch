@@ -70,7 +70,7 @@ export async function POST(
 
     const { ipAddress, userAgent } = getAuditRequestMeta(_req);
     await insertAdminAuditLog({
-      adminId: admin.userId,
+      adminId: admin.authUserId,
       targetUserId,
       action: "recalculate",
       oldValue: oldStrength != null ? { profile_strength: oldStrength } : null,

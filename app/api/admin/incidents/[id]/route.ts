@@ -70,7 +70,7 @@ export async function PATCH(
     await updateIncidentStatus({
       incidentId: id,
       status,
-      admin_user_id: admin.userId,
+      admin_user_id: admin.authUserId,
       admin_email: admin.email,
       admin_role: admin.isSuperAdmin ? "superadmin" : "admin",
       is_sandbox: admin.isSandbox,

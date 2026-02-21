@@ -49,7 +49,7 @@ export default async function AdminLayout({
     redirect("/login");
   }
   if (!["admin", "super_admin"].includes(admin.profileRole)) {
-    redirect("/unauthorized");
+    redirect("/dashboard");
   }
   const sessionLike = { user: { role: admin.isSuperAdmin ? "SUPERADMIN" : admin.isAdmin ? "ADMIN" : "USER" }, godMode: admin.godMode };
   const allowed =
@@ -66,7 +66,7 @@ export default async function AdminLayout({
   const { data: adminUserRow, error: adminUserError } = await supabase
     .from("admin_users")
     .select("god_mode")
-    .eq("user_id", admin.userId)
+    .eq("user_id", admin.authUserId)
     .maybeSingle();
 
   if (adminUserError || !adminUserRow) {

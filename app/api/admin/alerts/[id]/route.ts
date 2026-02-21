@@ -69,7 +69,7 @@ export async function PATCH(
     if (action === "acknowledge") {
       await acknowledgeAlert({
         alertId: id,
-        admin_user_id: admin.userId,
+        admin_user_id: admin.authUserId,
         admin_email: admin.email,
         admin_role: adminRole,
         is_sandbox: isSandbox,
@@ -93,7 +93,7 @@ export async function PATCH(
       }
       await dismissAlert({
         alertId: id,
-        admin_user_id: admin.userId,
+        admin_user_id: admin.authUserId,
         admin_email: admin.email,
         admin_role: adminRole,
         is_sandbox: isSandbox,
@@ -112,7 +112,7 @@ export async function PATCH(
       await silenceAlert({
         alertId: id,
         silenced_until,
-        admin_user_id: admin.userId,
+        admin_user_id: admin.authUserId,
         admin_email: admin.email,
         admin_role: "superadmin",
         is_sandbox: isSandbox,

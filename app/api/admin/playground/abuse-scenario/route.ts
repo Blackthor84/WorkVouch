@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
   if (envCheck.overrideActive && admin) {
     const { insertAdminAuditLog } = await import("@/lib/admin/audit");
     await insertAdminAuditLog({
-      adminId: admin.userId,
+      adminId: admin.authUserId,
       adminEmail: admin.user?.email ?? null,
       targetType: "system",
       action: "playground_mutation_under_override",

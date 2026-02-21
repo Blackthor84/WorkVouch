@@ -259,7 +259,7 @@ export function assertAdminCanModify(
   }
   if (
     newRole !== undefined &&
-    !canAssignRole(admin.role, newRole, admin.userId === targetUserId)
+    !canAssignRole(admin.role, newRole, admin.authUserId === targetUserId)
   ) {
     throw new Error(
       "Forbidden: Cannot assign this role (e.g. cannot escalate own role or assign superadmin)"

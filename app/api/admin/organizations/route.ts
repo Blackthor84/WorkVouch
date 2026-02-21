@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
     const organizations = Array.isArray(data) ? data : [];
 
     logAdminAction({
-      adminId: admin.userId,
+      adminId: admin.authUserId,
       action: "READ",
       resource: "ORGANIZATIONS",
       requestId: getRequestId(req),

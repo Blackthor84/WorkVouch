@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
     const actionType = action === "restore" ? "review_restore" : "review_remove";
     await insertAdminAuditLog({
-      adminId: admin.userId,
+      adminId: admin.authUserId,
       adminEmail: (admin.user as { email?: string })?.email ?? null,
       targetType: "review",
       targetId: reviewId,

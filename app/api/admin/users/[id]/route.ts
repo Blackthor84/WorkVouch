@@ -124,7 +124,7 @@ export async function PATCH(
 
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await insertAdminAuditLog({
-      adminId: admin.userId,
+      adminId: admin.authUserId,
       targetUserId,
       action: "profile_update",
       oldValue: oldRow as Record<string, unknown>,

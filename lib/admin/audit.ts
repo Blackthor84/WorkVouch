@@ -97,7 +97,7 @@ export async function logAdminAction(
 ): Promise<void> {
   const { ipAddress, userAgent } = getAuditRequestMeta(req);
   await writeAdminAuditLog({
-    admin_user_id: admin.userId,
+    admin_user_id: admin.authUserId,
     admin_email: admin.email ?? null,
     admin_role: admin.isSuperAdmin ? "superadmin" : "admin",
     action_type: payload.action_type,

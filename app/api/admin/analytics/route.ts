@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   const admin = await requireAdminForApi();
   if (!admin) return adminForbiddenResponse();
 
-  const userId = admin.userId ?? null;
+  const userId = admin.authUserId ?? null;
   const rateLimitResult = withRateLimit(req, {
     userId,
     windowMs: 60_000,

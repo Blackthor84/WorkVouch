@@ -47,7 +47,7 @@ export async function POST(
     const isSandbox = await getAdminSandboxModeFromCookies();
     await logAdminAction(
       {
-        userId: admin.userId,
+        userId: admin.authUserId,
         email: (admin.user as { email?: string })?.email ?? null,
         isSuperAdmin: admin.isSuperAdmin,
       },

@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     const meta = getAuditRequestMeta(req);
 
     await writeAdminAuditLog({
-      admin_user_id: admin.userId,
+      admin_user_id: admin.authUserId,
       admin_email: admin.email,
       admin_role: admin.isSuperAdmin ? "superadmin" : "admin",
       action_type: "EXPORT_INCIDENTS",
