@@ -59,8 +59,8 @@ export async function GET() {
       : new Date().toISOString();
 
     const computed: ComputedResumeRow = {
-      id: user.id,
-      user_id: user.id,
+      id: effectiveUserId,
+      user_id: effectiveUserId,
       file_path: "Career history",
       status: "parsed",
       parsed_data: employment.length > 0 ? { employment } : null,
