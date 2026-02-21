@@ -3,12 +3,13 @@ import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
 import { getAuthedUser } from "@/lib/auth/getAuthedUser";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { logSandboxEvent } from "@/lib/sandbox/sandboxEvents";
-import { isSandboxMutationsEnabled, getAllowedBulkCount, SANDBOX_BULK_MAX } from "@/lib/server/sandboxMutations";
+import { canPerformSandboxMutations, getAllowedBulkCount } from "@/lib/server/sandboxMutations";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const DEFAULT_EMPLOYEES = 5;
+const DEFAULT_COMPANIES = 1;
 
 /**
  * In-memory fallback when DB fails. Ensures 200 and unblocks Playground.
@@ -24,23 +25,27 @@ function safeModeIds(): { employerId: string; employeeIds: string[]; sandboxId: 
 
 /**
  * POST /api/sandbox/generate-company
- * Always returns 200. On DB failure, falls back to in-memory fake IDs (safe_mode: true).
+ * ENABLE_SANDBOX_MUTATIONS guard; superadmin bypasses. Up to 1000 companies (employers) for superadmin.
+ * All other roles locked. No NODE_ENV blocking. RLS unchanged. On DB failure, safe_mode fallback (200).
  */
 export async function POST(req: NextRequest) {
-  if (!isSandboxMutationsEnabled()) {
-    return NextResponse.json({ error: "Sandbox mutations are disabled" }, { status: 403 });
-  }
-
   const guard = await sandboxAdminGuard();
   if (!guard.allowed) return guard.response;
 
   const authed = await getAuthedUser();
   const role = authed?.role ?? null;
-  const body = await req.json().catch(() => ({}));
-  const requestedCount = typeof body.employeeCount === "number" ? body.employeeCount : typeof body.employee_count === "number" ? body.employee_count : DEFAULT_EMPLOYEES;
-  const employeeCount = getAllowedBulkCount(role, requestedCount, DEFAULT_EMPLOYEES);
 
-  let employerId: string | null = null;
+  if (!canPerformSandboxMutations(role)) {
+    return NextResponse.json({ error: "Sandbox mutations are disabled" }, { status: 403 });
+  }
+
+  const body = await req.json().catch(() => ({}));
+  const requestedEmployees = typeof body.employeeCount === "number" ? body.employeeCount : typeof body.employee_count === "number" ? body.employee_count : DEFAULT_EMPLOYEES;
+  const requestedCompanies = typeof body.companyCount === "number" ? body.companyCount : typeof body.company_count === "number" ? body.company_count : DEFAULT_COMPANIES;
+  const employeeCount = getAllowedBulkCount(role, requestedEmployees, DEFAULT_EMPLOYEES);
+  const companyCount = getAllowedBulkCount(role, requestedCompanies, DEFAULT_COMPANIES);
+
+  let employerIds: string[] = [];
   let employeeIds: string[] = [];
   let sandboxId: string | null = null;
   let errorDetail: string | undefined;
@@ -88,19 +93,22 @@ export async function POST(req: NextRequest) {
     }
     sandboxId = resolvedSandboxId;
 
-    // --- 2) Create employer ---
-    const { data: employerRow, error: employerErr } = await supabase
-      .from("sandbox_employers")
-      .insert({ sandbox_id: resolvedSandboxId })
-      .select("id")
-      .single();
+    // --- 2) Create employers (1 default; up to SANDBOX_BULK_MAX for superadmin) ---
+    for (let c = 0; c < companyCount; c++) {
+      const { data: employerRow, error: employerErr } = await supabase
+        .from("sandbox_employers")
+        .insert({ sandbox_id: resolvedSandboxId })
+        .select("id")
+        .single();
 
-    if (employerErr || !employerRow?.id) {
-      throw new Error(employerErr?.message ?? "Employer insert failed");
+      if (employerErr || !employerRow?.id) {
+        throw new Error(employerErr?.message ?? "Employer insert failed");
+      }
+      employerIds.push((employerRow as { id: string }).id);
     }
-    employerId = (employerRow as { id: string }).id;
+    const employerId = employerIds[0] ?? null;
 
-    // --- 3) Create employees (default 5; up to SANDBOX_BULK_MAX when superadmin + ENABLE_SANDBOX_MUTATIONS) ---
+    // --- 3) Create employees (default 5; up to SANDBOX_BULK_MAX for superadmin) ---
     const baseNames = ["Alex Smith", "Jordan Jones", "Sam Williams", "Taylor Brown", "Morgan Davis"];
     const names = employeeCount <= baseNames.length
       ? baseNames.slice(0, employeeCount)
@@ -133,21 +141,22 @@ export async function POST(req: NextRequest) {
     console.error("SANDBOX GENERATE COMPANY ROOT ERROR", dbErr);
     errorDetail = dbErr instanceof Error ? dbErr.message : String(dbErr);
     const fallback = safeModeIds();
-    employerId = fallback.employerId;
+    employerIds = [fallback.employerId];
     employeeIds = fallback.employeeIds;
     sandboxId = fallback.sandboxId;
   }
 
-  const safe_mode = (employerId ?? "").startsWith("sandbox_employer_");
+  const safe_mode = (employerIds[0] ?? "").startsWith("sandbox_employer_");
   const payload = {
     sandbox: true,
-    employer_id: employerId ?? "",
+    employer_id: employerIds[0] ?? "",
+    employer_ids: employerIds,
     employee_ids: employeeIds,
     safe_mode,
     sandboxId,
-    employer: employerId ? { id: employerId, company_name: "Sandbox Co" } : undefined,
+    employer: employerIds[0] ? { id: employerIds[0], company_name: "Sandbox Co" } : undefined,
     workers: employeeIds.map((id) => ({ id, full_name: "Worker" })),
-    employer_created: !!employerId,
+    employers_created: employerIds.length,
     employees_created: employeeIds.length,
   };
   if (errorDetail) (payload as Record<string, unknown>).details = errorDetail;
@@ -155,12 +164,12 @@ export async function POST(req: NextRequest) {
   void logSandboxEvent({
     type: "generate_company",
     message: safe_mode
-      ? "Sandbox company created (simulated). 1 employer, 5 employees."
-      : "Sandbox company created. 1 employer, " + employeeIds.length + " employees.",
+      ? "Sandbox company created (simulated). " + employerIds.length + " employer(s), " + employeeIds.length + " employees."
+      : "Sandbox company created. " + employerIds.length + " employer(s), " + employeeIds.length + " employees.",
     entity_type: "company",
     sandbox_id: sandboxId ?? null,
     metadata: {
-      employer_id: employerId ?? "",
+      employer_ids: employerIds,
       employees_created: employeeIds.length,
       sandboxId: sandboxId ?? undefined,
       safe_mode,

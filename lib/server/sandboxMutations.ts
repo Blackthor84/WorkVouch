@@ -1,10 +1,8 @@
 /**
  * Sandbox mutations gate: ENABLE_SANDBOX_MUTATIONS env flag.
- * When true, superadmin can perform sandbox mutations and bulk generation (up to 1000).
- * All other roles remain locked. RLS stays enabled.
+ * Superadmin can always perform sandbox mutations (bypass). When flag is true, admin can too.
+ * All other roles locked. RLS stays enabled. No NODE_ENV-based blocking.
  */
-
-import { getAuthedUser } from "@/lib/auth/getAuthedUser";
 
 export const SANDBOX_BULK_MAX = 1000;
 
@@ -18,11 +16,17 @@ export function isSuperadmin(role: string | undefined | null): boolean {
   return r === "superadmin" || r === "super_admin";
 }
 
+/** True when mutations are allowed: superadmin always, or ENABLE_SANDBOX_MUTATIONS=true for admin. */
+export function canPerformSandboxMutations(role: string | undefined | null): boolean {
+  return isSuperadmin(role) || isSandboxMutationsEnabled();
+}
+
 /**
- * Returns allowed bulk count: when ENABLE_SANDBOX_MUTATIONS=true and role=superadmin, up to SANDBOX_BULK_MAX; otherwise defaultCap.
+ * Returns allowed bulk count: superadmin up to SANDBOX_BULK_MAX; when flag on, superadmin up to 1000; otherwise defaultCap.
  */
 export function getAllowedBulkCount(role: string | undefined | null, requested: number, defaultCap: number): number {
-  if (!isSandboxMutationsEnabled() || !isSuperadmin(role)) return defaultCap;
+  if (!isSuperadmin(role) && !isSandboxMutationsEnabled()) return defaultCap;
   if (requested <= 0) return defaultCap;
-  return Math.min(requested, SANDBOX_BULK_MAX);
+  if (isSuperadmin(role)) return Math.min(requested, SANDBOX_BULK_MAX);
+  return defaultCap;
 }
