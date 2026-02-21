@@ -1,19 +1,18 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser, getProfile } from "@/lib/auth";
+import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
+import { getProfile } from "@/lib/auth";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/user/profile — returns role, onboarding_completed, and sandbox_mode for the current user.
- * sandbox_mode is true only when user is admin/superadmin and sandbox_mode cookie is set.
- * Never returns 401/500: no user or failure → 200 with profile: null so app boot never crashes.
+ * GET /api/user/profile — returns role, onboarding_completed, sandbox_mode for effective user (impersonation-aware).
  */
 export async function GET() {
   try {
-    const user = await getCurrentUser();
-    if (!user?.id) {
+    const effectiveUserId = await getEffectiveUserId();
+    if (!effectiveUserId) {
       return NextResponse.json({
         profile: null,
         role: null,
@@ -21,7 +20,7 @@ export async function GET() {
         sandbox_mode: false,
       });
     }
-    const profile = await getProfile(user.id);
+    const profile = await getProfile(effectiveUserId);
     const role = (profile.role ?? "").toLowerCase();
     const isAdmin = role === "admin" || role === "superadmin";
     const sandbox_mode = isAdmin ? await getAdminSandboxModeFromCookies() : false;

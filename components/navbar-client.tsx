@@ -177,10 +177,15 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
                   variant="ghost"
                   size="sm"
                   onClick={async () => {
-                  await supabaseBrowser.auth.signOut();
-                  router.push("/");
-                  router.refresh();
-                }}
+                    try {
+                      await fetch("/api/sandbox/impersonate/exit", { method: "POST", credentials: "include" });
+                    } catch {
+                      // ignore
+                    }
+                    await supabaseBrowser.auth.signOut();
+                    router.push("/");
+                    router.refresh();
+                  }}
                   className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
                 >
                   Logout

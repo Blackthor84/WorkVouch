@@ -9,6 +9,11 @@ export function SignOutButton() {
   const supabase = supabaseBrowser;
 
   const handleSignOut = async () => {
+    try {
+      await fetch("/api/sandbox/impersonate/exit", { method: "POST", credentials: "include" });
+    } catch {
+      // ignore
+    }
     await supabase.auth.signOut();
     router.push("/");
     router.refresh();

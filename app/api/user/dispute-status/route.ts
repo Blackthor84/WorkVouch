@@ -6,15 +6,15 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getCurrentUser } from "@/lib/auth";
+import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
+    const effectiveUserId = await getEffectiveUserId();
+    if (!effectiveUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -23,20 +23,20 @@ export async function GET() {
     const { data: profile } = await sb
       .from("profiles")
       .select("active_dispute_count, trust_score_under_review")
-      .eq("id", user.id)
+      .eq("id", effectiveUserId)
       .single();
 
     const { data: openDisputes } = await sb
       .from("disputes")
       .select("id, dispute_type, related_record_id, status, created_at")
-      .eq("user_id", user.id)
+      .eq("user_id", effectiveUserId)
       .in("status", ["open", "under_review"])
       .order("created_at", { ascending: false });
 
     const { data: trustRow } = await sb
       .from("trust_scores")
       .select("score")
-      .eq("user_id", user.id)
+      .eq("user_id", effectiveUserId)
       .order("calculated_at", { ascending: false })
       .limit(1)
       .maybeSingle();

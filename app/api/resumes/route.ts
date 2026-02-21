@@ -6,6 +6,7 @@
 
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -22,6 +23,11 @@ export type ComputedResumeRow = {
 
 export async function GET() {
   try {
+    const effectiveUserId = await getEffectiveUserId();
+    if (!effectiveUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!url || !anonKey) {
@@ -29,16 +35,10 @@ export async function GET() {
     }
 
     const supabase = await supabaseServer();
-    const authResult = await supabase.auth.getUser();
-    const user = authResult?.data?.user ?? null;
-    if (!user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { data: records, error } = await supabase
       .from("employment_records")
       .select("id, user_id, company_name, job_title, start_date, end_date, is_current, created_at")
-      .eq("user_id", user.id)
+      .eq("user_id", effectiveUserId)
       .order("created_at", { ascending: false });
 
     if (error) {

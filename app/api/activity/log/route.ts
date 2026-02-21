@@ -1,15 +1,16 @@
 /**
  * POST /api/activity/log — log user activity to activity_log (RLS; user-owned).
  * Requires authenticated user. Body: { action, target?, metadata? }.
+ * Uses effective user id (impersonated_user_id ?? auth.uid()) so actions are attributed correctly.
  */
 
 import { NextResponse } from "next/server";
-import { getAuthedUser } from "@/lib/auth/getAuthedUser";
+import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 import { insertActivityLog } from "@/lib/activity";
 
 export async function POST(req: Request) {
-  const authed = await getAuthedUser();
-  if (!authed) {
+  const effectiveUserId = await getEffectiveUserId();
+  if (!effectiveUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
 
   try {
     await insertActivityLog({
-      userId: authed.user.id,
+      userId: effectiveUserId,
       action,
       target: target ?? null,
       metadata: metadata ?? null,

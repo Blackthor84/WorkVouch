@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getCurrentUser } from "@/lib/auth";
+import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { refreshUserDisputeTransparency } from "@/lib/dispute-audit";
 import { z } from "zod";
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     const { data: recentSame } = await sb
       .from("disputes")
       .select("id, created_at")
-      .eq("user_id", user.id)
+      .eq("user_id", effectiveUserId)
       .eq("related_record_id", related_record_id)
       .eq("dispute_type", dispute_type)
       .gte("created_at", cooldownSince.toISOString())
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     const { data: dispute, error } = await sb
       .from("disputes")
       .insert({
-        user_id: user.id,
+        user_id: effectiveUserId,
         dispute_type,
         related_record_id,
         description,
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to create dispute" }, { status: 500 });
     }
 
-    await refreshUserDisputeTransparency(user.id);
+    await refreshUserDisputeTransparency(effectiveUserId);
 
     return NextResponse.json({
       id: dispute.id,

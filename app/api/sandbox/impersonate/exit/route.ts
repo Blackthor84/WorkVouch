@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getAuthedUser } from "@/lib/auth/getAuthedUser";
 import { supabaseServer } from "@/lib/supabase/server";
 import { writeImpersonationAudit } from "@/lib/impersonationAudit";
@@ -8,7 +9,9 @@ import { logSandboxEvent } from "@/lib/sandbox/sandboxEvents";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** POST /api/sandbox/impersonate/exit — clear impersonation. Admin/superadmin only. Logs impersonation_ended. */
+const IMPERSONATION_COOKIE = "sandbox_playground_impersonation";
+
+/** POST /api/sandbox/impersonate/exit — clear impersonation cookie. Admin/superadmin only. Call before logout for auto-exit. */
 export async function POST(req: NextRequest) {
   const authed = await getAuthedUser();
   if (!authed || (authed.role !== "admin" && authed.role !== "superadmin")) {
@@ -19,7 +22,7 @@ export async function POST(req: NextRequest) {
   let targetIdentifier: string | null = null;
   try {
     const adminId = authed.user.id;
-    const cookie = req.cookies.get("sandbox_playground_impersonation")?.value;
+    const cookie = req.cookies.get(IMPERSONATION_COOKIE)?.value;
     if (cookie) {
       try {
         const parsed = JSON.parse(cookie) as { id?: string; name?: string };
@@ -55,6 +58,7 @@ export async function POST(req: NextRequest) {
   });
 
   const res = NextResponse.json({ ok: true });
-  res.cookies.set("sandbox_playground_impersonation", "", { maxAge: 0, path: "/" });
+  const cookieStore = await cookies();
+  cookieStore.set(IMPERSONATION_COOKIE, "", { maxAge: 0, path: "/" });
   return res;
 }

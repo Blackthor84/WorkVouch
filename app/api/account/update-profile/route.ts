@@ -1,22 +1,20 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { insertActivityLog } from "@/lib/activity";
 
 /**
  * POST /api/account/update-profile
- * User self-edit: full_name only. Auth required.
- * Email change is NOT allowed here — use POST /api/account/request-email-change (two-step verification).
+ * User self-edit: full_name only. Auth required. Uses effective user (impersonation-aware).
  */
 export async function POST(request: Request) {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user?.id) {
+    const userId = await getEffectiveUserId();
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const userId = session.user.id as string;
     const body = await request.json().catch(() => ({}));
     const full_name = typeof body.full_name === "string" ? body.full_name.trim() : undefined;
 

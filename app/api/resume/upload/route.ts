@@ -1,25 +1,23 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { insertActivityLog } from "@/lib/activity";
+import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const supabase = await supabaseServer();
-    const { data: auth } = await supabase.auth.getUser();
-
-    if (!auth?.user) {
+    const effectiveUserId = await getEffectiveUserId();
+    if (!effectiveUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = auth.user.id;
-
+    const supabase = await supabaseServer();
     const supabaseAny = supabase as any;
     const { data: profile } = await supabaseAny
       .from("profiles")
       .select("role")
-      .eq("id", userId)
+      .eq("id", effectiveUserId)
       .single();
 
     if (profile?.role !== "user") {
@@ -36,7 +34,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing resume file" }, { status: 400 });
     }
 
-    const path = `${userId}/resume.pdf`;
+    const path = `${effectiveUserId}/resume.pdf`;
 
     const { error: uploadError } = await supabase.storage
       .from("resumes")
@@ -57,9 +55,9 @@ export async function POST(req: Request) {
         resume_url: resumeUrl,
         resume_uploaded_at: new Date().toISOString(),
       })
-      .eq("id", userId);
+      .eq("id", effectiveUserId);
 
-    insertActivityLog({ userId, action: "resume_uploaded" }).catch(() => {});
+    insertActivityLog({ userId: effectiveUserId, action: "resume_uploaded" }).catch(() => {});
 
     return NextResponse.json({ success: true });
   } catch {

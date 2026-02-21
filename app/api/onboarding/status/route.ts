@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getCurrentUser, hasRole } from "@/lib/auth";
+import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
+import { hasRole } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/auth/isAdmin";
 
@@ -32,8 +33,8 @@ const WORKER_STEPS: OnboardingStep[] = [
 
 export async function GET() {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
+    const effectiveUserId = await getEffectiveUserId();
+    if (!effectiveUserId) {
       return NextResponse.json({ showOnboarding: false });
     }
 
@@ -42,7 +43,7 @@ export async function GET() {
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", user.id)
+      .eq("id", effectiveUserId)
       .single();
 
     const profileRow = profileError ? null : profile;
@@ -55,13 +56,13 @@ export async function GET() {
       return NextResponse.json({ showOnboarding: false, completed: true });
     }
 
-    const isEmployer = await hasRole("employer");
+    const isEmployer = (profileRow?.role ?? "").toLowerCase() === "employer";
 
     if (isEmployer) {
       const { data: employerAccount, error: employerError } = await supabase
         .from("employer_accounts")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", effectiveUserId)
         .single();
 
       const employerId = employerError ? undefined : employerAccount?.id;
@@ -91,7 +92,7 @@ export async function GET() {
     const { count: jobsCount } = await supabase
       .from("jobs")
       .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id);
+      .eq("user_id", effectiveUserId);
 
     const profileComplete = Boolean(profileRow?.full_name?.trim() && profileRow?.industry?.trim());
     const hasJobs = (jobsCount ?? 0) > 0;
