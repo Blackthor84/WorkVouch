@@ -15,10 +15,13 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
   const [impersonating, setImpersonating] = useState(false);
 
   const startImpersonation = useCallback(async () => {
-    if (!targetUserId.trim()) {
+    const userId = targetUserId.trim();
+    if (!userId) {
       setMessage("Enter or select target user ID");
       return;
     }
+    const payload: { userId: string } = { userId };
+    console.log("Impersonate userId (before fetch):", payload.userId);
     setLoading(true);
     setMessage(undefined);
     try {
@@ -26,7 +29,7 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: targetUserId.trim() }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {

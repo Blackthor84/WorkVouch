@@ -193,11 +193,19 @@ export function AdminUsersList() {
                     size="sm"
                     className="hover:bg-slate-50 text-[#334155]"
                     onClick={async () => {
+                      const userId = typeof user?.id === "string" ? user.id.trim() : "";
+                      if (!userId) {
+                        alert("No user ID");
+                        return;
+                      }
+                      const payload: { userId: string } = { userId };
+                      console.log("Impersonate userId (before fetch):", payload.userId);
                       try {
                         const res = await fetch("/api/admin/impersonate", {
                           method: "POST",
+                          credentials: "include",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ userId: user.id }),
+                          body: JSON.stringify(payload),
                         });
                         if (!res.ok) {
                           const err = await res.json().catch(() => ({}));
