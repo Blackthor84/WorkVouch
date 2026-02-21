@@ -1,7 +1,7 @@
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { isAdmin } from "@/lib/auth/isAdmin";
+import { requireSuperadmin } from "@/lib/auth/requireSuperadmin";
 import { writeGodModeAudit } from "@/lib/godModeAudit";
 import { isSandboxEnv } from "@/lib/sandbox/env";
 
@@ -18,27 +18,19 @@ type Profile = {
 type AdminSessionInsert = Database["public"]["Tables"]["admin_sessions"]["Insert"];
 type AdminActionInsert = Database["public"]["Tables"]["admin_actions"]["Insert"];
 
+/** POST /api/admin/impersonate — superadmin only. Body: { userId }. Returns impersonateUser + impersonationToken for /api/admin/impersonate/set. */
 export async function POST(request: Request) {
   try {
-    const supabase = await supabaseServer();
+    const forbidden = await requireSuperadmin();
+    if (forbidden) return forbidden;
 
+    const supabase = await supabaseServer();
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    const role = (profile as { role?: string }).role ?? "";
-    if (!profile || !isAdmin({ role })) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const godModeEnabled = process.env.WORKVOUCH_GOD_MODE === "true";
@@ -56,9 +48,9 @@ export async function POST(request: Request) {
 
     const { data: targetProfile, error } = await adminSupabase
       .from("profiles")
-      .select("id, email")
+      .select("id, email, role")
       .eq("id", userId)
-      .single<Profile>();
+      .single<Profile & { role?: string }>();
 
     if (error || !targetProfile) {
       return new Response("Profile not found", { status: 404 });

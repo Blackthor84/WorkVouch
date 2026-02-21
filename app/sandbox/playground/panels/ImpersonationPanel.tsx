@@ -22,26 +22,30 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
     setLoading(true);
     setMessage(undefined);
     try {
-      const id = targetUserId.trim();
-      const payload: { id: string; sandboxId?: string; type?: string; name?: string } = { id };
-      if (sandboxId != null && sandboxId !== "") payload.sandboxId = sandboxId;
-      const selected = users.find((u) => u.id === id);
-      payload.type = selected?.role === "employer" ? "employer" : "employee";
-      payload.name = targetName.trim() || "Sandbox user";
-      const res = await fetch("/api/sandbox/impersonate", {
+      const res = await fetch("/api/admin/impersonate", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ userId: targetUserId.trim() }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setMessage((data as { error?: string }).error ?? "Failed");
         return;
       }
+      if (data.impersonateUser || data.impersonationToken) {
+        await fetch("/api/admin/impersonate/set", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            impersonationToken: data.impersonationToken,
+            impersonateUser: data.impersonateUser,
+          }),
+        });
+      }
       setImpersonating(true);
-      setMessage("Impersonating. Show global banner.");
-      window.dispatchEvent(new CustomEvent("sandbox-impersonation-change"));
+      setMessage("Impersonating. Redirecting…");
       router.refresh();
       window.location.href = "/dashboard";
     } catch {
@@ -49,16 +53,15 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [targetUserId, targetName, users, sandboxId, router]);
+  }, [targetUserId, router]);
 
   const exitImpersonation = useCallback(async () => {
     setLoading(true);
     setMessage(undefined);
     try {
-      await fetch("/api/sandbox/impersonate/exit", { method: "POST", credentials: "include" });
+      await fetch("/api/admin/impersonate/exit", { method: "POST", credentials: "include" });
       setImpersonating(false);
       setMessage("Exited.");
-      window.dispatchEvent(new CustomEvent("sandbox-impersonation-change"));
     } catch {
       setMessage("Exit failed");
     } finally {
@@ -67,12 +70,10 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
   }, []);
 
   useEffect(() => {
-    try {
-      const cookie = document.cookie.split(";").find((c) => c.trim().startsWith("sandbox_playground_impersonation="));
-      setImpersonating(Boolean(cookie?.includes("id")));
-    } catch {
-      // ignore
-    }
+    fetch("/api/admin/impersonate/status")
+      .then((r) => r.json())
+      .then((data) => setImpersonating(Boolean(data?.impersonating)))
+      .catch(() => setImpersonating(false));
   }, [message]);
 
   const selectUser = (u: SandboxUser) => {

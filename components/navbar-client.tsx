@@ -178,7 +178,7 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
                   size="sm"
                   onClick={async () => {
                     try {
-                      await fetch("/api/sandbox/impersonate/exit", { method: "POST", credentials: "include" });
+                      await fetch("/api/admin/impersonate/exit", { method: "POST", credentials: "include" });
                     } catch {
                       // ignore
                     }
