@@ -111,29 +111,48 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      // sandbox_peer_reviews expects sandbox_employees.id; list (and body) may send profile_id — resolve to row id
+      let resolvedWorkerIds = workerIds;
+      try {
+        const supabase = getServiceRoleClient();
+        const { data: rows } = await supabase
+          .from("sandbox_employees")
+          .select("id, profile_id")
+          .eq("sandbox_id", sandboxId);
+        const byProfileId = new Map<string, string>();
+        const byId = new Map<string, string>();
+        for (const r of rows ?? []) {
+          if (r.profile_id) byProfileId.set(r.profile_id, r.id);
+          byId.set(r.id, r.id);
+        }
+        resolvedWorkerIds = workerIds.map((wid) => byProfileId.get(wid) ?? byId.get(wid) ?? wid);
+      } catch {
+        // keep original workerIds if resolution fails (e.g. no profile_id column yet)
+      }
+
       const peerPath = "/api/admin/sandbox-v2/peer-reviews";
       events.push({ type: "scenario_started", scenario });
 
       if (scenario === "healthy-team") {
         await post(peerPath, {
           sandbox_id: sandboxId,
-          reviewer_id: workerIds[0],
-          reviewed_id: workerIds[1],
+          reviewer_id: resolvedWorkerIds[0],
+          reviewed_id: resolvedWorkerIds[1],
           rating: 5,
           review_text: "Supportive and structured. Great teammate.",
         });
         await post(peerPath, {
           sandbox_id: sandboxId,
-          reviewer_id: workerIds[1],
-          reviewed_id: workerIds[0],
+          reviewer_id: resolvedWorkerIds[1],
+          reviewed_id: resolvedWorkerIds[0],
           rating: 5,
           review_text: "Collaborative and reliable.",
         });
-        if (workerIds[2]) {
+        if (resolvedWorkerIds[2]) {
           await post(peerPath, {
             sandbox_id: sandboxId,
-            reviewer_id: workerIds[0],
-            reviewed_id: workerIds[2],
+            reviewer_id: resolvedWorkerIds[0],
+            reviewed_id: resolvedWorkerIds[2],
             rating: 4,
             review_text: "Positive influence.",
           });
@@ -144,15 +163,15 @@ export async function POST(req: NextRequest) {
       if (scenario === "toxic-manager") {
         await post(peerPath, {
           sandbox_id: sandboxId,
-          reviewer_id: workerIds[0],
-          reviewed_id: workerIds[1],
+          reviewer_id: resolvedWorkerIds[0],
+          reviewed_id: resolvedWorkerIds[1],
           rating: 1,
           review_text: "Poor communication and unfair treatment.",
         });
         await post(peerPath, {
           sandbox_id: sandboxId,
-          reviewer_id: workerIds[1],
-          reviewed_id: workerIds[0],
+          reviewer_id: resolvedWorkerIds[1],
+          reviewed_id: resolvedWorkerIds[0],
           rating: 2,
           review_text: "Unsupportive. High turnover risk.",
         });
@@ -175,8 +194,8 @@ export async function POST(req: NextRequest) {
         for (let i = 0; i < Math.min(3, workerIds.length - 1); i++) {
           await post(peerPath, {
             sandbox_id: sandboxId,
-            reviewer_id: workerIds[i],
-            reviewed_id: workerIds[i + 1],
+            reviewer_id: resolvedWorkerIds[i],
+            reviewed_id: resolvedWorkerIds[i + 1],
             rating: 2,
             review_text: "Considering leaving. Culture issues.",
           });
@@ -199,23 +218,23 @@ export async function POST(req: NextRequest) {
       if (scenario === "mixed-reputation") {
         await post(peerPath, {
           sandbox_id: sandboxId,
-          reviewer_id: workerIds[0],
-          reviewed_id: workerIds[1],
+          reviewer_id: resolvedWorkerIds[0],
+          reviewed_id: resolvedWorkerIds[1],
           rating: 5,
           review_text: "Strong performer.",
         });
         await post(peerPath, {
           sandbox_id: sandboxId,
-          reviewer_id: workerIds[1],
-          reviewed_id: workerIds[0],
+          reviewer_id: resolvedWorkerIds[1],
+          reviewed_id: resolvedWorkerIds[0],
           rating: 3,
           review_text: "Mixed experience.",
         });
-        if (workerIds[2] && workerIds[3]) {
+        if (resolvedWorkerIds[2] && resolvedWorkerIds[3]) {
           await post(peerPath, {
             sandbox_id: sandboxId,
-            reviewer_id: workerIds[2],
-            reviewed_id: workerIds[3],
+            reviewer_id: resolvedWorkerIds[2],
+            reviewed_id: resolvedWorkerIds[3],
             rating: 2,
             review_text: "Needs improvement.",
           });

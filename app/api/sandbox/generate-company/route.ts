@@ -4,6 +4,7 @@ import { getAuthedUser } from "@/lib/auth/getAuthedUser";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { logSandboxEvent } from "@/lib/sandbox/sandboxEvents";
 import { canPerformSandboxMutations, getAllowedBulkCount } from "@/lib/server/sandboxMutations";
+import { createSandboxProfile } from "@/lib/sandbox/createSandboxProfile";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -49,6 +50,8 @@ export async function POST(req: NextRequest) {
   let employeeIds: string[] = [];
   let sandboxId: string | null = null;
   let errorDetail: string | undefined;
+  let employerProfileId: string | null = null;
+  let workerProfiles: { id: string; full_name: string }[] = [];
 
   try {
     const supabase = getServiceRoleClient();
@@ -93,11 +96,17 @@ export async function POST(req: NextRequest) {
     }
     sandboxId = resolvedSandboxId;
 
-    // --- 2) Create employers (1 default; up to SANDBOX_BULK_MAX for superadmin) ---
+    // --- 2) Create employers (1 default; up to SANDBOX_BULK_MAX for superadmin); each backed by a profile for impersonation ---
+    const employerProfileIds: string[] = [];
     for (let c = 0; c < companyCount; c++) {
+      const profileId = await createSandboxProfile(supabase, {
+        full_name: "Sandbox Co",
+        role: "employer",
+        sandbox_id: resolvedSandboxId,
+      });
       const { data: employerRow, error: employerErr } = await supabase
         .from("sandbox_employers")
-        .insert({ sandbox_id: resolvedSandboxId })
+        .insert({ sandbox_id: resolvedSandboxId, profile_id: profileId })
         .select("id")
         .single();
 
@@ -105,23 +114,33 @@ export async function POST(req: NextRequest) {
         throw new Error(employerErr?.message ?? "Employer insert failed");
       }
       employerIds.push((employerRow as { id: string }).id);
+      employerProfileIds.push(profileId);
     }
     const employerId = employerIds[0] ?? null;
+    employerProfileId = employerProfileIds[0] ?? null;
 
-    // --- 3) Create employees (default 5; up to SANDBOX_BULK_MAX for superadmin) ---
+    // --- 3) Create employees (default 5; up to SANDBOX_BULK_MAX for superadmin); each backed by a profile for impersonation ---
     const baseNames = ["Alex Smith", "Jordan Jones", "Sam Williams", "Taylor Brown", "Morgan Davis"];
     const names = employeeCount <= baseNames.length
       ? baseNames.slice(0, employeeCount)
       : [...baseNames, ...Array.from({ length: employeeCount - baseNames.length }, (_, i) => `Worker ${i + 6}`)];
+    workerProfiles = [];
     for (let i = 0; i < employeeCount; i++) {
+      const full_name = names[i];
+      const profileId = await createSandboxProfile(supabase, {
+        full_name,
+        role: "user",
+        sandbox_id: resolvedSandboxId,
+      });
       const { data: empRow, error: empErr } = await supabase
         .from("sandbox_employees")
-        .insert({ sandbox_id: resolvedSandboxId, full_name: names[i] })
+        .insert({ sandbox_id: resolvedSandboxId, full_name, profile_id: profileId })
         .select("id")
         .single();
 
       if (empErr || !empRow?.id) throw new Error(empErr?.message ?? "Employee insert failed");
       employeeIds.push((empRow as { id: string }).id);
+      workerProfiles.push({ id: profileId, full_name });
     }
 
     // --- 4) Linking (best-effort) ---
@@ -154,8 +173,14 @@ export async function POST(req: NextRequest) {
     employee_ids: employeeIds,
     safe_mode,
     sandboxId,
-    employer: employerIds[0] ? { id: employerIds[0], company_name: "Sandbox Co" } : undefined,
-    workers: employeeIds.map((id) => ({ id, full_name: "Worker" })),
+    employer: employerIds[0] && employerProfileId
+      ? { id: employerProfileId, company_name: "Sandbox Co" }
+      : employerIds[0]
+        ? { id: employerIds[0], company_name: "Sandbox Co" }
+        : undefined,
+    workers: workerProfiles.length > 0
+      ? workerProfiles
+      : employeeIds.map((id) => ({ id, full_name: "Worker" })),
     employers_created: employerIds.length,
     employees_created: employeeIds.length,
   };

@@ -5,6 +5,7 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
 import { requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
 import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";
+import { createSandboxProfile } from "@/lib/sandbox/createSandboxProfile";
 import { INDUSTRIES } from "@/lib/constants/industries";
 import { writeAdminAuditLog } from "@/lib/admin/audit-enterprise";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
@@ -61,10 +62,15 @@ export async function POST(req: NextRequest) {
     const job_title = pick(JOB_TITLES);
     const tenure_months = randomInt(6, 60);
 
+    const profileId = await createSandboxProfile(supabase, {
+      full_name,
+      role: "user",
+      sandbox_id: sandboxId,
+    });
     const { data: employee, error: empError } = await supabase
       .from("sandbox_employees")
-      .insert({ sandbox_id: sandboxId, full_name, industry: pick(INDUSTRIES) })
-      .select("id, full_name, industry")
+      .insert({ sandbox_id: sandboxId, full_name, industry: pick(INDUSTRIES), profile_id: profileId })
+      .select("id, full_name, industry, profile_id")
       .single();
 
     if (empError) {
@@ -127,7 +133,11 @@ export async function POST(req: NextRequest) {
       user_agent: userAgent ?? null,
     });
 
-    return NextResponse.json({ success: true, employee, intelligence });
+    return NextResponse.json({
+      success: true,
+      employee: { ...employee, userId: employee.profile_id ?? employee.id },
+      intelligence,
+    });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (msg === "Unauthorized") return NextResponse.json({ success: false, error: msg }, { status: 401 });

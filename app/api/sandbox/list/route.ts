@@ -42,16 +42,21 @@ export async function GET(req: NextRequest) {
     }
 
     const [employeesRes, employersRes] = await Promise.all([
-      supabase.from("sandbox_employees").select("id, full_name").eq("sandbox_id", resolvedId),
-      supabase.from("sandbox_employers").select("id, company_name").eq("sandbox_id", resolvedId),
+      supabase.from("sandbox_employees").select("id, full_name, profile_id").eq("sandbox_id", resolvedId),
+      supabase.from("sandbox_employers").select("id, company_name, profile_id").eq("sandbox_id", resolvedId),
     ]);
 
-    const employees = (employeesRes.data ?? []) as { id: string; full_name: string }[];
-    const employers = (employersRes.data ?? []) as { id: string; company_name: string }[];
+    const employees = (employeesRes.data ?? []) as { id: string; full_name: string; profile_id: string | null }[];
+    const employers = (employersRes.data ?? []) as { id: string; company_name: string; profile_id: string | null }[];
 
+    // Impersonation only accepts real profile UUIDs; use profile_id as id so frontend sends it.
     const users = [
-      ...employees.map((e) => ({ id: e.id, name: e.full_name ?? "Worker", role: "worker" as const })),
-      ...employers.map((e) => ({ id: e.id, name: e.company_name ?? "Employer", role: "employer" as const })),
+      ...employees
+        .filter((e) => e.profile_id)
+        .map((e) => ({ id: e.profile_id!, name: e.full_name ?? "Worker", role: "worker" as const })),
+      ...employers
+        .filter((e) => e.profile_id)
+        .map((e) => ({ id: e.profile_id!, name: e.company_name ?? "Employer", role: "employer" as const })),
     ];
 
     return NextResponse.json({

@@ -1679,13 +1679,13 @@ export interface Database {
         Relationships: []
       }
       sandbox_employees: {
-        Row: { id: string; sandbox_id: string; full_name: string | null; industry: string | null; created_at: string; vertical: string | null; vertical_metadata: Json | null }
+        Row: { id: string; sandbox_id: string; full_name: string | null; industry: string | null; created_at: string; vertical: string | null; vertical_metadata: Json | null; profile_id: string | null }
         Insert: { [key: string]: unknown }
         Update: { [key: string]: unknown }
         Relationships: []
       }
       sandbox_employers: {
-        Row: { id: string; sandbox_id: string; company_name: string | null; industry: string | null; plan_tier: string | null; created_at: string; vertical: string | null; vertical_metadata: Json | null }
+        Row: { id: string; sandbox_id: string; company_name: string | null; industry: string | null; plan_tier: string | null; created_at: string; vertical: string | null; vertical_metadata: Json | null; profile_id: string | null }
         Insert: { [key: string]: unknown }
         Update: { [key: string]: unknown }
         Relationships: []

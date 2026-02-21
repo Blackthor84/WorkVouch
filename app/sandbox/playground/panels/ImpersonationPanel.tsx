@@ -21,7 +21,6 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
       return;
     }
     const payload: { userId: string } = { userId };
-    console.log("Impersonate userId (before fetch):", payload.userId);
     setLoading(true);
     setMessage(undefined);
     try {

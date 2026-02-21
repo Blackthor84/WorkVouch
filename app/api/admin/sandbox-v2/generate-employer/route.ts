@@ -4,6 +4,7 @@ export const runtime = "nodejs";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
 import { requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
+import { createSandboxProfile } from "@/lib/sandbox/createSandboxProfile";
 import { INDUSTRIES } from "@/lib/constants/industries";
 import { writeAdminAuditLog } from "@/lib/admin/audit-enterprise";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
@@ -51,10 +52,15 @@ export async function POST(req: NextRequest) {
     const industry = pick(INDUSTRIES);
     const plan_tier = pick(PLAN_TIERS);
 
+    const profileId = await createSandboxProfile(supabase, {
+      full_name: company_name,
+      role: "employer",
+      sandbox_id: sandboxId,
+    });
     const { data, error } = await supabase
       .from("sandbox_employers")
-      .insert({ sandbox_id: sandboxId, company_name, industry, plan_tier })
-      .select("id, company_name, industry, plan_tier")
+      .insert({ sandbox_id: sandboxId, company_name, industry, plan_tier, profile_id: profileId })
+      .select("id, company_name, industry, plan_tier, profile_id")
       .single();
 
     if (error) {
@@ -78,7 +84,10 @@ export async function POST(req: NextRequest) {
       user_agent: userAgent ?? null,
     });
     console.log("Sandbox employer generated:", data?.id);
-    return NextResponse.json({ success: true, employer: data });
+    return NextResponse.json({
+      success: true,
+      employer: { ...data, userId: data?.profile_id ?? data?.id },
+    });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (msg === "Unauthorized") return NextResponse.json({ success: false, error: msg }, { status: 401 });

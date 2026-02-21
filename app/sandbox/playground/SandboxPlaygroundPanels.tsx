@@ -240,7 +240,13 @@ export function SandboxPlaygroundPanels() {
     if (company?.sandboxId && listUsers.length === 0 && !sandboxAccessDenied) fetchList();
   }, [company?.sandboxId, listUsers.length, sandboxAccessDenied, fetchList]);
 
-  const users = listUsers.length > 0 ? listUsers : (company?.workers?.map((w) => ({ id: w.id, name: w.full_name ?? "Worker", role: "worker" as const })) ?? []);
+  const users =
+    listUsers.length > 0
+      ? listUsers
+      : [
+          ...(company?.workers?.map((w) => ({ id: w.id, name: w.full_name ?? "Worker", role: "worker" as const })) ?? []),
+          ...(company?.employer ? [{ id: company.employer.id, name: company.employer.company_name ?? "Employer", role: "employer" as const }] : []),
+        ];
 
   return (
     <div style={{ marginTop: 24 }}>
