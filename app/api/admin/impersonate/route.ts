@@ -1,7 +1,11 @@
+import { NextResponse } from "next/server";
 import { requireSuperadmin } from "@/lib/auth/requireSuperadmin";
 import { supabaseServer } from "@/lib/supabase/server";
 import { setActingUserCookie } from "@/lib/auth/actingUser";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 function redirectUrlForRole(role: string): string {
   const r = role.trim().toLowerCase();
@@ -11,6 +15,7 @@ function redirectUrlForRole(role: string): string {
   return "/dashboard";
 }
 
+/** POST /api/admin/impersonate — superadmin only. Body: { userId }. Sets acting_user cookie and returns success + redirectUrl. */
 export async function POST(req: Request) {
   const forbidden = await requireSuperadmin();
   if (forbidden) return forbidden;
@@ -21,13 +26,18 @@ export async function POST(req: Request) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { "Content-Type": "application/json" } });
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const body = await req.json();
+  let body: { userId?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
   const userId = typeof body?.userId === "string" ? body.userId.trim() : null;
   if (!userId) {
-    return new Response(JSON.stringify({ error: "Missing userId" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    return NextResponse.json({ error: "Missing userId" }, { status: 400 });
   }
 
   const adminSupabase = getSupabaseServer();
@@ -38,12 +48,12 @@ export async function POST(req: Request) {
     .single();
 
   if (error || !profile) {
-    return new Response(JSON.stringify({ error: "Profile not found" }), { status: 404, headers: { "Content-Type": "application/json" } });
+    return NextResponse.json({ error: "Profile not found" }, { status: 400 });
   }
 
   const role = (profile as { role?: string }).role ?? "user";
   await setActingUserCookie({ id: profile.id, role: String(role) });
 
   const redirectUrl = redirectUrlForRole(role);
-  return Response.json({ success: true, redirectUrl });
+  return NextResponse.json({ success: true, redirectUrl });
 }
