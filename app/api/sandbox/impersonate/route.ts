@@ -4,8 +4,8 @@ import { requireSuperadmin } from "@/lib/auth/requireSuperadmin";
 
 export async function POST(req: Request) {
   try {
-    // 1️⃣ Auth check (you already pass this)
-    await requireSuperadmin();
+    const forbidden = await requireSuperadmin();
+    if (forbidden) return forbidden;
 
     // 2️⃣ Parse body CORRECTLY
     const body = await req.json();
