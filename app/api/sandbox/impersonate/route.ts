@@ -20,7 +20,8 @@ export async function POST(req: Request) {
     }
 
     // 4️⃣ Write impersonation cookie
-    cookies().set(
+    const cookieStore = await cookies();
+    cookieStore.set(
       "sandbox_impersonation",
       JSON.stringify({
         id,
