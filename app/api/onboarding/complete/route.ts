@@ -1,21 +1,24 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { insertActivityLog } from "@/lib/activity";
+import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 
 export const runtime = "nodejs";
 
 type Role = "user" | "employer";
 
+/**
+ * POST /api/onboarding/complete — mark onboarding complete for effective user.
+ * Uses effective user ID (impersonation/sandbox cookies or Supabase auth); does not require auth for impersonated users.
+ */
 export async function POST(req: Request) {
   try {
-    const supabase = await supabaseServer();
-    const { data: authData, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !authData?.user?.id) {
+    const effectiveUserId = await getEffectiveUserId();
+    if (!effectiveUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = authData.user.id;
+    const supabase = await supabaseServer();
     const body = await req.json().catch(() => ({}));
     const role = body?.role as Role | undefined;
 
@@ -33,7 +36,7 @@ export async function POST(req: Request) {
         role,
         onboarding_completed: true,
       })
-      .eq("id", userId);
+      .eq("id", effectiveUserId);
 
     if (updateError) {
       return NextResponse.json(
@@ -42,7 +45,7 @@ export async function POST(req: Request) {
       );
     }
 
-    insertActivityLog({ userId, action: "onboarding_completed", metadata: { role } }).catch(() => {});
+    insertActivityLog({ userId: effectiveUserId, action: "onboarding_completed", metadata: { role } }).catch(() => {});
 
     return NextResponse.json({ success: true });
   } catch {

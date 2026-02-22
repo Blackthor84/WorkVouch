@@ -33,18 +33,35 @@ function getImpersonatedUserIdFromSandboxCookie(cookieValue: string | undefined)
 const IMPERSONATED_USER_ID_COOKIE = "impersonatedUserId";
 
 /**
+ * Resolves effective user ID from impersonation/sandbox cookies only.
+ * Does NOT require Supabase auth — use when allowing impersonated or sandbox users without auth.
+ * Returns null if no impersonation/sandbox cookie is set.
+ */
+export async function getEffectiveUserIdFromCookies(): Promise<string | null> {
+  const cookieStore = await cookies();
+  const impersonatedUserId = cookieStore.get(IMPERSONATED_USER_ID_COOKIE)?.value?.trim();
+  if (impersonatedUserId) return impersonatedUserId;
+
+  if (isSandboxImpersonationEnabled()) {
+    const raw = cookieStore.get(SANDBOX_IMPERSONATION_COOKIE)?.value;
+    const sandboxUserId = getImpersonatedUserIdFromSandboxCookie(raw);
+    if (sandboxUserId) return sandboxUserId;
+  }
+
+  return null;
+}
+
+/**
  * Returns the user id to use for ALL Supabase data queries in this request.
- * effectiveUserId = impersonatedUserId ?? acting_user?.id ?? sandbox_impersonation_id ?? auth.uid()
+ * effectiveUserId = cookie (impersonation/sandbox) ?? acting_user?.id ?? sandbox_impersonation_id ?? auth.uid()
+ * Does not require Supabase auth when impersonation or sandbox cookie is set.
  */
 export async function getEffectiveUserId(): Promise<string | null> {
+  const fromCookies = await getEffectiveUserIdFromCookies();
+  if (fromCookies) return fromCookies;
+
   const authed = await getAuthedUser();
   if (!authed?.user?.id) return null;
-
-  const cookieStore = await cookies();
-  const impersonatedUserId = cookieStore.get(IMPERSONATED_USER_ID_COOKIE)?.value;
-  if (impersonatedUserId?.trim() && (authed.role === "admin" || authed.role === "superadmin")) {
-    return impersonatedUserId.trim();
-  }
 
   const acting = await getActingUser();
   if (acting) return acting.id;
@@ -63,12 +80,22 @@ export async function getEffectiveUserId(): Promise<string | null> {
 /**
  * Returns effective user id and the real auth user id (for audit logging).
  * Use effectiveUserId for all data queries; use authUserId when recording who performed the action.
+ * Does not require Supabase auth when impersonation or sandbox cookie is set (avoids 401 during impersonation).
  */
 export async function getEffectiveUserIdWithAuth(): Promise<{
   effectiveUserId: string;
   authUserId: string;
   isImpersonating: boolean;
 } | null> {
+  const fromCookies = await getEffectiveUserIdFromCookies();
+  if (fromCookies) {
+    return {
+      effectiveUserId: fromCookies,
+      authUserId: fromCookies,
+      isImpersonating: true,
+    };
+  }
+
   const authed = await getAuthedUser();
   if (!authed?.user?.id) return null;
 
@@ -93,7 +120,6 @@ export async function getEffectiveUserIdWithAuth(): Promise<{
 
   const isAdmin = authed.role === "admin" || authed.role === "superadmin";
   if (isSandboxImpersonationEnabled()) {
-    const cookieStore = await cookies();
     const raw = cookieStore.get(SANDBOX_IMPERSONATION_COOKIE)?.value;
     const sandboxUserId = getImpersonatedUserIdFromSandboxCookie(raw);
     if (sandboxUserId && isAdmin) {
