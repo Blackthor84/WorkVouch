@@ -54,23 +54,18 @@ export async function POST(req: Request) {
     const isSandbox = userId.startsWith("sandbox_");
 
     // Look up exclusively via profiles.user_id (profile-based). Never use auth.users.
-    const { data: profileRow, error } = await supabase
+    const { data: profileRow, error: profileError } = await supabase
       .from("profiles")
       .select("user_id")
       .eq("user_id", userId)
-      .maybeSingle();
-
-    if (error && !isSandbox) {
-      return NextResponse.json(
-        { error: "Profile not found." },
-        { status: 404 }
-      );
-    }
+      .single();
 
     let effectiveUserId: string | null = null;
-    if (profileRow && typeof (profileRow as { user_id: string }).user_id === "string") {
-      effectiveUserId = (profileRow as { user_id: string }).user_id;
+
+    if (!profileError && profileRow) {
+      effectiveUserId = profileRow.user_id;
     }
+
     if (!effectiveUserId && isSandbox) {
       effectiveUserId = await createSandboxProfile(supabase, {
         full_name: "Sandbox User",
@@ -80,10 +75,7 @@ export async function POST(req: Request) {
     }
 
     if (!effectiveUserId) {
-      return NextResponse.json(
-        { error: "Profile not found." },
-        { status: 404 }
-      );
+      throw new Error("Unable to resolve effective user id");
     }
     const cookieStore = await cookies();
     cookieStore.set("impersonatedUserId", effectiveUserId, { httpOnly: true, path: "/" });
