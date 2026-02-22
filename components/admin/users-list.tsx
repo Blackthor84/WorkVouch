@@ -198,14 +198,12 @@ export function AdminUsersList() {
                         alert("No user ID");
                         return;
                       }
-                      const payload: { userId: string } = { userId };
-                      console.log("Impersonate userId (before fetch):", payload.userId);
                       try {
                         const res = await fetch("/api/admin/impersonate", {
                           method: "POST",
                           credentials: "include",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify(payload),
+                          body: JSON.stringify({ userId }),
                         });
                         if (!res.ok) {
                           const err = await res.json().catch(() => ({}));

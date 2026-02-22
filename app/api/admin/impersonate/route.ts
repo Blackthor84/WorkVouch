@@ -35,6 +35,10 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
+
+  // Backend expects exactly { userId: string } — profile id (profiles.id) for the user to impersonate.
+  console.log("[impersonate] request body:", JSON.stringify(body));
+
   const userId = typeof body?.userId === "string" ? body.userId.trim() : null;
   if (!userId) {
     return NextResponse.json({ error: "Missing userId" }, { status: 400 });

@@ -15,8 +15,9 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
   const [impersonating, setImpersonating] = useState(false);
 
   const startImpersonation = useCallback(async () => {
+    // userId must be the profile id (profiles.id) — sandbox users expose this as user_id.
     const selected = users.find((u) => u.user_id === targetUserId || u.id === targetUserId);
-    const userId = selected?.user_id ?? targetUserId.trim();
+    const userId: string = selected?.user_id ?? targetUserId.trim();
     if (!userId) {
       setMessage("Enter or select target user ID");
       return;
