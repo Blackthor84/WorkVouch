@@ -18,6 +18,7 @@ export async function POST(req: Request) {
     let body: { userId?: unknown };
     try {
       body = await req.json();
+      console.log("[impersonate] raw body:", body);
     } catch (e) {
       console.error("[impersonate] FAILED TO PARSE req.body:", e);
       return NextResponse.json(
