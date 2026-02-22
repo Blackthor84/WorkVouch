@@ -29,13 +29,13 @@ export async function POST(req: Request) {
     const rawUserId = body?.userId;
     if (rawUserId === undefined || rawUserId === null) {
       return NextResponse.json(
-        { error: "Missing userId. Request body must include { userId: string }." },
+        { error: "Missing userId. Request body must include { userId: string } (UUID)." },
         { status: 400 }
       );
     }
     if (typeof rawUserId !== "string") {
       return NextResponse.json(
-        { error: "Invalid userId: must be a string (profile user_id)." },
+        { error: "Invalid userId: must be a string (real user UUID)." },
         { status: 400 }
       );
     }
@@ -43,6 +43,15 @@ export async function POST(req: Request) {
     if (!userId) {
       return NextResponse.json(
         { error: "userId cannot be empty." },
+        { status: 400 }
+      );
+    }
+
+    // Impersonation is UUID-only: set cookie to real user UUID only
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!UUID_REGEX.test(userId)) {
+      return NextResponse.json(
+        { error: "Impersonation requires a valid user UUID." },
         { status: 400 }
       );
     }

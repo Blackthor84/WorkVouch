@@ -1,63 +1,28 @@
 import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
-import { getAuthedUser } from "@/lib/auth/getAuthedUser";
 
 export const runtime = "nodejs";
 
 /**
- * GET /api/user/me — current user (or effective user when impersonating).
- * effectiveUserId = impersonatedUserId ?? realAuthUserId.
+ * GET /api/user/me — effective user when impersonating (cookie-only).
+ * Impersonation is UUID-only; cookie must be set to real user UUID.
  */
 export async function GET() {
   const cookieStore = await cookies();
-  const impersonatedUserId = cookieStore.get("impersonatedUserId")?.value?.trim() ?? null;
-
-  let realAuthUserId: string | null = null;
-  if (!impersonatedUserId) {
-    const authed = await getAuthedUser();
-    realAuthUserId = authed?.user?.id ?? null;
-  }
-
-  const effectiveUserId = impersonatedUserId ?? realAuthUserId;
-
-  console.log("[api/user/me] effectiveUserId:", effectiveUserId);
+  const effectiveUserId =
+    cookieStore.get("impersonatedUserId")?.value?.trim() ?? null;
 
   if (!effectiveUserId) {
     return new Response("Unauthorized", { status: 401 });
   }
 
   const supabase = await supabaseServer();
-
-  // 🔑 LOOKUP BY user_id ONLY
-  let { data: profile, error } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("user_id, email, full_name, role, onboarding_completed")
     .eq("user_id", effectiveUserId)
     .maybeSingle();
 
-  // 🛠 AUTO-CREATE SANDBOX PROFILE
-  if (!profile || error) {
-    console.log("[api/user/me] creating sandbox profile");
-    const { error: insertErr } = await supabase.from("profiles").insert({
-      user_id: effectiveUserId,
-      full_name: "Impersonated User",
-      email: `${effectiveUserId}@impersonated.placeholder`,
-      role: "user",
-      visibility: "private",
-      flagged_for_fraud: false,
-    });
-    if (!insertErr) {
-      const res = await supabase
-        .from("profiles")
-        .select("user_id, email, full_name, role, onboarding_completed")
-        .eq("user_id", effectiveUserId)
-        .maybeSingle();
-      profile = res.data;
-      error = res.error;
-    }
-  }
-
-  // 🚨 ABSOLUTE RULE: From here on, NEVER return 401
   if (error || !profile) {
     return new Response("Unauthorized", { status: 401 });
   }
