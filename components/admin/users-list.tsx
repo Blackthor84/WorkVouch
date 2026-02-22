@@ -157,7 +157,7 @@ export function AdminUsersList() {
             users.map((user) => (
               <tr key={user.id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-4 py-3 text-sm text-[#334155]">{user.email}</td>
-                <td className="px-4 py-3 text-sm text-[#334155]">{user.full_name || "—"}</td>
+                <td className="px-4 py-3 text-sm text-[#334155]">{user.fullName || "—"}</td>
                 <td className="px-4 py-3 text-sm text-[#334155]">{user.role ?? "—"}</td>
                 <td className="px-4 py-3">
                   <Badge variant={user.status === "active" ? "default" : "secondary"} className="capitalize">
