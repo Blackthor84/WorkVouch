@@ -5,6 +5,17 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { auditLog, getAuditMetaFromRequest } from "@/lib/auditLogger";
 
+/** Local type for admin users list. Do not import Supabase-generated types here. */
+type ProfileRow = {
+  user_id: string;
+  email: string | null;
+  full_name: string | null;
+  created_at: string;
+  role?: string | null;
+  status?: string | null;
+  isSandbox?: boolean | null;
+};
+
 /**
  * GET /api/admin/users — list all users (admin/superadmin only).
  * Hardened: try/catch, typed error, structured 500, audit log.
@@ -35,7 +46,7 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from("profiles")
-      .select("user_id, email, full_name, created_at, role, status")
+      .select("user_id, email, full_name, created_at, role, status, isSandbox")
       .order("created_at", { ascending: false });
 
     if (searchEmail) {
@@ -69,30 +80,23 @@ export async function GET(request: Request) {
       query = query.in("user_id", profileIdsFilter);
     }
 
-    const { data: profiles, error: profilesError } = await query;
+    const { data, error } = await query.returns<ProfileRow[]>();
 
-    if (profilesError) {
-      console.error("[admin/users] profiles error:", profilesError);
+    if (error) {
+      console.error("[admin/users] profiles error:", error);
       return NextResponse.json([], { status: 200 });
     }
 
-    type ProfileRow = {
-      user_id: string;
-      email: string | null;
-      full_name: string | null;
-      created_at: string;
-      role?: string | null;
-      status?: string | null;
-    };
-    const rows: ProfileRow[] = Array.isArray(profiles) ? profiles : [];
+    const rows = data ?? [];
     const users = rows.map((p) => ({
       id: p.user_id,
       userId: p.user_id,
       email: p.email ?? "",
-      full_name: p.full_name ?? "",
-      role: p.role ?? null,
+      fullName: p.full_name ?? "",
+      createdAt: p.created_at,
+      role: p.role ?? "user",
       status: p.status ?? "active",
-      created_at: p.created_at,
+      isSandbox: p.isSandbox ?? false,
     }));
 
     const { ipAddress, userAgent } = getAuditMetaFromRequest(request);

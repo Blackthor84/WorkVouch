@@ -9,10 +9,11 @@ interface AdminUser {
   id: string;
   userId: string;
   email: string;
-  full_name: string;
-  role: string | null;
+  fullName: string;
+  role: string;
   status: string;
-  created_at: string;
+  createdAt: string;
+  isSandbox: boolean;
 }
 
 export function AdminUsersList() {
@@ -79,7 +80,7 @@ export function AdminUsersList() {
   }
 
   const filteredUsers = roleFilter
-    ? users.filter((u) => (u.role ?? "").toLowerCase() === roleFilter.toLowerCase())
+    ? users.filter((u) => (u.role || "").toLowerCase() === roleFilter.toLowerCase())
     : users;
 
   return (
@@ -164,7 +165,7 @@ export function AdminUsersList() {
                   </Badge>
                 </td>
                 <td className="px-4 py-3 text-sm text-[#64748B]">
-                  {new Date(user.created_at).toLocaleDateString()}
+                  {new Date(user.createdAt).toLocaleDateString()}
                 </td>
                 <td className="px-4 py-3 text-right space-x-2">
                   <Button variant="secondary" size="sm" href={`/admin/users/${user.id}`}>
