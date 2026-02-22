@@ -30,8 +30,8 @@ export function PublicPassportSettings() {
   useEffect(() => {
     let cancelled = false;
     fetch("/api/user/me", { credentials: "include" })
-      .then((r) => r.json())
-      .then((body: { id?: string; user?: { id?: string }; profile?: ProfileVisibility }) => {
+      .then((r) => (r.ok ? r.json() : null))
+      .then((body: { id?: string; user?: { id?: string }; profile?: ProfileVisibility } | null) => {
         if (!cancelled) {
           const id = body?.id ?? body?.user?.id;
           if (id) setUserId(id);

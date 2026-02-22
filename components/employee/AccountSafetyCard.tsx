@@ -11,7 +11,7 @@ export function AccountSafetyCard() {
 
   useEffect(() => {
     fetch("/api/user/me", { credentials: "include" })
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : null))
       .then((body) => {
         setEmailVerified(body?.profile?.email_verified ?? null);
       })

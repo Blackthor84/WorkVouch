@@ -19,7 +19,7 @@ export default function PreviewOnlyPage() {
     }
     if (status === "authenticated" && user?.id) {
       fetch("/api/user/me")
-        .then((r) => r.json())
+        .then((r) => (r.ok ? r.json() : null))
         .then((data) => {
           setRoleCheck(data?.role === "beta" ? "beta" : "other");
         })
