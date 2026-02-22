@@ -1,22 +1,18 @@
-import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getAuthedUser } from "@/lib/auth/getAuthedUser";
 
 export const runtime = "nodejs";
 
-const IMPERSONATED_USER_ID_COOKIE = "impersonatedUserId";
-
 /**
  * GET /api/user/me — current user (or effective user when impersonating).
- * Resolves effectiveUserId = impersonatedUserId ?? realAuthUserId.
- * Queries profiles by user_id only; does not reference profiles.id.
- * Does not require Supabase auth when impersonatedUserId cookie exists (stops infinite retry loops).
- * Returns 401 only if no effectiveUserId or no profile exists (after optional auto-create for impersonated).
+ * effectiveUserId = impersonatedUserId ?? realAuthUserId.
+ * Look up by user_id only; auto-create sandbox profile if missing for impersonation.
+ * Do not return 401 after profile is resolved or created.
  */
 export async function GET() {
   const cookieStore = await cookies();
-  const impersonatedUserId = cookieStore.get(IMPERSONATED_USER_ID_COOKIE)?.value?.trim() ?? null;
+  const impersonatedUserId = cookieStore.get("impersonatedUserId")?.value?.trim() ?? null;
 
   let realAuthUserId: string | null = null;
   if (!impersonatedUserId) {
@@ -26,11 +22,11 @@ export async function GET() {
 
   const effectiveUserId = impersonatedUserId ?? realAuthUserId;
 
-  if (!effectiveUserId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  console.log("[api/user/me] effectiveUserId:", effectiveUserId);
 
-  console.log("[api/user/me] effectiveUserId:", effectiveUserId, impersonatedUserId ? "(impersonated)" : "(real auth)");
+  if (!effectiveUserId) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
   const supabase = await supabaseServer();
   let { data: profile, error } = await supabase
@@ -39,7 +35,9 @@ export async function GET() {
     .eq("user_id", effectiveUserId)
     .maybeSingle();
 
-  if (impersonatedUserId && (!profile || error)) {
+  // Auto-create for sandbox / impersonation
+  if (!profile || error) {
+    console.log("[api/user/me] creating sandbox profile");
     const { error: insertErr } = await supabase.from("profiles").insert({
       user_id: effectiveUserId,
       full_name: "Impersonated User",
@@ -49,7 +47,6 @@ export async function GET() {
       flagged_for_fraud: false,
     });
     if (!insertErr) {
-      console.log("[api/user/me] profile created for impersonated user:", effectiveUserId);
       const res = await supabase
         .from("profiles")
         .select("user_id, email, full_name, role, onboarding_completed")
@@ -60,12 +57,13 @@ export async function GET() {
     }
   }
 
+  // Do not return 401 after this point
   if (error || !profile) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return new Response("Unauthorized", { status: 401 });
   }
 
   const row = profile as { user_id: string; email: string | null; full_name: string; role: string | null; onboarding_completed?: boolean };
-  return NextResponse.json({
+  return Response.json({
     id: row.user_id,
     email: row.email ?? undefined,
     full_name: row.full_name,
