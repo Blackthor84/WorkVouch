@@ -6,6 +6,8 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type ProfileRow = { id: string; user_id: string | null };
+
 /**
  * POST /api/admin/impersonate — profile-based. Accepts profileId (profiles.id).
  */
@@ -16,9 +18,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    let body: { profileId: string };
+    let body: { profileId?: unknown };
     try {
-      body = (await req.json()) as { profileId: string };
+      body = await req.json();
     } catch (e) {
       console.error("[impersonate] FAILED TO PARSE req.body:", e);
       return NextResponse.json(
@@ -27,24 +29,26 @@ export async function POST(req: Request) {
       );
     }
 
-    const { profileId } = body;
+    const { profileId: rawProfileId } = body ?? {};
 
-    if (!profileId || typeof profileId !== "string") {
+    if (!rawProfileId || typeof rawProfileId !== "string") {
       return NextResponse.json({ error: "profileId required" }, { status: 400 });
     }
+
+    const profileId = rawProfileId;
 
     const supabase = getSupabaseServer();
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("id, user_id")
       .eq("id", profileId)
-      .single();
+      .single<ProfileRow>();
 
     if (error || !profile) {
-      throw new Error("Profile not found");
+      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    const effectiveUserId = (profile as { user_id?: string }).user_id ?? (profile as { id: string }).id;
+    const effectiveUserId = profile.user_id ?? profile.id;
 
     const cookieStore = await cookies();
     cookieStore.set("impersonatedUserId", effectiveUserId, { httpOnly: true, path: "/" });
