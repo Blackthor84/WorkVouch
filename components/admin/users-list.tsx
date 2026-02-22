@@ -202,8 +202,12 @@ export function AdminUsersList() {
                         const res = await fetch("/api/admin/impersonate", {
                           method: "POST",
                           credentials: "include",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ userId }),
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({
+                            userId, // MUST be UUID (profile id)
+                          }),
                         });
                         if (!res.ok) {
                           const err = await res.json().catch(() => ({}));

@@ -28,8 +28,12 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
       const res = await fetch("/api/admin/impersonate", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId, // MUST be UUID (profile id)
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -46,7 +50,7 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [targetUserId, router]);
+  }, [targetUserId, users, router]);
 
   const exitImpersonation = useCallback(async () => {
     setLoading(true);
