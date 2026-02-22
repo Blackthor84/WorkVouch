@@ -92,11 +92,12 @@ export async function GET(request: Request) {
     const rows = data ?? [];
     const users = rows.map((p) => {
       const rawUserId = p.user_id?.trim() ?? "";
-      const user_id = UUID_REGEX.test(rawUserId) ? rawUserId : "";
+      const profile_user_id = UUID_REGEX.test(rawUserId) ? rawUserId : "";
       return {
         id: p.user_id,
         userId: p.user_id,
-        user_id,
+        user_id: profile_user_id,
+        profile_user_id,
         email: p.email ?? "",
         fullName: p.full_name ?? "",
         createdAt: p.created_at,

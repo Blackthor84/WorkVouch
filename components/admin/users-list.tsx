@@ -14,6 +14,7 @@ interface AdminUser {
   id: string;
   userId: string;
   user_id: string;
+  profile_user_id: string;
   email: string;
   fullName: string;
   role: string;
@@ -200,20 +201,20 @@ export function AdminUsersList() {
                     variant="ghost"
                     size="sm"
                     className="hover:bg-slate-50 text-[#334155]"
-                    disabled={!user.user_id || !isRealUserUuid(user.user_id)}
-                    title={!user.user_id || !isRealUserUuid(user.user_id) ? "Impersonation requires a real user (UUID). Sandbox users are not supported." : "View as this user"}
+                    disabled={!user.profile_user_id || !isRealUserUuid(user.profile_user_id)}
+                    title={!user.profile_user_id || !isRealUserUuid(user.profile_user_id) ? "Impersonation requires a real user (UUID). Sandbox users are not supported." : "View as this user"}
                     onClick={async () => {
-                      const userId = typeof user?.user_id === "string" ? user.user_id.trim() : "";
+                      const userId = typeof user?.profile_user_id === "string" ? user.profile_user_id.trim() : "";
                       if (!userId || !isRealUserUuid(userId)) {
-                        alert("Impersonation requires a real user UUID. Sandbox IDs are not allowed.");
-                        return;
+                        throw new Error("Impersonation requires a valid UUID. Sandbox IDs must never reach the impersonate API.");
                       }
+                      console.log("[impersonate] sending userId (UUID only):", userId);
                       try {
                         const res = await fetch("/api/admin/impersonate", {
                           method: "POST",
                           credentials: "include",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ userId: user.user_id }),
+                          body: JSON.stringify({ userId: user.profile_user_id }),
                         });
                         if (!res.ok) {
                           const err = await res.json().catch(() => ({}));
@@ -223,7 +224,7 @@ export function AdminUsersList() {
                         window.location.href = "/dashboard";
                       } catch (e) {
                         console.error("Impersonate error:", e);
-                        alert("Impersonation failed");
+                        alert(e instanceof Error ? e.message : "Impersonation failed");
                       }
                     }}
                   >
