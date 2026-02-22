@@ -11,7 +11,8 @@ const IMPERSONATION_COOKIE = "impersonation_session";
 type ProfileRow = { id: string; user_id: string | null };
 
 /**
- * POST /api/admin/impersonate — Accepts profileId or userId. Sets impersonation_session cookie.
+ * POST /api/admin/impersonate — Canonical impersonation endpoint.
+ * Accepts { profileId: string } or { userId: string }. Sets impersonation_session cookie.
  */
 export async function POST(req: Request) {
   try {
