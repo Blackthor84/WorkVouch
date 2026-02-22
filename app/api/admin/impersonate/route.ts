@@ -16,9 +16,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    let body: { profileId?: unknown };
+    let body: { profileId: string };
     try {
-      body = await req.json();
+      body = (await req.json()) as { profileId: string };
     } catch (e) {
       console.error("[impersonate] FAILED TO PARSE req.body:", e);
       return NextResponse.json(
@@ -27,13 +27,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const { profileId } = body ?? {};
+    const { profileId } = body;
 
-    if (!profileId) {
-      return NextResponse.json(
-        { error: "profileId required" },
-        { status: 400 }
-      );
+    if (!profileId || typeof profileId !== "string") {
+      return NextResponse.json({ error: "profileId required" }, { status: 400 });
     }
 
     const supabase = getSupabaseServer();
