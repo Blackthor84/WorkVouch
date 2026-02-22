@@ -22,9 +22,14 @@ export const metadata: Metadata = {
     apple: "/icons/apple-touch-icon.png",
   },
   manifest: "/manifest.json",
-  themeColor: "#2563EB",
-  viewport: { width: "device-width", initialScale: 1, maximumScale: 5 },
   appleWebApp: { capable: true, statusBarStyle: "default", title: "WorkVouch" },
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#2563EB",
 };
 
 export default async function RootLayout({
