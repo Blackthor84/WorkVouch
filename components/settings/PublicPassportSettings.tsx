@@ -32,15 +32,14 @@ export function PublicPassportSettings() {
     fetch("/api/user/me", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : null))
       .then((body: { id?: string; user?: { id?: string }; profile?: ProfileVisibility } | null) => {
-        if (!cancelled) {
-          const id = body?.id ?? body?.user?.id;
-          if (id) setUserId(id);
-          const p = body.profile;
-          if (p?.is_public_passport === true) setVisibility("public");
-          else if (p?.searchable_by_verified_employers && p?.searchable_by_shared_employers) setVisibility("verified_employers");
-          else if (p?.searchable_by_shared_employers) setVisibility("shared_network");
-          else setVisibility("private");
-        }
+        if (cancelled || body === null) return;
+        const id = body.id ?? body.user?.id;
+        if (id) setUserId(id);
+        const p = body.profile;
+        if (p?.is_public_passport === true) setVisibility("public");
+        else if (p?.searchable_by_verified_employers && p?.searchable_by_shared_employers) setVisibility("verified_employers");
+        else if (p?.searchable_by_shared_employers) setVisibility("shared_network");
+        else setVisibility("private");
       })
       .catch((error) => { console.error("[SYSTEM_FAIL]", error); })
       .finally(() => {
