@@ -5,9 +5,9 @@ import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** Guaranteed shape. Never return null or omit keys. */
+/** Guaranteed shape. Never return null or omit keys. user_id = profile UUID for impersonation. */
 const EMPTY_LIST_PAYLOAD = {
-  users: [] as { id: string; name: string; role: "worker" | "employer" }[],
+  users: [] as { id: string; user_id: string; name: string; role: "worker" | "employer" }[],
   employers: [] as { id: string; company_name: string }[],
   employees: [] as { id: string; full_name: string }[],
   sandboxId: null as string | null,
@@ -49,14 +49,14 @@ export async function GET(req: NextRequest) {
     const employees = (employeesRes.data ?? []) as { id: string; full_name: string; profile_id: string | null }[];
     const employers = (employersRes.data ?? []) as { id: string; company_name: string; profile_id: string | null }[];
 
-    // Impersonation only accepts real profile UUIDs; use profile_id as id so frontend sends it.
+    // Impersonation only accepts real profile UUIDs; expose as user_id so frontend sends it.
     const users = [
       ...employees
         .filter((e) => e.profile_id)
-        .map((e) => ({ id: e.profile_id!, name: e.full_name ?? "Worker", role: "worker" as const })),
+        .map((e) => ({ id: e.profile_id!, user_id: e.profile_id!, name: e.full_name ?? "Worker", role: "worker" as const })),
       ...employers
         .filter((e) => e.profile_id)
-        .map((e) => ({ id: e.profile_id!, name: e.company_name ?? "Employer", role: "employer" as const })),
+        .map((e) => ({ id: e.profile_id!, user_id: e.profile_id!, name: e.company_name ?? "Employer", role: "employer" as const })),
     ];
 
     return NextResponse.json({

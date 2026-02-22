@@ -174,12 +174,12 @@ export async function POST(req: NextRequest) {
     safe_mode,
     sandboxId,
     employer: employerIds[0] && employerProfileId
-      ? { id: employerProfileId, company_name: "Sandbox Co" }
+      ? { id: employerProfileId, user_id: employerProfileId, company_name: "Sandbox Co" }
       : employerIds[0]
         ? { id: employerIds[0], company_name: "Sandbox Co" }
         : undefined,
     workers: workerProfiles.length > 0
-      ? workerProfiles
+      ? workerProfiles.map((p) => ({ id: p.id, user_id: p.id, full_name: p.full_name }))
       : employeeIds.map((id) => ({ id, full_name: "Worker" })),
     employers_created: employerIds.length,
     employees_created: employeeIds.length,

@@ -33,12 +33,12 @@ function CopyableId({
   );
 }
 
-export type SandboxUser = { id: string; name: string; role: "worker" | "employer" };
+export type SandboxUser = { id: string; user_id: string; name: string; role: "worker" | "employer" };
 
 type CompanyData = {
   sandboxId?: string;
-  employer?: { id: string; company_name?: string };
-  workers?: { id: string; full_name?: string }[];
+  employer?: { id: string; user_id?: string; company_name?: string };
+  workers?: { id: string; user_id?: string; full_name?: string }[];
 };
 
 const sectionStyle = {
@@ -244,8 +244,22 @@ export function SandboxPlaygroundPanels() {
     listUsers.length > 0
       ? listUsers
       : [
-          ...(company?.workers?.map((w) => ({ id: w.id, name: w.full_name ?? "Worker", role: "worker" as const })) ?? []),
-          ...(company?.employer ? [{ id: company.employer.id, name: company.employer.company_name ?? "Employer", role: "employer" as const }] : []),
+          ...(company?.workers?.map((w) => ({
+            id: w.id,
+            user_id: w.user_id ?? w.id,
+            name: w.full_name ?? "Worker",
+            role: "worker" as const,
+          })) ?? []),
+          ...(company?.employer
+            ? [
+                {
+                  id: company.employer.id,
+                  user_id: company.employer.user_id ?? company.employer.id,
+                  name: company.employer.company_name ?? "Employer",
+                  role: "employer" as const,
+                },
+              ]
+            : []),
         ];
 
   return (

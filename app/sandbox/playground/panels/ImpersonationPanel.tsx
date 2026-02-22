@@ -15,12 +15,12 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
   const [impersonating, setImpersonating] = useState(false);
 
   const startImpersonation = useCallback(async () => {
-    const userId = targetUserId.trim();
+    const selected = users.find((u) => u.user_id === targetUserId || u.id === targetUserId);
+    const userId = selected?.user_id ?? targetUserId.trim();
     if (!userId) {
       setMessage("Enter or select target user ID");
       return;
     }
-    const payload: { userId: string } = { userId };
     setLoading(true);
     setMessage(undefined);
     try {
@@ -28,7 +28,7 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ userId }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -70,18 +70,18 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
   }, [message]);
 
   const selectUser = (u: SandboxUser) => {
-    setTargetUserId(u.id);
+    setTargetUserId(u.user_id);
     setTargetName(u.name);
   };
 
   const handleDropdownChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const id = e.target.value;
-    if (!id) {
+    const value = e.target.value;
+    if (!value) {
       setTargetUserId("");
       setTargetName("Sandbox user");
       return;
     }
-    const u = users.find((x) => x.id === id);
+    const u = users.find((x) => x.user_id === value || x.id === value);
     if (u) selectUser(u);
   };
 
@@ -100,8 +100,8 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
           >
             <option value="">— Select user —</option>
             {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name} ({u.role}) — {u.id.slice(0, 8)}…
+              <option key={u.id} value={u.user_id}>
+                {u.name} ({u.role}) — {u.user_id.slice(0, 8)}…
               </option>
             ))}
           </select>
