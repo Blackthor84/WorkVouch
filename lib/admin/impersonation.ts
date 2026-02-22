@@ -1,10 +1,15 @@
 /**
- * Start impersonation: validate target profile and set acting_user cookie.
+ * Start impersonation: profile-only. Look up by user_id only; auto-create sandbox profiles.
  * Used by POST /api/admin/impersonate.
- * If profile is missing but auth user exists, creates profile lazily and continues.
+ * NEVER query profiles.id. NEVER assume numeric IDs or UUIDs for lookup.
  */
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { setActingUserCookie } from "@/lib/auth/actingUser";
+
+/** UUID v4 guard — use only to decide whether to validate Supabase Auth. Stops crashes from invalid ids. */
+export function isUUID(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+}
 
 export type StartImpersonationParams = {
   authUserId: string;
@@ -12,79 +17,60 @@ export type StartImpersonationParams = {
 };
 
 export async function startImpersonation(params: StartImpersonationParams): Promise<void> {
-  const { actingUserId } = params;
+  const userId = params.actingUserId.trim();
   const supabase = getSupabaseServer();
 
-  console.log("[impersonate] received userId:", actingUserId);
+  console.log("[impersonate] received userId:", userId);
 
-  // Look up by user_id first (profiles.user_id = auth linkage; may equal id in some schemas)
-  console.log("[impersonate] profile lookup query: profiles where user_id =", actingUserId);
-  let result = await supabase
+  // ONLY lookup by user_id (exact column name). Never query profiles.id.
+  const { data: profileRow, error } = await supabase
     .from("profiles")
-    .select("id, user_id, role")
-    .eq("user_id", actingUserId)
+    .select("user_id, role")
+    .eq("user_id", userId)
     .maybeSingle();
-  let profile = result.data as { id?: string; user_id?: string; role?: string } | null;
-  const byUserIdError = result.error;
-  if (byUserIdError) {
-    console.log("[impersonate] profile lookup by user_id error:", byUserIdError.message);
-  }
-  console.log("[impersonate] profile lookup by user_id result:", profile ? "found" : "not found");
 
-  // Fallback: try by id (userId may be profiles.id)
+  let profile = profileRow as { user_id?: string; role?: string } | null;
+  if (error) {
+    console.log("[impersonate] profile lookup error:", error.message);
+  }
+
   if (!profile) {
-    console.log("[impersonate] profile lookup query: profiles where id =", actingUserId);
-    result = await supabase
-      .from("profiles")
-      .select("id, user_id, role")
-      .eq("id", actingUserId)
-      .maybeSingle();
-    profile = result.data as { id?: string; user_id?: string; role?: string } | null;
-    if (result.error) {
-      console.log("[impersonate] profile lookup by id error:", result.error.message);
+    console.warn("[impersonate] profile missing");
+
+    // Auto-create profile only when userId is UUID (real auth user); then profile exists in DB
+    if (isUUID(userId)) {
+      const { data: authData } = await supabase.auth.admin.getUserById(userId);
+      if (authData?.user) {
+        const { error: insertErr } = await supabase.from("profiles").insert({
+          id: userId,
+          full_name: authData.user.email ?? "User",
+          email: authData.user.email ?? `${userId}@placeholder`,
+          role: "employee",
+          visibility: "private",
+          flagged_for_fraud: false,
+        });
+        if (!insertErr) {
+          profile = { user_id: userId, role: "employee" };
+        }
+      }
     }
-    console.log("[impersonate] profile lookup by id result:", profile ? "found" : "not found");
-  }
-
-  if (profile) {
-    const userId = profile.user_id ?? profile.id;
-    const role = profile.role ?? "user";
-    if (!userId) throw new Error("Profile not found");
-    await setActingUserCookie({ id: userId, role: String(role) });
-    return;
-  }
-
-  // Profile missing: check if user exists in auth (users table)
-  let authUser: { id: string; email?: string } | null = null;
-  try {
-    const { data, error } = await supabase.auth.admin.getUserById(actingUserId);
-    authUser = data?.user ?? null;
-    if (error) {
-      console.log("[impersonate] auth.admin.getUserById error:", error.message);
+    // Sandbox (non-UUID): no profile row; we still impersonate by setting cookie with userId
+    if (!profile) {
+      profile = { user_id: userId, role: "employee" };
     }
-  } catch (e) {
-    console.log("[impersonate] auth.admin.getUserById exception:", e);
   }
-  console.log("[impersonate] user exists in auth (users table):", authUser ? "yes" : "no");
 
-  if (authUser) {
-    // Find-or-create: profile missing but user exists → create profile (like db.profile.create({ data: { userId, role: "user" } }))
-    const { error: insertErr } = await supabase.from("profiles").insert({
-      id: authUser.id,
-      full_name: authUser.email ?? "User",
-      email: authUser.email ?? `${authUser.id}@placeholder`,
-      role: "user",
-      visibility: "private",
-      flagged_for_fraud: false,
-    });
-    if (insertErr) {
-      console.error("[impersonate] lazy profile create failed:", insertErr.message);
-      throw new Error("Profile not found");
+  // Only check Supabase Auth if UUID (real auth user)
+  if (isUUID(userId)) {
+    const { data: authData, error: authError } = await supabase.auth.admin.getUserById(userId);
+    if (authError || !authData?.user) {
+      throw new Error("Auth user not found");
     }
-    console.log("[impersonate] created profile for user", authUser.id);
-    await setActingUserCookie({ id: authUser.id, role: "user" });
-    return;
+  } else {
+    console.log("[impersonate] sandbox user — skipping auth");
   }
 
-  throw new Error("Profile not found");
+  const actingId = profile?.user_id ?? userId;
+  const role = profile?.role ?? "user";
+  await setActingUserCookie({ id: actingId, role: String(role) });
 }

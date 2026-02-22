@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface AdminUser {
   id: string;
+  userId: string;
   email: string;
   full_name: string;
   role: string | null;
@@ -193,7 +194,7 @@ export function AdminUsersList() {
                     size="sm"
                     className="hover:bg-slate-50 text-[#334155]"
                     onClick={async () => {
-                      const userId = typeof user?.id === "string" ? user.id.trim() : "";
+                      const userId = typeof user?.userId === "string" ? user.userId.trim() : "";
                       if (!userId) {
                         alert("No user ID");
                         return;
@@ -202,21 +203,15 @@ export function AdminUsersList() {
                         const res = await fetch("/api/admin/impersonate", {
                           method: "POST",
                           credentials: "include",
-                          headers: {
-                            "Content-Type": "application/json",
-                          },
-                          body: JSON.stringify({
-                            userId, // MUST be UUID (profile id)
-                          }),
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ userId }),
                         });
                         if (!res.ok) {
                           const err = await res.json().catch(() => ({}));
-                          alert(err?.error ?? "Impersonation failed");
+                          alert((err as { error?: string }).error ?? "Impersonation failed");
                           return;
                         }
-                        const data = await res.json();
-                        const redirectUrl = data?.redirectUrl ?? "/dashboard";
-                        window.location.href = redirectUrl;
+                        window.location.href = "/dashboard";
                       } catch (e) {
                         console.error("Impersonate error:", e);
                         alert("Impersonation failed");

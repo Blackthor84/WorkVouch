@@ -35,7 +35,7 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from("profiles")
-      .select("id, email, full_name, created_at, role, status")
+      .select("id, user_id, email, full_name, created_at, role, status")
       .order("created_at", { ascending: false });
 
     if (searchEmail) {
@@ -81,6 +81,7 @@ export async function GET(request: Request) {
 
     type ProfileRow = {
       id: string;
+      user_id?: string | null;
       email: string | null;
       full_name: string | null;
       created_at: string;
@@ -89,6 +90,7 @@ export async function GET(request: Request) {
     };
     const users = ((profiles ?? []) as ProfileRow[]).map((p) => ({
       id: p.id,
+      userId: p.user_id ?? p.id,
       email: p.email ?? "",
       full_name: p.full_name ?? "",
       role: p.role ?? null,

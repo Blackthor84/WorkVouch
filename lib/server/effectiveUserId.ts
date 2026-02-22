@@ -30,13 +30,21 @@ function getImpersonatedUserIdFromSandboxCookie(cookieValue: string | undefined)
   }
 }
 
+const IMPERSONATED_USER_ID_COOKIE = "impersonatedUserId";
+
 /**
  * Returns the user id to use for ALL Supabase data queries in this request.
- * effectiveUserId = acting_user?.id ?? sandbox_impersonation_id ?? auth.uid()
+ * effectiveUserId = impersonatedUserId ?? acting_user?.id ?? sandbox_impersonation_id ?? auth.uid()
  */
 export async function getEffectiveUserId(): Promise<string | null> {
   const authed = await getAuthedUser();
   if (!authed?.user?.id) return null;
+
+  const cookieStore = await cookies();
+  const impersonatedUserId = cookieStore.get(IMPERSONATED_USER_ID_COOKIE)?.value;
+  if (impersonatedUserId?.trim() && (authed.role === "admin" || authed.role === "superadmin")) {
+    return impersonatedUserId.trim();
+  }
 
   const acting = await getActingUser();
   if (acting) return acting.id;
@@ -63,6 +71,16 @@ export async function getEffectiveUserIdWithAuth(): Promise<{
 } | null> {
   const authed = await getAuthedUser();
   if (!authed?.user?.id) return null;
+
+  const cookieStore = await cookies();
+  const impersonatedUserId = cookieStore.get(IMPERSONATED_USER_ID_COOKIE)?.value;
+  if (impersonatedUserId?.trim() && (authed.role === "admin" || authed.role === "superadmin")) {
+    return {
+      effectiveUserId: impersonatedUserId.trim(),
+      authUserId: authed.user.id,
+      isImpersonating: true,
+    };
+  }
 
   const acting = await getActingUser();
   if (acting) {

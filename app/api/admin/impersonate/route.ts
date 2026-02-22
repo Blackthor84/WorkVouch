@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
 import { startImpersonation } from "@/lib/admin/impersonation";
 
@@ -51,6 +52,11 @@ export async function POST(req: Request) {
       actingUserId: userId,
     });
 
+    const cookieStore = await cookies();
+    cookieStore.set("impersonatedUserId", userId, { httpOnly: true, path: "/" });
+    cookieStore.set("adminUserId", admin.authUserId, { httpOnly: true, path: "/" });
+
+    console.log("[impersonate] SUCCESS:", userId);
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (err: unknown) {
     console.error("[impersonate] ERROR:", err);

@@ -20,9 +20,11 @@ function getSecret() {
 
 export type ActingUser = { id: string; role: string };
 
+export const IMPERSONATED_USER_ID_COOKIE = "impersonatedUserId";
+
 /**
- * Returns the acting user (id, role) from the JWT cookie when valid and auth user is admin/superadmin.
- * Returns null when not impersonating or cookie invalid.
+ * Returns the acting user (id, role) from impersonatedUserId cookie or JWT when valid and auth user is admin/superadmin.
+ * effectiveUserId = impersonatedUserId ?? acting_user.id ?? auth_user.id
  */
 export async function getActingUser(): Promise<ActingUser | null> {
   const authed = await getAuthedUser();
@@ -31,6 +33,11 @@ export async function getActingUser(): Promise<ActingUser | null> {
   if (!isAdmin) return null;
 
   const cookieStore = await cookies();
+  const impersonatedUserId = cookieStore.get(IMPERSONATED_USER_ID_COOKIE)?.value;
+  if (impersonatedUserId?.trim()) {
+    return { id: impersonatedUserId.trim(), role: "user" };
+  }
+
   const token = cookieStore.get(ACTING_USER_COOKIE)?.value;
   if (!token?.trim()) return null;
 
