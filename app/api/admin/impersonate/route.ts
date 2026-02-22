@@ -54,37 +54,37 @@ export async function POST(req: Request) {
     const isSandbox = userId.startsWith("sandbox_");
 
     // Look up exclusively via profiles.user_id (profile-based). Never use auth.users.
-    let profile: { id: string; user_id?: string } | null = null;
-    const { data: profileRow, error: lookupError } = await supabase
+    const { data: profileRow, error } = await supabase
       .from("profiles")
-      .select("id, user_id")
-      .eq("user_id", userId as string)
+      .select("user_id")
+      .eq("user_id", userId)
       .maybeSingle();
 
-    if (!lookupError && profileRow) {
-      profile = {
-        id: profileRow.id,
-        user_id: (profileRow as { user_id?: string }).user_id ?? profileRow.id,
-      };
-    }
-
-    if (!profile && isSandbox) {
-      const profileId = await createSandboxProfile(supabase, {
-        full_name: "Sandbox User",
-        role: "user",
-        sandbox_id: "playground",
-      });
-      profile = { id: profileId, user_id: profileId };
-    }
-
-    if (!profile) {
+    if (error && !isSandbox) {
       return NextResponse.json(
         { error: "Profile not found." },
         { status: 404 }
       );
     }
 
-    const effectiveUserId = profile.user_id ?? profile.id;
+    let effectiveUserId: string | null = null;
+    if (profileRow && typeof (profileRow as { user_id: string }).user_id === "string") {
+      effectiveUserId = (profileRow as { user_id: string }).user_id;
+    }
+    if (!effectiveUserId && isSandbox) {
+      effectiveUserId = await createSandboxProfile(supabase, {
+        full_name: "Sandbox User",
+        role: "user",
+        sandbox_id: "playground",
+      });
+    }
+
+    if (!effectiveUserId) {
+      return NextResponse.json(
+        { error: "Profile not found." },
+        { status: 404 }
+      );
+    }
     const cookieStore = await cookies();
     cookieStore.set("impersonatedUserId", effectiveUserId, { httpOnly: true, path: "/" });
     cookieStore.set("adminUserId", admin.authUserId, { httpOnly: true, path: "/" });
