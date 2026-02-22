@@ -16,6 +16,8 @@ type ProfileRow = {
   isSandbox?: boolean | null;
 };
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 /**
  * GET /api/admin/users — list all users (admin/superadmin only).
  * Hardened: try/catch, typed error, structured 500, audit log.
@@ -88,17 +90,21 @@ export async function GET(request: Request) {
     }
 
     const rows = data ?? [];
-    const users = rows.map((p) => ({
-      id: p.user_id,
-      userId: p.user_id,
-      user_id: p.user_id,
-      email: p.email ?? "",
-      fullName: p.full_name ?? "",
-      createdAt: p.created_at,
-      role: p.role ?? "user",
-      status: p.status ?? "active",
-      isSandbox: p.isSandbox ?? false,
-    }));
+    const users = rows.map((p) => {
+      const rawUserId = p.user_id?.trim() ?? "";
+      const user_id = UUID_REGEX.test(rawUserId) ? rawUserId : "";
+      return {
+        id: p.user_id,
+        userId: p.user_id,
+        user_id,
+        email: p.email ?? "",
+        fullName: p.full_name ?? "",
+        createdAt: p.created_at,
+        role: p.role ?? "user",
+        status: p.status ?? "active",
+        isSandbox: p.isSandbox ?? false,
+      };
+    });
 
     const { ipAddress, userAgent } = getAuditMetaFromRequest(request);
     await auditLog({

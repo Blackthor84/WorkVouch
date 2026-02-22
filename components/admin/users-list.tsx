@@ -205,7 +205,7 @@ export function AdminUsersList() {
                     onClick={async () => {
                       const userId = typeof user?.user_id === "string" ? user.user_id.trim() : "";
                       if (!userId || !isRealUserUuid(userId)) {
-                        alert("Impersonation requires a real user UUID.");
+                        alert("Impersonation requires a real user UUID. Sandbox IDs are not allowed.");
                         return;
                       }
                       try {
@@ -213,7 +213,7 @@ export function AdminUsersList() {
                           method: "POST",
                           credentials: "include",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ userId }),
+                          body: JSON.stringify({ userId: user.user_id }),
                         });
                         if (!res.ok) {
                           const err = await res.json().catch(() => ({}));
