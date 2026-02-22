@@ -15,14 +15,16 @@ export async function startImpersonation(params: StartImpersonationParams): Prom
   const supabase = getSupabaseServer();
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id, role")
-    .eq("id", actingUserId)
+    .select("user_id, role")
+    .eq("user_id", actingUserId)
     .single();
 
   if (error || !profile) {
     throw new Error("Profile not found");
   }
 
+  const userId = (profile as { user_id?: string }).user_id;
   const role = (profile as { role?: string }).role ?? "user";
-  await setActingUserCookie({ id: profile.id, role: String(role) });
+  if (!userId) throw new Error("Profile not found");
+  await setActingUserCookie({ id: userId, role: String(role) });
 }
