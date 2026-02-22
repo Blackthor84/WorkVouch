@@ -4,11 +4,9 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { SandboxUser } from "../SandboxPlaygroundPanels";
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+type Props = { users?: SandboxUser[]; sandboxId?: string; role?: string };
 
-type Props = { users?: SandboxUser[]; sandboxId?: string };
-
-export function ImpersonationPanel({ users = [], sandboxId }: Props) {
+export function ImpersonationPanel({ users = [], sandboxId, role = "admin" }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [targetUserId, setTargetUserId] = useState("");
@@ -18,18 +16,14 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
 
   const startImpersonation = useCallback(async () => {
     const selected = users.find((u) => u.user_id === targetUserId || u.id === targetUserId);
-    const userId = (selected?.profile_user_id ?? "").trim();
+    const userId = selected?.id ?? selected?.user_id ?? "";
     if (!userId) {
-      setMessage("Select a user with a real profile (UUID). Sandbox IDs cannot be used.");
+      setMessage("Select a user.");
       return;
     }
+    setLoading(true);
+    setMessage(undefined);
     try {
-      if (userId.startsWith("sandbox_") || !UUID_REGEX.test(userId)) {
-        throw new Error("Impersonation requires a valid UUID. Sandbox IDs must never reach the impersonate API.");
-      }
-      setLoading(true);
-      setMessage(undefined);
-      console.log("[IMPERSONATE SEND]", userId);
       const res = await fetch("/api/admin/impersonate", {
         method: "POST",
         credentials: "include",
@@ -92,7 +86,9 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
   };
 
   const selectedRow = users.find((u) => u.user_id === targetUserId || u.id === targetUserId);
-  const canImpersonate = Boolean(selectedRow?.profile_user_id && UUID_REGEX.test(selectedRow.profile_user_id));
+  const canImpersonate =
+    (role === "admin" || role === "superadmin") &&
+    Boolean(selectedRow?.id);
 
   return (
     <div style={{ fontSize: 14 }}>
@@ -121,9 +117,12 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <button
           type="button"
-          onClick={startImpersonation}
-          disabled={loading || !canImpersonate}
-          style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #CBD5E1", background: "#fff", cursor: loading || !canImpersonate ? "not-allowed" : "pointer" }}
+          disabled={!canImpersonate}
+          onClick={() => {
+            console.log("IMPERSONATE CLICKED", selectedRow?.id);
+            startImpersonation();
+          }}
+          style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #CBD5E1", background: "#fff", cursor: !canImpersonate ? "not-allowed" : "pointer" }}
         >
           Impersonate
         </button>

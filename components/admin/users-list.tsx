@@ -5,11 +5,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-function isRealUserUuid(id: string): boolean {
-  return UUID_REGEX.test(id.trim());
-}
-
 interface AdminUser {
   id: string;
   userId: string;
@@ -23,7 +18,9 @@ interface AdminUser {
   isSandbox: boolean;
 }
 
-export function AdminUsersList() {
+type AdminUsersListProps = { role?: string };
+
+export function AdminUsersList({ role = "admin" }: AdminUsersListProps) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -161,7 +158,11 @@ export function AdminUsersList() {
               </td>
             </tr>
           ) : (
-            users.map((user) => (
+            users.map((user) => {
+              const canImpersonate =
+                (role === "admin" || role === "superadmin") &&
+                Boolean(user?.id);
+              return (
               <tr key={user.id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-4 py-3 text-sm text-[#334155]">{user.email}</td>
                 <td className="px-4 py-3 text-sm text-[#334155]">{user.fullName || "—"}</td>
@@ -201,20 +202,15 @@ export function AdminUsersList() {
                     variant="ghost"
                     size="sm"
                     className="hover:bg-slate-50 text-[#334155]"
-                    disabled={!user.profile_user_id || !isRealUserUuid(user.profile_user_id)}
-                    title={!user.profile_user_id || !isRealUserUuid(user.profile_user_id) ? "Impersonation requires a real user (UUID). Sandbox users are not supported." : "View as this user"}
+                    disabled={!canImpersonate}
                     onClick={async () => {
-                      const userId = typeof user?.profile_user_id === "string" ? user.profile_user_id.trim() : "";
-                      if (!userId || !isRealUserUuid(userId)) {
-                        throw new Error("Impersonation requires a valid UUID. Sandbox IDs must never reach the impersonate API.");
-                      }
-                      console.log("[impersonate] sending userId (UUID only):", userId);
+                      console.log("IMPERSONATE CLICKED", user.id);
                       try {
                         const res = await fetch("/api/admin/impersonate", {
                           method: "POST",
                           credentials: "include",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ userId: user.profile_user_id }),
+                          body: JSON.stringify({ userId: user.id }),
                         });
                         if (!res.ok) {
                           const err = await res.json().catch(() => ({}));
@@ -228,11 +224,12 @@ export function AdminUsersList() {
                       }
                     }}
                   >
-                    View as User
+                    Impersonate
                   </Button>
                 </td>
               </tr>
-            ))
+              );
+            })
           )}
         </tbody>
       </table>

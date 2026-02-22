@@ -15,7 +15,7 @@ export default async function AdminUsers() {
         <p className="text-[#334155]">View and manage all user accounts</p>
       </div>
 
-      <AdminUsersList />
+      <AdminUsersList role={admin.profileRole === "super_admin" ? "superadmin" : admin.profileRole} />
     </div>
   );
 }
