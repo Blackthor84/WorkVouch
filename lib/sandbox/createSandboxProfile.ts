@@ -4,6 +4,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { getSupabaseServer } from "@/lib/supabase/admin";
 
 const SANDBOX_EMAIL_DOMAIN = "internal.workvouch.sandbox";
 
@@ -18,6 +19,30 @@ export type CreateSandboxProfileParams = {
  * Caller must use service-role client.
  */
 export async function createSandboxProfile(
+  supabase: SupabaseClient<Database>,
+  params: CreateSandboxProfileParams
+): Promise<string>;
+/**
+ * Creates a sandbox profile for impersonation by userId (e.g. sandbox_employee_*). Returns { user_id }.
+ */
+export async function createSandboxProfile(userId: string): Promise<{ user_id: string }>;
+export async function createSandboxProfile(
+  supabaseOrUserId: SupabaseClient<Database> | string,
+  params?: CreateSandboxProfileParams
+): Promise<string | { user_id: string }> {
+  if (typeof supabaseOrUserId === "string") {
+    const supabase = getSupabaseServer();
+    const id = await createSandboxProfileInternal(supabase, {
+      full_name: "Sandbox User",
+      role: "user",
+      sandbox_id: "playground",
+    });
+    return { user_id: id };
+  }
+  return createSandboxProfileInternal(supabaseOrUserId, params!);
+}
+
+async function createSandboxProfileInternal(
   supabase: SupabaseClient<Database>,
   params: CreateSandboxProfileParams
 ): Promise<string> {

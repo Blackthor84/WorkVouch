@@ -53,25 +53,25 @@ export async function POST(req: Request) {
     const supabase = getSupabaseServer();
     const isSandbox = userId.startsWith("sandbox_");
 
-    // Look up exclusively via profiles.user_id (profile-based). Never use auth.users.
-    const { data: profileRow, error: profileError } = await supabase
+    const { data, error } = await supabase
       .from("profiles")
-      .select("user_id")
+      .select<{ user_id: string }>("user_id")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
 
     let effectiveUserId: string | null = null;
 
-    if (!profileError && profileRow) {
-      effectiveUserId = profileRow.user_id;
+    if (data?.user_id) {
+      effectiveUserId = data.user_id;
     }
 
     if (!effectiveUserId && isSandbox) {
-      effectiveUserId = await createSandboxProfile(supabase, {
-        full_name: "Sandbox User",
-        role: "user",
-        sandbox_id: "playground",
-      });
+      const sandboxProfile = await createSandboxProfile(userId);
+      effectiveUserId = sandboxProfile.user_id;
     }
 
     if (!effectiveUserId) {
