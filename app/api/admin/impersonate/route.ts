@@ -16,32 +16,44 @@ export async function POST(req: Request) {
     try {
       body = await req.json();
     } catch (e) {
-      console.error("FAILED TO PARSE JSON BODY");
+      console.error("[impersonate] FAILED TO PARSE req.body:", e);
       return NextResponse.json(
-        { error: "Invalid JSON body" },
+        { error: "Invalid JSON body. Send { userId: string } as JSON." },
         { status: 400 }
       );
     }
 
-    console.log("IMPERSONATE API BODY:", body);
+    console.log("[impersonate] req.body:", JSON.stringify(body));
 
-    const userId = body?.userId;
-
-    if (!userId || typeof userId !== "string") {
+    const rawUserId = body?.userId;
+    if (rawUserId === undefined || rawUserId === null) {
       return NextResponse.json(
-        { error: "Missing or invalid userId" },
+        { error: "Missing userId. Request body must include { userId: string }." },
+        { status: 400 }
+      );
+    }
+    if (typeof rawUserId !== "string") {
+      return NextResponse.json(
+        { error: "Invalid userId: must be a string (profile user_id)." },
+        { status: 400 }
+      );
+    }
+    const userId = rawUserId.trim();
+    if (!userId) {
+      return NextResponse.json(
+        { error: "userId cannot be empty." },
         { status: 400 }
       );
     }
 
     await startImpersonation({
       authUserId: admin.authUserId,
-      actingUserId: userId.trim(),
+      actingUserId: userId,
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { status: 200 });
   } catch (err: unknown) {
-    console.error("IMPERSONATE API ERROR:", err);
+    console.error("[impersonate] ERROR:", err);
     const message = err instanceof Error ? err.message : "Impersonation failed";
     return NextResponse.json(
       { error: message },
