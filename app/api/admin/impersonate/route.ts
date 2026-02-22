@@ -55,9 +55,10 @@ export async function POST(req: Request) {
 
     const { data, error } = await supabase
       .from("profiles")
-      .select<{ user_id: string }>("user_id")
+      .select("user_id")
       .eq("user_id", userId)
-      .maybeSingle();
+      .maybeSingle()
+      .returns<{ user_id: string }>();
 
     if (error) {
       throw error;
