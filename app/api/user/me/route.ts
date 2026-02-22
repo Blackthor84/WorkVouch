@@ -7,8 +7,6 @@ export const runtime = "nodejs";
 /**
  * GET /api/user/me — current user (or effective user when impersonating).
  * effectiveUserId = impersonatedUserId ?? realAuthUserId.
- * Look up by user_id only; auto-create sandbox profile if missing for impersonation.
- * Do not return 401 after profile is resolved or created.
  */
 export async function GET() {
   const cookieStore = await cookies();
@@ -29,13 +27,15 @@ export async function GET() {
   }
 
   const supabase = await supabaseServer();
+
+  // 🔑 LOOKUP BY user_id ONLY
   let { data: profile, error } = await supabase
     .from("profiles")
     .select("user_id, email, full_name, role, onboarding_completed")
     .eq("user_id", effectiveUserId)
     .maybeSingle();
 
-  // Auto-create for sandbox / impersonation
+  // 🛠 AUTO-CREATE SANDBOX PROFILE
   if (!profile || error) {
     console.log("[api/user/me] creating sandbox profile");
     const { error: insertErr } = await supabase.from("profiles").insert({
@@ -57,7 +57,7 @@ export async function GET() {
     }
   }
 
-  // Do not return 401 after this point
+  // 🚨 ABSOLUTE RULE: From here on, NEVER return 401
   if (error || !profile) {
     return new Response("Unauthorized", { status: 401 });
   }
