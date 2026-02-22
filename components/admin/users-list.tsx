@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+function isRealUserUuid(id: string): boolean {
+  return UUID_REGEX.test(id.trim());
+}
+
 interface AdminUser {
   id: string;
   userId: string;
@@ -194,10 +199,12 @@ export function AdminUsersList() {
                     variant="ghost"
                     size="sm"
                     className="hover:bg-slate-50 text-[#334155]"
+                    disabled={!isRealUserUuid(user.userId)}
+                    title={!isRealUserUuid(user.userId) ? "Impersonation requires a real user (UUID). Sandbox users are not supported." : "View as this user"}
                     onClick={async () => {
                       const userId = typeof user?.userId === "string" ? user.userId.trim() : "";
-                      if (!userId) {
-                        alert("No user ID");
+                      if (!userId || !isRealUserUuid(userId)) {
+                        alert("Impersonation requires a real user UUID.");
                         return;
                       }
                       try {
