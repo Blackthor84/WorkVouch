@@ -33,7 +33,7 @@ function CopyableId({
   );
 }
 
-export type SandboxUser = { id: string; user_id: string; name: string; role: "worker" | "employer" };
+export type SandboxUser = { id: string; user_id: string; profile_user_id: string; name: string; role: "worker" | "employer" };
 
 type CompanyData = {
   sandboxId?: string;
@@ -240,25 +240,24 @@ export function SandboxPlaygroundPanels() {
     if (company?.sandboxId && listUsers.length === 0 && !sandboxAccessDenied) fetchList();
   }, [company?.sandboxId, listUsers.length, sandboxAccessDenied, fetchList]);
 
-  const users =
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const users: SandboxUser[] =
     listUsers.length > 0
-      ? listUsers
+      ? listUsers.map((u) => ({ ...u, profile_user_id: u.profile_user_id ?? "" }))
       : [
-          ...(company?.workers?.map((w) => ({
-            id: w.id,
-            user_id: w.user_id ?? w.id,
-            name: w.full_name ?? "Worker",
-            role: "worker" as const,
-          })) ?? []),
+          ...(company?.workers?.map((w) => {
+            const raw = (w.user_id ?? w.id ?? "").trim();
+            const profile_user_id = UUID_REGEX.test(raw) ? raw : "";
+            return { id: w.id, user_id: w.user_id ?? w.id, profile_user_id, name: w.full_name ?? "Worker", role: "worker" as const };
+          }) ?? []),
           ...(company?.employer
-            ? [
-                {
-                  id: company.employer.id,
-                  user_id: company.employer.user_id ?? company.employer.id,
-                  name: company.employer.company_name ?? "Employer",
-                  role: "employer" as const,
-                },
-              ]
+            ? (() => {
+                const raw = (company.employer.user_id ?? company.employer.id ?? "").trim();
+                const profile_user_id = UUID_REGEX.test(raw) ? raw : "";
+                return [
+                  { id: company.employer.id, user_id: company.employer.user_id ?? company.employer.id, profile_user_id, name: company.employer.company_name ?? "Employer", role: "employer" as const },
+                ];
+              })()
             : []),
         ];
 

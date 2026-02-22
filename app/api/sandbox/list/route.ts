@@ -5,9 +5,11 @@ import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** Guaranteed shape. Never return null or omit keys. user_id = profile UUID for impersonation. */
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** Guaranteed shape. profile_user_id = profiles.user_id (UUID) for impersonation only. */
 const EMPTY_LIST_PAYLOAD = {
-  users: [] as { id: string; user_id: string; name: string; role: "worker" | "employer" }[],
+  users: [] as { id: string; user_id: string; profile_user_id: string; name: string; role: "worker" | "employer" }[],
   employers: [] as { id: string; company_name: string }[],
   employees: [] as { id: string; full_name: string }[],
   sandboxId: null as string | null,
@@ -49,14 +51,22 @@ export async function GET(req: NextRequest) {
     const employees = (employeesRes.data ?? []) as { id: string; full_name: string; profile_id: string | null }[];
     const employers = (employersRes.data ?? []) as { id: string; company_name: string; profile_id: string | null }[];
 
-    // Impersonation only accepts real profile UUIDs; expose as user_id so frontend sends it.
+    // Impersonation only accepts real profile UUIDs. profile_user_id = profiles.user_id (UUID).
     const users = [
       ...employees
         .filter((e) => e.profile_id)
-        .map((e) => ({ id: e.profile_id!, user_id: e.profile_id!, name: e.full_name ?? "Worker", role: "worker" as const })),
+        .map((e) => {
+          const pid = (e.profile_id ?? "").trim();
+          const profile_user_id = UUID_REGEX.test(pid) ? pid : "";
+          return { id: e.profile_id!, user_id: e.profile_id!, profile_user_id, name: e.full_name ?? "Worker", role: "worker" as const };
+        }),
       ...employers
         .filter((e) => e.profile_id)
-        .map((e) => ({ id: e.profile_id!, user_id: e.profile_id!, name: e.company_name ?? "Employer", role: "employer" as const })),
+        .map((e) => {
+          const pid = (e.profile_id ?? "").trim();
+          const profile_user_id = UUID_REGEX.test(pid) ? pid : "";
+          return { id: e.profile_id!, user_id: e.profile_id!, profile_user_id, name: e.company_name ?? "Employer", role: "employer" as const };
+        }),
     ];
 
     return NextResponse.json({

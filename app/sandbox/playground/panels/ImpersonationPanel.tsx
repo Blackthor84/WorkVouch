@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { SandboxUser } from "../SandboxPlaygroundPanels";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 type Props = { users?: SandboxUser[]; sandboxId?: string };
 
 export function ImpersonationPanel({ users = [], sandboxId }: Props) {
@@ -15,25 +17,24 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
   const [impersonating, setImpersonating] = useState(false);
 
   const startImpersonation = useCallback(async () => {
-    // userId must be the profile id (profiles.id) — sandbox users expose this as user_id.
     const selected = users.find((u) => u.user_id === targetUserId || u.id === targetUserId);
-    const userId: string = selected?.user_id ?? targetUserId.trim();
+    const userId = (selected?.profile_user_id ?? "").trim();
     if (!userId) {
-      setMessage("Enter or select target user ID");
+      setMessage("Select a user with a real profile (UUID). Sandbox IDs cannot be used.");
       return;
     }
-    setLoading(true);
-    setMessage(undefined);
     try {
+      if (userId.startsWith("sandbox_") || !UUID_REGEX.test(userId)) {
+        throw new Error("Impersonation requires a valid UUID. Sandbox IDs must never reach the impersonate API.");
+      }
+      setLoading(true);
+      setMessage(undefined);
+      console.log("[IMPERSONATE SEND]", userId);
       const res = await fetch("/api/admin/impersonate", {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId, // MUST be UUID (profile id)
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -45,8 +46,8 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
       setMessage("Impersonating. Redirecting…");
       router.refresh();
       window.location.href = redirectUrl;
-    } catch {
-      setMessage("Request failed");
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Request failed");
     } finally {
       setLoading(false);
     }
@@ -90,6 +91,9 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
     if (u) selectUser(u);
   };
 
+  const selectedRow = users.find((u) => u.user_id === targetUserId || u.id === targetUserId);
+  const canImpersonate = Boolean(selectedRow?.profile_user_id && UUID_REGEX.test(selectedRow.profile_user_id));
+
   return (
     <div style={{ fontSize: 14 }}>
       <p style={{ margin: "0 0 8px 0", color: "#64748B" }}>
@@ -118,8 +122,8 @@ export function ImpersonationPanel({ users = [], sandboxId }: Props) {
         <button
           type="button"
           onClick={startImpersonation}
-          disabled={loading || !targetUserId}
-          style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #CBD5E1", background: "#fff", cursor: loading || !targetUserId ? "not-allowed" : "pointer" }}
+          disabled={loading || !canImpersonate}
+          style={{ padding: "6px 12px", borderRadius: 6, border: "1px solid #CBD5E1", background: "#fff", cursor: loading || !canImpersonate ? "not-allowed" : "pointer" }}
         >
           Impersonate
         </button>
