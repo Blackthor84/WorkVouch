@@ -16,8 +16,8 @@ export function ImpersonationPanel({ users = [], sandboxId, role = "admin" }: Pr
 
   const startImpersonation = useCallback(async () => {
     const selected = users.find((u) => u.user_id === targetUserId || u.id === targetUserId);
-    const userId = selected?.id ?? selected?.user_id ?? "";
-    if (!userId) {
+    const profileId = selected?.id ?? "";
+    if (!profileId) {
       setMessage("Select a user.");
       return;
     }
@@ -28,7 +28,7 @@ export function ImpersonationPanel({ users = [], sandboxId, role = "admin" }: Pr
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ profileId }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {

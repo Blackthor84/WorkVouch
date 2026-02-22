@@ -210,7 +210,7 @@ export function AdminUsersList({ role = "admin" }: AdminUsersListProps) {
                           method: "POST",
                           credentials: "include",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ userId: user.id }),
+                          body: JSON.stringify({ profileId: user.id }),
                         });
                         if (!res.ok) {
                           const err = await res.json().catch(() => ({}));
