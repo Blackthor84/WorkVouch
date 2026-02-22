@@ -1,27 +1,38 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
-import { getEffectiveUserIdFromCookies, getEffectiveUserIdWithAuth } from "@/lib/server/effectiveUserId";
+import { getAuthedUser } from "@/lib/auth/getAuthedUser";
 
 export const runtime = "nodejs";
 
+const IMPERSONATED_USER_ID_COOKIE = "impersonatedUserId";
+
 /**
  * GET /api/user/me — current user (or effective user when impersonating).
- * Uses effective user ID from cookies first (no Supabase auth required for impersonation/sandbox),
- * so we never return 401 during active impersonation (stops infinite retry loops).
+ * Resolves effectiveUserId = impersonatedUserId ?? realAuthUserId.
+ * Does not require Supabase auth when impersonatedUserId cookie exists (stops infinite retry loops).
+ * Returns 401 only if no effectiveUserId or no profile exists.
  */
 export async function GET() {
-  const effectiveUserIdFromCookies = await getEffectiveUserIdFromCookies();
-  const supabase = await supabaseServer();
+  const cookieStore = await cookies();
+  const impersonatedUserId = cookieStore.get(IMPERSONATED_USER_ID_COOKIE)?.value?.trim() ?? null;
 
-  const effectiveUserId =
-    effectiveUserIdFromCookies ??
-    (await getEffectiveUserIdWithAuth())?.effectiveUserId ??
-    null;
+  let realAuthUserId: string | null = null;
+  if (!impersonatedUserId) {
+    const authed = await getAuthedUser();
+    realAuthUserId = authed?.user?.id ?? null;
+  }
+
+  const effectiveUserId = impersonatedUserId ?? realAuthUserId;
 
   if (!effectiveUserId) {
+    console.log("[api/user/me] No effectiveUserId: no impersonatedUserId cookie and no auth");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  console.log("[api/user/me] effectiveUserId:", effectiveUserId, impersonatedUserId ? "(impersonated)" : "(real auth)");
+
+  const supabase = await supabaseServer();
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("id, email, full_name, role, onboarding_completed")
@@ -29,6 +40,7 @@ export async function GET() {
     .single();
 
   if (error || !profile) {
+    console.log("[api/user/me] No profile for effectiveUserId:", effectiveUserId, error?.message ?? "not found");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
