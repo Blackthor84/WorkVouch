@@ -91,6 +91,7 @@ export async function GET(request: Request) {
     const users = rows.map((p) => ({
       id: p.user_id,
       userId: p.user_id,
+      user_id: p.user_id,
       email: p.email ?? "",
       fullName: p.full_name ?? "",
       createdAt: p.created_at,

@@ -13,6 +13,7 @@ function isRealUserUuid(id: string): boolean {
 interface AdminUser {
   id: string;
   userId: string;
+  user_id: string;
   email: string;
   fullName: string;
   role: string;
@@ -199,10 +200,10 @@ export function AdminUsersList() {
                     variant="ghost"
                     size="sm"
                     className="hover:bg-slate-50 text-[#334155]"
-                    disabled={!isRealUserUuid(user.userId)}
-                    title={!isRealUserUuid(user.userId) ? "Impersonation requires a real user (UUID). Sandbox users are not supported." : "View as this user"}
+                    disabled={!user.user_id || !isRealUserUuid(user.user_id)}
+                    title={!user.user_id || !isRealUserUuid(user.user_id) ? "Impersonation requires a real user (UUID). Sandbox users are not supported." : "View as this user"}
                     onClick={async () => {
-                      const userId = typeof user?.userId === "string" ? user.userId.trim() : "";
+                      const userId = typeof user?.user_id === "string" ? user.user_id.trim() : "";
                       if (!userId || !isRealUserUuid(userId)) {
                         alert("Impersonation requires a real user UUID.");
                         return;
