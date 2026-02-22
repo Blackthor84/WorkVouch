@@ -35,7 +35,7 @@ export async function GET(request: Request) {
 
     let query = supabase
       .from("profiles")
-      .select("id, user_id, email, full_name, created_at, role, status")
+      .select("user_id, email, full_name, created_at, role, status")
       .order("created_at", { ascending: false });
 
     if (searchEmail) {
@@ -66,31 +66,28 @@ export async function GET(request: Request) {
       return NextResponse.json([]);
     }
     if (profileIdsFilter && profileIdsFilter.length > 0) {
-      query = query.in("id", profileIdsFilter);
+      query = query.in("user_id", profileIdsFilter);
     }
 
     const { data: profiles, error: profilesError } = await query;
 
     if (profilesError) {
-      console.error("[ADMIN_API_ERROR] GET /api/admin/users profiles", profilesError.message);
-      return NextResponse.json(
-        { success: false, error: "Internal server error" },
-        { status: 500 }
-      );
+      console.error("[admin/users] profiles error:", profilesError);
+      return NextResponse.json([], { status: 200 });
     }
 
     type ProfileRow = {
-      id: string;
-      user_id?: string | null;
+      user_id: string;
       email: string | null;
       full_name: string | null;
       created_at: string;
       role?: string | null;
       status?: string | null;
     };
-    const users = ((profiles ?? []) as ProfileRow[]).map((p) => ({
-      id: p.id,
-      userId: p.user_id ?? p.id,
+    const rows: ProfileRow[] = Array.isArray(profiles) ? profiles : [];
+    const users = rows.map((p) => ({
+      id: p.user_id,
+      userId: p.user_id,
       email: p.email ?? "",
       full_name: p.full_name ?? "",
       role: p.role ?? null,
