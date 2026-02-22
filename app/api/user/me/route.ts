@@ -1,16 +1,15 @@
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
 /**
- * GET /api/user/me — effective user when impersonating (cookie-only).
- * Impersonation is UUID-only; cookie must be set to real user UUID.
+ * GET /api/user/me — effective user. Prefers x-impersonated-user-id (from middleware) when impersonating.
  */
 export async function GET() {
-  const cookieStore = await cookies();
+  const h = await headers();
   const effectiveUserId =
-    cookieStore.get("impersonatedUserId")?.value?.trim() ?? null;
+    h.get("x-impersonated-user-id")?.trim() ?? null;
 
   if (!effectiveUserId) {
     return new Response("Unauthorized", { status: 401 });

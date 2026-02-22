@@ -4,9 +4,10 @@ import { NextResponse, type NextRequest } from "next/server";
 const ANALYTICS_SESSION_COOKIE = "wv_sid";
 const ANALYTICS_SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
+const IMPERSONATION_COOKIE = "impersonation_session";
+
 /**
- * Middleware: refresh Supabase session (so Server Components can read it).
- * No auth redirects or role checks here.
+ * Middleware: refresh Supabase session; inject impersonation headers when impersonation_session cookie is set.
  */
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
@@ -24,7 +25,24 @@ export async function middleware(req: NextRequest) {
     );
   }
 
-  const res = NextResponse.next({ request: req });
+  const requestHeaders = new Headers(req.headers);
+
+  const impersonation = req.cookies.get(IMPERSONATION_COOKIE)?.value;
+  if (impersonation) {
+    try {
+      const session = JSON.parse(impersonation) as { impersonatedUserId?: string };
+      if (session.impersonatedUserId) {
+        requestHeaders.set("x-impersonated-user-id", session.impersonatedUserId);
+        requestHeaders.set("x-is-impersonating", "true");
+      }
+    } catch {
+      // invalid cookie — ignore
+    }
+  }
+
+  const res = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
