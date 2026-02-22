@@ -8,6 +8,7 @@ import { getAdminSession } from "@/lib/auth/getAdminSession";
 export async function requireSandboxV2Admin(): Promise<{ id: string }> {
   const admin = await getAdminSession();
   if (!admin) throw new Error("Forbidden: admin or super_admin required");
+  console.log("[SANDBOX ROLE]", admin.role);
   return { id: admin.authUserId };
 }
 
