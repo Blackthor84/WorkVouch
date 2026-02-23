@@ -16,5 +16,6 @@ export function applyScenario<T>(
   const injector = map[context.scenario as keyof typeof map];
   if (!injector) return baseData;
 
-  return injector(baseData);
+  const overlay = injector(baseData as Record<string, unknown>);
+  return { ...baseData, ...overlay } as T;
 }

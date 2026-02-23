@@ -68,6 +68,7 @@ const UNAUTHORIZED_CONTEXT: AdminContext = {
   canBypassLimits: false,
   canSeedData: resolveSandbox(),
   godMode: { enabled: false },
+  impersonation: { impersonating: false, actorType: "employee" },
 };
 
 /**

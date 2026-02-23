@@ -13,7 +13,8 @@ export interface OnboardingStepConfig {
 interface OnboardingOverlayProps {
   steps: OnboardingStepConfig[];
   onComplete: () => void;
-  onSkip: () => void;
+  onSkip?: () => void;
+  disableComplete?: boolean;
 }
 
 export function OnboardingOverlay({

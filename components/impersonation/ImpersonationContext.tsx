@@ -47,6 +47,7 @@ export function useImpersonation(): ImpersonationContextValue {
       impersonatedUserId: null,
       startedAt: null,
       effectiveUser: null,
+      impersonation: undefined,
       loading: false,
       exitImpersonation: async () => {},
       refresh: async () => {},
@@ -80,6 +81,7 @@ export function ImpersonationProvider({ children }: ImpersonationProviderProps) 
           impersonatedUserId: null,
           startedAt: null,
           effectiveUser: null,
+          impersonation: undefined,
           loading: false,
         });
         return;
@@ -106,7 +108,7 @@ export function ImpersonationProvider({ children }: ImpersonationProviderProps) 
         impersonatedUserId: status.impersonatedUserId ?? null,
         startedAt: status.startedAt ?? null,
         effectiveUser,
-        impersonation,
+        impersonation: status?.impersonation ?? undefined,
         loading: false,
       });
     } catch {

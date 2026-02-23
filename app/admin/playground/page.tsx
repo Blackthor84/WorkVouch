@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { AdminPlaygroundClient } from "@/components/admin/AdminPlaygroundClient";
 import { SimulationScenarioControls } from "@/components/admin/SimulationScenarioControls";
 import { ImpersonationScenarioSelect } from "@/components/admin/ImpersonationScenarioSelect";
+import { DemoControls } from "@/components/demo/DemoControls";
 import { ImpersonationBanner } from "@/app/sandbox/playground/ImpersonationBanner";
 import { SandboxPlaygroundPanels } from "@/app/sandbox/playground/SandboxPlaygroundPanels";
 import { FuzzerRunCard } from "./FuzzerRunCard";
