@@ -10,6 +10,12 @@ import {
   type ReactNode,
 } from "react";
 
+export type ImpersonationContextSession = {
+  impersonating: boolean;
+  actorType?: string;
+  scenario?: string;
+};
+
 export type ImpersonationState = {
   isImpersonating: boolean;
   impersonatedUserId: string | null;
@@ -21,6 +27,8 @@ export type ImpersonationState = {
     full_name?: string;
     role?: string;
   } | null;
+  /** Scenario overlay from simulation cookie (session.impersonation) */
+  impersonation: ImpersonationContextSession | undefined;
   loading: boolean;
 };
 
@@ -55,6 +63,7 @@ export function ImpersonationProvider({ children }: ImpersonationProviderProps) 
     impersonatedUserId: null,
     startedAt: null,
     effectiveUser: null,
+    impersonation: undefined,
     loading: true,
   });
 
@@ -97,6 +106,7 @@ export function ImpersonationProvider({ children }: ImpersonationProviderProps) 
         impersonatedUserId: status.impersonatedUserId ?? null,
         startedAt: status.startedAt ?? null,
         effectiveUser,
+        impersonation,
         loading: false,
       });
     } catch {

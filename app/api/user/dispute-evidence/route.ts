@@ -2,6 +2,7 @@
  * POST /api/user/dispute-evidence
  * Register evidence after client uploads to Supabase Storage (bucket: dispute-evidence).
  * Path must be {user_id}/{dispute_id}/{filename}. Validates ownership. Zod validated.
+ * Writes are disabled during impersonation.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -9,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getEffectiveUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +28,9 @@ const bodySchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const reject = await rejectWriteIfImpersonating();
+    if (reject) return reject;
+
     const effective = await getEffectiveUser();
     if (!effective || effective.deleted_at) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

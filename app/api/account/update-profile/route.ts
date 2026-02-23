@@ -4,13 +4,18 @@ export const runtime = "nodejs";
 import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { insertActivityLog } from "@/lib/activity";
+import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 
 /**
  * POST /api/account/update-profile
  * User self-edit: full_name only. Auth required. Uses effective user (impersonation-aware).
+ * Writes are disabled during impersonation.
  */
 export async function POST(request: Request) {
   try {
+    const reject = await rejectWriteIfImpersonating();
+    if (reject) return reject;
+
     const userId = await getEffectiveUserId();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

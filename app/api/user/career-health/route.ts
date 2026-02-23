@@ -4,6 +4,8 @@
  */
 import { getEffectiveUser } from "@/lib/auth/getEffectiveUser";
 import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
+import { getSupabaseSession } from "@/lib/supabase/server";
+import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 import { NextResponse } from "next/server";
 
 
@@ -62,10 +64,9 @@ export async function GET() {
       network: clamp(Number(snapshot.network_density_score) ?? 0),
     };
 
-    return NextResponse.json({
-      careerHealth,
-      components,
-    } satisfies CareerHealthResponse);
+    const baseData = { careerHealth, components } satisfies CareerHealthResponse;
+    const { session } = await getSupabaseSession();
+    return NextResponse.json(applyScenario(baseData, session?.impersonation));
   } catch {
     return fallback();
   }

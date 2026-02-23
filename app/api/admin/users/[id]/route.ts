@@ -6,12 +6,14 @@ import { requireAdminForApi, assertAdminCanModify } from "@/lib/auth/requireAdmi
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
+import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export const dynamic = "force-dynamic";
 
 /** GET: fetch single user for admin detail page (profile + role + profile_strength). */
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const _session = await requireAdminForApi();
@@ -43,11 +45,9 @@ export async function GET(
       .maybeSingle();
     const profileStrength = (snapshot as { profile_strength?: number } | null)?.profile_strength ?? null;
 
-    return NextResponse.json({
-      ...profile,
-      roles,
-      profile_strength: profileStrength,
-    });
+    const baseData = { ...profile, roles, profile_strength: profileStrength };
+    const admin = await getAdminContext(req);
+    return NextResponse.json(applyScenario(baseData, admin.impersonation));
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Internal error";
     if (msg === "Unauthorized") return NextResponse.json({ error: msg }, { status: 401 });

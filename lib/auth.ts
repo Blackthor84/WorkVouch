@@ -1,6 +1,7 @@
-import { supabaseServer } from "./supabase/server";
+import { supabaseServer, getSupabaseSession } from "./supabase/server";
 import { getSupabaseServer } from "./supabase/admin";
 import { getEffectiveUserIdWithAuth } from "./server/effectiveUserId";
+import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export interface User {
   id: string;
@@ -125,7 +126,8 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
     .eq("id", effectiveUserId)
     .single();
   if (error || !profile) return null;
-  return profile as UserProfile;
+  const { session } = await getSupabaseSession();
+  return applyScenario(profile as UserProfile, session?.impersonation) as UserProfile;
 }
 
 /** Roles come only from profiles.role. */

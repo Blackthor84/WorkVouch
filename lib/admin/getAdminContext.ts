@@ -15,6 +15,12 @@ import { isSandboxEnv } from "@/lib/sandbox/env";
 import { getGodModeState } from "@/lib/auth/godModeCookie";
 import { getAppEnvironment, type AppEnvironment } from "@/lib/admin/appEnvironment";
 import { getEffectiveSession } from "@/lib/auth/actingUser";
+import type { ImpersonationContext } from "@/types/impersonation";
+import {
+  IMPERSONATION_SIMULATION_COOKIE,
+  parseSimulationContextFromCookie,
+} from "@/lib/impersonation-simulation/context";
+import { cookies } from "next/headers";
 
 export type AdminRole = "user" | "admin" | "super_admin";
 
@@ -40,6 +46,7 @@ export type AdminContext = {
   canBypassLimits: boolean;
   canSeedData: boolean;
   godMode: GodModeState;
+  impersonation: ImpersonationContext;
 };
 
 function resolveSandbox(): boolean {
@@ -95,6 +102,7 @@ export async function getAdminContext(req?: NextRequest): Promise<AdminContext> 
     const adminToggledSandbox = await getAdminSandboxModeFromCookies();
     const sandbox = appSandbox || adminToggledSandbox;
     const godMode = await getGodModeState(authUserId, authIsSuperAdmin);
+    const impersonation = await resolveAdminImpersonationContext(effectiveSession.isImpersonating);
 
     return {
       isAuthenticated: true,
@@ -111,10 +119,25 @@ export async function getAdminContext(req?: NextRequest): Promise<AdminContext> 
       canBypassLimits: authIsSuperAdmin || sandbox,
       canSeedData: appEnvironment === "sandbox" ? (sandbox || authIsSuperAdmin) : false,
       godMode,
+      impersonation,
     };
   } catch {
     return { ...UNAUTHORIZED_CONTEXT };
   }
+}
+
+async function resolveAdminImpersonationContext(isImpersonating: boolean): Promise<ImpersonationContext> {
+  const cookieStore = await cookies();
+  const raw = cookieStore.get(IMPERSONATION_SIMULATION_COOKIE)?.value;
+  const sim = parseSimulationContextFromCookie(raw);
+  if (sim) {
+    return {
+      impersonating: isImpersonating || sim.impersonating,
+      actorType: sim.actorType,
+      scenario: sim.scenario ?? undefined,
+    };
+  }
+  return { impersonating: isImpersonating, actorType: "employee" };
 }
 
 /** Standard 403 for admin routes. Use when !admin.isAdmin. Never leak details. */

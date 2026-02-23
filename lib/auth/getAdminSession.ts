@@ -9,6 +9,11 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { normalizeRole } from "@/lib/auth/normalizeRole";
 import { isAdminRole } from "@/lib/auth/roles";
+import type { ImpersonationContext } from "@/types/impersonation";
+import {
+  IMPERSONATION_SIMULATION_COOKIE,
+  parseSimulationContextFromCookie,
+} from "@/lib/impersonation-simulation/context";
 
 const ADMIN_USER_ID_COOKIE = "adminUserId";
 
@@ -19,6 +24,7 @@ export interface AdminSessionMinimal {
   /** Authenticated admin user id for audit logging. */
   authUserId: string;
   role: AdminRole;
+  impersonation: ImpersonationContext;
 }
 
 /**
@@ -26,6 +32,7 @@ export interface AdminSessionMinimal {
  */
 export async function getAdminSession(): Promise<AdminSessionMinimal | null> {
   try {
+    const cookieStore = await cookies();
     const supabase = await supabaseServer();
     const {
       data: { user },
@@ -42,16 +49,16 @@ export async function getAdminSession(): Promise<AdminSessionMinimal | null> {
         const rawRole = (profile as { role?: string | null }).role ?? "";
         const role = normalizeRole(rawRole);
         if (isAdminRole(role)) {
+          const impersonation = await resolveImpersonationContext(cookieStore, false);
           return {
             userId: user.id,
             authUserId: user.id,
             role: role as AdminRole,
+            impersonation,
           };
         }
       }
     }
-
-    const cookieStore = await cookies();
     const adminUserId = cookieStore.get(ADMIN_USER_ID_COOKIE)?.value?.trim();
     if (adminUserId) {
       const adminSupabase = getSupabaseServer();
@@ -63,10 +70,12 @@ export async function getAdminSession(): Promise<AdminSessionMinimal | null> {
       const rawRole = (profile as { role?: string | null } | null)?.role ?? "";
       const role = normalizeRole(rawRole);
       if (isAdminRole(role)) {
+        const impersonation = await resolveImpersonationContext(cookieStore, true);
         return {
           userId: adminUserId,
           authUserId: adminUserId,
           role: role as AdminRole,
+          impersonation,
         };
       }
     }
@@ -75,4 +84,20 @@ export async function getAdminSession(): Promise<AdminSessionMinimal | null> {
   } catch {
     return null;
   }
+}
+
+async function resolveImpersonationContext(
+  cookieStore: Awaited<ReturnType<typeof cookies>>,
+  impersonating: boolean
+): Promise<ImpersonationContext> {
+  const raw = cookieStore.get(IMPERSONATION_SIMULATION_COOKIE)?.value;
+  const sim = parseSimulationContextFromCookie(raw);
+  if (sim) {
+    return {
+      impersonating: impersonating || sim.impersonating,
+      actorType: sim.actorType,
+      scenario: sim.scenario ?? undefined,
+    };
+  }
+  return { impersonating, actorType: "employee" };
 }

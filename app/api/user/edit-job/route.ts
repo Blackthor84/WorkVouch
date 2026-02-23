@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getEffectiveUser } from "@/lib/auth";
+import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 import { z } from "zod";
 
 const editJobSchema = z.object({
@@ -16,6 +17,9 @@ const editJobSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const reject = await rejectWriteIfImpersonating();
+    if (reject) return reject;
+
     const effective = await getEffectiveUser();
     if (!effective || effective.deleted_at) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -1,5 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  IMPERSONATION_SIMULATION_COOKIE,
+  IMPERSONATION_HEADERS,
+  parseSimulationContextFromCookie,
+} from "@/lib/impersonation-simulation/context";
 
 const ANALYTICS_SESSION_COOKIE = "wv_sid";
 const ANALYTICS_SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
@@ -8,12 +13,58 @@ const IMPERSONATION_COOKIE = "impersonation_session";
 
 /**
  * Middleware: refresh Supabase session; inject impersonation headers when impersonation_session cookie is set.
+ * Simulation headers are only set when the session user is admin/superadmin (safety: impersonation for admins only).
  */
 export async function middleware(req: NextRequest) {
   const impersonation = req.cookies.get(IMPERSONATION_COOKIE)?.value;
 
+  const requestHeaders = new Headers(req.headers);
+  const simulationRaw = req.cookies.get(IMPERSONATION_SIMULATION_COOKIE)?.value;
+  const simulationContext = parseSimulationContextFromCookie(simulationRaw);
+  let allowSimulationHeaders = false;
+  if (simulationContext) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (url && anonKey) {
+      try {
+        const supabase = createServerClient(url, anonKey, {
+          cookies: {
+            getAll() {
+              return req.cookies.getAll();
+            },
+            setAll() {
+              // Read-only use: only need session for admin check
+            },
+          },
+        });
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("user_id", session.user.id)
+            .maybeSingle();
+          const role = (profile as { role?: string } | null)?.role;
+          allowSimulationHeaders = role === "admin" || role === "superadmin";
+        }
+      } catch {
+        allowSimulationHeaders = false;
+      }
+    }
+    if (allowSimulationHeaders) {
+      requestHeaders.set(IMPERSONATION_HEADERS.ACTOR_TYPE, simulationContext.actorType);
+      requestHeaders.set(IMPERSONATION_HEADERS.SCENARIO, simulationContext.scenario);
+      requestHeaders.set(IMPERSONATION_HEADERS.IMPERSONATING, String(simulationContext.impersonating));
+      if (simulationContext.effectiveUserId) {
+        requestHeaders.set(IMPERSONATION_HEADERS.EFFECTIVE_USER_ID, simulationContext.effectiveUserId);
+      }
+    }
+  }
+
   if (impersonation) {
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   const path = req.nextUrl.pathname;
@@ -30,8 +81,6 @@ export async function middleware(req: NextRequest) {
       { status: 200 }
     );
   }
-
-  const requestHeaders = new Headers(req.headers);
 
   const res = NextResponse.next({
     request: { headers: requestHeaders },

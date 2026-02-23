@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabase, getSupabaseSession } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
+import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export async function GET(req: NextRequest) {
   try {
@@ -51,7 +52,7 @@ export async function GET(req: NextRequest) {
 
     const employerAccountTyped = employerAccount as EmployerAccountRow;
 
-    return NextResponse.json({
+    const payload = {
       employer: {
         id: employerAccountTyped.id,
         companyName: employerAccountTyped.company_name,
@@ -65,7 +66,9 @@ export async function GET(req: NextRequest) {
         claimVerified: employerAccountTyped.claim_verified ?? false,
       },
       planTier: employerAccountTyped.plan_tier,
-    });
+    };
+    const { session } = await getSupabaseSession();
+    return NextResponse.json(applyScenario(payload, session?.impersonation));
   } catch (error) {
     console.error("Get employer error:", error);
     return NextResponse.json(

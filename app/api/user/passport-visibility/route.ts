@@ -3,6 +3,7 @@
  * Set Verified Work Profile visibility. Body: { visibility: "private" | "verified_employers" | "shared_network" | "public" }
  * Maps to: is_public_passport, searchable_by_verified_employers, searchable_by_shared_employers.
  * Tier gating: Lite = private or shared_network only; Pro = + verified_employers; Enterprise (when flag) = + public.
+ * Writes are disabled during impersonation.
  */
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,6 +12,7 @@ import { getEffectiveUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { checkFeatureAccess } from "@/lib/feature-flags";
+import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 
 const VISIBILITY_OPTIONS = ["private", "verified_employers", "shared_network", "public"] as const;
 type VisibilityOption = (typeof VISIBILITY_OPTIONS)[number];
@@ -25,6 +27,9 @@ function parseVisibility(body: unknown): VisibilityOption {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const reject = await rejectWriteIfImpersonating();
+    if (reject) return reject;
+
     const effective = await getEffectiveUser();
     if (!effective || effective.deleted_at) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

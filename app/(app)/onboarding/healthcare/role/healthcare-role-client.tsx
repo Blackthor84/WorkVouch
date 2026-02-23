@@ -6,8 +6,11 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+/** Nurse roles use license flow; CNA uses optional certification + peer verification. */
 const HEALTHCARE_ROLES = [
   "CNA",
+  "RN",
+  "LPN",
   "HHA",
   "Medical Assistant",
   "Patient Care Tech",
@@ -74,7 +77,11 @@ export function HealthcareRoleClient() {
         return;
       }
 
-      router.push("/onboarding/healthcare/setting");
+      if (role === "CNA") {
+        router.push("/onboarding/healthcare/cna-certification");
+      } else {
+        router.push("/onboarding/healthcare/setting");
+      }
     } catch (err: any) {
       console.error("Error:", err);
       alert("An error occurred. Please try again.");

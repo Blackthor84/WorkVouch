@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth/getEffectiveUser";
+import { getSupabaseSession } from "@/lib/supabase/server";
+import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export async function GET() {
   const user = await getEffectiveUser();
@@ -11,7 +13,8 @@ export async function GET() {
     );
   }
 
-  return NextResponse.json({
-    user: { ...user, __impersonated: user.isImpersonating },
-  });
+  const baseData = { user: { ...user, __impersonated: user.isImpersonating } };
+  const { session } = await getSupabaseSession();
+  const finalData = applyScenario(baseData, session?.impersonation);
+  return NextResponse.json(finalData);
 }

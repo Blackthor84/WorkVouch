@@ -4,7 +4,9 @@ export const runtime = "nodejs";
 import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 import { hasRole } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { getSupabaseSession } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/auth/isAdmin";
+import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export const dynamic = "force-dynamic";
 
@@ -98,12 +100,9 @@ export async function GET() {
     const hasJobs = (jobsCount ?? 0) > 0;
 
     const showOnboarding = !profileComplete || !hasJobs;
-    return NextResponse.json({
-      showOnboarding,
-      flow: "worker",
-      steps: WORKER_STEPS,
-      completed: false,
-    });
+    const baseData = { showOnboarding, flow: "worker" as const, steps: WORKER_STEPS, completed: false };
+    const { session } = await getSupabaseSession();
+    return NextResponse.json(applyScenario(baseData, session?.impersonation));
   } catch (e) {
     console.error("[onboarding/status]", e);
     return NextResponse.json({ showOnboarding: false });

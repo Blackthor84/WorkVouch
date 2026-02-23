@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { Button } from "@/components/ui/button";
 import { AdminPlaygroundClient } from "@/components/admin/AdminPlaygroundClient";
+import { SimulationScenarioControls } from "@/components/admin/SimulationScenarioControls";
+import { ImpersonationScenarioSelect } from "@/components/admin/ImpersonationScenarioSelect";
 import { ImpersonationBanner } from "@/app/sandbox/playground/ImpersonationBanner";
 import { SandboxPlaygroundPanels } from "@/app/sandbox/playground/SandboxPlaygroundPanels";
 import { FuzzerRunCard } from "./FuzzerRunCard";
@@ -39,6 +41,22 @@ export default async function AdminPlaygroundPage() {
       </div>
 
       <AdminPlaygroundClient isAdmin={admin.isAdmin} />
+
+      {admin.isAdmin && (
+        <div className="mt-6 space-y-6">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900 mb-2">Scenario impersonation</h2>
+            <p className="text-sm text-slate-600 mb-3">Apply scenario overlay (Perfect Employee, Conflicting Dates, Employer Demo). No DB writes.</p>
+            <ImpersonationScenarioSelect />
+          </div>
+          <SimulationScenarioControls />
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900 mb-2">Demo flows &amp; auto-rotate</h2>
+            <p className="text-sm text-slate-600 mb-3">Guided flows (employer buyer, employee trust, compliance) or kiosk-style auto-rotation. Overlay shows current step.</p>
+            <DemoControls />
+          </div>
+        </div>
+      )}
 
       <div className="mt-8">
         <SandboxPlaygroundPanels />

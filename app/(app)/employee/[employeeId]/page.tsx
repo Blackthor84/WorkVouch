@@ -1,7 +1,8 @@
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabase, getSupabaseSession } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import VerticalBadges from "@/components/VerticalBadges";
+import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export default async function EmployeePage(props: any) {
   const { employeeId } = await props.params;
@@ -53,10 +54,10 @@ export default async function EmployeePage(props: any) {
       <div className="max-w-4xl mx-auto py-10 px-4">
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex items-center gap-4 mb-4">
-            {profile.profile_photo_url ? (
+            {profileWithScenario.profile_photo_url ? (
               <Image
-                src={profile.profile_photo_url}
-                alt={profile.full_name || "Profile"}
+                src={profileWithScenario.profile_photo_url}
+                alt={profileWithScenario.full_name || "Profile"}
                 width={100}
                 height={100}
                 className="rounded-full"
@@ -64,35 +65,35 @@ export default async function EmployeePage(props: any) {
             ) : (
               <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
                 <span className="text-2xl text-gray-500">
-                  {(profile.full_name || "U").charAt(0).toUpperCase()}
+                  {(profileWithScenario.full_name || "U").charAt(0).toUpperCase()}
                 </span>
               </div>
             )}
             <div>
-              <h1 className="text-3xl font-bold">{profile.full_name || "Unknown Employee"}</h1>
-              {profile.email && (
-                <p className="text-gray-600">{profile.email}</p>
+              <h1 className="text-3xl font-bold">{profileWithScenario.full_name || "Unknown Employee"}</h1>
+              {profileWithScenario.email && (
+                <p className="text-gray-600">{profileWithScenario.email}</p>
               )}
-              {profile.industry && (
-                <p className="text-sm text-gray-500 mt-1">Industry: {profile.industry}</p>
+              {profileWithScenario.industry && (
+                <p className="text-sm text-gray-500 mt-1">Industry: {profileWithScenario.industry}</p>
               )}
               <VerticalBadges
                 profile={{
-                  industry: profile.industry,
-                  vertical: profile.vertical,
-                  role: profile.role,
+                  industry: profileWithScenario.industry,
+                  vertical: profileWithScenario.vertical,
+                  role: profileWithScenario.role,
                 }}
               />
             </div>
           </div>
 
-          {profile.professional_summary && (
-            <p className="text-gray-700 mb-4">{profile.professional_summary}</p>
+          {profileWithScenario.professional_summary && (
+            <p className="text-gray-700 mb-4">{profileWithScenario.professional_summary}</p>
           )}
 
-          {profile.city && profile.state && (
+          {profileWithScenario.city && profileWithScenario.state && (
             <p className="text-sm text-gray-600">
-              📍 {profile.city}, {profile.state}
+              📍 {profileWithScenario.city}, {profileWithScenario.state}
             </p>
           )}
         </div>

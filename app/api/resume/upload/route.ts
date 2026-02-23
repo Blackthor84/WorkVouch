@@ -2,11 +2,15 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { insertActivityLog } from "@/lib/activity";
 import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
+import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
+    const reject = await rejectWriteIfImpersonating();
+    if (reject) return reject;
+
     const effectiveUserId = await getEffectiveUserId();
     if (!effectiveUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

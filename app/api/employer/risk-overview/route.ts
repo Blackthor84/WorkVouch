@@ -4,6 +4,8 @@ export const runtime = "nodejs";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { checkFeatureAccess } from "@/lib/feature-flags";
+import { getSupabaseSession } from "@/lib/supabase/server";
+import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export const dynamic = "force-dynamic";
 
@@ -72,13 +74,15 @@ export async function GET() {
       if (first?.risk_snapshot) riskSnapshotSample = first.risk_snapshot;
     }
 
-    return NextResponse.json({
+    const baseData = {
       workforceRiskAverage: ea.workforce_risk_average ?? null,
       workforceHighRiskCount: ea.workforce_high_risk_count ?? 0,
       workforceRiskConfidence: ea.workforce_risk_confidence ?? null,
       workforceLastCalculated: ea.workforce_last_calculated ?? null,
       riskSnapshotSample: riskSnapshotSample ?? null,
-    });
+    };
+    const { session } = await getSupabaseSession();
+    return NextResponse.json(applyScenario(baseData, session?.impersonation));
   } catch (e) {
     console.error("Risk overview error:", e);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

@@ -10,6 +10,7 @@ export const runtime = "nodejs";
 import { getEffectiveUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { refreshUserDisputeTransparency } from "@/lib/dispute-audit";
+import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +26,9 @@ const bodySchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const reject = await rejectWriteIfImpersonating();
+    if (reject) return reject;
+
     const effective = await getEffectiveUser();
     if (!effective || effective.deleted_at) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

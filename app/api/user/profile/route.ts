@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getEffectiveUser, getProfile } from "@/lib/auth";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
+import { getSupabaseSession } from "@/lib/supabase/server";
+import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,7 +26,7 @@ export async function GET() {
     const isAdmin = role === "admin" || role === "superadmin";
     const sandbox_mode = isAdmin ? await getAdminSandboxModeFromCookies() : false;
 
-    return NextResponse.json({
+    const payload = {
       profile: {
         role: profile.role,
         onboarding_completed: profile.onboarding_completed,
@@ -33,7 +35,9 @@ export async function GET() {
       role: profile.role,
       onboarding_completed: profile.onboarding_completed,
       sandbox_mode,
-    });
+    };
+    const { session } = await getSupabaseSession();
+    return NextResponse.json(applyScenario(payload, session?.impersonation));
   } catch (e) {
     console.error("[api/user/profile]", e);
     return NextResponse.json({

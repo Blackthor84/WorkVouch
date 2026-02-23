@@ -2,6 +2,12 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { jwtVerify } from "jose";
+import { attachImpersonation } from "@/lib/auth/withImpersonation";
+import type { ImpersonationContext } from "@/types/impersonation";
+import {
+  IMPERSONATION_SIMULATION_COOKIE,
+  parseSimulationContextFromCookie,
+} from "@/lib/impersonation-simulation/context";
 
 const IMPERSONATION_COOKIE = "workvouch_impersonation";
 
@@ -80,7 +86,8 @@ export async function getSupabaseSession() {
             user: { ...user, id: profile!.id },
             impersonating: true as const,
           };
-          return { session: sessionLike as any, user };
+          const impersonation = resolveImpersonationContext(cookieStore, true);
+          return { session: attachImpersonation(sessionLike as any, impersonation), user };
         }
       }
     } catch {
@@ -90,5 +97,28 @@ export async function getSupabaseSession() {
 
   const authResult = await supabase.auth.getUser();
   const user = authResult?.data?.user ?? null;
-  return { user, session: user ? { user } : null };
+  const impersonation = resolveImpersonationContext(cookieStore, false);
+  return {
+    user,
+    session: user ? attachImpersonation({ user }, impersonation) : null,
+  };
+}
+
+function resolveImpersonationContext(
+  cookieStore: Awaited<ReturnType<typeof cookies>>,
+  impersonating: boolean
+): ImpersonationContext {
+  const raw = cookieStore.get(IMPERSONATION_SIMULATION_COOKIE)?.value;
+  const sim = parseSimulationContextFromCookie(raw);
+  if (sim) {
+    return {
+      impersonating: impersonating || sim.impersonating,
+      actorType: sim.actorType,
+      scenario: sim.scenario ?? undefined,
+    };
+  }
+  return {
+    impersonating,
+    actorType: "employee",
+  };
 }

@@ -5,6 +5,8 @@
 import { NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { getSupabaseSession } from "@/lib/supabase/server";
+import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -48,13 +50,15 @@ export async function GET() {
       referencesCount = typeof refCountRes?.count === "number" ? refCountRes.count : 0;
     }
 
-    return NextResponse.json({
+    const baseData = {
       hasName,
       hasEmail,
       jobsCount,
       referencesCount,
       emailVerified,
-    } satisfies ProfileCompletenessResponse);
+    } satisfies ProfileCompletenessResponse;
+    const { session } = await getSupabaseSession();
+    return NextResponse.json(applyScenario(baseData, session?.impersonation));
   } catch {
     return NextResponse.json(
       { error: "Failed to load profile completeness" },

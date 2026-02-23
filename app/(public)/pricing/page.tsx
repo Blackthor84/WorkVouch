@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckIcon } from "@heroicons/react/24/solid";
 import { EMPLOYER_PLANS } from "@/lib/pricing/employer-plans";
+import { PRICING_HEADLINE, PRICING_SUBHEADLINE } from "@/data/pricing-copy";
 
 const comparisonRows: { feature: string; starter: boolean; pro: boolean; custom: boolean }[] = [
   { feature: "Verified work history visibility", starter: true, pro: true, custom: true },
@@ -64,10 +65,10 @@ export default function PricingPage() {
       {/* Hero */}
       <section className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 lg:py-20">
         <h1 className="text-3xl font-bold tracking-tight text-[#0F172A] md:text-4xl lg:text-5xl">
-          Verification + trusted work history
+          {PRICING_HEADLINE}
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-base text-[#334155] md:text-lg">
-          Choose the plan that fits your hiring team. Simple, transparent pricing.
+          {PRICING_SUBHEADLINE}
         </p>
 
         {/* Billing toggle */}

@@ -8,6 +8,8 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getEffectiveUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { getSupabaseSession } from "@/lib/supabase/server";
+import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export const dynamic = "force-dynamic";
 
@@ -42,12 +44,14 @@ export async function GET() {
       .limit(1)
       .maybeSingle();
 
-    return NextResponse.json({
+    const baseData = {
       openDisputes: openDisputes ?? [],
       currentTrustScore: trustRow?.score ?? 0,
       underReview: profile?.trust_score_under_review ?? false,
       activeDisputeCount: profile?.active_dispute_count ?? 0,
-    });
+    };
+    const { session } = await getSupabaseSession();
+    return NextResponse.json(applyScenario(baseData, session?.impersonation));
   } catch (e) {
     console.error("[dispute-status] error:", e);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

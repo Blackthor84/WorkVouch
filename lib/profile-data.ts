@@ -4,10 +4,11 @@
  * Does not replace core scoring; provides a unified shape for vertical metric compute().
  */
 
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabase, getSupabaseSession } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/auth";
 import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
 import type { VerticalDashboardProfile } from "@/lib/verticals/dashboard";
+import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export type ProfileDataResult = VerticalDashboardProfile & {
   id: string;
@@ -45,7 +46,8 @@ export async function getProfileData(): Promise<ProfileDataResult | null> {
       sentiment_average: undefined,
     };
 
-    return result;
+    const { session } = await getSupabaseSession();
+    return applyScenario(result, session?.impersonation) as ProfileDataResult;
   } catch {
     return null;
   }
