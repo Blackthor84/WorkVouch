@@ -28,7 +28,7 @@ export function ImpersonationPanel({ users = [], sandboxId, role = "admin" }: Pr
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profileId }),
+        body: JSON.stringify({ userId: profileId }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
