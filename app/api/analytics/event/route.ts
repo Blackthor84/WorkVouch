@@ -15,6 +15,7 @@ const SESSION_COOKIE = "wv_sid";
 
 export async function POST(req: NextRequest) {
   try {
+    if (req.headers.get("x-is-impersonating") === "true") return NextResponse.json({ ok: true });
     const body = await req.json().catch(() => ({}));
     const event_type = typeof body.event_type === "string" ? body.event_type.trim().slice(0, 256) : (typeof body.event_name === "string" ? body.event_name.trim().slice(0, 256) : null);
     if (!event_type) return NextResponse.json({ ok: false }, { status: 400 });

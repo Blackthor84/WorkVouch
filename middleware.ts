@@ -47,30 +47,42 @@ export async function middleware(req: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (url && anonKey) {
-    const supabase = createServerClient(url, anonKey, {
-      cookies: {
-        getAll() {
-          return req.cookies.getAll();
+    try {
+      const supabase = createServerClient(url, anonKey, {
+        cookies: {
+          getAll() {
+            return req.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              res.cookies.set(name, value, options)
+            );
+          },
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            res.cookies.set(name, value, options)
-          );
-        },
-      },
-    });
-    await supabase.auth.getSession();
+      });
+      await supabase.auth.getSession();
+    } catch {
+      // Supabase session refresh must not block impersonation
+    }
   }
 
-  // Internal analytics: set anonymous session ID for page-view capture (GDPR: no PII in cookie)
-  if (!req.cookies.get(ANALYTICS_SESSION_COOKIE)?.value) {
-    res.cookies.set(ANALYTICS_SESSION_COOKIE, crypto.randomUUID(), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: ANALYTICS_SESSION_MAX_AGE,
-      path: "/",
-    });
+  // Internal analytics: set anonymous session ID for page-view capture (GDPR: no PII in cookie).
+  // Skip when impersonating so analytics session logic cannot block impersonation.
+  const isImpersonating = !!req.cookies.get(IMPERSONATION_COOKIE)?.value;
+  if (!isImpersonating) {
+    try {
+      if (!req.cookies.get(ANALYTICS_SESSION_COOKIE)?.value) {
+        res.cookies.set(ANALYTICS_SESSION_COOKIE, crypto.randomUUID(), {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: ANALYTICS_SESSION_MAX_AGE,
+          path: "/",
+        });
+      }
+    } catch {
+      // Analytics session set must not block response
+    }
   }
 
   return res;

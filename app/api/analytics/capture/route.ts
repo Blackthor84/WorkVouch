@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
   try {
     const dnt = req.headers.get("DNT") ?? req.headers.get("dnt");
     if (dnt === "1") return ok();
+    if (req.headers.get("x-is-impersonating") === "true") return ok();
 
     const cookieStore = await cookies();
     let session_token = cookieStore.get(SESSION_COOKIE)?.value?.trim();
