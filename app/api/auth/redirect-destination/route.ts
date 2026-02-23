@@ -32,7 +32,7 @@ export async function GET(request: Request) {
       .single();
 
     const role = (data?.role ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "") as string;
-    const path = getPostLoginRedirect({ role });
+    const path = await getPostLoginRedirect({ role });
     return NextResponse.redirect(`${origin}${path}`);
   } catch {
     return NextResponse.redirect(`${origin}/onboarding`);

@@ -1,8 +1,10 @@
+import { isImpersonating } from "@/lib/auth/isImpersonating";
+
 /**
  * Post-login redirect — single source of truth from profiles.role.
  * employee → /dashboard/employee
  * employer → /dashboard/employer
- * admin (or superadmin) → /admin
+ * admin (or superadmin) → /admin (unless impersonating → /dashboard)
  * default → /onboarding
  */
 export type PostLoginUser = {
@@ -14,13 +16,14 @@ function normalizeRole(role?: string): string {
   return String(role ?? "").trim().toLowerCase();
 }
 
-export function getPostLoginRedirect(user: PostLoginUser): string {
+export async function getPostLoginRedirect(user: PostLoginUser): Promise<string> {
   const role = normalizeRole(user.role);
 
+  if (role === "admin" || role === "superadmin") {
+    if (await isImpersonating()) return "/dashboard";
+    return "/admin";
+  }
   switch (role) {
-    case "admin":
-    case "superadmin":
-      return "/admin";
     case "employer":
       return "/dashboard/employer";
     case "employee":

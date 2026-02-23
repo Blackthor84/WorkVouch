@@ -23,6 +23,7 @@ import {
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getEffectiveSession } from "@/lib/auth/actingUser";
+import { isImpersonating } from "@/lib/auth/isImpersonating";
 
 // Ensure runtime rendering - prevents build-time prerendering
 export const revalidate = 0;
@@ -46,7 +47,10 @@ export default async function UserDashboardPage() {
   const effectiveUserId = effectiveSession?.effectiveUserId ?? user.id;
   const effectiveRole = (effectiveSession?.effectiveRole ?? "").toString().trim().toLowerCase();
 
-  if (effectiveRole === "admin" || effectiveRole === "superadmin" || effectiveRole === "super_admin") {
+  if (
+    (effectiveRole === "admin" || effectiveRole === "superadmin" || effectiveRole === "super_admin") &&
+    !(await isImpersonating())
+  ) {
     redirect("/admin");
   }
   if (effectiveRole === "employer") {

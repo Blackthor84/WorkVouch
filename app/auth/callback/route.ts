@@ -50,12 +50,12 @@ export async function GET(request: Request) {
 
     if (error || !data) {
       const role = (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "";
-      const path = getPostLoginRedirect({ role });
+      const path = await getPostLoginRedirect({ role });
       return NextResponse.redirect(`${origin}${path}`);
     }
 
     const role = (data.role ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "") as string;
-    const path = getPostLoginRedirect({ role });
+    const path = await getPostLoginRedirect({ role });
     return NextResponse.redirect(`${origin}${path}`);
   } catch {
     const origin = new URL(request.url).origin;

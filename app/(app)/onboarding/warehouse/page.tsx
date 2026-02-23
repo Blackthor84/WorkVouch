@@ -2,6 +2,7 @@ import { WarehouseOnboardingWrapper } from "./warehouse-onboarding-wrapper";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { isImpersonating } from "@/lib/auth/isImpersonating";
 
 // Mark as dynamic to prevent build-time prerendering
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export default async function WarehouseOnboardingPage() {
     redirect("/login");
   }
 
-  if (admin.isAdmin) {
+  if (admin.isAdmin && !(await isImpersonating())) {
     redirect("/admin");
   }
 

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { isImpersonating } from "@/lib/auth/isImpersonating";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -14,7 +15,7 @@ export default async function OnboardingLayout({
   children: React.ReactNode;
 }) {
   const admin = await getAdminContext();
-  if (admin.isAdmin) {
+  if (admin.isAdmin && !(await isImpersonating())) {
     redirect("/admin");
   }
   return <>{children}</>;
