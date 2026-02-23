@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const expectedPrefix = `${user.id}/${dispute_id}/`;
+    const expectedPrefix = `${effective.id}/${dispute_id}/`;
     if (!file_path.startsWith(expectedPrefix)) {
       return NextResponse.json(
         { error: "File path must be under your user and dispute folder" },
