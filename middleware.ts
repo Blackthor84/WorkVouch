@@ -10,9 +10,8 @@ const IMPERSONATION_COOKIE = "impersonation_session";
  * Middleware: refresh Supabase session; inject impersonation headers when impersonation_session cookie is set.
  */
 export async function middleware(req: NextRequest) {
-  const impersonation = req.cookies.get("impersonation_session");
+  const impersonation = req.cookies.get(IMPERSONATION_COOKIE)?.value;
 
-  // Allow impersonated user traffic
   if (impersonation) {
     return NextResponse.next();
   }
@@ -33,19 +32,6 @@ export async function middleware(req: NextRequest) {
   }
 
   const requestHeaders = new Headers(req.headers);
-
-  const impersonation = req.cookies.get(IMPERSONATION_COOKIE)?.value;
-  if (impersonation) {
-    try {
-      const session = JSON.parse(impersonation) as { impersonatedUserId?: string };
-      if (session.impersonatedUserId) {
-        requestHeaders.set("x-impersonated-user-id", session.impersonatedUserId);
-        requestHeaders.set("x-is-impersonating", "true");
-      }
-    } catch {
-      // invalid cookie — ignore
-    }
-  }
 
   const res = NextResponse.next({
     request: { headers: requestHeaders },
