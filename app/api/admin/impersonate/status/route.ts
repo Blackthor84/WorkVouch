@@ -12,7 +12,7 @@ type ImpersonationSession = {
 /** GET /api/admin/impersonate/status — returns active session from impersonation_session cookie. */
 export async function GET() {
   const cookieStore = await cookies();
-  const raw = cookieStore.get("impersonation_session")?.value;
+  const raw = cookieStore.get("impersonation_session")?.value?.trim();
 
   if (!raw) {
     return NextResponse.json({ active: false, impersonating: false });
@@ -23,10 +23,15 @@ export async function GET() {
     return NextResponse.json({
       active: true,
       impersonating: true,
-      impersonatedUserId: session.impersonatedUserId,
-      startedAt: session.startedAt,
+      impersonatedUserId: session.impersonatedUserId ?? raw,
+      startedAt: session.startedAt ?? null,
     });
   } catch {
-    return NextResponse.json({ active: false, impersonating: false });
+    return NextResponse.json({
+      active: true,
+      impersonating: true,
+      impersonatedUserId: raw,
+      startedAt: null,
+    });
   }
 }

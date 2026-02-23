@@ -1,5 +1,6 @@
 import { headers, cookies } from "next/headers";
 import { supabaseServer } from "@/lib/supabase/server";
+import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -25,21 +26,23 @@ async function getImpersonatedUserId(): Promise<string | null> {
 
 /**
  * GET /api/user/me — effective user. When impersonation_session cookie is present, returns the
- * impersonated user without requiring normal auth. Otherwise returns the authenticated user.
+ * impersonated user (using service-role so RLS does not block). Otherwise returns the authenticated user.
  */
 export async function GET() {
   const impersonatedUserId = await getImpersonatedUserId();
-  const supabase = await supabaseServer();
+  const supabaseAuth = await supabaseServer();
 
   let userId: string | null = impersonatedUserId;
   if (!userId) {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
     userId = user?.id ?? null;
   }
   if (!userId) {
     return new Response("Unauthorized", { status: 401 });
   }
 
+  // When impersonating, use admin client so we can read the impersonated user's profile (RLS would block anon).
+  const supabase = impersonatedUserId ? getSupabaseServer() : supabaseAuth;
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("user_id, id, email, full_name, role, onboarding_completed")

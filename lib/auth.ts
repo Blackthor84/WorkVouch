@@ -1,8 +1,19 @@
 import { supabaseServer } from "./supabase/server";
+import { getSupabaseServer } from "./supabase/admin";
+import { getEffectiveUserIdWithAuth } from "./server/effectiveUserId";
 
 export interface User {
   id: string;
   email?: string;
+}
+
+export interface EffectiveUser {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  role: string | null;
+  isImpersonating: boolean;
+  deleted_at?: unknown;
 }
 
 export interface UserProfile {
@@ -21,25 +32,44 @@ export interface UserProfile {
 }
 
 /**
- * Get current authenticated user from Supabase (getUser() for server-side safety).
+ * Resolve the effective user (impersonated when cookie is set, otherwise auth user).
+ * Use in user-facing API routes instead of direct auth lookups.
+ * When impersonating uses service-role client so RLS does not block.
+ */
+export async function getEffectiveUser(): Promise<EffectiveUser | null> {
+  const withAuth = await getEffectiveUserIdWithAuth();
+  if (!withAuth) return null;
+  const { effectiveUserId, isImpersonating } = withAuth;
+  const supabase = isImpersonating ? getSupabaseServer() : (await supabaseServer());
+  const supabaseAny = supabase as any;
+  const { data: profile, error } = await supabaseAny
+    .from("profiles")
+    .select("id, user_id, email, full_name, role, deleted_at")
+    .or(`id.eq.${effectiveUserId},user_id.eq.${effectiveUserId}`)
+    .maybeSingle();
+  if (error || !profile) return null;
+  const row = profile as { id?: string; user_id?: string; email?: string | null; full_name?: string | null; role?: string | null; deleted_at?: unknown };
+  return {
+    id: row.user_id ?? row.id ?? effectiveUserId,
+    email: row.email ?? null,
+    full_name: row.full_name ?? null,
+    role: row.role ?? null,
+    isImpersonating,
+    deleted_at: row.deleted_at,
+  };
+}
+
+/**
+ * Get current authenticated user from Supabase (effective user when impersonating).
  * Returns null if not authenticated or profile is soft-deleted (deleted_at set).
+ * Use getEffectiveUser() when you need isImpersonating or profile fields.
  */
 export async function getCurrentUser(): Promise<User | null> {
-  const supabase = await supabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user?.id) return null;
-  const supabaseAny = supabase as any;
-  const { data: row } = await supabaseAny
-    .from("profiles")
-    .select("deleted_at")
-    .eq("id", user.id)
-    .single();
-  if (row?.deleted_at) return null;
+  const effective = await getEffectiveUser();
+  if (!effective || effective.deleted_at) return null;
   return {
-    id: user.id,
-    email: user.email ?? undefined,
+    id: effective.id,
+    email: effective.email ?? undefined,
   };
 }
 

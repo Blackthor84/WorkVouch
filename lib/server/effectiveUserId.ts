@@ -31,6 +31,21 @@ function getImpersonatedUserIdFromSandboxCookie(cookieValue: string | undefined)
 }
 
 const IMPERSONATED_USER_ID_COOKIE = "impersonatedUserId";
+const IMPERSONATION_SESSION_COOKIE = "impersonation_session";
+
+/** Parse impersonation_session cookie: JSON { impersonatedUserId } or plain userId string. */
+function getImpersonatedUserIdFromSessionCookie(raw: string | undefined): string | null {
+  if (!raw || typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  try {
+    const session = JSON.parse(trimmed) as { impersonatedUserId?: string };
+    const id = session?.impersonatedUserId;
+    return id && typeof id === "string" ? id.trim() : null;
+  } catch {
+    return trimmed;
+  }
+}
 
 /**
  * Resolves effective user ID from impersonation/sandbox cookies only.
@@ -39,6 +54,11 @@ const IMPERSONATED_USER_ID_COOKIE = "impersonatedUserId";
  */
 export async function getEffectiveUserIdFromCookies(): Promise<string | null> {
   const cookieStore = await cookies();
+  const sessionUserId = getImpersonatedUserIdFromSessionCookie(
+    cookieStore.get(IMPERSONATION_SESSION_COOKIE)?.value
+  );
+  if (sessionUserId) return sessionUserId;
+
   const impersonatedUserId = cookieStore.get(IMPERSONATED_USER_ID_COOKIE)?.value?.trim();
   if (impersonatedUserId) return impersonatedUserId;
 
@@ -89,9 +109,10 @@ export async function getEffectiveUserIdWithAuth(): Promise<{
 } | null> {
   const fromCookies = await getEffectiveUserIdFromCookies();
   if (fromCookies) {
+    const authed = await getAuthedUser();
     return {
       effectiveUserId: fromCookies,
-      authUserId: fromCookies,
+      authUserId: authed?.user?.id ?? fromCookies,
       isImpersonating: true,
     };
   }
