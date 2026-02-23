@@ -10,6 +10,13 @@ const IMPERSONATION_COOKIE = "impersonation_session";
  * Middleware: refresh Supabase session; inject impersonation headers when impersonation_session cookie is set.
  */
 export async function middleware(req: NextRequest) {
+  const impersonation = req.cookies.get("impersonation_session");
+
+  // Allow impersonated user traffic
+  if (impersonation) {
+    return NextResponse.next();
+  }
+
   const path = req.nextUrl.pathname;
 
   // Fail-soft: all /api/admin/* (except sandbox-v2, impersonate) return 200 empty in sandbox — no 500s, no blocking
