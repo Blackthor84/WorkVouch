@@ -2,7 +2,7 @@
  * GET /api/user/career-health
  * Returns career health and component scores from intelligence_snapshots (canonical). Event-driven; no stale recalc.
  */
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getEffectiveUser } from "@/lib/auth/getEffectiveUser";
 import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
 import { NextResponse } from "next/server";
 
