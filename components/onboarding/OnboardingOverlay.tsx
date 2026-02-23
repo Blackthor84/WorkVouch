@@ -20,6 +20,7 @@ export function OnboardingOverlay({
   steps,
   onComplete,
   onSkip,
+  disableComplete,
 }: OnboardingOverlayProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
@@ -123,7 +124,7 @@ export function OnboardingOverlay({
             {step.description}
           </p>
           <div className="flex items-center justify-between gap-3">
-            <Button variant="ghost" size="sm" onClick={onSkip} className="text-grey-medium dark:text-gray-400">
+            <Button variant="ghost" size="sm" onClick={onSkip} disabled={disableComplete} className="text-grey-medium dark:text-gray-400">
               Skip
             </Button>
             <div className="flex gap-2">
@@ -132,7 +133,7 @@ export function OnboardingOverlay({
                   Back
                 </Button>
               )}
-              <Button size="sm" onClick={handleNext}>
+              <Button size="sm" onClick={handleNext} disabled={disableComplete}>
                 {isLast ? "Done" : "Next"}
               </Button>
             </div>

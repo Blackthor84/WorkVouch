@@ -11,9 +11,12 @@ interface OnboardingStatus {
   completed?: boolean;
 }
 
+type MeUser = { __impersonated?: boolean };
+
 export function OnboardingProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<OnboardingStatus | null>(null);
   const [showOverlay, setShowOverlay] = useState(false);
+  const [user, setUser] = useState<MeUser | null>(null);
 
   useEffect(() => {
     fetch("/api/onboarding/status")
@@ -25,7 +28,16 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       .catch(() => setStatus({ showOnboarding: false }));
   }, []);
 
+  useEffect(() => {
+    if (!showOverlay) return;
+    fetch("/api/user/me", { credentials: "include" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: { user?: MeUser } | null) => setUser(data?.user ?? null))
+      .catch(() => setUser(null));
+  }, [showOverlay]);
+
   const completeOnboarding = () => {
+    if (user?.__impersonated) return;
     setShowOverlay(false);
     fetch("/api/onboarding/complete", { method: "POST" }).catch((error) => { console.error("[SYSTEM_FAIL]", error); });
   };
@@ -41,6 +53,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
           steps={steps}
           onComplete={completeOnboarding}
           onSkip={completeOnboarding}
+          disableComplete={user?.__impersonated}
         />
       )}
     </>

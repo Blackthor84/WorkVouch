@@ -11,5 +11,7 @@ export async function GET() {
     );
   }
 
-  return NextResponse.json({ user });
+  return NextResponse.json({
+    user: { ...user, __impersonated: user.isImpersonating },
+  });
 }

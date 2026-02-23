@@ -17,6 +17,14 @@ export function HealthcareCoworkersClient() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [effectiveUser, setEffectiveUser] = useState<{ __impersonated?: boolean } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/user/me", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { user?: { __impersonated?: boolean } } | null) => setEffectiveUser(data?.user ?? null))
+      .catch(() => setEffectiveUser(null));
+  }, []);
 
   const fetchCoworkers = async (userId: string) => {
     try {
@@ -108,6 +116,7 @@ export function HealthcareCoworkersClient() {
   };
 
   const handleComplete = () => {
+    if (effectiveUser?.__impersonated) return;
     router.push("/dashboard");
   };
 
@@ -174,7 +183,7 @@ export function HealthcareCoworkersClient() {
         )}
       </div>
 
-      <Button onClick={handleComplete} className="w-full">
+      <Button onClick={handleComplete} className="w-full" disabled={effectiveUser?.__impersonated}>
         Complete Onboarding
       </Button>
     </Card>

@@ -25,6 +25,14 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [effectiveUser, setEffectiveUser] = useState<{ __impersonated?: boolean } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/user/me", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { user?: { __impersonated?: boolean } } | null) => setEffectiveUser(data?.user ?? null))
+      .catch(() => setEffectiveUser(null));
+  }, []);
 
   const fetchCoworkers = async (userId: string) => {
     const { data, error } = await (supabase as any)
@@ -198,7 +206,7 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
         >
           Back
         </Button>
-        <Button onClick={handleNext} className="flex-1">
+        <Button onClick={handleNext} className="flex-1" disabled={effectiveUser?.__impersonated}>
           Complete Onboarding
         </Button>
       </div>
