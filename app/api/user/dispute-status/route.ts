@@ -6,17 +6,18 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
+import { getEffectiveUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const effectiveUserId = await getEffectiveUserId();
-    if (!effectiveUserId) {
+    const effective = await getEffectiveUser();
+    if (!effective || effective.deleted_at) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const effectiveUserId = effective.id;
 
     const sb = getSupabaseServer() as any;
 

@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getCurrentUser } from "@/lib/auth";
+import { getEffectiveUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { checkFeatureAccess } from "@/lib/feature-flags";
@@ -25,8 +25,8 @@ function parseVisibility(body: unknown): VisibilityOption {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const effective = await getEffectiveUser();
+    if (!effective || effective.deleted_at) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const visibility = parseVisibility(await req.json().catch(() => ({})));
 
@@ -34,14 +34,14 @@ export async function PATCH(req: NextRequest) {
     const { data: sub } = await sb
       .from("user_subscriptions")
       .select("tier")
-      .eq("user_id", user.id)
+      .eq("user_id", effective.id)
       .or("status.eq.active,status.eq.trialing")
       .order("current_period_end", { ascending: false })
       .limit(1)
       .maybeSingle();
     const employeeTier = ((sub as { tier?: string } | null)?.tier ?? "free").toLowerCase().replace(/-/g, "_");
 
-    const publicPassportEnabled = await checkFeatureAccess("public_passport_enabled", { userId: user.id });
+    const publicPassportEnabled = await checkFeatureAccess("public_passport_enabled", { userId: effective.id });
 
     if (visibility === "public") {
       if (!publicPassportEnabled) {
@@ -59,7 +59,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (visibility === "verified_employers") {
-      const employerSearchEnabled = await checkFeatureAccess("employer_search_enabled", { userId: user.id });
+      const employerSearchEnabled = await checkFeatureAccess("employer_search_enabled", { userId: effective.id });
       if (!employerSearchEnabled && employeeTier !== "emp_pro" && employeeTier !== "pro" && employeeTier !== "emp_enterprise" && employeeTier !== "enterprise" && employeeTier !== "custom") {
         return NextResponse.json(
           { error: "Visible to verified employers requires Pro or higher." },
@@ -89,7 +89,7 @@ export async function PATCH(req: NextRequest) {
     const { error } = await serverSb
       .from("profiles")
       .update(updatePayload)
-      .eq("id", user.id);
+      .eq("id", effective.id);
 
     if (error) {
       if ((error as any).code === "42703") {

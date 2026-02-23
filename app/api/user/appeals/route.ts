@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getCurrentUser } from "@/lib/auth";
+import { getEffectiveUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { z } from "zod";
 
@@ -19,8 +19,8 @@ const bodySchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
+    const effective = await getEffectiveUser();
+    if (!effective || effective.deleted_at) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Dispute not found" }, { status: 404 });
     }
 
-    if (dispute.user_id !== user.id) {
+    if (dispute.user_id !== effective.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       .from("appeals")
       .insert({
         dispute_id,
-        user_id: user.id,
+        user_id: effective.id,
         appeal_reason,
         status: "pending",
       })

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getEffectiveUser } from "@/lib/auth";
 import { Database } from "@/types/database";
 import { z } from "zod";
 
@@ -16,9 +16,8 @@ const addJobSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-
-    if (!user) {
+    const effective = await getEffectiveUser();
+    if (!effective || effective.deleted_at) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -34,7 +33,7 @@ export async function POST(req: NextRequest) {
       .from("jobs")
       .insert([
         {
-          user_id: user.id,
+          user_id: effective.id,
           company_name: data.employerName,
           job_title: data.jobTitle,
           start_date: data.startDate,
@@ -75,7 +74,7 @@ export async function POST(req: NextRequest) {
       `,
       )
       .ilike("company_name", data.employerName)
-      .neq("user_id", user.id);
+      .neq("user_id", effective.id);
 
     // Filter for overlapping dates in JavaScript (more reliable than complex SQL)
     const startDate = new Date(data.startDate);

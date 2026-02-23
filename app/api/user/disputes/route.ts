@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
+import { getEffectiveUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { refreshUserDisputeTransparency } from "@/lib/dispute-audit";
 import { z } from "zod";
@@ -25,10 +25,11 @@ const bodySchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const effectiveUserId = await getEffectiveUserId();
-    if (!effectiveUserId) {
+    const effective = await getEffectiveUser();
+    if (!effective || effective.deleted_at) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const effectiveUserId = effective.id;
 
     const body = await req.json().catch(() => ({}));
     const parsed = bodySchema.safeParse(body);

@@ -47,7 +47,19 @@ export async function getEffectiveUser(): Promise<EffectiveUser | null> {
     .select("id, user_id, email, full_name, role, deleted_at")
     .or(`id.eq.${effectiveUserId},user_id.eq.${effectiveUserId}`)
     .maybeSingle();
-  if (error || !profile) return null;
+  if (error || !profile) {
+    if (isImpersonating) {
+      return {
+        id: effectiveUserId,
+        email: null,
+        full_name: null,
+        role: null,
+        isImpersonating: true,
+        deleted_at: undefined,
+      };
+    }
+    return null;
+  }
   const row = profile as { id?: string; user_id?: string; email?: string | null; full_name?: string | null; role?: string | null; deleted_at?: unknown };
   return {
     id: row.user_id ?? row.id ?? effectiveUserId,

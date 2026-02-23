@@ -2,7 +2,7 @@
  * GET /api/user/profile-strength
  * Returns profile strength from intelligence_snapshots (canonical). Event-driven; no stale recalc.
  */
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { getEffectiveUser } from "@/lib/auth";
 import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
 import { NextResponse } from "next/server";
 
@@ -24,12 +24,12 @@ function fallback(): NextResponse {
 
 export async function GET() {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user?.id) {
+    const effective = await getEffectiveUser();
+    if (!effective || effective.deleted_at) {
       return NextResponse.json({ profileStrength: 0, lastUpdated: null } satisfies ProfileStrengthResponse);
     }
 
-    const userId = session.user.id;
+    const userId = effective.id;
     const snapshot = await getOrCreateSnapshot(userId);
 
     const profileStrength = Math.max(0, Math.min(100, Number(snapshot.profile_strength) || 0));

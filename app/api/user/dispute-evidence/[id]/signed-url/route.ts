@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getCurrentUser } from "@/lib/auth";
+import { getEffectiveUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -20,8 +20,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
+    const effective = await getEffectiveUser();
+    if (!effective || effective.deleted_at) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -44,7 +44,7 @@ export async function GET(
       .eq("id", evidence.dispute_id)
       .single();
 
-    if (!dispute || dispute.user_id !== user.id) {
+    if (!dispute || dispute.user_id !== effective.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

@@ -42,15 +42,15 @@ function clamp(n: number): number {
 
 export async function GET() {
   try {
-    const { session } = await getSupabaseSession();
-    if (!session?.user?.id) {
+    const effective = await getEffectiveUser();
+    if (!effective || effective.deleted_at) {
       return NextResponse.json({
         careerHealth: 0,
         components: { ...ZERO_COMPONENTS },
       } satisfies CareerHealthResponse);
     }
 
-    const userId = session.user.id;
+    const userId = effective.id;
     const snapshot = await getOrCreateSnapshot(userId);
 
     const careerHealth = clamp(Number(snapshot.career_health_score) ?? 0);

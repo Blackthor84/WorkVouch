@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
-import { getProfile } from "@/lib/auth";
+import { getEffectiveUser, getProfile } from "@/lib/auth";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
 
 export const runtime = "nodejs";
@@ -11,8 +10,8 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   try {
-    const effectiveUserId = await getEffectiveUserId();
-    if (!effectiveUserId) {
+    const effective = await getEffectiveUser();
+    if (!effective || effective.deleted_at) {
       return NextResponse.json({
         profile: null,
         role: null,
@@ -20,7 +19,7 @@ export async function GET() {
         sandbox_mode: false,
       });
     }
-    const profile = await getProfile(effectiveUserId);
+    const profile = await getProfile(effective.id);
     const role = (profile.role ?? "").toLowerCase();
     const isAdmin = role === "admin" || role === "superadmin";
     const sandbox_mode = isAdmin ? await getAdminSandboxModeFromCookies() : false;

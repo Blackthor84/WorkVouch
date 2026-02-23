@@ -3,7 +3,7 @@
  * Returns profile completeness for the current user (employee dashboard).
  */
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getEffectiveUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -19,8 +19,8 @@ export type ProfileCompletenessResponse = {
 
 export async function GET() {
   try {
-    const user = await getCurrentUser();
-    if (!user?.id) {
+    const effective = await getEffectiveUser();
+    if (!effective || effective.deleted_at) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -28,8 +28,8 @@ export async function GET() {
     const supabaseAny = supabase as any;
 
     const [profileRes, jobsRes] = await Promise.all([
-      supabaseAny.from("profiles").select("full_name, email, email_verified").eq("id", user.id).single(),
-      supabaseAny.from("employment_records").select("id").eq("user_id", user.id),
+      supabaseAny.from("profiles").select("full_name, email, email_verified").eq("id", effective.id).single(),
+      supabaseAny.from("employment_records").select("id").eq("user_id", effective.id),
     ]);
 
     const profile = profileRes?.data as { full_name?: string | null; email?: string | null; email_verified?: boolean } | null;

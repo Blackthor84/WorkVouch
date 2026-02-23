@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getEffectiveUser } from "@/lib/auth";
 import { z } from "zod";
 
 const requestVerificationSchema = z.object({
@@ -11,9 +11,8 @@ const requestVerificationSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-
-    if (!user) {
+    const effective = await getEffectiveUser();
+    if (!effective || effective.deleted_at) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -37,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     const existingJobTyped = existingJob as JobRow;
 
-    if (existingJobTyped.user_id !== user.id) {
+    if (existingJobTyped.user_id !== effective.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -67,7 +66,7 @@ export async function POST(req: NextRequest) {
         {
           job_id: data.jobHistoryId,
           requested_by_type: "user",
-          requested_by_id: user.id,
+          requested_by_id: effective.id,
           status: "pending",
         },
       ])
