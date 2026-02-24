@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 export const ELITE_DEMO_STORAGE_KEY = "workvouch_elite_demo_state";
 
@@ -114,6 +115,7 @@ const PreviewContext = createContext<PreviewContextType>({
 
 export function PreviewProvider({ children }: { children: React.ReactNode }) {
   const [preview, setPreviewState] = useState<PreviewState | null>(null);
+  const searchParams = useSearchParams();
 
   const setPreview = useCallback((value: PreviewState | null | ((prev: PreviewState | null) => PreviewState | null)) => {
     setPreviewState((prev) => {
@@ -134,6 +136,36 @@ export function PreviewProvider({ children }: { children: React.ReactNode }) {
       return next;
     });
   }, []);
+
+  useEffect(() => {
+    if (!searchParams) return;
+
+    const previewParam = searchParams.get("preview");
+    const simulate = searchParams.get("simulate");
+
+    if (previewParam === "true") {
+      setPreviewState((prev) => ({
+        ...(prev ?? {}),
+        demoActive: true,
+      } as PreviewState));
+    }
+
+    if (simulate === "pro_employer") {
+      setPreviewState({
+        role: "employer",
+        subscription: "pro",
+        featureFlags: ["advanced_analytics"],
+      } as PreviewState);
+    }
+
+    if (simulate === "investor") {
+      setPreviewState({
+        role: "employer",
+        subscription: "pro",
+        featureFlags: ["advanced_analytics", "ads_system"],
+      } as PreviewState);
+    }
+  }, [searchParams]);
 
   return (
     <PreviewContext.Provider value={{ preview, setPreview, setPreviewValue }}>
