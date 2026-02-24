@@ -115,7 +115,6 @@ const PreviewContext = createContext<PreviewContextType>({
 
 export function PreviewProvider({ children }: { children: React.ReactNode }) {
   const [preview, setPreviewState] = useState<PreviewState | null>(null);
-  const searchParams = useSearchParams();
 
   const setPreview = useCallback((value: PreviewState | null | ((prev: PreviewState | null) => PreviewState | null)) => {
     setPreviewState((prev) => {
@@ -137,13 +136,27 @@ export function PreviewProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // URL-based preview: ?preview=true&plan=pro&feature=ads_system (admin-only effects applied in hooks)
+  return (
+    <PreviewContext.Provider value={{ preview, setPreview, setPreviewValue }}>
+      {children}
+    </PreviewContext.Provider>
+  );
+}
+
+/**
+ * Page-level client: reads URL search params and syncs to preview context.
+ * Must be rendered inside <PreviewProvider> and inside <Suspense> (useSearchParams can suspend).
+ */
+export function PreviewInitializer() {
+  const { setPreview } = usePreview();
+  const searchParams = useSearchParams();
+
   useEffect(() => {
     const previewParam = searchParams.get("preview");
     if (previewParam === "true") {
       const plan = searchParams.get("plan");
       const feature = searchParams.get("feature");
-      setPreviewState((prev) => {
+      setPreview((prev) => {
         const base = prev ?? ({} as PreviewState);
         const next: PreviewState = {
           ...base,
@@ -159,13 +172,12 @@ export function PreviewProvider({ children }: { children: React.ReactNode }) {
         return next;
       });
     }
-  }, [searchParams]);
+  }, [searchParams, setPreview]);
 
-  // Existing simulate= pro_employer / investor
   useEffect(() => {
     const simulate = searchParams.get("simulate");
     if (simulate === "pro_employer") {
-      setPreviewState((prev) => {
+      setPreview((prev) => {
         if (prev?.demoActive) return prev;
         return {
           role: "employer",
@@ -174,12 +186,12 @@ export function PreviewProvider({ children }: { children: React.ReactNode }) {
           fakeUserName: "Michael Grant",
           fakeCompanyName: "Sentinel Security Group",
           simulateAds: true,
-        };
+        } as PreviewState;
       });
       return;
     }
     if (simulate === "investor") {
-      setPreviewState((prev) => {
+      setPreview((prev) => {
         if (prev?.demoActive) return prev;
         return {
           role: "employer",
@@ -194,19 +206,12 @@ export function PreviewProvider({ children }: { children: React.ReactNode }) {
           fakeUserName: "Ava Thompson",
           fakeCompanyName: "Global Talent Systems",
           simulateAds: true,
-        };
+        } as PreviewState;
       });
-      return;
     }
-  }, [searchParams]);
+  }, [searchParams, setPreview]);
 
-  // Elite demo activation is handled by DemoModeActivator (inside SessionProvider) so we have access to session.
-
-  return (
-    <PreviewContext.Provider value={{ preview, setPreview, setPreviewValue }}>
-      {children}
-    </PreviewContext.Provider>
-  );
+  return null;
 }
 
 export function usePreview() {

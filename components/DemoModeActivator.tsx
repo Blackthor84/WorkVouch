@@ -13,13 +13,22 @@ import {
 } from "@/lib/preview-context";
 
 /**
- * Activates Elite Demo when URL has ?demo=elite and user is allowed (admin or public demo enabled).
- * Must render inside SessionProvider so useSession works.
+ * Presentational: shows "Demo mode active" when demo is true.
+ * Does NOT use useSearchParams — receive `demo` from a parent client wrapped in Suspense.
  */
-export function DemoModeActivator() {
+export function DemoModeActivator({ demo }: { demo: boolean }) {
+  if (!demo) return null;
+  return <div>Demo mode active</div>;
+}
+
+/**
+ * Page/layout-level client: reads URL params and session, runs elite demo logic, passes demo to DemoModeActivator.
+ * Must be rendered inside <Suspense> (useSearchParams can suspend).
+ */
+export function DemoModeActivatorWithParams() {
   const searchParams = useSearchParams();
   const { data: session, status: sessionStatus } = useSupabaseSession();
-  const { preview, setPreview } = usePreview();
+  const { setPreview } = usePreview();
 
   useEffect(() => {
     if (sessionStatus === "loading") return;
@@ -38,7 +47,6 @@ export function DemoModeActivator() {
       return;
     }
 
-    // Remove demo on refresh when secret URL is not present (production-safe)
     if (demoParam !== "elite" && !enabled) {
       setPreview((prev) => {
         if (prev?.demoActive) {
@@ -50,5 +58,9 @@ export function DemoModeActivator() {
     }
   }, [searchParams, session?.user?.role, sessionStatus, setPreview]);
 
-  return null;
+  const demo =
+    searchParams.get("demo") === "1" ||
+    (searchParams.get("demo") === "elite" && isEliteDemoEnabled(searchParams, (session?.user as { role?: string } | undefined)?.role));
+
+  return <DemoModeActivator demo={demo} />;
 }

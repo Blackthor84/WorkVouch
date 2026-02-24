@@ -1,9 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import Layout from "./Layout";
 import { Providers } from "./providers";
-import { DemoModeActivator } from "./DemoModeActivator";
+import { DemoModeActivatorWithParams } from "./DemoModeActivator";
 // import { RegisterSW } from "./pwa/RegisterSW";
+
 export function LayoutWrapper({
   children,
   user,
@@ -17,7 +19,9 @@ export function LayoutWrapper({
     <Providers>
       {/* PWA disabled until auth/static files stable */}
       {/* <RegisterSW /> */}
-      <DemoModeActivator />
+      <Suspense fallback={null}>
+        <DemoModeActivatorWithParams />
+      </Suspense>
       <Layout>{children}</Layout>
     </Providers>
   );
