@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { hasRole } from "@/lib/auth";
+import { supabaseServer } from "@/lib/supabase/server";
 import {
   IMPERSONATION_SIMULATION_COOKIE,
-  type ActorType,
   type ImpersonationSimulationContextSerialized,
 } from "@/lib/impersonation-simulation/context";
 import {
@@ -14,29 +13,63 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** GET — return current simulation context from cookie (admin-only). */
+/** Role from user_metadata (or app_metadata fallback). Used for POST/DELETE admin check. */
+async function getAuthUserAndRole(): Promise<{ user: { id: string }; role: string | null } | null> {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const role =
+    (user as { user_metadata?: { role?: string }; app_metadata?: { role?: string } }).user_metadata
+      ?.role ??
+    (user as { app_metadata?: { role?: string } }).app_metadata?.role ??
+    null;
+  return { user: { id: user.id }, role: role?.toLowerCase() ?? null };
+}
+
+function requireAdminOrSuperAdmin(role: string | null) {
+  if (role === null) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+  if (role !== "admin" && role !== "superadmin") {
+    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  }
+  return null;
+}
+
+/** GET — auth check (superadmin only). Supabase auth + role from user_metadata. */
 export async function GET() {
-  if (!(await hasRole("admin")) && !(await hasRole("superadmin"))) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
-  const cookieStore = await cookies();
-  const raw = cookieStore.get(IMPERSONATION_SIMULATION_COOKIE)?.value;
-  if (!raw) {
-    return NextResponse.json({ context: null });
+
+  // IMPORTANT: role must come from DB or metadata (user_metadata or app_metadata)
+  const role =
+    (user as { user_metadata?: { role?: string } }).user_metadata?.role ??
+    (user as { app_metadata?: { role?: string } }).app_metadata?.role;
+
+  if (role !== "superadmin") {
+    return NextResponse.json(
+      { error: "Admin access required" },
+      { status: 403 }
+    );
   }
-  try {
-    const context = JSON.parse(raw) as ImpersonationSimulationContextSerialized;
-    return NextResponse.json({ context });
-  } catch {
-    return NextResponse.json({ context: null });
-  }
+
+  return NextResponse.json({ ok: true, simulation: true });
 }
 
 /** POST — set simulation context (admin-only). Body: { actorType, scenario, impersonating? } */
 export async function POST(req: NextRequest) {
-  if (!(await hasRole("admin")) && !(await hasRole("superadmin"))) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const auth = await getAuthUserAndRole();
+  const authError = requireAdminOrSuperAdmin(auth?.role ?? null);
+  if (authError) return authError;
+  const cookieStore = await cookies();
   let body: { actorType?: string; scenario?: string; impersonating?: boolean };
   try {
     body = await req.json();
@@ -63,7 +96,6 @@ export async function POST(req: NextRequest) {
     startedAt: Date.now(),
   };
 
-  const cookieStore = await cookies();
   cookieStore.set({
     name: IMPERSONATION_SIMULATION_COOKIE,
     value: JSON.stringify(payload),
@@ -78,9 +110,9 @@ export async function POST(req: NextRequest) {
 
 /** DELETE — clear simulation context (admin-only). */
 export async function DELETE() {
-  if (!(await hasRole("admin")) && !(await hasRole("superadmin"))) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const auth = await getAuthUserAndRole();
+  const authError = requireAdminOrSuperAdmin(auth?.role ?? null);
+  if (authError) return authError;
   const cookieStore = await cookies();
   cookieStore.delete({ name: IMPERSONATION_SIMULATION_COOKIE, path: "/" });
   return NextResponse.json({ ok: true });
