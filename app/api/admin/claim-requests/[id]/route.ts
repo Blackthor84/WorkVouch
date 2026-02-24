@@ -4,7 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminSupabase } from "@/lib/auth/requireAdminSupabase";
+import { supabaseServer } from "@/lib/supabase/server";
+import { requireAdminRoute } from "@/lib/auth/requireAdminRoute";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { z } from "zod";
 
@@ -20,8 +21,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAdminSupabase();
-    if (auth instanceof NextResponse) return auth;
+    const { error: authError, user } = await requireAdminRoute();
+    if (authError) return authError;
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
     const { id } = await params;
     const body = await req.json().catch(() => ({}));
@@ -47,7 +49,8 @@ export async function PATCH(
     }
 
     const action = parsed.data.action;
-    const { error: updateClaimErr } = await sb
+    const supabase = await supabaseServer();
+    const { error: updateClaimErr } = await supabase
       .from("employer_claim_requests")
       .update({
         status: action === "approve" ? "approved" : "rejected",
