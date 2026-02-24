@@ -1,9 +1,7 @@
-import dynamic from "next/dynamic";
 import Footer from "@/components/Footer";
+import PublicClientLayout from "./PublicClientLayout";
 
-const Navbar = dynamic(() => import("@/components/navbar"), { ssr: false });
-
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 export default function PublicLayout({
   children,
@@ -11,12 +9,9 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <Navbar />
-      <main className="flex-1 bg-background dark:bg-[#0D1117] min-h-screen overflow-x-hidden">
-        {children}
-      </main>
+    <PublicClientLayout>
+      {children}
       <Footer />
-    </>
+    </PublicClientLayout>
   );
 }
