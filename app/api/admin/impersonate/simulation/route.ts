@@ -23,14 +23,19 @@ export async function GET() {
   try {
     await requireAdminRoute();
   } catch (res) {
-    return res;
+    if (res instanceof Response) return res;
+    throw res;
   }
   return NextResponse.json({ ok: true });
 }
 
 export async function POST(req: NextRequest) {
-  const result = await requireAdminRoute();
-  if ("error" in result) return result.error;
+  try {
+    await requireAdminRoute();
+  } catch (res) {
+    if (res instanceof Response) return res;
+    throw res;
+  }
 
   let body: { actorType?: string; scenario?: string };
   try {
@@ -72,7 +77,8 @@ export async function DELETE() {
   try {
     await requireAdminRoute();
   } catch (res) {
-    return res;
+    if (res instanceof Response) return res;
+    throw res;
   }
 
   const cookieStore = await cookies();

@@ -26,7 +26,8 @@ export async function POST(req: Request) {
   try {
     await requireAdminRoute();
   } catch (res) {
-    return res;
+    if (res instanceof Response) return res;
+    throw res;
   }
 
   let body: { actorType?: string; actorId?: string; scenario?: string; userId?: string };

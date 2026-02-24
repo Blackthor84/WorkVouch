@@ -49,7 +49,8 @@ export async function GET() {
   try {
     await requireAdminRoute();
   } catch (res) {
-    return res;
+    if (res instanceof Response) return res;
+    throw res;
   }
 
   try {
