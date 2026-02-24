@@ -3,7 +3,7 @@ import { getCurrentUserProfile } from "@/lib/auth";
 import { getEffectiveRoles } from "@/lib/permissions/requireRole";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
-import { NavbarClient, type OrgSwitcherItem } from "./navbar-client";
+import { type OrgSwitcherItem } from "./navbar-client";
 
 export async function NavbarServer() {
   const admin = await getAdminContext();
@@ -58,14 +58,5 @@ export async function NavbarServer() {
     }
   }
   const impersonating = Boolean((session as { impersonating?: boolean } | null)?.impersonating);
-  return (
-    <NavbarClient
-      user={session?.user ?? undefined}
-      role={role ?? undefined}
-      showAdmin={showAdmin}
-      showSandboxAdmin={showSandboxAdmin}
-      orgSwitcherItems={orgSwitcherItems}
-      impersonating={impersonating}
-    />
-  );
+  return null;
 }

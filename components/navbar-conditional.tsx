@@ -16,5 +16,5 @@ export async function NavbarConditional() {
   const user = await getCurrentUser();
   const profile = await getCurrentUserProfile();
 
-  return <NavbarClient user={user} role={profile?.role ?? undefined} />;
+  return null;
 }
