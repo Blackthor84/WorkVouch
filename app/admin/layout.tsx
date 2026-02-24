@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { NavbarServer } from "@/components/navbar-server";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { getUserFromSession } from "@/lib/auth/getUserFromSession";
+import AdminClientLayout from "./AdminClientLayout";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminGlobalBar } from "@/components/admin/AdminGlobalBar";
 import { isGodMode } from "@/lib/auth/isGodMode";
@@ -86,8 +89,12 @@ export default async function AdminLayout({
     admin.email && founderEmail && admin.email.trim().toLowerCase() === founderEmail
   );
 
+  const cookieStore = await cookies();
+  const sessionUser = await getUserFromSession(cookieStore);
+  const layoutUser = sessionUser ? { id: sessionUser.id, role: sessionUser.role } : null;
+
   return (
-    <>
+    <AdminClientLayout user={layoutUser}>
       <NavbarServer />
       {godModeEnabled && (
         <div className="bg-red-600 text-white text-center py-2 font-bold">
@@ -124,6 +131,6 @@ export default async function AdminLayout({
           {children}
         </main>
       </div>
-    </>
+    </AdminClientLayout>
   );
 }
