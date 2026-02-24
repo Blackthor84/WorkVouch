@@ -13,12 +13,22 @@ import {
 } from "@/lib/preview-context";
 
 /**
- * Presentational: shows "Demo mode active" when demo is true.
- * Does NOT use useSearchParams — receive `demo` from a parent client wrapped in Suspense.
+ * Pure presentational: shows "Demo mode active" when enabled.
+ * Does NOT use useSearchParams — receive `enabled` from a page-level reader (e.g. DemoModeFromParams) inside Suspense.
  */
-export function DemoModeActivator({ demo }: { demo: boolean }) {
-  if (!demo) return null;
+export function DemoModeActivator({ enabled }: { enabled: boolean }) {
+  if (!enabled) return null;
   return <div>Demo mode active</div>;
+}
+
+/**
+ * Page-level param reader: reads URL only, passes to pure DemoModeActivator.
+ * Must be rendered inside <Suspense> (useSearchParams can suspend).
+ */
+export function DemoModeFromParams() {
+  const params = useSearchParams();
+  const enabled = params.get("demo") === "1";
+  return <DemoModeActivator enabled={enabled} />;
 }
 
 /**
@@ -58,9 +68,9 @@ export function DemoModeActivatorWithParams() {
     }
   }, [searchParams, session?.user?.role, sessionStatus, setPreview]);
 
-  const demo =
+  const enabled =
     searchParams.get("demo") === "1" ||
     (searchParams.get("demo") === "elite" && isEliteDemoEnabled(searchParams, (session?.user as { role?: string } | undefined)?.role));
 
-  return <DemoModeActivator demo={demo} />;
+  return <DemoModeActivator enabled={enabled} />;
 }
