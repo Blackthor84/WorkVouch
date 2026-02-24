@@ -7,8 +7,8 @@ export default function NotFoundClient() {
   const reason = searchParams.get("reason");
 
   return (
-    <div className="text-center">
-      <h1 className="text-3xl font-bold">Page Not Found</h1>
+    <div className="p-6 text-center">
+      <h1 className="text-3xl font-bold">404 – Page Not Found</h1>
       {reason && (
         <p className="mt-2 text-slate-600">
           Reason: {reason}
