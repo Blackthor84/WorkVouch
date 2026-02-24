@@ -46,8 +46,11 @@ const SAFE_ERROR_PAYLOAD = {
 };
 
 export async function GET() {
-  const result = await requireAdminRoute();
-  if ("error" in result) return result.error;
+  try {
+    await requireAdminRoute();
+  } catch (res) {
+    return res;
+  }
 
   try {
     const supabase = getSupabaseServer();

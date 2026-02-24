@@ -20,9 +20,11 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const result = await requireAdminRoute();
-  if ("error" in result) return result.error;
-
+  try {
+    await requireAdminRoute();
+  } catch (res) {
+    return res;
+  }
   return NextResponse.json({ ok: true });
 }
 
@@ -67,8 +69,11 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE() {
-  const result = await requireAdminRoute();
-  if ("error" in result) return result.error;
+  try {
+    await requireAdminRoute();
+  } catch (res) {
+    return res;
+  }
 
   const cookieStore = await cookies();
   cookieStore.delete({ name: IMPERSONATION_SIMULATION_COOKIE, path: "/" });

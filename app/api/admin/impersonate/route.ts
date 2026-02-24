@@ -23,8 +23,11 @@ const IMPERSONATION_SESSION_COOKIE = "impersonation_session";
 
 /** POST — set impersonation (actorId) and/or simulation (actorType, scenario). Admin/superadmin only. Body: { actorType?, actorId?, scenario?, userId? }. */
 export async function POST(req: Request) {
-  const auth = await requireAdminRoute();
-  if ("error" in auth) return auth.error;
+  try {
+    await requireAdminRoute();
+  } catch (res) {
+    return res;
+  }
 
   let body: { actorType?: string; actorId?: string; scenario?: string; userId?: string };
   try {

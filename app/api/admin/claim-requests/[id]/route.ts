@@ -21,9 +21,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { error: authError, user } = await requireAdminRoute();
-    if (authError) return authError;
-    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    let user;
+    try {
+      user = await requireAdminRoute();
+    } catch (res) {
+      return res;
+    }
 
     const { id } = await params;
     const body = await req.json().catch(() => ({}));
