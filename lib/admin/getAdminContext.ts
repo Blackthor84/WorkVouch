@@ -92,10 +92,18 @@ export async function getAdminContext(req?: NextRequest): Promise<AdminContext> 
       return { ...UNAUTHORIZED_CONTEXT };
     }
 
-    const profileRole = effectiveRole === "superadmin" || effectiveRole === "super_admin" ? "super_admin" : effectiveRole === "admin" ? "admin" : "user";
-    const isAdmin = isAdminRole(effectiveRole);
-    const isSuperAdmin = effectiveRole === "superadmin" || effectiveRole === "super_admin";
-    const authIsSuperAdmin = authRole === "superadmin";
+    // Spec: app_metadata.role is primary; fallback to profiles.role when not set (e.g. before token refresh).
+    let resolvedRole = effectiveRole;
+    if (resolvedRole === "user") {
+      const { data: profile } = await supabase.from("profiles").select("role").eq("id", authUserId).maybeSingle();
+      const r = String((profile as { role?: string } | null)?.role ?? "").toLowerCase().trim();
+      if (r === "admin" || r === "superadmin" || r === "super_admin") resolvedRole = r === "admin" ? "admin" : "superadmin";
+    }
+
+    const profileRole = resolvedRole === "superadmin" || resolvedRole === "super_admin" ? "super_admin" : resolvedRole === "admin" ? "admin" : "user";
+    const isAdmin = isAdminRole(resolvedRole);
+    const isSuperAdmin = resolvedRole === "superadmin" || resolvedRole === "super_admin";
+    const authIsSuperAdmin = authRole === "superadmin" || (resolvedRole === "superadmin" && authUserId === effectiveUserId);
 
     const roles: AdminRole[] = isAdmin ? (isSuperAdmin ? ["user", "admin", "super_admin"] : ["user", "admin"]) : ["user"];
     const appEnvironment = getAppEnvironment();
