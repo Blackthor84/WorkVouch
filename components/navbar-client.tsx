@@ -21,7 +21,7 @@ export interface OrgSwitcherItem {
   organizationId?: string;
 }
 
-interface NavbarClientProps {
+export interface NavbarClientProps {
   user?: User | null;
   role?: string | null;
   /** Server-computed: show Admin link (never crashes navbar). */

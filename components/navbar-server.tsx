@@ -4,6 +4,7 @@ import { getEffectiveRoles } from "@/lib/permissions/requireRole";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { type OrgSwitcherItem } from "./navbar-client";
+import { NavbarClientDynamic } from "./navbar-client-dynamic";
 
 export async function NavbarServer() {
   const admin = await getAdminContext();
@@ -58,5 +59,14 @@ export async function NavbarServer() {
     }
   }
   const impersonating = Boolean((session as { impersonating?: boolean } | null)?.impersonating);
-  return null;
+  return (
+    <NavbarClientDynamic
+      user={session?.user ?? undefined}
+      role={role ?? undefined}
+      showAdmin={showAdmin}
+      showSandboxAdmin={showSandboxAdmin}
+      orgSwitcherItems={orgSwitcherItems}
+      impersonating={impersonating}
+    />
+  );
 }

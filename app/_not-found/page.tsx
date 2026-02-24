@@ -1,10 +1,9 @@
-import { Suspense } from "react";
-import NotFoundClient from "./NotFoundClient";
+export const dynamic = "force-static";
 
 export default function NotFoundPage() {
   return (
-    <Suspense fallback={<div className="p-6">Loading…</div>}>
-      <NotFoundClient />
-    </Suspense>
+    <div className="min-h-screen flex items-center justify-center">
+      <h1 className="text-xl font-semibold">Page not found</h1>
+    </div>
   );
 }

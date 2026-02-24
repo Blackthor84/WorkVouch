@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -33,7 +34,9 @@ export default async function EmployerOnboardingStartPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0D1117] px-4 py-12">
-      <EmployerOnboardingClient userEmail={user.email} />
+      <Suspense fallback={<div className="p-6">Loading…</div>}>
+        <EmployerOnboardingClient userEmail={user.email} />
+      </Suspense>
     </div>
   );
 }

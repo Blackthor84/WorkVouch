@@ -1,7 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { createContext, useCallback, useContext, useState } from "react";
 
 export const ELITE_DEMO_STORAGE_KEY = "workvouch_elite_demo_state";
 
@@ -141,77 +140,6 @@ export function PreviewProvider({ children }: { children: React.ReactNode }) {
       {children}
     </PreviewContext.Provider>
   );
-}
-
-/**
- * Page-level client: reads URL search params and syncs to preview context.
- * Must be rendered inside <PreviewProvider> and inside <Suspense> (useSearchParams can suspend).
- */
-export function PreviewInitializer() {
-  const { setPreview } = usePreview();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const previewParam = searchParams.get("preview");
-    if (previewParam === "true") {
-      const plan = searchParams.get("plan");
-      const feature = searchParams.get("feature");
-      setPreview((prev) => {
-        const base = prev ?? ({} as PreviewState);
-        const next: PreviewState = {
-          ...base,
-          demoActive: true,
-          previewPlanTier: plan ?? base.previewPlanTier ?? null,
-          featureFlags: feature
-            ? [...(base.featureFlags ?? []).filter((f) => f !== feature), feature]
-            : base.featureFlags,
-          previewFeatures:
-            feature != null ? { ...base.previewFeatures, [feature]: true } : base.previewFeatures,
-        };
-        saveEliteStateToStorage(next);
-        return next;
-      });
-    }
-  }, [searchParams, setPreview]);
-
-  useEffect(() => {
-    const simulate = searchParams.get("simulate");
-    if (simulate === "pro_employer") {
-      setPreview((prev) => {
-        if (prev?.demoActive) return prev;
-        return {
-          role: "employer",
-          subscription: "pro",
-          featureFlags: ["advanced_analytics", "ads_system", "rehire_probability_index"],
-          fakeUserName: "Michael Grant",
-          fakeCompanyName: "Sentinel Security Group",
-          simulateAds: true,
-        } as PreviewState;
-      });
-      return;
-    }
-    if (simulate === "investor") {
-      setPreview((prev) => {
-        if (prev?.demoActive) return prev;
-        return {
-          role: "employer",
-          subscription: "pro",
-          featureFlags: [
-            "advanced_analytics",
-            "ads_system",
-            "rehire_probability_index",
-            "team_compatibility_scoring",
-            "workforce_risk_indicator",
-          ],
-          fakeUserName: "Ava Thompson",
-          fakeCompanyName: "Global Talent Systems",
-          simulateAds: true,
-        } as PreviewState;
-      });
-    }
-  }, [searchParams, setPreview]);
-
-  return null;
 }
 
 export function usePreview() {
