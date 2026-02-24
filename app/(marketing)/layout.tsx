@@ -1,9 +1,12 @@
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
 import Footer from "@/components/Footer";
 
-const Navbar = dynamic(() => import("@/components/navbar"), { ssr: false });
+export const dynamic = "force-static";
 
-export const dynamic = "force-dynamic";
+const Navbar = dynamicImport(
+  () => import("@/components/navbar"),
+  { ssr: false }
+);
 
 export default function MarketingLayout({
   children,
@@ -13,9 +16,7 @@ export default function MarketingLayout({
   return (
     <>
       <Navbar />
-      <main className="flex-1 bg-background dark:bg-[#0D1117] min-h-screen">
-        {children}
-      </main>
+      {children}
       <Footer />
     </>
   );
