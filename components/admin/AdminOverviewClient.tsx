@@ -55,7 +55,7 @@ export function AdminOverviewClient() {
   const fetchOverview = useCallback(async () => {
     if (!canFetch) return;
     try {
-      const res = await fetch("/api/admin/dashboard/overview");
+      const res = await fetch("/api/admin/dashboard/overview", { credentials: "include" });
       if (res.status === 403) {
         setAccessDenied(true);
         setError(null);
