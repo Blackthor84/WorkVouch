@@ -1,12 +1,7 @@
-import dynamicImport from "next/dynamic";
 import Footer from "@/components/Footer";
+import MarketingClientLayout from "./MarketingClientLayout";
 
 export const dynamic = "force-static";
-
-const Navbar = dynamicImport(
-  () => import("@/components/navbar"),
-  { ssr: false }
-);
 
 export default function MarketingLayout({
   children,
@@ -14,10 +9,9 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <Navbar />
+    <MarketingClientLayout>
       {children}
       <Footer />
-    </>
+    </MarketingClientLayout>
   );
 }
