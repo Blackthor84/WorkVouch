@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 import { isEliteDemoEnabled } from "@/lib/demo-mode";
 import {
@@ -22,42 +21,50 @@ export function DemoModeActivator({ enabled }: { enabled: boolean }) {
 }
 
 /**
- * Page-level param reader: reads URL only, passes to pure DemoModeActivator.
- * Must be rendered inside <Suspense> (useSearchParams can suspend).
+ * Page-level param reader: reads URL in effect (no useSearchParams), passes to pure DemoModeActivator.
  */
 export function DemoModeFromParams() {
-  const params = useSearchParams();
-  const enabled = params.get("demo") === "1";
+  const [enabled, setEnabled] = useState(false);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setEnabled(params.get("demo") === "1");
+  }, []);
+  if (!enabled) return null;
   return <DemoModeActivator enabled={enabled} />;
 }
 
 /**
- * Page/layout-level client: reads URL params and session, runs elite demo logic, passes demo to DemoModeActivator.
- * Must be rendered inside <Suspense> (useSearchParams can suspend).
+ * Page/layout-level client: reads URL in effect (no useSearchParams), runs elite demo logic, passes to DemoModeActivator.
+ * Hooks always run; conditional JSX only.
  */
 export function DemoModeActivatorWithParams() {
-  const searchParams = useSearchParams();
+  const [enabled, setEnabled] = useState(false);
   const { data: session, status: sessionStatus } = useSupabaseSession();
   const { setPreview } = usePreview();
 
   useEffect(() => {
-    if (sessionStatus === "loading") return;
-
-    const demoParam = searchParams.get("demo");
+    const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+    const demoParam = params.get("demo");
     const userRole = (session?.user as { role?: string } | undefined)?.role;
-    const enabled = isEliteDemoEnabled(searchParams, userRole);
+    const eliteEnabled = isEliteDemoEnabled(params, userRole);
 
-    if (demoParam === "elite" && enabled) {
+    if (sessionStatus === "loading") {
+      setEnabled(demoParam === "1");
+      return;
+    }
+
+    if (demoParam === "elite" && eliteEnabled) {
       const stored = loadEliteStateFromStorage();
       const base = { ...defaultEliteState(), ...stored, demoActive: true } as PreviewState;
       if (!base.featureFlags?.length) {
         base.featureFlags = ["elite_simulation", "ads_system", "advanced_analytics"];
       }
       setPreview((prev) => (prev?.demoActive ? prev : base));
+      setEnabled(true);
       return;
     }
 
-    if (demoParam !== "elite" && !enabled) {
+    if (demoParam !== "elite" && !eliteEnabled) {
       setPreview((prev) => {
         if (prev?.demoActive) {
           saveEliteStateToStorage(null);
@@ -66,11 +73,10 @@ export function DemoModeActivatorWithParams() {
         return prev;
       });
     }
-  }, [searchParams, session?.user?.role, sessionStatus, setPreview]);
 
-  const enabled =
-    searchParams.get("demo") === "1" ||
-    (searchParams.get("demo") === "elite" && isEliteDemoEnabled(searchParams, (session?.user as { role?: string } | undefined)?.role));
+    setEnabled(demoParam === "1" || (demoParam === "elite" && eliteEnabled));
+  }, [session?.user?.role, sessionStatus, setPreview]);
 
+  if (!enabled) return null;
   return <DemoModeActivator enabled={enabled} />;
 }
