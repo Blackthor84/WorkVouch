@@ -11,7 +11,7 @@ interface OnboardingStatus {
   completed?: boolean;
 }
 
-type MeUser = { __impersonated?: boolean };
+type MeUser = { __impersonated?: boolean; role?: string };
 
 export function OnboardingProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<OnboardingStatus | null>(null);
@@ -43,7 +43,11 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   };
 
   const steps = status?.steps ?? [];
-  const visible = showOverlay && steps.length > 0;
+  // Hard admin bypass: do not show onboarding overlay for admin/superadmin (or any non-user role).
+  const visible =
+    showOverlay &&
+    steps.length > 0 &&
+    (user == null || user.role === "user");
 
   return (
     <>

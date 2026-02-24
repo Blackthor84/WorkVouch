@@ -4,13 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-
-export const runtime = "nodejs";
-import { getCurrentUser } from "@/lib/auth";
-import { hasRole } from "@/lib/auth";
+import { requireAdminSupabase } from "@/lib/auth/requireAdminSupabase";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { z } from "zod";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const bodySchema = z.object({
@@ -19,11 +17,8 @@ const bodySchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if (!(await hasRole("admin")) && !(await hasRole("superadmin"))) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const auth = await requireAdminSupabase();
+    if (auth instanceof NextResponse) return auth;
 
     const body = await req.json().catch(() => ({}));
     const parsed = bodySchema.safeParse(body);

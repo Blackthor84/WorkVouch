@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthedUser } from "@/lib/auth/getAuthedUser";
+import { requireAdminSupabase } from "@/lib/auth/requireAdminSupabase";
 import {
   setShadowEnforcement,
   isShadowEnforcementEnabled,
@@ -10,10 +10,8 @@ export const dynamic = "force-dynamic";
 
 /** POST /api/admin/shadow-enforcement — set enforcement. Body: { enabled: boolean }. Admin-only. */
 export async function POST(req: NextRequest) {
-  const authed = await getAuthedUser();
-  if (!authed || (authed.role !== "admin" && authed.role !== "superadmin")) {
-    return new NextResponse(null, { status: 403 });
-  }
+  const auth = await requireAdminSupabase();
+  if (auth instanceof NextResponse) return auth;
 
   let body: { enabled?: boolean };
   try {
@@ -28,10 +26,8 @@ export async function POST(req: NextRequest) {
 
 /** GET /api/admin/shadow-enforcement — return current enforcement. Admin-only. */
 export async function GET() {
-  const authed = await getAuthedUser();
-  if (!authed || (authed.role !== "admin" && authed.role !== "superadmin")) {
-    return new NextResponse(null, { status: 403 });
-  }
+  const auth = await requireAdminSupabase();
+  if (auth instanceof NextResponse) return auth;
 
   return NextResponse.json({ enforced: isShadowEnforcementEnabled() });
 }

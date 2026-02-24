@@ -159,6 +159,7 @@ export function AdminUsersList({ role = "admin" }: AdminUsersListProps) {
             </tr>
           ) : (
             users.map((user) => {
+              // Admins are above product rules — never disable for onboarding/profile completeness.
               const canImpersonate =
                 (role === "admin" || role === "superadmin") &&
                 Boolean(user?.id);

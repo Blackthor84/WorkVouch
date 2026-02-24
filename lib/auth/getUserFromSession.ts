@@ -2,6 +2,9 @@
  * Get authenticated user from session for App Router API routes.
  * Uses existing Supabase auth (same as getAuthedUser / layouts). No req.session.
  * Pass the result of await cookies() from next/headers.
+ *
+ * ⚠️ Do NOT use for admin routes. Use requireAdminSupabase() from @/lib/auth/requireAdminSupabase
+ * (Supabase Route Handler auth: supabase.auth.getUser() + role from user_metadata/app_metadata).
  */
 
 import type { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";

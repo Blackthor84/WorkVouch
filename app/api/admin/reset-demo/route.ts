@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getAuthedUser } from "@/lib/auth/getAuthedUser";
+import { requireAdminSupabase } from "@/lib/auth/requireAdminSupabase";
 import { IMPERSONATION_SIMULATION_COOKIE } from "@/lib/impersonation-simulation/context";
 import { IMPERSONATED_USER_ID_COOKIE } from "@/lib/auth/actingUser";
 
@@ -13,10 +13,8 @@ const INVESTOR_MODE_COOKIE = "wv_investor_mode";
 
 /** POST /api/admin/reset-demo — clear impersonation and demo state. Admin-only. One-click demo reset. */
 export async function POST() {
-  const authed = await getAuthedUser();
-  if (!authed || (authed.role !== "admin" && authed.role !== "superadmin")) {
-    return new NextResponse(null, { status: 403 });
-  }
+  const auth = await requireAdminSupabase();
+  if (auth instanceof NextResponse) return auth;
 
   const cookieStore = await cookies();
   cookieStore.delete({ name: IMPERSONATION_SESSION_COOKIE, path: "/" });

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getAuthedUser } from "@/lib/auth/getAuthedUser";
+import { requireAdminSupabase } from "@/lib/auth/requireAdminSupabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,10 +9,8 @@ const INVESTOR_MODE_COOKIE = "wv_investor_mode";
 
 /** POST /api/admin/investor-mode — set or clear investor mode. Body: { enabled: boolean }. Admin-only. */
 export async function POST(req: NextRequest) {
-  const authed = await getAuthedUser();
-  if (!authed || (authed.role !== "admin" && authed.role !== "superadmin")) {
-    return new NextResponse(null, { status: 403 });
-  }
+  const auth = await requireAdminSupabase();
+  if (auth instanceof NextResponse) return auth;
 
   let body: { enabled?: boolean };
   try {
@@ -42,10 +40,8 @@ export async function POST(req: NextRequest) {
 
 /** GET /api/admin/investor-mode — return current investor mode. Admin-only. */
 export async function GET() {
-  const authed = await getAuthedUser();
-  if (!authed || (authed.role !== "admin" && authed.role !== "superadmin")) {
-    return new NextResponse(null, { status: 403 });
-  }
+  const auth = await requireAdminSupabase();
+  if (auth instanceof NextResponse) return auth;
 
   const cookieStore = await cookies();
   const value = cookieStore.get(INVESTOR_MODE_COOKIE)?.value;

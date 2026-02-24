@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/lib/auth/useUser";
 
 export interface OnboardingStepConfig {
   id: string;
@@ -10,7 +11,7 @@ export interface OnboardingStepConfig {
   description: string;
 }
 
-interface OnboardingOverlayProps {
+export interface OnboardingOverlayProps {
   steps: OnboardingStepConfig[];
   onComplete: () => void;
   onSkip?: () => void;
@@ -23,6 +24,13 @@ export function OnboardingOverlay({
   onSkip,
   disableComplete,
 }: OnboardingOverlayProps) {
+  const { user } = useUser();
+
+  // 🔒 HARD ADMIN BYPASS — NEVER REMOVE
+  if (!user || user.role === "admin" || user.role === "superadmin") {
+    return null;
+  }
+
   const [stepIndex, setStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const step = steps[stepIndex];
@@ -144,3 +152,5 @@ export function OnboardingOverlay({
     </div>
   );
 }
+
+export default OnboardingOverlay;

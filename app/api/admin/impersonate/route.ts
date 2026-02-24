@@ -1,6 +1,11 @@
+/**
+ * ⚠️ ADMIN ROUTE
+ * Must use requireAdminRoute() or getAuthedUser() for admin check
+ * Do NOT use getSession() or getUserFromSession()
+ */
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getAuthedUser } from "@/lib/auth/getAuthedUser";
+import { requireAdminRoute } from "@/lib/auth/requireAdminRoute";
 import {
   IMPERSONATION_SIMULATION_COOKIE,
   type ActorType,
@@ -18,10 +23,8 @@ const IMPERSONATION_SESSION_COOKIE = "impersonation_session";
 
 /** POST — set impersonation (actorId) and/or simulation (actorType, scenario). Admin/superadmin only. Body: { actorType?, actorId?, scenario?, userId? }. */
 export async function POST(req: Request) {
-  const authed = await getAuthedUser();
-  if (!authed || (authed.role !== "admin" && authed.role !== "superadmin")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const auth = await requireAdminRoute();
+  if ("error" in auth) return auth.error;
 
   let body: { actorType?: string; actorId?: string; scenario?: string; userId?: string };
   try {

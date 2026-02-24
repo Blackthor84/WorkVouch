@@ -1,12 +1,14 @@
 /**
+ * ⚠️ ADMIN ROUTE
+ * Uses requireAdminRoute() — Supabase Route Handler auth (getUser + user_metadata/app_metadata role).
+ * Do NOT use getSession() or getUserFromSession()
+ *
  * GET /api/admin/dashboard/overview — admin or superadmin. Production data: users, employers,
  * paid subs, revenue, reviews/day, reputation histogram. No mock data.
- * Auth: requireAdminForApi(); 403 JSON when not admin.
  */
 
 import { NextResponse } from "next/server";
-import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
-import { adminForbiddenResponse } from "@/lib/api/adminResponses";
+import { requireAdminRoute } from "@/lib/auth/requireAdminRoute";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -44,8 +46,8 @@ const SAFE_ERROR_PAYLOAD = {
 };
 
 export async function GET() {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const result = await requireAdminRoute();
+  if ("error" in result) return result.error;
 
   try {
     const supabase = getSupabaseServer();

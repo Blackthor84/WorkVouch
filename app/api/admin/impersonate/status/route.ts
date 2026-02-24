@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getAuthedUser } from "@/lib/auth/getAuthedUser";
+import { requireAdminSupabase } from "@/lib/auth/requireAdminSupabase";
 import {
   IMPERSONATION_SIMULATION_COOKIE,
   parseSimulationContextFromCookie,
@@ -16,10 +16,8 @@ type ImpersonationSession = {
 
 /** GET /api/admin/impersonate/status — returns active session + simulation context. Admin-only (real session user). */
 export async function GET() {
-  const authed = await getAuthedUser();
-  if (!authed || (authed.role !== "admin" && authed.role !== "superadmin")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const auth = await requireAdminSupabase();
+  if (auth instanceof NextResponse) return auth;
   const cookieStore = await cookies();
   const raw = cookieStore.get("impersonation_session")?.value?.trim();
   const simRaw = cookieStore.get(IMPERSONATION_SIMULATION_COOKIE)?.value;
