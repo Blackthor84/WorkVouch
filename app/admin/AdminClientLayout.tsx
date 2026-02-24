@@ -1,40 +1,41 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 
-type Props = {
-  user: {
-    id: string;
-    role: string;
-  } | null;
-  children: React.ReactNode;
-};
+type LayoutUser = {
+  id: string
+  role: string
+} | null
 
-export default function AdminClientLayout({ user, children }: Props) {
+export default function AdminClientLayout({
+  user,
+  children,
+}: {
+  user: LayoutUser
+  children: React.ReactNode
+}) {
+  const router = useRouter()
 
-  const [mounted, setMounted] = useState(false);
-  const [authorized, setAuthorized] = useState(false);
+  // ✅ hooks ALWAYS declared
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    setMounted(true);
-
-    if (user && (user.role === "admin" || user.role === "superadmin")) {
-      setAuthorized(true);
-    } else {
-      setAuthorized(false);
+    // server already enforced auth — this is just safety
+    if (!user) {
+      router.replace("/login")
+      return
     }
-  }, [user]);
+    setReady(true)
+  }, [user, router])
 
-  if (!mounted) return null;
-
-  if (!authorized) {
+  if (!ready) {
     return (
-      <div style={{ padding: 40 }}>
-        <h2>Unauthorized</h2>
-        <p>You do not have access to this area.</p>
+      <div className="min-h-screen flex items-center justify-center text-slate-600">
+        Loading admin…
       </div>
-    );
+    )
   }
 
-  return <>{children}</>;
+  return <>{children}</>
 }
