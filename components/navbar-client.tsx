@@ -35,11 +35,16 @@ interface NavbarClientProps {
 }
 
 export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems, impersonating: impersonatingProp }: NavbarClientProps = {}) {
-  const { data: session, status } = useSupabaseSession();
-  const { role: authRole, loading: authLoading } = useAuth();
+  // const { data: session, status } = useSupabaseSession();
+  // const { role: authRole, loading: authLoading } = useAuth();
+  // const { preview } = usePreview();
+  const session = null as { user?: User } | null;
+  const status = "authenticated" as "loading" | "authenticated" | "unauthenticated";
+  const authRole = null as string | null;
+  const authLoading = false;
+  const preview = null as { demoActive?: boolean } | null;
   const router = useRouter();
   const pathname = usePathname();
-  const { preview } = usePreview();
   const user = userProp ?? session?.user;
   const role = authLoading ? null : (authRole ?? roleProp ?? null);
   const impersonating = Boolean(impersonatingProp ?? (session as { impersonating?: boolean } | null)?.impersonating);
