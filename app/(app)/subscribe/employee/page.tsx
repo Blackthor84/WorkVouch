@@ -1,9 +1,11 @@
+export const dynamic = "force-dynamic";
+
 import { Suspense } from "react";
 import EmployeeSubscribeClient from "./EmployeeSubscribeClient";
 
 export default function Page() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>Loading…</div>}>
       <EmployeeSubscribeClient />
     </Suspense>
   );
