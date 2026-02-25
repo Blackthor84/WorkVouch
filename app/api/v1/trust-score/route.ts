@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/auth/getAuthedUser";
 import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
 import { explainTrustScore } from "@/lib/trust/explainTrustScore";
-import type { TrustScoreInput } from "@/lib/trust/types";
+import type { TrustEngineSnapshot } from "@/lib/trust/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,21 +28,23 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "candidateId required" }, { status: 400 });
   }
 
-  const snapshot = await getOrCreateSnapshot(candidateId);
-  const careerHealth = Math.max(0, Math.min(100, Number(snapshot.career_health_score) ?? 0));
-  const tenureScore = Math.max(0, Math.min(100, Number(snapshot.tenure_score) ?? 0));
-  const referenceScore = Math.max(0, Math.min(100, Number(snapshot.reference_score) ?? 0));
+  const row = await getOrCreateSnapshot(candidateId);
+  const trustScore = Math.max(0, Math.min(100, Number(row.career_health_score) ?? 0));
+  const profileStrength = Math.max(0, Math.min(100, Number(row.profile_strength) ?? 0));
+  const referenceScore = Math.max(0, Math.min(100, Number(row.reference_score) ?? 0));
 
-  const data: TrustScoreInput = {
-    overlapVerified: referenceScore > 50,
-    managerReference: referenceScore > 70,
-    peerReferences: Array.from({ length: Math.min(Math.floor(referenceScore / 25), 4) }, (_, i) => ({ id: `ref-${i}` })),
-    tenureYears: tenureScore >= 60 ? 3 : tenureScore >= 30 ? 2 : 1,
-    flags: [],
+  const snapshot: TrustEngineSnapshot = {
+    trustScore,
+    profileStrength,
+    confidenceScore: referenceScore,
+    industry: "retail",
+    employerMode: "enterprise",
+    events: [],
+    ledger: [], // API snapshot from DB (no engine history)
   };
 
-  const result = explainTrustScore(data);
-  const trustScore = Math.round(result.trustScore);
+  const result = explainTrustScore(snapshot);
+  const score = Math.round(result.trustScore);
   const confidence =
     result.confidence >= 0.8 ? "high" : result.confidence >= 0.5 ? "medium" : "low";
 
@@ -52,7 +54,7 @@ export async function GET(req: NextRequest) {
     : `/trust/explain/${candidateId}`;
 
   return NextResponse.json({
-    trustScore,
+    trustScore: score,
     confidence,
     riskFlags: result.riskFactors,
     explainabilityUrl,
