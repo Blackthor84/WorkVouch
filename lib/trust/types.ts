@@ -148,6 +148,7 @@ export type TrustEngineSnapshot = {
   industry: keyof typeof INDUSTRY_PROFILES;
   employerMode: "smb" | "mid" | "enterprise";
   events: TrustEvent[];
+  ledger: LedgerEntry[];
 };
 
 /** Result of explainTrustScore(snapshot). */

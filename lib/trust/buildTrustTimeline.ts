@@ -1,25 +1,21 @@
-import type { TrustSnapshot } from "./types";
-import type { TrustTimelineEvent } from "./types";
+import type { TrustEngineSnapshot } from "./types";
+
+export type TrustTimelineItem = {
+  id: string;
+  type: string;
+  message: string;
+  impact: number;
+};
 
 /**
- * Build a time-ordered list of trust snapshots from a base score and events.
- * Each event applies a delta; score is clamped 0–100.
+ * Build timeline from engine snapshot (single source of truth).
+ * Returns events as timeline items for report/audit.
  */
-export function buildTrustTimeline(
-  baseScore: number,
-  events: TrustTimelineEvent[]
-): TrustSnapshot[] {
-  let score = baseScore;
-  const timeline: TrustSnapshot[] = [];
-
-  for (const e of events) {
-    score += e.delta;
-    timeline.push({
-      timestamp: e.time,
-      trustScore: Math.max(0, Math.min(100, score)),
-      reason: e.reason,
-    });
-  }
-
-  return timeline;
+export function buildTrustTimeline(snapshot: TrustEngineSnapshot): TrustTimelineItem[] {
+  return snapshot.events.map((e, i) => ({
+    id: `${i}`,
+    type: e.type,
+    message: e.message,
+    impact: e.impact ?? 0,
+  }));
 }
