@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
     industry: "retail",
     employerMode: "enterprise",
     events: [],
+    ledger: [], // Explanation-only snapshot (no engine history)
   };
 
   const result = explainTrustScore(snapshot);
