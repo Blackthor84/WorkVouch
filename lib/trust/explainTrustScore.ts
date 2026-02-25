@@ -1,27 +1,39 @@
-import { calculateTrustScore } from "./calculateTrustScore";
-import type { TrustScoreInput } from "./types";
+import type { TrustEngineSnapshot } from "./types";
 import type { ExplainTrustResult } from "./types";
+import { THRESHOLDS, INDUSTRY_PROFILES } from "./types";
 
 /**
  * Explainability: why this trust score, top factors, risk factors, confidence.
- * For GET /api/trust/explain and investor-facing "why should I trust this?"
+ * Uses engine snapshot as single source of truth. For GET /api/trust/explain.
  */
-export function explainTrustScore(data: TrustScoreInput): ExplainTrustResult {
-  const score = calculateTrustScore(data);
+export function explainTrustScore(snapshot: TrustEngineSnapshot): ExplainTrustResult {
+  const threshold = THRESHOLDS[snapshot.employerMode];
+  const profile = INDUSTRY_PROFILES[snapshot.industry];
   const topFactors: string[] = [];
-  const riskFactors: string[] = [...(data.flags ?? [])];
+  const riskFactors: string[] = [];
 
-  if (data.overlapVerified) topFactors.push("employment_overlap");
-  if (data.managerReference) topFactors.push("manager_reference");
-  const peerCount = data.peerReferences?.length ?? 0;
-  if (peerCount > 0) topFactors.push("peer_references");
-  if ((data.tenureYears ?? 0) >= 3) topFactors.push("long_tenure");
+  if (snapshot.trustScore >= threshold) topFactors.push("meets_employer_threshold");
+  if (snapshot.confidenceScore >= profile.minConfidence) topFactors.push("meets_industry_confidence");
+  const verificationCount = snapshot.events.filter((e) => e.type === "verification").length;
+  if (verificationCount > 0) topFactors.push("verified_signals");
+  if (verificationCount >= 3) topFactors.push("strong_peer_network");
+  if (snapshot.profileStrength >= 70) topFactors.push("profile_strength");
+
+  const hasFraud = snapshot.events.some((e) => e.type === "conflict" || e.type === "resume");
+  const hasConflict = snapshot.events.some((e) => e.type === "conflict");
+  if (hasFraud) riskFactors.push("fraud_or_dispute");
+  if (hasConflict) riskFactors.push("conflicting_claims");
+  if (verificationCount === 0 && snapshot.events.length > 0) riskFactors.push("no_verification");
 
   const confidence =
-    topFactors.length >= 2 && riskFactors.length === 0 ? 0.9 : topFactors.length >= 1 ? 0.7 : 0.5;
+    topFactors.length >= 2 && riskFactors.length === 0
+      ? 0.9
+      : topFactors.length >= 1
+        ? 0.7
+        : 0.5;
 
   return {
-    trustScore: score,
+    trustScore: snapshot.trustScore,
     topFactors,
     riskFactors,
     confidence,

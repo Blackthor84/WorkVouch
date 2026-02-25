@@ -139,3 +139,21 @@ export type SimulateResult = {
   runs: number;
   auditTraceIds: string[];
 };
+
+/** Engine snapshot as single source of truth for explain and report APIs. */
+export type TrustEngineSnapshot = {
+  trustScore: number;
+  profileStrength: number;
+  confidenceScore: number;
+  industry: keyof typeof INDUSTRY_PROFILES;
+  employerMode: "smb" | "mid" | "enterprise";
+  events: TrustEvent[];
+};
+
+/** Result of explainTrustScore(snapshot). */
+export type ExplainTrustResult = {
+  trustScore: number;
+  topFactors: string[];
+  riskFactors: string[];
+  confidence: number;
+};
