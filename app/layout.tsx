@@ -1,8 +1,10 @@
+"use client";
+
 export const dynamic = "force-dynamic";
 
 import "./globals.css";
-import { NavbarServer } from "@/components/navbar-server";
-import { Providers } from "@/components/providers";
+import Navbar from "@/components/navbar";
+import { SupabaseProvider } from "@/components/SupabaseProvider";
 
 export default function RootLayout({
   children,
@@ -12,10 +14,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>
-          <NavbarServer />
+        <SupabaseProvider>
+          <Navbar />
           {children}
-        </Providers>
+        </SupabaseProvider>
       </body>
     </html>
   );
