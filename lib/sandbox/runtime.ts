@@ -1,35 +1,30 @@
+import type { TrustScenarioPayload } from "@/lib/trust/types";
 import { SANDBOX_SCENARIOS } from "./scenarios";
-import { SandboxCompany, SandboxScenarioResult } from "./types";
+import type { SandboxCompany } from "./types";
 
-export type SandboxScenarioItem = {
+export type ScenarioDefinition = {
   id: string;
   title: string;
-  run(): SandboxScenarioResult;
+  getPayload(): TrustScenarioPayload;
 };
 
-let customScenarios: SandboxScenarioItem[] = [];
-let aiScenarios: SandboxScenarioItem[] = [];
+let customScenarios: ScenarioDefinition[] = [];
+let aiScenarios: ScenarioDefinition[] = [];
 
-// Deterministic AI-like scenario generator (NO external APIs)
-function generateAIScenario(prompt: string) {
+function generateAIPayload(prompt: string): TrustScenarioPayload {
   const seed = prompt.toLowerCase();
-
   const negative = seed.includes("fraud") || seed.includes("fake") || seed.includes("lie");
-
-  const trustDelta = negative ? -25 : +20;
-
+  const trustDelta = negative ? -25 : 20;
+  const id = crypto.randomUUID();
   return {
-    id: crypto.randomUUID(),
+    scenarioId: id,
     title: negative
       ? "Potential Resume Fraud Detected"
       : "Strong Coworker Verification Signal",
     summary: negative
       ? "Conflicting coworker feedback reduced candidate trust."
       : "Multiple coworkers verified employment, increasing trust.",
-    before: {
-      trustScore: 70,
-      profileStrength: 65,
-    },
+    before: { trustScore: 70, profileStrength: 65 },
     after: {
       trustScore: 70 + trustDelta,
       profileStrength: 70,
@@ -46,14 +41,18 @@ function generateAIScenario(prompt: string) {
   };
 }
 
-export function addCustomScenario(input: any) {
+export function addCustomScenario(input: {
+  id?: string;
+  title?: string;
+  trustDelta?: number;
+}) {
   const id = input?.id ?? crypto.randomUUID();
   const title = input?.title ?? "Custom scenario";
   const trustDelta = typeof input?.trustDelta === "number" ? input.trustDelta : 0;
   customScenarios.push({
     id,
     title,
-    run(): SandboxScenarioResult {
+    getPayload(): TrustScenarioPayload {
       return {
         scenarioId: id,
         title,
@@ -61,63 +60,49 @@ export function addCustomScenario(input: any) {
         before: { trustScore: 70, profileStrength: 70 },
         after: { trustScore: 70 + trustDelta, profileStrength: 70 },
         events: [
-          { type: "custom", message: "User-defined scenario executed", impact: trustDelta },
+          {
+            type: "custom",
+            message: "User-defined scenario executed",
+            impact: trustDelta,
+          },
         ],
       };
     },
   });
 }
 
-export function addAIScenario(prompt: string): SandboxScenarioItem {
-  const result = generateAIScenario(prompt);
-  const scenario: SandboxScenarioItem = {
-    id: result.id,
-    title: result.title,
-    run(): SandboxScenarioResult {
-      return {
-        scenarioId: result.id,
-        title: result.title,
-        summary: result.summary,
-        before: result.before,
-        after: result.after,
-        events: result.events,
-      };
-    },
+export function addAIScenario(prompt: string): ScenarioDefinition {
+  const payload = generateAIPayload(prompt);
+  const scenario: ScenarioDefinition = {
+    id: payload.scenarioId,
+    title: payload.title,
+    getPayload: () => payload,
   };
   aiScenarios.push(scenario);
   return scenario;
 }
 
-export function listAllScenarios(): SandboxScenarioItem[] {
+function allDefinitions(): ScenarioDefinition[] {
   return [...SANDBOX_SCENARIOS, ...customScenarios, ...aiScenarios];
 }
 
-/** Alias for listAllScenarios (playground UI). */
-export function listScenarios(): SandboxScenarioItem[] {
-  return listAllScenarios();
+export function listScenarios(): { id: string; title: string }[] {
+  return allDefinitions().map((s) => ({ id: s.id, title: s.title }));
 }
 
-/** Alias for runSandboxScenario (playground UI). Threshold is used in UI only. */
-export function runScenario(id: string, _trustThreshold?: number): SandboxScenarioResult {
-  return runSandboxScenario(id);
+export function listAllScenarios(): ScenarioDefinition[] {
+  return allDefinitions();
 }
 
-export function runSandboxScenario(id: string): SandboxScenarioResult {
-  const scenario = listAllScenarios().find((s) => s.id === id);
-  if (!scenario) {
-    throw new Error("Scenario not found");
-  }
-  return scenario.run();
-}
-
-export function exportScenario(result: any): string {
-  return JSON.stringify(result, null, 2);
+export function getScenarioPayload(id: string): TrustScenarioPayload {
+  const scenario = allDefinitions().find((s) => s.id === id);
+  if (!scenario) throw new Error("Scenario not found");
+  return scenario.getPayload();
 }
 
 export function generateMockCompany(): SandboxCompany {
   const industries = ["Healthcare", "Security", "Construction", "Education"];
   const industry = industries[Math.floor(Math.random() * industries.length)];
-
   return {
     id: crypto.randomUUID(),
     name: `${industry} Corp ${Math.floor(Math.random() * 1000)}`,

@@ -1,23 +1,23 @@
-import { SandboxScenarioResult } from "./types";
+import type { TrustScenarioPayload } from "@/lib/trust/types";
 
-export const SANDBOX_SCENARIOS = [
+export type ScenarioDefinition = {
+  id: string;
+  title: string;
+  getPayload(): TrustScenarioPayload;
+};
+
+export const SANDBOX_SCENARIOS: ScenarioDefinition[] = [
   {
     id: "resume_fraud",
     title: "Fake Resume Detected",
-    run(): SandboxScenarioResult {
+    getPayload(): TrustScenarioPayload {
       return {
         scenarioId: "resume_fraud",
         title: "Fake Resume Detected",
         summary:
           "Employment dates conflicted with coworker verification. Trust score reduced.",
-        before: {
-          trustScore: 82,
-          profileStrength: 76,
-        },
-        after: {
-          trustScore: 51,
-          profileStrength: 63,
-        },
+        before: { trustScore: 82, profileStrength: 76 },
+        after: { trustScore: 51, profileStrength: 63 },
         events: [
           {
             type: "verification",
@@ -40,30 +40,24 @@ export const SANDBOX_SCENARIOS = [
   {
     id: "trust_boost",
     title: "Coworker Trust Spike",
-    run(): SandboxScenarioResult {
+    getPayload(): TrustScenarioPayload {
       return {
         scenarioId: "trust_boost",
         title: "Coworker Trust Spike",
         summary:
           "Multiple coworkers verified employment. Trust score increased.",
-        before: {
-          trustScore: 61,
-          profileStrength: 58,
-        },
-        after: {
-          trustScore: 89,
-          profileStrength: 92,
-        },
+        before: { trustScore: 61, profileStrength: 58 },
+        after: { trustScore: 89, profileStrength: 92 },
         events: [
           {
             type: "verification",
             message: "5 coworkers confirmed same role",
-            impact: +22,
+            impact: 22,
           },
           {
             type: "peer_review",
             message: "Positive peer reviews added",
-            impact: +6,
+            impact: 6,
           },
         ],
       };

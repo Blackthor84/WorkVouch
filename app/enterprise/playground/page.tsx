@@ -1,57 +1,80 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  listScenarios,
-  runScenario,
-  addAIScenario,
-} from "@/lib/sandbox/runtime";
-
+import { useTrustEngine } from "@/lib/trust/useTrustEngine";
 import ScenarioTimeline from "@/components/playground/ScenarioTimeline";
 import ScenarioResult from "@/components/playground/ScenarioResult";
 import EmployerImpact from "@/components/playground/EmployerImpact";
 
+type ScenarioItem = { id: string; title: string };
+
 export default function EnterprisePlayground() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [scenarios, setScenarios] = useState<any[]>([]);
+  const { state, engineAction } = useTrustEngine();
+
+  const [scenarios, setScenarios] = useState<ScenarioItem[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
-  const [result, setResult] = useState<any>(null);
-  const [threshold, setThreshold] = useState(60);
-  const [view, setView] = useState<"employer" | "candidate">("employer");
+  const [loading, setLoading] = useState(false);
+
+  const result = state.lastRunResult;
+
+  const fetchScenarios = useCallback(async () => {
+    const res = await fetch("/api/sandbox/list");
+    if (!res.ok) return;
+    const data = await res.json();
+    setScenarios(Array.isArray(data) ? data : []);
+  }, []);
 
   useEffect(() => {
-    setScenarios(listScenarios());
-  }, []);
+    fetchScenarios();
+  }, [fetchScenarios]);
 
   useEffect(() => {
     const s = searchParams.get("scenario");
     const t = searchParams.get("threshold");
     const v = searchParams.get("view");
     if (s) setSelectedId(s);
-    if (t) setThreshold(Number(t));
-    if (v === "employer" || v === "candidate") setView(v);
-  }, [searchParams]);
+    if (t != null) engineAction({ type: "setThreshold", value: Number(t) });
+    if (v === "employer" || v === "candidate") engineAction({ type: "setView", view: v });
+  }, [searchParams, engineAction]);
 
   function run() {
     if (!selectedId) return;
-    const r = runScenario(selectedId, threshold);
-    setResult(r);
-    router.replace(
-      `?scenario=${selectedId}&threshold=${threshold}&view=${view}`
-    );
+    setLoading(true);
+    fetch("/api/sandbox/run-scenario", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scenarioId: selectedId }),
+    })
+      .then((res) => res.json())
+      .then((payload) => {
+        if (payload?.error) return;
+        engineAction({ type: "runScenario", payload });
+        router.replace(
+          `?scenario=${selectedId}&threshold=${state.threshold}&view=${state.view}`
+        );
+      })
+      .finally(() => setLoading(false));
   }
 
   function generateAI() {
-    const s = addAIScenario("enterprise demo scenario");
-    setScenarios(listScenarios());
-    setSelectedId(s.id);
+    fetch("/api/sandbox/ai-generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: "enterprise demo scenario" }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.id) setSelectedId(data.id);
+        return fetchScenarios();
+      });
   }
 
   function exportJSON() {
     const blob = new Blob(
-      [JSON.stringify({ result, trustThreshold: threshold, view }, null, 2)],
+      [JSON.stringify({ result, trustThreshold: state.threshold, view: state.view }, null, 2)],
       { type: "application/json" }
     );
     const url = URL.createObjectURL(blob);
@@ -66,7 +89,6 @@ export default function EnterprisePlayground() {
     <div className="max-w-6xl mx-auto px-8 py-10 space-y-8">
       <h1 className="text-3xl font-bold">Enterprise Playground</h1>
 
-      {/* CONTROLS */}
       <div className="flex flex-wrap gap-4 items-end border p-4 rounded">
         <select
           className="border px-3 py-2 rounded"
@@ -85,8 +107,8 @@ export default function EnterprisePlayground() {
           <label className="block text-sm font-medium">View</label>
           <select
             className="border rounded px-3 py-2"
-            value={view}
-            onChange={(e) => setView(e.target.value as "employer" | "candidate")}
+            value={state.view}
+            onChange={(e) => engineAction({ type: "setView", view: e.target.value as "employer" | "candidate" })}
           >
             <option value="employer">Employer View</option>
             <option value="candidate">Candidate View</option>
@@ -94,17 +116,21 @@ export default function EnterprisePlayground() {
         </div>
 
         <div>
-          <label className="text-sm">Trust Threshold: {threshold}</label>
+          <label className="text-sm">Trust Threshold: {state.threshold}</label>
           <input
             type="range"
             min={0}
             max={100}
-            value={threshold}
-            onChange={(e) => setThreshold(Number(e.target.value))}
+            value={state.threshold}
+            onChange={(e) => engineAction({ type: "setThreshold", value: Number(e.target.value) })}
           />
         </div>
 
-        <button onClick={run} className="bg-blue-600 text-white px-4 py-2 rounded">
+        <button
+          onClick={run}
+          disabled={loading}
+          className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+        >
           Run Simulation
         </button>
 
@@ -125,15 +151,14 @@ export default function EnterprisePlayground() {
         )}
       </div>
 
-      {/* RESULTS */}
       {result && (
         <>
           <ScenarioResult result={result} />
           <ScenarioTimeline events={result.events} />
           <EmployerImpact
             result={result}
-            threshold={threshold}
-            view={view}
+            threshold={state.threshold}
+            view={state.view}
           />
         </>
       )}

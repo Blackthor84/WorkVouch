@@ -1,16 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { listScenarios, runScenario, addAIScenario } from "@/lib/sandbox/runtime";
+import { useState, useCallback } from "react";
+import { listScenarios, getScenarioPayload, addAIScenario } from "@/lib/sandbox/runtime";
+import { useTrustEngine } from "@/lib/trust/useTrustEngine";
 
 export default function AdminPlayground() {
   const [log, setLog] = useState<any[]>([]);
+  const { engineAction } = useTrustEngine();
   const scenarios = listScenarios();
 
-  function run(id: string) {
-    const result = runScenario(id, 60);
-    setLog((l) => [...l, result]);
-  }
+  const run = useCallback(
+    (id: string) => {
+      const payload = getScenarioPayload(id);
+      engineAction({ type: "runScenario", payload });
+      setLog((l) => [...l, payload]);
+    },
+    [engineAction]
+  );
+
+  const injectAI = useCallback(() => {
+    addAIScenario("wild edge case");
+  }, []);
 
   return (
     <div className="p-8 space-y-6">
@@ -20,7 +30,7 @@ export default function AdminPlayground() {
       </p>
 
       <button
-        onClick={() => addAIScenario("wild edge case")}
+        onClick={injectAI}
         className="bg-black text-white px-4 py-2 rounded"
       >
         Inject AI Scenario

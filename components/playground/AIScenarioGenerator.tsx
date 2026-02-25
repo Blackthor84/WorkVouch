@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { generateAIScenario } from "@/lib/playground/runtime";
-import type { PlaygroundScenarioResult } from "@/lib/playground/types";
 
 type Props = {
-  onGenerated?: (result: PlaygroundScenarioResult) => void;
+  onGenerated?: () => void;
 };
 
 export default function AIScenarioGenerator({ onGenerated }: Props) {
@@ -13,12 +11,13 @@ export default function AIScenarioGenerator({ onGenerated }: Props) {
 
   function generate() {
     setLoading(true);
-    try {
-      const result = generateAIScenario();
-      onGenerated?.(result);
-    } finally {
-      setLoading(false);
-    }
+    fetch("/api/sandbox/ai-generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: "Generate a plausible trust scenario" }),
+    })
+      .then(() => onGenerated?.())
+      .finally(() => setLoading(false));
   }
 
   return (
