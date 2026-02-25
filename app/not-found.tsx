@@ -1,10 +1,10 @@
-import { Suspense } from "react";
-import NotFoundClient from "./NotFoundClient";
+export const dynamic = "force-dynamic";
 
-export default function NotFoundPage() {
+export default function NotFound() {
   return (
-    <Suspense fallback={<div />}>
-      <NotFoundClient />
-    </Suspense>
+    <div style={{ padding: 40 }}>
+      <h1>404 – Page Not Found</h1>
+      <p>The page you're looking for doesn't exist.</p>
+    </div>
   );
 }
