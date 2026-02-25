@@ -1,75 +1,91 @@
 "use client";
 
-import { useState } from "react";
-import { listScenarios, runScenario, addAIScenario } from "@/lib/sandbox/runtime";
+import { useEffect, useState } from "react";
+import {
+  listScenarios,
+  runScenario,
+  addAIScenario,
+} from "@/lib/sandbox/runtime";
 
 import ScenarioTimeline from "@/components/playground/ScenarioTimeline";
 import ScenarioResult from "@/components/playground/ScenarioResult";
 import EmployerImpact from "@/components/playground/EmployerImpact";
 
-export default function EnterprisePlaygroundPage() {
-  const [scenarios, setScenarios] = useState(listScenarios());
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+export default function EnterprisePlayground() {
+  const [scenarios, setScenarios] = useState<any[]>([]);
+  const [selectedId, setSelectedId] = useState<string>("");
   const [result, setResult] = useState<any>(null);
-  const [trustThreshold, setTrustThreshold] = useState(60);
+  const [threshold, setThreshold] = useState(60);
+  const [view, setView] = useState<"employer" | "candidate">("employer");
+
+  useEffect(() => {
+    setScenarios(listScenarios());
+  }, []);
 
   function run() {
     if (!selectedId) return;
-    const r = runScenario(selectedId, trustThreshold);
+    const r = runScenario(selectedId, threshold);
     setResult(r);
   }
 
   function generateAI() {
-    const scenario = addAIScenario("simulate trust edge case");
+    const s = addAIScenario("enterprise demo scenario");
     setScenarios(listScenarios());
-    setSelectedId(scenario.id);
+    setSelectedId(s.id);
+  }
+
+  function exportJSON() {
+    const blob = new Blob(
+      [JSON.stringify({ result, threshold, view }, null, 2)],
+      { type: "application/json" }
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "workvouch-simulation.json";
+    a.click();
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-8 space-y-10">
-      {/* HERO */}
-      <section>
-        <h1 className="text-3xl font-bold">Enterprise Hiring Simulation Playground</h1>
-        <p className="text-gray-600 mt-2">
-          Simulation-only environment. No production data.
-        </p>
-      </section>
+    <div className="max-w-6xl mx-auto px-8 py-10 space-y-8">
+      <h1 className="text-3xl font-bold">Enterprise Playground</h1>
 
       {/* CONTROLS */}
-      <section className="flex flex-wrap gap-4 items-end">
-        <div>
-          <label className="block text-sm font-medium">Scenario</label>
-          <select
-            className="border rounded px-3 py-2"
-            value={selectedId ?? ""}
-            onChange={(e) => setSelectedId(e.target.value)}
-          >
-            <option value="">Select scenario</option>
-            {scenarios.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.title}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="flex flex-wrap gap-4 items-end border p-4 rounded">
+        <select
+          className="border px-3 py-2 rounded"
+          value={selectedId}
+          onChange={(e) => setSelectedId(e.target.value)}
+        >
+          <option value="">Select scenario</option>
+          {scenarios.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.title}
+            </option>
+          ))}
+        </select>
 
         <div>
-          <label className="block text-sm font-medium">
-            Employer Trust Threshold: {trustThreshold}
-          </label>
+          <label className="text-sm">Trust Threshold: {threshold}</label>
           <input
             type="range"
             min={0}
             max={100}
-            value={trustThreshold}
-            onChange={(e) => setTrustThreshold(Number(e.target.value))}
+            value={threshold}
+            onChange={(e) => setThreshold(Number(e.target.value))}
           />
         </div>
 
-        <button
-          onClick={run}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+        <select
+          className="border px-3 py-2 rounded"
+          value={view}
+          onChange={(e) => setView(e.target.value as "employer" | "candidate")}
         >
+          <option value="employer">Employer View</option>
+          <option value="candidate">Candidate View</option>
+        </select>
+
+        <button onClick={run} className="bg-blue-600 text-white px-4 py-2 rounded">
           Run Simulation
         </button>
 
@@ -79,23 +95,27 @@ export default function EnterprisePlaygroundPage() {
         >
           Generate AI Scenario
         </button>
-      </section>
+
+        {result && (
+          <button
+            onClick={exportJSON}
+            className="bg-green-600 text-white px-4 py-2 rounded"
+          >
+            Export JSON
+          </button>
+        )}
+      </div>
 
       {/* RESULTS */}
       {result && (
         <>
-          <section>
-            <ScenarioResult result={result} />
-          </section>
-
-          <section>
-            <h3 className="font-semibold mb-2">Timeline</h3>
-            <ScenarioTimeline events={result.events} />
-          </section>
-
-          <section>
-            <EmployerImpact result={result} threshold={trustThreshold} />
-          </section>
+          <ScenarioResult result={result} />
+          <ScenarioTimeline events={result.events} />
+          <EmployerImpact
+            result={result}
+            threshold={threshold}
+            view={view}
+          />
         </>
       )}
     </div>
