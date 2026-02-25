@@ -92,6 +92,16 @@ export function listAllScenarios(): SandboxScenarioItem[] {
   return [...SANDBOX_SCENARIOS, ...customScenarios, ...aiScenarios];
 }
 
+/** Alias for listAllScenarios (playground UI). */
+export function listScenarios(): SandboxScenarioItem[] {
+  return listAllScenarios();
+}
+
+/** Alias for runSandboxScenario (playground UI). Threshold is used in UI only. */
+export function runScenario(id: string, _trustThreshold?: number): SandboxScenarioResult {
+  return runSandboxScenario(id);
+}
+
 export function runSandboxScenario(id: string): SandboxScenarioResult {
   const scenario = listAllScenarios().find((s) => s.id === id);
   if (!scenario) {

@@ -2,11 +2,11 @@
 
 type Props = {
   result: any;
-  view: "employer" | "candidate";
+  view?: "employer" | "candidate";
   threshold?: number;
 };
 
-export default function EmployerImpact({ result, view, threshold = 60 }: Props) {
+export default function EmployerImpact({ result, view = "employer", threshold = 60 }: Props) {
   if (!result) return null;
 
   const trustScore = result.after?.trustScore ?? 0;
