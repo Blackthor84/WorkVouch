@@ -1,16 +1,15 @@
 "use client";
 
-type Props = {
+export default function EmployerImpact({
+  result,
+  threshold,
+  view,
+}: {
   result: any;
-  view?: "employer" | "candidate";
-  threshold?: number;
-};
-
-export default function EmployerImpact({ result, view = "employer", threshold = 60 }: Props) {
+  threshold: number;
+  view: "employer" | "candidate";
+}) {
   if (!result) return null;
-
-  const trustScore = result.after?.trustScore ?? 0;
-  const belowThreshold = trustScore < threshold;
 
   return (
     <div className="rounded bg-gray-50 dark:bg-gray-800/50 p-4 border border-gray-200 dark:border-gray-700">
@@ -19,34 +18,17 @@ export default function EmployerImpact({ result, view = "employer", threshold = 
       </h3>
 
       {view === "employer" ? (
-        belowThreshold ? (
-          <ul className="list-disc ml-5 mt-2 text-sm text-red-700 dark:text-red-400 space-y-1">
-            <li>Candidate will appear lower in search results</li>
-            <li>Verification warning shown on profile</li>
-            <li>Employer risk score increased</li>
-            <li>Hiring confidence reduced; more checks recommended</li>
-          </ul>
-        ) : (
-          <ul className="list-disc ml-5 mt-2 text-sm text-green-700 dark:text-green-400 space-y-1">
-            <li>Candidate highlighted as verified</li>
-            <li>Faster hiring decision likelihood</li>
-            <li>Reduced background verification cost</li>
-          </ul>
-        )
+        <ul className="list-disc ml-5 mt-2 text-sm text-red-700 dark:text-red-400 space-y-1">
+          <li>Candidate visibility reduced</li>
+          <li>Hiring risk increased</li>
+          <li>Additional verification recommended</li>
+        </ul>
       ) : (
-        belowThreshold ? (
-          <ul className="list-disc ml-5 mt-2 text-sm text-gray-700 dark:text-gray-300 space-y-1">
-            <li>Your trust score is below this employer&apos;s requirement ({threshold})</li>
-            <li>Add more verifications or explain gaps to improve visibility</li>
-            <li>No punitive action; you can improve your profile</li>
-          </ul>
-        ) : (
-          <ul className="list-disc ml-5 mt-2 text-sm text-green-700 dark:text-green-400 space-y-1">
-            <li>You meet this employer&apos;s trust requirement</li>
-            <li>Profile is likely to surface in search</li>
-            <li>Consider adding more peer reviews to strengthen further</li>
-          </ul>
-        )
+        <ul className="list-disc ml-5 mt-2 text-sm text-blue-700 dark:text-blue-400 space-y-1">
+          <li>Your profile trust changed based on coworker feedback</li>
+          <li>Adding verified coworkers can improve your score</li>
+          <li>No automated rejection occurred</li>
+        </ul>
       )}
     </div>
   );

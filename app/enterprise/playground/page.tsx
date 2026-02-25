@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   listScenarios,
   runScenario,
@@ -12,6 +13,8 @@ import ScenarioResult from "@/components/playground/ScenarioResult";
 import EmployerImpact from "@/components/playground/EmployerImpact";
 
 export default function EnterprisePlayground() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [scenarios, setScenarios] = useState<any[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [result, setResult] = useState<any>(null);
@@ -22,10 +25,22 @@ export default function EnterprisePlayground() {
     setScenarios(listScenarios());
   }, []);
 
+  useEffect(() => {
+    const s = searchParams.get("scenario");
+    const t = searchParams.get("threshold");
+    const v = searchParams.get("view");
+    if (s) setSelectedId(s);
+    if (t) setThreshold(Number(t));
+    if (v === "employer" || v === "candidate") setView(v);
+  }, [searchParams]);
+
   function run() {
     if (!selectedId) return;
     const r = runScenario(selectedId, threshold);
     setResult(r);
+    router.replace(
+      `?scenario=${selectedId}&threshold=${threshold}&view=${view}`
+    );
   }
 
   function generateAI() {
@@ -36,7 +51,7 @@ export default function EnterprisePlayground() {
 
   function exportJSON() {
     const blob = new Blob(
-      [JSON.stringify({ result, threshold, view }, null, 2)],
+      [JSON.stringify({ result, trustThreshold: threshold, view }, null, 2)],
       { type: "application/json" }
     );
     const url = URL.createObjectURL(blob);
@@ -44,6 +59,7 @@ export default function EnterprisePlayground() {
     a.href = url;
     a.download = "workvouch-simulation.json";
     a.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -66,6 +82,18 @@ export default function EnterprisePlayground() {
         </select>
 
         <div>
+          <label className="block text-sm font-medium">View</label>
+          <select
+            className="border rounded px-3 py-2"
+            value={view}
+            onChange={(e) => setView(e.target.value as "employer" | "candidate")}
+          >
+            <option value="employer">Employer View</option>
+            <option value="candidate">Candidate View</option>
+          </select>
+        </div>
+
+        <div>
           <label className="text-sm">Trust Threshold: {threshold}</label>
           <input
             type="range"
@@ -75,15 +103,6 @@ export default function EnterprisePlayground() {
             onChange={(e) => setThreshold(Number(e.target.value))}
           />
         </div>
-
-        <select
-          className="border px-3 py-2 rounded"
-          value={view}
-          onChange={(e) => setView(e.target.value as "employer" | "candidate")}
-        >
-          <option value="employer">Employer View</option>
-          <option value="candidate">Candidate View</option>
-        </select>
 
         <button onClick={run} className="bg-blue-600 text-white px-4 py-2 rounded">
           Run Simulation
@@ -101,7 +120,7 @@ export default function EnterprisePlayground() {
             onClick={exportJSON}
             className="bg-green-600 text-white px-4 py-2 rounded"
           >
-            Export JSON
+            Export Scenario JSON
           </button>
         )}
       </div>
