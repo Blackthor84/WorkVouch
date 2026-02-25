@@ -158,3 +158,23 @@ export type ExplainTrustResult = {
   riskFactors: string[];
   confidence: number;
 };
+
+/** Timeline/history event for slider and report (not full engine snapshot). */
+export type TrustTimelineEvent = {
+  id: string;
+  trustScore: number;
+  reason: string;
+  timestamp?: number;
+  type?: string;
+  message?: string;
+  impact?: number;
+};
+
+/** Exportable trust report (enterprise). */
+export type TrustReport = {
+  trustScore: number;
+  strengths: string[];
+  risks: string[];
+  timeline: TrustTimelineEvent[];
+  disclaimer: string;
+};

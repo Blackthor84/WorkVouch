@@ -2,25 +2,25 @@
 
 import { useState } from "react";
 import { recomputeWithoutReference } from "@/lib/trust/recomputeWithoutReference";
-import type { TrustScoreData } from "@/lib/trust/types";
+import type { TrustEngineSnapshot } from "@/lib/trust/types";
 
 type WhatIfReferenceToggleProps = {
-  base: TrustScoreData;
+  snapshot: TrustEngineSnapshot;
   currentScore: number;
-  referenceId: string;
+  excludeEventIndex: number;
   referenceLabel?: string;
 };
 
-/** Toggle to exclude one reference → recompute score → animate delta. */
+/** Toggle to exclude one event from snapshot → recompute score → show delta. */
 export function WhatIfReferenceToggle({
-  base,
+  snapshot,
   currentScore,
-  referenceId,
-  referenceLabel = referenceId,
+  excludeEventIndex,
+  referenceLabel = `Event #${excludeEventIndex + 1}`,
 }: WhatIfReferenceToggleProps) {
   const [excluded, setExcluded] = useState(false);
 
-  const scoreWithout = recomputeWithoutReference(base, referenceId);
+  const scoreWithout = recomputeWithoutReference(snapshot, excludeEventIndex);
   const delta = scoreWithout - currentScore;
 
   return (

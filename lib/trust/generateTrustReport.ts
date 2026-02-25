@@ -1,11 +1,10 @@
-import type { TrustReport } from "./types";
-import type { TrustSnapshot } from "./types";
+import type { TrustReport, TrustTimelineEvent } from "./types";
 
 type TrustReportInput = {
   score: number;
   positives?: string[];
   flags?: string[];
-  timeline?: TrustSnapshot[];
+  timeline?: TrustTimelineEvent[];
 };
 
 /**

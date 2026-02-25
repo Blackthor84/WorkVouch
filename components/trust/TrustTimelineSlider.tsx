@@ -1,9 +1,9 @@
 "use client";
 
-import type { TrustSnapshot } from "@/lib/trust/types";
+import type { TrustTimelineEvent } from "@/lib/trust/types";
 
 type TrustTimelineSliderProps = {
-  timeline: TrustSnapshot[];
+  timeline: TrustTimelineEvent[];
   index: number;
   onIndexChange: (index: number) => void;
 };
@@ -16,7 +16,7 @@ export function TrustTimelineSlider({
 }: TrustTimelineSliderProps) {
   if (!timeline.length) return null;
 
-  const snapshot = timeline[index] ?? timeline[timeline.length - 1];
+  const event = timeline[index] ?? timeline[timeline.length - 1];
   const max = Math.max(0, timeline.length - 1);
 
   return (
@@ -24,7 +24,7 @@ export function TrustTimelineSlider({
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium">Trust score over time</span>
         <span className="text-slate-600">
-          {snapshot.trustScore} — {snapshot.reason}
+          {event.trustScore} — {event.reason}
         </span>
       </div>
       <input

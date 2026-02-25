@@ -1,11 +1,15 @@
 export type {
-  TrustSnapshot,
+  TrustEngineSnapshot,
   TrustTimelineEvent,
-  TrustScoreInput,
-  TrustScoreData,
-  ReferenceInput,
+  TrustScenarioPayload,
+  TrustEvent,
+  LedgerEntry,
   ExplainTrustResult,
   TrustReport,
+  TrustEventRecord,
+  EngineResult,
+  SimulateOptions,
+  SimulateResult,
 } from "./types";
 
 export { calculateTrustScore } from "./calculateTrustScore";

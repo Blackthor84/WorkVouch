@@ -1,18 +1,18 @@
-import { calculateTrustScore } from "./calculateTrustScore";
-import type { TrustScoreData } from "./types";
+import { explainTrustScore } from "./explainTrustScore";
+import type { TrustEngineSnapshot } from "./types";
 
 /**
- * Sensitivity: "What if we ignored this reference?"
- * Returns trust score with that reference excluded. In-memory only.
+ * Sensitivity: "What if we excluded this event from the snapshot?"
+ * Returns trust score with that event excluded. In-memory only.
  */
 export function recomputeWithoutReference(
-  base: TrustScoreData,
-  referenceId: string
+  snapshot: TrustEngineSnapshot,
+  excludeEventIndex: number
 ): number {
-  const refs = base.references ?? base.peerReferences ?? [];
-  const filtered = refs.filter((r) => r.id !== referenceId);
-  return calculateTrustScore({
-    ...base,
-    peerReferences: filtered,
-  });
+  const events = snapshot.events.filter((_, i) => i !== excludeEventIndex);
+  const reduced: TrustEngineSnapshot = {
+    ...snapshot,
+    events,
+  };
+  return explainTrustScore(reduced).trustScore;
 }
