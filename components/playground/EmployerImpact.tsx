@@ -1,14 +1,16 @@
 "use client";
 
+type EmployerImpactProps = {
+  result: any;
+  view: "employer" | "candidate";
+  threshold?: number;
+};
+
 export default function EmployerImpact({
   result,
-  threshold,
   view,
-}: {
-  result: any;
-  threshold: number;
-  view: "employer" | "candidate";
-}) {
+  threshold = 70,
+}: EmployerImpactProps) {
   if (!result) return null;
 
   return (

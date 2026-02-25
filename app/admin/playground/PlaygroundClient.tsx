@@ -339,7 +339,11 @@ export default function PlaygroundClient() {
                   Candidate
                 </button>
               </div>
-              <EmployerImpact result={result} view={view} />
+              <EmployerImpact
+                result={result}
+                view={view}
+                threshold={70}
+              />
               <ProductionEquivalent />
 
               {enterprise ? (
