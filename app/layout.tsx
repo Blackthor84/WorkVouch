@@ -1,17 +1,15 @@
-import "./globals.css";
-import { Providers } from "@/components/providers";
-import { PreviewProvider } from "@/lib/preview-context";
+export const dynamic = "force-dynamic";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+import "./globals.css";
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body>
-        <Providers>
-          <PreviewProvider>
-            {children}
-          </PreviewProvider>
-        </Providers>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
