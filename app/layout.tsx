@@ -13,9 +13,6 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Providers>
-          <div style={{ background: "red", color: "white" }}>
-            ROOT LAYOUT LOADED
-          </div>
           <NavbarServer />
           {children}
         </Providers>

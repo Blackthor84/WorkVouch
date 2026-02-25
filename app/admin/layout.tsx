@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { NavbarServer } from "@/components/navbar-server";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getUserFromSession } from "@/lib/auth/getUserFromSession";
 import AdminClientLayout from "./AdminClientLayout";
@@ -95,7 +94,6 @@ export default async function AdminLayout({
 
   return (
     <AdminClientLayout user={layoutUser}>
-      <NavbarServer />
       {godModeEnabled && (
         <div className="bg-red-600 text-white text-center py-2 font-bold">
           ⚠️ GOD MODE ENABLED — LIVE DATA ACCESS
