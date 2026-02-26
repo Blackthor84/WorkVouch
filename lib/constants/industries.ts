@@ -4,6 +4,8 @@
  * ONBOARDING_KEYS + Industry (key type): onboarding route params and role/setting config.
  */
 
+import { getCareersByIndustry } from "@/lib/careers/careers";
+
 /** Single source for industry/career image paths. Use with getIndustryImage() so keys never mismatch. */
 export const INDUSTRY_IMAGES: Record<string, string> = {
   healthcare: "/images/careers/healthcare.jpg",
