@@ -75,7 +75,6 @@ export default function PlaygroundClient() {
         const payload = await res.json();
         if (!res.ok) throw new Error(payload?.error ?? "Run failed");
         engineAction({ type: "runScenario", payload });
-        setResult(payload);
         setSelectedId(id);
         const url = new URL(window.location.href);
         url.searchParams.set("scenarioId", id);
@@ -136,7 +135,7 @@ export default function PlaygroundClient() {
     a.download = "scenario.json";
     a.click();
     URL.revokeObjectURL(a.href);
-  }, [result]);
+  }, [state.lastRunResult]);
 
   const shareableUrl =
     typeof window !== "undefined" && state.lastRunResult
@@ -373,18 +372,18 @@ export default function PlaygroundClient() {
           {enterprise ? (
             <div className="border rounded-lg p-4 bg-white">
               <h2 className="font-semibold text-slate-900 mb-2">Scenario comparison (A vs B)</h2>
-              {result && (
+              {state.lastRunResult && (
                 <div className="flex gap-2 mb-3">
                   <button
                     type="button"
-                    onClick={() => setCompareA(result)}
+                    onClick={() => setCompareA(state.lastRunResult)}
                     className="text-xs rounded bg-slate-200 px-2 py-1 hover:bg-slate-300"
                   >
                     Use as A
                   </button>
                   <button
                     type="button"
-                    onClick={() => setCompareB(result)}
+                    onClick={() => setCompareB(state.lastRunResult)}
                     className="text-xs rounded bg-slate-200 px-2 py-1 hover:bg-slate-300"
                   >
                     Use as B
