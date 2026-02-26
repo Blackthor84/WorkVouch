@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
     confidenceScore: referenceScore,
     industry: "retail",
     employerMode: "enterprise",
+    actorMode: "employer",
     events: [],
     ledger: [], // Explanation-only snapshot (no engine history)
   };

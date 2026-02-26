@@ -34,6 +34,7 @@ const INITIAL_STATE: TrustState = {
   lastScenario: null,
   lastRunResult: null,
   timeFrozen: false,
+  actorMode: "employer",
 };
 
 let state: TrustState = { ...INITIAL_STATE };
@@ -149,6 +150,7 @@ function reduce(state: TrustState, action: EngineActionType): TrustState {
       const entry: LedgerEntry = {
         day: s.currentDay,
         action: payload.title ?? "scenario",
+        actor: s.actorMode,
         delta: Math.round(cappedDelta),
         snapshot: { trustScore: newTrust, profileStrength: afterProfile },
       };
@@ -169,6 +171,7 @@ function reduce(state: TrustState, action: EngineActionType): TrustState {
       const entry: LedgerEntry = {
         day: s.currentDay,
         action: "FRAUD: " + action.reason,
+        actor: s.actorMode,
         delta: -45,
         snapshot: { trustScore: newTrust, profileStrength: newProfile },
       };
@@ -183,6 +186,7 @@ function reduce(state: TrustState, action: EngineActionType): TrustState {
           {
             day: s.currentDay,
             action: "Contagion from userA",
+            actor: s.actorMode,
             delta: -penalty,
             snapshot: {
               trustScore: s.trustScore,
@@ -206,6 +210,9 @@ function reduce(state: TrustState, action: EngineActionType): TrustState {
       return s;
     case "setView":
       s.view = action.view;
+      return s;
+    case "setActorMode":
+      s.actorMode = action.actor;
       return s;
     default:
       return s;

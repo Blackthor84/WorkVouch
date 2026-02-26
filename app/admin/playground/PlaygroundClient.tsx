@@ -13,7 +13,7 @@ import ScenarioComparison from "@/components/playground/ScenarioComparison";
 import EnterpriseLock from "@/components/playground/EnterpriseLock";
 import { hasEnterpriseAccess } from "@/lib/enterprise";
 import { useTrustEngine } from "@/lib/trust/useTrustEngine";
-import { INDUSTRY_PROFILES } from "@/lib/trust/types";
+import { INDUSTRY_PROFILES, type ActorMode } from "@/lib/trust/types";
 import { AI_PROMPT_TEMPLATES } from "@/lib/sandbox/aiPrompts";
 import { PRICING_TIERS } from "@/lib/pricing";
 import { ENTERPRISE_DEMO_SCRIPT } from "@/lib/salesDemo";
@@ -153,17 +153,33 @@ export default function PlaygroundClient() {
             AI-powered hiring simulation. Mock scenario outcomes, timeline, employer/candidate impact. Shareable URLs. Enterprise demo.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-600">Demo role:</span>
-          <select
-            value={mockRole}
-            onChange={(e) => setMockRole(e.target.value as MockRole)}
-            className="border rounded px-2 py-1 text-sm"
-          >
-            <option value="user">User (gated)</option>
-            <option value="enterprise">Enterprise</option>
-            <option value="superadmin">Superadmin</option>
-          </select>
+        <div className="flex flex-wrap items-center gap-4">
+          <div>
+            <span className="text-sm text-slate-600">Demo role:</span>
+            <select
+              value={mockRole}
+              onChange={(e) => setMockRole(e.target.value as MockRole)}
+              className="border rounded px-2 py-1 text-sm ml-1"
+            >
+              <option value="user">User (gated)</option>
+              <option value="enterprise">Enterprise</option>
+              <option value="superadmin">Superadmin</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Acting As</label>
+            <select
+              value={state.actorMode}
+              onChange={(e) =>
+                engineAction({ type: "setActorMode", actor: e.target.value as ActorMode })
+              }
+              className="border rounded px-3 py-2 text-sm"
+            >
+              <option value="employee">Employee</option>
+              <option value="employer">Employer</option>
+              {mockRole === "superadmin" && <option value="system">System</option>}
+            </select>
+          </div>
         </div>
       </div>
 

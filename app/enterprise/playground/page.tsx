@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTrustEngine } from "@/lib/trust/useTrustEngine";
+import type { ActorMode } from "@/lib/trust/types";
 import ScenarioTimeline from "@/components/playground/ScenarioTimeline";
 import ScenarioResult from "@/components/playground/ScenarioResult";
 import EmployerImpact from "@/components/playground/EmployerImpact";
@@ -90,6 +91,18 @@ export default function EnterprisePlayground() {
       <h1 className="text-3xl font-bold">Enterprise Playground</h1>
 
       <div className="flex flex-wrap gap-4 items-end border p-4 rounded">
+        <div>
+          <label className="block text-sm font-medium mb-1">Acting As</label>
+          <select
+            value={state.actorMode}
+            onChange={(e) =>
+              engineAction({ type: "setActorMode", actor: e.target.value as ActorMode })
+            }
+            className="border rounded px-3 py-2"
+          >
+            <option value="employer">Employer</option>
+          </select>
+        </div>
         <select
           className="border px-3 py-2 rounded"
           value={selectedId}

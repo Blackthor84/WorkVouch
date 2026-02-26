@@ -17,9 +17,12 @@ export type TrustEvent = {
   scenarioId?: string;
 };
 
+export type ActorMode = "employee" | "employer" | "system";
+
 export type LedgerEntry = {
   day: number;
   action: string;
+  actor: ActorMode;
   delta: number;
   snapshot: { trustScore: number; profileStrength: number };
 };
@@ -94,6 +97,7 @@ export type EngineActionType =
   | { type: "setEmployerMode"; mode: "smb" | "mid" | "enterprise" }
   | { type: "setThreshold"; value: number }
   | { type: "setView"; view: "employer" | "candidate" }
+  | { type: "setActorMode"; actor: ActorMode }
   | { type: "tick" }
   | { type: "tick"; days: number }
   | { type: "freeze" }
@@ -146,7 +150,8 @@ export type TrustEngineSnapshot = {
   profileStrength: number;
   confidenceScore: number;
   industry: keyof typeof INDUSTRY_PROFILES;
-  employerMode: "smb" | "mid" | "enterprise";
+  employerMode: keyof typeof THRESHOLDS;
+  actorMode: ActorMode;
   events: TrustEvent[];
   ledger: LedgerEntry[];
 };
