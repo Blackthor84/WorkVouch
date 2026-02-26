@@ -214,3 +214,26 @@ export type TrustReport = {
   timeline: TrustTimelineEvent[];
   disclaimer: string;
 };
+
+// ——— Playground / simulation (review-based, immutable) ———
+export type ReviewSource = "peer" | "supervisor" | "manager";
+
+export interface Review {
+  id: string;
+  source: ReviewSource;
+  weight: number;
+  timestamp: number;
+}
+
+export interface TrustSnapshot {
+  trustScore: number;
+  confidenceScore: number;
+  networkStrength: number;
+  reviews: Review[];
+}
+
+export interface SimulationDelta {
+  addedReviews?: Review[];
+  removedReviewIds?: string[];
+  thresholdOverride?: number;
+}

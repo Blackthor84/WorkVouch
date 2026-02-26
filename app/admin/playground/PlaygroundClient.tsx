@@ -1,625 +1,248 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useSearchParams } from "next/navigation";
-import ScenarioResult from "@/components/playground/ScenarioResult";
-import ScenarioTimeline from "@/components/playground/ScenarioTimeline";
-import EmployerImpact from "@/components/playground/EmployerImpact";
-import ProductionEquivalent from "@/components/playground/ProductionEquivalent";
-import TrustThreshold from "@/components/playground/TrustThreshold";
-import ScenarioBuilder from "@/components/playground/ScenarioBuilder";
-import AIScenarioGenerator from "@/components/playground/AIScenarioGenerator";
-import ScenarioComparison from "@/components/playground/ScenarioComparison";
-import { useAuth } from "@/components/AuthContext";
-import EnterpriseLock from "@/components/playground/EnterpriseLock";
-import { hasEnterpriseAccess } from "@/lib/enterprise";
-import { useTrustEngine } from "@/lib/trust/useTrustEngine";
-import { INDUSTRY_PROFILES, type ActorMode } from "@/lib/trust/types";
-import { AI_PROMPT_TEMPLATES } from "@/lib/sandbox/aiPrompts";
-import { PRICING_TIERS } from "@/lib/pricing";
-import { ENTERPRISE_DEMO_SCRIPT } from "@/lib/salesDemo";
-import { INVESTOR_NARRATIVE } from "@/lib/investorNarrative";
-
-type ScenarioItem = { id: string; title: string };
-type MockRole = "user" | "enterprise" | "superadmin";
+import { useState, useCallback } from "react";
+import { PermissionGate } from "@/components/PermissionGate";
+import { EmployeeInspector } from "./EmployeeInspector";
+import { MassSimulationPanel } from "./MassSimulationPanel";
+import { SimulationPanel } from "./SimulationPanel";
+import { ExecDashboard } from "./ExecDashboard";
+import { mockEmployees } from "@/lib/employees/mock";
+import { saveScenario } from "@/lib/scenarios/saveScenario";
+import { loadScenarios } from "@/lib/scenarios/loadScenario";
+import { exportCSV, scenarioReport } from "@/lib/exports/exportCSV";
+import { logPlaygroundAudit } from "@/lib/playground/auditClient";
+import { simulateTrust } from "@/lib/trust/simulator";
+import {
+  PAGE,
+  SCENARIO_CONTROLS,
+  AUDIT_LOG,
+  COMPLIANCE,
+  FLAGSHIP_DEMO_SCENARIO_NAME,
+  DEMO_SCRIPT,
+} from "@/lib/playground/copy";
+import type { Industry } from "@/lib/industries";
+import { INDUSTRY_THRESHOLDS } from "@/lib/industries";
 
 export default function PlaygroundClient() {
-  const searchParams = useSearchParams();
-  const scenarioIdFromUrl = searchParams.get("scenarioId");
-  const autoRunDoneRef = useRef<string | null>(null);
+  const [industry, setIndustry] = useState<Industry>("healthcare");
+  const [scenarioName, setScenarioName] = useState("");
+  const [savedScenarios, setSavedScenarios] = useState<{ id: string; name: string }[]>([]);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const threshold = INDUSTRY_THRESHOLDS[industry];
 
-  const { role } = useAuth();
-  const { state, derived, engineAction } = useTrustEngine();
-
-  const [mockRole, setMockRole] = useState<MockRole>("user");
-  const [scenarios, setScenarios] = useState<ScenarioItem[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [compareA, setCompareA] = useState<any>(null);
-  const [compareB, setCompareB] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [aiTemplateLoading, setAiTemplateLoading] = useState(false);
-
-  const enterprise =
-    role === "admin" || role === "superadmin" || hasEnterpriseAccess(mockRole);
-
-  useEffect(() => {
-    const timer = setInterval(() => engineAction({ type: "tick" }), 1200);
-    return () => clearInterval(timer);
-  }, [engineAction]);
-
-  const fetchScenarios = useCallback(async () => {
+  const handleLoadScenarios = useCallback(async () => {
     try {
-      const res = await fetch("/api/sandbox/list");
-      if (!res.ok) throw new Error("Failed to load scenarios");
-      const data = await res.json();
-      setScenarios(Array.isArray(data) ? data : []);
-      setError(null);
+      const data = await loadScenarios();
+      setSavedScenarios(
+        (data ?? []).map((s: { id: string; name?: string }) => ({
+          id: s.id,
+          name: s.name ?? "Unnamed",
+        }))
+      );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to fetch scenarios");
-      setScenarios([]);
+      console.warn("Load scenarios failed", e);
     }
   }, []);
 
-  useEffect(() => {
-    fetchScenarios();
-  }, [fetchScenarios]);
-
-  const runScenario = useCallback(
-    async (id: string) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch("/api/sandbox/run-scenario", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ scenarioId: id }),
-        });
-        const payload = await res.json();
-        if (!res.ok) throw new Error(payload?.error ?? "Run failed");
-        engineAction({ type: "runScenario", payload });
-        setSelectedId(id);
-        const url = new URL(window.location.href);
-        url.searchParams.set("scenarioId", id);
-        window.history.replaceState({}, "", url.toString());
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Run failed");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [engineAction]
-  );
-
-  useEffect(() => {
-    if (
-      !scenarioIdFromUrl ||
-      scenarios.length === 0 ||
-      loading ||
-      autoRunDoneRef.current === scenarioIdFromUrl
-    )
-      return;
-    const exists = scenarios.some((s) => s.id === scenarioIdFromUrl);
-    if (!exists) return;
-    autoRunDoneRef.current = scenarioIdFromUrl;
-    runScenario(scenarioIdFromUrl);
-  }, [scenarioIdFromUrl, scenarios, runScenario, loading]);
-
-  useEffect(() => {
-    if (scenarioIdFromUrl && scenarios.some((s) => s.id === scenarioIdFromUrl)) {
-      setSelectedId(scenarioIdFromUrl);
+  const handleSaveScenario = useCallback(async () => {
+    if (!scenarioName.trim()) return;
+    setSaveError(null);
+    try {
+      await saveScenario({
+        name: scenarioName.trim(),
+        industry,
+        employeeIds: mockEmployees.map((e) => e.id),
+        delta: { addedReviews: [] },
+      });
+      await logPlaygroundAudit("scenario_saved", {
+        name: scenarioName.trim(),
+        industry,
+        employeeCount: mockEmployees.length,
+      });
+      setScenarioName("");
+      handleLoadScenarios();
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Save failed");
     }
-  }, [scenarioIdFromUrl, scenarios]);
+  }, [scenarioName, industry, handleLoadScenarios]);
 
-  const generateFromTemplate = useCallback(
-    async (prompt: string) => {
-      setAiTemplateLoading(true);
-      try {
-        await fetch("/api/sandbox/ai-generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt }),
-        });
-        await fetchScenarios();
-        alert("AI scenario generated from template");
-      } finally {
-        setAiTemplateLoading(false);
-      }
-    },
-    [fetchScenarios]
-  );
+  const handleCompareToCurrent = useCallback(() => {
+    logPlaygroundAudit("compare_to_current", { scenarioName: scenarioName || null });
+  }, [scenarioName]);
 
-  const exportJson = useCallback(() => {
-    if (!state.lastRunResult) return;
-    const json = JSON.stringify(state.lastRunResult, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "scenario.json";
-    a.click();
-    URL.revokeObjectURL(a.href);
-  }, [state.lastRunResult]);
-
-  const shareableUrl =
-    typeof window !== "undefined" && state.lastRunResult
-      ? `${window.location.origin}${window.location.pathname}?scenarioId=${state.lastRunResult.scenarioId ?? selectedId}`
-      : "";
-
-  const ex = derived.explainScore();
+  const handleExportScenarioReport = useCallback(() => {
+    const results = mockEmployees.map((e) => ({
+      name: e.name,
+      before: e.trust,
+      after: simulateTrust(e.trust, {
+        addedReviews: [
+          { id: "export", source: "supervisor" as const, weight: 1, timestamp: Date.now() },
+        ],
+      }),
+    }));
+    const rows = scenarioReport({ name: scenarioName || "export" }, results);
+    exportCSV(rows, "scenario-report.csv");
+    logPlaygroundAudit("export_generated", { format: "csv", rowCount: rows.length });
+  }, [scenarioName]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div className="mx-auto max-w-6xl px-4 py-6 space-y-8">
+      {/* Page header — verbatim */}
+      <header className="border-b border-slate-200 pb-4">
+        <h1 className="text-2xl font-bold text-slate-900">{PAGE.title}</h1>
+        <p className="text-slate-600 mt-1">{PAGE.subtitle}</p>
+        <p className="text-sm text-slate-500 mt-2">{PAGE.helperText}</p>
+      </header>
+
+      {/* 1. Employee Trust Profile */}
+      <section className="space-y-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Admin Playground</h1>
-          <p className="text-slate-600 text-sm">
-            AI-powered hiring simulation. Mock scenario outcomes, timeline, employer/candidate impact. Shareable URLs. Enterprise demo.
+          <h2 className="text-lg font-semibold text-slate-900">Employee Trust Profile</h2>
+          <p className="text-sm text-slate-600">
+            Real trust state · Simulated changes · Outcome delta
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-4">
-          <div>
-            <span className="text-sm text-slate-600">Demo role:</span>
-            <select
-              value={mockRole}
-              onChange={(e) => setMockRole(e.target.value as MockRole)}
-              className="border rounded px-2 py-1 text-sm ml-1"
-            >
-              <option value="user">User (gated)</option>
-              <option value="enterprise">Enterprise</option>
-              <option value="superadmin">Superadmin</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Acting As</label>
-            <select
-              value={state.actorMode}
-              onChange={(e) =>
-                engineAction({ type: "setActorMode", actor: e.target.value as ActorMode })
-              }
-              className="border rounded px-3 py-2 text-sm"
-            >
-              <option value="admin">Admin</option>
-              <option value="employer">Employer</option>
-              <option value="worker">Worker</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {state.actorMode === "employer" && (
-        <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4">
-          <h2 className="font-semibold text-slate-900 mb-3">Employer Actions</h2>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="rounded bg-green-600 text-white px-3 py-2 text-sm hover:bg-green-700"
-              onClick={() => {
-                const reason = window.prompt("Reason for positive review (optional):") ?? "";
-                engineAction({ type: "employerReview", kind: "positive", reason });
-              }}
-            >
-              Add Positive Employer Review
-            </button>
-            <button
-              type="button"
-              className="rounded bg-amber-600 text-white px-3 py-2 text-sm hover:bg-amber-700"
-              onClick={() => {
-                const reason = window.prompt("Reason for negative review:") ?? "";
-                engineAction({ type: "employerReview", kind: "negative", reason });
-              }}
-            >
-              Add Negative Employer Review
-            </button>
-            <button
-              type="button"
-              className="rounded bg-orange-600 text-white px-3 py-2 text-sm hover:bg-orange-700"
-              onClick={() => {
-                const reason = window.prompt("Describe inconsistency:") ?? "";
-                engineAction({ type: "flagInconsistency", reason });
-              }}
-            >
-              Flag Inconsistency
-            </button>
-            <button
-              type="button"
-              className="rounded bg-slate-600 text-white px-3 py-2 text-sm hover:bg-slate-700"
-              onClick={() => engineAction({ type: "retractEmployerReview" })}
-            >
-              Retract Employer Review
-            </button>
-            <select
-              className="border rounded px-3 py-2 text-sm"
-              defaultValue=""
-              onChange={(e) => {
-                const v = e.target.value as "low" | "medium" | "high" | "";
-                if (v) engineAction({ type: "employerAbusePattern", severity: v });
-                e.target.value = "";
-              }}
-            >
-              <option value="">Report abuse pattern…</option>
-              <option value="low">Abuse: Low</option>
-              <option value="medium">Abuse: Medium</option>
-              <option value="high">Abuse: High</option>
-            </select>
-          </div>
-        </div>
-      )}
-
-      {derived.changeDiff && (
-        <div className="mb-6 rounded-lg border border-sky-300 bg-sky-50/50 p-4">
-          <h2 className="font-semibold text-slate-900 mb-1">What Changed?</h2>
-          <p className="text-xs text-slate-600 mb-3">Before → after (last action).</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-            <div className="rounded bg-white border border-slate-200 p-2">
-              <span className="text-slate-500 block">trustScore</span>
-              <span className="font-mono">{derived.changeDiff.trustScore.before} → {derived.changeDiff.trustScore.after}</span>
-              <span className={derived.changeDiff.trustScore.delta >= 0 ? "text-emerald-600" : "text-red-600"}> {derived.changeDiff.trustScore.delta >= 0 ? "+" : ""}{derived.changeDiff.trustScore.delta}</span>
-            </div>
-            <div className="rounded bg-white border border-slate-200 p-2">
-              <span className="text-slate-500 block">confidenceScore</span>
-              <span className="font-mono">{derived.changeDiff.confidenceScore.before} → {derived.changeDiff.confidenceScore.after}</span>
-              <span className={derived.changeDiff.confidenceScore.delta >= 0 ? "text-emerald-600" : "text-red-600"}> {derived.changeDiff.confidenceScore.delta >= 0 ? "+" : ""}{derived.changeDiff.confidenceScore.delta}</span>
-            </div>
-            <div className="rounded bg-white border border-slate-200 p-2">
-              <span className="text-slate-500 block">hiringLikelihood</span>
-              <span className="font-mono">{derived.changeDiff.hiringLikelihood.before} → {derived.changeDiff.hiringLikelihood.after}</span>
-              <span className={derived.changeDiff.hiringLikelihood.delta >= 0 ? "text-emerald-600" : "text-red-600"}> {derived.changeDiff.hiringLikelihood.delta >= 0 ? "+" : ""}{derived.changeDiff.hiringLikelihood.delta}</span>
-            </div>
-            <div className="rounded bg-white border border-slate-200 p-2">
-              <span className="text-slate-500 block">riskFlagCount</span>
-              <span className="font-mono">{derived.changeDiff.riskFlagCount.before} → {derived.changeDiff.riskFlagCount.after}</span>
-              <span className={derived.changeDiff.riskFlagCount.delta <= 0 ? "text-emerald-600" : "text-red-600"}> {derived.changeDiff.riskFlagCount.delta >= 0 ? "+" : ""}{derived.changeDiff.riskFlagCount.delta}</span>
-            </div>
-            <div className="rounded bg-white border border-slate-200 p-2">
-              <span className="text-slate-500 block">networkImpactCount</span>
-              <span className="font-mono">{derived.changeDiff.networkImpactCount.before} → {derived.changeDiff.networkImpactCount.after}</span>
-              <span className={derived.changeDiff.networkImpactCount.delta >= 0 ? "text-emerald-600" : "text-red-600"}> {derived.changeDiff.networkImpactCount.delta >= 0 ? "+" : ""}{derived.changeDiff.networkImpactCount.delta}</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {mockRole === "superadmin" && (
-        <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50/50 p-4">
-          <h2 className="font-semibold text-slate-900 mb-1">Hidden Signals</h2>
-          <p className="text-xs text-amber-800 mb-3">Internal signal — not visible to employers.</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-            <div className="rounded bg-white border border-slate-200 p-2">
-              <span className="text-slate-500 block">cultureFitScore</span>
-              <span className="font-mono font-medium">{derived.cultureFitScore}</span>
-            </div>
-            <div className="rounded bg-white border border-slate-200 p-2">
-              <span className="text-slate-500 block">signalFreshness</span>
-              <span className="font-mono font-medium">{derived.signalFreshness}</span>
-            </div>
-            <div className="rounded bg-white border border-slate-200 p-2">
-              <span className="text-slate-500 block">reviewerCredibility</span>
-              <span className="font-mono font-medium">{derived.reviewerCredibility}</span>
-            </div>
-            <div className="rounded bg-white border border-slate-200 p-2">
-              <span className="text-slate-500 block">consistencyScore</span>
-              <span className="font-mono font-medium">{derived.consistencyScore}</span>
-            </div>
-            <div className="rounded bg-white border border-slate-200 p-2">
-              <span className="text-slate-500 block">networkCentrality</span>
-              <span className="font-mono font-medium">{derived.networkCentrality}</span>
-            </div>
-            <div className="rounded bg-white border border-slate-200 p-2">
-              <span className="text-slate-500 block">fraudProbability (heuristic)</span>
-              <span className="font-mono font-medium">{derived.fraudProbability}</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="mb-6 rounded-lg border border-violet-200 bg-violet-50/50 p-4">
-        <h2 className="font-semibold text-slate-900 mb-1">{INVESTOR_NARRATIVE.headline}</h2>
-        <ul className="list-disc ml-5 text-sm text-slate-700 space-y-0.5">
-          {INVESTOR_NARRATIVE.points.map((p, i) => (
-            <li key={i}>{p}</li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <h2 className="font-semibold text-slate-900 mb-2">Why Enterprises Pay for This</h2>
-          <ul className="list-disc ml-5 text-sm text-slate-700 space-y-1">
-            <li>Predict hiring risk before interviews</li>
-            <li>Simulate edge cases without production data</li>
-            <li>Train recruiters on real scenarios</li>
-            <li>Reduce false-positive background checks</li>
-            <li>Audit hiring decisions with explainability</li>
-          </ul>
-        </div>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <h2 className="font-semibold text-slate-900 mb-2">5-Min Enterprise Demo Script</h2>
-          <ol className="list-decimal ml-5 text-sm text-slate-700 space-y-1">
-            {ENTERPRISE_DEMO_SCRIPT.map((s) => (
-              <li key={s.step}>
-                <span className="font-medium">{s.title}:</span> {s.talk}
-              </li>
+        <PermissionGate perm="read">
+          <div className="space-y-4">
+            {mockEmployees.map((e) => (
+              <EmployeeInspector
+                key={e.id}
+                employee={e}
+                threshold={threshold}
+                industry={industry}
+                onIndustryChange={setIndustry}
+              />
             ))}
-          </ol>
-        </div>
-      </div>
+          </div>
+        </PermissionGate>
+      </section>
 
-      <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50/50 p-4">
-        <h2 className="font-semibold text-slate-900 mb-3">Playground Tiers</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {PRICING_TIERS.map((tier) => (
-            <div key={tier.name} className="border rounded p-3 bg-white">
-              <h3 className="font-medium">{tier.name}</h3>
-              <p className="text-lg font-semibold text-slate-800">{tier.price}</p>
-              <ul className="list-disc ml-4 text-xs text-slate-600 mt-1 space-y-0.5">
-                {tier.features.map((f, i) => (
-                  <li key={i}>{f}</li>
-                ))}
-              </ul>
+      {/* 2. Scenario Controls */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-slate-900">{SCENARIO_CONTROLS.title}</h2>
+        <div className="rounded-lg border border-slate-200 bg-white p-4">
+          <div className="flex flex-wrap items-end gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Scenario name</label>
+              <input
+                type="text"
+                value={scenarioName}
+                onChange={(e) => setScenarioName(e.target.value)}
+                placeholder={FLAGSHIP_DEMO_SCENARIO_NAME}
+                className="border rounded px-3 py-2 text-sm w-64"
+              />
             </div>
-          ))}
-        </div>
-      </div>
-
-      {error && (
-        <div className="mb-4 rounded bg-red-50 border border-red-200 text-red-700 px-4 py-2 text-sm">
-          {error}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="space-y-6">
-          <div className="border rounded-lg p-4 bg-white">
-            <h2 className="font-semibold text-slate-900 mb-3">Scenario selector</h2>
-            <ul className="space-y-2">
-              {scenarios.length === 0 && !error && <li className="text-sm text-gray-500">Loading…</li>}
-              {scenarios.map((s) => (
-                <li key={s.id} className="flex items-center justify-between gap-2">
-                  <span className="text-sm truncate">{s.title}</span>
-                  <button
-                    type="button"
-                    onClick={() => runScenario(s.id)}
-                    disabled={loading}
-                    className="shrink-0 px-4 py-2 border rounded bg-black text-white text-sm hover:bg-slate-800 disabled:opacity-50"
-                  >
-                    Run: {s.title}
-                  </button>
-                </li>
+            <button
+              type="button"
+              onClick={handleSaveScenario}
+              disabled={!scenarioName.trim()}
+              className="rounded bg-slate-700 text-white px-3 py-2 text-sm hover:bg-slate-800 disabled:opacity-50"
+            >
+              {SCENARIO_CONTROLS.saveScenario}
+            </button>
+            <button
+              type="button"
+              onClick={handleCompareToCurrent}
+              className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
+            >
+              {SCENARIO_CONTROLS.compareToCurrent}
+            </button>
+            <button
+              type="button"
+              onClick={handleExportScenarioReport}
+              className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
+            >
+              {SCENARIO_CONTROLS.exportReport}
+            </button>
+          </div>
+          <p className="text-sm text-slate-500 mt-3">{SCENARIO_CONTROLS.helperText}</p>
+          {saveError && <p className="text-sm text-red-600 mt-2">{saveError}</p>}
+          {savedScenarios.length > 0 && (
+            <ul className="mt-3 text-sm text-slate-600 list-disc list-inside">
+              {savedScenarios.map((s) => (
+                <li key={s.id}>{s.name}</li>
               ))}
             </ul>
-            <div className="mt-6 space-y-2">
-              <div><strong>Trust Score:</strong> {state.trustScore}</div>
-              <div><strong>Profile Strength:</strong> {state.profileStrength}</div>
-              <div><strong>Current Day:</strong> {state.currentDay}</div>
-            </div>
-            <div className="mt-4 space-y-2">
-              <div className="text-3xl font-bold text-slate-900">Confidence Score: {state.confidenceScore}</div>
-              <div className="text-sm">
-                Likelihood of Passing ({state.employerMode}): <strong>{derived.simulateOutcomes()}%</strong>
-              </div>
-            </div>
-            {state.events.length > 0 && (
-              <div className="mt-6">
-                <h3 className="font-semibold text-slate-900 mb-2">Trust Events</h3>
-                <ul className="list-disc ml-5 text-sm text-slate-700 space-y-1">
-                  {state.events.map((e, i) => (
-                    <li key={i}>
-                      [{e.day}] {e.type?.toUpperCase() ?? "EVENT"} – {e.message}
-                      {e.impact != null && ` (${e.impact >= 0 ? "+" : ""}${e.impact})`}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <div className="mt-4 p-3 rounded bg-slate-50 border border-slate-200">
-              <h4 className="font-medium text-slate-900 mb-1">Explainability</h4>
-              <p className="text-sm text-slate-700">{ex.reason}</p>
-              <ul className="list-disc ml-5 mt-1 text-xs text-slate-600 space-y-0.5">
-                {ex.improveBy.map((item, i) => (
-                  <li key={i}>{item}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Industry</label>
-              <select
-                value={state.industry}
-                onChange={(e) => engineAction({ type: "setIndustry", industry: e.target.value as keyof typeof INDUSTRY_PROFILES })}
-                className="border rounded px-3 py-2 text-sm"
-              >
-                <option value="healthcare">Healthcare</option>
-                <option value="construction">Construction</option>
-                <option value="retail">Retail</option>
-                <option value="security">Security</option>
-              </select>
-            </div>
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Employer mode</label>
-              <select
-                value={state.employerMode}
-                onChange={(e) => engineAction({ type: "setEmployerMode", mode: e.target.value as "smb" | "mid" | "enterprise" })}
-                className="border rounded px-3 py-2 text-sm"
-              >
-                <option value="smb">SMB</option>
-                <option value="mid">Mid-Market</option>
-                <option value="enterprise">Enterprise</option>
-              </select>
-              <div className="mt-2">
-                <strong>Employer Verdict:</strong>{" "}
-                {derived.passesEmployer ? "✅ PASS" : "❌ FAIL"}
-              </div>
-            </div>
-            <div className="mt-4">
-              <button
-                type="button"
-                className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700"
-                onClick={() => engineAction({ type: "triggerFraud", reason: "Employer dispute detected" })}
-              >
-                Trigger Fraud Rollback
-              </button>
-            </div>
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Employer explanation (AI-ready)</label>
-              <textarea
-                readOnly
-                rows={14}
-                className="w-full border rounded px-3 py-2 text-sm font-mono bg-slate-50 text-slate-800"
-                value={derived.generateEmployerExplanation()}
-              />
-            </div>
+          )}
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={handleLoadScenarios}
+              className="text-sm text-slate-600 underline hover:text-slate-800"
+            >
+              Load scenarios
+            </button>
           </div>
-
-          {enterprise ? (
-            <>
-              <div className="border rounded p-4 bg-white">
-                <h3 className="font-semibold text-slate-900 mb-2">AI prompt templates</h3>
-                <select
-                  className="border w-full p-2 rounded text-sm"
-                  value=""
-                  onChange={(e) => {
-                    const id = e.target.value;
-                    if (!id) return;
-                    const t = AI_PROMPT_TEMPLATES.find((x) => x.id === id);
-                    if (t) generateFromTemplate(t.prompt);
-                    e.target.value = "";
-                  }}
-                  disabled={aiTemplateLoading}
-                >
-                  <option value="">Generate from template…</option>
-                  {AI_PROMPT_TEMPLATES.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
-                {aiTemplateLoading && <p className="text-xs text-slate-500 mt-1">Generating…</p>}
-              </div>
-              <AIScenarioGenerator onGenerated={fetchScenarios} />
-            </>
-          ) : (
-            <>
-              <EnterpriseLock feature="AI prompt templates" />
-              <EnterpriseLock feature="AI Scenario Generator" />
-            </>
-          )}
-
-          {enterprise ? (
-            <TrustThreshold
-              threshold={state.threshold}
-              setThreshold={(n) => engineAction({ type: "setThreshold", value: n })}
-            />
-          ) : (
-            <EnterpriseLock feature="Trust Threshold Simulation" />
-          )}
-
-          <ScenarioBuilder />
-
-          {enterprise ? (
-            <div className="border rounded-lg p-4 bg-white">
-              <h2 className="font-semibold text-slate-900 mb-2">Scenario comparison (A vs B)</h2>
-              {state.lastRunResult && (
-                <div className="flex gap-2 mb-3">
-                  <button
-                    type="button"
-                    onClick={() => setCompareA(state.lastRunResult)}
-                    className="text-xs rounded bg-slate-200 px-2 py-1 hover:bg-slate-300"
-                  >
-                    Use as A
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCompareB(state.lastRunResult)}
-                    className="text-xs rounded bg-slate-200 px-2 py-1 hover:bg-slate-300"
-                  >
-                    Use as B
-                  </button>
-                </div>
-              )}
-              <ScenarioComparison a={compareA} b={compareB} />
-              {!compareA && !compareB && (
-                <p className="text-sm text-slate-500">Run a scenario, then set A and B to compare.</p>
-              )}
-            </div>
-          ) : (
-            <EnterpriseLock feature="Scenario Comparison" />
-          )}
         </div>
+      </section>
 
-        <div className="space-y-6">
-          {state.lastRunResult && (
-            <>
-              <ScenarioResult result={state.lastRunResult} />
-              <ScenarioTimeline events={state.events} />
-
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-slate-600">View:</span>
-                <button
-                  type="button"
-                  onClick={() => engineAction({ type: "setView", view: "employer" })}
-                  className={`px-3 py-1 rounded text-sm ${state.view === "employer" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-600"}`}
-                >
-                  Employer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => engineAction({ type: "setView", view: "candidate" })}
-                  className={`px-3 py-1 rounded text-sm ${state.view === "candidate" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-600"}`}
-                >
-                  Candidate
-                </button>
-              </div>
-              <EmployerImpact
-                result={state.lastRunResult}
-                view={state.view}
-                threshold={state.threshold}
-              />
-              <ProductionEquivalent />
-
-              {enterprise ? (
-                <>
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-slate-900 text-sm">Shareable link</h3>
-                    <p className="text-xs text-slate-500 break-all">{shareableUrl || "Run a scenario to get a link."}</p>
-                    <button
-                      type="button"
-                      onClick={() => shareableUrl && navigator.clipboard?.writeText(shareableUrl)}
-                      className="text-xs rounded bg-slate-600 text-white px-2 py-1"
-                    >
-                      Copy link
-                    </button>
-                  </div>
-                  <details className="mt-2 rounded border border-slate-200 bg-slate-50 p-2">
-                    <summary className="cursor-pointer text-xs font-medium text-slate-600">Debug: Export scenario JSON</summary>
-                    <button
-                      type="button"
-                      onClick={exportJson}
-                      disabled={!state.lastRunResult}
-                      className="mt-2 rounded bg-slate-600 text-white px-3 py-1.5 text-xs hover:bg-slate-700 disabled:opacity-50"
-                    >
-                      Export scenario.json
-                    </button>
-                  </details>
-                </>
-              ) : (
-                <>
-                  <EnterpriseLock feature="Shareable Links" />
-                  <EnterpriseLock feature="Export JSON" />
-                </>
-              )}
-            </>
-          )}
-          {!state.lastRunResult && !loading && (
-            <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-slate-500 text-sm">
-              Run a scenario to see outcome, timeline, and impact. Open a link with ?scenarioId= to auto-run.
-            </div>
-          )}
-          {loading && (
-            <div className="rounded-lg border p-6 text-center text-slate-500 text-sm">
-              Running scenario…
-            </div>
-          )}
+      {/* 3. Workforce Simulation */}
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Workforce Simulation</h2>
+          <p className="text-sm text-slate-600">
+            Department / role / org · Policy-level effects
+          </p>
         </div>
-      </div>
+        <PermissionGate perm="simulate">
+          <SimulationPanel industry={industry} onIndustryChange={setIndustry} />
+        </PermissionGate>
+        <PermissionGate perm="mass_simulate">
+          <MassSimulationPanel employees={mockEmployees} />
+        </PermissionGate>
+      </section>
+
+      {/* 4. Culture & Compliance */}
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Culture & Compliance</h2>
+          <p className="text-sm text-slate-600">Risk exposure · Threshold impact</p>
+        </div>
+        <PermissionGate perm="export">
+          <ExecDashboard employees={mockEmployees} threshold={threshold} />
+        </PermissionGate>
+      </section>
+
+      {/* 5. Audit Log */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-slate-900">{AUDIT_LOG.title}</h2>
+        <p className="text-sm text-slate-600">{AUDIT_LOG.subtext}</p>
+      </section>
+
+      {/* 6. Flagship demo (Healthcare Hiring Risk Simulation) */}
+      <details className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <summary className="cursor-pointer font-semibold text-slate-900">
+          Flagship demo: {FLAGSHIP_DEMO_SCENARIO_NAME}
+        </summary>
+        <p className="text-sm text-slate-600 mt-2">{DEMO_SCRIPT.setup}</p>
+        <ul className="mt-2 text-sm text-slate-600 list-disc list-inside space-y-1">
+          <li>Step 1: &ldquo;{DEMO_SCRIPT.step1KeyLine}&rdquo;</li>
+          <li>Step 4: &ldquo;{DEMO_SCRIPT.step4Closer}&rdquo;</li>
+          <li>Step 5: &ldquo;{DEMO_SCRIPT.step5Close}&rdquo;</li>
+        </ul>
+      </details>
+
+      {/* 7. Compliance messaging */}
+      <section className="space-y-4 rounded-lg border border-slate-200 bg-white p-4">
+        <h2 className="text-lg font-semibold text-slate-900">Compliance & positioning</h2>
+        <ul className="space-y-3 text-sm text-slate-700">
+          <li>
+            <strong className="text-slate-900">Core:</strong> {COMPLIANCE.coreStatement}
+          </li>
+          <li>
+            <strong className="text-slate-900">Data integrity:</strong> {COMPLIANCE.dataIntegrity}
+          </li>
+          <li>
+            <strong className="text-slate-900">Auditability:</strong> {COMPLIANCE.auditability}
+          </li>
+          <li>
+            <strong className="text-slate-900">Bias & fairness:</strong> {COMPLIANCE.biasFairness}
+          </li>
+          <li>
+            <strong className="text-slate-900">Regulatory:</strong> {COMPLIANCE.regulatoryPositioning}
+          </li>
+        </ul>
+      </section>
     </div>
   );
 }

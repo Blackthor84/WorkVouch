@@ -1,25 +1,17 @@
-/**
- * Single source of truth for admin role checks.
- * Use normalizeRole() for all comparisons. Canonical: "admin" | "super_admin".
- */
+export type Role = "recruiter" | "manager" | "exec" | "admin";
 
-import { normalizeRole as normalizeRoleFn } from "./normalizeRole";
+export const ROLE_PERMISSIONS: Record<Role, string[]> = {
+  recruiter: ["read"],
+  manager: ["read", "simulate"],
+  exec: ["read", "simulate", "mass_simulate", "export"],
+  admin: ["*"],
+};
 
-export const ADMIN_ROLE_VALUES = ["admin", "super_admin"] as const;
-
-/** Re-export for backward compatibility. Prefer importing from @/lib/auth/normalizeRole. */
-export { normalizeRole } from "./normalizeRole";
-
-export function isAdminRole(role?: string | null): boolean {
-  const r = normalizeRoleFn(role);
-  return r === "admin" || r === "super_admin";
-}
-
-export function isSuperAdminRole(role?: string | null): boolean {
-  return normalizeRoleFn(role) === "super_admin";
-}
-
-/** Check if user is admin or superadmin (for redirect/onboarding bypass). Use with profile or session.user. */
-export function isAdmin(user: { role?: string | null } | undefined): boolean {
-  return isAdminRole(user?.role);
+export function hasPermission(role: string | null, perm: string): boolean {
+  if (!role) return false;
+  if (role === "admin" || role === "superadmin") return true;
+  const normalized = role.toLowerCase() as Role;
+  const perms = ROLE_PERMISSIONS[normalized];
+  if (perms?.includes("*")) return true;
+  return perms?.includes(perm) ?? false;
 }
