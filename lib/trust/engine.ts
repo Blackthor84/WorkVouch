@@ -34,7 +34,7 @@ const INITIAL_STATE: TrustState = {
   lastScenario: null,
   lastRunResult: null,
   timeFrozen: false,
-  actorMode: "employer",
+  actorMode: "admin",
 };
 
 let state: TrustState = { ...INITIAL_STATE };

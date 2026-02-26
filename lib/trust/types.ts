@@ -17,7 +17,7 @@ export type TrustEvent = {
   scenarioId?: string;
 };
 
-export type ActorMode = "employee" | "employer" | "system";
+export type ActorMode = "admin" | "employer" | "worker";
 
 export type LedgerEntry = {
   day: number;

@@ -175,9 +175,9 @@ export default function PlaygroundClient() {
               }
               className="border rounded px-3 py-2 text-sm"
             >
-              <option value="employee">Employee</option>
+              <option value="admin">Admin</option>
               <option value="employer">Employer</option>
-              {mockRole === "superadmin" && <option value="system">System</option>}
+              <option value="worker">Worker</option>
             </select>
           </div>
         </div>
