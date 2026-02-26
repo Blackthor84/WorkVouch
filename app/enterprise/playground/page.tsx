@@ -164,6 +164,65 @@ export default function EnterprisePlayground() {
         )}
       </div>
 
+      {state.actorMode === "employer" && (
+        <div className="rounded-lg border border-slate-200 bg-white p-4">
+          <h2 className="font-semibold text-slate-900 mb-3">Employer Actions</h2>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="rounded bg-green-600 text-white px-3 py-2 text-sm hover:bg-green-700"
+              onClick={() => {
+                const reason = window.prompt("Reason for positive review (optional):") ?? "";
+                engineAction({ type: "employerReview", kind: "positive", reason });
+              }}
+            >
+              Add Positive Employer Review
+            </button>
+            <button
+              type="button"
+              className="rounded bg-amber-600 text-white px-3 py-2 text-sm hover:bg-amber-700"
+              onClick={() => {
+                const reason = window.prompt("Reason for negative review:") ?? "";
+                engineAction({ type: "employerReview", kind: "negative", reason });
+              }}
+            >
+              Add Negative Employer Review
+            </button>
+            <button
+              type="button"
+              className="rounded bg-orange-600 text-white px-3 py-2 text-sm hover:bg-orange-700"
+              onClick={() => {
+                const reason = window.prompt("Describe inconsistency:") ?? "";
+                engineAction({ type: "flagInconsistency", reason });
+              }}
+            >
+              Flag Inconsistency
+            </button>
+            <button
+              type="button"
+              className="rounded bg-slate-600 text-white px-3 py-2 text-sm hover:bg-slate-700"
+              onClick={() => engineAction({ type: "retractEmployerReview" })}
+            >
+              Retract Employer Review
+            </button>
+            <select
+              className="border rounded px-3 py-2 text-sm"
+              defaultValue=""
+              onChange={(e) => {
+                const v = e.target.value as "low" | "medium" | "high" | "";
+                if (v) engineAction({ type: "employerAbusePattern", severity: v });
+                e.target.value = "";
+              }}
+            >
+              <option value="">Report abuse pattern…</option>
+              <option value="low">Abuse: Low</option>
+              <option value="medium">Abuse: Medium</option>
+              <option value="high">Abuse: High</option>
+            </select>
+          </div>
+        </div>
+      )}
+
       {result && (
         <>
           <ScenarioResult result={result} />

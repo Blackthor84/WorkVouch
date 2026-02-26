@@ -214,6 +214,103 @@ function reduce(state: TrustState, action: EngineActionType): TrustState {
     case "setActorMode":
       s.actorMode = action.actor;
       return s;
+
+    case "employerReview": {
+      if (s.actorMode !== "employer") return s;
+      const profile = INDUSTRY_PROFILES[s.industry];
+      const delta = action.kind === "positive"
+        ? Math.round(10 * profile.verificationWeight)
+        : -Math.round(15 * profile.fraudPenalty);
+      const newTrust = Math.min(100, Math.max(0, s.trustScore + delta));
+      s.trustScore = newTrust;
+      s.events = [...s.events, {
+        day: s.currentDay,
+        type: "employer_review",
+        message: action.kind === "positive" ? "Positive employer review" : "Negative employer review",
+        impact: delta,
+      }];
+      s.ledger = [...s.ledger, {
+        day: s.currentDay,
+        action: `employerReview:${action.kind}`,
+        actor: "employer",
+        delta,
+        snapshot: { trustScore: newTrust, profileStrength: s.profileStrength },
+        reason: action.reason,
+      }];
+      s.confidenceScore = computeConfidence(s);
+      return s;
+    }
+
+    case "flagInconsistency": {
+      if (s.actorMode !== "employer") return s;
+      const profile = INDUSTRY_PROFILES[s.industry];
+      const delta = -Math.round(12 * profile.fraudPenalty);
+      const newTrust = Math.min(100, Math.max(0, s.trustScore + delta));
+      s.trustScore = newTrust;
+      s.events = [...s.events, {
+        day: s.currentDay,
+        type: "flag_inconsistency",
+        message: "Inconsistency flagged by employer",
+        impact: delta,
+      }];
+      s.ledger = [...s.ledger, {
+        day: s.currentDay,
+        action: "flagInconsistency",
+        actor: "employer",
+        delta,
+        snapshot: { trustScore: newTrust, profileStrength: s.profileStrength },
+        reason: action.reason,
+      }];
+      s.confidenceScore = computeConfidence(s);
+      return s;
+    }
+
+    case "retractEmployerReview": {
+      if (s.actorMode !== "employer") return s;
+      const delta = 5;
+      const newTrust = Math.min(100, Math.max(0, s.trustScore + delta));
+      s.trustScore = newTrust;
+      s.events = [...s.events, {
+        day: s.currentDay,
+        type: "retract_review",
+        message: "Employer review retracted",
+        impact: delta,
+      }];
+      s.ledger = [...s.ledger, {
+        day: s.currentDay,
+        action: "retractEmployerReview",
+        actor: "employer",
+        delta,
+        snapshot: { trustScore: newTrust, profileStrength: s.profileStrength },
+      }];
+      s.confidenceScore = computeConfidence(s);
+      return s;
+    }
+
+    case "employerAbusePattern": {
+      if (s.actorMode !== "employer") return s;
+      const profile = INDUSTRY_PROFILES[s.industry];
+      const severityMultiplier = action.severity === "high" ? 1.5 : action.severity === "medium" ? 1.2 : 1;
+      const delta = -Math.round(20 * profile.fraudPenalty * severityMultiplier);
+      const newTrust = Math.min(100, Math.max(0, s.trustScore + delta));
+      s.trustScore = newTrust;
+      s.events = [...s.events, {
+        day: s.currentDay,
+        type: "employer_abuse_pattern",
+        message: `Abuse pattern (${action.severity})`,
+        impact: delta,
+      }];
+      s.ledger = [...s.ledger, {
+        day: s.currentDay,
+        action: `employerAbusePattern:${action.severity}`,
+        actor: "employer",
+        delta,
+        snapshot: { trustScore: newTrust, profileStrength: s.profileStrength },
+      }];
+      s.confidenceScore = computeConfidence(s);
+      return s;
+    }
+
     default:
       return s;
   }

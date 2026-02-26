@@ -25,6 +25,7 @@ export type LedgerEntry = {
   actor: ActorMode;
   delta: number;
   snapshot: { trustScore: number; profileStrength: number };
+  reason?: string;
 };
 
 export type PeerEdge = { peerId: string; strength: number };
@@ -99,6 +100,10 @@ export type EngineActionType =
   | { type: "setThreshold"; value: number }
   | { type: "setView"; view: "employer" | "candidate" }
   | { type: "setActorMode"; actor: ActorMode }
+  | { type: "employerReview"; kind: "positive" | "negative"; reason: string }
+  | { type: "flagInconsistency"; reason: string }
+  | { type: "retractEmployerReview" }
+  | { type: "employerAbusePattern"; severity: "low" | "medium" | "high" }
   | { type: "tick" }
   | { type: "tick"; days: number }
   | { type: "freeze" }
