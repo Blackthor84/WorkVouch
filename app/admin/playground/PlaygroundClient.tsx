@@ -32,7 +32,6 @@ export default function PlaygroundClient() {
   const [mockRole, setMockRole] = useState<MockRole>("user");
   const [scenarios, setScenarios] = useState<ScenarioItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [result, setResult] = useState<typeof state.lastRunResult>(null);
   const [compareA, setCompareA] = useState<any>(null);
   const [compareB, setCompareB] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +82,6 @@ export default function PlaygroundClient() {
         window.history.replaceState({}, "", url.toString());
       } catch (e) {
         setError(e instanceof Error ? e.message : "Run failed");
-        setResult(null);
       } finally {
         setLoading(false);
       }
@@ -130,8 +128,8 @@ export default function PlaygroundClient() {
   );
 
   const exportJson = useCallback(() => {
-    if (!result) return;
-    const json = JSON.stringify(result, null, 2);
+    if (!state.lastRunResult) return;
+    const json = JSON.stringify(state.lastRunResult, null, 2);
     const blob = new Blob([json], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -141,8 +139,8 @@ export default function PlaygroundClient() {
   }, [result]);
 
   const shareableUrl =
-    typeof window !== "undefined" && result
-      ? `${window.location.origin}${window.location.pathname}?scenarioId=${result.scenarioId ?? selectedId}`
+    typeof window !== "undefined" && state.lastRunResult
+      ? `${window.location.origin}${window.location.pathname}?scenarioId=${state.lastRunResult.scenarioId ?? selectedId}`
       : "";
 
   const ex = derived.explainScore();
@@ -404,10 +402,10 @@ export default function PlaygroundClient() {
         </div>
 
         <div className="space-y-6">
-          {result && (
+          {state.lastRunResult && (
             <>
-              <ScenarioResult result={result} />
-              <ScenarioTimeline events={result.events ?? []} />
+              <ScenarioResult result={state.lastRunResult} />
+              <ScenarioTimeline events={state.events} />
 
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-slate-600">View:</span>
@@ -427,9 +425,9 @@ export default function PlaygroundClient() {
                 </button>
               </div>
               <EmployerImpact
-                result={result}
+                result={state.lastRunResult}
                 view={state.view}
-                threshold={70}
+                threshold={state.threshold}
               />
               <ProductionEquivalent />
 
@@ -446,15 +444,17 @@ export default function PlaygroundClient() {
                       Copy link
                     </button>
                   </div>
-                  <div className="flex gap-2">
+                  <details className="mt-2 rounded border border-slate-200 bg-slate-50 p-2">
+                    <summary className="cursor-pointer text-xs font-medium text-slate-600">Debug: Export scenario JSON</summary>
                     <button
                       type="button"
                       onClick={exportJson}
-                      className="rounded bg-slate-700 text-white px-4 py-2 text-sm hover:bg-slate-800"
+                      disabled={!state.lastRunResult}
+                      className="mt-2 rounded bg-slate-600 text-white px-3 py-1.5 text-xs hover:bg-slate-700 disabled:opacity-50"
                     >
                       Export scenario.json
                     </button>
-                  </div>
+                  </details>
                 </>
               ) : (
                 <>
@@ -464,7 +464,7 @@ export default function PlaygroundClient() {
               )}
             </>
           )}
-          {!result && !loading && (
+          {!state.lastRunResult && !loading && (
             <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-slate-500 text-sm">
               Run a scenario to see outcome, timeline, and impact. Open a link with ?scenarioId= to auto-run.
             </div>

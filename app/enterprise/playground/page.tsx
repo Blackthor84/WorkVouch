@@ -154,7 +154,7 @@ export default function EnterprisePlayground() {
       {result && (
         <>
           <ScenarioResult result={result} />
-          <ScenarioTimeline events={result.events} />
+          <ScenarioTimeline events={state.events} />
           <EmployerImpact
             result={result}
             threshold={state.threshold}
