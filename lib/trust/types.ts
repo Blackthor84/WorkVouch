@@ -45,6 +45,7 @@ export type TrustState = {
   lastRunResult: TrustScenarioPayload | null;
   /** Layer 2: time frozen when true; tick/fastForward no-op */
   timeFrozen: boolean;
+  actorMode: ActorMode;
 };
 
 /** Layer 1 — Event-sourced persistence. Engine never saves state; only appends events; rebuilds by replay. */

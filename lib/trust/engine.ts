@@ -1,5 +1,5 @@
 import {
-  TrustState,
+  type TrustState,
   TrustScenarioPayload,
   TrustEvent,
   LedgerEntry,
