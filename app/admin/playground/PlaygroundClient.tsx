@@ -199,7 +199,22 @@ export default function PlaygroundClient() {
           <p className="text-sm text-slate-600">Risk exposure · Threshold impact</p>
         </div>
         <PermissionGate perm="export">
-          <ExecDashboard employees={mockEmployees} threshold={threshold} />
+          <ExecDashboard
+            employees={mockEmployees.map((e) => ({
+              before: e.trust,
+              after: simulateTrust(e.trust, {
+                addedReviews: [
+                  {
+                    id: "team",
+                    source: "supervisor" as const,
+                    weight: 1,
+                    timestamp: Date.now(),
+                  },
+                ],
+              }),
+            }))}
+            threshold={threshold}
+          />
         </PermissionGate>
       </section>
 

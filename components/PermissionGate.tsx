@@ -1,6 +1,6 @@
 "use client";
 
-import { hasPermission } from "@/lib/auth/roles";
+import { hasPermission, type Role } from "@/lib/auth/roles";
 import { useAuth } from "@/components/AuthContext";
 
 type Props = {
@@ -10,6 +10,8 @@ type Props = {
 
 export function PermissionGate({ perm, children }: Props) {
   const { role } = useAuth();
-  if (!role || !hasPermission(role, perm)) return null;
+  if (!role) return null;
+  if (role === "admin" || role === "superadmin") return <>{children}</>;
+  if (!hasPermission(role as Role, perm)) return null;
   return <>{children}</>;
 }

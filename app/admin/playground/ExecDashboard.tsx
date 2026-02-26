@@ -2,43 +2,36 @@
 
 import { complianceRisk } from "@/lib/compliance/metrics";
 import { CULTURE_COMPLIANCE } from "@/lib/playground/copy";
-import { simulateTrust } from "@/lib/trust/simulator";
-import type { TrustSnapshot } from "@/lib/trust/types";
 
-type EmployeeWithTrust = { trust: TrustSnapshot; name: string; [k: string]: unknown };
-
-type Props = {
-  employees: { trust: TrustSnapshot; name?: string }[] | { trustScore: number }[];
-  threshold: number;
-  /** Optional: simulated "after" state per employee for before/after comparison */
-  simulatedAfter?: { trustScore: number }[];
+type EmployeeWithBeforeAfter = {
+  before?: { trustScore: number };
+  after?: { trustScore: number };
 };
 
-export function ExecDashboard({ employees, threshold, simulatedAfter }: Props) {
-  const withTrust = employees as EmployeeWithTrust[];
-  const beforeScores = withTrust.map((e) =>
-    "trust" in e ? e.trust.trustScore : (e as { trustScore: number }).trustScore
+type Props = {
+  employees: EmployeeWithBeforeAfter[];
+  threshold: number;
+};
+
+export function ExecDashboard({ employees, threshold }: Props) {
+  const beforeScores: number[] = employees.map(
+    (e: EmployeeWithBeforeAfter) => Number(e.before?.trustScore ?? 0)
   );
-  const afterScores =
-    simulatedAfter ??
-    withTrust.map((e) =>
-      "trust" in e
-        ? simulateTrust(e.trust, {
-            addedReviews: [
-              {
-                id: "team",
-                source: "supervisor",
-                weight: 1,
-                timestamp: Date.now(),
-              },
-            ],
-          }).trustScore
-        : (e as { trustScore: number }).trustScore
-    );
+
+  const afterScores: number[] = employees.map(
+    (e: EmployeeWithBeforeAfter) => Number(e.after?.trustScore ?? 0)
+  );
+
   const beforeAvg =
-    beforeScores.length === 0 ? 0 : beforeScores.reduce((a, b) => a + b, 0) / beforeScores.length;
+    beforeScores.length === 0
+      ? 0
+      : beforeScores.reduce((a, b) => a + b, 0) / beforeScores.length;
+
   const afterAvg =
-    afterScores.length === 0 ? 0 : afterScores.reduce((a, b) => a + b, 0) / afterScores.length;
+    afterScores.length === 0
+      ? 0
+      : afterScores.reduce((a, b) => a + b, 0) / afterScores.length;
+
   const metrics = complianceRisk(
     beforeScores.map((s) => ({ trustScore: s })),
     threshold
