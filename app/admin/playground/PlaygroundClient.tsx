@@ -242,6 +242,39 @@ export default function PlaygroundClient() {
         </div>
       )}
 
+      {mockRole === "superadmin" && (
+        <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50/50 p-4">
+          <h2 className="font-semibold text-slate-900 mb-1">Hidden Signals</h2>
+          <p className="text-xs text-amber-800 mb-3">Internal signal — not visible to employers.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">cultureFitScore</span>
+              <span className="font-mono font-medium">{derived.cultureFitScore}</span>
+            </div>
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">signalFreshness</span>
+              <span className="font-mono font-medium">{derived.signalFreshness}</span>
+            </div>
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">reviewerCredibility</span>
+              <span className="font-mono font-medium">{derived.reviewerCredibility}</span>
+            </div>
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">consistencyScore</span>
+              <span className="font-mono font-medium">{derived.consistencyScore}</span>
+            </div>
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">networkCentrality</span>
+              <span className="font-mono font-medium">{derived.networkCentrality}</span>
+            </div>
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">fraudProbability (heuristic)</span>
+              <span className="font-mono font-medium">{derived.fraudProbability}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6 rounded-lg border border-violet-200 bg-violet-50/50 p-4">
         <h2 className="font-semibold text-slate-900 mb-1">{INVESTOR_NARRATIVE.headline}</h2>
         <ul className="list-disc ml-5 text-sm text-slate-700 space-y-0.5">

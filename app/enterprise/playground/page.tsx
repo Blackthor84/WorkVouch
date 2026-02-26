@@ -13,7 +13,8 @@ type ScenarioItem = { id: string; title: string };
 export default function EnterprisePlayground() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { state, engineAction } = useTrustEngine();
+  const { state, derived, engineAction } = useTrustEngine();
+  const role = searchParams.get("role") ?? "";
 
   const [scenarios, setScenarios] = useState<ScenarioItem[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
@@ -219,6 +220,39 @@ export default function EnterprisePlayground() {
               <option value="medium">Abuse: Medium</option>
               <option value="high">Abuse: High</option>
             </select>
+          </div>
+        </div>
+      )}
+
+      {role === "superadmin" && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50/50 p-4">
+          <h2 className="font-semibold text-slate-900 mb-1">Hidden Signals</h2>
+          <p className="text-xs text-amber-800 mb-3">Internal signal — not visible to employers.</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">cultureFitScore</span>
+              <span className="font-mono font-medium">{derived.cultureFitScore}</span>
+            </div>
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">signalFreshness</span>
+              <span className="font-mono font-medium">{derived.signalFreshness}</span>
+            </div>
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">reviewerCredibility</span>
+              <span className="font-mono font-medium">{derived.reviewerCredibility}</span>
+            </div>
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">consistencyScore</span>
+              <span className="font-mono font-medium">{derived.consistencyScore}</span>
+            </div>
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">networkCentrality</span>
+              <span className="font-mono font-medium">{derived.networkCentrality}</span>
+            </div>
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">fraudProbability (heuristic)</span>
+              <span className="font-mono font-medium">{derived.fraudProbability}</span>
+            </div>
           </div>
         </div>
       )}

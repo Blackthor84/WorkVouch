@@ -517,11 +517,32 @@ ${
 }
 `;
 
+  const peerCount = Object.keys(s.peerGraph).reduce((n, k) => n + (s.peerGraph[k]?.length ?? 0), 0);
+  const totalEdges = peerCount;
+  const verificationEvents = s.events.filter((e) => e.type === "verification").length;
+  const negativeLedger = s.ledger.filter((e) => e.delta < 0).length;
+  const employerReviewLedger = s.ledger.filter((e) => e.action.includes("employerReview") || e.action.includes("flag") || e.action.includes("Abuse")).length;
+
+  const cultureFitScore = Math.min(100, Math.max(0, Math.round(
+    s.profileStrength * 0.5 + (verificationEvents / Math.max(s.events.length, 1)) * 30 + (s.trustScore * 0.2)
+  )));
+  const signalFreshness = s.events.length === 0 ? 0 : Math.min(100, Math.max(0, Math.round(100 - (s.currentDay - (s.events[s.events.length - 1]?.day ?? 0)) * 0.5)));
+  const reviewerCredibility = employerReviewLedger === 0 ? 50 : Math.min(100, Math.max(0, 50 + (s.ledger.filter((e) => e.delta > 0 && e.actor === "employer").length * 5) - (negativeLedger * 3)));
+  const consistencyScore = s.ledger.length < 2 ? 50 : Math.min(100, Math.max(0, 50 + 10 * (s.ledger.length - negativeLedger) - 5 * negativeLedger));
+  const networkCentrality = totalEdges === 0 ? 0 : Math.min(100, Math.round((totalEdges / 10) * 50 + (peerCount > 0 ? 25 : 0)));
+  const fraudProbability = hasFraud ? 85 : negativeLedger >= 2 ? 40 : negativeLedger >= 1 ? 20 : s.trustScore < 40 ? 15 : 5;
+
   return {
     passesEmployer,
     explainScore,
     simulateOutcomes,
     generateEmployerExplanation,
+    cultureFitScore,
+    signalFreshness,
+    reviewerCredibility,
+    consistencyScore,
+    networkCentrality,
+    fraudProbability,
   };
 }
 
