@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { AuthContextProvider } from "@/components/AuthContext"
 
 type LayoutUser = {
   id: string
@@ -37,5 +38,9 @@ export default function AdminClientLayout({
     )
   }
 
-  return <>{children}</>
+  return (
+    <AuthContextProvider role={user.role} loading={false}>
+      {children}
+    </AuthContextProvider>
+  )
 }

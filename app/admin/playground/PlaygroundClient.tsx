@@ -10,6 +10,7 @@ import TrustThreshold from "@/components/playground/TrustThreshold";
 import ScenarioBuilder from "@/components/playground/ScenarioBuilder";
 import AIScenarioGenerator from "@/components/playground/AIScenarioGenerator";
 import ScenarioComparison from "@/components/playground/ScenarioComparison";
+import { useAuth } from "@/components/AuthContext";
 import EnterpriseLock from "@/components/playground/EnterpriseLock";
 import { hasEnterpriseAccess } from "@/lib/enterprise";
 import { useTrustEngine } from "@/lib/trust/useTrustEngine";
@@ -27,6 +28,7 @@ export default function PlaygroundClient() {
   const scenarioIdFromUrl = searchParams.get("scenarioId");
   const autoRunDoneRef = useRef<string | null>(null);
 
+  const { role } = useAuth();
   const { state, derived, engineAction } = useTrustEngine();
 
   const [mockRole, setMockRole] = useState<MockRole>("user");
@@ -38,7 +40,8 @@ export default function PlaygroundClient() {
   const [loading, setLoading] = useState(false);
   const [aiTemplateLoading, setAiTemplateLoading] = useState(false);
 
-  const enterprise = hasEnterpriseAccess(mockRole);
+  const enterprise =
+    role === "admin" || role === "superadmin" || hasEnterpriseAccess(mockRole);
 
   useEffect(() => {
     const timer = setInterval(() => engineAction({ type: "tick" }), 1200);
