@@ -11,6 +11,7 @@ import {
   ONBOARDING_DISPLAY_NAMES,
   type OnboardingIndustry,
 } from "@/lib/constants/industries";
+import { WORKVOUCH_CAREERS } from "@/lib/careers/careers";
 
 interface JobFormClientProps {
   industry: OnboardingIndustry;
@@ -113,14 +114,20 @@ export function JobFormClient({ industry }: JobFormClientProps) {
       <div className="space-y-4 mb-6">
         <div>
           <Label htmlFor="jobTitle">Job Title *</Label>
-          <Input
+          <select
             id="jobTitle"
-            type="text"
-            placeholder="e.g., Security Guard, Retail Associate"
             value={jobTitle}
             onChange={(e) => setJobTitle(e.target.value)}
+            className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-3 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
             required
-          />
+          >
+            <option value="">-- Select Job Title --</option>
+            {WORKVOUCH_CAREERS.map((role) => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>

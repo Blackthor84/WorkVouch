@@ -5,24 +5,9 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getCareersByIndustry } from "@/lib/careers/careers";
 
-/** Nurse roles use license flow; CNA uses optional certification + peer verification. */
-const HEALTHCARE_ROLES = [
-  "CNA",
-  "RN",
-  "LPN",
-  "HHA",
-  "Medical Assistant",
-  "Patient Care Tech",
-  "Dental Assistant",
-  "Medical Receptionist",
-  "Phlebotomist",
-  "Pharmacy Technician",
-  "ER Tech",
-  "Caregiver",
-  "Lab Assistant",
-  "Sterile Processing Tech",
-];
+const HEALTHCARE_ROLES = getCareersByIndustry("healthcare");
 
 export function HealthcareRoleClient() {
   const router = useRouter();

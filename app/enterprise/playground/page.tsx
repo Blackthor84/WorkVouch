@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTrustEngine } from "@/lib/trust/useTrustEngine";
 import type { ActorMode } from "@/lib/trust/types";
+import { WORKVOUCH_CAREERS, type WorkVouchCareer } from "@/lib/careers/careers";
 import ScenarioTimeline from "@/components/playground/ScenarioTimeline";
 import ScenarioResult from "@/components/playground/ScenarioResult";
 import EmployerImpact from "@/components/playground/EmployerImpact";
@@ -18,6 +19,7 @@ export default function EnterprisePlayground() {
 
   const [scenarios, setScenarios] = useState<ScenarioItem[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
+  const [career, setCareer] = useState<WorkVouchCareer | "">("");
   const [loading, setLoading] = useState(false);
 
   const result = state.lastRunResult;
@@ -126,6 +128,22 @@ export default function EnterprisePlayground() {
           >
             <option value="employer">Employer View</option>
             <option value="candidate">Candidate View</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Career</label>
+          <select
+            className="border rounded px-3 py-2"
+            value={career}
+            onChange={(e) => setCareer(e.target.value as WorkVouchCareer | "")}
+          >
+            <option value="">Select career</option>
+            {WORKVOUCH_CAREERS.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
         </div>
 

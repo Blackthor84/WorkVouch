@@ -7,21 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-const HEALTHCARE_ROLES = [
-  "CNA",
-  "HHA",
-  "Medical Assistant",
-  "Patient Care Tech",
-  "Dental Assistant",
-  "Medical Receptionist",
-  "Phlebotomist",
-  "Pharmacy Technician",
-  "ER Tech",
-  "Caregiver",
-  "Lab Assistant",
-  "Sterile Processing Tech",
-];
+import { WORKVOUCH_CAREERS } from "@/lib/careers/careers";
 
 export function JobPostClient() {
   const router = useRouter();
@@ -140,7 +126,7 @@ export function JobPostClient() {
             required
           >
             <option value="">-- Select Job Title --</option>
-            {HEALTHCARE_ROLES.map((role) => (
+            {WORKVOUCH_CAREERS.map((role) => (
               <option key={role} value={role}>
                 {role}
               </option>

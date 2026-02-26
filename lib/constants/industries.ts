@@ -140,96 +140,14 @@ export const ONBOARDING_DISPLAY_NAMES: Record<OnboardingIndustry, string> = {
 };
 
 export const ROLE_OPTIONS: Record<OnboardingIndustry, string[]> = {
-  law_enforcement: [
-    'Officer',
-    'Detective',
-    'Dispatcher',
-    'K9 Handler',
-    'Investigator',
-    'Sergeant',
-    'Lieutenant',
-    'Captain',
-    'Crime Scene Investigator (CSI)',
-    'SWAT Team Member',
-    'Community Policing Officer',
-    'Traffic Enforcement Officer',
-    'Jail/Correctional Officer',
-    'Records/Administration Officer',
-    'Forensic Analyst'
-  ],
-  security: [
-    'Guard',
-    'Loss Prevention',
-    'Event Security',
-    'Patrol Officer',
-    'Security Supervisor'
-  ],
-  hospitality: [
-    'Front Desk',
-    'Housekeeping',
-    'Food & Beverage',
-    'Concierge',
-    'Event Staff'
-  ],
-  retail: [
-    'Cashier',
-    'Sales Associate',
-    'Stock Clerk',
-    'Supervisor',
-    'Store Manager'
-  ],
-  warehousing: [
-    'Picker/Packer',
-    'Forklift Operator',
-    'Loader',
-    'Warehouse Clerk',
-    'Supervisor',
-    'Inventory Control Specialist',
-    'Shipping & Receiving Clerk',
-    'Material Handler',
-    'Quality Control Inspector',
-    'Order Fulfillment Associate',
-    'Logistics Coordinator',
-    'Warehouse Technician'
-  ],
-  education: [
-    'Teacher',
-    'Substitute Teacher',
-    'Paraprofessional',
-    'School Counselor',
-    'Administrator',
-    'Principal',
-    'Librarian',
-    'Special Education',
-    'ESL Teacher',
-    'Coach',
-  ],
-  construction: [
-    'Laborer',
-    'Carpenter',
-    'Electrician',
-    'Plumber',
-    'HVAC',
-    'Welder',
-    'Foreman',
-    'Supervisor',
-    'Project Manager',
-    'Equipment Operator',
-  ],
+  law_enforcement: getCareersByIndustry("law_enforcement"),
+  security: getCareersByIndustry("security"),
+  hospitality: getCareersByIndustry("hospitality"),
+  retail: getCareersByIndustry("retail"),
+  warehousing: getCareersByIndustry("warehousing"),
+  education: getCareersByIndustry("education"),
+  construction: getCareersByIndustry("construction"),
 };
-
-// Additional roles for Logistics (can be used as a sub-industry or separate)
-export const LOGISTICS_ROLES = [
-  'Logistics Planner',
-  'Dispatch Coordinator',
-  'Transportation Manager',
-  'Route Planner',
-  'Supply Chain Analyst',
-  'Fleet Supervisor',
-  'Shipping Coordinator',
-  'Freight Handler',
-  'Inventory Planner'
-]
 
 export const SETTING_OPTIONS: Record<OnboardingIndustry, string[]> = {
   law_enforcement: [

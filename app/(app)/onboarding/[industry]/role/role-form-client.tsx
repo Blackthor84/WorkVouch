@@ -7,7 +7,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   ROLE_OPTIONS,
-  LOGISTICS_ROLES,
   ONBOARDING_DISPLAY_NAMES,
   type OnboardingIndustry,
 } from "@/lib/constants/industries";
@@ -85,14 +84,7 @@ export function RoleFormClient({ industry }: RoleFormClientProps) {
     );
   }
 
-  // Get roles for the industry, with special handling for warehousing/logistics
-  let roles: string[] = [];
-  if (industry === "warehousing") {
-    // Combine warehouse and logistics roles
-    roles = [...(ROLE_OPTIONS[industry] || []), ...LOGISTICS_ROLES];
-  } else {
-    roles = ROLE_OPTIONS[industry] || [];
-  }
+  const roles = ROLE_OPTIONS[industry] || [];
   const industryName = ONBOARDING_DISPLAY_NAMES[industry] || industry;
 
   return (
