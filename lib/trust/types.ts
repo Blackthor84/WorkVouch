@@ -150,6 +150,31 @@ export type SimulateResult = {
   auditTraceIds: string[];
 };
 
+/** Snapshot used only for change-diff (before/after each action). */
+export type TrustEngineDiffSnapshot = {
+  trustScore: number;
+  confidenceScore: number;
+  hiringLikelihood: number;
+  riskFlagCount: number;
+  networkImpactCount: number;
+};
+
+/** Before/after + delta for one metric. */
+export type TrustEngineChangeMetric = {
+  before: number;
+  after: number;
+  delta: number;
+};
+
+/** Change diff computed from previous snapshot vs current state (derived only). */
+export type TrustEngineChangeDiff = {
+  trustScore: TrustEngineChangeMetric;
+  confidenceScore: TrustEngineChangeMetric;
+  hiringLikelihood: TrustEngineChangeMetric;
+  riskFlagCount: TrustEngineChangeMetric;
+  networkImpactCount: TrustEngineChangeMetric;
+};
+
 /** Engine snapshot as single source of truth for explain and report APIs. */
 export type TrustEngineSnapshot = {
   trustScore: number;

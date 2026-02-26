@@ -13,6 +13,8 @@ import {
   EngineExplanation,
   SimulateOptions,
   SimulateResult,
+  type TrustEngineDiffSnapshot,
+  type TrustEngineChangeDiff,
 } from "./types";
 import { hashForAudit } from "./hash";
 
@@ -39,7 +41,24 @@ const INITIAL_STATE: TrustState = {
 
 let state: TrustState = { ...INITIAL_STATE };
 let eventLog: TrustEventRecord[] = [];
+let previousSnapshot: TrustEngineDiffSnapshot | null = null;
 const listeners: Array<() => void> = [];
+
+function snapshotForDiff(s: TrustState): TrustEngineDiffSnapshot {
+  const threshold = THRESHOLDS[s.employerMode];
+  const passes = s.trustScore >= threshold;
+  const hiringLikelihood = passes ? 100 : Math.round((s.trustScore / threshold) * 100);
+  const hasFraud = s.ledger.some((e) => e.action.startsWith("FRAUD"));
+  const riskFlagCount = s.ledger.filter((e) => e.delta < 0).length + (hasFraud ? 1 : 0);
+  const networkImpactCount = s.events.length;
+  return {
+    trustScore: s.trustScore,
+    confidenceScore: s.confidenceScore,
+    hiringLikelihood,
+    riskFlagCount,
+    networkImpactCount,
+  };
+}
 
 function emit() {
   listeners.forEach((l) => l());
@@ -356,6 +375,7 @@ export function replay(from = 0): TrustState {
 export function hydrate(events: TrustEventRecord[], userId: string | null = null): void {
   eventLog = events;
   state = replay(0);
+  previousSnapshot = null;
   emit();
 }
 
@@ -379,6 +399,7 @@ export function subscribe(listener: () => void): () => void {
 const defaultUserId: string | null = null;
 
 export function engineAction(action: EngineActionType, userId: string | null = defaultUserId): void {
+  previousSnapshot = snapshotForDiff(state);
   state = reduce(state, action);
   const record = recordEvent(action, state, userId);
   eventLog.push(record);
@@ -532,6 +553,18 @@ ${
   const networkCentrality = totalEdges === 0 ? 0 : Math.min(100, Math.round((totalEdges / 10) * 50 + (peerCount > 0 ? 25 : 0)));
   const fraudProbability = hasFraud ? 85 : negativeLedger >= 2 ? 40 : negativeLedger >= 1 ? 20 : s.trustScore < 40 ? 15 : 5;
 
+  const after = snapshotForDiff(s);
+  const changeDiff: TrustEngineChangeDiff | null =
+    previousSnapshot === null
+      ? null
+      : {
+          trustScore: { before: previousSnapshot.trustScore, after: after.trustScore, delta: after.trustScore - previousSnapshot.trustScore },
+          confidenceScore: { before: previousSnapshot.confidenceScore, after: after.confidenceScore, delta: after.confidenceScore - previousSnapshot.confidenceScore },
+          hiringLikelihood: { before: previousSnapshot.hiringLikelihood, after: after.hiringLikelihood, delta: after.hiringLikelihood - previousSnapshot.hiringLikelihood },
+          riskFlagCount: { before: previousSnapshot.riskFlagCount, after: after.riskFlagCount, delta: after.riskFlagCount - previousSnapshot.riskFlagCount },
+          networkImpactCount: { before: previousSnapshot.networkImpactCount, after: after.networkImpactCount, delta: after.networkImpactCount - previousSnapshot.networkImpactCount },
+        };
+
   return {
     passesEmployer,
     explainScore,
@@ -543,6 +576,7 @@ ${
     consistencyScore,
     networkCentrality,
     fraudProbability,
+    changeDiff,
   };
 }
 
@@ -595,5 +629,6 @@ export function simulate(options: SimulateOptions): SimulateResult {
 export function resetEngine(): void {
   state = deepClone(INITIAL_STATE);
   eventLog = [];
+  previousSnapshot = null;
   emit();
 }

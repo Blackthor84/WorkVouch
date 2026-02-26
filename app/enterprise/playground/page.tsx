@@ -224,6 +224,40 @@ export default function EnterprisePlayground() {
         </div>
       )}
 
+      {derived.changeDiff && (
+        <div className="rounded-lg border border-sky-300 bg-sky-50/50 p-4 mb-4">
+          <h2 className="font-semibold text-slate-900 mb-1">What Changed?</h2>
+          <p className="text-xs text-slate-600 mb-3">Before → after (last action).</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">trustScore</span>
+              <span className="font-mono">{derived.changeDiff.trustScore.before} → {derived.changeDiff.trustScore.after}</span>
+              <span className={derived.changeDiff.trustScore.delta >= 0 ? "text-emerald-600" : "text-red-600"}> {derived.changeDiff.trustScore.delta >= 0 ? "+" : ""}{derived.changeDiff.trustScore.delta}</span>
+            </div>
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">confidenceScore</span>
+              <span className="font-mono">{derived.changeDiff.confidenceScore.before} → {derived.changeDiff.confidenceScore.after}</span>
+              <span className={derived.changeDiff.confidenceScore.delta >= 0 ? "text-emerald-600" : "text-red-600"}> {derived.changeDiff.confidenceScore.delta >= 0 ? "+" : ""}{derived.changeDiff.confidenceScore.delta}</span>
+            </div>
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">hiringLikelihood</span>
+              <span className="font-mono">{derived.changeDiff.hiringLikelihood.before} → {derived.changeDiff.hiringLikelihood.after}</span>
+              <span className={derived.changeDiff.hiringLikelihood.delta >= 0 ? "text-emerald-600" : "text-red-600"}> {derived.changeDiff.hiringLikelihood.delta >= 0 ? "+" : ""}{derived.changeDiff.hiringLikelihood.delta}</span>
+            </div>
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">riskFlagCount</span>
+              <span className="font-mono">{derived.changeDiff.riskFlagCount.before} → {derived.changeDiff.riskFlagCount.after}</span>
+              <span className={derived.changeDiff.riskFlagCount.delta <= 0 ? "text-emerald-600" : "text-red-600"}> {derived.changeDiff.riskFlagCount.delta >= 0 ? "+" : ""}{derived.changeDiff.riskFlagCount.delta}</span>
+            </div>
+            <div className="rounded bg-white border border-slate-200 p-2">
+              <span className="text-slate-500 block">networkImpactCount</span>
+              <span className="font-mono">{derived.changeDiff.networkImpactCount.before} → {derived.changeDiff.networkImpactCount.after}</span>
+              <span className={derived.changeDiff.networkImpactCount.delta >= 0 ? "text-emerald-600" : "text-red-600"}> {derived.changeDiff.networkImpactCount.delta >= 0 ? "+" : ""}{derived.changeDiff.networkImpactCount.delta}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {role === "superadmin" && (
         <div className="rounded-lg border border-amber-300 bg-amber-50/50 p-4">
           <h2 className="font-semibold text-slate-900 mb-1">Hidden Signals</h2>
