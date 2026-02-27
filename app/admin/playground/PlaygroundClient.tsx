@@ -25,6 +25,7 @@ import type { Industry } from "@/lib/industries";
 import { INDUSTRY_THRESHOLDS } from "@/lib/industries";
 
 export default function PlaygroundClient() {
+  const sim = useSimulation();
   const [industry, setIndustry] = useState<Industry>("healthcare");
   const [scenarioName, setScenarioName] = useState("");
   const [savedScenarios, setSavedScenarios] = useState<{ id: string; name: string }[]>([]);

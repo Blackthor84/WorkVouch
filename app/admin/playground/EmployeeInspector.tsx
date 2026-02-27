@@ -1,8 +1,8 @@
 "use client";
 
 import { simulateTrust } from "@/lib/trust/simulator";
-import { useSimulation } from "@/lib/trust/useSimulation";
 import type { TrustSnapshot } from "@/lib/trust/types";
+import { useSimulation } from "@/lib/trust/useSimulation";
 import {
   EMPLOYEE_PROFILE,
   CURRENT_TRUST_STATE,
@@ -16,6 +16,7 @@ type Employee = { id: string; name: string; trust: TrustSnapshot };
 
 type Props = {
   employee: Employee;
+  sim: ReturnType<typeof useSimulation>;
   threshold: number;
   industry?: Industry;
   onIndustryChange?: (industry: Industry) => void;
@@ -23,11 +24,11 @@ type Props = {
 
 export function EmployeeInspector({
   employee,
+  sim,
   threshold,
   industry,
   onIndustryChange,
 }: Props) {
-  const sim = useSimulation();
   const simulated = simulateTrust(employee.trust, {
     addedReviews: sim.delta.addedReviews,
     removedReviewIds: sim.delta.removedReviewIds,
