@@ -1,14 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import type { SimulationDelta } from "@/lib/trust/types";
-
-type SimLike = {
-  setDelta: (d: SimulationDelta) => void;
-  addReview: (r: unknown) => void;
-  setThreshold: (n: number) => void;
-  delta: SimulationDelta | null;
-};
+import type { SimLike } from "@/lib/trust/simLike";
 
 type Props = {
   sim: SimLike;

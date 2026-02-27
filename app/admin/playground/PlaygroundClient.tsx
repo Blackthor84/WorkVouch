@@ -340,7 +340,7 @@ export default function PlaygroundClient() {
               <button type="button" onClick={() => multiverse.universes.length > 1 && multiverse.destroy(multiverse.activeUniverseId!)} disabled={multiverse.universes.length <= 1} className="rounded border border-red-200 px-3 py-2 text-sm hover:bg-red-50 disabled:opacity-50">Destroy current</button>
             </div>
           </section>
-          <GodModeActions sim={sim} onAction={() => setGodModeUsed(true)} />
+          <GodModeActions sim={multiverse} onAction={() => setGodModeUsed(true)} />
           <MultiverseGraph
             universes={multiverse.universes}
             activeUniverseId={multiverse.activeUniverseId}
@@ -349,7 +349,7 @@ export default function PlaygroundClient() {
             history={sim.history}
             hasDistortion={godModeUsed}
           />
-          <ChaosPresets sim={sim} onOutcome={(name, msg) => { setGodModeUsed(true); setToast(`${name}: ${msg}`); }} />
+          <ChaosPresets sim={multiverse} onOutcome={(name, msg) => { setGodModeUsed(true); setToast(`${name}: ${msg}`); }} />
         </>
       ) : (
         <TrustChart history={sim.history} />

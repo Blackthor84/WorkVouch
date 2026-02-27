@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { SimulationDelta, Snapshot } from "./types";
+import type { SimulationDelta, Review, Snapshot } from "./types";
 import {
   type Universe,
   type UniverseId,
@@ -64,7 +64,7 @@ export function useMultiverse() {
     (review: unknown) => {
       applyToActive((d) => ({
         ...d,
-        addedReviews: [...(d.addedReviews ?? []), review],
+        addedReviews: [...(d.addedReviews ?? []), review as Review],
       }));
     },
     [applyToActive]

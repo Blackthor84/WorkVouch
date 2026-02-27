@@ -2,16 +2,8 @@
 
 import { useCallback } from "react";
 import type { SimulationDelta, Review } from "@/lib/trust/types";
+import type { SimLike } from "@/lib/trust/simLike";
 import { createReview } from "@/lib/simulation/reviewFactory";
-
-type SimLike = {
-  addReview: (r: unknown) => void;
-  removeReview: (id: string) => void;
-  setDelta: (d: SimulationDelta) => void;
-  setThreshold: (n: number) => void;
-  delta: SimulationDelta | null;
-  applyToActive?: (fn: (d: unknown) => unknown) => void;
-};
 
 type Props = {
   sim: SimLike;
