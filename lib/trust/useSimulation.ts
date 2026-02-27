@@ -14,8 +14,11 @@ export function useSimulation() {
     removedReviewIds: [],
   });
 
+  const [history, setHistory] = useState<SimulationDelta[]>([]);
+
   return {
     delta,
+    history,
 
     addReview(review: any) {
       setDelta((d) => ({
@@ -43,6 +46,10 @@ export function useSimulation() {
         ...d,
         thresholdOverride: value,
       }));
+    },
+
+    saveSnapshot() {
+      setHistory((h) => [...h, JSON.parse(JSON.stringify(delta))]);
     },
 
     reset() {

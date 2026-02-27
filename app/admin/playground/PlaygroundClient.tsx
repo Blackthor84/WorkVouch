@@ -13,6 +13,9 @@ import { exportCSV, scenarioReport } from "@/lib/exports/exportCSV";
 import { logPlaygroundAudit } from "@/lib/playground/auditClient";
 import { useSimulation } from "@/lib/trust/useSimulation";
 import { simulateTrust } from "@/lib/trust/simulator";
+import { Toast } from "@/components/Toast";
+import { ScenarioComparison } from "./ScenarioComparison";
+import { TrustChart } from "./TrustChart";
 import {
   PAGE,
   SCENARIO_CONTROLS,
@@ -63,6 +66,7 @@ export default function PlaygroundClient() {
       });
       setScenarioName("");
       handleLoadScenarios();
+      setToast("Scenario persisted successfully");
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : "Save failed");
     }
@@ -107,14 +111,7 @@ export default function PlaygroundClient() {
         <PermissionGate perm="read">
           <div className="space-y-4">
             {mockEmployees.map((e) => (
-              <EmployeeInspector
-                key={e.id}
-                employee={e}
-                threshold={threshold}
-                industry={industry}
-                onIndustryChange={setIndustry}
-                sim={sim}
-              />
+              <EmployeeInspector key={e.id} employee={e} sim={sim} />
             ))}
           </div>
         </PermissionGate>
@@ -137,11 +134,60 @@ export default function PlaygroundClient() {
             </div>
             <button
               type="button"
+              onClick={() => {
+                sim.saveSnapshot();
+                setToast("Simulation snapshot saved");
+              }}
+              className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
+            >
+              Save Scenario Snapshot
+            </button>
+            <button
+              type="button"
               onClick={handleSaveScenario}
               disabled={!scenarioName.trim()}
               className="rounded bg-slate-700 text-white px-3 py-2 text-sm hover:bg-slate-800 disabled:opacity-50"
             >
               {SCENARIO_CONTROLS.saveScenario}
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!scenarioName.trim()) return;
+                setSaveError(null);
+                try {
+                  await saveScenario({
+                    name: scenarioName.trim(),
+                    industry,
+                    employeeIds: mockEmployees.map((e) => e.id),
+                    delta: sim.delta,
+                  });
+                  await logPlaygroundAudit("scenario_saved", {
+                    name: scenarioName.trim(),
+                    industry,
+                    employeeCount: mockEmployees.length,
+                  });
+                  setScenarioName("");
+                  handleLoadScenarios();
+                  setToast("Scenario persisted successfully");
+                } catch (e) {
+                  setSaveError(e instanceof Error ? e.message : "Save failed");
+                }
+              }}
+              disabled={!scenarioName.trim()}
+              className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
+            >
+              Persist Scenario
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                sim.reset();
+                setToast("Simulation reset");
+              }}
+              className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
+            >
+              Reset Simulation
             </button>
             <button
               type="button"
@@ -178,6 +224,9 @@ export default function PlaygroundClient() {
           </div>
         </div>
       </section>
+
+      <ScenarioComparison history={sim.history} />
+      <TrustChart history={sim.history} />
 
       {/* 3. Workforce Simulation */}
       <section className="space-y-3">
@@ -261,6 +310,8 @@ export default function PlaygroundClient() {
           </li>
         </ul>
       </section>
+
+      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
     </div>
   );
 }
