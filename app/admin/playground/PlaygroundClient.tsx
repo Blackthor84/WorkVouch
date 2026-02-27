@@ -48,6 +48,7 @@ import { SimulationDataBuilder } from "./SimulationDataBuilder";
 import { PopulationSimulationTable, type PopulationEmployee } from "./PopulationSimulationTable";
 import { GroupHiringSimulator } from "./GroupHiringSimulator";
 import { DecisionTrainer } from "./DecisionTrainer";
+import { SimulationCommandCenter } from "./SimulationCommandCenter";
 
 export default function PlaygroundClient() {
   const { role } = useAuth();
@@ -195,6 +196,35 @@ export default function PlaygroundClient() {
 
   const godMode = role === "superadmin";
 
+  const currentStep = multiverseMode
+    ? (multiverse as { timelineStepIndex?: number }).timelineStepIndex ?? 0
+    : (simBase as { currentIndex?: number }).currentIndex ?? 0;
+
+  const universeContext = multiverseMode && "activeUniverse" in multiverse && (multiverse as { activeUniverse?: { name: string; id: string; meta?: { divergenceFromRoot?: number; instability?: number } } }).activeUniverse
+    ? {
+        name: (multiverse as { activeUniverse: { name: string } }).activeUniverse.name,
+        id: (multiverse as { activeUniverseId: string | null }).activeUniverseId,
+        divergencePercent: (multiverse as { activeUniverse: { meta?: { divergenceFromRoot?: number } } }).activeUniverse.meta?.divergenceFromRoot ?? null,
+        instability: (multiverse as { activeUniverse: { meta?: { instability?: number } } }).activeUniverse.meta?.instability ?? null,
+      }
+    : null;
+
+  const noEffectReason =
+    lastDelta?.metadata?.notes?.startsWith("No effect") === true ? lastDelta.metadata.notes : null;
+
+  const populationImpact =
+    filteredEmployees.length > 1
+      ? (() => {
+          const results = filteredEmployees.map((e) =>
+            simulateTrust(e.trust, sim.delta ?? undefined)
+          );
+          const avgTrust = results.length
+            ? results.reduce((s, r) => s + r.trustScore, 0) / results.length
+            : 0;
+          return { avgTrust: Math.round(avgTrust * 10) / 10, riskDelta: 0, fragility: sim.snapshot?.engineOutputs?.fragilityScore ?? 0 };
+        })()
+      : null;
+
   return (
     <div className={multiverseMode || godMode ? "pt-12" : ""}>
       {multiverseMode && <MultiverseHUD />}
@@ -225,6 +255,20 @@ export default function PlaygroundClient() {
         <p className="text-sm text-slate-500 mt-2">{PAGE.helperText}</p>
       </header>
 
+      {/* Simulation Command Center — single source of truth; always visible */}
+      <SimulationCommandCenter
+        snapshot={sim.snapshot}
+        history={sim.history}
+        currentStep={currentStep}
+        onTimelineStep={sim.setTimelineStep}
+        lastAction={lastAction}
+        lastDelta={lastDelta}
+        universeContext={universeContext}
+        multiverseMode={multiverseMode}
+        noEffectReason={noEffectReason}
+        populationImpact={populationImpact}
+      />
+
       {showDebug && (
         <LabDebugPanel
           lastAction={lastAction}
@@ -236,12 +280,12 @@ export default function PlaygroundClient() {
         />
       )}
 
-      {/* 1. Employee Trust Profile */}
+      {/* Secondary views — charts, graphs, and tables reflect the state in the Command Center above. */}
       <section className="space-y-3">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Employee Trust Profile</h2>
           <p className="text-sm text-slate-600">
-            Real trust state · Simulated changes · Outcome delta
+            Real trust state · Simulated changes · Outcome delta (secondary to SCC)
           </p>
         </div>
         <div className="space-y-4">
