@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useAuth } from "@/components/AuthContext";
 import { EmployeeInspector } from "./EmployeeInspector";
 import { MassSimulationPanel } from "./MassSimulationPanel";
 import { SimulationPanel } from "./SimulationPanel";
@@ -11,6 +12,8 @@ import { exportCSV, scenarioReport } from "@/lib/client/exportCSV";
 import { exportPDF } from "@/lib/client/exportPDF";
 import { logPlaygroundAudit } from "@/lib/playground/auditClient";
 import { useSimulation } from "@/lib/trust/useSimulation";
+import { useMultiverse } from "@/lib/trust/useMultiverse";
+import { isMultiverseMode } from "@/lib/trust/multiverse";
 import { simulateTrust } from "@/lib/trust/simulator";
 import { Toast } from "@/components/Toast";
 import { ScenarioComparison } from "./ScenarioComparison";
@@ -20,6 +23,11 @@ import { ScenarioComparePanel } from "./ScenarioComparePanel";
 import { ScenarioTimeline } from "./ScenarioTimeline";
 import { Filters } from "./Filters";
 import { TrustLabHelp } from "@/components/TrustLabHelp";
+import { MultiverseHUD } from "./MultiverseHUD";
+import { GodModeActions } from "./GodModeActions";
+import { MultiverseGraph } from "./MultiverseGraph";
+import { ChaosPresets } from "./ChaosPresets";
+import { MultiverseLabPanel } from "./MultiverseLabPanel";
 import {
   PAGE,
   SCENARIO_CONTROLS,
@@ -32,9 +40,20 @@ import type { Industry } from "@/lib/industries";
 import { INDUSTRY_THRESHOLDS } from "@/lib/industries";
 
 export default function PlaygroundClient() {
-  const sim = useSimulation();
+  const { role } = useAuth();
+  const multiverseMode = isMultiverseMode(role);
+  const simBase = useSimulation();
+  const multiverse = useMultiverse();
+  const sim = multiverseMode ? multiverse : simBase;
   const [showHelp, setShowHelp] = useState(false);
+  const [godModeUsed, setGodModeUsed] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => setToast((e as CustomEvent).detail ?? "Done");
+    window.addEventListener("playground-toast", handler);
+    return () => window.removeEventListener("playground-toast", handler);
+  }, []);
   const [industry, setIndustry] = useState<Industry>("healthcare");
   const [scenarioName, setScenarioName] = useState("");
   const [savedScenarios, setSavedScenarios] = useState<any[]>([]);
@@ -128,8 +147,13 @@ export default function PlaygroundClient() {
     logPlaygroundAudit("export_generated", { format: "csv", rowCount: rows.length });
   }, [scenarioName]);
 
+  const godMode = role === "superadmin";
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 space-y-8">
+    <div className={multiverseMode || godMode ? "pt-12" : ""}>
+      {multiverseMode && <MultiverseHUD />}
+      <div className="mx-auto max-w-6xl px-4 py-6 space-y-8">
+      {godMode && <MultiverseLabPanel role={role} />}
       {/* Page header */}
       <header className="border-b border-slate-200 pb-4">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -276,7 +300,52 @@ export default function PlaygroundClient() {
       <ScenarioTimeline history={sim.history} onSelect={(snapshot) => sim.setDelta(normalizeDelta(snapshot))} />
 
       <ScenarioComparison history={sim.history} />
-      <TrustChart history={sim.history} />
+      {multiverseMode ? (
+        <>
+          <section className="space-y-2">
+            <h2 className="text-lg font-semibold text-slate-900">Multiverse</h2>
+            <div className="flex flex-wrap gap-2 items-center">
+              <select
+                value={multiverse.activeUniverseId ?? ""}
+                onChange={(e) => multiverse.setActiveUniverseId(e.target.value || null)}
+                className="border rounded px-3 py-2 text-sm"
+              >
+                {multiverse.universes.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+              <button type="button" onClick={multiverse.fork} className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">Fork</button>
+              <select
+                className="border rounded px-2 py-1.5 text-sm"
+                defaultValue=""
+                onChange={(e) => {
+                  const fromId = e.target.value;
+                  if (fromId && multiverse.activeUniverseId) multiverse.merge(multiverse.activeUniverseId, fromId);
+                  e.target.value = "";
+                }}
+              >
+                <option value="">Merge from…</option>
+                {multiverse.universes.filter((u) => u.id !== multiverse.activeUniverseId).map((u) => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+              <button type="button" onClick={() => multiverse.universes.length > 1 && multiverse.destroy(multiverse.activeUniverseId!)} disabled={multiverse.universes.length <= 1} className="rounded border border-red-200 px-3 py-2 text-sm hover:bg-red-50 disabled:opacity-50">Destroy current</button>
+            </div>
+          </section>
+          <GodModeActions sim={sim} onAction={() => setGodModeUsed(true)} />
+          <MultiverseGraph
+            universes={multiverse.universes}
+            activeUniverseId={multiverse.activeUniverseId}
+            onSelectUniverse={multiverse.setActiveUniverseId}
+            onScrubTimeline={multiverse.setTimelineStep != null ? (_id, step) => multiverse.setTimelineStep(step) : undefined}
+            history={sim.history}
+            hasDistortion={godModeUsed}
+          />
+          <ChaosPresets sim={sim} onOutcome={(name, msg) => { setGodModeUsed(true); setToast(`${name}: ${msg}`); }} />
+        </>
+      ) : (
+        <TrustChart history={sim.history} />
+      )}
 
       {/* 3. Workforce Simulation */}
       <section className="space-y-3">
@@ -356,6 +425,7 @@ export default function PlaygroundClient() {
 
       <TrustLabHelp open={showHelp} onClose={() => setShowHelp(false)} />
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+      </div>
     </div>
   );
 }
