@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback } from "react";
+import type { SimulationDelta } from "@/lib/trust/types";
 
 type SimLike = {
   addReview: (r: unknown) => void;
   removeReview: (id: string) => void;
-  setDelta: (d: unknown) => void;
+  setDelta: (d: SimulationDelta) => void;
   setThreshold: (n: number) => void;
-  delta: { addedReviews: unknown[]; removedReviewIds: string[] };
+  delta: SimulationDelta | null;
   applyToActive?: (fn: (d: unknown) => unknown) => void;
 };
 
@@ -35,7 +36,7 @@ export function GodModeActions({ sim, onAction }: Props) {
 
   const mutateSignal = useCallback(() => {
     run(() => {
-    const reviews = (sim.delta?.addedReviews ?? []) as { id: string; weight?: number }[];
+    const reviews = sim.delta?.addedReviews ?? [];
     if (reviews.length === 0) return;
     const mutated = reviews.map((r) =>
       r.id.startsWith("god-")
@@ -43,7 +44,7 @@ export function GodModeActions({ sim, onAction }: Props) {
         : r
     );
     sim.setDelta({
-      ...sim.delta,
+      ...(sim.delta ?? {}),
       addedReviews: mutated,
       removedReviewIds: sim.delta?.removedReviewIds ?? [],
     });
@@ -52,13 +53,13 @@ export function GodModeActions({ sim, onAction }: Props) {
 
   const backdateSignal = useCallback(() => {
     run(() => {
-    const reviews = (sim.delta?.addedReviews ?? []) as { id: string; timestamp?: number }[];
+    const reviews = sim.delta?.addedReviews ?? [];
     const backdated = reviews.map((r) => ({
       ...r,
       timestamp: (r.timestamp ?? Date.now()) - 86400000 * 30,
     }));
     sim.setDelta({
-      ...sim.delta,
+      ...(sim.delta ?? {}),
       addedReviews: backdated,
       removedReviewIds: sim.delta?.removedReviewIds ?? [],
     });
@@ -67,7 +68,7 @@ export function GodModeActions({ sim, onAction }: Props) {
 
   const deleteLastSignal = useCallback(() => {
     run(() => {
-    const reviews = (sim.delta?.addedReviews ?? []) as { id: string }[];
+    const reviews = sim.delta?.addedReviews ?? [];
     if (reviews.length === 0) return;
     const last = reviews[reviews.length - 1];
     sim.removeReview(last.id);
@@ -79,21 +80,21 @@ export function GodModeActions({ sim, onAction }: Props) {
     sim.setThreshold(0);
     sim.setDelta({
       addedReviews: [],
-      removedReviewIds: (sim.delta?.addedReviews ?? []).map((r: { id?: string }) => r.id).filter(Boolean) as string[],
+      removedReviewIds: (sim.delta?.addedReviews ?? []).map((r) => r.id).filter(Boolean),
     });
   });
   }, [sim, run]);
 
   const fakeConsensus = useCallback(() => {
     run(() => {
-    const base = (sim.delta?.addedReviews ?? []) as unknown[];
+    const base = sim.delta?.addedReviews ?? [];
     const fake = [
       { id: `god-consensus-${Date.now()}-1`, source: "peer", weight: 1, timestamp: Date.now() },
       { id: `god-consensus-${Date.now()}-2`, source: "peer", weight: 1, timestamp: Date.now() },
       { id: `god-consensus-${Date.now()}-3`, source: "supervisor", weight: 1, timestamp: Date.now() },
     ];
     sim.setDelta({
-      ...sim.delta,
+      ...(sim.delta ?? {}),
       addedReviews: [...base, ...fake],
       removedReviewIds: sim.delta?.removedReviewIds ?? [],
     });

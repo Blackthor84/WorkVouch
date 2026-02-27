@@ -223,6 +223,7 @@ export interface Review {
   source: ReviewSource;
   weight: number;
   timestamp: number;
+  [key: string]: unknown;
 }
 
 export interface TrustSnapshot {
@@ -232,8 +233,8 @@ export interface TrustSnapshot {
   reviews: Review[];
 }
 
-export interface SimulationDelta {
+export type SimulationDelta = {
   addedReviews?: Review[];
   removedReviewIds?: string[];
   thresholdOverride?: number;
-}
+};

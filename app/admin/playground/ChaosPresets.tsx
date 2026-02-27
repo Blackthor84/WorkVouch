@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback } from "react";
+import type { SimulationDelta } from "@/lib/trust/types";
 
 type SimLike = {
-  setDelta: (d: unknown) => void;
+  setDelta: (d: SimulationDelta) => void;
   addReview: (r: unknown) => void;
   setThreshold: (n: number) => void;
-  delta: { addedReviews: unknown[]; removedReviewIds: string[] };
+  delta: SimulationDelta | null;
 };
 
 type Props = {
@@ -33,7 +34,7 @@ function runZombieStartup(sim: SimLike) {
   sim.setThreshold(0);
   sim.setDelta({
     addedReviews: [],
-    removedReviewIds: (sim.delta?.addedReviews ?? []).map((r: { id?: string }) => r.id).filter(Boolean),
+    removedReviewIds: (sim.delta?.addedReviews ?? []).map((r) => r.id).filter(Boolean),
   });
   sim.addReview({
     id: `zombie-${Date.now()}`,

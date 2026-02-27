@@ -1,12 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import type { SimulationDelta, Review } from "./types";
 
-export type SimulationDelta = {
-  addedReviews: any[];
-  removedReviewIds: string[];
-  thresholdOverride?: number;
-};
+export type { SimulationDelta, Review } from "./types";
 
 export function useSimulation() {
   const [delta, setDelta] = useState<SimulationDelta>({
@@ -24,7 +21,7 @@ export function useSimulation() {
       setDelta(() => next);
     },
 
-    addReview(review: any) {
+    addReview(review: Review) {
       setDelta((d) => ({
         ...d,
         addedReviews: [...d.addedReviews, review],
