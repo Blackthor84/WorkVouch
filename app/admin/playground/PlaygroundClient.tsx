@@ -9,7 +9,7 @@ import { ExecDashboard } from "./ExecDashboard";
 import { mockEmployees } from "@/lib/employees/mock";
 import { loadScenarios } from "@/lib/scenarios/loadScenario";
 import { exportCSV, scenarioReport } from "@/lib/exports/exportCSV";
-import { exportPDF } from "@/lib/exports/exportPDF";
+import { exportPDF } from "@/lib/client/exportPDF";
 import { logPlaygroundAudit } from "@/lib/playground/auditClient";
 import { useSimulation } from "@/lib/trust/useSimulation";
 import { simulateTrust } from "@/lib/trust/simulator";

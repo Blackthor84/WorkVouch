@@ -27,6 +27,7 @@
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "framer-motion": "^11.18.2",
+    "jspdf": "^4.2.0",
     "mammoth": "^1.11.0",
     "next": "^16.1.4",
     "openai": "^6.16.0",
