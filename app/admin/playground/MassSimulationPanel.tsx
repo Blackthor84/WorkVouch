@@ -33,6 +33,7 @@ export function MassSimulationPanel({ employees, onExportImpactReport }: Props) 
       : results.reduce((s, r) => s + r.trustScore, 0) / results.length;
 
   const handleRun = () => {
+    console.log("Running mass simulation", employees);
     logPlaygroundAudit("mass_simulation_run", { employeeCount: employees.length });
   };
 

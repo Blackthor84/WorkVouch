@@ -11,6 +11,7 @@ import { saveScenario } from "@/lib/scenarios/saveScenario";
 import { loadScenarios } from "@/lib/scenarios/loadScenario";
 import { exportCSV, scenarioReport } from "@/lib/exports/exportCSV";
 import { logPlaygroundAudit } from "@/lib/playground/auditClient";
+import { useSimulation } from "@/lib/trust/useSimulation";
 import { simulateTrust } from "@/lib/trust/simulator";
 import {
   PAGE,
@@ -52,7 +53,7 @@ export default function PlaygroundClient() {
         name: scenarioName.trim(),
         industry,
         employeeIds: mockEmployees.map((e) => e.id),
-        delta: { addedReviews: [] },
+        delta: sim.delta,
       });
       await logPlaygroundAudit("scenario_saved", {
         name: scenarioName.trim(),
@@ -64,7 +65,7 @@ export default function PlaygroundClient() {
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : "Save failed");
     }
-  }, [scenarioName, industry, handleLoadScenarios]);
+  }, [scenarioName, industry, sim.delta, handleLoadScenarios]);
 
   const handleCompareToCurrent = useCallback(() => {
     logPlaygroundAudit("compare_to_current", { scenarioName: scenarioName || null });
@@ -111,6 +112,7 @@ export default function PlaygroundClient() {
                 threshold={threshold}
                 industry={industry}
                 onIndustryChange={setIndustry}
+                sim={sim}
               />
             ))}
           </div>

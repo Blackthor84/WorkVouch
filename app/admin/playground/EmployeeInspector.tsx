@@ -1,8 +1,8 @@
 "use client";
 
 import { simulateTrust } from "@/lib/trust/simulator";
-import { useState } from "react";
-import type { TrustSnapshot, SimulationDelta } from "@/lib/trust/types";
+import { useSimulation } from "@/lib/trust/useSimulation";
+import type { TrustSnapshot } from "@/lib/trust/types";
 import {
   EMPLOYEE_PROFILE,
   CURRENT_TRUST_STATE,
@@ -27,42 +27,17 @@ export function EmployeeInspector({
   industry,
   onIndustryChange,
 }: Props) {
-  const [delta, setDelta] = useState<SimulationDelta>({});
-  const simulated = simulateTrust(employee.trust, delta);
+  const sim = useSimulation();
+  const simulated = simulateTrust(employee.trust, {
+    addedReviews: sim.delta.addedReviews,
+    removedReviewIds: sim.delta.removedReviewIds,
+    thresholdOverride: sim.delta.thresholdOverride,
+  });
   const verificationCount = employee.trust.reviews.length;
   const riskFlags = 0; // immutable record; no flags in snapshot for now
   const meetsThreshold = simulated.trustScore >= threshold;
   const riskDelta = 0; // derived if we had risk flags before/after
-
-  const addVerification = () => {
-    setDelta((d) => ({
-      ...d,
-      addedReviews: [
-        ...(d.addedReviews ?? []),
-        {
-          id: crypto.randomUUID(),
-          source: "supervisor" as const,
-          weight: 2,
-          timestamp: Date.now(),
-        },
-      ],
-    }));
-  };
-
-  const removeLastSignal = () => {
-    setDelta((d) => {
-      const added = d.addedReviews ?? [];
-      if (added.length === 0) return d;
-      return {
-        ...d,
-        addedReviews: added.slice(0, -1),
-      };
-    });
-  };
-
-  const resetSimulation = () => setDelta({});
-
-  const addedCount = delta.addedReviews?.length ?? 0;
+  const addedCount = sim.delta.addedReviews.length;
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-4 space-y-6">
@@ -97,14 +72,21 @@ export function EmployeeInspector({
         <div className="mt-3 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={addVerification}
+            onClick={() =>
+              sim.addReview({
+                id: crypto.randomUUID(),
+                source: "supervisor",
+                weight: 2,
+                timestamp: Date.now(),
+              })
+            }
             className="rounded bg-slate-700 text-white px-3 py-2 text-sm hover:bg-slate-800"
           >
-            {SIMULATED_CHANGES.addVerification}
+            Add Supervisor Verification
           </button>
           <button
             type="button"
-            onClick={removeLastSignal}
+            onClick={() => sim.removeLastAddedReview()}
             disabled={addedCount === 0}
             className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
           >
@@ -118,11 +100,11 @@ export function EmployeeInspector({
           )}
           <button
             type="button"
-            onClick={resetSimulation}
+            onClick={() => sim.reset()}
             disabled={addedCount === 0}
             className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
           >
-            {SIMULATED_CHANGES.resetSimulation}
+            Reset Simulation
           </button>
         </div>
       </div>
