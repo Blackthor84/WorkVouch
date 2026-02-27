@@ -38,9 +38,34 @@ export function useSimulation() {
     [snapshot, currentIndex]
   );
 
+  /** Commit a delta and always push a new snapshot (lab: force commit, no equality short-circuit). */
+  const commitDelta = useCallback(
+    (delta: SimulationDelta, _options: { force?: boolean } = {}) => {
+      const next = applyDelta(snapshot, { ...delta, timestamp: delta.timestamp ?? Date.now() });
+      setHistory((prev) => [...prev.slice(0, currentIndex + 1), next]);
+      setCurrentIndex((prev) => prev + 1);
+    },
+    [snapshot, currentIndex]
+  );
+
+  const applyToActive = useCallback(
+    (fn: (d: SimulationDelta) => SimulationDelta) => {
+      const next = fn(snapshotToDelta(snapshot));
+      setDelta(next);
+    },
+    [snapshot, setDelta]
+  );
+
+  const setTimelineStep = useCallback(
+    (step: number) => {
+      if (step >= 0 && step < history.length) setCurrentIndex(step);
+    },
+    [history.length]
+  );
+
   const addReview = useCallback(
-    (review: Review) => {
-      setDelta({ addedReviews: [review], timestamp: Date.now() });
+    (r: unknown) => {
+      setDelta({ addedReviews: [r as Review], timestamp: Date.now() });
     },
     [setDelta]
   );
@@ -93,6 +118,9 @@ export function useSimulation() {
     setSnapshot,
     setSnapshotByIndex,
     setDelta,
+    commitDelta,
+    applyToActive,
+    setTimelineStep,
     addReview,
     removeReview,
     removeLastAddedReview,

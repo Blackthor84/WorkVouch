@@ -1,9 +1,42 @@
 "use client";
 
 import { simulateTrust } from "@/lib/trust/simulator";
+import type { TrustSnapshot } from "@/lib/trust/types";
+import type { SimLike } from "@/lib/trust/simLike";
+import type { SimulationAction } from "@/lib/trust/simulationActions";
+import { executeAction } from "@/lib/trust/simulationActions";
 
-export function EmployeeInspector({ employee, sim }: { employee: any; sim: any }) {
-  const simulated = simulateTrust(employee.trust, sim.delta);
+type Employee = {
+  id: string;
+  name: string;
+  department?: string;
+  role?: string;
+  trust: { trustScore: number; confidenceScore: number; networkStrength: number; reviews: unknown[] };
+};
+
+export function EmployeeInspector({
+  employee,
+  sim,
+  execute: executeProp,
+}: {
+  employee: Employee;
+  sim: SimLike;
+  execute?: (action: SimulationAction) => boolean | { ok: boolean };
+}) {
+  const simulated = simulateTrust(employee.trust as TrustSnapshot, sim.delta ?? { addedReviews: [], removedReviewIds: [] });
+
+  const addSupervisorVerification = () => {
+    const action: SimulationAction = {
+      type: "add_review",
+      review: {
+        id: crypto.randomUUID(),
+        source: "supervisor",
+        weight: 2,
+        timestamp: Date.now(),
+      },
+    };
+    (executeProp ? executeProp(action) : executeAction(sim, action));
+  };
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-4 space-y-4 mb-6">
@@ -25,14 +58,7 @@ export function EmployeeInspector({ employee, sim }: { employee: any; sim: any }
 
       <button
         type="button"
-        onClick={() =>
-          sim.addReview({
-            id: crypto.randomUUID(),
-            source: "supervisor",
-            weight: 2,
-            timestamp: Date.now(),
-          })
-        }
+        onClick={addSupervisorVerification}
         className="rounded bg-slate-700 text-white px-3 py-2 text-sm hover:bg-slate-800"
       >
         Add Supervisor Verification

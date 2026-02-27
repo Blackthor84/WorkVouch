@@ -5,15 +5,18 @@ import { logPlaygroundAudit } from "@/lib/playground/auditClient";
 import { exportCSV, scenarioReport } from "@/lib/client/exportCSV";
 import { WORKFORCE_SIMULATION } from "@/lib/playground/copy";
 import type { TrustSnapshot } from "@/lib/trust/types";
+import type { SimulationAction } from "@/lib/trust/simulationActions";
 
 type Employee = { id: string; name: string; trust: TrustSnapshot };
 
 type Props = {
   employees: Employee[];
   onExportImpactReport?: () => void;
+  /** When provided, Run and Policy Adjustment commit a snapshot so the timeline advances. */
+  execute?: (action: SimulationAction) => boolean | { ok: boolean };
 };
 
-export function MassSimulationPanel({ employees, onExportImpactReport }: Props) {
+export function MassSimulationPanel({ employees, onExportImpactReport, execute }: Props) {
   const results = employees.map((e) =>
     simulateTrust(e.trust, {
       addedReviews: [
@@ -33,12 +36,13 @@ export function MassSimulationPanel({ employees, onExportImpactReport }: Props) 
       : results.reduce((s, r) => s + r.trustScore, 0) / results.length;
 
   const handleRun = () => {
-    console.log("Running mass simulation", employees);
     logPlaygroundAudit("mass_simulation_run", { employeeCount: employees.length });
+    if (execute) execute({ type: "bulk_delta", delta: { timestamp: Date.now(), notes: "Workforce simulation run" } });
   };
 
   const handlePolicyAdjustment = () => {
     logPlaygroundAudit("policy_adjustment", { employeeCount: employees.length });
+    if (execute) execute({ type: "bulk_delta", delta: { timestamp: Date.now(), notes: "Policy adjustment" } });
   };
 
   const handleExportImpact = () => {

@@ -1,43 +1,92 @@
-import type { Snapshot, SimulationDelta, Review } from "./types";
-import { calculateTrust } from "./calculateTrust";
-
 /**
  * Reducer: apply a delta to the previous snapshot to produce the next snapshot.
- * All simulation actions (chaos presets, god mode, injections) produce deltas
- * and apply through this; history stores Snapshots only.
+ * Delegates to the simulation engine; ALL engines run (trust, confidence, risk, fragility, debt, compliance, culture).
+ * History stores Snapshots only. No engine may be skipped.
  */
-export function applyDelta(prev: Snapshot, delta: SimulationDelta): Snapshot {
-  let reviews: Review[] = [...prev.reviews];
 
-  if (delta.removedReviewIds && delta.removedReviewIds.length > 0) {
-    reviews = reviews.filter((r) => !delta.removedReviewIds!.includes(r.id));
-  }
+import type { Snapshot, SimulationDelta, Review } from "./types";
+import { applyDelta as engineApplyDelta, createInitialSnapshot as engineCreateInitialSnapshot } from "@/lib/simulation-engine";
 
-  if (delta.addedReviews && delta.addedReviews.length > 0) {
-    reviews = reviews.concat(delta.addedReviews);
-  }
+function toEngineReview(r: Review): { id: string; source: Review["source"]; weight: number; timestamp: number } {
+  return { id: r.id, source: r.source, weight: r.weight, timestamp: r.timestamp };
+}
 
-  const trustSnapshot = { ...prev, reviews };
-  const { trustScore, confidenceScore } = calculateTrust(trustSnapshot);
-  const networkStrength = reviews.length;
-
+function toEngineSnapshot(prev: Snapshot): {
+  timestamp: number;
+  reviews: { id: string; source: Review["source"]; weight: number; timestamp: number }[];
+  trustScore: number;
+  confidenceScore: number;
+  networkStrength: number;
+  metadata?: Snapshot["metadata"];
+} {
   return {
-    timestamp: delta.timestamp ?? Date.now(),
-    reviews,
-    trustScore,
-    confidenceScore,
-    networkStrength,
+    timestamp: prev.timestamp,
+    reviews: prev.reviews.map(toEngineReview),
+    trustScore: prev.trustScore,
+    confidenceScore: prev.confidenceScore,
+    networkStrength: prev.networkStrength,
+    metadata: prev.metadata
+      ? {
+          actionType: prev.metadata.actionType ?? "unknown",
+          actor: prev.metadata.actor ?? "system",
+          universeId: prev.metadata.universeId ?? null,
+          notes: prev.metadata.notes,
+        }
+      : undefined,
   };
 }
 
-/** Create an empty initial snapshot. */
-export function createInitialSnapshot(timestamp?: number): Snapshot {
-  const t = timestamp ?? Date.now();
+function toEngineDelta(delta: SimulationDelta): {
+  timestamp?: number;
+  addedReviews?: { id: string; source: Review["source"]; weight: number; timestamp: number }[];
+  removedReviewIds?: string[];
+  thresholdOverride?: number;
+  scoreOverride?: number;
+  intentModifiers?: { humanErrorRate?: number; intentBias?: number; decayMultiplier?: number; supervisorWeightOverride?: number };
+  notes?: string;
+  metadata?: { actionType: string; actor: string; universeId: string | null; notes?: string };
+} {
   return {
-    timestamp: t,
-    reviews: [],
-    trustScore: 0,
-    confidenceScore: 0,
-    networkStrength: 0,
+    timestamp: delta.timestamp,
+    addedReviews: delta.addedReviews?.map(toEngineReview),
+    removedReviewIds: delta.removedReviewIds,
+    thresholdOverride: delta.thresholdOverride,
+    scoreOverride: delta.scoreOverride,
+    intentModifiers: delta.intentModifiers
+      ? {
+          humanErrorRate: typeof delta.intentModifiers.humanErrorRate === "number" ? delta.intentModifiers.humanErrorRate : undefined,
+          intentBias: typeof delta.intentModifiers.intentBias === "number" ? delta.intentModifiers.intentBias : undefined,
+          decayMultiplier: typeof delta.intentModifiers.decayMultiplier === "number" ? delta.intentModifiers.decayMultiplier : undefined,
+          supervisorWeightOverride: typeof delta.intentModifiers.supervisorWeightOverride === "number" ? delta.intentModifiers.supervisorWeightOverride : undefined,
+        }
+      : undefined,
+    notes: delta.notes,
+    metadata: delta.metadata
+      ? { actionType: delta.metadata.actionType ?? "unknown", actor: delta.metadata.actor ?? "system", universeId: delta.metadata.universeId ?? null, notes: delta.metadata.notes }
+      : undefined,
   };
+}
+
+function fromEngineSnapshot(next: ReturnType<typeof engineApplyDelta>): Snapshot {
+  return {
+    timestamp: next.timestamp,
+    reviews: next.reviews as Review[],
+    trustScore: next.trustScore,
+    confidenceScore: next.confidenceScore,
+    networkStrength: next.networkStrength,
+    metadata: next.metadata,
+    engineOutputs: next.engineOutputs,
+  };
+}
+
+export function applyDelta(prev: Snapshot, delta: SimulationDelta): Snapshot {
+  const enginePrev = toEngineSnapshot(prev) as Parameters<typeof engineApplyDelta>[0];
+  const engineDelta = toEngineDelta(delta) as Parameters<typeof engineApplyDelta>[1];
+  const next = engineApplyDelta(enginePrev, engineDelta);
+  return fromEngineSnapshot(next);
+}
+
+export function createInitialSnapshot(timestamp?: number): Snapshot {
+  const next = engineCreateInitialSnapshot(timestamp);
+  return fromEngineSnapshot(next);
 }

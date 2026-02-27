@@ -1,93 +1,26 @@
 "use client";
 
 import { useCallback } from "react";
-import type { SimulationDelta, Review } from "@/lib/trust/types";
 import type { SimLike } from "@/lib/trust/simLike";
-import { createReview } from "@/lib/simulation/reviewFactory";
+import type { SimulationAction } from "@/lib/trust/simulationActions";
+import { executeAction } from "@/lib/trust/simulationActions";
 
 type Props = {
   sim: SimLike;
   onAction?: () => void;
+  /** When provided, used instead of executeAction(sim, action) for unified audit. */
+  execute?: (action: SimulationAction) => boolean | { ok: boolean };
 };
 
-export function GodModeActions({ sim, onAction }: Props) {
-  const run = useCallback((fn: () => void) => {
-    fn();
-    onAction?.();
-  }, [onAction]);
-
-  const injectSignal = useCallback(() => {
-    run(() => {
-    sim.addReview(createReview({ source: "supervisor", weight: 2 }));
-  });
-  }, [sim, run]);
-
-  const mutateSignal = useCallback(() => {
-    run(() => {
-    const reviews: Review[] = sim.delta?.addedReviews ?? [];
-    if (reviews.length === 0) return;
-    const mutated = reviews.map((r) =>
-      r.id.startsWith("god-")
-        ? { ...r, weight: (r.weight ?? 1) + 1 }
-        : r
-    );
-    sim.setDelta({
-      ...(sim.delta ?? {}),
-      addedReviews: mutated,
-      removedReviewIds: sim.delta?.removedReviewIds ?? [],
-    });
-  });
-  }, [sim, run]);
-
-  const backdateSignal = useCallback(() => {
-    run(() => {
-    const reviews: Review[] = sim.delta?.addedReviews ?? [];
-    const backdated = reviews.map((r) => ({
-      ...r,
-      timestamp: (r.timestamp ?? Date.now()) - 86400000 * 30,
-    }));
-    sim.setDelta({
-      ...(sim.delta ?? {}),
-      addedReviews: backdated,
-      removedReviewIds: sim.delta?.removedReviewIds ?? [],
-    });
-  });
-  }, [sim, run]);
-
-  const deleteLastSignal = useCallback(() => {
-    run(() => {
-    const reviews: Review[] = sim.delta?.addedReviews ?? [];
-    if (reviews.length === 0) return;
-    const last = reviews[reviews.length - 1];
-    sim.removeReview(last.id);
-  });
-  }, [sim, run]);
-
-  const trustCollapse = useCallback(() => {
-    run(() => {
-    sim.setThreshold(0);
-    sim.setDelta({
-      addedReviews: [],
-      removedReviewIds: (sim.delta?.addedReviews ?? []).map((r) => r.id).filter(Boolean),
-    });
-  });
-  }, [sim, run]);
-
-  const fakeConsensus = useCallback(() => {
-    run(() => {
-    const base: Review[] = sim.delta?.addedReviews ?? [];
-    const fake: Review[] = [
-      createReview({ source: "synthetic", weight: 0.9 }),
-      createReview({ source: "synthetic", weight: 0.9 }),
-      createReview({ source: "synthetic", weight: 0.9 }),
-    ];
-    sim.setDelta({
-      ...(sim.delta ?? {}),
-      addedReviews: [...base, ...fake],
-      removedReviewIds: sim.delta?.removedReviewIds ?? [],
-    });
-  });
-  }, [sim, run]);
+export function GodModeActions({ sim, onAction, execute: executeProp }: Props) {
+  const run = useCallback(
+    (action: SimulationAction) => {
+      const result = executeProp ? executeProp(action) : executeAction(sim, action);
+      const ok = typeof result === "boolean" ? result : result.ok;
+      if (ok) onAction?.();
+    },
+    [sim, onAction, executeProp]
+  );
 
   return (
     <div className="rounded-lg border border-amber-300 bg-amber-50/80 p-4">
@@ -96,42 +29,42 @@ export function GodModeActions({ sim, onAction }: Props) {
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={injectSignal}
+          onClick={() => run({ type: "inject_signal", weight: 2 })}
           className="rounded border border-amber-600 bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-200"
         >
           Inject Signal
         </button>
         <button
           type="button"
-          onClick={mutateSignal}
+          onClick={() => run({ type: "mutate_signal" })}
           className="rounded border border-amber-600 bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-200"
         >
           Mutate Signal
         </button>
         <button
           type="button"
-          onClick={backdateSignal}
+          onClick={() => run({ type: "backdate_signal", daysBack: 30 })}
           className="rounded border border-amber-600 bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-200"
         >
           Backdate Signal
         </button>
         <button
           type="button"
-          onClick={deleteLastSignal}
+          onClick={() => run({ type: "delete_last_signal" })}
           className="rounded border border-amber-600 bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-200"
         >
           Delete Last Signal
         </button>
         <button
           type="button"
-          onClick={trustCollapse}
+          onClick={() => run({ type: "trust_collapse" })}
           className="rounded border border-red-600 bg-red-100 px-3 py-1.5 text-xs font-medium text-red-900 hover:bg-red-200"
         >
           Trust Collapse
         </button>
         <button
           type="button"
-          onClick={fakeConsensus}
+          onClick={() => run({ type: "fake_consensus", count: 3 })}
           className="rounded border border-amber-600 bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-200"
         >
           Fake Consensus

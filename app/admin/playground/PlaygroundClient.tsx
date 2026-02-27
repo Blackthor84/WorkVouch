@@ -39,6 +39,15 @@ import {
 import type { Industry } from "@/lib/industries";
 import { INDUSTRY_THRESHOLDS } from "@/lib/industries";
 import type { SimulationDelta, Review } from "@/lib/trust/types";
+import type { SimulationAction } from "@/lib/trust/simulationActions";
+import { executeAction } from "@/lib/trust/simulationActions";
+import type { LabAuditEntry } from "./auditTypes";
+import { AuditLogPanel } from "./AuditLogPanel";
+import { LabDebugPanel } from "./LabDebugPanel";
+import { SimulationDataBuilder } from "./SimulationDataBuilder";
+import { PopulationSimulationTable, type PopulationEmployee } from "./PopulationSimulationTable";
+import { GroupHiringSimulator } from "./GroupHiringSimulator";
+import { DecisionTrainer } from "./DecisionTrainer";
 
 export default function PlaygroundClient() {
   const { role } = useAuth();
@@ -47,8 +56,12 @@ export default function PlaygroundClient() {
   const multiverse = useMultiverse();
   const sim = multiverseMode ? multiverse : simBase;
   const [showHelp, setShowHelp] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
   const [godModeUsed, setGodModeUsed] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [auditEntries, setAuditEntries] = useState<LabAuditEntry[]>([]);
+  const [lastAction, setLastAction] = useState<SimulationAction | null>(null);
+  const [lastDelta, setLastDelta] = useState<SimulationDelta | null>(null);
 
   useEffect(() => {
     const handler = (e: Event) => setToast((e as CustomEvent).detail ?? "Done");
@@ -57,7 +70,7 @@ export default function PlaygroundClient() {
   }, []);
   const [industry, setIndustry] = useState<Industry>("healthcare");
   const [scenarioName, setScenarioName] = useState("");
-  const [savedScenarios, setSavedScenarios] = useState<any[]>([]);
+  const [savedScenarios, setSavedScenarios] = useState<{ id: string; name: string; delta?: unknown; simulation_delta?: unknown; tags?: string[] }[]>([]);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [compareLeftId, setCompareLeftId] = useState<string>("");
   const [compareRightId, setCompareRightId] = useState<string>("");
@@ -82,6 +95,35 @@ export default function PlaygroundClient() {
       thresholdOverride: typeof x?.thresholdOverride === "number" ? x.thresholdOverride : undefined,
     };
   }, []);
+
+  const executeWithAudit = useCallback(
+    (action: SimulationAction): boolean | { ok: boolean } => {
+      const beforeSnapshotId = `${sim.snapshot.timestamp}-${sim.snapshot.reviews.length}`;
+      const result = executeAction(sim, action);
+      if (result.ok) {
+        setLastAction(action);
+        if (result.delta) setLastDelta(result.delta);
+        const afterSnapshotId = result.delta
+          ? `${result.delta.timestamp ?? Date.now()}-${sim.snapshot.reviews.length + (result.delta.addedReviews?.length ?? 0) - (result.delta.removedReviewIds?.length ?? 0)}`
+          : undefined;
+        setAuditEntries((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            action: action.type,
+            actor: "user",
+            timestamp: new Date().toISOString(),
+            universeId: multiverseMode && (multiverse as { activeUniverseId?: string | null }).activeUniverseId != null ? (multiverse as { activeUniverseId: string | null }).activeUniverseId : null,
+            beforeSnapshotId,
+            afterSnapshotId,
+            notes: result.delta?.metadata?.notes ?? ("notes" in action ? (action as { notes?: string }).notes : undefined),
+          },
+        ]);
+      }
+      return result;
+    },
+    [sim, multiverseMode, multiverse]
+  );
 
   const handleLoadScenarios = useCallback(async () => {
     try {
@@ -126,14 +168,10 @@ export default function PlaygroundClient() {
 
   const handleReplayScenario = useCallback(
     (delta: unknown) => {
-      if ("replayScenario" in sim && typeof sim.replayScenario === "function") {
-        sim.replayScenario(normalizeDelta(delta));
-      } else {
-        sim.setDelta(normalizeDelta(delta));
-      }
+      executeWithAudit({ type: "replay_scenario", delta: normalizeDelta(delta) });
       setToast("Scenario replayed");
     },
-    [sim, normalizeDelta]
+    [executeWithAudit, normalizeDelta]
   );
 
   const handleCompareToCurrent = useCallback(() => {
@@ -169,10 +207,10 @@ export default function PlaygroundClient() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => alert("Playground is interactive.")}
+              onClick={() => setShowDebug((v) => !v)}
               className="rounded border border-amber-400 bg-amber-50 px-3 py-2 text-sm hover:bg-amber-100"
             >
-              Debug
+              {showDebug ? "Hide debug" : "Debug"}
             </button>
             <button
               type="button"
@@ -187,6 +225,17 @@ export default function PlaygroundClient() {
         <p className="text-sm text-slate-500 mt-2">{PAGE.helperText}</p>
       </header>
 
+      {showDebug && (
+        <LabDebugPanel
+          lastAction={lastAction}
+          lastDelta={lastDelta}
+          lastEngineOutputs={sim.snapshot?.engineOutputs}
+          snapshotCount={sim.history.length}
+          universeId={multiverseMode && "activeUniverseId" in multiverse ? (multiverse as { activeUniverseId: string | null }).activeUniverseId ?? null : null}
+          visible={showDebug}
+        />
+      )}
+
       {/* 1. Employee Trust Profile */}
       <section className="space-y-3">
         <div>
@@ -198,7 +247,7 @@ export default function PlaygroundClient() {
         <div className="space-y-4">
           <Filters departments={departments} roles={roles} onFilter={(key, value) => (key === "dept" ? setFilterDept(value) : setFilterRole(value))} />
           {filteredEmployees.map((e) => (
-            <EmployeeInspector key={e.id} employee={e} sim={sim} />
+            <EmployeeInspector key={e.id} employee={e} sim={sim} execute={executeWithAudit} />
           ))}
         </div>
       </section>
@@ -221,7 +270,7 @@ export default function PlaygroundClient() {
             <button
               type="button"
               onClick={() => {
-                sim.saveSnapshot();
+                executeWithAudit({ type: "save_snapshot" });
                 setToast("Simulation snapshot saved");
               }}
               className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
@@ -328,8 +377,10 @@ export default function PlaygroundClient() {
                 defaultValue=""
                 onChange={(e) => {
                   const fromId = e.target.value;
-                  if (fromId && multiverse.activeUniverseId) multiverse.merge(multiverse.activeUniverseId, fromId);
                   e.target.value = "";
+                  if (fromId && multiverse.activeUniverseId && confirm("Merge will replace the current universe timeline with the selected one. Continue?")) {
+                    multiverse.merge(multiverse.activeUniverseId, fromId);
+                  }
                 }}
               >
                 <option value="">Merge from…</option>
@@ -340,7 +391,7 @@ export default function PlaygroundClient() {
               <button type="button" onClick={() => multiverse.universes.length > 1 && multiverse.destroy(multiverse.activeUniverseId!)} disabled={multiverse.universes.length <= 1} className="rounded border border-red-200 px-3 py-2 text-sm hover:bg-red-50 disabled:opacity-50">Destroy current</button>
             </div>
           </section>
-          <GodModeActions sim={multiverse} onAction={() => setGodModeUsed(true)} />
+          <GodModeActions sim={multiverse} onAction={() => setGodModeUsed(true)} execute={executeWithAudit} />
           <MultiverseGraph
             universes={multiverse.universes}
             activeUniverseId={multiverse.activeUniverseId}
@@ -349,7 +400,7 @@ export default function PlaygroundClient() {
             history={sim.history}
             hasDistortion={godModeUsed}
           />
-          <ChaosPresets sim={multiverse} onOutcome={(name, msg) => { setGodModeUsed(true); setToast(`${name}: ${msg}`); }} />
+          <ChaosPresets sim={multiverse} onOutcome={(name, msg) => { setGodModeUsed(true); setToast(`${name}: ${msg}`); }} execute={executeWithAudit} />
         </>
       ) : (
         <TrustChart history={sim.history} />
@@ -364,7 +415,7 @@ export default function PlaygroundClient() {
           </p>
         </div>
         <SimulationPanel industry={industry} onIndustryChange={setIndustry} />
-        <MassSimulationPanel employees={mockEmployees} />
+        <MassSimulationPanel employees={mockEmployees} execute={executeWithAudit} />
       </section>
 
       {/* 4. Culture & Compliance */}
@@ -391,10 +442,29 @@ export default function PlaygroundClient() {
       </section>
 
       {/* 5. Audit Log */}
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-slate-900">{AUDIT_LOG.title}</h2>
-        <p className="text-sm text-slate-600">{AUDIT_LOG.subtext}</p>
-      </section>
+      <AuditLogPanel entries={auditEntries} />
+
+      {/* Simulation Data Builder & Population */}
+      <SimulationDataBuilder />
+      <PopulationSimulationTable
+        employees={mockEmployees.map((e: { id: string; name: string; department?: string; role?: string; trust: { trustScore: number; confidenceScore: number; reviews?: unknown[] } }) => ({
+          id: e.id,
+          name: e.name,
+          role: e.role,
+          department: e.department,
+          trustScore: e.trust.trustScore,
+          confidenceScore: e.trust.confidenceScore,
+          reviewCount: Array.isArray(e.trust.reviews) ? e.trust.reviews.length : 0,
+        }))}
+      />
+
+      {/* Group Hiring & Decision Trainer (when multiverse/god mode) */}
+      {(multiverseMode || godMode) && (
+        <>
+          <GroupHiringSimulator sim={sim} execute={executeWithAudit} />
+          <DecisionTrainer sim={sim} execute={executeWithAudit} />
+        </>
+      )}
 
       {/* 6. Flagship demo (Healthcare Hiring Risk Simulation) */}
       <details className="rounded-lg border border-slate-200 bg-slate-50 p-4">

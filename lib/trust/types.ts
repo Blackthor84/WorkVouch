@@ -233,6 +233,25 @@ export interface TrustSnapshot {
   reviews: Review[];
 }
 
+/** Metadata attached to a snapshot for audit and replay. */
+export interface SnapshotMetadata {
+  actionType?: string;
+  actor?: string;
+  universeId?: string | null;
+  notes?: string;
+}
+
+/** Engine outputs from reducer pipeline; every snapshot has these after applyDelta. */
+export interface EngineOutputs {
+  trustScore: number;
+  confidenceScore: number;
+  riskScore: number;
+  fragilityScore: number;
+  trustDebt: number;
+  complianceScore: number;
+  cultureImpactScore: number;
+}
+
 /** Point-in-time simulation state. UI consumes Snapshots; history is Snapshot[]. */
 export interface Snapshot {
   timestamp: number;
@@ -240,6 +259,19 @@ export interface Snapshot {
   trustScore: number;
   confidenceScore: number;
   networkStrength: number;
+  /** Optional audit metadata (action type, actor, universe). */
+  metadata?: SnapshotMetadata;
+  /** Set by reducer; all engines run, no skip. */
+  engineOutputs?: EngineOutputs;
+}
+
+/** Intent/modifier flags — engine-level: modify weights, timing, decay. */
+export interface IntentModifiers {
+  humanErrorRate?: number;
+  intentBias?: number;
+  decayMultiplier?: number;
+  supervisorWeightOverride?: number;
+  [key: string]: number | boolean | string | undefined;
 }
 
 /** Changes applied to a Snapshot to produce the next Snapshot. Never push deltas into history. */
@@ -248,4 +280,12 @@ export type SimulationDelta = {
   addedReviews?: Review[];
   removedReviewIds?: string[];
   thresholdOverride?: number;
+  /** Override computed score for display/decision (lab only). */
+  scoreOverride?: number;
+  /** Intent/fragility modifiers. */
+  intentModifiers?: IntentModifiers;
+  /** Audit notes for this delta. */
+  notes?: string;
+  /** Pass-through metadata for resulting snapshot. */
+  metadata?: SnapshotMetadata;
 };

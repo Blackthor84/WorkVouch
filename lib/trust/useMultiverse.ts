@@ -21,6 +21,14 @@ function cloneDelta(d: SimulationDelta): SimulationDelta {
   };
 }
 
+function snapshotDeepEqual(a: Snapshot, b: Snapshot): boolean {
+  if (a.timestamp !== b.timestamp || a.reviews.length !== b.reviews.length) return false;
+  return a.reviews.every((r, i) => {
+    const s = b.reviews[i];
+    return s && r.id === s.id && r.source === s.source && r.weight === s.weight && r.timestamp === s.timestamp;
+  });
+}
+
 export function useMultiverse() {
   const [universes, setUniverses] = useState<Universe[]>(() => [
     createUniverse("Prime", null, [createInitialSnapshot()]),
@@ -58,6 +66,24 @@ export function useMultiverse() {
       applyToActive(() => cloneDelta(next));
     },
     [applyToActive]
+  );
+
+  const commitDelta = useCallback(
+    (delta: SimulationDelta, options: { force?: boolean } = {}) => {
+      if (!activeUniverse) return;
+      const { force = false } = options;
+      const current = currentSnapshot;
+      const next = applyDelta(current, { ...delta, timestamp: delta.timestamp ?? Date.now() });
+      if (force || !snapshotDeepEqual(next, current)) {
+        setUniverses((prev) =>
+          prev.map((u) =>
+            u.id === activeUniverseId ? { ...u, timeline: [...u.timeline, next] } : u
+          )
+        );
+        setTimelineStepIndex(activeUniverse.timeline.length);
+      }
+    },
+    [activeUniverse, activeUniverseId, currentSnapshot]
   );
 
   const addReview = useCallback(
@@ -169,6 +195,7 @@ export function useMultiverse() {
     delta,
     history,
     setDelta,
+    commitDelta,
     setSnapshot,
     setSnapshotByIndex: setTimelineStep,
     addReview,

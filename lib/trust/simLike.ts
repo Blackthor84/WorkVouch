@@ -5,6 +5,7 @@ export type SimLike = {
   history: Snapshot[];
 
   setDelta: (delta: SimulationDelta) => void;
+  commitDelta: (delta: SimulationDelta, options?: { force?: boolean }) => void;
   setSnapshot: (snapshot: Snapshot) => void;
 
   applyToActive: (fn: (delta: SimulationDelta) => SimulationDelta) => void;
@@ -15,4 +16,6 @@ export type SimLike = {
   removeReview: (id: string) => void;
   setThreshold: (n: number) => void;
   delta: SimulationDelta | null;
-};
+  /** Replace timeline with [initial, applyDelta(initial, delta)]. Optional (multiverse/single sim provide it). */
+  replayScenario?: (delta: SimulationDelta) => void;
+}
