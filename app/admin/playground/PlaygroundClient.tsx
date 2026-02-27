@@ -38,6 +38,7 @@ import {
 } from "@/lib/playground/copy";
 import type { Industry } from "@/lib/industries";
 import { INDUSTRY_THRESHOLDS } from "@/lib/industries";
+import type { SimulationDelta, Review } from "@/lib/trust/types";
 
 export default function PlaygroundClient() {
   const { role } = useAuth();
@@ -73,11 +74,14 @@ export default function PlaygroundClient() {
       (!filterDept || e.department === filterDept) && (!filterRole || e.role === filterRole)
   );
 
-  const normalizeDelta = useCallback((d: any) => ({
-    addedReviews: d?.addedReviews ?? [],
-    removedReviewIds: d?.removedReviewIds ?? [],
-    thresholdOverride: d?.thresholdOverride,
-  }), []);
+  const normalizeDelta = useCallback((d: unknown): SimulationDelta => {
+    const x = d as Record<string, unknown> | null | undefined;
+    return {
+      addedReviews: (Array.isArray(x?.addedReviews) ? x.addedReviews : []) as Review[],
+      removedReviewIds: Array.isArray(x?.removedReviewIds) ? (x.removedReviewIds as string[]) : [],
+      thresholdOverride: typeof x?.thresholdOverride === "number" ? x.thresholdOverride : undefined,
+    };
+  }, []);
 
   const handleLoadScenarios = useCallback(async () => {
     try {
@@ -122,7 +126,11 @@ export default function PlaygroundClient() {
 
   const handleReplayScenario = useCallback(
     (delta: unknown) => {
-      sim.setDelta(normalizeDelta(delta));
+      if ("replayScenario" in sim && typeof sim.replayScenario === "function") {
+        sim.replayScenario(normalizeDelta(delta));
+      } else {
+        sim.setDelta(normalizeDelta(delta));
+      }
       setToast("Scenario replayed");
     },
     [sim, normalizeDelta]
@@ -297,7 +305,7 @@ export default function PlaygroundClient() {
         </div>
       </section>
 
-      <ScenarioTimeline history={sim.history} onSelect={(snapshot) => sim.setDelta(normalizeDelta(snapshot))} />
+      <ScenarioTimeline history={sim.history} onSelect={(snapshot) => sim.setSnapshot(snapshot)} />
 
       <ScenarioComparison history={sim.history} />
       {multiverseMode ? (

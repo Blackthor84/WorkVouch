@@ -233,7 +233,18 @@ export interface TrustSnapshot {
   reviews: Review[];
 }
 
+/** Point-in-time simulation state. UI consumes Snapshots; history is Snapshot[]. */
+export interface Snapshot {
+  timestamp: number;
+  reviews: Review[];
+  trustScore: number;
+  confidenceScore: number;
+  networkStrength: number;
+}
+
+/** Changes applied to a Snapshot to produce the next Snapshot. Never push deltas into history. */
 export type SimulationDelta = {
+  timestamp?: number;
   addedReviews?: Review[];
   removedReviewIds?: string[];
   thresholdOverride?: number;

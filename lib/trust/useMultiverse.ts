@@ -1,27 +1,29 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { SimulationDelta } from "./useSimulation";
+import type { SimulationDelta, Snapshot } from "./types";
 import {
   type Universe,
   type UniverseId,
   createUniverse,
   getCurrentDelta,
+  getSnapshotAt,
+  snapshotToDelta,
   pushToTimeline,
-  DEFAULT_DELTA,
 } from "./multiverse";
+import { createInitialSnapshot, applyDelta } from "./applyDelta";
 
 function cloneDelta(d: SimulationDelta): SimulationDelta {
   return {
-    addedReviews: [...(d.addedReviews ?? [])],
-    removedReviewIds: [...(d.removedReviewIds ?? [])],
+    addedReviews: d.addedReviews ? [...d.addedReviews] : [],
+    removedReviewIds: d.removedReviewIds ? [...d.removedReviewIds] : [],
     thresholdOverride: d.thresholdOverride,
   };
 }
 
 export function useMultiverse() {
   const [universes, setUniverses] = useState<Universe[]>(() => [
-    createUniverse("Prime", null, [{ ...DEFAULT_DELTA }]),
+    createUniverse("Prime", null, [createInitialSnapshot()]),
   ]);
   const [activeUniverseId, setActiveUniverseIdState] = useState<UniverseId | null>(
     () => universes[0]?.id ?? null
@@ -32,15 +34,14 @@ export function useMultiverse() {
   const safeStep = activeUniverse
     ? Math.min(timelineStepIndex, Math.max(0, activeUniverse.timeline.length - 1))
     : 0;
-  const delta: SimulationDelta = activeUniverse
-    ? (activeUniverse.timeline[safeStep] as SimulationDelta) ?? (getCurrentDelta(activeUniverse) as SimulationDelta)
-    : { ...DEFAULT_DELTA };
-  const history: SimulationDelta[] = activeUniverse?.timeline ?? [];
+  const currentSnapshot: Snapshot = activeUniverse ? getSnapshotAt(activeUniverse, safeStep) : createInitialSnapshot();
+  const delta: SimulationDelta = snapshotToDelta(currentSnapshot);
+  const history: Snapshot[] = activeUniverse?.timeline ?? [];
 
   const applyToActive = useCallback(
     (fn: (current: SimulationDelta) => SimulationDelta) => {
       if (!activeUniverse) return;
-      const current = (activeUniverse.timeline[safeStep] ?? getCurrentDelta(activeUniverse)) as SimulationDelta;
+      const current = getCurrentDelta(activeUniverse);
       const next = fn(current);
       setUniverses((prev) =>
         prev.map((u) =>
@@ -49,7 +50,7 @@ export function useMultiverse() {
       );
       setTimelineStepIndex(activeUniverse.timeline.length);
     },
-    [activeUniverse, activeUniverseId, safeStep]
+    [activeUniverse, activeUniverseId]
   );
 
   const setDelta = useCallback(
@@ -98,16 +99,15 @@ export function useMultiverse() {
   }, [applyToActive]);
 
   const reset = useCallback(() => {
-    applyToActive(() => ({ ...DEFAULT_DELTA }));
+    applyToActive(() => ({ addedReviews: [], removedReviewIds: [] }));
   }, [applyToActive]);
 
   const fork = useCallback(() => {
     if (!activeUniverse) return;
-    const current = getCurrentDelta(activeUniverse);
     const newUniverse = createUniverse(
       `${activeUniverse.name} (fork)`,
       activeUniverse.id,
-      [...activeUniverse.timeline.map((t) => ({ ...t }))]
+      activeUniverse.timeline.map((s) => ({ ...s, reviews: [...s.reviews] }))
     );
     setUniverses((prev) => [...prev, newUniverse]);
     setActiveUniverseIdState(newUniverse.id);
@@ -119,7 +119,7 @@ export function useMultiverse() {
     setUniverses((prev) =>
       prev.map((u) =>
         u.id === targetId
-          ? { ...u, timeline: [...source.timeline.map((t) => ({ ...t }))] }
+          ? { ...u, timeline: source.timeline.map((s) => ({ ...s, reviews: [...s.reviews] })) }
           : u
       )
     );
@@ -143,10 +143,34 @@ export function useMultiverse() {
     setTimelineStepIndex(step);
   }, []);
 
+  const setSnapshot = useCallback((s: Snapshot) => {
+    if (!activeUniverse) return;
+    const idx = activeUniverse.timeline.findIndex((h) => h.timestamp === s.timestamp && h.reviews.length === s.reviews.length);
+    if (idx >= 0) setTimelineStepIndex(idx);
+  }, [activeUniverse]);
+
+  const replayScenario = useCallback(
+    (delta: SimulationDelta) => {
+      if (!activeUniverse) return;
+      const initial = createInitialSnapshot();
+      const next = applyDelta(initial, delta);
+      setUniverses((prev) =>
+        prev.map((u) =>
+          u.id === activeUniverseId ? { ...u, timeline: [initial, next] } : u
+        )
+      );
+      setTimelineStepIndex(1);
+    },
+    [activeUniverse, activeUniverseId]
+  );
+
   return {
+    snapshot: currentSnapshot,
     delta,
     history,
     setDelta,
+    setSnapshot,
+    setSnapshotByIndex: setTimelineStep,
     addReview,
     removeReview,
     removeLastAddedReview,
@@ -161,6 +185,7 @@ export function useMultiverse() {
     merge,
     destroy,
     applyToActive,
+    replayScenario,
     timelineStepIndex: safeStep,
     setTimelineStep,
   };

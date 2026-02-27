@@ -1,8 +1,12 @@
 "use client";
 
-type Snapshot = { addedReviews: unknown[]; removedReviewIds: string[]; thresholdOverride?: number };
+import type { Snapshot } from "@/lib/trust/types";
 
-export function ScenarioComparison({ history }: { history: Snapshot[] }) {
+type Props = {
+  history: Snapshot[];
+};
+
+export function ScenarioComparison({ history }: Props) {
   if (history.length < 2) return null;
 
   const before = history[0];
@@ -15,13 +19,13 @@ export function ScenarioComparison({ history }: { history: Snapshot[] }) {
         <div>
           <h3 className="font-medium text-slate-700 mb-1">Before</h3>
           <pre className="bg-slate-50 p-2 rounded overflow-auto max-h-48 text-xs">
-            {JSON.stringify(before, null, 2)}
+            {JSON.stringify({ timestamp: before.timestamp, trustScore: before.trustScore, confidenceScore: before.confidenceScore, reviewCount: before.reviews.length }, null, 2)}
           </pre>
         </div>
         <div>
           <h3 className="font-medium text-slate-700 mb-1">After</h3>
           <pre className="bg-slate-50 p-2 rounded overflow-auto max-h-48 text-xs">
-            {JSON.stringify(after, null, 2)}
+            {JSON.stringify({ timestamp: after.timestamp, trustScore: after.trustScore, confidenceScore: after.confidenceScore, reviewCount: after.reviews.length }, null, 2)}
           </pre>
         </div>
       </div>

@@ -29,7 +29,7 @@ export function MultiverseGraph({
       name: u.name,
       x: 80 + (i % 3) * 140,
       y: 60 + Math.floor(i / 3) * 80,
-      signalCount: (u.timeline[u.timeline.length - 1] as { addedReviews?: unknown[] })?.addedReviews?.length ?? 0,
+      signalCount: u.timeline.length > 0 ? u.timeline[u.timeline.length - 1].reviews.length : 0,
       isActive: u.id === activeUniverseId,
     }));
     const edges = universes
