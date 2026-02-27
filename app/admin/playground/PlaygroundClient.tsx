@@ -306,8 +306,8 @@ export default function PlaygroundClient() {
                   source: "supervisor" as const,
                   weight: 1,
                   timestamp: Date.now(),
-                ],
-              }),
+                }
+              ]}),
             }))}
             threshold={threshold}
           />
