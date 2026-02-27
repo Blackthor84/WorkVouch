@@ -2,7 +2,7 @@
 
 import { simulateTrust } from "@/lib/trust/simulator";
 import { logPlaygroundAudit } from "@/lib/playground/auditClient";
-import { exportCSV, scenarioReport } from "@/lib/exports/exportCSV";
+import { exportCSV, scenarioReport } from "@/lib/client/exportCSV";
 import { WORKFORCE_SIMULATION } from "@/lib/playground/copy";
 import type { TrustSnapshot } from "@/lib/trust/types";
 

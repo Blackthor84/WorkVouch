@@ -1,14 +1,7 @@
-export function exportCSV(rows: Record<string, unknown>[], filename = "report.csv") {
-  if (rows.length === 0) return;
-  const headers = Object.keys(rows[0]).join(",");
-  const body = rows.map((r) => Object.values(r).map((v) => (v == null ? "" : String(v))).join(",")).join("\n");
-  const blob = new Blob([headers + "\n" + body], { type: "text/csv" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
+/**
+ * Pure helpers for CSV report data. No browser APIs.
+ * For triggering downloads (document/Blob/URL), use @/lib/client/exportCSV.
+ */
 
 export type ScenarioResultRow = {
   employee: string;

@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { PermissionGate } from "@/components/PermissionGate";
 import { EmployeeInspector } from "./EmployeeInspector";
 import { MassSimulationPanel } from "./MassSimulationPanel";
 import { SimulationPanel } from "./SimulationPanel";
 import { ExecDashboard } from "./ExecDashboard";
 import { mockEmployees } from "@/lib/employees/mock";
 import { loadScenarios } from "@/lib/scenarios/loadScenario";
-import { exportCSV, scenarioReport } from "@/lib/exports/exportCSV";
+import { exportCSV, scenarioReport } from "@/lib/client/exportCSV";
 import { exportPDF } from "@/lib/client/exportPDF";
 import { logPlaygroundAudit } from "@/lib/playground/auditClient";
 import { useSimulation } from "@/lib/trust/useSimulation";
@@ -135,13 +134,22 @@ export default function PlaygroundClient() {
       <header className="border-b border-slate-200 pb-4">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h1 className="text-2xl font-bold text-slate-900">Trust Simulation Lab</h1>
-          <button
-            type="button"
-            onClick={() => setShowHelp(true)}
-            className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
-          >
-            How to Use
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => alert("Playground is interactive.")}
+              className="rounded border border-amber-400 bg-amber-50 px-3 py-2 text-sm hover:bg-amber-100"
+            >
+              Debug
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowHelp(true)}
+              className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
+            >
+              How to Use
+            </button>
+          </div>
         </div>
         <p className="text-slate-600 mt-1">{PAGE.subtitle}</p>
         <p className="text-sm text-slate-500 mt-2">{PAGE.helperText}</p>
@@ -155,14 +163,12 @@ export default function PlaygroundClient() {
             Real trust state · Simulated changes · Outcome delta
           </p>
         </div>
-        <PermissionGate perm="read">
-          <div className="space-y-4">
-            <Filters departments={departments} roles={roles} onFilter={(key, value) => (key === "dept" ? setFilterDept(value) : setFilterRole(value))} />
-            {filteredEmployees.map((e) => (
-              <EmployeeInspector key={e.id} employee={e} sim={sim} />
-            ))}
-          </div>
-        </PermissionGate>
+        <div className="space-y-4">
+          <Filters departments={departments} roles={roles} onFilter={(key, value) => (key === "dept" ? setFilterDept(value) : setFilterRole(value))} />
+          {filteredEmployees.map((e) => (
+            <EmployeeInspector key={e.id} employee={e} sim={sim} />
+          ))}
+        </div>
       </section>
 
       {/* 2. Scenario Controls */}
@@ -280,12 +286,8 @@ export default function PlaygroundClient() {
             Department / role / org · Policy-level effects
           </p>
         </div>
-        <PermissionGate perm="simulate">
-          <SimulationPanel industry={industry} onIndustryChange={setIndustry} />
-        </PermissionGate>
-        <PermissionGate perm="mass_simulate">
-          <MassSimulationPanel employees={mockEmployees} />
-        </PermissionGate>
+        <SimulationPanel industry={industry} onIndustryChange={setIndustry} />
+        <MassSimulationPanel employees={mockEmployees} />
       </section>
 
       {/* 4. Culture & Compliance */}
@@ -294,24 +296,21 @@ export default function PlaygroundClient() {
           <h2 className="text-lg font-semibold text-slate-900">Culture & Compliance</h2>
           <p className="text-sm text-slate-600">Risk exposure · Threshold impact</p>
         </div>
-        <PermissionGate perm="export">
-          <ExecDashboard
-            employees={mockEmployees.map((e) => ({
-              before: e.trust,
-              after: simulateTrust(e.trust, {
-                addedReviews: [
-                  {
-                    id: "team",
-                    source: "supervisor" as const,
-                    weight: 1,
-                    timestamp: Date.now(),
-                  },
+        <ExecDashboard
+          employees={mockEmployees.map((e) => ({
+            before: e.trust,
+            after: simulateTrust(e.trust, {
+              addedReviews: [
+                {
+                  id: "team",
+                  source: "supervisor" as const,
+                  weight: 1,
+                  timestamp: Date.now(),
                 ],
               }),
             }))}
             threshold={threshold}
           />
-        </PermissionGate>
       </section>
 
       {/* 5. Audit Log */}
