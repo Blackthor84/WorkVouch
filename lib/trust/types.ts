@@ -216,7 +216,7 @@ export type TrustReport = {
 };
 
 // ——— Playground / simulation (review-based, immutable) ———
-export type ReviewSource = "peer" | "supervisor" | "manager";
+export type ReviewSource = "peer" | "supervisor" | "manager" | "synthetic" | "self" | "external";
 
 export interface Review {
   id: string;

@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback } from "react";
-import type { SimulationDelta } from "@/lib/trust/types";
+import type { SimulationDelta, Review } from "@/lib/trust/types";
+import { createReview } from "@/lib/simulation/reviewFactory";
 
 type SimLike = {
   addReview: (r: unknown) => void;
@@ -25,18 +26,13 @@ export function GodModeActions({ sim, onAction }: Props) {
 
   const injectSignal = useCallback(() => {
     run(() => {
-    sim.addReview({
-      id: `god-inject-${Date.now()}`,
-      source: "supervisor",
-      weight: 2,
-      timestamp: Date.now(),
-    });
+    sim.addReview(createReview({ source: "supervisor", weight: 2 }));
   });
   }, [sim, run]);
 
   const mutateSignal = useCallback(() => {
     run(() => {
-    const reviews = sim.delta?.addedReviews ?? [];
+    const reviews: Review[] = sim.delta?.addedReviews ?? [];
     if (reviews.length === 0) return;
     const mutated = reviews.map((r) =>
       r.id.startsWith("god-")
@@ -53,7 +49,7 @@ export function GodModeActions({ sim, onAction }: Props) {
 
   const backdateSignal = useCallback(() => {
     run(() => {
-    const reviews = sim.delta?.addedReviews ?? [];
+    const reviews: Review[] = sim.delta?.addedReviews ?? [];
     const backdated = reviews.map((r) => ({
       ...r,
       timestamp: (r.timestamp ?? Date.now()) - 86400000 * 30,
@@ -68,7 +64,7 @@ export function GodModeActions({ sim, onAction }: Props) {
 
   const deleteLastSignal = useCallback(() => {
     run(() => {
-    const reviews = sim.delta?.addedReviews ?? [];
+    const reviews: Review[] = sim.delta?.addedReviews ?? [];
     if (reviews.length === 0) return;
     const last = reviews[reviews.length - 1];
     sim.removeReview(last.id);
@@ -87,11 +83,11 @@ export function GodModeActions({ sim, onAction }: Props) {
 
   const fakeConsensus = useCallback(() => {
     run(() => {
-    const base = sim.delta?.addedReviews ?? [];
-    const fake = [
-      { id: `god-consensus-${Date.now()}-1`, source: "peer", weight: 1, timestamp: Date.now() },
-      { id: `god-consensus-${Date.now()}-2`, source: "peer", weight: 1, timestamp: Date.now() },
-      { id: `god-consensus-${Date.now()}-3`, source: "supervisor", weight: 1, timestamp: Date.now() },
+    const base: Review[] = sim.delta?.addedReviews ?? [];
+    const fake: Review[] = [
+      createReview({ source: "synthetic", weight: 0.9 }),
+      createReview({ source: "synthetic", weight: 0.9 }),
+      createReview({ source: "synthetic", weight: 0.9 }),
     ];
     sim.setDelta({
       ...(sim.delta ?? {}),
