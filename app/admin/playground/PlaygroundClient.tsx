@@ -9,7 +9,6 @@ import { ExecDashboard } from "./ExecDashboard";
 import { mockEmployees } from "@/lib/employees/mock";
 import { loadScenarios } from "@/lib/scenarios/loadScenario";
 import { exportCSV, scenarioReport } from "@/lib/client/exportCSV";
-import { exportPDF } from "@/lib/client/exportPDF";
 import { logPlaygroundAudit } from "@/lib/playground/auditClient";
 import { useSimulation } from "@/lib/trust/useSimulation";
 import { useMultiverse } from "@/lib/trust/useMultiverse";
@@ -29,9 +28,7 @@ import { MultiverseGraph } from "./MultiverseGraph";
 import { ChaosPresets } from "./ChaosPresets";
 import { MultiverseLabPanel } from "./MultiverseLabPanel";
 import {
-  PAGE,
   SCENARIO_CONTROLS,
-  AUDIT_LOG,
   COMPLIANCE,
   FLAGSHIP_DEMO_SCENARIO_NAME,
   DEMO_SCRIPT,
@@ -49,6 +46,10 @@ import { PopulationSimulationTable, type PopulationEmployee } from "./Population
 import { GroupHiringSimulator } from "./GroupHiringSimulator";
 import { DecisionTrainer } from "./DecisionTrainer";
 import { SimulationCommandCenter } from "./SimulationCommandCenter";
+import { CommandStrip } from "./CommandStrip";
+import { ActionRail, type RailMode } from "./ActionRail";
+import { DeepDiveDrawer } from "./DeepDiveDrawer";
+import { LabCanvas } from "./LabCanvas";
 
 export default function PlaygroundClient() {
   const { role } = useAuth();
@@ -57,7 +58,7 @@ export default function PlaygroundClient() {
   const multiverse = useMultiverse();
   const sim = multiverseMode ? multiverse : simBase;
   const [showHelp, setShowHelp] = useState(false);
-  const [showDebug, setShowDebug] = useState(false);
+  const [railMode, setRailMode] = useState<RailMode>("reality");
   const [godModeUsed, setGodModeUsed] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [auditEntries, setAuditEntries] = useState<LabAuditEntry[]>([]);
@@ -225,196 +226,159 @@ export default function PlaygroundClient() {
         })()
       : null;
 
-  return (
-    <div className={multiverseMode || godMode ? "pt-12" : ""}>
-      {multiverseMode && <MultiverseHUD />}
-      <div className="mx-auto max-w-6xl px-4 py-6 space-y-8">
-      {godMode && <MultiverseLabPanel role={role} />}
-      {/* Page header */}
-      <header className="border-b border-slate-200 pb-4">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h1 className="text-2xl font-bold text-slate-900">Trust Simulation Lab</h1>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowDebug((v) => !v)}
-              className="rounded border border-amber-400 bg-amber-50 px-3 py-2 text-sm hover:bg-amber-100"
-            >
-              {showDebug ? "Hide debug" : "Debug"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowHelp(true)}
-              className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
-            >
-              How to Use
-            </button>
-          </div>
-        </div>
-        <p className="text-slate-600 mt-1">{PAGE.subtitle}</p>
-        <p className="text-sm text-slate-500 mt-2">{PAGE.helperText}</p>
-      </header>
+  const universeIdForDrawer =
+    multiverseMode && "activeUniverseId" in multiverse
+      ? (multiverse as { activeUniverseId: string | null }).activeUniverseId ?? null
+      : null;
 
-      {/* Simulation Command Center — single source of truth; always visible */}
-      <SimulationCommandCenter
-        snapshot={sim.snapshot}
-        history={sim.history}
-        currentStep={currentStep}
-        onTimelineStep={sim.setTimelineStep}
-        lastAction={lastAction}
-        lastDelta={lastDelta}
-        universeContext={universeContext}
-        multiverseMode={multiverseMode}
-        noEffectReason={noEffectReason}
-        populationImpact={populationImpact}
-      />
+  const sccProps = {
+    snapshot: sim.snapshot,
+    history: sim.history,
+    currentStep,
+    onTimelineStep: sim.setTimelineStep,
+    lastAction,
+    lastDelta,
+    universeContext,
+    multiverseMode,
+    populationImpact,
+    noEffectReason,
+  };
 
-      {showDebug && (
-        <LabDebugPanel
-          lastAction={lastAction}
-          lastDelta={lastDelta}
-          lastEngineOutputs={sim.snapshot?.engineOutputs}
-          snapshotCount={sim.history.length}
-          universeId={multiverseMode && "activeUniverseId" in multiverse ? (multiverse as { activeUniverseId: string | null }).activeUniverseId ?? null : null}
-          visible={showDebug}
+  const railModeContent: Record<RailMode, React.ReactNode> = {
+    reality: (
+      <div className="space-y-3">
+        <p className="text-xs text-slate-600">Filter employees by department and role.</p>
+        <Filters
+          departments={departments}
+          roles={roles}
+          onFilter={(key, value) => (key === "dept" ? setFilterDept(value) : setFilterRole(value))}
+          selectedDept={filterDept}
+          selectedRole={filterRole}
         />
-      )}
-
-      {/* Secondary views — charts, graphs, and tables reflect the state in the Command Center above. */}
-      <section className="space-y-3">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">Employee Trust Profile</h2>
-          <p className="text-sm text-slate-600">
-            Real trust state · Simulated changes · Outcome delta (secondary to SCC)
-          </p>
+      </div>
+    ),
+    decisions: (
+      <div className="space-y-3">
+        {(multiverseMode || godMode) ? (
+          <DecisionTrainer sim={sim} execute={executeWithAudit} />
+        ) : (
+          <p className="text-sm text-slate-600">Enable multiverse or god mode for Decision Trainer.</p>
+        )}
+      </div>
+    ),
+    signals: (
+      <div className="space-y-3">
+        <SimulationPanel industry={industry} onIndustryChange={setIndustry} />
+        <SimulationDataBuilder />
+      </div>
+    ),
+    scenarios: (
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-slate-700">Scenario name</label>
+        <input
+          type="text"
+          value={scenarioName}
+          onChange={(e) => setScenarioName(e.target.value)}
+          placeholder={FLAGSHIP_DEMO_SCENARIO_NAME}
+          className="border rounded px-3 py-2 text-sm w-full"
+        />
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              executeWithAudit({ type: "save_snapshot" });
+              setToast("Simulation snapshot saved");
+            }}
+            className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
+          >
+            Save Snapshot
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveScenario}
+            disabled={!scenarioName.trim()}
+            className="rounded bg-slate-700 text-white px-3 py-2 text-sm hover:bg-slate-800 disabled:opacity-50"
+          >
+            {SCENARIO_CONTROLS.saveScenario}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              sim.reset();
+              setToast("Simulation reset");
+            }}
+            className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
+          >
+            Reset
+          </button>
+          <button type="button" onClick={handleCompareToCurrent} className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">
+            {SCENARIO_CONTROLS.compareToCurrent}
+          </button>
+          <button type="button" onClick={handleExportScenarioReport} className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">
+            {SCENARIO_CONTROLS.exportReport}
+          </button>
         </div>
-        <div className="space-y-4">
-          <Filters departments={departments} roles={roles} onFilter={(key, value) => (key === "dept" ? setFilterDept(value) : setFilterRole(value))} />
-          {filteredEmployees.map((e) => (
-            <EmployeeInspector key={e.id} employee={e} sim={sim} execute={executeWithAudit} />
-          ))}
-        </div>
-      </section>
-
-      {/* 2. Scenario Controls */}
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-slate-900">{SCENARIO_CONTROLS.title}</h2>
-        <div className="rounded-lg border border-slate-200 bg-white p-4">
-          <div className="flex flex-wrap items-end gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Scenario name</label>
-              <input
-                type="text"
-                value={scenarioName}
-                onChange={(e) => setScenarioName(e.target.value)}
-                placeholder={FLAGSHIP_DEMO_SCENARIO_NAME}
-                className="border rounded px-3 py-2 text-sm w-64"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                executeWithAudit({ type: "save_snapshot" });
-                setToast("Simulation snapshot saved");
-              }}
-              className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
-            >
-              Save Scenario Snapshot
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveScenario}
-              disabled={!scenarioName.trim()}
-              className="rounded bg-slate-700 text-white px-3 py-2 text-sm hover:bg-slate-800 disabled:opacity-50"
-            >
-              {SCENARIO_CONTROLS.saveScenario}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                sim.reset();
-                setToast("Simulation reset");
-              }}
-              className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
-            >
-              Reset Simulation
-            </button>
-            <button
-              type="button"
-              onClick={handleCompareToCurrent}
-              className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
-            >
-              {SCENARIO_CONTROLS.compareToCurrent}
-            </button>
-            <button
-              type="button"
-              onClick={handleExportScenarioReport}
-              className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
-            >
-              {SCENARIO_CONTROLS.exportReport}
-            </button>
-          </div>
-          <p className="text-sm text-slate-500 mt-3">{SCENARIO_CONTROLS.helperText}</p>
-          {saveError && <p className="text-sm text-red-600 mt-2">{saveError}</p>}
-          <div className="mt-3">
-            <button
-              type="button"
-              onClick={handleLoadScenarios}
-              className="text-sm text-slate-600 underline hover:text-slate-800"
-            >
-              Load scenarios
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {savedScenarios.length > 0 && (
-        <section>
+        <button type="button" onClick={handleLoadScenarios} className="text-sm text-slate-600 underline hover:text-slate-800">
+          Load scenarios
+        </button>
+        {saveError && <p className="text-sm text-red-600">{saveError}</p>}
+        {savedScenarios.length > 0 && (
           <ScenarioList scenarios={savedScenarios} onLoad={handleReplayScenario} />
-        </section>
-      )}
-
-      <ScenarioComparePanel
-        left={compareLeft}
-        right={compareRight}
-      />
-      <section className="space-y-2">
-        <label className="block text-sm font-medium text-slate-700">Compare scenarios</label>
-        <div className="flex flex-wrap gap-3 items-center">
-          <select value={compareLeftId} onChange={(e) => setCompareLeftId(e.target.value)} className="border rounded px-3 py-2 text-sm">
-            <option value="">— Scenario A —</option>
+        )}
+        <details className="rounded border border-slate-200 p-2">
+          <summary className="cursor-pointer text-sm font-medium text-slate-700">Flagship demo: {FLAGSHIP_DEMO_SCENARIO_NAME}</summary>
+          <p className="text-xs text-slate-600 mt-2">{DEMO_SCRIPT.setup}</p>
+          <ul className="mt-1 text-xs text-slate-600 list-disc list-inside">
+            <li>{DEMO_SCRIPT.step1KeyLine}</li>
+            <li>{DEMO_SCRIPT.step4Closer}</li>
+            <li>{DEMO_SCRIPT.step5Close}</li>
+          </ul>
+        </details>
+        <div className="space-y-2 pt-2">
+          <label className="block text-sm font-medium text-slate-700">Compare</label>
+          <select value={compareLeftId} onChange={(e) => setCompareLeftId(e.target.value)} className="border rounded px-2 py-1.5 text-sm w-full">
+            <option value="">— A —</option>
             <option value="__current__">Current</option>
             {savedScenarios.map((s) => (
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
           </select>
-          <select value={compareRightId} onChange={(e) => setCompareRightId(e.target.value)} className="border rounded px-3 py-2 text-sm">
-            <option value="">— Scenario B —</option>
+          <select value={compareRightId} onChange={(e) => setCompareRightId(e.target.value)} className="border rounded px-2 py-1.5 text-sm w-full">
+            <option value="">— B —</option>
             <option value="__current__">Current</option>
             {savedScenarios.map((s) => (
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
           </select>
         </div>
-      </section>
-
-      <ScenarioTimeline history={sim.history} onSelect={(snapshot) => sim.setSnapshot(snapshot)} />
-
-      <ScenarioComparison history={sim.history} />
-      {multiverseMode ? (
-        <>
-          <section className="space-y-2">
-            <h2 className="text-lg font-semibold text-slate-900">Multiverse</h2>
-            <div className="flex flex-wrap gap-2 items-center">
+      </div>
+    ),
+    populations: (
+      <div className="space-y-3">
+        <SimulationPanel industry={industry} onIndustryChange={setIndustry} />
+        <MassSimulationPanel employees={mockEmployees} execute={executeWithAudit} />
+        {(multiverseMode || godMode) && (
+          <GroupHiringSimulator sim={sim} execute={executeWithAudit} />
+        )}
+      </div>
+    ),
+    adversarial: (
+      <div className="space-y-3">
+        {multiverseMode ? (
+          <>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700">Universe</label>
               <select
                 value={multiverse.activeUniverseId ?? ""}
                 onChange={(e) => multiverse.setActiveUniverseId(e.target.value || null)}
-                className="border rounded px-3 py-2 text-sm"
+                className="border rounded px-2 py-1.5 text-sm w-full"
               >
                 {multiverse.universes.map((u) => (
                   <option key={u.id} value={u.id}>{u.name}</option>
                 ))}
               </select>
+            </div>
+            <div className="flex flex-wrap gap-2">
               <button type="button" onClick={multiverse.fork} className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">Fork</button>
               <select
                 className="border rounded px-2 py-1.5 text-sm"
@@ -422,7 +386,7 @@ export default function PlaygroundClient() {
                 onChange={(e) => {
                   const fromId = e.target.value;
                   e.target.value = "";
-                  if (fromId && multiverse.activeUniverseId && confirm("Merge will replace the current universe timeline with the selected one. Continue?")) {
+                  if (fromId && multiverse.activeUniverseId && confirm("Merge will replace the current universe timeline. Continue?")) {
                     multiverse.merge(multiverse.activeUniverseId, fromId);
                   }
                 }}
@@ -434,8 +398,69 @@ export default function PlaygroundClient() {
               </select>
               <button type="button" onClick={() => multiverse.universes.length > 1 && multiverse.destroy(multiverse.activeUniverseId!)} disabled={multiverse.universes.length <= 1} className="rounded border border-red-200 px-3 py-2 text-sm hover:bg-red-50 disabled:opacity-50">Destroy current</button>
             </div>
-          </section>
-          <GodModeActions sim={multiverse} onAction={() => setGodModeUsed(true)} execute={executeWithAudit} />
+            <GodModeActions sim={multiverse} onAction={() => setGodModeUsed(true)} execute={executeWithAudit} />
+            <ChaosPresets sim={multiverse} onOutcome={(name, msg) => { setGodModeUsed(true); setToast(`${name}: ${msg}`); }} execute={executeWithAudit} />
+          </>
+        ) : (
+          <p className="text-sm text-slate-600">Enable multiverse for adversarial controls.</p>
+        )}
+      </div>
+    ),
+  };
+
+  const complianceSection = (
+    <details className="rounded-lg border border-slate-200 bg-white p-3 mt-4">
+      <summary className="cursor-pointer text-sm font-semibold text-slate-900">Compliance & positioning</summary>
+      <ul className="space-y-2 text-xs text-slate-700 mt-2">
+        <li><strong>Core:</strong> {COMPLIANCE.coreStatement}</li>
+        <li><strong>Data integrity:</strong> {COMPLIANCE.dataIntegrity}</li>
+        <li><strong>Auditability:</strong> {COMPLIANCE.auditability}</li>
+        <li><strong>Bias & fairness:</strong> {COMPLIANCE.biasFairness}</li>
+        <li><strong>Regulatory:</strong> {COMPLIANCE.regulatoryPositioning}</li>
+      </ul>
+    </details>
+  );
+
+  const populationEmployees: PopulationEmployee[] = mockEmployees.map(
+    (e: { id: string; name: string; department?: string; role?: string; trust: { trustScore: number; confidenceScore: number; reviews?: unknown[] } }) => ({
+      id: e.id,
+      name: e.name,
+      role: e.role,
+      department: e.department,
+      trustScore: e.trust.trustScore,
+      confidenceScore: e.trust.confidenceScore,
+      reviewCount: Array.isArray(e.trust.reviews) ? e.trust.reviews.length : 0,
+    })
+  );
+
+  const canvasModeContent: Record<RailMode, React.ReactNode> = {
+    reality: (
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-slate-800">Employee Trust Profile</h3>
+        <p className="text-xs text-slate-600">Real trust state · Simulated changes · Outcome delta</p>
+        <div className="space-y-4">
+          {filteredEmployees.map((e) => (
+            <EmployeeInspector key={e.id} employee={e} sim={sim} execute={executeWithAudit} />
+          ))}
+        </div>
+      </div>
+    ),
+    decisions: (
+      <div className="space-y-3">
+        <p className="text-sm text-slate-600">Use the Decision Trainer in the rail. Outcomes appear in the Command Center above.</p>
+      </div>
+    ),
+    signals: (
+      <div className="space-y-3">
+        <p className="text-sm text-slate-600">Add signals and build data in the rail. Results update in the Command Center above.</p>
+      </div>
+    ),
+    scenarios: (
+      <div className="space-y-4">
+        <ScenarioComparePanel left={compareLeft} right={compareRight} />
+        <ScenarioTimeline history={sim.history} onSelect={(snapshot) => sim.setSnapshot(snapshot)} />
+        <ScenarioComparison history={sim.history} />
+        {multiverseMode ? (
           <MultiverseGraph
             universes={multiverse.universes}
             activeUniverseId={multiverse.activeUniverseId}
@@ -444,110 +469,85 @@ export default function PlaygroundClient() {
             history={sim.history}
             hasDistortion={godModeUsed}
           />
-          <ChaosPresets sim={multiverse} onOutcome={(name, msg) => { setGodModeUsed(true); setToast(`${name}: ${msg}`); }} execute={executeWithAudit} />
-        </>
-      ) : (
-        <TrustChart history={sim.history} />
-      )}
-
-      {/* 3. Workforce Simulation */}
-      <section className="space-y-3">
+        ) : (
+          <TrustChart history={sim.history} />
+        )}
+      </div>
+    ),
+    populations: (
+      <div className="space-y-4">
+        <PopulationSimulationTable employees={populationEmployees} />
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Workforce Simulation</h2>
-          <p className="text-sm text-slate-600">
-            Department / role / org · Policy-level effects
-          </p>
-        </div>
-        <SimulationPanel industry={industry} onIndustryChange={setIndustry} />
-        <MassSimulationPanel employees={mockEmployees} execute={executeWithAudit} />
-      </section>
-
-      {/* 4. Culture & Compliance */}
-      <section className="space-y-3">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">Culture & Compliance</h2>
-          <p className="text-sm text-slate-600">Risk exposure · Threshold impact</p>
-        </div>
-        <ExecDashboard
-          employees={mockEmployees.map((e) => ({
-            before: e.trust,
-            after: simulateTrust(e.trust, {
-              addedReviews: [
-                {
-                  id: "team",
-                  source: "supervisor" as const,
-                  weight: 1,
-                  timestamp: Date.now(),
-                }
-              ]}),
+          <h3 className="text-sm font-semibold text-slate-800 mb-2">Culture & Compliance</h3>
+          <p className="text-xs text-slate-600 mb-2">Risk exposure · Threshold impact</p>
+          <ExecDashboard
+            employees={mockEmployees.map((e) => ({
+              before: e.trust,
+              after: simulateTrust(e.trust, {
+                addedReviews: [{ id: "team", source: "supervisor" as const, weight: 1, timestamp: Date.now() }],
+              }),
             }))}
             threshold={threshold}
           />
-      </section>
+        </div>
+      </div>
+    ),
+    adversarial: (
+      <div className="space-y-4">
+        {multiverseMode ? (
+          <MultiverseGraph
+            universes={multiverse.universes}
+            activeUniverseId={multiverse.activeUniverseId}
+            onSelectUniverse={multiverse.setActiveUniverseId}
+            onScrubTimeline={multiverse.setTimelineStep != null ? (_id, step) => multiverse.setTimelineStep(step) : undefined}
+            history={sim.history}
+            hasDistortion={godModeUsed}
+          />
+        ) : (
+          <p className="text-sm text-slate-600">Enable multiverse to see the graph.</p>
+        )}
+      </div>
+    ),
+  };
 
-      {/* 5. Audit Log */}
-      <AuditLogPanel entries={auditEntries} />
-
-      {/* Simulation Data Builder & Population */}
-      <SimulationDataBuilder />
-      <PopulationSimulationTable
-        employees={mockEmployees.map((e: { id: string; name: string; department?: string; role?: string; trust: { trustScore: number; confidenceScore: number; reviews?: unknown[] } }) => ({
-          id: e.id,
-          name: e.name,
-          role: e.role,
-          department: e.department,
-          trustScore: e.trust.trustScore,
-          confidenceScore: e.trust.confidenceScore,
-          reviewCount: Array.isArray(e.trust.reviews) ? e.trust.reviews.length : 0,
-        }))}
-      />
-
-      {/* Group Hiring & Decision Trainer (when multiverse/god mode) */}
-      {(multiverseMode || godMode) && (
-        <>
-          <GroupHiringSimulator sim={sim} execute={executeWithAudit} />
-          <DecisionTrainer sim={sim} execute={executeWithAudit} />
-        </>
-      )}
-
-      {/* 6. Flagship demo (Healthcare Hiring Risk Simulation) */}
-      <details className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-        <summary className="cursor-pointer font-semibold text-slate-900">
-          Flagship demo: {FLAGSHIP_DEMO_SCENARIO_NAME}
-        </summary>
-        <p className="text-sm text-slate-600 mt-2">{DEMO_SCRIPT.setup}</p>
-        <ul className="mt-2 text-sm text-slate-600 list-disc list-inside space-y-1">
-          <li>Step 1: &ldquo;{DEMO_SCRIPT.step1KeyLine}&rdquo;</li>
-          <li>Step 4: &ldquo;{DEMO_SCRIPT.step4Closer}&rdquo;</li>
-          <li>Step 5: &ldquo;{DEMO_SCRIPT.step5Close}&rdquo;</li>
-        </ul>
-      </details>
-
-      {/* 7. Compliance messaging */}
-      <section className="space-y-4 rounded-lg border border-slate-200 bg-white p-4">
-        <h2 className="text-lg font-semibold text-slate-900">Compliance & positioning</h2>
-        <ul className="space-y-3 text-sm text-slate-700">
-          <li>
-            <strong className="text-slate-900">Core:</strong> {COMPLIANCE.coreStatement}
-          </li>
-          <li>
-            <strong className="text-slate-900">Data integrity:</strong> {COMPLIANCE.dataIntegrity}
-          </li>
-          <li>
-            <strong className="text-slate-900">Auditability:</strong> {COMPLIANCE.auditability}
-          </li>
-          <li>
-            <strong className="text-slate-900">Bias & fairness:</strong> {COMPLIANCE.biasFairness}
-          </li>
-          <li>
-            <strong className="text-slate-900">Regulatory:</strong> {COMPLIANCE.regulatoryPositioning}
-          </li>
-        </ul>
-      </section>
-
+  return (
+    <div className={multiverseMode || godMode ? "pt-12" : ""}>
+      {multiverseMode && <MultiverseHUD />}
+      {godMode && <MultiverseLabPanel role={role} />}
+      <div className="flex flex-col h-[calc(100vh-3rem)] min-h-[600px]">
+        <CommandStrip
+          snapshot={sim.snapshot}
+          currentStep={currentStep}
+          historyLength={sim.history.length}
+          lastActionLabel={lastAction?.type ?? "—"}
+          universeContext={universeContext}
+          multiverseMode={multiverseMode}
+        />
+        <div className="flex flex-1 min-h-0">
+          <ActionRail activeMode={railMode} onModeChange={setRailMode} modeContent={railModeContent} />
+          <LabCanvas sccProps={sccProps} activeMode={railMode} modeContent={canvasModeContent} footer={complianceSection} />
+          <DeepDiveDrawer
+            lastAction={lastAction}
+            lastDelta={lastDelta}
+            lastEngineOutputs={sim.snapshot?.engineOutputs}
+            snapshotCount={sim.history.length}
+            universeId={universeIdForDrawer}
+            auditEntries={auditEntries}
+            defaultCollapsed={true}
+          />
+        </div>
+      </div>
+      <div className="fixed top-4 right-4 z-50">
+        <button
+          type="button"
+          onClick={() => setShowHelp(true)}
+          className="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow hover:bg-slate-50"
+        >
+          How to Use
+        </button>
+      </div>
       <TrustLabHelp open={showHelp} onClose={() => setShowHelp(false)} />
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
-      </div>
     </div>
   );
 }

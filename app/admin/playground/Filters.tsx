@@ -4,12 +4,15 @@ type Props = {
   departments: string[];
   roles: string[];
   onFilter: (key: "dept" | "role", value: string) => void;
+  selectedDept?: string;
+  selectedRole?: string;
 };
 
-export function Filters({ departments, roles, onFilter }: Props) {
+export function Filters({ departments, roles, onFilter, selectedDept = "", selectedRole = "" }: Props) {
   return (
     <div className="flex flex-wrap gap-3 items-center">
       <select
+        value={selectedDept}
         onChange={(e) => onFilter("dept", e.target.value)}
         className="border rounded px-3 py-2 text-sm"
       >
@@ -21,6 +24,7 @@ export function Filters({ departments, roles, onFilter }: Props) {
         ))}
       </select>
       <select
+        value={selectedRole}
         onChange={(e) => onFilter("role", e.target.value)}
         className="border rounded px-3 py-2 text-sm"
       >

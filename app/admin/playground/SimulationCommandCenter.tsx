@@ -28,6 +28,8 @@ type Props = {
   multiverseMode: boolean;
   populationImpact?: PopulationImpactSummary | null;
   noEffectReason?: string | null;
+  /** When false, Delta Inspector is omitted (e.g. when it lives in Deep Dive Drawer). */
+  showDeltaInspector?: boolean;
 };
 
 function snapshotId(s: Snapshot): string {
@@ -85,6 +87,7 @@ export function SimulationCommandCenter({
   multiverseMode,
   populationImpact,
   noEffectReason,
+  showDeltaInspector = true,
 }: Props) {
   const [deltaExpanded, setDeltaExpanded] = useState(false);
   const prevSnapshot = currentStep > 0 ? history[currentStep - 1] : undefined;
@@ -198,42 +201,43 @@ export function SimulationCommandCenter({
         </div>
       </div>
 
-      {/* Delta Inspector */}
-      <div className="rounded-lg border border-slate-200 bg-white p-3">
-        <h3 className="text-sm font-semibold text-slate-800 mb-2">Delta inspector</h3>
-        {lastDelta ? (
-          <>
-            <div className="text-sm text-slate-700 space-y-1">
-              {lastDelta.addedReviews && lastDelta.addedReviews.length > 0 && (
-                <div>Added: {lastDelta.addedReviews.length} signal(s)</div>
+      {showDeltaInspector && (
+        <div className="rounded-lg border border-slate-200 bg-white p-3">
+          <h3 className="text-sm font-semibold text-slate-800 mb-2">Delta inspector</h3>
+          {lastDelta ? (
+            <>
+              <div className="text-sm text-slate-700 space-y-1">
+                {lastDelta.addedReviews && lastDelta.addedReviews.length > 0 && (
+                  <div>Added: {lastDelta.addedReviews.length} signal(s)</div>
+                )}
+                {lastDelta.removedReviewIds && lastDelta.removedReviewIds.length > 0 && (
+                  <div>Removed: {lastDelta.removedReviewIds.length} signal(s)</div>
+                )}
+                {lastDelta.thresholdOverride != null && (
+                  <div>Threshold override: {lastDelta.thresholdOverride}</div>
+                )}
+                {(!lastDelta.addedReviews?.length && !lastDelta.removedReviewIds?.length && lastDelta.thresholdOverride == null) && (
+                  <div>No review mutations (metadata or no-op commit).</div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeltaExpanded((e) => !e)}
+                className="mt-2 text-xs text-slate-600 underline hover:text-slate-800"
+              >
+                {deltaExpanded ? "Hide raw delta" : "Show raw delta"}
+              </button>
+              {deltaExpanded && (
+                <pre className="mt-2 p-2 bg-slate-100 rounded text-xs overflow-auto max-h-48">
+                  {JSON.stringify(lastDelta, null, 2)}
+                </pre>
               )}
-              {lastDelta.removedReviewIds && lastDelta.removedReviewIds.length > 0 && (
-                <div>Removed: {lastDelta.removedReviewIds.length} signal(s)</div>
-              )}
-              {lastDelta.thresholdOverride != null && (
-                <div>Threshold override: {lastDelta.thresholdOverride}</div>
-              )}
-              {(!lastDelta.addedReviews?.length && !lastDelta.removedReviewIds?.length && lastDelta.thresholdOverride == null) && (
-                <div>No review mutations (metadata or no-op commit).</div>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => setDeltaExpanded((e) => !e)}
-              className="mt-2 text-xs text-slate-600 underline hover:text-slate-800"
-            >
-              {deltaExpanded ? "Hide raw delta" : "Show raw delta"}
-            </button>
-            {deltaExpanded && (
-              <pre className="mt-2 p-2 bg-slate-100 rounded text-xs overflow-auto max-h-48">
-                {JSON.stringify(lastDelta, null, 2)}
-              </pre>
-            )}
-          </>
-        ) : (
-          <p className="text-sm text-slate-500">No delta applied yet.</p>
-        )}
-      </div>
+            </>
+          ) : (
+            <p className="text-sm text-slate-500">No delta applied yet.</p>
+          )}
+        </div>
+      )}
 
       {/* Population impact (when applicable) */}
       {populationImpact != null && (
