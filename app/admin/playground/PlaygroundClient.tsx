@@ -7,15 +7,20 @@ import { MassSimulationPanel } from "./MassSimulationPanel";
 import { SimulationPanel } from "./SimulationPanel";
 import { ExecDashboard } from "./ExecDashboard";
 import { mockEmployees } from "@/lib/employees/mock";
-import { saveScenario } from "@/lib/scenarios/saveScenario";
 import { loadScenarios } from "@/lib/scenarios/loadScenario";
 import { exportCSV, scenarioReport } from "@/lib/exports/exportCSV";
+import { exportPDF } from "@/lib/exports/exportPDF";
 import { logPlaygroundAudit } from "@/lib/playground/auditClient";
 import { useSimulation } from "@/lib/trust/useSimulation";
 import { simulateTrust } from "@/lib/trust/simulator";
 import { Toast } from "@/components/Toast";
 import { ScenarioComparison } from "./ScenarioComparison";
 import { TrustChart } from "./TrustChart";
+import { ScenarioList } from "./ScenarioList";
+import { ScenarioComparePanel } from "./ScenarioComparePanel";
+import { ScenarioTimeline } from "./ScenarioTimeline";
+import { Filters } from "./Filters";
+import { TrustLabHelp } from "@/components/TrustLabHelp";
 import {
   PAGE,
   SCENARIO_CONTROLS,
@@ -29,22 +34,37 @@ import { INDUSTRY_THRESHOLDS } from "@/lib/industries";
 
 export default function PlaygroundClient() {
   const sim = useSimulation();
+  const [showHelp, setShowHelp] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [industry, setIndustry] = useState<Industry>("healthcare");
   const [scenarioName, setScenarioName] = useState("");
-  const [savedScenarios, setSavedScenarios] = useState<{ id: string; name: string }[]>([]);
+  const [savedScenarios, setSavedScenarios] = useState<any[]>([]);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [compareLeftId, setCompareLeftId] = useState<string>("");
+  const [compareRightId, setCompareRightId] = useState<string>("");
+  const compareLeft = compareLeftId === "" ? null : compareLeftId === "__current__" ? sim.delta : (savedScenarios.find((s) => s.id === compareLeftId)?.simulation_delta ?? savedScenarios.find((s) => s.id === compareLeftId)?.delta ?? null);
+  const compareRight = compareRightId === "" ? null : compareRightId === "__current__" ? sim.delta : (savedScenarios.find((s) => s.id === compareRightId)?.simulation_delta ?? savedScenarios.find((s) => s.id === compareRightId)?.delta ?? null);
+  const [filterDept, setFilterDept] = useState("");
+  const [filterRole, setFilterRole] = useState("");
   const threshold = INDUSTRY_THRESHOLDS[industry];
+
+  const departments = [...new Set(mockEmployees.map((e: { department?: string }) => e.department).filter(Boolean))] as string[];
+  const roles = [...new Set(mockEmployees.map((e: { role?: string }) => e.role).filter(Boolean))] as string[];
+  const filteredEmployees = mockEmployees.filter(
+    (e: { department?: string; role?: string }) =>
+      (!filterDept || e.department === filterDept) && (!filterRole || e.role === filterRole)
+  );
+
+  const normalizeDelta = useCallback((d: any) => ({
+    addedReviews: d?.addedReviews ?? [],
+    removedReviewIds: d?.removedReviewIds ?? [],
+    thresholdOverride: d?.thresholdOverride,
+  }), []);
 
   const handleLoadScenarios = useCallback(async () => {
     try {
       const data = await loadScenarios();
-      setSavedScenarios(
-        (data ?? []).map((s: { id: string; name?: string }) => ({
-          id: s.id,
-          name: s.name ?? "Unnamed",
-        }))
-      );
+      setSavedScenarios(data ?? []);
     } catch (e) {
       console.warn("Load scenarios failed", e);
     }
@@ -54,12 +74,21 @@ export default function PlaygroundClient() {
     if (!scenarioName.trim()) return;
     setSaveError(null);
     try {
-      await saveScenario({
-        name: scenarioName.trim(),
-        industry,
-        employeeIds: mockEmployees.map((e) => e.id),
-        delta: sim.delta,
+      const res = await fetch("/api/playground/scenarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: scenarioName.trim(),
+          tags: [],
+          industry,
+          employeeIds: mockEmployees.map((e) => e.id),
+          delta: sim.delta,
+        }),
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error ?? "Save failed");
+      }
       await logPlaygroundAudit("scenario_saved", {
         name: scenarioName.trim(),
         industry,
@@ -72,6 +101,14 @@ export default function PlaygroundClient() {
       setSaveError(e instanceof Error ? e.message : "Save failed");
     }
   }, [scenarioName, industry, sim.delta, handleLoadScenarios]);
+
+  const handleReplayScenario = useCallback(
+    (delta: unknown) => {
+      sim.setDelta(normalizeDelta(delta));
+      setToast("Scenario replayed");
+    },
+    [sim, normalizeDelta]
+  );
 
   const handleCompareToCurrent = useCallback(() => {
     logPlaygroundAudit("compare_to_current", { scenarioName: scenarioName || null });
@@ -94,9 +131,18 @@ export default function PlaygroundClient() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 space-y-8">
-      {/* Page header — verbatim */}
+      {/* Page header */}
       <header className="border-b border-slate-200 pb-4">
-        <h1 className="text-2xl font-bold text-slate-900">{PAGE.title}</h1>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h1 className="text-2xl font-bold text-slate-900">Trust Simulation Lab</h1>
+          <button
+            type="button"
+            onClick={() => setShowHelp(true)}
+            className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50"
+          >
+            How to Use
+          </button>
+        </div>
         <p className="text-slate-600 mt-1">{PAGE.subtitle}</p>
         <p className="text-sm text-slate-500 mt-2">{PAGE.helperText}</p>
       </header>
@@ -111,7 +157,8 @@ export default function PlaygroundClient() {
         </div>
         <PermissionGate perm="read">
           <div className="space-y-4">
-            {mockEmployees.map((e) => (
+            <Filters departments={departments} roles={roles} onFilter={(key, value) => (key === "dept" ? setFilterDept(value) : setFilterRole(value))} />
+            {filteredEmployees.map((e) => (
               <EmployeeInspector key={e.id} employee={e} sim={sim} />
             ))}
           </div>
@@ -153,35 +200,6 @@ export default function PlaygroundClient() {
             </button>
             <button
               type="button"
-              onClick={async () => {
-                if (!scenarioName.trim()) return;
-                setSaveError(null);
-                try {
-                  await saveScenario({
-                    name: scenarioName.trim(),
-                    industry,
-                    employeeIds: mockEmployees.map((e) => e.id),
-                    delta: sim.delta,
-                  });
-                  await logPlaygroundAudit("scenario_saved", {
-                    name: scenarioName.trim(),
-                    industry,
-                    employeeCount: mockEmployees.length,
-                  });
-                  setScenarioName("");
-                  handleLoadScenarios();
-                  setToast("Scenario persisted successfully");
-                } catch (e) {
-                  setSaveError(e instanceof Error ? e.message : "Save failed");
-                }
-              }}
-              disabled={!scenarioName.trim()}
-              className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-50"
-            >
-              Persist Scenario
-            </button>
-            <button
-              type="button"
               onClick={() => {
                 sim.reset();
                 setToast("Simulation reset");
@@ -207,13 +225,6 @@ export default function PlaygroundClient() {
           </div>
           <p className="text-sm text-slate-500 mt-3">{SCENARIO_CONTROLS.helperText}</p>
           {saveError && <p className="text-sm text-red-600 mt-2">{saveError}</p>}
-          {savedScenarios.length > 0 && (
-            <ul className="mt-3 text-sm text-slate-600 list-disc list-inside">
-              {savedScenarios.map((s) => (
-                <li key={s.id}>{s.name}</li>
-              ))}
-            </ul>
-          )}
           <div className="mt-3">
             <button
               type="button"
@@ -225,6 +236,38 @@ export default function PlaygroundClient() {
           </div>
         </div>
       </section>
+
+      {savedScenarios.length > 0 && (
+        <section>
+          <ScenarioList scenarios={savedScenarios} onLoad={handleReplayScenario} />
+        </section>
+      )}
+
+      <ScenarioComparePanel
+        left={compareLeft}
+        right={compareRight}
+      />
+      <section className="space-y-2">
+        <label className="block text-sm font-medium text-slate-700">Compare scenarios</label>
+        <div className="flex flex-wrap gap-3 items-center">
+          <select value={compareLeftId} onChange={(e) => setCompareLeftId(e.target.value)} className="border rounded px-3 py-2 text-sm">
+            <option value="">— Scenario A —</option>
+            <option value="__current__">Current</option>
+            {savedScenarios.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+          <select value={compareRightId} onChange={(e) => setCompareRightId(e.target.value)} className="border rounded px-3 py-2 text-sm">
+            <option value="">— Scenario B —</option>
+            <option value="__current__">Current</option>
+            {savedScenarios.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+      </section>
+
+      <ScenarioTimeline history={sim.history} onSelect={(snapshot) => sim.setDelta(normalizeDelta(snapshot))} />
 
       <ScenarioComparison history={sim.history} />
       <TrustChart history={sim.history} />
@@ -312,6 +355,7 @@ export default function PlaygroundClient() {
         </ul>
       </section>
 
+      <TrustLabHelp open={showHelp} onClose={() => setShowHelp(false)} />
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
     </div>
   );

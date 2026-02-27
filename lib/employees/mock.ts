@@ -4,6 +4,8 @@ export const mockEmployees = [
   {
     id: "1",
     name: "Jane RN",
+    department: "Nursing",
+    role: "RN",
     trust: {
       trustScore: 54,
       confidenceScore: 39,

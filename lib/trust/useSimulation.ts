@@ -20,6 +20,10 @@ export function useSimulation() {
     delta,
     history,
 
+    setDelta(next: SimulationDelta) {
+      setDelta(() => next);
+    },
+
     addReview(review: any) {
       setDelta((d) => ({
         ...d,
