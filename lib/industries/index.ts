@@ -1,31 +1,44 @@
+/**
+ * Canonical industry set for WorkVouch. Used everywhere: UI selectors,
+ * ROI calculator, simulation, and exports. No other industry values are supported.
+ */
 export type Industry =
-  | "healthcare"
-  | "security"
-  | "law_enforcement"
-  | "education"
-  | "construction"
   | "retail"
-  | "warehouse"
-  | "hospitality";
+  | "education"
+  | "law_enforcement"
+  | "security"
+  | "warehouse_logistics"
+  | "healthcare"
+  | "hospitality"
+  | "skilled_trades"
+  | "construction";
 
 export const ALL_INDUSTRIES: Industry[] = [
-  "healthcare",
-  "security",
-  "law_enforcement",
-  "education",
-  "construction",
   "retail",
-  "warehouse",
+  "education",
+  "law_enforcement",
+  "security",
+  "warehouse_logistics",
+  "healthcare",
   "hospitality",
+  "skilled_trades",
+  "construction",
 ];
 
+/** Compliance / trust thresholds per industry (conservative). */
 export const INDUSTRY_THRESHOLDS: Record<Industry, number> = {
-  healthcare: 85,
-  security: 80,
-  law_enforcement: 90,
-  education: 75,
-  construction: 65,
   retail: 55,
-  warehouse: 50,
+  education: 75,
+  law_enforcement: 90,
+  security: 80,
+  warehouse_logistics: 50,
+  healthcare: 85,
   hospitality: 60,
+  skilled_trades: 65,
+  construction: 65,
 };
+
+/** Human-readable label for display. */
+export function industryLabel(industry: Industry): string {
+  return industry.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}

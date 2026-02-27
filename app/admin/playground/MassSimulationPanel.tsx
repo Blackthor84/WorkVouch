@@ -2,10 +2,11 @@
 
 import { simulateTrust } from "@/lib/trust/simulator";
 import { logPlaygroundAudit } from "@/lib/playground/auditClient";
-import { exportCSV, scenarioReport } from "@/lib/client/exportCSV";
+import { exportCSV, scenarioReport, scenarioReportWithROI } from "@/lib/client/exportCSV";
 import { WORKFORCE_SIMULATION } from "@/lib/playground/copy";
 import type { TrustSnapshot } from "@/lib/trust/types";
 import type { SimulationAction } from "@/lib/trust/simulationActions";
+import type { ROIEngineResult, ROICounterfactualResult } from "@/lib/roi/ROICalculatorEngine";
 
 type Employee = { id: string; name: string; trust: TrustSnapshot };
 
@@ -14,9 +15,17 @@ type Props = {
   onExportImpactReport?: () => void;
   /** When provided, Run and Policy Adjustment commit a snapshot so the timeline advances. */
   execute?: (action: SimulationAction) => boolean | { ok: boolean };
+  /** When provided, workforce export includes ROI appendix (watermarked SIMULATION + methodology). */
+  roiResult?: ROIEngineResult | null;
+  /** When provided, export includes counterfactual comparison and avoided loss. */
+  roiComparison?: ROICounterfactualResult | null;
+  /** Industry for ROI export context (when ROI included). */
+  industry?: string;
+  /** When true, ROI export includes enterprise pricing reference (gated). */
+  includeEnterprisePricing?: boolean;
 };
 
-export function MassSimulationPanel({ employees, onExportImpactReport, execute }: Props) {
+export function MassSimulationPanel({ employees, onExportImpactReport, execute, roiResult, roiComparison, industry, includeEnterprisePricing }: Props) {
   const results = employees.map((e) =>
     simulateTrust(e.trust, {
       addedReviews: [
@@ -55,9 +64,11 @@ export function MassSimulationPanel({ employees, onExportImpactReport, execute }
         ],
       }),
     }));
-    const rows = scenarioReport({ name: "workforce-impact" }, reportResults);
+    const rows = roiResult != null
+      ? scenarioReportWithROI({ name: "workforce-impact" }, reportResults, roiResult, roiComparison ?? undefined, industry, includeEnterprisePricing)
+      : (scenarioReport({ name: "workforce-impact" }, reportResults) as Record<string, unknown>[]);
     exportCSV(rows, "workforce-impact-report.csv");
-    logPlaygroundAudit("export_generated", { format: "csv", type: "workforce_impact", rowCount: rows.length });
+    logPlaygroundAudit("export_generated", { format: "csv", type: "workforce_impact", rowCount: rows.length, includesROI: roiResult != null });
     onExportImpactReport?.();
   };
 

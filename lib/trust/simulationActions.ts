@@ -28,6 +28,29 @@ export type SimulationAction =
   | { type: "group_hiring_apply"; delta: SimulationDelta; notes?: string }
   | { type: "decision_trainer_apply"; delta: SimulationDelta; rationale?: string };
 
+/** Canonical union of action type strings — single source of truth for UI labels. */
+export type SimulationActionType = SimulationAction["type"];
+
+export const ACTION_LABELS: Record<SimulationActionType, string> = {
+  trust_collapse: "Trust collapse",
+  fake_consensus: "Fake consensus",
+  inject_signal: "Inject signal",
+  mutate_signal: "Mutate signal",
+  backdate_signal: "Backdate signal",
+  delete_last_signal: "Delete signal",
+  chaos_glassdoor: "Glassdoor attack",
+  chaos_zombie: "Zombie startup",
+  chaos_fraud: "Perfect fraud",
+  add_review: "Add review",
+  remove_review: "Remove review",
+  set_threshold: "Set threshold",
+  bulk_delta: "Bulk delta",
+  save_snapshot: "Save snapshot",
+  replay_scenario: "Replay scenario",
+  group_hiring_apply: "Group hiring applied",
+  decision_trainer_apply: "Decision applied",
+};
+
 function snapshotToDelta(snapshot: Snapshot): SimulationDelta {
   return {
     addedReviews: [...snapshot.reviews],

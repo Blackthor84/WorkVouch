@@ -50,7 +50,7 @@ export function ActionRail({ activeMode, onModeChange, modeContent, compact = fa
         </div>
       )}
       <nav className="flex flex-col">
-        {(Object.keys(MODE_LABELS) as RailMode[]).map((mode) => {
+        {(Object.keys(MODE_LABELS) as RailMode[]).filter((mode) => modeContent[mode] != null).map((mode) => {
           const isActive = activeMode === mode;
           return (
             <div key={mode} className="border-b border-slate-100">

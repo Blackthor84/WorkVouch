@@ -1,3 +1,5 @@
+import type { Industry } from "@/lib/industries";
+
 /** Single scenario format for the Trust Engine. */
 export type TrustScenarioPayload = {
   scenarioId: string;
@@ -65,24 +67,27 @@ export const ENGINE_VERSION = "1.0.0";
 
 export const THRESHOLDS = { smb: 60, mid: 75, enterprise: 90 } as const;
 
-export const INDUSTRY_PROFILES = {
-  healthcare: {
-    verificationWeight: 1.5,
-    fraudPenalty: 2.0,
-    decayRate: 1.3,
-    minConfidence: 85,
-  },
-  construction: {
-    verificationWeight: 1.2,
-    fraudPenalty: 1.5,
-    decayRate: 1.1,
-    minConfidence: 75,
-  },
+export const INDUSTRY_PROFILES: Record<
+  Industry,
+  { verificationWeight: number; fraudPenalty: number; decayRate: number; minConfidence: number }
+> = {
   retail: {
     verificationWeight: 1.0,
     fraudPenalty: 1.0,
     decayRate: 1.0,
     minConfidence: 60,
+  },
+  education: {
+    verificationWeight: 1.3,
+    fraudPenalty: 1.6,
+    decayRate: 1.2,
+    minConfidence: 75,
+  },
+  law_enforcement: {
+    verificationWeight: 1.7,
+    fraudPenalty: 2.5,
+    decayRate: 1.4,
+    minConfidence: 90,
   },
   security: {
     verificationWeight: 1.6,
@@ -90,7 +95,37 @@ export const INDUSTRY_PROFILES = {
     decayRate: 1.4,
     minConfidence: 90,
   },
-} as const;
+  warehouse_logistics: {
+    verificationWeight: 1.1,
+    fraudPenalty: 1.2,
+    decayRate: 1.05,
+    minConfidence: 65,
+  },
+  healthcare: {
+    verificationWeight: 1.5,
+    fraudPenalty: 2.0,
+    decayRate: 1.3,
+    minConfidence: 85,
+  },
+  hospitality: {
+    verificationWeight: 1.05,
+    fraudPenalty: 1.1,
+    decayRate: 1.0,
+    minConfidence: 60,
+  },
+  skilled_trades: {
+    verificationWeight: 1.2,
+    fraudPenalty: 1.4,
+    decayRate: 1.1,
+    minConfidence: 70,
+  },
+  construction: {
+    verificationWeight: 1.2,
+    fraudPenalty: 1.5,
+    decayRate: 1.1,
+    minConfidence: 75,
+  },
+};
 
 export type EngineActionType =
   | { type: "runScenario"; payload: TrustScenarioPayload }

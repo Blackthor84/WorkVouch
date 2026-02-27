@@ -7,6 +7,7 @@ import { AuthContextProvider } from "@/components/AuthContext"
 type LayoutUser = {
   id: string
   role: string
+  isFounder?: boolean
 } | null
 
 export default function AdminClientLayout({
@@ -42,6 +43,7 @@ export default function AdminClientLayout({
     <AuthContextProvider
       role={user?.role ?? "admin"}
       loading={!user}
+      isFounder={user?.isFounder ?? false}
     >
       {children}
     </AuthContextProvider>

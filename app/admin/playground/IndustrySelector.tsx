@@ -1,6 +1,6 @@
 "use client";
 
-import { ALL_INDUSTRIES, type Industry } from "@/lib/industries";
+import { ALL_INDUSTRIES, industryLabel, type Industry } from "@/lib/industries";
 
 type Props = {
   value: Industry | string;
@@ -16,7 +16,7 @@ export function IndustrySelector({ value, onChange }: Props) {
     >
       {ALL_INDUSTRIES.map((i) => (
         <option key={i} value={i}>
-          {i.replace("_", " ").toUpperCase()}
+          {industryLabel(i)}
         </option>
       ))}
     </select>

@@ -8,7 +8,7 @@ import { SimulationPanel } from "./SimulationPanel";
 import { ExecDashboard } from "./ExecDashboard";
 import { mockEmployees } from "@/lib/employees/mock";
 import { loadScenarios } from "@/lib/scenarios/loadScenario";
-import { exportCSV, scenarioReport } from "@/lib/client/exportCSV";
+import { exportCSV, scenarioReport, scenarioReportWithROI } from "@/lib/client/exportCSV";
 import { logPlaygroundAudit } from "@/lib/playground/auditClient";
 import { useSimulation } from "@/lib/trust/useSimulation";
 import { useMultiverse } from "@/lib/trust/useMultiverse";
@@ -37,7 +37,7 @@ import type { Industry } from "@/lib/industries";
 import { INDUSTRY_THRESHOLDS } from "@/lib/industries";
 import type { SimulationDelta, Review } from "@/lib/trust/types";
 import type { SimulationAction } from "@/lib/trust/simulationActions";
-import { executeAction } from "@/lib/trust/simulationActions";
+import { executeAction, ACTION_LABELS } from "@/lib/trust/simulationActions";
 import type { LabAuditEntry } from "./auditTypes";
 import { AuditLogPanel } from "./AuditLogPanel";
 import { LabDebugPanel } from "./LabDebugPanel";
@@ -55,10 +55,28 @@ import { DeepDiveDrawer } from "./DeepDiveDrawer";
 import { DeepDiveSwipeSheet } from "./DeepDiveSwipeSheet";
 import { LabCanvas } from "./LabCanvas";
 import { useBreakpoint } from "@/lib/playground/useBreakpoint";
-import { isEnterprise, canFork, canMerge, canDestroyUniverse, canTriggerGodMode, canFullGroupHiring } from "@/lib/playground/enterpriseGate";
+import { isEnterprise, canFork, canMerge, canDestroyUniverse, canTriggerGodMode, canFullGroupHiring, canEditROIAssumptions } from "@/lib/playground/enterpriseGate";
+import { getDefaultAssumptions, computeROI, computeROIComparison, type ROIEngineInputs, type ROIAssumptions } from "@/lib/roi/ROICalculatorEngine";
+import {
+  canAccessFeature,
+  FEATURE_ROI_CALCULATOR,
+  FEATURE_ENTERPRISE_PRICING,
+  FEATURE_COUNTERFACTUAL_COMPARISON,
+  FEATURE_POPULATION_SIM,
+  FEATURE_MULTIVERSE_ADVANCED,
+  FEATURE_ADVERSARIAL_MODE,
+} from "@/lib/internal-features";
 
 export default function PlaygroundClient() {
-  const { role } = useAuth();
+  const { role, isFounder } = useAuth();
+  const featureAccessContext = { role, isFounder: isFounder ?? false };
+  const showROI = canAccessFeature(FEATURE_ROI_CALCULATOR, featureAccessContext);
+  const showCounterfactual = canAccessFeature(FEATURE_COUNTERFACTUAL_COMPARISON, featureAccessContext);
+  const showPopulation = canAccessFeature(FEATURE_POPULATION_SIM, featureAccessContext);
+  const showMultiverseAdvanced = canAccessFeature(FEATURE_MULTIVERSE_ADVANCED, featureAccessContext);
+  const showAdversarial = canAccessFeature(FEATURE_ADVERSARIAL_MODE, featureAccessContext);
+  const includeEnterprisePricingInExport = canAccessFeature(FEATURE_ENTERPRISE_PRICING, featureAccessContext);
+
   const multiverseMode = isMultiverseMode(role);
   const simBase = useSimulation();
   const multiverse = useMultiverse();
@@ -79,6 +97,9 @@ export default function PlaygroundClient() {
   const [auditEntries, setAuditEntries] = useState<LabAuditEntry[]>([]);
   const [lastAction, setLastAction] = useState<SimulationAction | null>(null);
   const [lastDelta, setLastDelta] = useState<SimulationDelta | null>(null);
+  const [industry, setIndustry] = useState<Industry>("healthcare");
+  const [roiAssumptions, setRoiAssumptions] = useState<ROIAssumptions>(() => getDefaultAssumptions("healthcare"));
+  useEffect(() => setRoiAssumptions((prev) => getDefaultAssumptions(industry)), [industry]);
 
   useEffect(() => {
     const handler = (e: Event) => setToast((e as CustomEvent).detail ?? "Done");
@@ -97,7 +118,10 @@ export default function PlaygroundClient() {
   useEffect(() => {
     if (lastAction && isMobile && dockMode) setDockMode(null);
   }, [lastAction, isMobile, dockMode]);
-  const [industry, setIndustry] = useState<Industry>("healthcare");
+  useEffect(() => {
+    if (!showPopulation && railMode === "populations") setRailMode("reality");
+    if (!showAdversarial && railMode === "adversarial") setRailMode("reality");
+  }, [showPopulation, showAdversarial, railMode]);
   const [scenarioName, setScenarioName] = useState("");
   const [savedScenarios, setSavedScenarios] = useState<{ id: string; name: string; delta?: unknown; simulation_delta?: unknown; tags?: string[] }[]>([]);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -217,10 +241,37 @@ export default function PlaygroundClient() {
         ],
       }),
     }));
-    const rows = scenarioReport({ name: scenarioName || "export" }, results);
-    exportCSV(rows, "scenario-report.csv");
-    logPlaygroundAudit("export_generated", { format: "csv", rowCount: rows.length });
-  }, [scenarioName]);
+    if (showROI) {
+      const exportStep = multiverseMode
+        ? (multiverse as { timelineStepIndex?: number }).timelineStepIndex ?? 0
+        : (simBase as { currentIndex?: number }).currentIndex ?? 0;
+      const roiInputsForExport: ROIEngineInputs = {
+        industry,
+        populationSize: filteredEmployees.length || 1,
+        trustCollapseEvents: auditEntries.filter((e) => e.action === "trust_collapse").length,
+        forceHireOrOverrideUsage: auditEntries.filter((e) => ["decision_trainer_apply", "group_hiring_apply"].includes(e.action)).length,
+        fragilityScore: sim.snapshot?.engineOutputs?.fragilityScore ?? 0,
+        trustDebtLevel: sim.snapshot?.engineOutputs?.trustDebt ?? 0,
+        decisionType: lastAction?.type === "group_hiring_apply" ? "group_hire" : "hire",
+        teamSize: filteredEmployees.length || 1,
+      };
+      const outputs = sim.snapshot?.engineOutputs ? { trustScore: sim.snapshot.trustScore ?? sim.snapshot.engineOutputs.trustScore, complianceScore: sim.snapshot.engineOutputs.complianceScore, fragilityScore: sim.snapshot.engineOutputs.fragilityScore, trustDebt: sim.snapshot.engineOutputs.trustDebt } : null;
+      const roiResultForExport = computeROI(roiInputsForExport, roiAssumptions, outputs);
+      const roiComparisonForExport = showCounterfactual ? computeROIComparison(roiInputsForExport, roiAssumptions, outputs, exportStep) : undefined;
+      const rows = scenarioReportWithROI({ name: scenarioName || "export" }, results, roiResultForExport, roiComparisonForExport, industry, includeEnterprisePricingInExport);
+      exportCSV(rows, "scenario-report.csv");
+      logPlaygroundAudit("export_generated", { format: "csv", rowCount: rows.length, includesROI: true });
+    } else {
+      const scenarioRows = scenarioReport({ name: scenarioName || "export" }, results).map((r) => ({
+        employee: r.employee,
+        trust_before: r.trust_before,
+        trust_after: r.trust_after,
+        delta: r.delta,
+      }));
+      exportCSV(scenarioRows, "scenario-report.csv");
+      logPlaygroundAudit("export_generated", { format: "csv", rowCount: scenarioRows.length, includesROI: false });
+    }
+  }, [showROI, showCounterfactual, scenarioName, industry, filteredEmployees.length, auditEntries, lastAction?.type, sim.snapshot, roiAssumptions, multiverseMode, multiverse, simBase, includeEnterprisePricingInExport]);
 
   const godMode = role === "superadmin";
 
@@ -254,14 +305,7 @@ export default function PlaygroundClient() {
       : null;
 
   const lastActionLabel = lastAction
-    ? (() => {
-        const t = lastAction.type;
-        if (t === "save_snapshot") return "Save snapshot";
-        if (t === "replay_scenario") return "Replay scenario";
-        if (t === "add_review" || t === "add_signal") return "Add signal";
-        if (t === "reset") return "Reset";
-        return t.replace(/_/g, " ");
-      })()
+    ? (ACTION_LABELS[lastAction.type] ?? lastAction.type.replace(/_/g, " "))
     : "—";
 
   const prevSnapshot = currentStep > 0 ? sim.history[currentStep - 1] : undefined;
@@ -275,6 +319,24 @@ export default function PlaygroundClient() {
       ? (multiverse as { activeUniverseId: string | null }).activeUniverseId ?? null
       : null;
 
+  const trustCollapseEvents = auditEntries.filter((e) => e.action === "trust_collapse").length;
+  const forceHireOrOverrideUsage = auditEntries.filter((e) => ["decision_trainer_apply", "group_hiring_apply"].includes(e.action)).length;
+  const decisionType = lastAction?.type === "group_hiring_apply" ? "group_hire" as const : lastAction?.type === "decision_trainer_apply" ? "hire" as const : "hire" as const;
+  const roiInputs: ROIEngineInputs = {
+    industry,
+    populationSize: filteredEmployees.length || 1,
+    trustCollapseEvents,
+    forceHireOrOverrideUsage,
+    fragilityScore: sim.snapshot?.engineOutputs?.fragilityScore ?? 0,
+    trustDebtLevel: sim.snapshot?.engineOutputs?.trustDebt ?? 0,
+    decisionType,
+    teamSize: filteredEmployees.length || 1,
+  };
+
+  const roiOutputs = currOutputs ? { trustScore: sim.snapshot.trustScore ?? currOutputs.trustScore, complianceScore: currOutputs.complianceScore, fragilityScore: currOutputs.fragilityScore, trustDebt: currOutputs.trustDebt } : null;
+  const roiResult = showROI ? computeROI(roiInputs, roiAssumptions, roiOutputs) : null;
+  const roiComparison = showROI && showCounterfactual ? computeROIComparison(roiInputs, roiAssumptions, roiOutputs, currentStep) : null;
+
   const sccProps = {
     snapshot: sim.snapshot,
     history: sim.history,
@@ -286,6 +348,14 @@ export default function PlaygroundClient() {
     multiverseMode,
     populationImpact,
     noEffectReason,
+    roiInputs: showROI ? roiInputs : null,
+    roiAssumptions: showROI ? roiAssumptions : null,
+    roiCanEdit: showROI && canEditROIAssumptions(role),
+    onROIAssumptionsChange: (a: ROIAssumptions) => {
+      setRoiAssumptions(a);
+      logPlaygroundAudit("roi_assumptions_changed", { industry, salary: a.salary });
+    },
+    roiComparison: showROI ? roiComparison : null,
   };
 
   const railModeContent: Record<RailMode, React.ReactNode> = {
@@ -397,11 +467,11 @@ export default function PlaygroundClient() {
         </div>
       </div>
     ),
-    populations: (
+    populations: showPopulation ? (
       <div className="space-y-3">
         <SimulationPanel industry={industry} onIndustryChange={setIndustry} />
-        <MassSimulationPanel employees={mockEmployees} execute={executeWithAudit} />
-        {(multiverseMode || godMode) && (
+        <MassSimulationPanel employees={mockEmployees} execute={executeWithAudit} roiResult={showROI ? roiResult : undefined} roiComparison={showROI && showCounterfactual ? roiComparison : undefined} industry={industry} includeEnterprisePricing={includeEnterprisePricingInExport} />
+        {showMultiverseAdvanced && (multiverseMode || godMode) && (
           <>
             {canFullGroupHiring(role) ? (
               <GroupHiringSimulator sim={sim} execute={executeWithAudit} />
@@ -411,10 +481,10 @@ export default function PlaygroundClient() {
           </>
         )}
       </div>
-    ),
-    adversarial: (
+    ) : null,
+    adversarial: showAdversarial ? (
       <div className="space-y-3">
-        {multiverseMode ? (
+        {showMultiverseAdvanced && multiverseMode ? (
           <>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-slate-700">Universe</label>
@@ -463,7 +533,7 @@ export default function PlaygroundClient() {
           <p className="text-sm text-slate-600">Enable multiverse for adversarial controls.</p>
         )}
       </div>
-    ),
+    ) : null,
   };
 
   const complianceSection = (
@@ -575,14 +645,18 @@ export default function PlaygroundClient() {
     scenarios: railModeContent.scenarios,
     more: (
       <div className="space-y-6">
-        <div>
-          <h3 className="text-sm font-semibold text-slate-800 mb-2">Populations</h3>
-          {railModeContent.populations}
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-slate-800 mb-2">Adversarial</h3>
-          {railModeContent.adversarial}
-        </div>
+        {railModeContent.populations != null && (
+          <div>
+            <h3 className="text-sm font-semibold text-slate-800 mb-2">Populations</h3>
+            {railModeContent.populations}
+          </div>
+        )}
+        {railModeContent.adversarial != null && (
+          <div>
+            <h3 className="text-sm font-semibold text-slate-800 mb-2">Adversarial</h3>
+            {railModeContent.adversarial}
+          </div>
+        )}
       </div>
     ),
   };
@@ -596,9 +670,9 @@ export default function PlaygroundClient() {
   };
 
   return (
-    <div className={multiverseMode || godMode ? "pt-12" : ""}>
-      {multiverseMode && <MultiverseHUD />}
-      {godMode && <MultiverseLabPanel role={role} />}
+    <div className={showMultiverseAdvanced && (multiverseMode || godMode) ? "pt-12" : ""}>
+      {showMultiverseAdvanced && multiverseMode && <MultiverseHUD />}
+      {showMultiverseAdvanced && godMode && <MultiverseLabPanel role={role} />}
 
       {/* Mobile: strip (fixed) + full-screen canvas + bottom dock; tap strip → Command Summary Sheet */}
       {isMobile && (

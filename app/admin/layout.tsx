@@ -90,7 +90,10 @@ export default async function AdminLayout({
 
   const cookieStore = await cookies();
   const sessionUser = await getUserFromSession(cookieStore);
-  const layoutUser = sessionUser ? { id: sessionUser.id, role: sessionUser.role } : null;
+  const clientRole = admin.isSuperAdmin ? "superadmin" : "admin";
+  const layoutUser = sessionUser
+    ? { id: sessionUser.id, role: clientRole, isFounder }
+    : null;
 
   return (
     <AdminClientLayout user={layoutUser}>

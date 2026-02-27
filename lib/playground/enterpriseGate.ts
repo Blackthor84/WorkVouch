@@ -63,3 +63,8 @@ export function canFullAuditExport(role: string | null): boolean {
 export function canUseRegulatorLens(role: string | null): boolean {
   return isEnterprise(role);
 }
+
+/** ROI Calculator: non-enterprise read-only; enterprise can adjust assumptions */
+export function canEditROIAssumptions(role: string | null): boolean {
+  return isEnterprise(role);
+}

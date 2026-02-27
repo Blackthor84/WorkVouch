@@ -8,8 +8,7 @@ import {
   type Employer,
   type Employee,
 } from "@/lib/simulation-engine";
-
-const INDUSTRIES = ["healthcare", "construction", "retail", "security"] as const;
+import { ALL_INDUSTRIES } from "@/lib/industries";
 const ROLES = ["RN", "Manager", "Engineer", "Analyst", "Support"];
 const DEPARTMENTS = ["Nursing", "Engineering", "Operations", "HR"];
 
@@ -26,7 +25,7 @@ export function SimulationDataBuilder() {
     const employer = createFakeEmployer(
       {
         name: `Simulated Employer ${fakeEmployers.length + 1}`,
-        industry: INDUSTRIES[randomInt(0, INDUSTRIES.length - 1)],
+        industry: ALL_INDUSTRIES[randomInt(0, ALL_INDUSTRIES.length - 1)],
         threshold: randomInt(60, 90),
         decayRate: 0.9 + Math.random() * 0.2,
         supervisorWeight: 1.2 + Math.random() * 0.6,

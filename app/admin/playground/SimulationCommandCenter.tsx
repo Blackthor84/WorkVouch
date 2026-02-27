@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { Snapshot, SimulationDelta, EngineOutputs } from "@/lib/trust/types";
 import type { SimulationAction } from "@/lib/trust/simulationActions";
+import { ROIPanel } from "./ROIPanel";
+import type { ROIEngineInputs, ROIAssumptions, ROICounterfactualResult } from "@/lib/roi/ROICalculatorEngine";
 
 export interface UniverseContext {
   name: string;
@@ -30,6 +32,13 @@ type Props = {
   noEffectReason?: string | null;
   /** When false, Delta Inspector is omitted (e.g. when it lives in Deep Dive Drawer). */
   showDeltaInspector?: boolean;
+  /** Optional ROI panel — auto-updates from snapshot. */
+  roiInputs?: ROIEngineInputs | null;
+  roiAssumptions?: ROIAssumptions | null;
+  roiCanEdit?: boolean;
+  onROIAssumptionsChange?: (a: ROIAssumptions) => void;
+  /** Optional counterfactual comparison (With vs Without WorkVouch, avoided loss). */
+  roiComparison?: ROICounterfactualResult | null;
 };
 
 function snapshotId(s: Snapshot): string {
@@ -88,6 +97,11 @@ export function SimulationCommandCenter({
   populationImpact,
   noEffectReason,
   showDeltaInspector = true,
+  roiInputs,
+  roiAssumptions,
+  roiCanEdit = false,
+  onROIAssumptionsChange,
+  roiComparison,
 }: Props) {
   const [deltaExpanded, setDeltaExpanded] = useState(false);
   const prevSnapshot = currentStep > 0 ? history[currentStep - 1] : undefined;
@@ -256,6 +270,18 @@ export function SimulationCommandCenter({
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
           <strong>Why no measurable effect:</strong> {noEffectReason}
         </div>
+      )}
+
+      {/* ROI — financial impact of trust failures */}
+      {roiInputs != null && roiAssumptions != null && (
+        <ROIPanel
+          snapshot={snapshot}
+          inputs={roiInputs}
+          assumptions={roiAssumptions}
+          canEdit={roiCanEdit}
+          onAssumptionsChange={onROIAssumptionsChange}
+          comparison={roiComparison}
+        />
       )}
     </section>
   );

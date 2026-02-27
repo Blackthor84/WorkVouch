@@ -10,12 +10,13 @@ type Props = {
   execute?: (action: SimulationAction) => boolean | { ok: boolean };
 };
 
+import { ALL_INDUSTRIES, industryLabel, type Industry } from "@/lib/industries";
+
 const PERSPECTIVES = ["Recruiter", "Enterprise Risk", "Regulator"] as const;
-const INDUSTRIES = ["healthcare", "construction", "retail", "security"] as const;
 
 export function DecisionTrainer({ sim, execute: executeProp }: Props) {
   const [perspective, setPerspective] = useState<typeof PERSPECTIVES[number]>("Recruiter");
-  const [industry, setIndustry] = useState<typeof INDUSTRIES[number]>("healthcare");
+  const [industry, setIndustry] = useState<Industry>("healthcare");
   const [rationale, setRationale] = useState("");
   const [outcome, setOutcome] = useState<string | null>(null);
 
@@ -73,11 +74,11 @@ export function DecisionTrainer({ sim, execute: executeProp }: Props) {
           Industry:
           <select
             value={industry}
-            onChange={(e) => setIndustry(e.target.value as typeof INDUSTRIES[number])}
+            onChange={(e) => setIndustry(e.target.value as Industry)}
             className="ml-2 border rounded px-2 py-1"
           >
-            {INDUSTRIES.map((i) => (
-              <option key={i} value={i}>{i}</option>
+            {ALL_INDUSTRIES.map((i) => (
+              <option key={i} value={i}>{industryLabel(i)}</option>
             ))}
           </select>
         </label>

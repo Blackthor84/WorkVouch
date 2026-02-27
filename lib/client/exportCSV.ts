@@ -17,4 +17,4 @@ export function exportCSV(rows: Record<string, unknown>[], filename = "report.cs
 }
 
 export type { ScenarioResultRow } from "@/lib/exports/exportCSV";
-export { scenarioReport } from "@/lib/exports/exportCSV";
+export { scenarioReport, scenarioReportWithROI, roiSectionRows } from "@/lib/exports/exportCSV";
