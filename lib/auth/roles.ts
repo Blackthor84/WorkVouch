@@ -14,6 +14,17 @@ export function hasPermission(role: Role, perm: string): boolean {
   return ROLE_PERMISSIONS[role]?.includes(perm) ?? false;
 }
 
+/**
+ * Normalizes unknown / external role strings into a safe internal Role
+ * Defaults to "recruiter" (least privilege)
+ */
+export function normalizeRole(role?: string | null): Role {
+  if (role === "admin") return "admin";
+  if (role === "exec") return "exec";
+  if (role === "manager") return "manager";
+  return "recruiter";
+}
+
 export function isAdminRole(role?: string | null): boolean {
-  return role === "admin";
+  return normalizeRole(role) === "admin";
 }
