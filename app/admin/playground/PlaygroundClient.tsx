@@ -45,11 +45,17 @@ import { SimulationDataBuilder } from "./SimulationDataBuilder";
 import { PopulationSimulationTable, type PopulationEmployee } from "./PopulationSimulationTable";
 import { GroupHiringSimulator } from "./GroupHiringSimulator";
 import { DecisionTrainer } from "./DecisionTrainer";
-import { SimulationCommandCenter } from "./SimulationCommandCenter";
+import { SimulationCommandCenter, explainAction, engineDeltas } from "./SimulationCommandCenter";
 import { CommandStrip } from "./CommandStrip";
+import { CommandSummarySheet } from "./CommandSummarySheet";
 import { ActionRail, type RailMode } from "./ActionRail";
+import { ActionDock, type DockMode } from "./ActionDock";
+import { MobileModeSheet } from "./MobileModeSheet";
 import { DeepDiveDrawer } from "./DeepDiveDrawer";
+import { DeepDiveSwipeSheet } from "./DeepDiveSwipeSheet";
 import { LabCanvas } from "./LabCanvas";
+import { useBreakpoint } from "@/lib/playground/useBreakpoint";
+import { isEnterprise, canFork, canMerge, canDestroyUniverse, canTriggerGodMode, canFullGroupHiring } from "@/lib/playground/enterpriseGate";
 
 export default function PlaygroundClient() {
   const { role } = useAuth();
@@ -57,8 +63,17 @@ export default function PlaygroundClient() {
   const simBase = useSimulation();
   const multiverse = useMultiverse();
   const sim = multiverseMode ? multiverse : simBase;
+  const breakpoint = useBreakpoint();
+  const isMobile = breakpoint === "mobile";
+  const isTablet = breakpoint === "tablet";
+  const isDesktop = breakpoint === "desktop";
+  const enterprise = isEnterprise(role);
+
   const [showHelp, setShowHelp] = useState(false);
   const [railMode, setRailMode] = useState<RailMode>("reality");
+  const [showSummarySheet, setShowSummarySheet] = useState(false);
+  const [dockMode, setDockMode] = useState<DockMode | null>(null);
+  const [lastActionPulse, setLastActionPulse] = useState(false);
   const [godModeUsed, setGodModeUsed] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [auditEntries, setAuditEntries] = useState<LabAuditEntry[]>([]);
@@ -70,6 +85,18 @@ export default function PlaygroundClient() {
     window.addEventListener("playground-toast", handler);
     return () => window.removeEventListener("playground-toast", handler);
   }, []);
+
+  useEffect(() => {
+    if (lastAction) {
+      setLastActionPulse(true);
+      const t = setTimeout(() => setLastActionPulse(false), 700);
+      return () => clearTimeout(t);
+    }
+  }, [lastAction?.type]);
+
+  useEffect(() => {
+    if (lastAction && isMobile && dockMode) setDockMode(null);
+  }, [lastAction, isMobile, dockMode]);
   const [industry, setIndustry] = useState<Industry>("healthcare");
   const [scenarioName, setScenarioName] = useState("");
   const [savedScenarios, setSavedScenarios] = useState<{ id: string; name: string; delta?: unknown; simulation_delta?: unknown; tags?: string[] }[]>([]);
@@ -226,6 +253,23 @@ export default function PlaygroundClient() {
         })()
       : null;
 
+  const lastActionLabel = lastAction
+    ? (() => {
+        const t = lastAction.type;
+        if (t === "save_snapshot") return "Save snapshot";
+        if (t === "replay_scenario") return "Replay scenario";
+        if (t === "add_review" || t === "add_signal") return "Add signal";
+        if (t === "reset") return "Reset";
+        return t.replace(/_/g, " ");
+      })()
+    : "—";
+
+  const prevSnapshot = currentStep > 0 ? sim.history[currentStep - 1] : undefined;
+  const prevOutputs = prevSnapshot?.engineOutputs;
+  const currOutputs = sim.snapshot.engineOutputs;
+  const summaryExplanation = noEffectReason ?? explainAction(lastAction, lastDelta, prevOutputs, currOutputs ?? undefined);
+  const summaryDeltas = currOutputs && prevOutputs ? engineDeltas(prevOutputs, currOutputs) : [];
+
   const universeIdForDrawer =
     multiverseMode && "activeUniverseId" in multiverse
       ? (multiverse as { activeUniverseId: string | null }).activeUniverseId ?? null
@@ -358,7 +402,13 @@ export default function PlaygroundClient() {
         <SimulationPanel industry={industry} onIndustryChange={setIndustry} />
         <MassSimulationPanel employees={mockEmployees} execute={executeWithAudit} />
         {(multiverseMode || godMode) && (
-          <GroupHiringSimulator sim={sim} execute={executeWithAudit} />
+          <>
+            {canFullGroupHiring(role) ? (
+              <GroupHiringSimulator sim={sim} execute={executeWithAudit} />
+            ) : (
+              <p className="text-xs text-slate-600 rounded bg-slate-50 p-2">Group hiring — preview. Full control is an Enterprise feature.</p>
+            )}
+          </>
         )}
       </div>
     ),
@@ -378,11 +428,13 @@ export default function PlaygroundClient() {
                 ))}
               </select>
             </div>
+            <p className="text-xs text-slate-600">Compare alternate realities — Enterprise for Fork/Merge/Destroy.</p>
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={multiverse.fork} className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">Fork</button>
+              <button type="button" onClick={multiverse.fork} disabled={!canFork(role)} className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed" title={!canFork(role) ? "Enterprise feature" : undefined}>Fork</button>
               <select
                 className="border rounded px-2 py-1.5 text-sm"
                 defaultValue=""
+                disabled={!canMerge(role)}
                 onChange={(e) => {
                   const fromId = e.target.value;
                   e.target.value = "";
@@ -396,10 +448,16 @@ export default function PlaygroundClient() {
                   <option key={u.id} value={u.id}>{u.name}</option>
                 ))}
               </select>
-              <button type="button" onClick={() => multiverse.universes.length > 1 && multiverse.destroy(multiverse.activeUniverseId!)} disabled={multiverse.universes.length <= 1} className="rounded border border-red-200 px-3 py-2 text-sm hover:bg-red-50 disabled:opacity-50">Destroy current</button>
+              <button type="button" onClick={() => multiverse.universes.length > 1 && multiverse.destroy(multiverse.activeUniverseId!)} disabled={multiverse.universes.length <= 1 || !canDestroyUniverse(role)} className="rounded border border-red-200 px-3 py-2 text-sm hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed" title={!canDestroyUniverse(role) ? "Enterprise feature" : undefined}>Destroy current</button>
             </div>
-            <GodModeActions sim={multiverse} onAction={() => setGodModeUsed(true)} execute={executeWithAudit} />
-            <ChaosPresets sim={multiverse} onOutcome={(name, msg) => { setGodModeUsed(true); setToast(`${name}: ${msg}`); }} execute={executeWithAudit} />
+            {canTriggerGodMode(role) ? (
+              <>
+                <GodModeActions sim={multiverse} onAction={() => setGodModeUsed(true)} execute={executeWithAudit} />
+                <ChaosPresets sim={multiverse} onOutcome={(name, msg) => { setGodModeUsed(true); setToast(`${name}: ${msg}`); }} execute={executeWithAudit} />
+              </>
+            ) : (
+              <p className="text-xs text-slate-600 rounded bg-amber-50 border border-amber-200 p-2">What would happen if… — view outcomes. Triggering is an Enterprise feature.</p>
+            )}
           </>
         ) : (
           <p className="text-sm text-slate-600">Enable multiverse for adversarial controls.</p>
@@ -510,34 +568,147 @@ export default function PlaygroundClient() {
     ),
   };
 
+  const dockSheetContent: Record<DockMode, React.ReactNode> = {
+    reality: railModeContent.reality,
+    decide: railModeContent.decisions,
+    signals: railModeContent.signals,
+    scenarios: railModeContent.scenarios,
+    more: (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-800 mb-2">Populations</h3>
+          {railModeContent.populations}
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold text-slate-800 mb-2">Adversarial</h3>
+          {railModeContent.adversarial}
+        </div>
+      </div>
+    ),
+  };
+
+  const dockTitles: Record<DockMode, string> = {
+    reality: "Reality",
+    decide: "Decide",
+    signals: "Signals",
+    scenarios: "Scenarios",
+    more: "More",
+  };
+
   return (
     <div className={multiverseMode || godMode ? "pt-12" : ""}>
       {multiverseMode && <MultiverseHUD />}
       {godMode && <MultiverseLabPanel role={role} />}
-      <div className="flex flex-col h-[calc(100vh-3rem)] min-h-[600px]">
-        <CommandStrip
-          snapshot={sim.snapshot}
-          currentStep={currentStep}
-          historyLength={sim.history.length}
-          lastActionLabel={lastAction?.type ?? "—"}
-          universeContext={universeContext}
-          multiverseMode={multiverseMode}
-        />
-        <div className="flex flex-1 min-h-0">
-          <ActionRail activeMode={railMode} onModeChange={setRailMode} modeContent={railModeContent} />
-          <LabCanvas sccProps={sccProps} activeMode={railMode} modeContent={canvasModeContent} footer={complianceSection} />
-          <DeepDiveDrawer
+
+      {/* Mobile: strip (fixed) + full-screen canvas + bottom dock; tap strip → Command Summary Sheet */}
+      {isMobile && (
+        <>
+          <CommandStrip
+            snapshot={sim.snapshot}
+            currentStep={currentStep}
+            historyLength={sim.history.length}
+            lastActionLabel={lastActionLabel}
+            universeContext={universeContext}
+            multiverseMode={multiverseMode}
+            variant="mobile"
+            onTap={() => setShowSummarySheet(true)}
+            lastActionPulse={lastActionPulse}
+          />
+          <main className="flex flex-col flex-1 min-h-0 pt-12 pb-20 overflow-auto">
+            <div className="flex flex-col gap-4 p-4">
+              <SimulationCommandCenter {...sccProps} showDeltaInspector={false} />
+            </div>
+          </main>
+          <ActionDock activeMode={dockMode} onModeOpen={setDockMode} onModeClose={() => setDockMode(null)} />
+          {dockMode && (
+            <MobileModeSheet
+              mode={dockMode}
+              title={dockTitles[dockMode]}
+              onClose={() => setDockMode(null)}
+            >
+              {dockSheetContent[dockMode]}
+            </MobileModeSheet>
+          )}
+          {showSummarySheet && (
+            <CommandSummarySheet
+              snapshot={sim.snapshot}
+              lastActionLabel={lastActionLabel}
+              explanation={summaryExplanation}
+              engineDeltas={summaryDeltas}
+              universeContext={universeContext}
+              currentStep={currentStep}
+              historyLength={sim.history.length}
+              onClose={() => setShowSummarySheet(false)}
+            />
+          )}
+          <DeepDiveSwipeSheet
             lastAction={lastAction}
             lastDelta={lastDelta}
             lastEngineOutputs={sim.snapshot?.engineOutputs}
             snapshotCount={sim.history.length}
             universeId={universeIdForDrawer}
             auditEntries={auditEntries}
-            defaultCollapsed={true}
           />
+        </>
+      )}
+
+      {/* Tablet: strip + rail (icon-first) + canvas; max 2 panes; deep drawer collapsed */}
+      {isTablet && (
+        <div className="flex flex-col h-[calc(100vh-3rem)] min-h-[600px]">
+          <CommandStrip
+            snapshot={sim.snapshot}
+            currentStep={currentStep}
+            historyLength={sim.history.length}
+            lastActionLabel={lastActionLabel}
+            universeContext={universeContext}
+            multiverseMode={multiverseMode}
+            lastActionPulse={lastActionPulse}
+          />
+          <div className="flex flex-1 min-h-0">
+            <ActionRail activeMode={railMode} onModeChange={setRailMode} modeContent={railModeContent} compact={isTablet} />
+            <LabCanvas sccProps={sccProps} activeMode={railMode} modeContent={canvasModeContent} footer={complianceSection} />
+            <DeepDiveDrawer
+              lastAction={lastAction}
+              lastDelta={lastDelta}
+              lastEngineOutputs={sim.snapshot?.engineOutputs}
+              snapshotCount={sim.history.length}
+              universeId={universeIdForDrawer}
+              auditEntries={auditEntries}
+              defaultCollapsed={true}
+            />
+          </div>
         </div>
-      </div>
-      <div className="fixed top-4 right-4 z-50">
+      )}
+
+      {/* Desktop: full layout */}
+      {isDesktop && (
+        <div className="flex flex-col h-[calc(100vh-3rem)] min-h-[600px]">
+          <CommandStrip
+            snapshot={sim.snapshot}
+            currentStep={currentStep}
+            historyLength={sim.history.length}
+            lastActionLabel={lastActionLabel}
+            universeContext={universeContext}
+            multiverseMode={multiverseMode}
+            lastActionPulse={lastActionPulse}
+          />
+          <div className="flex flex-1 min-h-0">
+            <ActionRail activeMode={railMode} onModeChange={setRailMode} modeContent={railModeContent} compact={isTablet} />
+            <LabCanvas sccProps={sccProps} activeMode={railMode} modeContent={canvasModeContent} footer={complianceSection} />
+            <DeepDiveDrawer
+              lastAction={lastAction}
+              lastDelta={lastDelta}
+              lastEngineOutputs={sim.snapshot?.engineOutputs}
+              snapshotCount={sim.history.length}
+              universeId={universeIdForDrawer}
+              auditEntries={auditEntries}
+              defaultCollapsed={true}
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="fixed top-4 right-4 z-50 hidden md:block">
         <button
           type="button"
           onClick={() => setShowHelp(true)}

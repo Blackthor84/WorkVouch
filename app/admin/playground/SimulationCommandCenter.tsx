@@ -42,8 +42,8 @@ function complianceStatus(score: number): string {
   return "Breach";
 }
 
-function explainAction(action: SimulationAction | null, delta: SimulationDelta | null, prevOutputs: EngineOutputs | undefined, currOutputs: EngineOutputs | undefined): string {
-  if (!action) return "No action yet. Run any lab action to see outcomes here.";
+export function explainAction(lastAction: SimulationAction | null, delta: SimulationDelta | null, prevOutputs: EngineOutputs | undefined, currOutputs: EngineOutputs | undefined): string {
+  if (!lastAction) return "No action yet. Run any lab action to see outcomes here.";
   if (!currOutputs) return "Snapshot has no engine outputs.";
   const added = delta?.addedReviews?.length ?? 0;
   const removed = delta?.removedReviewIds?.length ?? 0;
@@ -65,7 +65,7 @@ function explainAction(action: SimulationAction | null, delta: SimulationDelta |
   return parts.length > 0 ? parts.join("; ") : "State committed (no net metric change).";
 }
 
-function engineDeltas(prev: EngineOutputs | undefined, curr: EngineOutputs): { name: string; delta: number }[] {
+export function engineDeltas(prev: EngineOutputs | undefined, curr: EngineOutputs): { name: string; delta: number }[] {
   if (!prev) return [];
   const out: { name: string; delta: number }[] = [];
   const keys: (keyof EngineOutputs)[] = ["trustScore", "confidenceScore", "riskScore", "fragilityScore", "trustDebt", "complianceScore", "cultureImpactScore"];
