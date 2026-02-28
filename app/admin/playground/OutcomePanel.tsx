@@ -10,9 +10,11 @@ type Props = {
   industry: Industry;
   /** Optional financial exposure (from ROI) when available. */
   financialExposure?: number | null;
+  /** Optional last explanation (action summary or "Live from profile"). */
+  lastExplanation?: string | null;
 };
 
-export function OutcomePanel({ snapshot, industry, financialExposure }: Props) {
+export function OutcomePanel({ snapshot, industry, financialExposure, lastExplanation }: Props) {
   const out = snapshot.engineOutputs;
   const threshold = INDUSTRY_THRESHOLDS[industry];
   const trustScore = out?.trustScore ?? snapshot.trustScore ?? 0;
@@ -77,6 +79,12 @@ export function OutcomePanel({ snapshot, industry, financialExposure }: Props) {
           <dt className="text-slate-600">Est. Exposure</dt>
           <dd className="font-bold tabular-nums text-slate-900">{exposureLabel}</dd>
         </div>
+        {lastExplanation != null && lastExplanation !== "" && (
+          <div className="border-t border-slate-200 pt-2">
+            <dt className="text-slate-600 text-xs font-medium mb-0.5">Last explanation</dt>
+            <dd className="text-slate-700 text-xs leading-snug">{lastExplanation}</dd>
+          </div>
+        )}
       </dl>
 
       <p className="text-xs text-slate-500">

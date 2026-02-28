@@ -704,6 +704,7 @@ export default function PlaygroundClient() {
             snapshot={profileSnapshot}
             industry={industry}
             financialExposure={showROI && roiResult?.hasMaterialRisk ? roiResult?.totalEstimatedExposure ?? null : null}
+            lastExplanation={lastAction ? summaryExplanation : "Outcomes from current profile."}
           />
         </div>
       </section>

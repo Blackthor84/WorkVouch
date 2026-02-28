@@ -36,7 +36,7 @@ export function EmployeeProfileEditor({ profile, onChange }: Props) {
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-5">
-      <h2 className="text-sm font-bold text-slate-800">Employee Profile (Editable Controls)</h2>
+      <h2 className="text-sm font-bold text-slate-800">Employee Builder</h2>
 
       <Section title="Industry & role">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

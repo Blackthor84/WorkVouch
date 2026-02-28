@@ -45,6 +45,16 @@ export function LabGuide() {
         </section>
 
         <section>
+          <h3 className="font-semibold text-slate-900 mb-1">What advanced tools do</h3>
+          <ul className="list-disc list-inside space-y-0.5 text-xs">
+            <li><strong>Compare:</strong> Side-by-side scenario or multiverse comparison; load saved scenarios and compare to current.</li>
+            <li><strong>Stress Test:</strong> Chaos presets and God Mode–style actions to see how outcomes change under distortion.</li>
+            <li><strong>ROI:</strong> Estimated financial exposure and optional counterfactual (with vs without WorkVouch); industry-based assumptions.</li>
+            <li><strong>Decision Trainer:</strong> Force hire or reject and see impact on trust, debt, and compliance (multiverse/god mode).</li>
+          </ul>
+        </section>
+
+        <section>
           <h3 className="font-semibold text-slate-900 mb-1">Example scenarios to try</h3>
           <ul className="list-disc list-inside space-y-0.5 text-xs">
             <li><strong>“Ideal hire”:</strong> Healthcare, 5+ years, 2+ supervisor verifications, positive peer sentiment, 1+ certifications → aim for Trust ≥ 85.</li>

@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { AdminSidebar, type AdminSidebarProps } from "@/components/admin/AdminSidebar";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
 
 const LAB_PATH = "/admin/playground";
 
@@ -10,7 +10,7 @@ function isLabRoute(pathname: string): boolean {
 }
 
 type Props = {
-  sidebarProps: AdminSidebarProps;
+  sidebarProps: React.ComponentProps<typeof AdminSidebar>;
   containerClassName: string;
   children: React.ReactNode;
 };
