@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getUserFromSession } from "@/lib/auth/getUserFromSession";
 import AdminClientLayout from "./AdminClientLayout";
-import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { LabAwareAdminShell } from "./LabAwareAdminShell";
 import { AdminGlobalBar } from "@/components/admin/AdminGlobalBar";
 import { isGodMode } from "@/lib/auth/isGodMode";
 import { isSandboxEnv } from "@/lib/sandbox/env";
@@ -111,27 +111,27 @@ export default async function AdminLayout({
         overrideExpiresAt={overrideStatus.expiresAt ?? null}
         isFounder={isFounder}
       />
-      <div className={`min-h-screen flex ${isSandboxEnv ? "bg-amber-50/50" : "bg-[#F8FAFC]"}`}>
-        <AdminSidebar
-          isSuperAdmin={admin.isSuperAdmin}
-          isSandbox={isSandboxEnv}
-          appEnvironment={admin.appEnvironment}
-          overrideActive={overrideActive}
-          showFinancials={canViewFinancials({
+      <LabAwareAdminShell
+        containerClassName={`min-h-screen flex ${isSandboxEnv ? "bg-amber-50/50" : "bg-[#F8FAFC]"}`}
+        sidebarProps={{
+          isSuperAdmin: admin.isSuperAdmin,
+          isSandbox: isSandboxEnv,
+          appEnvironment: admin.appEnvironment,
+          overrideActive: overrideActive,
+          showFinancials: canViewFinancials({
             isAdmin: admin.isAdmin,
             isSuperAdmin: admin.isSuperAdmin,
             profileRole: admin.profileRole,
-          })}
-          showBoard={canViewBoard({
+          }),
+          showBoard: canViewBoard({
             isAdmin: admin.isAdmin,
             isSuperAdmin: admin.isSuperAdmin,
             profileRole: admin.profileRole,
-          })}
-        />
-        <main className="flex-1 min-h-screen overflow-auto text-[#0F172A]">
-          {children}
-        </main>
-      </div>
+          }),
+        }}
+      >
+        {children}
+      </LabAwareAdminShell>
     </AdminClientLayout>
   );
 }

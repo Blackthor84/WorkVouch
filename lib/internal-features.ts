@@ -85,14 +85,14 @@ export function isInternalRole(context: FeatureAccessContext): boolean {
 
 /**
  * Single access check for internal features. Use this everywhere; no component may decide visibility independently.
- * Returns true only when:
- * 1. The feature is enabled for the environment (off in production unless explicitly on), and
- * 2. The user is superadmin or founder.
+ * Superadmin and founder bypass all plan restrictions and always have access.
+ * Other users: feature must be enabled for the environment and they must be internal (superadmin/founder).
  */
 export function canAccessFeature(
   featureKey: InternalFeatureKey,
   context: FeatureAccessContext
 ): boolean {
+  if (isInternalRole(context)) return true;
   if (!isFeatureEnabledForEnvWithOverride(featureKey)) return false;
   return isInternalRole(context);
 }

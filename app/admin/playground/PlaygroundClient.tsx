@@ -70,6 +70,7 @@ import { defaultSimulatedProfile, buildSnapshotFromProfile, type SimulatedEmploy
 import { EmployeeProfileEditor } from "./EmployeeProfileEditor";
 import { OutcomePanel } from "./OutcomePanel";
 import { ROIPanel } from "./ROIPanel";
+import { LabGuide } from "./LabGuide";
 
 export default function PlaygroundClient() {
   const { role, isFounder } = useAuth();
@@ -89,7 +90,7 @@ export default function PlaygroundClient() {
   const isMobile = breakpoint === "mobile";
   const isTablet = breakpoint === "tablet";
   const isDesktop = breakpoint === "desktop";
-  const enterprise = isEnterprise(role);
+  const enterprise = isEnterprise(role, isFounder ?? false);
 
   const [simulatedProfile, setSimulatedProfile] = useState<SimulatedEmployeeProfile>(() => defaultSimulatedProfile("healthcare"));
   const profileSnapshot = useMemo(() => buildSnapshotFromProfile(simulatedProfile), [simulatedProfile]);
@@ -362,7 +363,7 @@ export default function PlaygroundClient() {
     noEffectReason,
     roiInputs: showROI ? roiInputs : null,
     roiAssumptions: showROI ? roiAssumptions : null,
-    roiCanEdit: showROI && canEditROIAssumptions(role),
+    roiCanEdit: showROI && canEditROIAssumptions(role, isFounder ?? false),
     onROIAssumptionsChange: (a: ROIAssumptions) => {
       setRoiAssumptions(a);
       logPlaygroundAudit("roi_assumptions_changed", { industry, salary: a.salary });
@@ -485,7 +486,7 @@ export default function PlaygroundClient() {
         <MassSimulationPanel employees={mockEmployees} execute={executeWithAudit} roiResult={showROI ? roiResult : undefined} roiComparison={showROI && showCounterfactual ? roiComparison : undefined} industry={industry} includeEnterprisePricing={includeEnterprisePricingInExport} />
         {showMultiverseAdvanced && (multiverseMode || godMode) && (
           <>
-            {canFullGroupHiring(role) ? (
+            {canFullGroupHiring(role, isFounder ?? false) ? (
               <GroupHiringSimulator sim={sim} execute={executeWithAudit} />
             ) : (
               <p className="text-xs text-slate-600 rounded bg-slate-50 p-2">Group hiring — preview. Full control is an Enterprise feature.</p>
@@ -512,11 +513,11 @@ export default function PlaygroundClient() {
             </div>
             <p className="text-xs text-slate-600">Compare alternate realities — Enterprise for Fork/Merge/Destroy.</p>
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={multiverse.fork} disabled={!canFork(role)} className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed" title={!canFork(role) ? "Enterprise feature" : undefined}>Fork</button>
+              <button type="button" onClick={multiverse.fork} disabled={!canFork(role, isFounder ?? false)} className="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed" title={!canFork(role, isFounder ?? false) ? "Enterprise feature" : undefined}>Fork</button>
               <select
                 className="border rounded px-2 py-1.5 text-sm"
                 defaultValue=""
-                disabled={!canMerge(role)}
+                disabled={!canMerge(role, isFounder ?? false)}
                 onChange={(e) => {
                   const fromId = e.target.value;
                   e.target.value = "";
@@ -530,9 +531,9 @@ export default function PlaygroundClient() {
                   <option key={u.id} value={u.id}>{u.name}</option>
                 ))}
               </select>
-              <button type="button" onClick={() => multiverse.universes.length > 1 && multiverse.destroy(multiverse.activeUniverseId!)} disabled={multiverse.universes.length <= 1 || !canDestroyUniverse(role)} className="rounded border border-red-200 px-3 py-2 text-sm hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed" title={!canDestroyUniverse(role) ? "Enterprise feature" : undefined}>Destroy current</button>
+              <button type="button" onClick={() => multiverse.universes.length > 1 && multiverse.destroy(multiverse.activeUniverseId!)} disabled={multiverse.universes.length <= 1 || !canDestroyUniverse(role, isFounder ?? false)} className="rounded border border-red-200 px-3 py-2 text-sm hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed" title={!canDestroyUniverse(role, isFounder ?? false) ? "Enterprise feature" : undefined}>Destroy current</button>
             </div>
-            {canTriggerGodMode(role) ? (
+            {canTriggerGodMode(role, isFounder ?? false) ? (
               <>
                 <GodModeActions sim={multiverse} onAction={() => setGodModeUsed(true)} execute={executeWithAudit} />
                 <ChaosPresets sim={multiverse} onOutcome={(name, msg) => { setGodModeUsed(true); setToast(`${name}: ${msg}`); }} execute={executeWithAudit} />
@@ -707,9 +708,18 @@ export default function PlaygroundClient() {
         </div>
       </section>
 
-      {/* Advanced tools (optional tabs) */}
+      {/* Lab Guide (cheat sheet) */}
+      <section className="px-4 pb-2" aria-label="Lab Guide">
+        <LabGuide />
+      </section>
+
+      {/* Advanced tools (optional tabs, collapsed by default) */}
       <section className="p-4" aria-label="Advanced simulation tools">
-        <h2 className="text-sm font-semibold text-slate-700 mb-2">Advanced tools (optional)</h2>
+        <details className="rounded-xl border border-slate-200 bg-slate-50/50 overflow-hidden" open={false}>
+          <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 border-b border-slate-200">
+            Advanced tools (optional)
+          </summary>
+          <div className="p-4 pt-2">
         <div className="flex flex-wrap gap-1 border-b border-slate-200 mb-4" role="tablist">
           {(["compare", "stress", "roi", "trainer"] as const).map((tab) => (
             <button
@@ -788,7 +798,7 @@ export default function PlaygroundClient() {
                     ))}
                   </select>
                 </div>
-                {canTriggerGodMode(role) ? (
+                {canTriggerGodMode(role, isFounder ?? false) ? (
                   <>
                     <GodModeActions sim={multiverse} onAction={() => setGodModeUsed(true)} execute={executeWithAudit} />
                     <ChaosPresets sim={multiverse} onOutcome={(name, msg) => { setGodModeUsed(true); setToast(`${name}: ${msg}`); }} execute={executeWithAudit} />
@@ -810,7 +820,7 @@ export default function PlaygroundClient() {
                 snapshot={effectiveSnapshot}
                 inputs={roiInputs}
                 assumptions={roiAssumptions}
-                canEdit={canEditROIAssumptions(role)}
+                canEdit={canEditROIAssumptions(role, isFounder ?? false)}
                 onAssumptionsChange={(a) => {
                   setRoiAssumptions(a);
                   logPlaygroundAudit("roi_assumptions_changed", { industry, salary: a.salary });
@@ -832,6 +842,9 @@ export default function PlaygroundClient() {
             )}
           </div>
         )}
+
+          </div>
+        </details>
 
       {/* Mobile: strip (fixed) + full-screen canvas + bottom dock; tap strip → Command Summary Sheet */}
       {isMobile && (
