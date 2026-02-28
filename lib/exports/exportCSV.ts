@@ -20,6 +20,23 @@ export type ScenarioResultRow = {
   delta: number;
 };
 
+/** Discriminated union for scenario export: data rows (numeric) and meta/watermark row. */
+export type ExportRow =
+  | {
+      kind: "meta";
+      employee: string;
+      trust_before: null;
+      trust_after: null;
+      delta: string;
+    }
+  | {
+      kind: "data";
+      employee: string;
+      trust_before: number;
+      trust_after: number;
+      delta: number;
+    };
+
 export function scenarioReport(
   scenario: { name?: string },
   results: { name: string; before: { trustScore: number }; after: { trustScore: number } }[]
@@ -36,18 +53,21 @@ export function scenarioReport(
 export function scenarioReportWithWatermark(
   scenario: { name?: string },
   results: { name: string; before: { trustScore: number }; after: { trustScore: number } }[]
-): Record<string, unknown>[] {
-  const rows = scenarioReport(scenario, results).map((r) => ({
+): ExportRow[] {
+  const rows: ExportRow[] = scenarioReport(scenario, results).map((r) => ({
+    kind: "data",
     employee: r.employee,
     trust_before: r.trust_before,
     trust_after: r.trust_after,
     delta: r.delta,
   }));
   rows.push({
+    kind: "meta",
     employee: "[SIMULATION]",
-    trust_before: "",
-    trust_after: "",
-    delta: "This export is from the Employee Outcome Designer. All data simulated. No real employee records modified.",
+    trust_before: null,
+    trust_after: null,
+    delta:
+      "This export is from the Employee Outcome Designer. All data simulated. No real employee records modified.",
   });
   return rows;
 }
