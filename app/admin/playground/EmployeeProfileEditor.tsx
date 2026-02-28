@@ -105,7 +105,7 @@ export function EmployeeProfileEditor({ profile, onChange }: Props) {
             onChange={(e) => update({ supervisorWeight: Number(e.target.value) || 1 })}
             className="border rounded px-2 py-1.5 text-sm w-full"
           />
-        )}
+        ))}
         </div>
       </Section>
 
@@ -144,7 +144,7 @@ export function EmployeeProfileEditor({ profile, onChange }: Props) {
             <option value="neutral">Neutral</option>
             <option value="negative">Negative</option>
           </select>
-        )}
+        ))}
         {field("Coworker reviews (count)", "profile-coworker", (
           <input
             id="profile-coworker"
@@ -155,7 +155,7 @@ export function EmployeeProfileEditor({ profile, onChange }: Props) {
             onChange={(e) => update({ coworkerReviewCount: Number(e.target.value) || 0 })}
             className="border rounded px-2 py-1.5 text-sm w-full"
           />
-        )}
+        ))}
         </div>
       </Section>
 
