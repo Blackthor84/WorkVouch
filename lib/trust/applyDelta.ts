@@ -5,6 +5,7 @@
  */
 
 import type { Snapshot, SimulationDelta, Review } from "./types";
+import type { EngineContext } from "@/lib/simulation-engine";
 import { applyDelta as engineApplyDelta, createInitialSnapshot as engineCreateInitialSnapshot } from "@/lib/simulation-engine";
 
 function toEngineReview(r: Review): { id: string; source: Review["source"]; weight: number; timestamp: number } {
@@ -79,10 +80,10 @@ function fromEngineSnapshot(next: ReturnType<typeof engineApplyDelta>): Snapshot
   };
 }
 
-export function applyDelta(prev: Snapshot, delta: SimulationDelta): Snapshot {
+export function applyDelta(prev: Snapshot, delta: SimulationDelta, ctx?: EngineContext): Snapshot {
   const enginePrev = toEngineSnapshot(prev) as Parameters<typeof engineApplyDelta>[0];
   const engineDelta = toEngineDelta(delta) as Parameters<typeof engineApplyDelta>[1];
-  const next = engineApplyDelta(enginePrev, engineDelta);
+  const next = engineApplyDelta(enginePrev, engineDelta, ctx);
   return fromEngineSnapshot(next);
 }
 

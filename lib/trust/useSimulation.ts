@@ -105,6 +105,13 @@ export function useSimulation() {
     setCurrentIndex(0);
   }, []);
 
+  /** Replace entire history with one or more snapshots (e.g. Employee Outcome Designer profile snapshot). */
+  const replaceHistory = useCallback((snapshots: Snapshot[], index = 0) => {
+    if (snapshots.length === 0) return;
+    setHistory(snapshots);
+    setCurrentIndex(Math.min(index, snapshots.length - 1));
+  }, []);
+
   const replayScenario = useCallback((delta: SimulationDelta) => {
     const next = applyDelta(initial, { ...delta, timestamp: Date.now() });
     setHistory([initial, next]);
@@ -127,6 +134,7 @@ export function useSimulation() {
     setThreshold,
     saveSnapshot,
     reset,
+    replaceHistory,
     replayScenario,
     delta: snapshotToDelta(snapshot),
   };

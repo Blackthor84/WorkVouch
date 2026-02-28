@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { useAuth } from "@/components/AuthContext";
 import { EmployeeInspector } from "./EmployeeInspector";
 import { MassSimulationPanel } from "./MassSimulationPanel";
@@ -8,7 +8,7 @@ import { SimulationPanel } from "./SimulationPanel";
 import { ExecDashboard } from "./ExecDashboard";
 import { mockEmployees } from "@/lib/employees/mock";
 import { loadScenarios } from "@/lib/scenarios/loadScenario";
-import { exportCSV, scenarioReport, scenarioReportWithROI } from "@/lib/client/exportCSV";
+import { exportCSV, scenarioReportWithROI, scenarioReportWithWatermark } from "@/lib/client/exportCSV";
 import { logPlaygroundAudit } from "@/lib/playground/auditClient";
 import { useSimulation } from "@/lib/trust/useSimulation";
 import { useMultiverse } from "@/lib/trust/useMultiverse";
@@ -34,8 +34,8 @@ import {
   DEMO_SCRIPT,
 } from "@/lib/playground/copy";
 import type { Industry } from "@/lib/industries";
-import { INDUSTRY_THRESHOLDS } from "@/lib/industries";
-import type { SimulationDelta, Review } from "@/lib/trust/types";
+import { INDUSTRY_THRESHOLDS, industryLabel } from "@/lib/industries";
+import type { SimulationDelta, Review, Snapshot } from "@/lib/trust/types";
 import type { SimulationAction } from "@/lib/trust/simulationActions";
 import { executeAction, ACTION_LABELS } from "@/lib/trust/simulationActions";
 import type { LabAuditEntry } from "./auditTypes";
@@ -66,6 +66,10 @@ import {
   FEATURE_MULTIVERSE_ADVANCED,
   FEATURE_ADVERSARIAL_MODE,
 } from "@/lib/internal-features";
+import { defaultSimulatedProfile, buildSnapshotFromProfile, type SimulatedEmployeeProfile } from "@/lib/playground/simulatedProfile";
+import { EmployeeProfileEditor } from "./EmployeeProfileEditor";
+import { OutcomePanel } from "./OutcomePanel";
+import { ROIPanel } from "./ROIPanel";
 
 export default function PlaygroundClient() {
   const { role, isFounder } = useAuth();
@@ -87,6 +91,17 @@ export default function PlaygroundClient() {
   const isDesktop = breakpoint === "desktop";
   const enterprise = isEnterprise(role);
 
+  const [simulatedProfile, setSimulatedProfile] = useState<SimulatedEmployeeProfile>(() => defaultSimulatedProfile("healthcare"));
+  const profileSnapshot = useMemo(() => buildSnapshotFromProfile(simulatedProfile), [simulatedProfile]);
+  const industry = simulatedProfile.industry;
+  const onIndustryChange = useCallback((v: Industry) => setSimulatedProfile((prev) => ({ ...prev, industry: v })), []);
+
+  useEffect(() => {
+    if (!multiverseMode && typeof (simBase as { replaceHistory?: (s: Snapshot[]) => void }).replaceHistory === "function") {
+      (simBase as { replaceHistory: (s: Snapshot[]) => void }).replaceHistory([profileSnapshot]);
+    }
+  }, [profileSnapshot, multiverseMode, simBase]);
+
   const [showHelp, setShowHelp] = useState(false);
   const [railMode, setRailMode] = useState<RailMode>("reality");
   const [showSummarySheet, setShowSummarySheet] = useState(false);
@@ -97,7 +112,6 @@ export default function PlaygroundClient() {
   const [auditEntries, setAuditEntries] = useState<LabAuditEntry[]>([]);
   const [lastAction, setLastAction] = useState<SimulationAction | null>(null);
   const [lastDelta, setLastDelta] = useState<SimulationDelta | null>(null);
-  const [industry, setIndustry] = useState<Industry>("healthcare");
   const [roiAssumptions, setRoiAssumptions] = useState<ROIAssumptions>(() => getDefaultAssumptions("healthcare"));
   useEffect(() => setRoiAssumptions((prev) => getDefaultAssumptions(industry)), [industry]);
 
@@ -125,6 +139,7 @@ export default function PlaygroundClient() {
   const [scenarioName, setScenarioName] = useState("");
   const [savedScenarios, setSavedScenarios] = useState<{ id: string; name: string; delta?: unknown; simulation_delta?: unknown; tags?: string[] }[]>([]);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [advancedTab, setAdvancedTab] = useState<"compare" | "stress" | "roi" | "trainer">("compare");
   const [compareLeftId, setCompareLeftId] = useState<string>("");
   const [compareRightId, setCompareRightId] = useState<string>("");
   const compareLeft = compareLeftId === "" ? null : compareLeftId === "__current__" ? sim.delta : (savedScenarios.find((s) => s.id === compareLeftId)?.simulation_delta ?? savedScenarios.find((s) => s.id === compareLeftId)?.delta ?? null);
@@ -262,12 +277,7 @@ export default function PlaygroundClient() {
       exportCSV(rows, "scenario-report.csv");
       logPlaygroundAudit("export_generated", { format: "csv", rowCount: rows.length, includesROI: true });
     } else {
-      const scenarioRows = scenarioReport({ name: scenarioName || "export" }, results).map((r) => ({
-        employee: r.employee,
-        trust_before: r.trust_before,
-        trust_after: r.trust_after,
-        delta: r.delta,
-      }));
+      const scenarioRows = scenarioReportWithWatermark({ name: scenarioName || "export" }, results);
       exportCSV(scenarioRows, "scenario-report.csv");
       logPlaygroundAudit("export_generated", { format: "csv", rowCount: scenarioRows.length, includesROI: false });
     }
@@ -333,12 +343,14 @@ export default function PlaygroundClient() {
     teamSize: filteredEmployees.length || 1,
   };
 
-  const roiOutputs = currOutputs ? { trustScore: sim.snapshot.trustScore ?? currOutputs.trustScore, complianceScore: currOutputs.complianceScore, fragilityScore: currOutputs.fragilityScore, trustDebt: currOutputs.trustDebt } : null;
+  const effectiveSnapshot = multiverseMode ? sim.snapshot : profileSnapshot;
+  const effectiveOutputs = effectiveSnapshot?.engineOutputs;
+  const roiOutputs = effectiveOutputs ? { trustScore: effectiveSnapshot.trustScore ?? effectiveOutputs.trustScore, complianceScore: effectiveOutputs.complianceScore, fragilityScore: effectiveOutputs.fragilityScore, trustDebt: effectiveOutputs.trustDebt } : null;
   const roiResult = showROI ? computeROI(roiInputs, roiAssumptions, roiOutputs) : null;
   const roiComparison = showROI && showCounterfactual ? computeROIComparison(roiInputs, roiAssumptions, roiOutputs, currentStep) : null;
 
   const sccProps = {
-    snapshot: sim.snapshot,
+    snapshot: effectiveSnapshot,
     history: sim.history,
     currentStep,
     onTimelineStep: sim.setTimelineStep,
@@ -382,7 +394,7 @@ export default function PlaygroundClient() {
     ),
     signals: (
       <div className="space-y-3">
-        <SimulationPanel industry={industry} onIndustryChange={setIndustry} />
+        <SimulationPanel industry={industry} onIndustryChange={onIndustryChange} />
         <SimulationDataBuilder />
       </div>
     ),
@@ -469,7 +481,7 @@ export default function PlaygroundClient() {
     ),
     populations: showPopulation ? (
       <div className="space-y-3">
-        <SimulationPanel industry={industry} onIndustryChange={setIndustry} />
+        <SimulationPanel industry={industry} onIndustryChange={onIndustryChange} />
         <MassSimulationPanel employees={mockEmployees} execute={executeWithAudit} roiResult={showROI ? roiResult : undefined} roiComparison={showROI && showCounterfactual ? roiComparison : undefined} industry={industry} includeEnterprisePricing={includeEnterprisePricingInExport} />
         {showMultiverseAdvanced && (multiverseMode || godMode) && (
           <>
@@ -674,6 +686,153 @@ export default function PlaygroundClient() {
       {showMultiverseAdvanced && multiverseMode && <MultiverseHUD />}
       {showMultiverseAdvanced && godMode && <MultiverseLabPanel role={role} />}
 
+      {/* Employee Outcome Designer — profile-centric; outcomes update live */}
+      <section className="border-b border-slate-200 bg-white p-4" aria-label="Employee Outcome Designer">
+        <div className="flex flex-wrap items-baseline gap-2 mb-1">
+          <h1 className="text-xl font-bold text-slate-900">Employee Outcome Designer</h1>
+          <span className="text-sm font-semibold uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
+            SIMULATED
+          </span>
+        </div>
+        <p className="text-sm text-slate-600 mb-4">
+          Industry: <strong>{industryLabel(industry)}</strong> | Role: <strong>{simulatedProfile.role || "—"}</strong>
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,minmax(280px,360px)] gap-6">
+          <EmployeeProfileEditor profile={simulatedProfile} onChange={setSimulatedProfile} />
+          <OutcomePanel
+            snapshot={profileSnapshot}
+            industry={industry}
+            financialExposure={showROI && roiResult?.hasMaterialRisk ? roiResult?.totalEstimatedExposure ?? null : null}
+          />
+        </div>
+      </section>
+
+      {/* Advanced tools (optional tabs) */}
+      <section className="p-4" aria-label="Advanced simulation tools">
+        <h2 className="text-sm font-semibold text-slate-700 mb-2">Advanced tools (optional)</h2>
+        <div className="flex flex-wrap gap-1 border-b border-slate-200 mb-4" role="tablist">
+          {(["compare", "stress", "roi", "trainer"] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              role="tab"
+              aria-selected={advancedTab === tab}
+              onClick={() => setAdvancedTab(tab)}
+              className={`px-3 py-2 text-sm font-medium rounded-t border-b-2 -mb-px transition-colors ${
+                advancedTab === tab
+                  ? "border-slate-700 text-slate-900 bg-white"
+                  : "border-transparent text-slate-600 hover:text-slate-800 hover:bg-slate-50"
+              }`}
+            >
+              {tab === "compare" ? "Compare" : tab === "stress" ? "Stress Test" : tab === "roi" ? "ROI" : "Decision Trainer"}
+            </button>
+          ))}
+        </div>
+
+        {advancedTab === "compare" && (
+          <div className="rounded-lg border border-slate-200 bg-white p-4 space-y-4 mb-4">
+            <ScenarioComparePanel left={compareLeft} right={compareRight} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Compare A</label>
+                <select value={compareLeftId} onChange={(e) => setCompareLeftId(e.target.value)} className="border rounded px-2 py-1.5 text-sm w-full">
+                  <option value="">— Select —</option>
+                  <option value="__current__">Current</option>
+                  {savedScenarios.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Compare B</label>
+                <select value={compareRightId} onChange={(e) => setCompareRightId(e.target.value)} className="border rounded px-2 py-1.5 text-sm w-full">
+                  <option value="">— Select —</option>
+                  <option value="__current__">Current</option>
+                  {savedScenarios.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <button type="button" onClick={handleLoadScenarios} className="text-sm text-slate-600 underline hover:text-slate-800">
+              Load scenarios
+            </button>
+            {multiverseMode ? (
+              <MultiverseGraph
+                universes={multiverse.universes}
+                activeUniverseId={multiverse.activeUniverseId}
+                onSelectUniverse={multiverse.setActiveUniverseId}
+                onScrubTimeline={multiverse.setTimelineStep != null ? (_id, step) => multiverse.setTimelineStep(step) : undefined}
+                history={sim.history}
+                hasDistortion={godModeUsed}
+              />
+            ) : (
+              <TrustChart history={sim.history} />
+            )}
+          </div>
+        )}
+
+        {advancedTab === "stress" && (
+          <div className="rounded-lg border border-slate-200 bg-white p-4 space-y-4 mb-4">
+            {showMultiverseAdvanced && multiverseMode ? (
+              <>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-slate-700">Universe</label>
+                  <select
+                    value={multiverse.activeUniverseId ?? ""}
+                    onChange={(e) => multiverse.setActiveUniverseId(e.target.value || null)}
+                    className="border rounded px-2 py-1.5 text-sm w-full"
+                  >
+                    {multiverse.universes.map((u) => (
+                      <option key={u.id} value={u.id}>{u.name}</option>
+                    ))}
+                  </select>
+                </div>
+                {canTriggerGodMode(role) ? (
+                  <>
+                    <GodModeActions sim={multiverse} onAction={() => setGodModeUsed(true)} execute={executeWithAudit} />
+                    <ChaosPresets sim={multiverse} onOutcome={(name, msg) => { setGodModeUsed(true); setToast(`${name}: ${msg}`); }} execute={executeWithAudit} />
+                  </>
+                ) : (
+                  <p className="text-xs text-slate-600 rounded bg-amber-50 border border-amber-200 p-2">What would happen if… — view outcomes. Triggering is an Enterprise feature.</p>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-slate-600">Enable multiverse for stress test controls.</p>
+            )}
+          </div>
+        )}
+
+        {advancedTab === "roi" && (
+          <div className="rounded-lg border border-slate-200 bg-white p-4 mb-4">
+            {showROI ? (
+              <ROIPanel
+                snapshot={effectiveSnapshot}
+                inputs={roiInputs}
+                assumptions={roiAssumptions}
+                canEdit={canEditROIAssumptions(role)}
+                onAssumptionsChange={(a) => {
+                  setRoiAssumptions(a);
+                  logPlaygroundAudit("roi_assumptions_changed", { industry, salary: a.salary });
+                }}
+                comparison={roiComparison}
+              />
+            ) : (
+              <p className="text-sm text-slate-600">ROI calculator is not available for your plan.</p>
+            )}
+          </div>
+        )}
+
+        {advancedTab === "trainer" && (
+          <div className="rounded-lg border border-slate-200 bg-white p-4 mb-4">
+            {(multiverseMode || godMode) ? (
+              <DecisionTrainer sim={sim} execute={executeWithAudit} />
+            ) : (
+              <p className="text-sm text-slate-600">Enable multiverse or god mode for Decision Trainer.</p>
+            )}
+          </div>
+        )}
+
       {/* Mobile: strip (fixed) + full-screen canvas + bottom dock; tap strip → Command Summary Sheet */}
       {isMobile && (
         <>
@@ -781,6 +940,8 @@ export default function PlaygroundClient() {
           </div>
         </div>
       )}
+
+      </section>
 
       <div className="fixed top-4 right-4 z-50 hidden md:block">
         <button

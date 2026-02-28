@@ -32,6 +32,26 @@ export function scenarioReport(
   }));
 }
 
+/** Scenario report with SIMULATION watermark row appended (Part F: exports watermarked). */
+export function scenarioReportWithWatermark(
+  scenario: { name?: string },
+  results: { name: string; before: { trustScore: number }; after: { trustScore: number } }[]
+): Record<string, unknown>[] {
+  const rows = scenarioReport(scenario, results).map((r) => ({
+    employee: r.employee,
+    trust_before: r.trust_before,
+    trust_after: r.trust_after,
+    delta: r.delta,
+  }));
+  rows.push({
+    employee: "[SIMULATION]",
+    trust_before: "",
+    trust_after: "",
+    delta: "This export is from the Employee Outcome Designer. All data simulated. No real employee records modified.",
+  });
+  return rows;
+}
+
 const CSV_EMPTY = "";
 
 /** ROI section rows for CSV append; same column set as scenario rows. Optional counterfactual adds With/Without and avoided loss. Optional industry documents assumptions used. includeEnterprisePricing: when false, methodology omits enterprise price reference (gated). */
