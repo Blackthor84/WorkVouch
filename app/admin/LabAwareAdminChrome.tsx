@@ -2,8 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import { AdminGlobalBar } from "@/components/admin/AdminGlobalBar";
-import type { AdminSidebarProps } from "@/components/admin/AdminSidebar";
 import { LabAwareAdminShell } from "./LabAwareAdminShell";
+import type { LabAwareAdminShellConfig } from "@/types/admin";
 import type { ReactNode } from "react";
 
 const LAB_PATH = "/admin/playground";
@@ -22,12 +22,6 @@ type AdminGlobalBarProps = {
   isFounder?: boolean;
 };
 
-type LabAwareAdminShellProps = {
-  containerClassName: string;
-  sidebarProps: AdminSidebarProps;
-  children: ReactNode;
-};
-
 /**
  * When on the Trust Lab route, completely remove the global admin bar and navigation.
  * Lab Mode has its own dedicated dashboard with no external navigation.
@@ -38,7 +32,7 @@ export function LabAwareAdminChrome({
   children,
 }: {
   barProps: AdminGlobalBarProps;
-  shellProps: LabAwareAdminShellProps;
+  shellProps: LabAwareAdminShellConfig;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -47,7 +41,7 @@ export function LabAwareAdminChrome({
   if (inLab) {
     return (
       <LabAwareAdminShell
-        containerClassName={shellProps.containerClassName}
+        containerClassName={shellProps.containerClassName ?? ""}
         sidebarProps={shellProps.sidebarProps}
       >
         {children}
@@ -67,7 +61,7 @@ export function LabAwareAdminChrome({
         isFounder={barProps.isFounder}
       />
       <LabAwareAdminShell
-        containerClassName={shellProps.containerClassName}
+        containerClassName={shellProps.containerClassName ?? ""}
         sidebarProps={shellProps.sidebarProps}
       >
         {children}

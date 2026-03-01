@@ -12,6 +12,7 @@ import {
   canViewFinancials,
   canViewBoard,
 } from "@/lib/adminPermissions";
+import type { LabAwareAdminShellConfig } from "@/types/admin";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getAdminOverrideStatus } from "@/lib/admin/overrideStatus";
 
@@ -94,6 +95,26 @@ export default async function AdminLayout({
     ? { id: sessionUser.id, role: clientRole, isFounder }
     : null;
 
+  const shellProps: LabAwareAdminShellConfig = {
+    containerClassName: `min-h-screen flex ${isSandboxEnv ? "bg-amber-50/50" : "bg-[#F8FAFC]"}`,
+    sidebarProps: {
+      isSuperAdmin: admin.isSuperAdmin,
+      isSandbox: isSandboxEnv,
+      appEnvironment: admin.appEnvironment,
+      overrideActive,
+      showFinancials: canViewFinancials({
+        isAdmin: admin.isAdmin,
+        isSuperAdmin: admin.isSuperAdmin,
+        profileRole: admin.profileRole,
+      }),
+      showBoard: canViewBoard({
+        isAdmin: admin.isAdmin,
+        isSuperAdmin: admin.isSuperAdmin,
+        profileRole: admin.profileRole,
+      }),
+    },
+  };
+
   return (
     <AdminClientLayout user={layoutUser}>
       {godModeEnabled && (
@@ -111,25 +132,7 @@ export default async function AdminLayout({
           overrideExpiresAt: overrideStatus.expiresAt ?? null,
           isFounder,
         }}
-        shellProps={{
-          containerClassName: `min-h-screen flex ${isSandboxEnv ? "bg-amber-50/50" : "bg-[#F8FAFC]"}`,
-          sidebarProps: {
-            isSuperAdmin: admin.isSuperAdmin,
-            isSandbox: isSandboxEnv,
-            appEnvironment: admin.appEnvironment,
-            overrideActive: overrideActive,
-            showFinancials: canViewFinancials({
-              isAdmin: admin.isAdmin,
-              isSuperAdmin: admin.isSuperAdmin,
-              profileRole: admin.profileRole,
-            }),
-            showBoard: canViewBoard({
-              isAdmin: admin.isAdmin,
-              isSuperAdmin: admin.isSuperAdmin,
-              profileRole: admin.profileRole,
-            }),
-          },
-        }}
+        shellProps={shellProps}
       >
         {children}
       </LabAwareAdminChrome>
