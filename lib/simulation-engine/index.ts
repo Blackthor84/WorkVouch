@@ -4,6 +4,7 @@ export type {
   SimulationDelta,
   SnapshotMetadata,
   EngineOutputs,
+  HumanFactorInsights,
   IntentModifiers,
   Employer,
   Policy,
@@ -11,6 +12,7 @@ export type {
   Universe,
   Population,
 } from "./domain";
+export { computeHumanFactorInsights } from "./humanFactors";
 export type { EngineContext } from "./engineContext";
 export { applyDelta, createInitialSnapshot } from "./reducer";
 export { getThreshold, getDecayRate, getSupervisorWeight } from "./engineContext";

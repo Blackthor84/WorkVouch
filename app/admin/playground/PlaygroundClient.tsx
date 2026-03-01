@@ -71,6 +71,7 @@ import { EmployeeProfileEditor } from "./EmployeeProfileEditor";
 import { OutcomePanel } from "./OutcomePanel";
 import { ROIPanel } from "./ROIPanel";
 import { LabGuide } from "./LabGuide";
+import { HumanFactorInsightsPanel } from "./HumanFactorInsightsPanel";
 
 export default function PlaygroundClient() {
   const { role, isFounder } = useAuth();
@@ -706,6 +707,9 @@ export default function PlaygroundClient() {
             financialExposure={showROI && roiResult?.hasMaterialRisk ? roiResult?.totalEstimatedExposure ?? null : null}
             lastExplanation={lastAction ? summaryExplanation : "Outcomes from current profile."}
           />
+        </div>
+        <div className="mt-4">
+          <HumanFactorInsightsPanel humanFactorInsights={profileSnapshot?.engineOutputs?.humanFactorInsights} />
         </div>
       </section>
 

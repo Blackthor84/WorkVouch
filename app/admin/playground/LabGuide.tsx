@@ -18,6 +18,7 @@ export function LabGuide() {
             <li>Every change re-runs the trust, confidence, fragility, and compliance engines immediately.</li>
             <li>The <strong>Outcome Panel</strong> (right) stays visible and updates live.</li>
             <li>Use <strong>Advanced Tools</strong> (Compare, Stress Test, ROI, Decision Trainer) for scenarios—they operate on your current simulated profile.</li>
+            <li><strong>Human factor insights</strong> are derived from observable signals only (engagement, timing, network); they are interpretive context, not personality or character.</li>
             <li>All data is <strong>SIMULATED</strong>; no real employee records are modified.</li>
           </ul>
         </section>

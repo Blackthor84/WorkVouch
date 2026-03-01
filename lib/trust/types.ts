@@ -276,6 +276,18 @@ export interface SnapshotMetadata {
   notes?: string;
 }
 
+/** Human factor insights: interpretive only, from observable signals. No personality labels. */
+export interface HumanFactorInsights {
+  insights: string[];
+  audit: {
+    relationalTrustProxy: number;
+    collaborationStabilityProxy: number;
+    ethicalFrictionProxy: number;
+    socialGravityProxy: number;
+    workplaceFrictionIndex: number;
+  };
+}
+
 /** Engine outputs from reducer pipeline; every snapshot has these after applyDelta. */
 export interface EngineOutputs {
   trustScore: number;
@@ -285,6 +297,7 @@ export interface EngineOutputs {
   trustDebt: number;
   complianceScore: number;
   cultureImpactScore: number;
+  humanFactorInsights?: HumanFactorInsights;
 }
 
 /** Point-in-time simulation state. UI consumes Snapshots; history is Snapshot[]. */

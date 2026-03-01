@@ -8,6 +8,7 @@
 
 import type { Snapshot, SimulationDelta, Review, EngineOutputs } from "./domain";
 import type { EngineContext } from "./engineContext";
+import { computeHumanFactorInsights } from "./humanFactors";
 import {
   trustScoreEngine,
   confidenceEngine,
@@ -50,6 +51,8 @@ export function applyDelta(
   const complianceScore = complianceEngine(baseSnapshot, delta, ctx, trustScore);
   const cultureImpactScore = cultureImpactEngine(baseSnapshot, delta);
 
+  const humanFactorInsights = computeHumanFactorInsights(baseSnapshot, baseSnapshot.timestamp);
+
   const engineOutputs: EngineOutputs = {
     trustScore,
     confidenceScore,
@@ -58,6 +61,7 @@ export function applyDelta(
     trustDebt,
     complianceScore,
     cultureImpactScore,
+    humanFactorInsights,
   };
 
   return {

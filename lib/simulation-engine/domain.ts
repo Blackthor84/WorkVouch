@@ -19,6 +19,18 @@ export interface SnapshotMetadata {
   notes?: string;
 }
 
+/** Human factors: interpretive insights from observable signals only. No personality labels. */
+export interface HumanFactorInsights {
+  insights: string[];
+  audit: {
+    relationalTrustProxy: number;
+    collaborationStabilityProxy: number;
+    ethicalFrictionProxy: number;
+    socialGravityProxy: number;
+    workplaceFrictionIndex: number;
+  };
+}
+
 /** Numeric outputs from every engine run. Stored on Snapshot for audit and debug. */
 export interface EngineOutputs {
   trustScore: number;
@@ -28,6 +40,8 @@ export interface EngineOutputs {
   trustDebt: number;
   complianceScore: number;
   cultureImpactScore: number;
+  /** Derived from observable signals; interpretive only. Event-driven and auditable. */
+  humanFactorInsights?: HumanFactorInsights;
 }
 
 export interface Snapshot {
