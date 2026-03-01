@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Snapshot, SimulationDelta, EngineOutputs } from "@/lib/trust/types";
+import type { Snapshot, SimulationDelta, EngineOutputs, NumericKeys } from "@/lib/trust/types";
 import type { SimulationAction } from "@/lib/trust/simulationActions";
 import { ROIPanel } from "./ROIPanel";
 import type { ROIEngineInputs, ROIAssumptions, ROICounterfactualResult } from "@/lib/roi/ROICalculatorEngine";
@@ -74,11 +74,20 @@ export function explainAction(lastAction: SimulationAction | null, delta: Simula
   return parts.length > 0 ? parts.join("; ") : "State committed (no net metric change).";
 }
 
+const ENGINE_OUTPUT_NUMERIC_KEYS: NumericKeys<EngineOutputs>[] = [
+  "trustScore",
+  "confidenceScore",
+  "riskScore",
+  "fragilityScore",
+  "trustDebt",
+  "complianceScore",
+  "cultureImpactScore",
+];
+
 export function engineDeltas(prev: EngineOutputs | undefined, curr: EngineOutputs): { name: string; delta: number }[] {
   if (!prev) return [];
   const out: { name: string; delta: number }[] = [];
-  const keys: (keyof EngineOutputs)[] = ["trustScore", "confidenceScore", "riskScore", "fragilityScore", "trustDebt", "complianceScore", "cultureImpactScore"];
-  for (const k of keys) {
+  for (const k of ENGINE_OUTPUT_NUMERIC_KEYS) {
     const d = curr[k] - prev[k];
     if (d !== 0) out.push({ name: k, delta: d });
   }

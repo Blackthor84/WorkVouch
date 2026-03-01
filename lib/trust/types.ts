@@ -312,6 +312,11 @@ export interface HumanFactorInsights {
   insights: string[];
 }
 
+/** Keys of T whose values are number. Use for iterating numeric fields only. */
+export type NumericKeys<T> = {
+  [K in keyof T]: T[K] extends number ? K : never;
+}[keyof T];
+
 /** Engine outputs from reducer pipeline; every snapshot has these after applyDelta. */
 export interface EngineOutputs {
   trustScore: number;
