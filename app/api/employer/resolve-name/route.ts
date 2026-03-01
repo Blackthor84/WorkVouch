@@ -6,8 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { resolveEmployerNameFromRows } from "@/lib/employer-resolution/resolve";
-import type { EmployerAccountRow } from "@/lib/employer-resolution/resolve";
+import { resolveEmployerNameFromRows, type EmployerAccountRow } from "@/lib/employer-resolution/core";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { buildCredentialPayload } from "@/lib/workvouch-credential/buildPayload";
+import { buildCredentialPayload } from "@/lib/workvouch-credential/core";
 import type { CredentialVisibility } from "@/lib/workvouch-credential/types";
 import { randomBytes } from "crypto";
 
