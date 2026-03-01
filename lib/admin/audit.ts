@@ -34,13 +34,16 @@ export type AuditAction =
   | "fraud_override"
   | "location_reassignment"
   | "admin_override_enabled"
-  | "playground_mutation_under_override";
+  | "playground_mutation_under_override"
+  | "content_flag_create"
+  | "content_flag_resolve"
+  | "search_restriction_toggle";
 
 export async function insertAdminAuditLog(params: {
   adminId: string;
   adminEmail?: string | null;
   targetUserId?: string;
-  targetType?: "user" | "employer" | "review" | "trust_score" | "system" | "organization" | "role";
+  targetType?: "user" | "employer" | "review" | "trust_score" | "system" | "organization" | "role" | "content_flag";
   targetId?: string | null;
   action: AuditAction;
   oldValue?: Record<string, unknown> | null;
@@ -76,7 +79,7 @@ export async function insertAdminAuditLog(params: {
  */
 export type LogAdminActionPayload = {
   action_type: string;
-  target_type: "user" | "employer" | "review" | "trust_score" | "system" | "organization" | "role";
+  target_type: "user" | "employer" | "review" | "trust_score" | "system" | "organization" | "role" | "content_flag";
   target_id: string | null;
   before_state: Record<string, unknown> | null;
   after_state: Record<string, unknown> | null;

@@ -384,6 +384,24 @@ export interface Database {
         }
         Relationships: []
       }
+      employer_legal_acceptance: {
+        Row: {
+          profile_id: string
+          version: string
+          accepted_at: string
+        }
+        Insert: {
+          profile_id: string
+          version: string
+          accepted_at?: string
+        }
+        Update: {
+          profile_id?: string
+          version?: string
+          accepted_at?: string
+        }
+        Relationships: []
+      }
       employer_notifications: {
         Row: {
           id: string

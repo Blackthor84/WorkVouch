@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { TrustScoreCard } from "@/components/trust-score-card";
 import { ProfileStrengthCard } from "@/components/profile";
 import { CareerHealthDashboard } from "@/components/employee/CareerHealthDashboard";
+import { TrustScoreExplainedSection } from "@/components/dashboard/TrustScoreExplainedSection";
 import { ProfileVisibilityCard } from "@/components/employee/ProfileVisibilityCard";
 import { EmployeeProfileCompletenessCard } from "@/components/employee/EmployeeProfileCompletenessCard";
 import { EmployerProfileViewCountCard } from "@/components/employee/EmployerProfileViewCountCard";
@@ -191,6 +192,10 @@ export default async function UserDashboardPage() {
 
             <div id="career-health">
               <CareerHealthDashboard />
+            </div>
+
+            <div id="trust-score-explained">
+              <TrustScoreExplainedSection />
             </div>
 
             <div id="profile-visibility">

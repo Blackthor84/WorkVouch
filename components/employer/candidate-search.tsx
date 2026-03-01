@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import {
   searchCandidates,
-  getCandidateProfileForEmployer,
   type CandidateSearchResult,
+  type CandidateSearchFilters,
 } from "@/lib/actions/employer/candidate-search";
+import { EMPLOYER_DISCLAIMER_NOT_ACCEPTED } from "@/lib/employer/requireEmployerLegalAcceptance";
+import { EmployerLegalDisclaimerModal } from "@/components/employer/EmployerLegalDisclaimerModal";
 import { INDUSTRIES } from "@/lib/constants/industries";
 import {
   saveCandidate,
@@ -15,12 +17,10 @@ import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import {
   MagnifyingGlassIcon,
-  StarIcon,
   BookmarkIcon,
   BookmarkSlashIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-import Link from "next/link";
 
 export function CandidateSearch() {
   const [loading, setLoading] = useState(false);
@@ -34,32 +34,75 @@ export function CandidateSearch() {
   const [savedCandidates, setSavedCandidates] = useState<Set<string>>(
     new Set(),
   );
+  const [showDisclaimerModal, setShowDisclaimerModal] = useState(false);
+  const [acceptingDisclaimer, setAcceptingDisclaimer] = useState(false);
+  const [pendingSearchFilters, setPendingSearchFilters] = useState<
+    CandidateSearchFilters | null
+  >(null);
 
-  const handleSearch = async () => {
-    setLoading(true);
-    try {
-      const searchFilters = {
-        industry: filters.industry || undefined,
-        job_title: filters.job_title || undefined,
-        location: filters.location || undefined,
-        min_trust_score: filters.min_trust_score
-          ? parseInt(filters.min_trust_score)
-          : undefined,
-      };
+  const runSearch = useCallback(
+    async (searchFilters: CandidateSearchFilters) => {
       const data = await searchCandidates(searchFilters);
       setResults(data);
-
-      // Check which candidates are saved
       const saved = new Set<string>();
       for (const candidate of data) {
         const savedStatus = await isCandidateSaved(candidate.id);
         if (savedStatus) saved.add(candidate.id);
       }
       setSavedCandidates(saved);
-    } catch (error: any) {
-      alert(error.message || "Failed to search candidates");
+    },
+    [],
+  );
+
+  const handleSearch = async () => {
+    const searchFilters: CandidateSearchFilters = {
+      industry: filters.industry || undefined,
+      job_title: filters.job_title || undefined,
+      location: filters.location || undefined,
+      min_trust_score: filters.min_trust_score
+        ? parseInt(filters.min_trust_score, 10)
+        : undefined,
+    };
+    setLoading(true);
+    try {
+      await runSearch(searchFilters);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to search candidates";
+      if (message === EMPLOYER_DISCLAIMER_NOT_ACCEPTED) {
+        setPendingSearchFilters(searchFilters);
+        setShowDisclaimerModal(true);
+      } else {
+        alert(message);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAcceptDisclaimer = async () => {
+    setAcceptingDisclaimer(true);
+    try {
+      const res = await fetch("/api/employer/legal-acceptance", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert((data as { error?: string }).error ?? "Failed to accept");
+        return;
+      }
+      setShowDisclaimerModal(false);
+      if (pendingSearchFilters) {
+        setLoading(true);
+        try {
+          await runSearch(pendingSearchFilters);
+        } finally {
+          setLoading(false);
+          setPendingSearchFilters(null);
+        }
+      }
+    } finally {
+      setAcceptingDisclaimer(false);
     }
   };
 
@@ -69,8 +112,10 @@ export function CandidateSearch() {
       setSavedCandidates(
         new Set(Array.from(savedCandidates).concat(candidateId)),
       );
-    } catch (error: any) {
-      alert(error.message || "Failed to save candidate");
+    } catch (error: unknown) {
+      alert(
+        error instanceof Error ? error.message : "Failed to save candidate",
+      );
     }
   };
 
@@ -288,6 +333,12 @@ export function CandidateSearch() {
           </p>
         </Card>
       )}
+
+      <EmployerLegalDisclaimerModal
+        open={showDisclaimerModal}
+        onAccept={handleAcceptDisclaimer}
+        accepting={acceptingDisclaimer}
+      />
     </div>
   );
 }

@@ -46,6 +46,7 @@ const nav = {
   ],
   ReviewsAndTrust: [
     { href: "/admin/reviews", label: "Reviews & Moderation" },
+    { href: "/admin/flagged-content", label: "Flagged Content" },
     { href: "/admin/trust-scores", label: "Trust Scores" },
     { href: "/admin/scoring-explained", label: "Scoring Explained" },
   ],
@@ -99,6 +100,7 @@ const productionOnlyNav = {
   ],
   ReviewsAndTrust: [
     { href: "/admin/reviews", label: "Reviews & Moderation" },
+    { href: "/admin/flagged-content", label: "Flagged Content" },
     { href: "/admin/trust-scores", label: "Trust Scores" },
     { href: "/admin/scoring-explained", label: "Scoring Explained" },
   ],

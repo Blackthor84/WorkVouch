@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { createServerSupabase } from "@/lib/supabase/server";
-import { getCurrentUser, isEmployer } from "@/lib/auth";
+import { getCurrentUser, getCurrentUserRole, isEmployer } from "@/lib/auth";
+import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { enforceLimit } from "@/lib/enforceLimit";
 import { incrementUsage } from "@/lib/usage";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
@@ -30,6 +31,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const disclaimerResponse = await requireEmployerLegalAcceptanceOrResponse(
+      user.id,
+      await getCurrentUserRole()
+    );
+    if (disclaimerResponse) return disclaimerResponse;
+
     const subCheck = await requireActiveSubscription(user.id);
     if (!subCheck.allowed) {
       return NextResponse.json(
@@ -39,8 +46,18 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createServerSupabase();
-    const supabaseAny = supabase as any;
-    const { data: employerAccount } = await supabaseAny
+    type EmployerAccountRow = {
+      id: string;
+      plan_tier: string | null;
+      industry_type: string | null;
+      reports_used: number;
+      searches_used: number;
+      seats_used: number;
+      stripe_report_overage_item_id: string | null;
+      stripe_search_overage_item_id: string | null;
+      stripe_seat_overage_item_id: string | null;
+    };
+    const { data: employerAccount } = await supabase
       .from("employer_accounts")
       .select("id, plan_tier, industry_type, reports_used, searches_used, seats_used, stripe_report_overage_item_id, stripe_search_overage_item_id, stripe_seat_overage_item_id")
       .eq("user_id", user.id)
@@ -52,7 +69,10 @@ export async function GET(request: NextRequest) {
         { status: 404 },
       );
     }
-    const result = await enforceLimit(employerAccount as any, "searches");
+    const result = await enforceLimit(
+      { ...employerAccount, plan_tier: employerAccount.plan_tier ?? "" },
+      "searches"
+    );
     if (!result.allowed) {
       return NextResponse.json(
         { error: result.error || "Plan limit reached", limitReached: true },
@@ -94,13 +114,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Use employer_candidate_view: no email, no private identifiers
-    const { data: candidates, error: viewError } = await supabaseAny
+    // Use employer_candidate_view: no email, no private identifiers. Exclude restricted profiles.
+    const { data: candidates, error: viewError } = await supabase
       .from("employer_candidate_view")
       .select(
         "user_id, full_name, industry, city, state, verified_employment_count, trust_score, reference_count, aggregate_rating, rehire_eligible_count"
       )
       .ilike("full_name", `%${sanitizedQuery}%`)
+      .eq("restricted_from_employer_search", false)
       .limit(MAX_RESULTS);
 
     if (viewError) {
@@ -124,7 +145,7 @@ export async function GET(request: NextRequest) {
 
     const [auditScoresMap, skillsResult] = await Promise.all([
       getEmployeeAuditScoresBatch(userIds),
-      supabaseAny.from("skills").select("user_id, skill_name").in("user_id", userIds),
+      supabase.from("skills").select("user_id, skill_name").in("user_id", userIds),
     ]);
 
     type SkillRow = { user_id: string; skill_name: string };

@@ -17,7 +17,8 @@ export type AuditTargetType =
   | "trust_score"
   | "system"
   | "organization"
-  | "role";
+  | "role"
+  | "content_flag";
 
 export type EnterpriseAuditParams = {
   admin_user_id: string;

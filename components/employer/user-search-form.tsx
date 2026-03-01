@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { getIndustryEmphasis } from "@/lib/industryEmphasis";
 import type { EmphasisComponent } from "@/lib/industryEmphasis";
+import { EMPLOYER_DISCLAIMER_NOT_ACCEPTED } from "@/lib/employer/requireEmployerLegalAcceptance";
+import { EmployerLegalDisclaimerModal } from "@/components/employer/EmployerLegalDisclaimerModal";
 
 interface SearchResult {
   id: string;
@@ -58,8 +60,55 @@ export function UserSearchForm() {
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [showDisclaimerModal, setShowDisclaimerModal] = useState(false);
+  const [acceptingDisclaimer, setAcceptingDisclaimer] = useState(false);
+  const [pendingQuery, setPendingQuery] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const emphasisOrder = getIndustryEmphasis(employerIndustryType);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else if (next.size < 4) next.add(id);
+      return next;
+    });
+  };
+
+  const goToCompare = () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length >= 2 && ids.length <= 4) {
+      router.push(`/employer/compare?ids=${ids.join(",")}`);
+    }
+  };
+
+  const runSearchRequest = useCallback(
+    async (query: string) => {
+      const response = await fetch(
+        `/api/employer/search-users?query=${encodeURIComponent(query)}`,
+        { credentials: "include" },
+      );
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const data = errorData as { error?: string; code?: string };
+        if (response.status === 403 && data.code === EMPLOYER_DISCLAIMER_NOT_ACCEPTED) {
+          setPendingQuery(query);
+          setShowDisclaimerModal(true);
+          return;
+        }
+        if (response.status === 403) {
+          router.push("/dashboard");
+          return;
+        }
+        throw new Error(data.error || "Search failed");
+      }
+      const data = await response.json();
+      setResults(data.users || []);
+      setEmployerIndustryType(data.employerIndustryType ?? null);
+    },
+    [router],
+  );
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,22 +123,7 @@ export function UserSearchForm() {
     setHasSearched(true);
 
     try {
-      const response = await fetch(
-        `/api/employer/search-users?query=${encodeURIComponent(searchQuery.trim())}`,
-      );
-
-      if (!response.ok) {
-        if (response.status === 403) {
-          router.push("/dashboard");
-          return;
-        }
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Search failed");
-      }
-
-      const data = await response.json();
-      setResults(data.users || []);
-      setEmployerIndustryType(data.employerIndustryType ?? null);
+      await runSearchRequest(searchQuery.trim());
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An error occurred during search",
@@ -97,6 +131,39 @@ export function UserSearchForm() {
       setResults([]);
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const handleAcceptDisclaimer = async () => {
+    setAcceptingDisclaimer(true);
+    try {
+      const res = await fetch("/api/employer/legal-acceptance", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError((data as { error?: string }).error ?? "Failed to accept");
+        return;
+      }
+      setShowDisclaimerModal(false);
+      if (pendingQuery) {
+        setIsSearching(true);
+        setError(null);
+        try {
+          await runSearchRequest(pendingQuery);
+        } catch (err) {
+          setError(
+            err instanceof Error ? err.message : "An error occurred during search",
+          );
+          setResults([]);
+        } finally {
+          setIsSearching(false);
+          setPendingQuery(null);
+        }
+      }
+    } finally {
+      setAcceptingDisclaimer(false);
     }
   };
 
@@ -158,15 +225,28 @@ export function UserSearchForm() {
             </div>
           ) : (
             <>
-              <div className="mb-4">
+              <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
                 <p className="text-sm text-grey-medium dark:text-gray-400">
                   Found {results.length} {results.length === 1 ? "result" : "results"}
                 </p>
+                {selectedIds.size >= 2 && selectedIds.size <= 4 && (
+                  <Button onClick={goToCompare} size="sm">
+                    Compare selected ({selectedIds.size})
+                  </Button>
+                )}
+                {selectedIds.size > 0 && selectedIds.size < 2 && (
+                  <p className="text-sm text-grey-medium dark:text-gray-400">
+                    Select 2–4 candidates to compare
+                  </p>
+                )}
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-grey-background dark:border-[#374151]">
+                      <th className="text-left py-3 px-4 font-semibold text-grey-dark dark:text-gray-200 w-12">
+                        Compare
+                      </th>
                       <th className="text-left py-3 px-4 font-semibold text-grey-dark dark:text-gray-200">
                         Name
                       </th>
@@ -190,6 +270,16 @@ export function UserSearchForm() {
                         key={user.id}
                         className="border-b border-grey-background dark:border-[#374151] hover:bg-grey-background dark:hover:bg-[#1A1F2B] transition-colors"
                       >
+                        <td className="py-4 px-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(user.id)}
+                            onChange={() => toggleSelect(user.id)}
+                            disabled={!selectedIds.has(user.id) && selectedIds.size >= 4}
+                            className="rounded border-grey-background dark:border-[#374151] text-blue-600 focus:ring-blue-500"
+                            aria-label={`Select ${user.name ?? user.id} for comparison`}
+                          />
+                        </td>
                         <td className="py-4 px-4">
                           <div className="font-semibold text-grey-dark dark:text-gray-200">
                             <span
@@ -252,6 +342,12 @@ export function UserSearchForm() {
           )}
         </Card>
       )}
+
+      <EmployerLegalDisclaimerModal
+        open={showDisclaimerModal}
+        onAccept={handleAcceptDisclaimer}
+        accepting={acceptingDisclaimer}
+      />
     </>
   );
 }

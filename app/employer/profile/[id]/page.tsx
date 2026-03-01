@@ -2,17 +2,20 @@ import { redirect } from "next/navigation";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { getCandidateProfileForEmployer } from "@/lib/actions/employer/candidate-search";
 import { getPublicProfile } from "@/lib/actions/employer";
+import { EMPLOYER_DISCLAIMER_NOT_ACCEPTED } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { EmployerHeader } from "@/components/employer/employer-header";
 import { EmployerSidebar } from "@/components/employer/employer-sidebar";
 import { CandidateProfileViewer } from "@/components/employer/candidate-profile-viewer";
 import { PublicProfileView } from "@/components/public-profile-view";
+import { EmployerLegalDisclaimerGate } from "@/components/employer/EmployerLegalDisclaimerGate";
 
-export default async function EmployerCandidateProfilePage(props: any) {
+export default async function EmployerCandidateProfilePage(props: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await props.params;
   const user = await getCurrentUser();
 
   if (!user) {
-    console.log("REDIRECT TRIGGERED IN: app/employer/profile/[id]/page.tsx");
     redirect("/login");
   }
 
@@ -22,7 +25,6 @@ export default async function EmployerCandidateProfilePage(props: any) {
     redirect("/dashboard");
   }
 
-  // Try to get candidate profile first (full employer view)
   let candidateData;
   try {
     candidateData = await getCandidateProfileForEmployer(id);
@@ -40,7 +42,23 @@ export default async function EmployerCandidateProfilePage(props: any) {
         </div>
       </div>
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "";
+    if (message === EMPLOYER_DISCLAIMER_NOT_ACCEPTED) {
+      return (
+        <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
+          <EmployerSidebar />
+          <div className="flex-1 flex flex-col">
+            <EmployerHeader />
+            <main className="flex-1 p-6 flex items-center justify-center">
+              <EmployerLegalDisclaimerGate
+                redirectPath={`/employer/profile/${id}`}
+              />
+            </main>
+          </div>
+        </div>
+      );
+    }
     // Fallback to public profile view
     try {
       const profileData = await getPublicProfile(id);
@@ -58,7 +76,7 @@ export default async function EmployerCandidateProfilePage(props: any) {
           </div>
         </div>
       );
-    } catch (fallbackError: any) {
+    } catch (fallbackError: unknown) {
       return (
         <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
           <EmployerSidebar />

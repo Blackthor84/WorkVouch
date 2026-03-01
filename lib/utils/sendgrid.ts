@@ -1,10 +1,13 @@
 /**
  * SendGrid Email Utility
- * Configured to use SENDGRID_API_KEY from environment variables
+ * Configured to use SENDGRID_API_KEY from environment variables.
+ * In sandbox/non-production, emails are never sent; a block is audited and a no-op result returned.
  */
 
-import sgMail from '@sendgrid/mail'
-import { NOREPLY_EMAIL } from '@/lib/constants/contact'
+import sgMail from "@sendgrid/mail";
+import { NOREPLY_EMAIL } from "@/lib/constants/contact";
+import { isSandbox } from "@/lib/env/env";
+import { auditLog } from "@/lib/auditLogger";
 
 // Set API key from environment variable
 if (process.env.SENDGRID_API_KEY) {
@@ -26,9 +29,22 @@ export async function sendEmail(
   html: string,
   from: string = NOREPLY_EMAIL
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  if (isSandbox) {
+    try {
+      await auditLog({
+        actorRole: "system",
+        action: "email_blocked_sandbox",
+        metadata: { to, subject },
+      });
+    } catch (auditErr) {
+      console.error("[sendgrid] email_blocked_sandbox audit failed", auditErr);
+    }
+    return { success: true };
+  }
+
   try {
     if (!process.env.SENDGRID_API_KEY) {
-      throw new Error('SENDGRID_API_KEY is not configured')
+      throw new Error("SENDGRID_API_KEY is not configured");
     }
 
     const msg = {
@@ -36,20 +52,21 @@ export async function sendEmail(
       from,
       subject,
       html,
-    }
+    };
 
-    const [response] = await sgMail.send(msg)
+    const [response] = await sgMail.send(msg);
 
     return {
       success: true,
-      messageId: response.headers['x-message-id'] as string,
-    }
-  } catch (error: any) {
-    console.error('SendGrid error:', error)
+      messageId: response.headers["x-message-id"] as string,
+    };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to send email";
+    console.error("SendGrid error:", error);
     return {
       success: false,
-      error: error.message || 'Failed to send email',
-    }
+      error: message,
+    };
   }
 }
 

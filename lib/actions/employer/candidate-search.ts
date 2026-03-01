@@ -2,6 +2,10 @@
 
 import { createServerSupabase } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
+import {
+  requireEmployerLegalAcceptance,
+  EMPLOYER_DISCLAIMER_NOT_ACCEPTED,
+} from '@/lib/employer/requireEmployerLegalAcceptance'
 
 export interface CandidateSearchFilters {
   industry?: string
@@ -50,8 +54,14 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
     .eq('id', user.id)
     .single()
 
-  if ((profile as { role?: string })?.role !== 'employer') {
+  const role = (profile as { role?: string } | null)?.role ?? null
+  if (role !== 'employer') {
     throw new Error('Only employers can search candidates')
+  }
+
+  const legalCheck = await requireEmployerLegalAcceptance(user.id, role)
+  if (!legalCheck.allowed) {
+    throw new Error(legalCheck.reasonCode)
   }
 
   // Build query - get all profiles first, then filter
@@ -179,8 +189,14 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
     .eq('id', user.id)
     .single()
 
-  if ((profile as { role?: string })?.role !== 'employer') {
+  const role = (profile as { role?: string } | null)?.role ?? null
+  if (role !== 'employer') {
     throw new Error('Only employers can view candidate profiles')
+  }
+
+  const legalCheck = await requireEmployerLegalAcceptance(user.id, role)
+  if (!legalCheck.allowed) {
+    throw new Error(legalCheck.reasonCode)
   }
 
   // Get profile
