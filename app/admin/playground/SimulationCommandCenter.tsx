@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Snapshot, SimulationDelta, EngineOutputs, NumericKeys } from "@/lib/trust/types";
+import type { Snapshot, SimulationDelta, EngineOutputs } from "@/lib/trust/types";
 import type { SimulationAction } from "@/lib/trust/simulationActions";
 import { ROIPanel } from "./ROIPanel";
 import type { ROIEngineInputs, ROIAssumptions, ROICounterfactualResult } from "@/lib/roi/ROICalculatorEngine";
@@ -74,7 +74,7 @@ export function explainAction(lastAction: SimulationAction | null, delta: Simula
   return parts.length > 0 ? parts.join("; ") : "State committed (no net metric change).";
 }
 
-const ENGINE_OUTPUT_NUMERIC_KEYS: NumericKeys<EngineOutputs>[] = [
+const ENGINE_OUTPUT_NUMERIC_KEYS = [
   "trustScore",
   "confidenceScore",
   "riskScore",
@@ -82,9 +82,11 @@ const ENGINE_OUTPUT_NUMERIC_KEYS: NumericKeys<EngineOutputs>[] = [
   "trustDebt",
   "complianceScore",
   "cultureImpactScore",
-];
+] as const;
 
-export function engineDeltas(prev: EngineOutputs | undefined, curr: EngineOutputs): { name: string; delta: number }[] {
+type EngineOutput = Record<(typeof ENGINE_OUTPUT_NUMERIC_KEYS)[number], number>;
+
+export function engineDeltas(prev: EngineOutput | undefined, curr: EngineOutput): { name: string; delta: number }[] {
   if (!prev) return [];
   const out: { name: string; delta: number }[] = [];
   for (const k of ENGINE_OUTPUT_NUMERIC_KEYS) {
