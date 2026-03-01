@@ -3,6 +3,7 @@
 /**
  * Persistent global admin bar. Admin mode must ALWAYS be visually obvious.
  * Red accent for production; yellow/amber for sandbox. Override banner when production + founder override active.
+ * Fixed height (h-14), single row: warning badge + title text + action button, no overlap.
  */
 
 import { ProductionOverrideBannerAndTrigger } from "./ProductionOverrideBannerAndTrigger";
@@ -31,53 +32,48 @@ export function AdminGlobalBar({
   const envBadge = isProd ? "bg-red-800" : "bg-amber-500 text-black";
 
   return (
-    <>
-      <div
-        className={`sticky top-0 z-50 shadow-md ${barBg} text-white [&_*]:text-white px-4 py-2 text-sm font-semibold flex items-center gap-4 flex-wrap`}
-        role="banner"
-        aria-label="Admin mode active"
-      >
-        <span className="font-semibold" aria-hidden>🔒</span>
-        <span>ADMIN MODE</span>
-        <span>|</span>
-        <span className={`px-2 py-0.5 rounded text-xs font-semibold ${envBadge}`}>
-          ENV: {env}
-        </span>
-        <span>|</span>
-        <span className="px-2 py-0.5 rounded text-xs font-semibold bg-white/20">
-          ROLE: {role}
-        </span>
-        <span>|</span>
-        <span className="truncate max-w-[280px]" title={email}>
-          {email || "—"}
-        </span>
-        {env === "PRODUCTION" && isFounder && (
-          <ProductionOverrideBannerAndTrigger
-            overrideActive={overrideActive}
-            overrideExpiresAt={overrideExpiresAt}
-          />
-        )}
-      </div>
+    <div
+      className={`sticky top-0 z-50 h-14 flex items-center flex-nowrap gap-3 px-4 shadow-md ${barBg} text-white [&_*]:text-white text-sm font-semibold`}
+      role="banner"
+      aria-label="Admin mode active"
+    >
+      <span className="flex-shrink-0" aria-hidden>🔒</span>
+      {/* Warning badge: sandbox or override, in same row */}
       {isSandbox && (
-        <div
-          className="sticky top-[42px] z-40 flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 text-black text-sm font-bold shadow"
-          role="alert"
-          aria-live="polite"
-        >
-          <span aria-hidden>🧪</span>
-          <span>SANDBOX MODE – NOT PRODUCTION</span>
-        </div>
+        <>
+          <span className="flex-shrink-0 px-2 py-0.5 rounded text-xs font-bold bg-amber-400 text-black" aria-label="Sandbox mode">
+            🧪 SANDBOX
+          </span>
+          <span className="flex-shrink-0 text-white/90">|</span>
+        </>
       )}
       {env === "PRODUCTION" && overrideActive && (
-        <div
-          className="sticky top-[42px] z-40 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-bold shadow"
-          role="alert"
-          aria-live="polite"
-        >
-          <span aria-hidden>⚠</span>
-          <span>PRODUCTION OVERRIDE ACTIVE — MUTATIONS ENABLED</span>
-        </div>
+        <>
+          <span className="flex-shrink-0 px-2 py-0.5 rounded text-xs font-bold bg-red-800" aria-label="Override active">
+            ⚠ OVERRIDE
+          </span>
+          <span className="flex-shrink-0 text-white/90">|</span>
+        </>
       )}
-    </>
+      <span className="flex-shrink-0">ADMIN MODE</span>
+      <span className="flex-shrink-0 text-white/90">|</span>
+      <span className={`flex-shrink-0 px-2 py-0.5 rounded text-xs font-semibold ${envBadge}`}>
+        ENV: {env}
+      </span>
+      <span className="flex-shrink-0 text-white/90">|</span>
+      <span className="flex-shrink-0 px-2 py-0.5 rounded text-xs font-semibold bg-white/20">
+        ROLE: {role}
+      </span>
+      <span className="flex-shrink-0 text-white/90">|</span>
+      <span className="truncate max-w-[200px] sm:max-w-[280px] min-w-0" title={email}>
+        {email || "—"}
+      </span>
+      {env === "PRODUCTION" && isFounder && (
+        <ProductionOverrideBannerAndTrigger
+          overrideActive={overrideActive}
+          overrideExpiresAt={overrideExpiresAt}
+        />
+      )}
+    </div>
   );
 }

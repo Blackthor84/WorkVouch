@@ -191,18 +191,17 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
   const showSandboxAdmin = String(roleFromMetadata ?? "").toLowerCase() === "superadmin";
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white shadow-sm py-2">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-24 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Logo size="xl" showText={false} />
-            {eliteDemo && (
-              <span className="rounded bg-violet-600/90 px-2 py-0.5 text-xs font-medium text-white">
-                Elite Demo
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-3 justify-end">
+    <nav className="sticky top-0 z-50 h-14 flex items-center border-b border-[#E2E8F0] bg-white shadow-sm">
+      <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-shrink">
+          <Logo size="xl" showText={false} />
+          {eliteDemo && (
+            <span className="rounded bg-violet-600/90 px-2 py-0.5 text-xs font-medium text-white flex-shrink-0">
+              Elite Demo
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3 justify-end flex-shrink-0 min-w-0">
             {impersonating && (
               <Button
                 variant="secondary"
@@ -249,7 +248,6 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
                 isEmployerArea={isEmployerArea}
               />
             )}
-          </div>
         </div>
       </div>
     </nav>
