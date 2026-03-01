@@ -256,19 +256,36 @@ export async function getJobApplications(jobPostingId: string) {
 }
 
 /**
- * Apply to a job posting
+ * Apply to a job posting. Optionally attach a WorkVouch Credential (must be owned by candidate).
  */
-export async function applyToJob(jobPostingId: string, coverLetter?: string) {
+export async function applyToJob(
+  jobPostingId: string,
+  coverLetter?: string,
+  workvouchCredentialId?: string | null
+) {
   const user = await requireAuth()
   const supabase = await createServerSupabase()
-
   const supabaseAny = supabase as any
+
+  let credentialId: string | null = null
+  if (workvouchCredentialId) {
+    const { data: cred } = await supabaseAny
+      .from('workvouch_credentials')
+      .select('id')
+      .eq('id', workvouchCredentialId)
+      .eq('candidate_id', user.id)
+      .is('revoked_at', null)
+      .maybeSingle()
+    if (cred) credentialId = (cred as { id: string }).id
+  }
+
   const { data, error } = await supabaseAny
     .from('job_applications')
     .insert([{
       job_posting_id: jobPostingId,
       candidate_id: user.id,
       cover_letter: coverLetter,
+      workvouch_credential_id: credentialId ?? null,
     }])
     .select()
     .single()

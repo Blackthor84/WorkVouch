@@ -1,16 +1,16 @@
 "use client";
 
 /**
- * Built-in Lab Guide: how to use controls, what affects trust vs confidence,
- * industry considerations, and example scenarios. Part of the Lab Dashboard.
+ * Built-in Lab Guide: how to design an employee, trust vs confidence, human factors,
+ * industry thresholds, scenarios, advanced tools. The Lab is usable without external instruction.
  */
 export function LabGuide() {
   return (
-    <details className="rounded-xl border border-slate-200 bg-white overflow-hidden" open={false}>
+    <details className="rounded-xl border border-slate-200 bg-white overflow-hidden" open>
       <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-slate-800 bg-slate-50 hover:bg-slate-100 border-b border-slate-200">
         Lab Guide / Cheat Sheet
       </summary>
-      <div className="p-4 space-y-4 text-sm text-slate-700">
+      <div className="p-4 space-y-4 text-sm text-slate-700 max-h-[70vh] overflow-y-auto">
         <section>
           <h3 className="font-semibold text-slate-900 mb-1">How to use the Lab</h3>
           <ul className="list-disc list-inside space-y-0.5 text-xs">
@@ -63,6 +63,22 @@ export function LabGuide() {
             <li><strong>“Compare industries”:</strong> Keep the same profile and switch Industry—see how the threshold and compliance status change.</li>
             <li><strong>“Stress test”:</strong> Open Advanced Tools → Stress Test to run chaos presets and see how outcomes shift.</li>
           </ul>
+        </section>
+
+        <section>
+          <h3 className="font-semibold text-slate-900 mb-1">What is NOT scored</h3>
+          <p className="text-xs mb-1">
+            The Lab and trust model do <strong>not</strong> score or infer:
+          </p>
+          <ul className="list-disc list-inside space-y-0.5 text-xs">
+            <li>Personality, character, or “culture fit”</li>
+            <li>Likability, vibes, or subjective traits</li>
+            <li>Moral or ethical judgment of the person</li>
+            <li>Protected characteristics or identity</li>
+          </ul>
+          <p className="text-xs mt-1">
+            Human factors use <strong>observable proxies only</strong> (e.g. re-engagement, signal consistency, verification timing). All outcomes are explainable, auditable, and defensible.
+          </p>
         </section>
       </div>
     </details>

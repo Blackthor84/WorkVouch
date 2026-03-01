@@ -32,9 +32,14 @@ function ResultBlock({
       {result.breakdown.length > 0 && (
         <ul className="mt-2 space-y-1 text-xs">
           {result.breakdown.map((item) => (
-            <li key={item.category} className="flex justify-between">
-              <span className="text-slate-600">{item.category}</span>
-              <span className="font-mono tabular-nums">${item.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+            <li key={item.category}>
+              <div className="flex justify-between">
+                <span className="text-slate-600">{item.category}</span>
+                <span className="font-mono tabular-nums">${item.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+              </div>
+              {item.triggerDescription && (
+                <div className="text-slate-500 mt-0.5">Trigger: {item.triggerDescription}</div>
+              )}
             </li>
           ))}
         </ul>
@@ -120,24 +125,38 @@ export function ROIPanel({ snapshot, inputs, assumptions, canEdit, onAssumptions
               ${withResult.totalEstimatedExposure.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </div>
             <div className="text-xs text-slate-600 mt-1">
-              Confidence: <span className="font-medium">{withResult.confidence}</span> — estimates only
+              Confidence band: <span className="font-medium">{withResult.confidence}</span> (low / expected / high) — expected value only
             </div>
           </div>
-          <ul className="space-y-2 mb-3">
+          <div className="space-y-3 mb-3">
+            <h4 className="text-xs font-semibold text-slate-700">Line items (each tied to simulation)</h4>
             {withResult.breakdown.map((item) => (
-              <li key={item.category} className="flex justify-between items-start text-sm border-b border-slate-100 pb-2">
-                <div>
+              <div key={item.category} className="rounded border border-slate-200 bg-white p-3 text-sm">
+                <div className="flex justify-between items-baseline gap-2">
                   <span className="font-medium text-slate-800">{item.category}</span>
-                  <span className="text-slate-500 ml-2 text-xs">({item.assumption})</span>
+                  <span className="font-mono font-semibold text-slate-900 tabular-nums">
+                    ${item.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  </span>
                 </div>
-                <span className="font-mono font-semibold text-slate-800 tabular-nums">
-                  ${item.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </span>
-              </li>
+                <div className="mt-1 text-xs text-slate-600">
+                  <span className="font-medium">Formula:</span> {item.assumption}
+                </div>
+                {item.triggerDescription && (
+                  <div className="mt-1 text-xs text-slate-500">
+                    <span className="font-medium">Trigger:</span> {item.triggerDescription}
+                  </div>
+                )}
+                <div className="mt-1 text-xs">
+                  <span className="text-slate-500">Confidence:</span>{" "}
+                  <span className={item.confidence === "high" ? "text-emerald-600" : item.confidence === "medium" ? "text-amber-600" : "text-slate-600"}>
+                    {item.confidence}
+                  </span>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
           <p className="text-xs text-slate-500">
-            All figures are estimates based on industry defaults and simulation state. See methodology below.
+            No cost appears without a triggering simulation event. All figures are expected values; industry assumptions apply.
           </p>
         </>
       )}
@@ -197,16 +216,18 @@ export function ROIPanel({ snapshot, inputs, assumptions, canEdit, onAssumptions
         </div>
       )}
 
-      <details className="mt-3 text-xs text-slate-600">
-        <summary className="cursor-pointer font-medium text-slate-700">Methodology</summary>
+      <details className="mt-3 text-xs text-slate-600" open>
+        <summary className="cursor-pointer font-medium text-slate-700">Assumptions &amp; methodology</summary>
         <ul className="mt-2 space-y-1 list-disc list-inside">
-          <li>Bad hire: salary × multiplier</li>
-          <li>Turnover: salary × turnover multiplier × affected employees</li>
-          <li>Compliance: probability × average penalty (industry-based); probability scaled by trust collapse, fragility, debt, overrides</li>
-          <li>Productivity: team size × salary × loss rate × duration/12</li>
-          <li>Reputation: optional range-based estimate</li>
+          <li><strong>Bad hire:</strong> count × salary × badHireMultiplier (trigger: force hire, trust collapse, or material risk)</li>
+          <li><strong>Turnover:</strong> affected employees × salary × turnoverMultiplier (trigger: trust collapse elevates rate)</li>
+          <li><strong>Compliance / regulatory risk:</strong> P × averageCompliancePenalty; P scaled by trust collapse, fragility, trust debt, overrides, population</li>
+          <li><strong>Productivity loss:</strong> team size × salary × productivityLossRate × (durationMonths/12)</li>
+          <li><strong>Reputation risk:</strong> expected value from industry low–high range when material risk present</li>
         </ul>
-        <p className="mt-2 italic">All outputs are watermarked SIMULATION. Conservative, documented defaults per industry.</p>
+        <p className="mt-2">
+          <strong>Confidence bands:</strong> low = wider range; medium = moderate certainty; high = tighter estimate. All outputs are watermarked SIMULATION. Conservative, documented defaults per industry.
+        </p>
       </details>
     </section>
   );

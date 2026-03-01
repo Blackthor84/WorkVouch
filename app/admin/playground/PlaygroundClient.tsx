@@ -686,10 +686,10 @@ export default function PlaygroundClient() {
       {showMultiverseAdvanced && multiverseMode && <MultiverseHUD />}
       {showMultiverseAdvanced && godMode && <MultiverseLabPanel role={role} />}
 
-      {/* Employee Outcome Designer — profile-centric; outcomes update live */}
-      <section className="border-b border-slate-200 bg-white p-4" aria-label="Employee Outcome Designer">
+      {/* Lab Mode: Employee Builder (left) | Outcome Panel (center) | Lab Guide (right). No external nav. */}
+      <section className="border-b border-slate-200 bg-white p-4" aria-label="Trust Lab — Employee Outcome Designer">
         <div className="flex flex-wrap items-baseline gap-2 mb-1">
-          <h1 className="text-xl font-bold text-slate-900">Employee Outcome Designer</h1>
+          <h1 className="text-xl font-bold text-slate-900">Trust Lab</h1>
           <span className="text-sm font-semibold uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
             SIMULATED
           </span>
@@ -697,27 +697,29 @@ export default function PlaygroundClient() {
         <p className="text-sm text-slate-600 mb-4">
           Industry: <strong>{industryLabel(industry)}</strong> | Role: <strong>{simulatedProfile.role || "—"}</strong>
         </p>
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr,minmax(280px,360px)] gap-6">
-          <EmployeeProfileEditor profile={simulatedProfile} onChange={setSimulatedProfile} />
-          <OutcomePanel
-            snapshot={profileSnapshot}
-            industry={industry}
-            financialExposure={showROI && roiResult?.hasMaterialRisk ? roiResult?.totalEstimatedExposure ?? null : null}
-            lastExplanation={lastAction ? summaryExplanation : "Outcomes from current profile."}
-            showAdvancedCompliance={enterprise}
-            onAuditTrailClick={(factorName) => {
-              setToast(`Audit trail filter: ${factorName} (hook ready for parent to filter audit log)`);
-            }}
-            onROIImpactClick={(factorName) => {
-              setToast(`ROI impact filter: ${factorName} (hook ready for parent to highlight ROI line items)`);
-            }}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,minmax(300px,380px),minmax(220px,280px)] gap-6">
+          <div className="min-w-0" aria-label="Employee Builder">
+            <EmployeeProfileEditor profile={simulatedProfile} onChange={setSimulatedProfile} />
+          </div>
+          <div className="min-w-0" aria-label="Outcome Panel">
+            <OutcomePanel
+              snapshot={profileSnapshot}
+              industry={industry}
+              financialExposure={showROI && roiResult?.hasMaterialRisk ? roiResult?.totalEstimatedExposure ?? null : null}
+              lastExplanation={lastAction ? summaryExplanation : "Outcomes from current profile."}
+              showAdvancedCompliance={enterprise}
+              onAuditTrailClick={(factorName) => {
+                setToast(`Audit trail filter: ${factorName} (hook ready for parent to filter audit log)`);
+              }}
+              onROIImpactClick={(factorName) => {
+                setToast(`ROI impact filter: ${factorName} (hook ready for parent to highlight ROI line items)`);
+              }}
+            />
+          </div>
+          <div className="min-w-0" aria-label="Lab Guide / Cheat Sheet">
+            <LabGuide />
+          </div>
         </div>
-      </section>
-
-      {/* Lab Guide (cheat sheet) */}
-      <section className="px-4 pb-2" aria-label="Lab Guide">
-        <LabGuide />
       </section>
 
       {/* Advanced tools (optional tabs, collapsed by default) */}

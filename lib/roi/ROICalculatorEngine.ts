@@ -171,6 +171,8 @@ export interface ROICostItem {
   value: number;
   assumption: string;
   confidence: ConfidenceLevel;
+  /** Which simulation output or event drove this cost (for audit/explainability). */
+  triggerDescription?: string;
 }
 
 /** Inputs derived from simulation state. */
@@ -266,6 +268,7 @@ export function computeROI(
     value: badHireCost,
     assumption: `${badHireCount} × $${assumptions.salary.toLocaleString()} × ${assumptions.badHireMultiplier}`,
     confidence,
+    triggerDescription: inputs.forceHireOrOverrideUsage > 0 ? "Force hire / override usage" : inputs.trustCollapseEvents > 0 ? "Trust collapse events" : "Material risk from trust/compliance/fragility/debt",
   });
 
   const turnoverEmployees = Math.min(inputs.populationSize, Math.max(0, Math.floor(inputs.populationSize * (inputs.trustCollapseEvents > 0 ? 0.2 : 0.05))));
@@ -275,6 +278,7 @@ export function computeROI(
     value: turnoverCost,
     assumption: `${turnoverEmployees} × $${assumptions.salary.toLocaleString()} × ${assumptions.turnoverMultiplier}`,
     confidence,
+    triggerDescription: inputs.trustCollapseEvents > 0 ? "Trust collapse events (elevated turnover rate)" : "Population size and base turnover rate",
   });
 
   const complianceCost = scaledComplianceP * assumptions.averageCompliancePenalty;
@@ -291,6 +295,7 @@ export function computeROI(
     value: productivityCost,
     assumption: `${teamSize} × $${assumptions.salary.toLocaleString()} × ${assumptions.productivityLossRate} × ${assumptions.durationMonths}/12 mo`,
     confidence,
+    triggerDescription: "Material risk present → productivity/culture loss applied to team size and duration",
   });
 
   if (assumptions.reputationRiskLow != null && assumptions.reputationRiskHigh != null) {
@@ -300,6 +305,7 @@ export function computeROI(
       value: repMid,
       assumption: `Range $${assumptions.reputationRiskLow.toLocaleString()}–$${assumptions.reputationRiskHigh.toLocaleString()}`,
       confidence: "low",
+      triggerDescription: "Industry reputation range (expected value); material risk scenario",
     });
   }
 

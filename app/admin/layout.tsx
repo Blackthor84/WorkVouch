@@ -4,8 +4,7 @@ import { cookies } from "next/headers";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getUserFromSession } from "@/lib/auth/getUserFromSession";
 import AdminClientLayout from "./AdminClientLayout";
-import { LabAwareAdminShell } from "./LabAwareAdminShell";
-import { AdminGlobalBar } from "@/components/admin/AdminGlobalBar";
+import { LabAwareAdminChrome } from "./LabAwareAdminChrome";
 import { isGodMode } from "@/lib/auth/isGodMode";
 import { isSandboxEnv } from "@/lib/sandbox/env";
 import {
@@ -102,36 +101,38 @@ export default async function AdminLayout({
           ⚠️ GOD MODE ENABLED — LIVE DATA ACCESS
         </div>
       )}
-      <AdminGlobalBar
-        env={env}
-        role={role}
-        email={admin.email}
-        isSandbox={isSandboxEnv}
-        overrideActive={overrideActive}
-        overrideExpiresAt={overrideStatus.expiresAt ?? null}
-        isFounder={isFounder}
-      />
-      <LabAwareAdminShell
-        containerClassName={`min-h-screen flex ${isSandboxEnv ? "bg-amber-50/50" : "bg-[#F8FAFC]"}`}
-        sidebarProps={{
-          isSuperAdmin: admin.isSuperAdmin,
+      <LabAwareAdminChrome
+        barProps={{
+          env,
+          role,
+          email: admin.email,
           isSandbox: isSandboxEnv,
-          appEnvironment: admin.appEnvironment,
-          overrideActive: overrideActive,
-          showFinancials: canViewFinancials({
-            isAdmin: admin.isAdmin,
+          overrideActive,
+          overrideExpiresAt: overrideStatus.expiresAt ?? null,
+          isFounder,
+        }}
+        shellProps={{
+          containerClassName: `min-h-screen flex ${isSandboxEnv ? "bg-amber-50/50" : "bg-[#F8FAFC]"}`,
+          sidebarProps: {
             isSuperAdmin: admin.isSuperAdmin,
-            profileRole: admin.profileRole,
-          }),
-          showBoard: canViewBoard({
-            isAdmin: admin.isAdmin,
-            isSuperAdmin: admin.isSuperAdmin,
-            profileRole: admin.profileRole,
-          }),
+            isSandbox: isSandboxEnv,
+            appEnvironment: admin.appEnvironment,
+            overrideActive: overrideActive,
+            showFinancials: canViewFinancials({
+              isAdmin: admin.isAdmin,
+              isSuperAdmin: admin.isSuperAdmin,
+              profileRole: admin.profileRole,
+            }),
+            showBoard: canViewBoard({
+              isAdmin: admin.isAdmin,
+              isSuperAdmin: admin.isSuperAdmin,
+              profileRole: admin.profileRole,
+            }),
+          },
         }}
       >
         {children}
-      </LabAwareAdminShell>
+      </LabAwareAdminChrome>
     </AdminClientLayout>
   );
 }
