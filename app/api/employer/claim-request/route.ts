@@ -73,16 +73,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    await supabase
-      .from("employer_claim_verification_audit")
-      .insert({
-        event_type: "claim_request",
-        employer_account_id: employer_id,
-        actor_id: user.id,
-        payload: { claim_request_id: (inserted as { id: string }).id },
-      })
-      .then(() => {})
-      .catch((e) => console.error("[audit]", e));
+    try {
+      await supabase
+        .from("employer_claim_verification_audit")
+        .insert({
+          event_type: "claim_request",
+          employer_account_id: employer_id,
+          actor_id: user.id,
+          payload: { claim_request_id: (inserted as { id: string }).id },
+        });
+    } catch (e) {
+      console.error("[audit]", e);
+    }
 
     return NextResponse.json({ success: true, claim_request_id: (inserted as { id: string }).id });
   } catch (e) {
