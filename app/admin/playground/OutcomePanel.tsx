@@ -4,6 +4,7 @@ import type { Snapshot } from "@/lib/trust/types";
 import { INDUSTRY_THRESHOLDS } from "@/lib/industries";
 import { industryLabel } from "@/lib/industries";
 import type { Industry } from "@/lib/industries";
+import { HumanFactorInsightsPanel } from "./HumanFactorInsightsPanel";
 
 type Props = {
   snapshot: Snapshot;
@@ -12,9 +13,23 @@ type Props = {
   financialExposure?: number | null;
   /** Optional last explanation (action summary or "Live from profile"). */
   lastExplanation?: string | null;
+  /** Show Advanced / Compliance View (Verification Friction, Influence Propagation). */
+  showAdvancedCompliance?: boolean;
+  /** Called when user clicks Audit Trail for a factor (parent can filter audit log). */
+  onAuditTrailClick?: (factorName: string) => void;
+  /** Called when user clicks ROI Impact for a factor (parent can highlight ROI line items). */
+  onROIImpactClick?: (factorName: string) => void;
 };
 
-export function OutcomePanel({ snapshot, industry, financialExposure, lastExplanation }: Props) {
+export function OutcomePanel({
+  snapshot,
+  industry,
+  financialExposure,
+  lastExplanation,
+  showAdvancedCompliance = false,
+  onAuditTrailClick,
+  onROIImpactClick,
+}: Props) {
   const out = snapshot.engineOutputs;
   const threshold = INDUSTRY_THRESHOLDS[industry];
   const trustScore = out?.trustScore ?? snapshot.trustScore ?? 0;
@@ -90,6 +105,17 @@ export function OutcomePanel({ snapshot, industry, financialExposure, lastExplan
       <p className="text-xs text-slate-500">
         Threshold: {threshold} ({industryLabel(industry)}). Live from current profile.
       </p>
+
+      {/* Human Factors (Modeled) — inside Outcome Panel per spec */}
+      <div className="border-t border-slate-200 pt-4">
+        <HumanFactorInsightsPanel
+          humanFactorInsights={snapshot?.engineOutputs?.humanFactorInsights}
+          industry={industry}
+          showAdvancedCompliance={showAdvancedCompliance}
+          onAuditTrailClick={onAuditTrailClick}
+          onROIImpactClick={onROIImpactClick}
+        />
+      </div>
     </div>
   );
 }

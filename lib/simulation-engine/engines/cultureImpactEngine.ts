@@ -1,16 +1,19 @@
-import type { Snapshot, SimulationDelta } from "../domain";
+import type { Snapshot, SimulationDelta, HumanFactorModifiers } from "../domain";
 
 /**
  * Pure: culture impact from network strength and balance of sources.
+ * Workplace friction (modifiers) reduces productivity outcomes; used in ROI.
  */
 export function cultureImpactEngine(
   snapshot: Snapshot,
-  delta: SimulationDelta
+  delta: SimulationDelta,
+  modifiers?: HumanFactorModifiers
 ): number {
   const n = snapshot.reviews.length;
   const peerCount = snapshot.reviews.filter((r) => r.source === "peer").length;
   const supervisorCount = snapshot.reviews.filter((r) => r.source === "supervisor").length;
   const balance = n === 0 ? 0 : 1 - Math.abs(peerCount - supervisorCount) / n;
-  const raw = n * 3 + balance * 30;
+  let raw = n * 3 + balance * 30;
+  if (modifiers) raw *= modifiers.productivityMultiplier;
   return Math.min(100, Math.max(0, Math.round(raw)));
 }

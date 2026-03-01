@@ -71,8 +71,6 @@ import { EmployeeProfileEditor } from "./EmployeeProfileEditor";
 import { OutcomePanel } from "./OutcomePanel";
 import { ROIPanel } from "./ROIPanel";
 import { LabGuide } from "./LabGuide";
-import { HumanFactorInsightsPanel } from "./HumanFactorInsightsPanel";
-
 export default function PlaygroundClient() {
   const { role, isFounder } = useAuth();
   const featureAccessContext = { role, isFounder: isFounder ?? false };
@@ -706,10 +704,14 @@ export default function PlaygroundClient() {
             industry={industry}
             financialExposure={showROI && roiResult?.hasMaterialRisk ? roiResult?.totalEstimatedExposure ?? null : null}
             lastExplanation={lastAction ? summaryExplanation : "Outcomes from current profile."}
+            showAdvancedCompliance={enterprise}
+            onAuditTrailClick={(factorName) => {
+              setToast(`Audit trail filter: ${factorName} (hook ready for parent to filter audit log)`);
+            }}
+            onROIImpactClick={(factorName) => {
+              setToast(`ROI impact filter: ${factorName} (hook ready for parent to highlight ROI line items)`);
+            }}
           />
-        </div>
-        <div className="mt-4">
-          <HumanFactorInsightsPanel humanFactorInsights={profileSnapshot?.engineOutputs?.humanFactorInsights} />
         </div>
       </section>
 

@@ -6,7 +6,7 @@
  * NO ENGINE MAY BE SKIPPED.
  */
 
-import type { Snapshot, SimulationDelta, Review, EngineOutputs } from "./domain";
+import type { Snapshot, SimulationDelta, Review, EngineOutputs, HumanFactorModifiers } from "./domain";
 import type { EngineContext } from "./engineContext";
 import { computeHumanFactorInsights } from "./humanFactors";
 import {
@@ -43,15 +43,16 @@ export function applyDelta(
     metadata: delta.metadata ?? prev.metadata,
   };
 
-  const trustScore = delta.scoreOverride ?? trustScoreEngine(baseSnapshot, delta, ctx);
-  const confidenceScore = confidenceEngine(baseSnapshot, delta);
-  const riskScore = riskEngine(baseSnapshot, delta, ctx, trustScore);
-  const fragilityScore = fragilityEngine(baseSnapshot, delta, trustScore);
-  const trustDebt = trustDebtEngine(baseSnapshot, delta, trustScore, confidenceScore);
-  const complianceScore = complianceEngine(baseSnapshot, delta, ctx, trustScore);
-  const cultureImpactScore = cultureImpactEngine(baseSnapshot, delta);
-
   const humanFactorInsights = computeHumanFactorInsights(baseSnapshot, baseSnapshot.timestamp);
+  const modifiers: HumanFactorModifiers = humanFactorInsights.modifiers;
+
+  const trustScore = delta.scoreOverride ?? trustScoreEngine(baseSnapshot, delta, ctx);
+  const confidenceScore = confidenceEngine(baseSnapshot, delta, modifiers);
+  const riskScore = riskEngine(baseSnapshot, delta, ctx, trustScore, modifiers);
+  const fragilityScore = fragilityEngine(baseSnapshot, delta, trustScore, modifiers);
+  const trustDebt = trustDebtEngine(baseSnapshot, delta, trustScore, confidenceScore, modifiers);
+  const complianceScore = complianceEngine(baseSnapshot, delta, ctx, trustScore, modifiers);
+  const cultureImpactScore = cultureImpactEngine(baseSnapshot, delta, modifiers);
 
   const engineOutputs: EngineOutputs = {
     trustScore,

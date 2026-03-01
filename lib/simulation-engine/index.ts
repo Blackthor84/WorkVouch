@@ -5,6 +5,8 @@ export type {
   SnapshotMetadata,
   EngineOutputs,
   HumanFactorInsights,
+  HumanFactorModifiers,
+  HumanFactorFactor,
   IntentModifiers,
   Employer,
   Policy,

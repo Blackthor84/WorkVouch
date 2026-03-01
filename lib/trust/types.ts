@@ -276,16 +276,40 @@ export interface SnapshotMetadata {
   notes?: string;
 }
 
+/** Per-factor breakdown for Lab UI and audit. No personality labels. */
+export interface HumanFactorFactor {
+  name: string;
+  explanation: string;
+  signalsContributed: string[];
+  effectsApplied: string[];
+  proxy: number;
+}
+
+/** Modifiers from human factors; applied in engines. Auditable. */
+export interface HumanFactorModifiers {
+  confidenceStabilityMultiplier: number;
+  decayReductionMultiplier: number;
+  fragilityAdjustment: number;
+  riskVolatilityReduction: number;
+  complianceRiskMultiplier: number;
+  trustDebtMultiplier: number;
+  blastRadiusMultiplier: number;
+  productivityMultiplier: number;
+}
+
 /** Human factor insights: interpretive only, from observable signals. No personality labels. */
 export interface HumanFactorInsights {
-  insights: string[];
+  factors: HumanFactorFactor[];
+  modifiers: HumanFactorModifiers;
   audit: {
     relationalTrustProxy: number;
     collaborationStabilityProxy: number;
     ethicalFrictionProxy: number;
     socialGravityProxy: number;
     workplaceFrictionIndex: number;
+    contributingReviewIds: string[];
   };
+  insights: string[];
 }
 
 /** Engine outputs from reducer pipeline; every snapshot has these after applyDelta. */

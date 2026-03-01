@@ -19,16 +19,40 @@ export interface SnapshotMetadata {
   notes?: string;
 }
 
+/** Numeric modifiers from human factors; applied in engines. Auditable. */
+export interface HumanFactorModifiers {
+  confidenceStabilityMultiplier: number;
+  decayReductionMultiplier: number;
+  fragilityAdjustment: number;
+  riskVolatilityReduction: number;
+  complianceRiskMultiplier: number;
+  trustDebtMultiplier: number;
+  blastRadiusMultiplier: number;
+  productivityMultiplier: number;
+}
+
+/** Per-factor breakdown for UI and audit. */
+export interface HumanFactorFactor {
+  name: string;
+  explanation: string;
+  signalsContributed: string[];
+  effectsApplied: string[];
+  proxy: number;
+}
+
 /** Human factors: interpretive insights from observable signals only. No personality labels. */
 export interface HumanFactorInsights {
-  insights: string[];
+  factors: HumanFactorFactor[];
+  modifiers: HumanFactorModifiers;
   audit: {
     relationalTrustProxy: number;
     collaborationStabilityProxy: number;
     ethicalFrictionProxy: number;
     socialGravityProxy: number;
     workplaceFrictionIndex: number;
+    contributingReviewIds: string[];
   };
+  insights: string[];
 }
 
 /** Numeric outputs from every engine run. Stored on Snapshot for audit and debug. */
