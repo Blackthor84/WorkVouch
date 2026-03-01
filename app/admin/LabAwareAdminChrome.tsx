@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { AdminGlobalBar } from "@/components/admin/AdminGlobalBar";
+import type { AdminSidebarProps } from "@/components/admin/AdminSidebar";
 import { LabAwareAdminShell } from "./LabAwareAdminShell";
 import type { ReactNode } from "react";
 
@@ -23,7 +24,7 @@ type AdminGlobalBarProps = {
 
 type LabAwareAdminShellProps = {
   containerClassName: string;
-  sidebarProps: unknown;
+  sidebarProps: AdminSidebarProps;
   children: ReactNode;
 };
 

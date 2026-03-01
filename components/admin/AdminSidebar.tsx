@@ -18,7 +18,7 @@ function isActive(pathname: string, href: string): boolean {
 
 export type AppEnvironment = "production" | "sandbox";
 
-interface AdminSidebarProps {
+export interface AdminSidebarProps {
   isSuperAdmin: boolean;
   /** When true, show sandbox nav and amber styling. Must be true to show Playground, Abuse, Generators. */
   isSandbox: boolean;
