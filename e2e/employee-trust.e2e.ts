@@ -140,7 +140,8 @@ test.describe("Employee Trust E2E", () => {
       },
       { base: BASE, jobHistoryId: secondJobId }
     );
-    expect(setVisRes.ok()).toBe(true);
+    expect(setVisRes).toBeGreaterThanOrEqual(200);
+    expect(setVisRes).toBeLessThan(300);
 
     const afterRes = await page.request.get(`${BASE}/api/e2e/my-employer-view`, {
       headers: { Cookie: (await page.context().cookies()).map((c) => `${c.name}=${c.value}`).join("; ") },
