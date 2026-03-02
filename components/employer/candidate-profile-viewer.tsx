@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ComponentProps } from "react";
 import {
   saveCandidate,
   unsaveCandidate,
@@ -24,12 +24,36 @@ import { HiringConfidencePanel } from "@/components/employer/HiringConfidencePan
 import { HiringOutcomePrompt } from "@/components/employer/HiringOutcomePrompt";
 import VerticalBadges from "@/components/VerticalBadges";
 
+type CandidateData = {
+  profile?: {
+    id: string;
+    full_name?: string;
+    email?: string;
+    profile_photo_url?: string | null;
+    city?: string | null;
+    state?: string | null;
+    industry?: string | null;
+    vertical?: string | null;
+    role?: string | null;
+  } | null;
+  jobs?: Array<Record<string, unknown>>;
+  references?: Array<Record<string, unknown>>;
+  trust_score?: number;
+  verified_employment_coverage_pct?: number;
+  verified_employment_count?: number;
+  total_employment_count?: number;
+  industry_fields?: unknown[];
+};
+
 interface CandidateProfileViewerProps {
-  candidateData: any;
+  candidateData: CandidateData;
+  /** When true, employee is viewing their own profile as employers see it; hide employer actions and show banner. */
+  isEmployeeSelfView?: boolean;
 }
 
 export function CandidateProfileViewer({
   candidateData,
+  isEmployeeSelfView = false,
 }: CandidateProfileViewerProps) {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -38,10 +62,12 @@ export function CandidateProfileViewer({
   const [trustDetailsExpanded, setTrustDetailsExpanded] = useState(false);
 
   useEffect(() => {
-    checkSavedStatus();
-  }, []);
+    if (!isEmployeeSelfView) checkSavedStatus();
+    else setLoading(false);
+  }, [isEmployeeSelfView]);
 
   const checkSavedStatus = async () => {
+    if (!candidateData.profile?.id) return;
     try {
       const status = await isCandidateSaved(candidateData.profile.id);
       setSaved(status);
@@ -53,29 +79,32 @@ export function CandidateProfileViewer({
   };
 
   const handleSave = async () => {
+    const profileId = candidateData.profile?.id;
+    if (!profileId) return;
     try {
       if (saved) {
-        await unsaveCandidate(candidateData.profile.id);
+        await unsaveCandidate(profileId);
         setSaved(false);
       } else {
-        await saveCandidate(candidateData.profile.id);
+        await saveCandidate(profileId);
         setSaved(true);
       }
-    } catch (error: any) {
-      alert(error.message || "Failed to update saved status");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to update saved status");
     }
   };
 
   const handleSendMessage = async () => {
-    if (!messageBody.trim()) return;
+    const profileId = candidateData.profile?.id;
+    if (!messageBody.trim() || !profileId) return;
 
     try {
-      await sendMessage(candidateData.profile.id, messageBody);
+      await sendMessage(profileId, messageBody);
       setMessageBody("");
       setShowMessageForm(false);
       alert("Message sent!");
-    } catch (error: any) {
-      alert(error.message || "Failed to send message");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to send message");
     }
   };
 
@@ -85,18 +114,24 @@ export function CandidateProfileViewer({
   // Normalize profile: convert string | null to string
   const safeProfile = profile
     ? {
-        ...profile,
+        id: profile.id,
         full_name: profile.full_name ?? "",
         email: profile.email ?? "",
+        profile_photo_url: profile.profile_photo_url,
+        city: profile.city,
+        state: profile.state,
+        industry: profile.industry,
+        vertical: profile.vertical,
+        role: profile.role,
       }
     : null;
 
   // Normalize jobs: convert string | null to string
-  const safeJobs = jobs
-    ? jobs.map((job: any) => ({
+  const safeJobs = Array.isArray(jobs)
+    ? jobs.map((job: Record<string, unknown>) => ({
         ...job,
-        company_name: job.company_name ?? "",
-        job_title: job.job_title ?? "",
+        company_name: (job.company_name as string) ?? "",
+        job_title: (job.job_title as string) ?? "",
       }))
     : [];
 
@@ -106,6 +141,11 @@ export function CandidateProfileViewer({
 
   return (
     <div className="space-y-6">
+      {isEmployeeSelfView && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20 px-4 py-3 text-sm text-blue-800 dark:text-blue-200" role="status">
+          This is exactly what employers see when viewing your profile.
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
@@ -138,9 +178,9 @@ export function CandidateProfileViewer({
             )}
             <VerticalBadges
               profile={{
-                industry: safeProfile.industry,
-                vertical: (safeProfile as any).vertical,
-                role: (safeProfile as any).role,
+                industry: safeProfile.industry ?? undefined,
+                vertical: safeProfile.vertical ?? undefined,
+                role: safeProfile.role ?? undefined,
               }}
             />
           </div>
@@ -250,30 +290,32 @@ export function CandidateProfileViewer({
       <WorkHistoryViewer jobs={safeJobs} />
 
       {/* Peer References */}
-      <ReferenceViewer references={references} />
+      <ReferenceViewer references={(references ?? []) as unknown as ComponentProps<typeof ReferenceViewer>["references"]} />
 
-      {/* Optional hiring outcome feedback (dismissible; stored for aggregate use only) */}
-      <HiringOutcomePrompt candidateId={safeProfile.id} />
+      {!isEmployeeSelfView && (
+        /* Optional hiring outcome feedback (dismissible; stored for aggregate use only) */
+        <HiringOutcomePrompt candidateId={safeProfile.id as string} />
+      )}
 
       {/* Industry Fields */}
-      {industry_fields && industry_fields.length > 0 && (
+      {industry_fields && Array.isArray(industry_fields) && industry_fields.length > 0 && (
         <Card className="p-6">
           <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
             Industry-Specific Information
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {industry_fields.map((field: any, idx: number) => (
+            {(industry_fields as Record<string, unknown>[]).map((field: Record<string, unknown>, idx: number) => (
               <div
                 key={idx}
                 className="p-4 bg-grey-background dark:bg-[#1A1F2B] rounded-xl"
               >
                 <p className="text-sm font-semibold text-grey-medium dark:text-gray-400 mb-1">
-                  {field.field_name}
+                  {String(field.field_name ?? "")}
                 </p>
                 <p className="text-grey-dark dark:text-gray-200">
-                  {field.field_value || "Not specified"}
+                  {String(field.field_value ?? "Not specified")}
                 </p>
-                {field.verified && (
+                {Boolean(field.verified) && (
                   <div className="flex items-center gap-1 mt-2">
                     <CheckBadgeIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
                     <span className="text-xs text-green-600 dark:text-green-400 font-semibold">

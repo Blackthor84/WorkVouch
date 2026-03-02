@@ -103,11 +103,12 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
 
   for (const profile of profiles) {
     const profileAny = profile as any
-    // Get jobs
+    // Get jobs (only visible to employers; archived/hidden never appear)
     const { data: jobs } = await supabaseAny
       .from('jobs')
       .select('id, company_name, job_title, start_date, end_date')
       .eq('user_id', profileAny.id)
+      .or('is_visible_to_employer.eq.true,is_visible_to_employer.is.null')
       .order('start_date', { ascending: false })
 
     // Apply job title filter if provided
@@ -175,15 +176,139 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
   return results
 }
 
+/** Payload shape returned by getCandidateProfileData (same as employer view). */
+export type CandidateProfilePayload = {
+  profile: { id: string; full_name: string; email: string; [k: string]: unknown } | null
+  jobs: Array<{ id: string; company_name: string; job_title: string; [k: string]: unknown }>
+  references: Array<{
+    id: string
+    from_user?: { full_name?: string; profile_photo_url?: string | null } | null
+    is_direct_manager?: boolean
+    is_repeated_coworker?: boolean
+    is_verified_match?: boolean
+    [k: string]: unknown
+  }>
+  trust_score: number
+  verified_employment_coverage_pct: number
+  verified_employment_count: number
+  total_employment_count: number
+  industry_fields: unknown[]
+}
+
 /**
- * Get full candidate profile for employer view
+ * Fetch candidate profile data (exact same shape as employer view). No auth.
+ * Used by getCandidateProfileForEmployer and getMyProfileAsEmployerSeesIt.
  */
-export async function getCandidateProfileForEmployer(candidateId: string) {
+export async function getCandidateProfileData(candidateId: string): Promise<CandidateProfilePayload> {
+  const supabase = await createServerSupabase()
+  const supabaseAny = supabase as any
+
+  const { data: candidateProfile, error: profileError } = await supabaseAny
+    .from('profiles')
+    .select('*')
+    .eq('id', candidateId)
+    .single()
+
+  if (profileError || !candidateProfile) {
+    throw new Error('Candidate not found')
+  }
+
+  const { data: jobs } = await supabaseAny
+    .from('jobs')
+    .select(`
+      *,
+      coworker_matches!jobs_coworker_matches_job_id_fkey(
+        user1_id,
+        user2_id,
+        matched_at
+      )
+    `)
+    .eq('user_id', candidateId)
+    .or('is_visible_to_employer.eq.true,is_visible_to_employer.is.null')
+    .order('start_date', { ascending: false })
+
+  const { data: references } = await supabaseAny
+    .from('user_references')
+    .select(`
+      *,
+      from_user:profiles!references_from_user_id_fkey(full_name, profile_photo_url)
+    `)
+    .eq('to_user_id', candidateId)
+    .eq('is_deleted', false)
+    .order('created_at', { ascending: false })
+
+  const { data: trustScore } = await supabaseAny
+    .from('trust_scores')
+    .select('score')
+    .eq('user_id', candidateId)
+    .order('calculated_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  const { data: employmentRows } = await supabaseAny
+    .from('employment_records')
+    .select('verification_status')
+    .eq('user_id', candidateId)
+  const totalEmployment = (employmentRows ?? []).length
+  const verifiedEmployment = (employmentRows ?? []).filter(
+    (r: { verification_status?: string }) => r.verification_status === 'verified'
+  ).length
+  const verified_employment_coverage_pct = totalEmployment > 0
+    ? Math.round((verifiedEmployment / totalEmployment) * 100)
+    : 0
+  const verified_employment_count = verifiedEmployment
+  const total_employment_count = totalEmployment
+
+  const { data: industryFields } = await supabaseAny
+    .from('industry_profile_fields')
+    .select('*')
+    .eq('user_id', candidateId)
+
+  const refList = references ?? []
+  const badges = await getReferenceCredibilityBadges(supabaseAny, candidateId, refList)
+  const referencesWithBadges = refList.map((ref: { id: string }) => ({
+    ...ref,
+    is_direct_manager: badges[ref.id]?.is_direct_manager ?? false,
+    is_repeated_coworker: badges[ref.id]?.is_repeated_coworker ?? false,
+    is_verified_match: badges[ref.id]?.is_verified_match ?? false,
+  }))
+
+  const profileAny = candidateProfile as Record<string, unknown>
+  const safeProfile = profileAny
+    ? {
+        id: (profileAny.id as string) ?? '',
+        ...profileAny,
+        full_name: (profileAny.full_name as string) ?? '',
+        email: (profileAny.email as string) ?? '',
+      }
+    : null
+
+  const safeJobs = (jobs || []).map((job: Record<string, unknown>) => ({
+    ...job,
+    company_name: (job.company_name as string) ?? '',
+    job_title: (job.job_title as string) ?? '',
+  }))
+
+  return {
+    profile: safeProfile,
+    jobs: safeJobs,
+    references: referencesWithBadges,
+    trust_score: Number((trustScore as { score?: number } | null)?.score) || 0,
+    verified_employment_coverage_pct,
+    verified_employment_count,
+    total_employment_count,
+    industry_fields: industryFields || [],
+  }
+}
+
+/**
+ * Get full candidate profile for employer view (employer-only).
+ */
+export async function getCandidateProfileForEmployer(candidateId: string): Promise<CandidateProfilePayload> {
   const user = await requireAuth()
   const supabase = await createServerSupabase()
   const supabaseAny = supabase as any
 
-  // Verify user is an employer
   const { data: profile } = await supabaseAny
     .from('profiles')
     .select('role')
@@ -200,103 +325,13 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
     throw new Error(legalCheck.reasonCode)
   }
 
-  // Get profile
-  const { data: candidateProfile, error: profileError } = await supabaseAny
-    .from('profiles')
-    .select('*')
-    .eq('id', candidateId)
-    .single()
+  return getCandidateProfileData(candidateId)
+}
 
-  if (profileError || !candidateProfile) {
-    throw new Error('Candidate not found')
-  }
-
-  // Get jobs with coworker matches
-  const { data: jobs } = await supabaseAny
-    .from('jobs')
-    .select(`
-      *,
-      coworker_matches!jobs_coworker_matches_job_id_fkey(
-        user1_id,
-        user2_id,
-        matched_at
-      )
-    `)
-    .eq('user_id', candidateId)
-    .order('start_date', { ascending: false })
-
-  // Get references
-  const { data: references } = await supabaseAny
-    .from('user_references')
-    .select(`
-      *,
-      from_user:profiles!references_from_user_id_fkey(full_name, profile_photo_url)
-    `)
-    .eq('to_user_id', candidateId)
-    .eq('is_deleted', false)
-    .order('created_at', { ascending: false })
-
-  // Get trust score
-  const { data: trustScore } = await supabaseAny
-    .from('trust_scores')
-    .select('score')
-    .eq('user_id', candidateId)
-    .order('calculated_at', { ascending: false })
-    .limit(1)
-    .single()
-
-  // Verified employment coverage: % of employment_records that are verified (for trust summary only)
-  const { data: employmentRows } = await supabaseAny
-    .from('employment_records')
-    .select('verification_status')
-    .eq('user_id', candidateId)
-  const totalEmployment = (employmentRows ?? []).length
-  const verifiedEmployment = (employmentRows ?? []).filter((r: any) => r.verification_status === 'verified').length
-  const verified_employment_coverage_pct = totalEmployment > 0
-    ? Math.round((verifiedEmployment / totalEmployment) * 100)
-    : 0
-  const verified_employment_count = verifiedEmployment
-  const total_employment_count = totalEmployment
-
-  // Get industry fields
-  const { data: industryFields } = await supabaseAny
-    .from('industry_profile_fields')
-    .select('*')
-    .eq('user_id', candidateId)
-
-  // Reference credibility badges (from existing employment/reference data only)
-  const refList = references ?? []
-  const badges = await getReferenceCredibilityBadges(supabaseAny, candidateId, refList)
-  const referencesWithBadges = refList.map((ref: any) => ({
-    ...ref,
-    is_direct_manager: badges[ref.id]?.is_direct_manager ?? false,
-    is_repeated_coworker: badges[ref.id]?.is_repeated_coworker ?? false,
-    is_verified_match: badges[ref.id]?.is_verified_match ?? false,
-  }))
-
-  // Normalize profile: convert string | null to string
-  const profileAny = candidateProfile as any
-  const safeProfile = profileAny ? {
-    ...profileAny,
-    full_name: profileAny.full_name ?? "",
-    email: profileAny.email ?? "",
-  } : null
-
-  // Normalize jobs: convert string | null to string
-  const safeJobs = (jobs || []).map((job: any) => ({
-    ...job,
-    company_name: job.company_name ?? "",
-    job_title: job.job_title ?? "",
-  }))
-
-  return {
-    profile: safeProfile,
-    jobs: safeJobs,
-    references: referencesWithBadges,
-    trust_score: (trustScore as any)?.score || 0,
-    verified_employment_coverage_pct,
-    verified_employment_count,
-    total_employment_count,
-    industry_fields: industryFields || [],
-  }
+/**
+ * Get current user's profile in the exact same shape employers see (employee self-view).
+ */
+export async function getMyProfileAsEmployerSeesIt(): Promise<CandidateProfilePayload> {
+  const user = await requireAuth()
+  return getCandidateProfileData(user.id)
 }

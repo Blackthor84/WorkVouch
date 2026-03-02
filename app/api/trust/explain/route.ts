@@ -69,10 +69,22 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const profileId = searchParams.get("profileId")?.trim() || effective.id;
 
+  const supabase = getSupabaseServer();
   const row = await getOrCreateSnapshot(profileId);
   const trustScore = Math.max(0, Math.min(100, Number(row.career_health_score) ?? 0));
   const profileStrength = Math.max(0, Math.min(100, Number(row.profile_strength) ?? 0));
   const referenceScore = Math.max(0, Math.min(100, Number(row.reference_score) ?? 0));
+
+  const { data: employmentRows } = await supabase
+    .from("employment_records")
+    .select("verification_status")
+    .eq("user_id", profileId);
+  const totalEmployment = (employmentRows ?? []).length;
+  const verifiedCount = (employmentRows ?? []).filter(
+    (r: { verification_status?: string }) => r.verification_status === "verified"
+  ).length;
+  const verifiedEmploymentCoveragePct =
+    totalEmployment > 0 ? Math.round((verifiedCount / totalEmployment) * 100) : null;
 
   const snapshot: TrustEngineSnapshot = {
     trustScore,
@@ -115,7 +127,6 @@ export async function GET(req: NextRequest) {
 
   // Only include score history when user is viewing their own profile (read-only, user-safe).
   if (profileId === effective.id) {
-    const supabase = getSupabaseServer();
     const { data: historyRows } = await supabase
       .from("intelligence_score_history")
       .select("reason, delta, created_at")
