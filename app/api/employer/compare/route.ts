@@ -15,6 +15,7 @@ import {
   getAuditExplanation,
   type AuditBand,
 } from "@/lib/scoring/employeeAuditScore";
+import { getTrustTrajectoryBatch } from "@/lib/trust/trustTrajectory";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,11 +32,16 @@ export type CompareCandidateItem = {
   name: string | null;
   verificationSummary: string;
   verifiedEmploymentCount: number;
+  totalEmploymentCount: number;
+  verifiedEmploymentCoveragePct: number;
   trustBand: AuditBand;
   trustLabel: string;
   trustExplanation: string;
   referenceCount: number;
   flagIndicators: string[];
+  trustTrajectory: "improving" | "stable" | "at_risk";
+  trustTrajectoryLabel: string;
+  trustTrajectoryTooltipFactors: string[];
 };
 
 export async function POST(req: NextRequest) {
@@ -82,7 +88,7 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabaseServer();
 
-    const [profilesRes, auditMap, employmentCountsRes, trustRefCountsRes, fraudCountsRes] =
+    const [profilesRes, auditMap, employmentCountsRes, trustRefCountsRes, fraudCountsRes, trajectoryMap] =
       await Promise.all([
         supabase
           .from("profiles")
@@ -101,6 +107,7 @@ export async function POST(req: NextRequest) {
           .from("fraud_flags")
           .select("user_id")
           .in("user_id", candidateIds),
+        getTrustTrajectoryBatch(candidateIds),
       ]);
 
     const profiles = (profilesRes.data ?? []) as {
@@ -118,8 +125,10 @@ export async function POST(req: NextRequest) {
     }[];
     const fraudRows = (fraudCountsRes.data ?? []) as { user_id: string }[];
 
+    const totalCountByUser = new Map<string, number>();
     const verifiedCountByUser = new Map<string, number>();
     for (const r of employmentRows) {
+      totalCountByUser.set(r.user_id, (totalCountByUser.get(r.user_id) ?? 0) + 1);
       if (r.verification_status === "verified") {
         verifiedCountByUser.set(
           r.user_id,
@@ -146,8 +155,11 @@ export async function POST(req: NextRequest) {
       const audit = auditMap.get(candidateId);
       const band: AuditBand = audit?.band ?? "unverified";
       const verifiedCount = verifiedCountByUser.get(candidateId) ?? 0;
+      const totalCount = totalCountByUser.get(candidateId) ?? 0;
+      const verifiedEmploymentCoveragePct = totalCount > 0 ? Math.round((verifiedCount / totalCount) * 100) : 0;
       const refCount = referenceCountByUser.get(candidateId) ?? 0;
       const fraudCount = fraudCountByUser.get(candidateId) ?? 0;
+      const trajectory = trajectoryMap.get(candidateId);
       const flags: string[] = [];
       if (profile?.flagged_for_fraud === true) flags.push("Profile flagged");
       if (fraudCount > 0) flags.push("Fraud flags on file");
@@ -166,6 +178,8 @@ export async function POST(req: NextRequest) {
         name: profile?.full_name ?? null,
         verificationSummary,
         verifiedEmploymentCount: verifiedCount,
+        totalEmploymentCount: totalCount,
+        verifiedEmploymentCoveragePct,
         trustBand: band,
         trustLabel: getAuditLabel(band),
         trustExplanation: audit
@@ -173,6 +187,9 @@ export async function POST(req: NextRequest) {
           : "Verification data not yet calculated.",
         referenceCount: refCount,
         flagIndicators: flags,
+        trustTrajectory: trajectory?.trajectory ?? "stable",
+        trustTrajectoryLabel: trajectory?.label ?? "Stable",
+        trustTrajectoryTooltipFactors: trajectory?.tooltipFactors ?? [],
       };
     });
 

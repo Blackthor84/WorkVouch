@@ -17,6 +17,7 @@ import {
   compareAuditForRank,
   type AuditBand,
 } from "@/lib/scoring/employeeAuditScore";
+import { getTrustTrajectoryBatch } from "@/lib/trust/trustTrajectory";
 
 const MAX_RESULTS = 50;
 
@@ -118,7 +119,7 @@ export async function GET(request: NextRequest) {
     const { data: candidates, error: viewError } = await supabase
       .from("employer_candidate_view")
       .select(
-        "user_id, full_name, industry, city, state, verified_employment_count, trust_score, reference_count, aggregate_rating, rehire_eligible_count"
+        "user_id, full_name, industry, city, state, verified_employment_count, total_employment_count, verified_employment_coverage_pct, trust_score, reference_count, aggregate_rating, rehire_eligible_count"
       )
       .ilike("full_name", `%${sanitizedQuery}%`)
       .eq("restricted_from_employer_search", false)
@@ -143,9 +144,10 @@ export async function GET(request: NextRequest) {
 
     const userIds = (candidates as { user_id: string }[]).map((c) => c.user_id);
 
-    const [auditScoresMap, skillsResult] = await Promise.all([
+    const [auditScoresMap, skillsResult, trajectoryMap] = await Promise.all([
       getEmployeeAuditScoresBatch(userIds),
       supabase.from("skills").select("user_id, skill_name").in("user_id", userIds),
+      getTrustTrajectoryBatch(userIds),
     ]);
 
     type SkillRow = { user_id: string; skill_name: string };
@@ -165,6 +167,8 @@ export async function GET(request: NextRequest) {
       city: string | null;
       state: string | null;
       verified_employment_count: number;
+      total_employment_count: number;
+      verified_employment_coverage_pct: number;
       trust_score: number;
       reference_count: number;
       aggregate_rating: number;
@@ -176,6 +180,7 @@ export async function GET(request: NextRequest) {
     const users = candidateList.map((c) => {
       const audit = auditScoresMap.get(c.user_id);
       const band: AuditBand = audit?.band ?? "unverified";
+      const trajectory = trajectoryMap.get(c.user_id);
       return {
         id: c.user_id,
         name: c.full_name,
@@ -183,6 +188,8 @@ export async function GET(request: NextRequest) {
         city: c.city ?? null,
         state: c.state ?? null,
         verifiedEmploymentCount: c.verified_employment_count ?? 0,
+        totalEmploymentCount: c.total_employment_count ?? 0,
+        verifiedEmploymentCoveragePct: c.verified_employment_coverage_pct ?? 0,
         trustScore: c.trust_score ?? 0,
         referenceCount: c.reference_count ?? 0,
         aggregateRating: c.aggregate_rating ?? 0,
@@ -192,6 +199,9 @@ export async function GET(request: NextRequest) {
         auditBand: band,
         auditLabel: getAuditLabel(band),
         auditExplanation: audit ? getAuditExplanation(band, audit.breakdown) : "Verification data not yet calculated.",
+        trustTrajectory: trajectory?.trajectory ?? "stable",
+        trustTrajectoryLabel: trajectory?.label ?? "Stable",
+        trustTrajectoryTooltipFactors: trajectory?.tooltipFactors ?? [],
       };
     });
 

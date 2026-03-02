@@ -9,6 +9,7 @@ import { getIndustryEmphasis } from "@/lib/industryEmphasis";
 import type { EmphasisComponent } from "@/lib/industryEmphasis";
 import { EMPLOYER_DISCLAIMER_NOT_ACCEPTED } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { EmployerLegalDisclaimerModal } from "@/components/employer/EmployerLegalDisclaimerModal";
+import { TrustTrajectoryBadge } from "@/components/trust/TrustTrajectoryBadge";
 
 interface SearchResult {
   id: string;
@@ -17,22 +18,29 @@ interface SearchResult {
   city: string | null;
   state: string | null;
   verifiedEmploymentCount: number;
+  totalEmploymentCount?: number;
+  verifiedEmploymentCoveragePct: number;
   trustScore: number;
   referenceCount: number;
   aggregateRating: number;
   rehireEligibleCount: number;
   skills: string[];
+  trustTrajectory?: "improving" | "stable" | "at_risk";
+  trustTrajectoryLabel?: string;
+  trustTrajectoryTooltipFactors?: string[];
 }
 
 function TrustSummaryBullets({
   user,
   order,
+  expanded,
 }: {
   user: SearchResult;
   order: EmphasisComponent[];
+  expanded?: boolean;
 }) {
   const bullets: { key: EmphasisComponent; label: string; value: string }[] = [
-    { key: "employment", label: "Verified roles", value: `${user.verifiedEmploymentCount}` },
+    { key: "employment", label: "Verified employment coverage", value: `${user.verifiedEmploymentCoveragePct ?? 0}%` },
     { key: "rating", label: "Avg rating", value: user.referenceCount > 0 ? `${user.aggregateRating.toFixed(1)}/5` : "—" },
     { key: "referenceVolume", label: "References", value: `${user.referenceCount}` },
   ];
@@ -48,6 +56,9 @@ function TrustSummaryBullets({
           {b.label}: {b.value}
         </li>
       ))}
+      {expanded && typeof user.totalEmploymentCount === "number" && (
+        <li>Verified roles: {user.verifiedEmploymentCount} of {user.totalEmploymentCount}</li>
+      )}
     </ul>
   );
 }
@@ -64,8 +75,18 @@ export function UserSearchForm() {
   const [acceptingDisclaimer, setAcceptingDisclaimer] = useState(false);
   const [pendingQuery, setPendingQuery] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [expandedDetailsIds, setExpandedDetailsIds] = useState<Set<string>>(new Set());
 
   const emphasisOrder = getIndustryEmphasis(employerIndustryType);
+
+  const toggleDetails = (id: string) => {
+    setExpandedDetailsIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -303,7 +324,22 @@ export function UserSearchForm() {
                           </span>
                         </td>
                         <td className="py-4 px-4">
-                          <TrustSummaryBullets user={user} order={emphasisOrder} />
+                          <TrustTrajectoryBadge
+                            trajectory={user.trustTrajectory ?? "stable"}
+                            label={user.trustTrajectoryLabel}
+                            tooltipFactors={user.trustTrajectoryTooltipFactors}
+                            size="sm"
+                          />
+                        </td>
+                        <td className="py-4 px-4">
+                          <TrustSummaryBullets user={user} order={emphasisOrder} expanded={expandedDetailsIds.has(user.id)} />
+                          <button
+                            type="button"
+                            onClick={() => toggleDetails(user.id)}
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1"
+                          >
+                            {expandedDetailsIds.has(user.id) ? "Hide details" : "Show details"}
+                          </button>
                         </td>
                         <td className="py-4 px-4">
                           {user.skills.length > 0 ? (

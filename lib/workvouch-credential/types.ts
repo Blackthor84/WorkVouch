@@ -23,6 +23,13 @@ export interface CredentialHumanFactorSummary {
   oneLiner: string;
 }
 
+/** Verified employment summary for credential (read-only). */
+export interface CredentialVerifiedEmploymentSummary {
+  totalRoles: number;
+  verifiedRoles: number;
+  verificationCoveragePct: number;
+}
+
 /** Payload stored in workvouch_credentials.payload. Safe for employer view. */
 export interface WorkVouchCredentialPayload {
   version: 1;
@@ -36,6 +43,16 @@ export interface WorkVouchCredentialPayload {
   humanFactorSummaries?: CredentialHumanFactorSummary[];
   /** Industry context if available */
   industry?: string;
+  /** Verified employment summary (for credential view) */
+  verifiedEmploymentSummary?: CredentialVerifiedEmploymentSummary;
+  /** Trust band label (e.g. "Verified", "Highly Verified") */
+  trustBand?: string;
+  /** Trust trajectory: improving | stable | at_risk */
+  trustTrajectory?: string;
+  /** Trust trajectory display label */
+  trustTrajectoryLabel?: string;
+  /** Verification coverage % (verified roles / total roles) */
+  verificationCoveragePct?: number;
 }
 
 export interface WorkVouchCredentialRow {

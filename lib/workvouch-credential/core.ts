@@ -2,6 +2,7 @@ import type {
   WorkVouchCredentialPayload,
   CredentialWorkHistoryEntry,
   CredentialHumanFactorSummary,
+  CredentialVerifiedEmploymentSummary,
 } from "./types";
 
 /** Human factor display names for credential (no scores). */
@@ -26,6 +27,16 @@ export interface BuildPayloadInput {
     reference_count: number;
   } | null;
   industry?: string | null;
+  /** Verified employment summary (total/verified roles, coverage %) */
+  verifiedEmploymentSummary?: CredentialVerifiedEmploymentSummary;
+  /** Trust band label (e.g. "Verified") */
+  trustBand?: string;
+  /** Trust trajectory: improving | stable | at_risk */
+  trustTrajectory?: string;
+  /** Trust trajectory display label */
+  trustTrajectoryLabel?: string;
+  /** Verification coverage % (0–100) */
+  verificationCoveragePct?: number;
 }
 
 /**
@@ -54,6 +65,12 @@ export function buildCredentialPayload(input: BuildPayloadInput): WorkVouchCrede
     ? Math.min(100, (input.trustScoreRow.reference_count ?? 0) * 15)
     : 0;
 
+  const totalRoles = input.employmentRecords.length;
+  const verifiedRoles = input.employmentRecords.filter((r) => r.verification_status === "verified").length;
+  const verificationCoveragePct = input.verificationCoveragePct ?? (totalRoles > 0 ? Math.round((verifiedRoles / totalRoles) * 100) : 0);
+  const verifiedEmploymentSummary: CredentialVerifiedEmploymentSummary | undefined =
+    input.verifiedEmploymentSummary ?? (totalRoles > 0 ? { totalRoles, verifiedRoles, verificationCoveragePct } : undefined);
+
   return {
     version: 1,
     issuedAt: new Date().toISOString(),
@@ -62,5 +79,10 @@ export function buildCredentialPayload(input: BuildPayloadInput): WorkVouchCrede
     confidenceScore,
     humanFactorSummaries: HUMAN_FACTOR_SUMMARIES,
     industry: input.industry ?? undefined,
+    verifiedEmploymentSummary,
+    trustBand: input.trustBand,
+    trustTrajectory: input.trustTrajectory,
+    trustTrajectoryLabel: input.trustTrajectoryLabel,
+    verificationCoveragePct,
   };
 }

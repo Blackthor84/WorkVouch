@@ -6,8 +6,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { getSupabaseServer } from "@/lib/supabase/admin";
 import { buildCredentialPayload } from "@/lib/workvouch-credential/core";
 import type { CredentialVisibility } from "@/lib/workvouch-credential/types";
+import { calculateEmployeeAuditScore, getAuditLabel } from "@/lib/scoring/employeeAuditScore";
+import { getTrustTrajectory } from "@/lib/trust/trustTrajectory";
 import { randomBytes } from "crypto";
 
 export const runtime = "nodejs";
@@ -65,32 +68,64 @@ export async function POST(req: NextRequest) {
       // use defaults
     }
 
-    const supabase = await createServerSupabase();
+    // Share links must be time-limited (1–90 days); default 30 when share token requested
+    if (includeShareToken) {
+      if (expiresInDays == null) expiresInDays = 30;
+      expiresInDays = Math.max(1, Math.min(90, expiresInDays));
+    }
 
-    const { data: employmentRecords } = await supabase
+    const supabase = await createServerSupabase();
+    const admin = getSupabaseServer();
+
+    // Use admin to read employment_records (candidate may be in different RLS context)
+    const { data: employmentRecords } = await admin
       .from("employment_records")
       .select("company_name, job_title, start_date, end_date, is_current, verification_status")
       .eq("user_id", user.id);
     const records = (employmentRecords ?? []) as { company_name: string; job_title: string; start_date: string; end_date: string | null; is_current: boolean; verification_status: string }[];
 
-    const { data: trustRow } = await supabase
+    const totalRoles = records.length;
+    const verifiedRoles = records.filter((r) => r.verification_status === "verified").length;
+    const verificationCoveragePct = totalRoles > 0 ? Math.round((verifiedRoles / totalRoles) * 100) : 0;
+
+    const { data: trustRow } = await admin
       .from("trust_scores")
       .select("score, reference_count")
       .eq("user_id", user.id)
       .maybeSingle();
 
-    const { data: profileRow } = await supabase
+    const { data: profileRow } = await admin
       .from("profiles")
       .select("industry")
       .eq("id", user.id)
       .maybeSingle();
     const industry = (profileRow as { industry?: string } | null)?.industry ?? null;
 
+    let trustBand: string | undefined;
+    let trustTrajectory: string | undefined;
+    let trustTrajectoryLabel: string | undefined;
+    try {
+      const [auditResult, trajectoryPayload] = await Promise.all([
+        calculateEmployeeAuditScore(user.id),
+        getTrustTrajectory(user.id),
+      ]);
+      trustBand = getAuditLabel(auditResult.band);
+      trustTrajectory = trajectoryPayload.trajectory;
+      trustTrajectoryLabel = trajectoryPayload.label;
+    } catch {
+      // optional: credential still valid without band/trajectory
+    }
+
     const payload = buildCredentialPayload({
       candidateId: user.id,
       employmentRecords: records,
       trustScoreRow: trustRow ?? null,
       industry,
+      verifiedEmploymentSummary: totalRoles > 0 ? { totalRoles, verifiedRoles, verificationCoveragePct } : undefined,
+      trustBand,
+      trustTrajectory,
+      trustTrajectoryLabel,
+      verificationCoveragePct,
     });
 
     const expiresAt = expiresInDays

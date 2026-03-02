@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
+import { TrustTrajectoryBadge } from "@/components/trust/TrustTrajectoryBadge";
 
 export type TrustExplainResponse = {
   trustScore: number;
@@ -11,6 +12,9 @@ export type TrustExplainResponse = {
   confidenceLevel: number;
   trustBandLabel: string;
   explanation: string;
+  trustTrajectory?: "improving" | "stable" | "at_risk";
+  trustTrajectoryLabel?: string;
+  trustTrajectoryTooltipFactors?: string[];
   scoreHistory?: { event: string; impact: number | null; date: string }[];
 };
 
@@ -109,6 +113,17 @@ export function TrustScoreExplainedSection() {
           <p className="text-grey-dark dark:text-gray-200 font-semibold">
             {data.trustBandLabel}
           </p>
+        </div>
+
+        <div>
+          <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+            Trust trajectory
+          </h3>
+          <TrustTrajectoryBadge
+            trajectory={data.trustTrajectory ?? "stable"}
+            label={data.trustTrajectoryLabel}
+            tooltipFactors={data.trustTrajectoryTooltipFactors}
+          />
         </div>
 
         <div>

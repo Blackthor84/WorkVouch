@@ -5,17 +5,23 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { TrustTrajectoryBadge } from "@/components/trust/TrustTrajectoryBadge";
 
 export type CompareCandidateItem = {
   candidateId: string;
   name: string | null;
   verificationSummary: string;
   verifiedEmploymentCount: number;
+  totalEmploymentCount: number;
+  verifiedEmploymentCoveragePct: number;
   trustBand: string;
   trustLabel: string;
   trustExplanation: string;
   referenceCount: number;
   flagIndicators: string[];
+  trustTrajectory: "improving" | "stable" | "at_risk";
+  trustTrajectoryLabel: string;
+  trustTrajectoryTooltipFactors: string[];
 };
 
 const UUID_REGEX =
@@ -93,7 +99,7 @@ export function CompareViewClient() {
   }
 
   const rows: { label: string; key: keyof CompareCandidateItem }[] = [
-    { label: "Verification status", key: "verificationSummary" },
+    { label: "Verified employment coverage", key: "verifiedEmploymentCoveragePct" },
     { label: "Trust band", key: "trustLabel" },
     { label: "Explanation", key: "trustExplanation" },
     { label: "Reference count", key: "referenceCount" },
@@ -137,6 +143,26 @@ export function CompareViewClient() {
                 </td>
                 {candidates.map((c) => {
                   const value = c[key];
+                  if (key === "trustTrajectoryLabel") {
+                    return (
+                      <td key={c.candidateId} className="py-3 px-4 text-grey-dark dark:text-gray-200">
+                        <TrustTrajectoryBadge
+                          trajectory={c.trustTrajectory ?? "stable"}
+                          label={c.trustTrajectoryLabel}
+                          tooltipFactors={c.trustTrajectoryTooltipFactors}
+                          size="sm"
+                        />
+                      </td>
+                    );
+                  }
+                  if (key === "verifiedEmploymentCoveragePct") {
+                    const pct = typeof value === "number" ? value : 0;
+                    return (
+                      <td key={c.candidateId} className="py-3 px-4 text-grey-dark dark:text-gray-200">
+                        {pct}%
+                      </td>
+                    );
+                  }
                   if (key === "referenceCount") {
                     return (
                       <td key={c.candidateId} className="py-3 px-4 text-grey-dark dark:text-gray-200">

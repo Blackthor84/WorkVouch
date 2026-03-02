@@ -402,6 +402,39 @@ export interface Database {
         }
         Relationships: []
       }
+      hiring_outcome_feedback: {
+        Row: {
+          id: string
+          employer_id: string
+          candidate_id: string
+          hired: boolean | null
+          would_rehire: boolean | null
+          dismissed: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          employer_id: string
+          candidate_id: string
+          hired?: boolean | null
+          would_rehire?: boolean | null
+          dismissed?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          employer_id?: string
+          candidate_id?: string
+          hired?: boolean | null
+          would_rehire?: boolean | null
+          dismissed?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       employer_notifications: {
         Row: {
           id: string

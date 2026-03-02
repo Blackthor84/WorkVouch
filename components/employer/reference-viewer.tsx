@@ -4,8 +4,21 @@ import { Card } from "../ui/card";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { StarIcon } from "@heroicons/react/24/outline";
 
+interface ReferenceWithBadges {
+  id: string;
+  rating: number;
+  written_feedback?: string | null;
+  comment?: string | null;
+  created_at: string;
+  is_direct_manager?: boolean;
+  is_repeated_coworker?: boolean;
+  is_verified_match?: boolean;
+  from_user?: { full_name?: string; profile_photo_url?: string } | null;
+  profiles?: { full_name?: string; profile_photo_url?: string } | null;
+}
+
 interface ReferenceViewerProps {
-  references: any[];
+  references: ReferenceWithBadges[];
 }
 
 export function ReferenceViewer({ references }: ReferenceViewerProps) {
@@ -57,6 +70,28 @@ export function ReferenceViewer({ references }: ReferenceViewerProps) {
                     <p className="text-sm text-grey-medium dark:text-gray-400">
                       Former Coworker
                     </p>
+                    {(ref.is_direct_manager || ref.is_repeated_coworker || ref.is_verified_match) && (
+                      <div
+                        className="flex flex-wrap gap-1.5 mt-1.5"
+                        title="This reference is supported by verified employment data."
+                      >
+                        {ref.is_direct_manager && (
+                          <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
+                            🏷 Direct Manager
+                          </span>
+                        )}
+                        {ref.is_repeated_coworker && (
+                          <span className="inline-flex items-center rounded-md bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                            🏷 Repeated Coworker
+                          </span>
+                        )}
+                        {ref.is_verified_match && (
+                          <span className="inline-flex items-center rounded-md bg-amber-50 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
+                            🏷 Verified Match
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-1">

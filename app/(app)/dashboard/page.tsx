@@ -11,6 +11,7 @@ import { ProfileVisibilityCard } from "@/components/employee/ProfileVisibilityCa
 import { EmployeeProfileCompletenessCard } from "@/components/employee/EmployeeProfileCompletenessCard";
 import { EmployerProfileViewCountCard } from "@/components/employee/EmployerProfileViewCountCard";
 import { AccountSafetyCard } from "@/components/employee/AccountSafetyCard";
+import { ShareCredentialCard } from "@/components/workvouch/ShareCredentialCard";
 import { MyResumesCard } from "@/components/dashboard/MyResumesCard";
 import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
 import {
@@ -212,6 +213,10 @@ export default async function UserDashboardPage() {
 
             <div id="account-safety">
               <AccountSafetyCard />
+            </div>
+
+            <div id="share-credential">
+              <ShareCredentialCard />
             </div>
 
             {/* Action buttons — growth-focused */}

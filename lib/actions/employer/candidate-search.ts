@@ -6,6 +6,7 @@ import {
   requireEmployerLegalAcceptance,
   EMPLOYER_DISCLAIMER_NOT_ACCEPTED,
 } from '@/lib/employer/requireEmployerLegalAcceptance'
+import { getReferenceCredibilityBadges } from '@/lib/employer/referenceCredibilityBadges'
 
 export interface CandidateSearchFilters {
   industry?: string
@@ -244,11 +245,34 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
     .limit(1)
     .single()
 
+  // Verified employment coverage: % of employment_records that are verified (for trust summary only)
+  const { data: employmentRows } = await supabaseAny
+    .from('employment_records')
+    .select('verification_status')
+    .eq('user_id', candidateId)
+  const totalEmployment = (employmentRows ?? []).length
+  const verifiedEmployment = (employmentRows ?? []).filter((r: any) => r.verification_status === 'verified').length
+  const verified_employment_coverage_pct = totalEmployment > 0
+    ? Math.round((verifiedEmployment / totalEmployment) * 100)
+    : 0
+  const verified_employment_count = verifiedEmployment
+  const total_employment_count = totalEmployment
+
   // Get industry fields
   const { data: industryFields } = await supabaseAny
     .from('industry_profile_fields')
     .select('*')
     .eq('user_id', candidateId)
+
+  // Reference credibility badges (from existing employment/reference data only)
+  const refList = references ?? []
+  const badges = await getReferenceCredibilityBadges(supabaseAny, candidateId, refList)
+  const referencesWithBadges = refList.map((ref: any) => ({
+    ...ref,
+    is_direct_manager: badges[ref.id]?.is_direct_manager ?? false,
+    is_repeated_coworker: badges[ref.id]?.is_repeated_coworker ?? false,
+    is_verified_match: badges[ref.id]?.is_verified_match ?? false,
+  }))
 
   // Normalize profile: convert string | null to string
   const profileAny = candidateProfile as any
@@ -268,8 +292,11 @@ export async function getCandidateProfileForEmployer(candidateId: string) {
   return {
     profile: safeProfile,
     jobs: safeJobs,
-    references: references || [],
+    references: referencesWithBadges,
     trust_score: (trustScore as any)?.score || 0,
+    verified_employment_coverage_pct,
+    verified_employment_count,
+    total_employment_count,
     industry_fields: industryFields || [],
   }
 }

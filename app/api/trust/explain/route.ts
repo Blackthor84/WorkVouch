@@ -4,6 +4,7 @@ import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
 import { explainTrustScore } from "@/lib/trust/explainTrustScore";
 import type { TrustEngineSnapshot } from "@/lib/trust/types";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { getTrustTrajectory } from "@/lib/trust/trustTrajectory";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -88,6 +89,8 @@ export async function GET(req: NextRequest) {
   const trustBandLabel = getTrustBandLabel(trustScore);
   const explanation = buildExplanationProse(result.topFactors, result.riskFactors);
 
+  const trajectoryPayload = await getTrustTrajectory(profileId);
+
   const payload: {
     trustScore: number;
     topFactors: string[];
@@ -96,12 +99,18 @@ export async function GET(req: NextRequest) {
     confidenceLevel: number;
     trustBandLabel: string;
     explanation: string;
+    trustTrajectory: "improving" | "stable" | "at_risk";
+    trustTrajectoryLabel: string;
+    trustTrajectoryTooltipFactors: string[];
     scoreHistory?: TrustScoreHistoryEvent[];
   } = {
     ...result,
     confidenceLevel: result.confidence,
     trustBandLabel,
     explanation,
+    trustTrajectory: trajectoryPayload.trajectory,
+    trustTrajectoryLabel: trajectoryPayload.label,
+    trustTrajectoryTooltipFactors: trajectoryPayload.tooltipFactors,
   };
 
   // Only include score history when user is viewing their own profile (read-only, user-safe).

@@ -20,6 +20,8 @@ import { WorkHistoryViewer } from "./work-history-viewer";
 import { ReferenceViewer } from "./reference-viewer";
 import { WorkVouchInsightsSection } from "./workvouch-insights-section";
 import EmployerRiskOverlay from "@/components/employer/EmployerRiskOverlay";
+import { HiringConfidencePanel } from "@/components/employer/HiringConfidencePanel";
+import { HiringOutcomePrompt } from "@/components/employer/HiringOutcomePrompt";
 import VerticalBadges from "@/components/VerticalBadges";
 
 interface CandidateProfileViewerProps {
@@ -33,6 +35,7 @@ export function CandidateProfileViewer({
   const [loading, setLoading] = useState(true);
   const [showMessageForm, setShowMessageForm] = useState(false);
   const [messageBody, setMessageBody] = useState("");
+  const [trustDetailsExpanded, setTrustDetailsExpanded] = useState(false);
 
   useEffect(() => {
     checkSavedStatus();
@@ -76,7 +79,7 @@ export function CandidateProfileViewer({
     }
   };
 
-  const { profile, jobs, references, trust_score, industry_fields } =
+  const { profile, jobs, references, trust_score, verified_employment_coverage_pct, verified_employment_count, total_employment_count, industry_fields } =
     candidateData;
 
   // Normalize profile: convert string | null to string
@@ -169,7 +172,10 @@ export function CandidateProfileViewer({
       {/* Employer-only risk overlay (Career Health + Rehire, Velocity, Risk Flag, Network, Fraud confidence) */}
       <EmployerRiskOverlay candidateId={safeProfile.id} />
 
-      {/* Reputation Score — core score only; high-level summary, no weights or breakdown math */}
+      {/* Hiring Confidence — level, positives, cautions (no raw trust scores) */}
+      <HiringConfidencePanel candidateId={safeProfile.id} />
+
+      {/* Reputation Score — core score + verified employment coverage %; raw counts only when expanded */}
       <Card className="p-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
@@ -180,7 +186,15 @@ export function CandidateProfileViewer({
               Portable credibility score (0–100)
             </p>
             <ul className="text-sm text-grey-dark dark:text-gray-200 space-y-0.5 list-disc list-inside">
-              <li>Verified roles: {safeJobs.length}</li>
+              {typeof total_employment_count === "number" && total_employment_count > 0 && (
+                <li
+                  title="Percentage of listed roles confirmed through independent verification."
+                >
+                  {typeof verified_employment_coverage_pct === "number"
+                    ? `${verified_employment_coverage_pct}% of employment independently verified`
+                    : "0% of employment independently verified"}
+                </li>
+              )}
               <li>References: {references?.length ?? 0}</li>
               {Array.isArray(references) && references.length > 0 && (
                 <li>
@@ -192,7 +206,17 @@ export function CandidateProfileViewer({
                   /5
                 </li>
               )}
+              {trustDetailsExpanded && (
+                <li>Verified roles: {verified_employment_count ?? 0} of {total_employment_count ?? 0}</li>
+              )}
             </ul>
+            <button
+              type="button"
+              onClick={() => setTrustDetailsExpanded(!trustDetailsExpanded)}
+              className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1"
+            >
+              {trustDetailsExpanded ? "Hide details" : "Show details"}
+            </button>
           </div>
           <div className="text-4xl font-bold text-blue-600 dark:text-blue-400">
             {trust_score}
@@ -227,6 +251,9 @@ export function CandidateProfileViewer({
 
       {/* Peer References */}
       <ReferenceViewer references={references} />
+
+      {/* Optional hiring outcome feedback (dismissible; stored for aggregate use only) */}
+      <HiringOutcomePrompt candidateId={safeProfile.id} />
 
       {/* Industry Fields */}
       {industry_fields && industry_fields.length > 0 && (

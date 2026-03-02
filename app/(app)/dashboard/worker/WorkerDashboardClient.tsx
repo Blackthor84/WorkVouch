@@ -5,6 +5,7 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 import { calculateTrustScore } from "@/lib/trust-score";
 import Link from "next/link";
+import { ShareCredentialCard } from "@/components/workvouch/ShareCredentialCard";
 
 /**
  * Worker Dashboard — employee-only.
@@ -152,6 +153,11 @@ export default function WorkerDashboard() {
               Employers can discover you when your profile is complete
             </p>
           </div>
+        </div>
+
+        {/* Share WorkVouch Credential */}
+        <div className="mb-8">
+          <ShareCredentialCard />
         </div>
 
         {/* Recent Activity */}
