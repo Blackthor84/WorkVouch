@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import "./globals.css";
 import Navbar from "@/components/navbar";
 import { SupabaseProvider } from "@/components/SupabaseProvider";
+import { LabBanner } from "@/components/lab/LabBanner";
 
 export default function RootLayout({
   children,
@@ -15,6 +16,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <SupabaseProvider>
+          <LabBanner />
           <Navbar />
           {children}
         </SupabaseProvider>

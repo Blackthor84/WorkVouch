@@ -682,7 +682,7 @@ export default function PlaygroundClient() {
   };
 
   return (
-    <div className={showMultiverseAdvanced && (multiverseMode || godMode) ? "pt-12" : ""}>
+    <div>
       {showMultiverseAdvanced && multiverseMode && <MultiverseHUD />}
       {showMultiverseAdvanced && godMode && <MultiverseLabPanel role={role} />}
 

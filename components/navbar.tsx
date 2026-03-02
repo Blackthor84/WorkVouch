@@ -7,7 +7,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="relative">
+    <header className="relative z-50">
     <nav className="bg-blue-700 text-white shadow-md h-14 flex items-center px-4 md:px-8">
       <div className="flex flex-1 items-center justify-between gap-4 max-w-7xl mx-auto min-w-0">
         <div className="flex items-center gap-4 md:gap-6 flex-shrink-0 min-w-0">

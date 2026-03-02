@@ -34,13 +34,7 @@ export function MultiverseLabPanel({ role }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Phase 2: GOD_MODE HUD */}
-      <div className="fixed top-0 left-0 right-0 z-[9998] flex items-center justify-center gap-2 border-b border-amber-500/50 bg-amber-500/15 px-4 py-2 text-amber-900" role="alert">
-        <span className="font-semibold">GOD MODE</span>
-        <span className="opacity-90">— Safeguards bypassed. All changes local and reversible.</span>
-      </div>
-
-      <div className="pt-12" />
+      {/* Phase 2: GOD_MODE HUD — Lab warning banner is rendered above the main navbar in root layout (LabBanner). */}
 
       {/* Universe switcher + Fork / Destroy / Reset */}
       <section className="rounded-lg border border-slate-200 bg-white p-4">
