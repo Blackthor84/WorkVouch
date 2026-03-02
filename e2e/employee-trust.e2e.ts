@@ -147,7 +147,7 @@ test.describe("Employee Trust E2E", () => {
       headers: { Cookie: (await page.context().cookies()).map((c) => `${c.name}=${c.value}`).join("; ") },
     });
     expect(afterRes.status()).toBe(200);
-    const afterPayload = afterRes.body as EmployerViewProfilePayload;
+    const afterPayload = (await afterRes.json()) as EmployerViewProfilePayload;
     const afterJobIds = afterPayload.jobs.map((j) => j.id);
     expect(afterJobIds.includes(secondJobId)).toBe(false);
   });
