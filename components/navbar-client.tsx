@@ -64,7 +64,7 @@ function AuthenticatedNavbar({
         href="/dashboard"
         className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
       >
-        Dashboard
+        Trust Overview
       </Button>
       <Button
         variant="ghost"
@@ -72,7 +72,31 @@ function AuthenticatedNavbar({
         href="/profile"
         className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
       >
-        Profile
+        Professional Record
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        href="/dashboard/worker"
+        className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
+      >
+        Trust History
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        href="/profile/employer-view"
+        className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
+      >
+        Employer View
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        href="/settings"
+        className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
+      >
+        Settings
       </Button>
       {isEmployerArea ? <EmployerNotificationsBell /> : <NotificationsBell />}
       <Button variant="ghost" size="sm" href="/pricing" className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]">
@@ -112,7 +136,7 @@ function AuthenticatedNavbar({
           href="/admin"
           className="font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
         >
-          Sandbox
+          Lab Environment
         </Button>
       )}
       {(role === "employer" || role === "superadmin" || role === "super_admin") && (

@@ -24,7 +24,7 @@ function nextStepsFromRiskFactors(riskFactors: string[]): string[] {
     if (step) steps.push(step);
   }
   if (steps.length === 0 && riskFactors.length > 0) {
-    steps.push("Review your profile and Trust Activity for recent changes.");
+    steps.push("Review your professional record and Trust History for recent changes.");
   }
   return steps;
 }
@@ -80,7 +80,7 @@ export function TrustChangeDefense() {
       </ul>
       <div className="flex flex-wrap gap-2">
         <Link href="/dashboard/worker#trust-activity" className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
-          View Trust Activity
+          View Trust History
         </Link>
         <Link href="/my-jobs" className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
           Job History

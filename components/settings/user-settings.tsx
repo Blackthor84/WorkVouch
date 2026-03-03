@@ -77,15 +77,15 @@ export function UserSettings() {
         <p className="text-sm text-grey-medium dark:text-gray-400 mb-4">
           Manage your account information and preferences.
         </p>
-        <Button href="/dashboard">Edit Profile</Button>
+        <Button href="/dashboard">Edit professional record</Button>
       </Card>
 
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
-          Download my data
+          Download My Record
         </h2>
         <p className="text-sm text-grey-medium dark:text-gray-400 mb-4">
-          Export your profile and employment history as a JSON file. You can use this for your records or to move your data elsewhere.
+          Export your professional record and employment history as a JSON file. You can use this for your records or to move your data elsewhere.
         </p>
         {exportError && (
           <p className="text-sm text-red-600 dark:text-red-400 mb-4">{exportError}</p>
@@ -96,7 +96,7 @@ export function UserSettings() {
           onClick={handleDownloadData}
           disabled={exportLoading}
         >
-          {exportLoading ? "Preparing…" : "Download my data (JSON)"}
+          {exportLoading ? "Preparing…" : "Download My Record (JSON)"}
         </Button>
       </Card>
 
@@ -151,10 +151,10 @@ export function UserSettings() {
           Danger zone
         </h2>
         <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
-          Delete my account
+          Remove My Record
         </h3>
         <p className="text-sm text-grey-medium dark:text-gray-400 mb-4">
-          Permanently delete your account and data. This cannot be undone. Your access will be fully removed and the deletion is logged for audit.
+          Permanently delete your account and professional record. This cannot be undone. Your access will be fully removed and the deletion is logged for audit.
         </p>
         {deleteError && (
           <p className="text-sm text-red-600 dark:text-red-400 mb-4">{deleteError}</p>

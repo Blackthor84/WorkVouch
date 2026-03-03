@@ -75,15 +75,45 @@ export default async function UserDashboardPage() {
 
   const shortcuts = [
     {
-      href: "/upload-resume",
-      label: "Upload Resume",
-      icon: DocumentArrowUpIcon,
-      color:     "bg-blue-100 text-blue-600",
+      href: "/dashboard/worker",
+      label: "Trust History",
+      icon: BriefcaseIcon,
+      color: "bg-blue-100 text-blue-600",
+    },
+    {
+      href: "/coworker-matches",
+      label: "Verified References",
+      icon: UserGroupIcon,
+      color: "bg-orange-100 text-orange-600",
+    },
+    {
+      href: "/dashboard/worker",
+      label: "Visibility Control",
+      icon: UserCircleIcon,
+      color: "bg-purple-100 text-purple-600",
+    },
+    {
+      href: "/dashboard/worker",
+      label: "My WorkVouch Credentials",
+      icon: BriefcaseIcon,
+      color: "bg-green-100 text-green-600",
+    },
+    {
+      href: "/profile/employer-view",
+      label: "Employer View",
+      icon: UserCircleIcon,
+      color: "bg-indigo-100 text-indigo-600",
     },
     {
       href: "/profile",
-      label: "Profile",
+      label: "Professional Record",
       icon: UserCircleIcon,
+      color: "bg-blue-100 text-blue-600",
+    },
+    {
+      href: "/upload-resume",
+      label: "Upload Resume",
+      icon: DocumentArrowUpIcon,
       color: "bg-blue-100 text-blue-600",
     },
     {
@@ -91,12 +121,6 @@ export default async function UserDashboardPage() {
       label: "Job History",
       icon: BriefcaseIcon,
       color: "bg-purple-100 text-purple-600",
-    },
-    {
-      href: "/coworker-matches",
-      label: "Coworker Matches",
-      icon: UserGroupIcon,
-      color: "bg-orange-100 text-orange-600",
     },
     {
       href: "/messages",
@@ -128,7 +152,7 @@ export default async function UserDashboardPage() {
         {/* Page Header */}
         <div>
           <h1 className="text-3xl font-bold text-[#0F172A]">
-            Dashboard
+            Trust Overview
           </h1>
           <p className="text-base text-[#64748B] mt-1">
             Welcome back, {safeProfile?.full_name || user.email}
@@ -232,7 +256,7 @@ export default async function UserDashboardPage() {
                   Request confirmation
                 </Button>
                 <Button href="/profile" variant="secondary" className="w-full justify-start">
-                  Improve profile
+                  Improve professional record
                 </Button>
               </div>
             </Card>

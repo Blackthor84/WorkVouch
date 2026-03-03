@@ -32,11 +32,11 @@ export interface AdminSidebarProps {
   showBoard: boolean;
 }
 
-/** Simulation is under Playground only (no top-level "Sandbox" nav). Do not re-add Sandbox as a destination. */
+/** Simulation is under Lab Environment only (no top-level "Sandbox" nav). */
 const nav = {
-  Dashboard: [{ href: "/admin", label: "Dashboard" }],
+  TrustOverview: [{ href: "/admin", label: "Trust Overview" }],
   Users: [
-    { href: "/admin/users", label: "Users" },
+    { href: "/admin/users", label: "Members" },
     { href: "/admin/signups", label: "Signups" },
   ],
   Employers: [
@@ -44,14 +44,14 @@ const nav = {
     { href: "/admin/claim-requests", label: "Claim Requests" },
     { href: "/admin/employer-usage", label: "Employer Usage" },
   ],
-  ReviewsAndTrust: [
-    { href: "/admin/reviews", label: "Reviews & Moderation" },
+  IntegrityReview: [
+    { href: "/admin/reviews", label: "Integrity Review" },
     { href: "/admin/flagged-content", label: "Flagged Content" },
-    { href: "/admin/trust-scores", label: "Trust Scores" },
+    { href: "/admin/trust-scores", label: "Trust Bands" },
     { href: "/admin/scoring-explained", label: "Scoring Explained" },
   ],
-  Playground: [
-    { href: "/admin/playground", label: "Playground" },
+  LabEnvironment: [
+    { href: "/admin/playground", label: "Lab Environment" },
     { href: "/admin/playground/monitor", label: "Activity Monitor" },
   ],
   Analytics: [
@@ -60,7 +60,7 @@ const nav = {
     { href: "/admin/analytics/geography", label: "Geography" },
     { href: "/admin/analytics/funnels", label: "Funnels" },
     { href: "/admin/analytics/heatmaps", label: "Heatmaps" },
-    { href: "/admin/analytics/journeys", label: "User Journeys" },
+    { href: "/admin/analytics/journeys", label: "Member Journeys" },
     { href: "/admin/analytics/abuse", label: "Abuse & Security" },
     { href: "/admin/analytics/sandbox", label: "Simulation Analytics" },
   ],
@@ -69,6 +69,8 @@ const nav = {
   AuditLogs: [{ href: "/admin/audit-logs", label: "Audit Logs" }],
   Financials: [{ href: "/admin/financials", label: "Financials" }],
   Board: [{ href: "/admin/board", label: "Board" }],
+  SystemIntegrity: [{ href: "/admin/system-health", label: "System Integrity" }],
+  AccessControls: [{ href: "/admin/preview-control", label: "Access Controls" }],
   SystemSettings: [{ href: "/admin/system", label: "System Settings" }],
 };
 
@@ -86,39 +88,29 @@ const sandboxNav = {
   AuditLogs: nav.AuditLogs,
 };
 
-/** Production admin: read-only nav (no Playground, Abuse, Generators, mutation tools). */
+/** Production admin: read-only nav (no Lab Environment, Abuse, Generators, mutation tools). */
 const productionOnlyNav = {
-  Dashboard: [{ href: "/admin", label: "Dashboard" }],
-  Users: [
-    { href: "/admin/users", label: "Users" },
-    { href: "/admin/signups", label: "Signups" },
-  ],
-  Employers: [
-    { href: "/admin/organizations", label: "Employers" },
-    { href: "/admin/claim-requests", label: "Claim Requests" },
-    { href: "/admin/employer-usage", label: "Employer Usage" },
-  ],
-  ReviewsAndTrust: [
-    { href: "/admin/reviews", label: "Reviews & Moderation" },
-    { href: "/admin/flagged-content", label: "Flagged Content" },
-    { href: "/admin/trust-scores", label: "Trust Scores" },
-    { href: "/admin/scoring-explained", label: "Scoring Explained" },
-  ],
+  TrustOverview: nav.TrustOverview,
+  Users: nav.Users,
+  Employers: nav.Employers,
+  IntegrityReview: nav.IntegrityReview,
   Analytics: [
     { href: "/admin/analytics/overview", label: "Overview" },
     { href: "/admin/analytics/real-time", label: "Real-Time" },
     { href: "/admin/analytics/geography", label: "Geography" },
     { href: "/admin/analytics/funnels", label: "Funnels" },
     { href: "/admin/analytics/heatmaps", label: "Heatmaps" },
-    { href: "/admin/analytics/journeys", label: "User Journeys" },
+    { href: "/admin/analytics/journeys", label: "Member Journeys" },
     { href: "/admin/analytics/abuse", label: "Abuse & Security" },
   ],
-  Alerts: [{ href: "/admin/alerts", label: "Alerts" }],
-  Incidents: [{ href: "/admin/incidents", label: "Incidents" }],
-  AuditLogs: [{ href: "/admin/audit-logs", label: "Audit Logs" }],
-  Financials: [{ href: "/admin/financials", label: "Financials" }],
-  Board: [{ href: "/admin/board", label: "Board" }],
-  SystemSettings: [{ href: "/admin/system", label: "System Settings" }],
+  Alerts: nav.Alerts,
+  Incidents: nav.Incidents,
+  AuditLogs: nav.AuditLogs,
+  Financials: nav.Financials,
+  Board: nav.Board,
+  SystemIntegrity: nav.SystemIntegrity,
+  AccessControls: nav.AccessControls,
+  SystemSettings: nav.SystemSettings,
 };
 
 export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment = "production", overrideActive = false, showFinancials = false, showBoard = false }: AdminSidebarProps) {
@@ -158,7 +150,7 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
             pathname === "/admin" ? LINK_ACTIVE : "text-[#334155] hover:bg-slate-50"
           }`}
         >
-          Dashboard
+          Trust Overview
         </Link>
         <nav className="flex-1 overflow-y-auto mt-4 space-y-6 px-2">
           {isSuperAdmin && !showFullPowerNav && (
@@ -182,24 +174,26 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
           )}
           {showFullPowerNav ? (
             <>
-              {section("Dashboard", sandboxNav.Dashboard)}
-              {section("Users", sandboxNav.Users)}
-              {section("Playground", sandboxNav.Playground)}
+              {section("Trust Overview", sandboxNav.TrustOverview)}
+              {section("Members", sandboxNav.Users)}
+              {section("Lab Environment", sandboxNav.LabEnvironment)}
               {section("Audit Logs", sandboxNav.AuditLogs)}
             </>
           ) : (
             <>
-              {section("Dashboard", productionOnlyNav.Dashboard)}
-              {section("Users", productionOnlyNav.Users)}
+              {section("Trust Overview", productionOnlyNav.TrustOverview)}
+              {section("Members", productionOnlyNav.Users)}
               {section("Employers", productionOnlyNav.Employers)}
-              {section("Reviews & Trust", productionOnlyNav.ReviewsAndTrust)}
+              {section("Integrity Review", productionOnlyNav.IntegrityReview)}
               {section("Analytics", productionOnlyNav.Analytics)}
               {section("Alerts", productionOnlyNav.Alerts)}
               {section("Incidents", productionOnlyNav.Incidents)}
               {section("Audit Logs", productionOnlyNav.AuditLogs)}
               {showFinancials && section("Financials", productionOnlyNav.Financials)}
               {showBoard && section("Board", productionOnlyNav.Board)}
-              {isSuperAdmin && section("Playground", sandboxNav.Playground)}
+              {section("System Integrity", productionOnlyNav.SystemIntegrity)}
+              {section("Access Controls", productionOnlyNav.AccessControls)}
+              {isSuperAdmin && section("Lab Environment", sandboxNav.LabEnvironment)}
               {isSuperAdmin && section("System Settings", productionOnlyNav.SystemSettings)}
             </>
           )}

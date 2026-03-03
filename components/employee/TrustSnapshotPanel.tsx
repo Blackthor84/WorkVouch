@@ -120,7 +120,7 @@ export function TrustSnapshotPanel() {
         <div className="flex flex-col gap-1">
           <Tooltip text={COVERAGE_TOOLTIP}>
             <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-              Verified Employment Coverage
+              Verification Coverage
             </span>
           </Tooltip>
           <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">

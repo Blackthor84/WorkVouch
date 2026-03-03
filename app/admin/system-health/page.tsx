@@ -10,7 +10,7 @@ export default async function AdminSystemHealthPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold text-slate-900 mb-2">System Health</h1>
+      <h1 className="text-3xl font-bold text-slate-900 mb-2">System Integrity</h1>
       <p className="text-slate-600 mb-6">Error rates and system metrics.</p>
       <AdminSystemHealthClient />
     </div>

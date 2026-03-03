@@ -16,7 +16,8 @@ export function EmployerSidebar() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: "/employer/dashboard", label: "Dashboard", icon: HomeIcon },
+    { href: "/employer/dashboard", label: "Verification Summary", icon: HomeIcon },
+    { href: "/employer/compare", label: "Decision Comparison", icon: MagnifyingGlassIcon },
     { href: "/employer/claim", label: "Claim company", icon: BuildingOfficeIcon },
     {
       href: "/employer/directory",
@@ -27,6 +28,16 @@ export function EmployerSidebar() {
       href: "/employer/candidates",
       label: "Candidates",
       icon: MagnifyingGlassIcon,
+    },
+    {
+      href: "/employer/candidates",
+      label: "Saved Profiles",
+      icon: UserGroupIcon,
+    },
+    {
+      href: "/employer/dashboard",
+      label: "Hiring Confidence Insights",
+      icon: HomeIcon,
     },
     {
       href: "/employer/messages",
@@ -50,7 +61,7 @@ export function EmployerSidebar() {
           const isActive =
             pathname === item.href || pathname?.startsWith(item.href + "/");
           return (
-            <ListItem key={item.href} href={item.href} active={isActive}>
+            <ListItem key={item.label} href={item.href} active={isActive}>
               <Icon className="h-5 w-5" />
               <span>{item.label}</span>
             </ListItem>

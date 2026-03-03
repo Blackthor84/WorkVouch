@@ -45,7 +45,7 @@ export function TrustActivityTimeline() {
   if (loading) {
     return (
       <Card className="p-6">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Trust Activity</h2>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Trust History</h2>
         <p className="text-sm text-slate-500">Loading…</p>
       </Card>
     );
@@ -54,7 +54,7 @@ export function TrustActivityTimeline() {
   if (error) {
     return (
       <Card className="p-6">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Trust Activity</h2>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Trust History</h2>
         <p className="text-sm text-slate-500">{error}</p>
       </Card>
     );
@@ -62,7 +62,7 @@ export function TrustActivityTimeline() {
 
   return (
     <Card className="p-6">
-      <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Trust Activity</h2>
+      <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Trust History</h2>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
         Real events that affect your trust profile: verifications, references, disputes, and credentials.
       </p>

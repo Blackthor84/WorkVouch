@@ -64,11 +64,11 @@ export default async function ProfilePage() {
             <p className="text-grey-medium dark:text-gray-400 mt-1">
               {safeJobs && safeJobs.length === 0
                 ? "Add your first job to complete setup"
-                : "Manage your profile, job history, and references"}
+                : "Manage your professional record, job history, and references"}
             </p>
           </div>
           <Button variant="outline" size="sm" asChild>
-            <Link href="/profile/employer-view">View as employer</Link>
+            <Link href="/profile/employer-view">Employer View</Link>
           </Button>
         </div>
 

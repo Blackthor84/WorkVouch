@@ -25,7 +25,7 @@ export default async function EmployerViewPage() {
         <Button variant="ghost" size="sm" asChild>
           <Link href="/profile" className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200">
             <ArrowLeftIcon className="h-4 w-4" />
-            Back to My Profile
+            Back to Professional Record
           </Link>
         </Button>
       </div>
