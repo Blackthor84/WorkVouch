@@ -80,11 +80,11 @@ const enterpriseNav = [
   { label: "Billing", href: "/admin/enterprise/billing" },
 ];
 
-/** Sandbox-only nav: Trust Overview, Members, Playground (simulation), Audit Logs. */
+/** Sandbox-only nav: Trust Overview, Members, Lab Environment (simulation), Audit Logs. */
 const sandboxNav = {
   TrustOverview: nav.TrustOverview,
   Users: nav.Users,
-  Playground: nav.Playground,
+  LabEnvironment: nav.LabEnvironment,
   AuditLogs: nav.AuditLogs,
 };
 
@@ -176,7 +176,7 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
             <>
               {section("Trust Overview", sandboxNav.TrustOverview)}
               {section("Members", sandboxNav.Users)}
-              {section("Lab Environment", sandboxNav.Playground)}
+              {section("Lab Environment", sandboxNav.LabEnvironment)}
               {section("Audit Logs", sandboxNav.AuditLogs)}
             </>
           ) : (
@@ -193,7 +193,7 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
               {showBoard && section("Board", productionOnlyNav.Board)}
               {section("System Integrity", productionOnlyNav.SystemIntegrity)}
               {section("Access Controls", productionOnlyNav.AccessControls)}
-              {isSuperAdmin && section("Lab Environment", sandboxNav.Playground)}
+              {isSuperAdmin && section("Lab Environment", sandboxNav.LabEnvironment)}
               {isSuperAdmin && section("System Settings", productionOnlyNav.SystemSettings)}
             </>
           )}

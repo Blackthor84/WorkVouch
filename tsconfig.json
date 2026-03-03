@@ -32,6 +32,8 @@
     "types/database.generated.ts",
     "vitest.config.ts",
     "tests",
+    "e2e",
+    "playwright.config.ts",
     "**/__tests__/**"
   ]
 }
