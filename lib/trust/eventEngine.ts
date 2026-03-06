@@ -5,6 +5,7 @@
  */
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import type { Json } from "@/types/supabase";
 import { getTrustTrajectory } from "@/lib/trust/trustTrajectory";
 
 export type TrustEventSource =
@@ -31,6 +32,7 @@ const supabase = () => getSupabaseServer() as ReturnType<typeof getSupabaseServe
  */
 export async function emitTrustEvent(params: EmitTrustEventParams): Promise<void> {
   const { profile_id, event_type, event_source, impact_score, metadata } = params;
+  const payload = metadata ?? {};
   await supabase()
     .from("trust_events")
     .insert({
@@ -38,8 +40,8 @@ export async function emitTrustEvent(params: EmitTrustEventParams): Promise<void
       event_type,
       event_source,
       impact_score: Number(impact_score),
-      metadata: metadata ?? {},
-      payload: metadata ?? {},
+      metadata: payload as unknown as Json,
+      payload: payload as unknown as Json,
       impact: impact_score > 0 ? "positive" : impact_score < 0 ? "negative" : "neutral",
     });
 }
