@@ -102,7 +102,7 @@ async function computeForecastInTs(
     };
   }
 
-  const list = (rows ?? []) as { impact_score?: number; created_at: string }[];
+  const list = (rows ?? []) as unknown as { impact_score?: number; created_at: string }[];
   let recentImpact = 0;
   let previousImpact = 0;
   let recentEventCount = 0;
