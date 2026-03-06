@@ -3,27 +3,33 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { UserGroupIcon } from "@heroicons/react/24/outline";
-
-type DepthBand = "weak" | "moderate" | "strong";
+import type { DepthBand, NetworkDepthBand } from "@/lib/trust/depthBands";
 
 type TrustGraphDepthData = {
   depthScore: number;
   depthBand: DepthBand;
-  networkDepthBand?: "minimal" | "moderate" | "strong" | "exceptional";
+  networkDepthBand?: NetworkDepthBand;
   connectionCount: number;
   directConnections: number;
   managerConfirmations: number;
   coworkerConnections: number;
 };
 
-const NETWORK_BAND_LABELS: Record<string, string> = {
-  minimal: "Minimal",
-  moderate: "Moderate",
-  strong: "Strong",
-  exceptional: "Exceptional",
+const NETWORK_BAND_LABELS: Record<NetworkDepthBand, string> = {
+  minimal: "Minimal Network",
+  moderate: "Moderate Network",
+  strong: "Strong Network",
+  exceptional: "Exceptional Network",
 };
 
-/** Fallback when networkDepthBand not provided. */
+const NETWORK_BAND_STYLES: Record<NetworkDepthBand, string> = {
+  minimal: "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
+  moderate: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  strong: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  exceptional: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+};
+
+/** Fallback when networkDepthBand not provided (score-based band). */
 const BAND_LABELS: Record<DepthBand, string> = {
   weak: "Minimal",
   moderate: "Moderate",
@@ -86,10 +92,10 @@ export function TrustGraphDepthCardCandidate({ candidateId }: { candidateId: str
   }
 
   const bandLabel = data.networkDepthBand
-    ? NETWORK_BAND_LABELS[data.networkDepthBand] ?? data.networkDepthBand
+    ? NETWORK_BAND_LABELS[data.networkDepthBand]
     : BAND_LABELS[data.depthBand];
   const bandStyle = data.networkDepthBand
-    ? (BAND_STYLES[data.networkDepthBand] ?? BAND_STYLES[data.depthBand])
+    ? NETWORK_BAND_STYLES[data.networkDepthBand]
     : BAND_STYLES[data.depthBand];
 
   return (

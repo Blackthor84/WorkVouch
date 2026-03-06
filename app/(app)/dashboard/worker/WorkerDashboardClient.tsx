@@ -3,26 +3,25 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { TrustScoreCardClient } from "@/components/trust/TrustScoreCardClient";
-import { TrustTrajectoryCard } from "@/components/trust/TrustTrajectoryCard";
 import { TrustForecastCard } from "@/components/trust/TrustForecastCard";
 import { VerificationCoverageCard } from "@/components/trust/VerificationCoverageCard";
 import { TrustRadarChart } from "@/components/trust/TrustRadarChart";
 import { IndustryBenchmarkCard } from "@/components/trust/IndustryBenchmarkCard";
 import { TrustTimeline } from "@/components/trust/TrustTimeline";
 import { TrustNetworkPanel } from "@/components/trust/TrustNetworkPanel";
-import { RecentReferencesPanel } from "@/components/employee/RecentReferencesPanel";
-import { CredentialCard } from "@/components/workvouch/CredentialCard";
-import { EmploymentHistoryPanel } from "@/components/employee/EmploymentHistoryPanel";
+import { ExpandTrustNetworkCard } from "@/components/employee/ExpandTrustNetworkCard";
 import { VerificationRequestModal } from "@/components/verification/VerificationRequestModal";
 import { VerificationInbox } from "@/components/verification/VerificationInbox";
 import { Button } from "@/components/ui/button";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 
 /**
- * Employee Dashboard — decision panels with live API data.
- * Top: TrustScoreCard, TrustTrajectoryCard, TrustForecastCard, VerificationCoverageCard
- * Middle: TrustRadarChart, IndustryBenchmarkCard, TrustTimeline
- * Bottom: TrustNetworkPanel, CredentialCard, EmploymentHistoryPanel
+ * Employee Dashboard — Trust Command Center.
+ * Section 1: TrustScoreCard, TrustForecastCard, VerificationCoverageCard
+ * Section 2: TrustRadar (primary visual)
+ * Section 3: TrustNetworkPanel | IndustryBenchmarkCard
+ * Section 4: TrustTimeline (verifications, references, trust events)
+ * Section 5: ExpandTrustNetworkCard (invite coworkers, verify employment, strengthen profile)
  */
 export default function WorkerDashboard() {
   const searchParams = useSearchParams();
@@ -41,40 +40,61 @@ export default function WorkerDashboard() {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="trust-command-center min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+      <style>{`
+        .trust-command-center [data-card] {
+          border-radius: 0.75rem;
+          box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+      `}</style>
+
+      <div className="max-w-6xl mx-auto space-y-6">
         <header>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Trust Overview
+            Trust Command Center
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Your professional identity at a glance. All panels use live data from APIs.
+            Your trust strength, network, and next actions at a glance.
           </p>
         </header>
 
-        {/* Top row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <TrustScoreCardClient />
-          <TrustTrajectoryCard />
-          <TrustForecastCard />
-          <VerificationCoverageCard />
-        </div>
+        {/* SECTION 1 — Top summary strip: TrustScoreCard, TrustForecastCard, VerificationCoverageCard */}
+        <section aria-label="Trust summary">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <TrustScoreCardClient />
+            <TrustForecastCard />
+            <VerificationCoverageCard />
+          </div>
+        </section>
 
-        {/* Middle row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <TrustRadarChart />
-          <IndustryBenchmarkCard />
+        {/* SECTION 2 — Primary visual: TrustRadar full width centered */}
+        <section aria-label="Trust radar">
+          <div className="w-full flex justify-center">
+            <div className="w-full max-w-4xl">
+              <TrustRadarChart />
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 3 — Network + Benchmark: split layout */}
+        <section aria-label="Network and benchmark">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TrustNetworkPanel />
+            <IndustryBenchmarkCard />
+          </div>
+        </section>
+
+        {/* SECTION 4 — Activity: TrustTimeline full width */}
+        <section aria-label="Trust activity">
           <TrustTimeline />
-        </div>
+        </section>
 
-        {/* Bottom row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <TrustNetworkPanel />
-          <CredentialCard />
-          <EmploymentHistoryPanel />
-        </div>
+        {/* SECTION 5 — Action panel: ExpandTrustNetworkCard */}
+        <section aria-label="Expand trust network">
+          <ExpandTrustNetworkCard onRequestVerification={() => setRequestModalOpen(true)} />
+        </section>
 
-        {/* Verification requests: inbox + request CTA */}
+        {/* Verification inbox (compact): pending requests */}
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
