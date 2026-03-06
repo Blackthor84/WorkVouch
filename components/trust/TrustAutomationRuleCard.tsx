@@ -41,7 +41,9 @@ export function TrustAutomationRuleCard({ rule }: TrustAutomationRuleCardProps) 
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{label}</p>
           {(cond.policy_id || cond.min_trust_score != null) && (
             <ul className="mt-2 text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
-              {cond.policy_id && <li>Policy: {String(cond.policy_id).slice(0, 8)}...</li>}
+              {cond.policy_id != null && (
+                <li>Policy: {String(cond.policy_id as string).slice(0, 8)}...</li>
+              )}
               {cond.min_trust_score != null && (
                 <li>Min trust score: {String(cond.min_trust_score)}</li>
               )}
