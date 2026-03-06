@@ -89,7 +89,7 @@ export function TrustGraphDepthCardCandidate({ candidateId }: { candidateId: str
     ? NETWORK_BAND_LABELS[data.networkDepthBand] ?? data.networkDepthBand
     : BAND_LABELS[data.depthBand];
   const bandStyle = data.networkDepthBand
-    ? (NETWORK_BAND_STYLES[data.networkDepthBand] ?? BAND_STYLES[data.depthBand])
+    ? (BAND_STYLES[data.networkDepthBand] ?? BAND_STYLES[data.depthBand])
     : BAND_STYLES[data.depthBand];
 
   return (

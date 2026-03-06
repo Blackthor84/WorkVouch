@@ -18,10 +18,15 @@ type Props = {
   onSuccess?: () => void;
 };
 
+type DeliveryMethod = "email" | "sms" | "email_and_sms";
+
 export function VerificationRequestModal({ open, onOpenChange, onSuccess }: Props) {
   const [targetEmail, setTargetEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>("email");
   const [employmentRecordId, setEmploymentRecordId] = useState("");
-  const [relationshipType, setRelationshipType] = useState<"coworker" | "manager" | "peer">("coworker");
+  const [relationshipType, setRelationshipType] = useState<"coworker" | "manager" | "peer" | "client">("coworker");
+  const [consentConfirmed, setConsentConfirmed] = useState(false);
   const [entries, setEntries] = useState<EmploymentEntry[]>([]);
   const [loadingEntries, setLoadingEntries] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -54,17 +59,31 @@ export function VerificationRequestModal({ open, onOpenChange, onSuccess }: Prop
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!consentConfirmed) {
+      setError("Please confirm that this person has permission to receive this request.");
+      return;
+    }
+    if (
+      (deliveryMethod === "sms" || deliveryMethod === "email_and_sms") &&
+      !phoneNumber.trim()
+    ) {
+      setError("Phone number is required when sending via text message.");
+      return;
+    }
     setSubmitting(true);
     try {
+      const body: Record<string, string> = {
+        target_email: targetEmail.trim().toLowerCase(),
+        employment_record_id: employmentRecordId,
+        relationship_type: relationshipType,
+        delivery_method: deliveryMethod,
+      };
+      if (phoneNumber.trim()) body.phone_number = phoneNumber.trim();
       const res = await fetch("/api/verification/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          target_email: targetEmail.trim().toLowerCase(),
-          employment_record_id: employmentRecordId,
-          relationship_type: relationshipType,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -102,6 +121,9 @@ export function VerificationRequestModal({ open, onOpenChange, onSuccess }: Prop
   const close = () => {
     setSuccessResult(null);
     setTargetEmail("");
+    setPhoneNumber("");
+    setDeliveryMethod("email");
+    setConsentConfirmed(false);
     setEmploymentRecordId("");
     setError(null);
     onOpenChange(false);
@@ -157,7 +179,7 @@ export function VerificationRequestModal({ open, onOpenChange, onSuccess }: Prop
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Colleague&apos;s email
+                  Email
                 </label>
                 <input
                   type="email"
@@ -167,6 +189,58 @@ export function VerificationRequestModal({ open, onOpenChange, onSuccess }: Prop
                   placeholder="colleague@example.com"
                   className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-slate-900 dark:text-slate-100"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  Phone number (optional)
+                </label>
+                <input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="+1 (555) 123-4567"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-slate-900 dark:text-slate-100"
+                />
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                  Used for text message delivery or reminder.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  Send invitation via
+                </label>
+                <div className="flex flex-wrap gap-3">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="delivery"
+                      checked={deliveryMethod === "email"}
+                      onChange={() => setDeliveryMethod("email")}
+                      className="rounded border-slate-300"
+                    />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">Email</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="delivery"
+                      checked={deliveryMethod === "sms"}
+                      onChange={() => setDeliveryMethod("sms")}
+                      className="rounded border-slate-300"
+                    />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">Text message</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="delivery"
+                      checked={deliveryMethod === "email_and_sms"}
+                      onChange={() => setDeliveryMethod("email_and_sms")}
+                      className="rounded border-slate-300"
+                    />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">Both</span>
+                  </label>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -196,13 +270,26 @@ export function VerificationRequestModal({ open, onOpenChange, onSuccess }: Prop
                 </label>
                 <select
                   value={relationshipType}
-                  onChange={(e) => setRelationshipType(e.target.value as "coworker" | "manager" | "peer")}
+                  onChange={(e) => setRelationshipType(e.target.value as "coworker" | "manager" | "peer" | "client")}
                   className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-slate-900 dark:text-slate-100"
                 >
                   <option value="coworker">Coworker</option>
                   <option value="manager">Manager / Supervisor</option>
                   <option value="peer">Peer</option>
+                  <option value="client">Client</option>
                 </select>
+              </div>
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="consent"
+                  checked={consentConfirmed}
+                  onChange={(e) => setConsentConfirmed(e.target.checked)}
+                  className="mt-1 rounded border-slate-300"
+                />
+                <label htmlFor="consent" className="text-sm text-slate-600 dark:text-slate-400">
+                  I confirm this person has permission to receive this request.
+                </label>
               </div>
               {error && (
                 <p className="text-sm text-red-600 dark:text-red-400">{error}</p>

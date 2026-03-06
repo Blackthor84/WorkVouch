@@ -156,12 +156,25 @@ export async function POST(req: NextRequest) {
       profile_id: requesterId,
       event_type: "verification_confirmed",
       event_source: "verification_request_accepted",
-      impact_score: 10,
+      impact_score: 15,
       payload: { ...meta, target_profile_id: targetId, relationship_type: requestRow.relationship_type },
       impact: "positive",
       metadata: meta,
       created_at: new Date().toISOString(),
     });
+    // Coworker discovery: when coworker confirms, log coworker_verification_confirmed
+    if (requestRow.relationship_type === "coworker") {
+      await supabase.from("trust_events").insert({
+        profile_id: requesterId,
+        event_type: "coworker_verification_confirmed",
+        event_source: "verification_request_accepted",
+        impact_score: 10,
+        payload: { ...meta, target_profile_id: targetId },
+        impact: "positive",
+        metadata: meta,
+        created_at: new Date().toISOString(),
+      });
+    }
     try {
       await evaluateTrustAutomationRules(requesterId, "verification", supabase);
     } catch (e) {

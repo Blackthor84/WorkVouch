@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CoworkerDiscoveryPanel } from "@/components/trust/CoworkerDiscoveryPanel";
 import type { EmploymentHistoryEntry } from "@/app/api/user/employment-history/route";
 
 function formatDate(iso: string): string {
@@ -83,30 +84,36 @@ export function EmploymentHistoryPanel() {
           {entries.map((entry) => (
             <li
               key={entry.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 p-3"
+              className="rounded-lg border border-slate-200 dark:border-slate-700 p-3"
             >
-              <div className="min-w-0">
-                <p className="font-medium text-slate-900 dark:text-slate-100">
-                  {entry.job_title}
-                </p>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {entry.company_name}
-                </p>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                  {formatDate(entry.start_date)}
-                  {entry.end_date && !entry.is_current
-                    ? " – " + formatDate(entry.end_date)
-                    : entry.is_current
-                      ? " – Present"
-                      : ""}
-                </p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-medium text-slate-900 dark:text-slate-100">
+                    {entry.job_title}
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {entry.company_name}
+                  </p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                    {formatDate(entry.start_date)}
+                    {entry.end_date && !entry.is_current
+                      ? " – " + formatDate(entry.end_date)
+                      : entry.is_current
+                        ? " – Present"
+                        : ""}
+                  </p>
+                </div>
+                <Badge
+                  variant={entry.verification_status === "verified" ? "success" : "secondary"}
+                  className="flex-shrink-0"
+                >
+                  {entry.verification_status === "verified" ? "Verified" : entry.verification_status ?? "Pending"}
+                </Badge>
               </div>
-              <Badge
-                variant={entry.verification_status === "verified" ? "success" : "secondary"}
-                className="flex-shrink-0"
-              >
-                {entry.verification_status === "verified" ? "Verified" : entry.verification_status ?? "Pending"}
-              </Badge>
+              <CoworkerDiscoveryPanel
+                employmentRecordId={entry.id}
+                companyName={entry.company_name}
+              />
             </li>
           ))}
         </ul>

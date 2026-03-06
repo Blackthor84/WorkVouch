@@ -10,7 +10,7 @@ export default function ExpandTrustNetworkCard() {
       <CardContent>
         <p className="text-sm text-slate-600 dark:text-slate-400">
           Invite coworkers, managers, or clients to confirm your work history and strengthen your
-          verified professional network.
+          verified professional network. Send by email, text message, or both.
         </p>
         <Button href="/verify/request" className="mt-4">
           Send Verification Request
