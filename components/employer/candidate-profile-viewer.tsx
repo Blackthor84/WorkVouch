@@ -23,6 +23,7 @@ import EmployerRiskOverlay from "@/components/employer/EmployerRiskOverlay";
 import { HiringConfidenceCard } from "@/components/employer/HiringConfidenceCard";
 import { HiringOutcomePrompt } from "@/components/employer/HiringOutcomePrompt";
 import { VerificationCoverageCardCandidate } from "@/components/employer/VerificationCoverageCardCandidate";
+import { CandidateVerificationSummary } from "@/components/employer/CandidateVerificationSummary";
 import { TrustGraphDepthCardCandidate } from "@/components/employer/TrustGraphDepthCardCandidate";
 import { TrustRadarChart } from "@/components/trust/TrustRadarChart";
 import { TrustForecastCard } from "@/components/trust/TrustForecastCard";
