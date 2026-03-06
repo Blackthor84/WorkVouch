@@ -18,6 +18,7 @@ import { TrustTimeline } from "@/components/trust/TrustTimeline";
 import { VerificationCoverageCard } from "@/components/trust/VerificationCoverageCard";
 import { TrustGraphDepthCard } from "@/components/trust/TrustGraphDepthCard";
 import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
+import ExpandTrustNetworkCard from "@/components/dashboard/ExpandTrustNetworkCard";
 import {
   UserCircleIcon,
   BriefcaseIcon,
