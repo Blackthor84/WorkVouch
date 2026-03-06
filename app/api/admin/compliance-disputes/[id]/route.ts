@@ -165,7 +165,7 @@ export async function PATCH(
       .from("compliance_disputes")
       .update(updates)
       .eq("id", id)
-      .select("id, status, reviewer_notes, resolved_at")
+      .select("id, profile_id, user_id, status, reviewer_notes, resolved_at")
       .single();
 
     if (error) {
@@ -174,6 +174,24 @@ export async function PATCH(
         { error: "Failed to update dispute" },
         { status: 500 }
       );
+    }
+
+    if (
+      row &&
+      (parsed.data.status === ComplianceDisputeStatus.Resolved ||
+        parsed.data.status === ComplianceDisputeStatus.Rejected)
+    ) {
+      const profileId = (row as { profile_id?: string }).profile_id ?? (row as { user_id?: string }).user_id;
+      if (profileId) {
+        const { emitTrustEvent } = await import("@/lib/trust/eventEngine");
+        await emitTrustEvent({
+          profile_id: profileId,
+          event_type: "dispute_resolved",
+          event_source: "dispute_resolution",
+          impact_score: parsed.data.status === ComplianceDisputeStatus.Resolved ? 5 : -5,
+          metadata: { dispute_id: id, status: parsed.data.status },
+        }).catch(() => {});
+      }
     }
 
     return NextResponse.json(row);

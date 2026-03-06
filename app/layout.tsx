@@ -6,6 +6,7 @@ import "./globals.css";
 import Navbar from "@/components/navbar";
 import { SupabaseProvider } from "@/components/SupabaseProvider";
 import { LabBanner } from "@/components/lab/LabBanner";
+import { CommandPaletteGlobal } from "@/components/command-palette/CommandPalette";
 
 export default function RootLayout({
   children,
@@ -19,6 +20,7 @@ export default function RootLayout({
           <LabBanner />
           <Navbar />
           {children}
+          <CommandPaletteGlobal />
         </SupabaseProvider>
       </body>
     </html>

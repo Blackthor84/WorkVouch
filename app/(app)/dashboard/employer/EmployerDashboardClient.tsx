@@ -10,7 +10,12 @@ import {
   UserGroupIcon,
   Cog6ToothIcon,
   CreditCardIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
+import { TrustPolicyBuilder } from "@/components/trust/TrustPolicyBuilder";
+import { TrustPolicyCard } from "@/components/trust/TrustPolicyCard";
+import type { TrustPolicy } from "@/components/trust/TrustPolicyCard";
+import { TrustAutomationPanel } from "@/components/trust/TrustAutomationPanel";
 
 /**
  * Employer Dashboard
@@ -27,7 +32,24 @@ export default function EmployerDashboard() {
   const [employerAccount, setEmployerAccount] = useState<any>(null);
   const [searchUsage, setSearchUsage] = useState<any>(null);
   const [reportUsage, setReportUsage] = useState<any>(null);
+  const [policies, setPolicies] = useState<TrustPolicy[]>([]);
+  const [policiesLoading, setPoliciesLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const fetchPolicies = async () => {
+    setPoliciesLoading(true);
+    try {
+      const res = await fetch("/api/employer/policies", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setPolicies(Array.isArray(data.policies) ? data.policies : []);
+      }
+    } catch (e) {
+      console.error("Error fetching policies:", e);
+    } finally {
+      setPoliciesLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user?.id) return;
@@ -45,6 +67,7 @@ export default function EmployerDashboard() {
             setSearchUsage(usageData.searchUsage);
             setReportUsage(usageData.reportUsage);
           }
+          fetchPolicies();
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -211,6 +234,42 @@ export default function EmployerDashboard() {
             </Link>
           )}
         </div>
+
+        {/* Hiring Standards: Trust Policies */}
+        {employerAccount && (
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-2 text-gray-900 flex items-center gap-2">
+              <ShieldCheckIcon className="h-6 w-6 text-[#1A73E8]" aria-hidden="true" />
+              Hiring Standards
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Define trusted hire archetypes by trust metrics. Candidates are evaluated against these standards—not job listings.
+            </p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <TrustPolicyBuilder onCreated={fetchPolicies} />
+              </div>
+              <div className="lg:col-span-2 space-y-4">
+                {policiesLoading ? (
+                  <div className="animate-pulse h-24 rounded bg-gray-100" />
+                ) : policies.length === 0 ? (
+                  <p className="text-sm text-gray-500">No policies yet. Create one to get started.</p>
+                ) : (
+                  policies.map((p) => (
+                    <TrustPolicyCard key={p.id} policy={p} />
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Trust Automation: Active Rules, Recent Alerts, Automation Activity */}
+        {employerAccount && (
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <TrustAutomationPanel />
+          </div>
+        )}
 
         {/* Pro Features Section */}
         {isPro && (

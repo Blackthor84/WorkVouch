@@ -9,6 +9,7 @@ import { requireAuth } from "@/lib/auth";
 import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
 import type { VerticalDashboardProfile } from "@/lib/verticals/dashboard";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
+import { getEmployeeProfileFields } from "@/lib/identity/getProfileWithRole";
 
 export type ProfileDataResult = VerticalDashboardProfile & {
   id: string;
@@ -17,30 +18,25 @@ export type ProfileDataResult = VerticalDashboardProfile & {
 
 /**
  * Get current user profile data for vertical dashboard and similar views.
- * Includes profile_strength from intelligence_snapshots; tenure_months/sentiment_average
- * can be extended later (e.g. from employment_records / reviews).
+ * Uses employee_profiles when present (role-specific), else falls back to profiles.
+ * Includes profile_strength from intelligence_snapshots.
  */
 export async function getProfileData(): Promise<ProfileDataResult | null> {
   try {
     const user = await requireAuth();
     const supabase = await createServerSupabase();
 
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("id, industry, vertical, vertical_metadata")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (profileError || !profile) {
+    const employeeFields = await getEmployeeProfileFields(supabase, user.id);
+    if (!employeeFields) {
       return null;
     }
 
     const snapshot = await getOrCreateSnapshot(user.id);
 
     const result: ProfileDataResult = {
-      id: profile.id,
-      industry: profile.industry ?? undefined,
-      vertical_metadata: profile.vertical_metadata ?? undefined,
+      id: user.id,
+      industry: employeeFields.industry ?? undefined,
+      vertical_metadata: employeeFields.vertical_metadata ?? undefined,
       profile_strength: snapshot?.profile_strength ?? 0,
       tenure_months: undefined,
       sentiment_average: undefined,

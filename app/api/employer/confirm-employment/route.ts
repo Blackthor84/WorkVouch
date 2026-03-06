@@ -77,6 +77,15 @@ export async function POST(req: NextRequest) {
       changeReason: "Employer confirmed employment",
     });
 
+    const { emitTrustEvent } = await import("@/lib/trust/eventEngine");
+    await emitTrustEvent({
+      profile_id: row.user_id,
+      event_type: "employment_verified",
+      event_source: "employment_verification",
+      impact_score: 10,
+      metadata: { employment_record_id: parsed.data.record_id, source: "employer_confirm" },
+    }).catch(() => {});
+
     const { updateConfirmationLevel } = await import("@/lib/employment/confirmationLevel");
     try {
       await updateConfirmationLevel(parsed.data.record_id);

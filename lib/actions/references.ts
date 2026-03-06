@@ -83,6 +83,15 @@ export async function createReference(input: CreateReferenceInput) {
 
   insertActivityLog({ userId: user.id, action: "reference_created", target: input.job_id, metadata: { to_user_id: input.to_user_id } }).catch(() => {})
 
+  const { emitTrustEvent } = await import('@/lib/trust/eventEngine')
+  await emitTrustEvent({
+    profile_id: input.to_user_id,
+    event_type: 'reference_received',
+    event_source: 'reference_creation',
+    impact_score: 5,
+    metadata: { job_id: input.job_id, rating: input.rating },
+  }).catch(() => {})
+
   await calculateAndStoreRisk(input.to_user_id).catch((error) => { console.error("[SYSTEM_FAIL]", error); })
 
   revalidatePath('/dashboard')

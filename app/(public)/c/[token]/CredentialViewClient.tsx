@@ -14,6 +14,7 @@ interface CredentialPayload {
   trustTrajectory?: string;
   trustTrajectoryLabel?: string;
   verificationCoveragePct?: number;
+  referenceCredibility?: { referenceCount: number; directManagerCount: number; repeatedCoworkerCount: number; verifiedMatchCount: number };
 }
 
 export function CredentialViewClient({ token }: { token: string }) {
@@ -33,7 +34,7 @@ export function CredentialViewClient({ token }: { token: string }) {
           setLoading(false);
           return;
         }
-        const c = (data as { credential?: { payload: CredentialPayload; issued_at: string; expires_at: string | null } }).credential;
+        const c = (data as { credential?: { payload: CredentialPayload; issued_at: string; expires_at: string | null; read_only?: boolean } }).credential;
         if (c) setCredential(c);
         else setError("Credential not found");
       } catch {
@@ -126,6 +127,37 @@ export function CredentialViewClient({ token }: { token: string }) {
                   {p.verifiedEmploymentSummary.verifiedRoles} of {p.verifiedEmploymentSummary.totalRoles} roles verified
                   {p.verifiedEmploymentSummary.verificationCoveragePct != null && ` (${p.verifiedEmploymentSummary.verificationCoveragePct}% coverage)`}.
                 </p>
+              </div>
+            )}
+
+            {/* Reference credibility */}
+            {p.referenceCredibility && p.referenceCredibility.referenceCount > 0 && (
+              <div>
+                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Reference credibility</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                  <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-3">
+                    <p className="text-slate-500 dark:text-slate-400">References</p>
+                    <p className="font-semibold text-slate-900 dark:text-white">{p.referenceCredibility.referenceCount}</p>
+                  </div>
+                  {p.referenceCredibility.directManagerCount > 0 && (
+                    <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-3">
+                      <p className="text-slate-500 dark:text-slate-400">Direct manager</p>
+                      <p className="font-semibold text-slate-900 dark:text-white">{p.referenceCredibility.directManagerCount}</p>
+                    </div>
+                  )}
+                  {p.referenceCredibility.repeatedCoworkerCount > 0 && (
+                    <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-3">
+                      <p className="text-slate-500 dark:text-slate-400">Repeated coworker</p>
+                      <p className="font-semibold text-slate-900 dark:text-white">{p.referenceCredibility.repeatedCoworkerCount}</p>
+                    </div>
+                  )}
+                  {p.referenceCredibility.verifiedMatchCount > 0 && (
+                    <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-3">
+                      <p className="text-slate-500 dark:text-slate-400">Verified match</p>
+                      <p className="font-semibold text-slate-900 dark:text-white">{p.referenceCredibility.verifiedMatchCount}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

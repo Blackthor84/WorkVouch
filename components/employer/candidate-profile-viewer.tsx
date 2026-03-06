@@ -20,8 +20,22 @@ import { WorkHistoryViewer } from "./work-history-viewer";
 import { ReferenceViewer } from "./reference-viewer";
 import { WorkVouchInsightsSection } from "./workvouch-insights-section";
 import EmployerRiskOverlay from "@/components/employer/EmployerRiskOverlay";
-import { HiringConfidencePanel } from "@/components/employer/HiringConfidencePanel";
+import { HiringConfidenceCard } from "@/components/employer/HiringConfidenceCard";
 import { HiringOutcomePrompt } from "@/components/employer/HiringOutcomePrompt";
+import { VerificationCoverageCardCandidate } from "@/components/employer/VerificationCoverageCardCandidate";
+import { TrustGraphDepthCardCandidate } from "@/components/employer/TrustGraphDepthCardCandidate";
+import { TrustRadarChart } from "@/components/trust/TrustRadarChart";
+import { TrustForecastCard } from "@/components/trust/TrustForecastCard";
+import { IndustryBenchmarkCard } from "@/components/trust/IndustryBenchmarkCard";
+import { TrustPolicyMatchPanel } from "@/components/trust/TrustPolicyMatchPanel";
+import { TrustAutomationPanel } from "@/components/trust/TrustAutomationPanel";
+import { RiskAlertPanel } from "@/components/employer/RiskAlertPanel";
+import { EmploymentVerificationPanel } from "@/components/employer/EmploymentVerificationPanel";
+import { ReferenceConsistencyPanel } from "@/components/employer/ReferenceConsistencyPanel";
+import { TrustTimelinePanel } from "@/components/employer/TrustTimelinePanel";
+import { CandidateComparisonPanel } from "@/components/employer/CandidateComparisonPanel";
+import { EmployerNotesPanel } from "@/components/employer/EmployerNotesPanel";
+import { TeamSharingPanel } from "@/components/employer/TeamSharingPanel";
 import VerticalBadges from "@/components/VerticalBadges";
 
 type CandidateData = {
@@ -206,63 +220,92 @@ export function CandidateProfileViewer({
         </div>
       </div>
 
+      {/* Section 7 — Verified By / Total Confirmations */}
+      <CandidateVerificationSummary candidateId={safeProfile.id} />
+
       {/* WorkVouch Insights (employer-only, feature-flagged) */}
       <WorkVouchInsightsSection candidateId={safeProfile.id} />
 
       {/* Employer-only risk overlay (Career Health + Rehire, Velocity, Risk Flag, Network, Fraud confidence) */}
       <EmployerRiskOverlay candidateId={safeProfile.id} />
 
-      {/* Hiring Confidence — level, positives, cautions (no raw trust scores) */}
-      <HiringConfidencePanel candidateId={safeProfile.id} />
-
-      {/* Reputation Score — core score + verified employment coverage %; raw counts only when expanded */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-1">
-              Reputation Score
-            </h2>
-            <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">
-              Portable credibility score (0–100)
-            </p>
-            <ul className="text-sm text-grey-dark dark:text-gray-200 space-y-0.5 list-disc list-inside">
-              {typeof total_employment_count === "number" && total_employment_count > 0 && (
-                <li
-                  title="Percentage of listed roles confirmed through independent verification."
-                >
-                  {typeof verified_employment_coverage_pct === "number"
-                    ? `${verified_employment_coverage_pct}% of employment independently verified`
-                    : "0% of employment independently verified"}
-                </li>
-              )}
-              <li>References: {references?.length ?? 0}</li>
-              {Array.isArray(references) && references.length > 0 && (
-                <li>
-                  Avg rating:{" "}
-                  {(
-                    references.reduce((s: number, r: { rating?: number }) => s + (r.rating ?? 0), 0) /
-                    references.length
-                  ).toFixed(1)}
-                  /5
-                </li>
-              )}
-              {trustDetailsExpanded && (
-                <li>Verified roles: {verified_employment_count ?? 0} of {total_employment_count ?? 0}</li>
-              )}
-            </ul>
-            <button
-              type="button"
-              onClick={() => setTrustDetailsExpanded(!trustDetailsExpanded)}
-              className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1"
-            >
-              {trustDetailsExpanded ? "Hide details" : "Show details"}
-            </button>
+      {/* Employer Dashboard: decision panels (3 rows). When employee self-view, show single HiringConfidenceCard + score. */}
+      {!isEmployeeSelfView ? (
+        <div className="space-y-6">
+          {/* Trust signals: Outlook, Benchmark, Hiring Confidence, Risk */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <TrustForecastCard profileId={safeProfile.id} />
+            <IndustryBenchmarkCard profileId={safeProfile.id} />
+            <HiringConfidenceCard candidateId={safeProfile.id} />
+            <RiskAlertPanel candidateId={safeProfile.id} />
           </div>
-          <div className="text-4xl font-bold text-blue-600 dark:text-blue-400">
-            {trust_score}
+          {/* Top row: Verification, Depth, Timeline, Trust Policy Match */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <VerificationCoverageCardCandidate candidateId={safeProfile.id} />
+            <TrustGraphDepthCardCandidate candidateId={safeProfile.id} />
+            <TrustTimelinePanel candidateId={safeProfile.id} />
+          </div>
+          {/* Trust Policy Match: candidate vs employer hiring standards */}
+          <div className="grid grid-cols-1 gap-6">
+            <TrustPolicyMatchPanel candidateId={safeProfile.id} />
+          </div>
+          {/* Automation Triggers: rules run when trust events occur for this candidate */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TrustAutomationPanel compact />
+          </div>
+          {/* Middle row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <TrustRadarChart profileId={safeProfile.id} />
+            <EmploymentVerificationPanel candidateId={safeProfile.id} />
+            <ReferenceConsistencyPanel candidateId={safeProfile.id} />
+          </div>
+          {/* Bottom row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <CandidateComparisonPanel candidateId={safeProfile.id} />
+            <EmployerNotesPanel candidateId={safeProfile.id} />
+            <TeamSharingPanel candidateId={safeProfile.id} />
           </div>
         </div>
-      </Card>
+      ) : (
+        <>
+          <HiringConfidenceCard candidateId={safeProfile.id} />
+          <Card className="p-6">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-1">Reputation Score</h2>
+                <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">Portable credibility score (0–100)</p>
+                <ul className="text-sm text-grey-dark dark:text-gray-200 space-y-0.5 list-disc list-inside">
+                  {typeof total_employment_count === "number" && total_employment_count > 0 && (
+                    <li title="Percentage of listed roles confirmed through independent verification.">
+                      {typeof verified_employment_coverage_pct === "number"
+                        ? `${verified_employment_coverage_pct}% of employment independently verified`
+                        : "0% of employment independently verified"}
+                    </li>
+                  )}
+                  <li>References: {references?.length ?? 0}</li>
+                  {Array.isArray(references) && references.length > 0 && (
+                    <li>
+                      Avg rating:{" "}
+                      {(references.reduce((s: number, r: { rating?: number }) => s + (r.rating ?? 0), 0) / references.length).toFixed(1)}/5
+                    </li>
+                  )}
+                  {trustDetailsExpanded && (
+                    <li>Verified roles: {verified_employment_count ?? 0} of {total_employment_count ?? 0}</li>
+                  )}
+                </ul>
+                <button
+                  type="button"
+                  onClick={() => setTrustDetailsExpanded(!trustDetailsExpanded)}
+                  className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1"
+                >
+                  {trustDetailsExpanded ? "Hide details" : "Show details"}
+                </button>
+              </div>
+              <div className="text-4xl font-bold text-blue-600 dark:text-blue-400">{trust_score}</div>
+            </div>
+          </Card>
+        </>
+      )}
 
       {/* Message Form */}
       {showMessageForm && (

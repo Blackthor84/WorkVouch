@@ -3,6 +3,7 @@ import type {
   CredentialWorkHistoryEntry,
   CredentialHumanFactorSummary,
   CredentialVerifiedEmploymentSummary,
+  CredentialReferenceCredibility,
 } from "./types";
 
 /** Human factor display names for credential (no scores). */
@@ -37,6 +38,8 @@ export interface BuildPayloadInput {
   trustTrajectoryLabel?: string;
   /** Verification coverage % (0–100) */
   verificationCoveragePct?: number;
+  /** Reference credibility (counts) */
+  referenceCredibility?: CredentialReferenceCredibility;
 }
 
 /**
@@ -84,5 +87,6 @@ export function buildCredentialPayload(input: BuildPayloadInput): WorkVouchCrede
     trustTrajectory: input.trustTrajectory,
     trustTrajectoryLabel: input.trustTrajectoryLabel,
     verificationCoveragePct,
+    referenceCredibility: input.referenceCredibility,
   };
 }

@@ -13,6 +13,10 @@ import { EmployerProfileViewCountCard } from "@/components/employee/EmployerProf
 import { AccountSafetyCard } from "@/components/employee/AccountSafetyCard";
 import { ShareCredentialCard } from "@/components/workvouch/ShareCredentialCard";
 import { MyResumesCard } from "@/components/dashboard/MyResumesCard";
+import { TrustNetworkPanel } from "@/components/trust/TrustNetworkPanel";
+import { TrustTimeline } from "@/components/trust/TrustTimeline";
+import { VerificationCoverageCard } from "@/components/trust/VerificationCoverageCard";
+import { TrustGraphDepthCard } from "@/components/trust/TrustGraphDepthCard";
 import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
 import {
   UserCircleIcon,
@@ -209,6 +213,12 @@ export default async function UserDashboardPage() {
             <div id="onboarding-reputation-score">
               <TrustScoreCard userId={safeProfile?.id || user.id} />
             </div>
+
+            <TrustNetworkPanel profileId={safeProfile?.id || user.id} />
+            <ExpandTrustNetworkCard />
+            <TrustTimeline />
+            <VerificationCoverageCard />
+            <TrustGraphDepthCard profileId={safeProfile?.id || user.id} />
 
             <MyResumesCard />
             <div id="profile-strength">

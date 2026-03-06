@@ -30,6 +30,14 @@ export interface CredentialVerifiedEmploymentSummary {
   verificationCoveragePct: number;
 }
 
+/** Reference credibility summary for credential (counts only, no PII). */
+export interface CredentialReferenceCredibility {
+  referenceCount: number;
+  directManagerCount: number;
+  repeatedCoworkerCount: number;
+  verifiedMatchCount: number;
+}
+
 /** Payload stored in workvouch_credentials.payload. Safe for employer view. */
 export interface WorkVouchCredentialPayload {
   version: 1;
@@ -53,6 +61,8 @@ export interface WorkVouchCredentialPayload {
   trustTrajectoryLabel?: string;
   /** Verification coverage % (verified roles / total roles) */
   verificationCoveragePct?: number;
+  /** Reference credibility summary (counts) */
+  referenceCredibility?: CredentialReferenceCredibility;
 }
 
 export interface WorkVouchCredentialRow {

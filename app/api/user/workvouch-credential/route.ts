@@ -9,6 +9,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { buildCredentialPayload } from "@/lib/workvouch-credential/core";
 import type { CredentialVisibility } from "@/lib/workvouch-credential/types";
+import { getReferenceCredibilitySummary } from "@/lib/workvouch-credential/referenceCredibility";
 import { calculateEmployeeAuditScore, getAuditLabel } from "@/lib/scoring/employeeAuditScore";
 import { getTrustTrajectory } from "@/lib/trust/trustTrajectory";
 import { randomBytes } from "crypto";
@@ -116,6 +117,13 @@ export async function POST(req: NextRequest) {
       // optional: credential still valid without band/trajectory
     }
 
+    let referenceCredibility;
+    try {
+      referenceCredibility = await getReferenceCredibilitySummary(admin, user.id);
+    } catch {
+      referenceCredibility = { referenceCount: 0, directManagerCount: 0, repeatedCoworkerCount: 0, verifiedMatchCount: 0 };
+    }
+
     const payload = buildCredentialPayload({
       candidateId: user.id,
       employmentRecords: records,
@@ -126,6 +134,7 @@ export async function POST(req: NextRequest) {
       trustTrajectory,
       trustTrajectoryLabel,
       verificationCoveragePct,
+      referenceCredibility,
     });
 
     const expiresAt = expiresInDays

@@ -68,6 +68,11 @@ export type RehireReasonEnum =
 export type SecurityReportSeverityEnum = 'low' | 'medium' | 'high' | 'critical'
 export type SecurityReportStatusEnum = 'Open' | 'Investigating' | 'Resolved'
 
+export type TrustRelationshipType = 'peer_reference' | 'manager_confirmation' | 'coworker_overlap' | 'verified_employment'
+export type TrustVerificationLevel = 'pending' | 'confirmed' | 'verified'
+
+export type TrustEventImpact = 'positive' | 'neutral' | 'negative'
+
 /** Minimal schema shape so Database["public"] extends Supabase GenericSchema (required for .from().update() to infer). */
 type PublicSchemaBase = {
   Tables: Record<string, { Row: Record<string, unknown>; Insert: Record<string, unknown>; Update: Record<string, unknown>; Relationships: { foreignKeyName: string; columns: string[]; referencedRelation: string; referencedColumns: string[] }[] }>
@@ -402,6 +407,69 @@ export interface Database {
         }
         Relationships: []
       }
+      employee_profiles: {
+        Row: {
+          id: string
+          profile_id: string
+          professional_summary: string | null
+          visibility: ProfileVisibility
+          profile_photo_url: string | null
+          industry: string | null
+          vertical: string | null
+          vertical_metadata: Json | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          professional_summary?: string | null
+          visibility?: ProfileVisibility
+          profile_photo_url?: string | null
+          industry?: string | null
+          vertical?: string | null
+          vertical_metadata?: Json | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          profile_id?: string
+          professional_summary?: string | null
+          visibility?: ProfileVisibility
+          profile_photo_url?: string | null
+          industry?: string | null
+          vertical?: string | null
+          vertical_metadata?: Json | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      employer_profiles: {
+        Row: {
+          id: string
+          profile_id: string
+          default_employer_account_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          default_employer_account_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          profile_id?: string
+          default_employer_account_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hiring_outcome_feedback: {
         Row: {
           id: string
@@ -676,6 +744,57 @@ export interface Database {
           average_rating?: number | null
           calculated_at?: string
           version?: string
+        }
+        Relationships: []
+      }
+      trust_events: {
+        Row: {
+          id: string
+          profile_id: string
+          event_type: string
+          payload: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          event_type: string
+          payload?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          profile_id?: string
+          event_type?: string
+          payload?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
+      trust_relationships: {
+        Row: {
+          id: string
+          source_profile_id: string
+          target_profile_id: string
+          relationship_type: TrustRelationshipType
+          verification_level: TrustVerificationLevel
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          source_profile_id: string
+          target_profile_id: string
+          relationship_type: TrustRelationshipType
+          verification_level?: TrustVerificationLevel
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          source_profile_id?: string
+          target_profile_id?: string
+          relationship_type?: TrustRelationshipType
+          verification_level?: TrustVerificationLevel
+          created_at?: string
         }
         Relationships: []
       }
