@@ -1,12 +1,13 @@
 /**
  * POST /api/verification/request
  * Create a verification request. Target may not have an account (invite flow).
- * Body: { target_email, employment_record_id, relationship_type?: 'coworker' | 'manager' | 'peer' }
+ * Body: { target_email, employment_record_id, relationship_type?: VerificationRelationshipType }
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
+import { parseVerificationRelationshipType } from "@/lib/verification/parseVerificationRelationshipType";
 import { randomBytes } from "crypto";
 
 export const runtime = "nodejs";
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { target_email?: string; employment_record_id?: string; relationship_type?: string };
+  let body: { target_email?: string; employment_record_id?: string; relationship_type?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -36,6 +37,13 @@ export async function POST(req: NextRequest) {
   if (!targetEmail || !employmentRecordId) {
     return NextResponse.json(
       { error: "target_email and employment_record_id are required" },
+      { status: 400 }
+    );
+  }
+
+  if (!relationshipType) {
+    return NextResponse.json(
+      { error: "Invalid relationship type" },
       { status: 400 }
     );
   }
