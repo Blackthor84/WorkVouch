@@ -1,5 +1,24 @@
-import AuthGuard from "@/components/AuthGuard";
+import { redirect } from "next/navigation";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  return <AuthGuard>{children}</AuthGuard>;
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const supabase = await createServerSupabaseClient();
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0D1117]">
+      {children}
+    </div>
+  );
 }

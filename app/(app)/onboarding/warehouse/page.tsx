@@ -11,10 +11,6 @@ export const runtime = "nodejs";
 export default async function WarehouseOnboardingPage() {
   const admin = await getAdminContext();
 
-  if (!admin.isAuthenticated) {
-    redirect("/login");
-  }
-
   if (admin.isAdmin && !(await isImpersonating())) {
     redirect("/admin");
   }

@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -8,9 +7,5 @@ export const dynamic = "force-dynamic";
  * Prevents 404 when users click Connections from legacy sidebar links.
  */
 export default async function DashboardConnectionsPage() {
-  const user = await getCurrentUser();
-  if (!user) {
-    redirect("/login");
-  }
   redirect("/coworker-matches");
 }

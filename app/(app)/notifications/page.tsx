@@ -1,17 +1,8 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
 import { getUserNotifications } from "@/lib/actions/notifications";
 import { Card } from "@/components/ui/card";
 import { NotificationsList } from "@/components/notifications-list";
 
 export default async function NotificationsPage() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    console.log("REDIRECT TRIGGERED IN: app/(app)/notifications/page.tsx");
-    redirect("/login");
-  }
-
   let notifications: any[] = [];
   try {
     notifications = await getUserNotifications();

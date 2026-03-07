@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,13 +11,6 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function SimpleDashboardPage() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    console.log("REDIRECT TRIGGERED IN: app/(app)/dashboard/simple/page.tsx");
-    redirect("/login");
-  }
-
   const menuItems = [
     {
       title: "Profile",

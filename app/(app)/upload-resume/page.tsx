@@ -1,16 +1,7 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { UploadResumeForm } from "@/components/upload-resume-form";
 
 export default async function UploadResumePage() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    console.log("REDIRECT TRIGGERED IN: app/(app)/upload-resume/page.tsx");
-    redirect("/login");
-  }
-
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
         <div className="mb-8">

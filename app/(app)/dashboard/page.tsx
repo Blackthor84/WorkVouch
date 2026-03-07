@@ -39,12 +39,9 @@ export const dynamic = "force-dynamic";
 export default async function UserDashboardPage() {
   const supabase = await createServerSupabaseClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session!.user;
   const emailVerified = Boolean((user as { email_confirmed_at?: string | null }).email_confirmed_at);
   if (!emailVerified) {
     redirect("/verify-email");

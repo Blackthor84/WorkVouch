@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { getCurrentUser, getCurrentUserProfile } from "@/lib/auth";
+import { getCurrentUserProfile } from "@/lib/auth";
 import { getUserJobs } from "@/lib/actions/jobs";
 import { getUserReferences } from "@/lib/actions/references";
 import { Card } from "@/components/ui/card";
@@ -16,13 +15,6 @@ export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    console.log("REDIRECT TRIGGERED IN: app/(app)/profile/page.tsx");
-    redirect("/login");
-  }
-
   const profile = await getCurrentUserProfile();
   const jobs = await getUserJobs();
   const references = profile ? await getUserReferences(profile.id) : [];

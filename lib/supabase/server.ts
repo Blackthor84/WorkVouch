@@ -99,8 +99,8 @@ export async function getSupabaseSession() {
     }
   }
 
-  const authResult = await supabase.auth.getUser();
-  const user = authResult?.data?.user ?? null;
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
   const impersonation = resolveImpersonationContext(cookieStore, false);
   return {
     user,

@@ -14,7 +14,7 @@ export default async function VerticalDashboardPage({ params }: Props) {
 
   const profile = await getProfileData();
   if (!profile) {
-    redirect("/login");
+    redirect("/dashboard");
   }
 
   const config = getVerticalDashboardConfig(industry);

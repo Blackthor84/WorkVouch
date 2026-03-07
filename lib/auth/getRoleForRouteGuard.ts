@@ -13,9 +13,10 @@ export type RouteGuardRole = "employee" | "employer" | "admin";
 export async function getRoleForRouteGuard(): Promise<RouteGuardRole | null> {
   const supabase = await createServerSupabase();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user?.id) return null;
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return null;
+  const user = session.user;
 
   const { data } = await supabase
     .from("profiles")

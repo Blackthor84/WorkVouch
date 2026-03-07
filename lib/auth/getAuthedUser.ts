@@ -15,13 +15,15 @@ export type AuthedUser = {
 export async function getAuthedUser(): Promise<AuthedUser | null> {
   try {
     const supabase = await supabaseServer();
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return null;
+    const user = session.user;
 
     if (!user?.id || !user?.email) {
       return null;
     }
 
-    const session: SessionLike = {
+    const sessionLike: SessionLike = {
       user: {
         id: user.id,
         email: user.email,
@@ -29,7 +31,7 @@ export async function getAuthedUser(): Promise<AuthedUser | null> {
       },
     };
 
-    const role = getRoleFromSession(session);
+    const role = getRoleFromSession(sessionLike);
 
     return {
       user: { id: user.id, email: user.email },

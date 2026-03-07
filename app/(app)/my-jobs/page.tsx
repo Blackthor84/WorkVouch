@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
@@ -14,19 +13,13 @@ export const dynamic = "force-dynamic";
 
 export default async function MyJobsPage() {
   const user = await getCurrentUser();
-
-  if (!user) {
-    console.log("REDIRECT TRIGGERED IN: app/(app)/my-jobs/page.tsx");
-    redirect("/login");
-  }
-
   const supabase = await createServerSupabase();
 
   const supabaseAny = supabase as any;
   const { data: jobs, error } = await supabaseAny
     .from("jobs")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", user!.id)
     .order("start_date", { ascending: false });
 
   // Normalize jobs: convert string | null to string

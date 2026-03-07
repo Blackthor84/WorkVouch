@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
 import {
   findPotentialCoworkers,
   initiateConnection,
@@ -8,12 +6,6 @@ import { CoworkerList } from "@/components/coworker-list";
 
 export default async function CoworkersPage(props: any) {
   const { jobId } = await props.params;
-  const user = await getCurrentUser();
-  if (!user) {
-    console.log("REDIRECT TRIGGERED IN: app/(app)/jobs/[jobId]/coworkers/page.tsx");
-    redirect("/login");
-  }
-
   const potentialCoworkers = await findPotentialCoworkers(jobId);
 
   return (

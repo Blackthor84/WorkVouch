@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
 import { getMyProfileAsEmployerSeesIt } from "@/lib/actions/employer/candidate-search";
 import { CandidateProfileViewer } from "@/components/employer/candidate-profile-viewer";
 import Link from "next/link";
@@ -14,9 +12,6 @@ export const dynamic = "force-dynamic";
  * Reuses the exact employer profile payload and viewer so data matches byte-for-byte.
  */
 export default async function EmployerViewPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
   const candidateData = await getMyProfileAsEmployerSeesIt();
 
   return (
