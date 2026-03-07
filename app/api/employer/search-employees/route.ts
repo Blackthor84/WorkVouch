@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
           .from("profile_trades")
           .select("profile_id")
           .eq("trade_id", tradeRow.id);
-        userIdsFilter = (pt ?? []).map((r) => r.profile_id);
+        userIdsFilter = (pt ?? []).map((r: { profile_id: string }) => r.profile_id);
         if (userIdsFilter.length === 0) {
           return NextResponse.json({ employees: [] });
         }
