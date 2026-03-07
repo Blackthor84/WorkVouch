@@ -13,6 +13,8 @@ import { randomBytes } from "crypto";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const DAILY_INVITE_LIMIT_PER_CANDIDATE = 10;
+
 function secureToken(): string {
   return randomBytes(32).toString("hex");
 }
