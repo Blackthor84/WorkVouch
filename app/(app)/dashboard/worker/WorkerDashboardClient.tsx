@@ -13,7 +13,8 @@ import { ExpandTrustNetworkCard } from "@/components/employee/ExpandTrustNetwork
 import { VerificationRequestModal } from "@/components/verification/VerificationRequestModal";
 import { VerificationInbox } from "@/components/verification/VerificationInbox";
 import { Button } from "@/components/ui/button";
-import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import { PaperAirplaneIcon, UserPlusIcon } from "@heroicons/react/24/outline";
+import { InviteCoworkerForm } from "@/components/dashboard/InviteCoworkerForm";
 
 /**
  * Employee Dashboard — Trust Command Center.
@@ -91,6 +92,21 @@ export default function WorkerDashboard() {
 
         {/* SECTION 5 — Action panel: ExpandTrustNetworkCard */}
         <section aria-label="Expand trust network">
+          <div className="flex flex-wrap gap-3 mb-4">
+            <Button
+              variant="secondary"
+              onClick={() => setInviteFormOpen(true)}
+              className="inline-flex items-center gap-2"
+            >
+              <UserPlusIcon className="h-5 w-5" />
+              Invite Coworker
+            </Button>
+          </div>
+          {inviteFormOpen && (
+            <div className="mb-6">
+              <InviteCoworkerForm onClose={() => setInviteFormOpen(false)} />
+            </div>
+          )}
           <ExpandTrustNetworkCard onRequestVerification={() => setRequestModalOpen(true)} />
         </section>
 

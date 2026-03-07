@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const SEGMENT_LABELS: Record<string, string> = {
   overview: "Overview",
+  network: "WorkVouch Network",
   "real-time": "Real-Time",
   geography: "Geography",
   funnels: "Funnels",

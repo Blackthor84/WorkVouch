@@ -25,6 +25,8 @@ import { HiringOutcomePrompt } from "@/components/employer/HiringOutcomePrompt";
 import { VerificationCoverageCardCandidate } from "@/components/employer/VerificationCoverageCardCandidate";
 import { CandidateVerificationSummary } from "@/components/employer/CandidateVerificationSummary";
 import { TrustGraphDepthCardCandidate } from "@/components/employer/TrustGraphDepthCardCandidate";
+import Link from "next/link";
+import { CircleStackIcon } from "@heroicons/react/24/outline";
 import { TrustRadarChart } from "@/components/trust/TrustRadarChart";
 import { TrustForecastCard } from "@/components/trust/TrustForecastCard";
 import { IndustryBenchmarkCard } from "@/components/trust/IndustryBenchmarkCard";
@@ -246,6 +248,21 @@ export function CandidateProfileViewer({
             <TrustGraphDepthCardCandidate candidateId={safeProfile.id} />
             <TrustTimelinePanel candidateId={safeProfile.id} />
           </div>
+          <div className="flex flex-wrap gap-3">
+            <Link href={`/employer/trust-graph/${safeProfile.id}`}>
+              <Button variant="secondary" className="inline-flex items-center gap-2">
+                <CircleStackIcon className="h-5 w-5" />
+                View Trust Graph
+              </Button>
+            </Link>
+          </div>
+          {/* Trust Timeline: chronological trust events for this candidate */}
+          <section aria-labelledby="trust-timeline-heading">
+            <h2 id="trust-timeline-heading" className="sr-only">
+              Trust Timeline
+            </h2>
+            <TrustTimelineProfile profileId={safeProfile.id} />
+          </section>
           {/* Trust Policy Match: candidate vs employer hiring standards */}
           <div className="grid grid-cols-1 gap-6">
             <TrustPolicyMatchPanel candidateId={safeProfile.id} />
