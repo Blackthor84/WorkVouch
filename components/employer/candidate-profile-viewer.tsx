@@ -36,6 +36,8 @@ import { RiskAlertPanel } from "@/components/employer/RiskAlertPanel";
 import { EmploymentVerificationPanel } from "@/components/employer/EmploymentVerificationPanel";
 import { ReferenceConsistencyPanel } from "@/components/employer/ReferenceConsistencyPanel";
 import { TrustTimelinePanel } from "@/components/employer/TrustTimelinePanel";
+import TrustScoreBreakdown from "@/components/trust/TrustScoreBreakdown";
+import TrustScoreGauge from "@/components/trust/TrustScoreGauge";
 import { CandidateComparisonPanel } from "@/components/employer/CandidateComparisonPanel";
 import { EmployerNotesPanel } from "@/components/employer/EmployerNotesPanel";
 import { TeamSharingPanel } from "@/components/employer/TeamSharingPanel";
@@ -225,6 +227,12 @@ export function CandidateProfileViewer({
 
       {/* Section 7 — Verified By / Total Confirmations */}
       <CandidateVerificationSummary candidateId={safeProfile.id} />
+
+      {/* Trust Score Gauge + Breakdown (near Verification Summary / Trust) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <TrustScoreGauge score={trust_score ?? 0} />
+        <TrustScoreBreakdown profileId={safeProfile.id} />
+      </div>
 
       {/* WorkVouch Insights (employer-only, feature-flagged) */}
       <WorkVouchInsightsSection candidateId={safeProfile.id} />
