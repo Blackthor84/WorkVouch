@@ -40,8 +40,8 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Invalid contact_email format" }, { status: 400 });
     }
 
-    const supabase = getServiceRoleClient();
-    const supabaseAny = supabase as any;
+    const admin = getServiceRoleClient();
+    const supabaseAny = admin as any;
 
     const { data: account, error: fetchErr } = await supabaseAny
       .from("employer_accounts")

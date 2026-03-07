@@ -26,8 +26,8 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = getSupabaseServer();
-    const supabaseAny = supabase as any;
+    const admin = getSupabaseServer();
+    const supabaseAny = admin as any;
 
     const [profileRes, jobsRes] = await Promise.all([
       supabaseAny.from("profiles").select("full_name, email, email_verified").eq("id", effective.id).single(),
@@ -57,8 +57,8 @@ export async function GET() {
       referencesCount,
       emailVerified,
     } satisfies ProfileCompletenessResponse;
-    const supabase = createServerSupabaseClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const authClient = createServerSupabaseClient();
+    const { data: { session } } = await authClient.auth.getSession();
     return NextResponse.json(applyScenario(baseData, session?.impersonation));
   } catch {
     return NextResponse.json(

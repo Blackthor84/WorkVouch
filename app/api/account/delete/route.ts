@@ -40,8 +40,8 @@ export async function POST(req: NextRequest) {
   const { ipAddress, userAgent } = getAuditMetaFromRequest(req);
 
   try {
-    const supabase = getServiceRoleClient();
-    const supabaseAny = supabase as any;
+    const admin = getServiceRoleClient();
+    const supabaseAny = admin as any;
 
     // 1) Soft-delete profile (user profile data)
     const { error: profileError } = await supabaseAny
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     });
 
     // 4) Delete auth user (Supabase Admin API, service role)
-    const { error: authError } = await (supabase as any).auth.admin.deleteUser(userId);
+    const { error: authError } = await (admin as any).auth.admin.deleteUser(userId);
     if (authError) {
       console.error("[account/delete] Auth delete error:", authError);
       return NextResponse.json(

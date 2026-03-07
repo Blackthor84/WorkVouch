@@ -21,8 +21,8 @@ export async function GET() {
   const userId = session.user.id;
 
   try {
-    const supabase = getServiceRoleClient();
-    const supabaseAny = supabase as any;
+    const admin = getServiceRoleClient();
+    const supabaseAny = admin as any;
 
     const [profileRes, employmentRes] = await Promise.all([
       supabaseAny

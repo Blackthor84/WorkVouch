@@ -49,8 +49,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Valid new email is required" }, { status: 400 });
     }
 
-    const supabase = getServiceRoleClient();
-    const supabaseAny = supabase as any;
+    const admin = getServiceRoleClient();
+    const supabaseAny = admin as any;
 
     const { data: profile } = await supabaseAny
       .from("profiles")

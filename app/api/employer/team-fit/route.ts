@@ -32,8 +32,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing candidateId" }, { status: 400 });
     }
 
-    const supabase = getSupabaseServer() as any;
-    const { data: emp } = await supabase.from("employer_accounts").select("id").eq("user_id", userId).maybeSingle();
+    const admin = getSupabaseServer() as any;
+    const { data: emp } = await admin.from("employer_accounts").select("id").eq("user_id", userId).maybeSingle();
     const employerId = employerIdParam || (emp as { id?: string } | null)?.id;
     if (!employerId) {
       return NextResponse.json({ error: "Employer context required" }, { status: 403 });
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Feature not available" }, { status: 403 });
     }
 
-    const { data: eu } = await supabase.from("employer_users").select("organization_id").eq("profile_id", userId).limit(1).maybeSingle();
+    const { data: eu } = await admin.from("employer_users").select("organization_id").eq("profile_id", userId).limit(1).maybeSingle();
     const organizationId = (eu as { organization_id?: string } | null)?.organization_id;
     if (organizationId) {
       const limitCheck = await checkOrgLimits(organizationId, "run_check");
@@ -58,10 +58,10 @@ export async function GET(req: NextRequest) {
 
     const [teamFitRes, riskResEmp, riskResGlobal, networkRes, hiringRes] = await Promise.all([
       supabase.from("team_fit_scores").select("alignment_score, breakdown, model_version, updated_at").eq("candidate_id", candidateId).eq("employer_id", employerId).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("risk_model_outputs").select("overall_score, breakdown, model_version, updated_at").eq("candidate_id", candidateId).eq("employer_id", employerId).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("risk_model_outputs").select("overall_score, breakdown, model_version, updated_at").eq("candidate_id", candidateId).is("employer_id", null).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      admin.from("risk_model_outputs").select("overall_score, breakdown, model_version, updated_at").eq("candidate_id", candidateId).eq("employer_id", employerId).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      admin.from("risk_model_outputs").select("overall_score, breakdown, model_version, updated_at").eq("candidate_id", candidateId).is("employer_id", null).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("network_density_index").select("density_score, fraud_confidence, breakdown, model_version, updated_at").eq("candidate_id", candidateId).maybeSingle(),
-      supabase.from("hiring_confidence_scores").select("composite_score, breakdown, model_version, updated_at").eq("candidate_id", candidateId).eq("employer_id", employerId).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      admin.from("hiring_confidence_scores").select("composite_score, breakdown, model_version, updated_at").eq("candidate_id", candidateId).eq("employer_id", employerId).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
     const riskRes = { data: riskResEmp.data ?? riskResGlobal.data };
 
