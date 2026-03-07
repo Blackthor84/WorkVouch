@@ -261,7 +261,7 @@ export function CandidateProfileViewer({
             <h2 id="trust-timeline-heading" className="sr-only">
               Trust Timeline
             </h2>
-            <TrustTimelineProfile profileId={safeProfile.id} />
+            <TrustTimelinePanel candidateId={safeProfile.id} />
           </section>
           {/* Trust Policy Match: candidate vs employer hiring standards */}
           <div className="grid grid-cols-1 gap-6">
