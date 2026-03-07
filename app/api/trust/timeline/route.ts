@@ -41,7 +41,7 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const events: TrustTimelineEvent[] = (rows ?? []).map((r) => ({
+  const events: TrustTimelineEvent[] = (rows ?? []).map((r: any) => ({
     id: (r as { id: string }).id,
     event_type: (r as { event_type: string }).event_type,
     impact: (r as { impact: TrustEventImpact | null }).impact ?? null,
