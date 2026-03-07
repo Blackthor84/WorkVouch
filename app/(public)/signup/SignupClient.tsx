@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -15,9 +15,24 @@ export default function SignupClient() {
   const searchParams = useSearchParams();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [company, setCompany] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const sourceVerification = searchParams.get("source") === "verification";
+  const prefilledEmail = searchParams.get("email")?.trim() ?? "";
+  const prefilledCompany = searchParams.get("company")?.trim() ?? "";
+  const didPrefill = useRef(false);
+
+  useEffect(() => {
+    if (didPrefill.current) return;
+    if (prefilledEmail || prefilledCompany) {
+      didPrefill.current = true;
+      if (prefilledEmail) setEmail(prefilledEmail);
+      if (prefilledCompany) setCompany(prefilledCompany);
+    }
+  }, [prefilledEmail, prefilledCompany]);
 
   useEffect(() => {
     const planTier = searchParams.get("plan_tier")?.trim();
@@ -78,8 +93,15 @@ export default function SignupClient() {
         return;
       }
 
-      // Email confirmation OFF: session exists, go to onboarding (e.g. select-role)
+      // Email confirmation OFF: session exists; mark claim-profile if from verification, then go to onboarding
       if (data.session) {
+        if (sourceVerification) {
+          try {
+            await fetch("/api/verification/claim-profile", { method: "POST", credentials: "include" });
+          } catch {
+            // non-blocking
+          }
+        }
         router.push("/onboarding");
         return;
       }
@@ -115,6 +137,11 @@ export default function SignupClient() {
         <h1 className="text-3xl font-bold mb-2 text-center text-gray-900 dark:text-white">
           Create account
         </h1>
+        {sourceVerification && (
+          <p className="text-sm text-center mb-4 px-2 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
+            You were invited to join WorkVouch after verifying a coworker.
+          </p>
+        )}
         <p className="text-gray-600 dark:text-gray-400 text-sm text-center mb-6">
           Full name, email, and password. Next you&apos;ll choose your role and complete setup.
         </p>
@@ -137,6 +164,16 @@ export default function SignupClient() {
             required
             autoComplete="email"
           />
+          {sourceVerification && (
+            <input
+              type="text"
+              placeholder="Company (optional)"
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              autoComplete="organization"
+            />
+          )}
           <input
             type="password"
             placeholder="Password (min 8 characters)"

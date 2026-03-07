@@ -21,7 +21,7 @@ export async function GET(
   const supabase = getSupabaseServer();
   const { data, error } = await (supabase as any)
     .from("verification_invites")
-    .select("id, token, candidate_id, company, role, status, expires_at")
+    .select("id, token, candidate_id, company, role, status, expires_at, verifier_email, email")
     .eq("token", token.trim())
     .maybeSingle();
 
@@ -32,6 +32,8 @@ export async function GET(
     return NextResponse.json({ error: "Invite not found" }, { status: 404 });
   }
 
+  const verifierEmail = data.verifier_email ?? data.email ?? null;
+
   return NextResponse.json({
     id: data.id,
     company: data.company ?? null,
@@ -39,5 +41,6 @@ export async function GET(
     status: data.status,
     candidateId: data.candidate_id,
     expiresAt: data.expires_at ?? null,
+    verifierEmail: verifierEmail ?? null,
   });
 }

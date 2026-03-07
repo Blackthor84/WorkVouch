@@ -84,6 +84,7 @@ export async function POST(req: NextRequest) {
     token,
     candidate_id: candidateId,
     email,
+    verifier_email: email,
     phone: phone || null,
     company: company || null,
     role: role || null,

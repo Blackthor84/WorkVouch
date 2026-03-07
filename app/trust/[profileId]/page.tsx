@@ -45,7 +45,7 @@ export default async function PublicTrustPage(props: {
         <p className="text-slate-700 dark:text-gray-300 mb-8">
           Total Confirmations: <strong>{verificationCount}</strong>
         </p>
-        <Link href={`/employer/trust-graph/${profileId}`}>
+        <Link href={`/graph/${profileId}`}>
           <Button variant="secondary" className="w-full sm:w-auto">
             View Verification Network
           </Button>

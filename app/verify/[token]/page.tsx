@@ -12,6 +12,7 @@ type Invite = {
   status: string;
   candidateId: string;
   expiresAt: string | null;
+  verifierEmail: string | null;
 };
 
 type Result = "idle" | "confirming" | "denying" | "success" | "error";
@@ -153,14 +154,36 @@ export default function VerifyTokenPage() {
   }
 
   if (result === "success") {
+    const showClaim = invite.status === "confirmed";
+    const verifierEmail = invite.verifierEmail?.trim() ?? "";
+    const company = invite.company?.trim() ?? "";
+    const claimQuery = new URLSearchParams({ source: "verification" });
+    if (verifierEmail) claimQuery.set("email", verifierEmail);
+    if (company) claimQuery.set("company", company);
+    const claimHref = `/signup?${claimQuery.toString()}`;
+
     return (
       <main className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6">
-        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-8 text-center max-w-md">
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-8 text-center max-w-md space-y-6">
           <CheckCircleIcon className="mx-auto h-12 w-12 text-green-500 mb-4" />
           <h1 className="text-xl font-semibold text-slate-900 dark:text-gray-100 mb-2">
             Success
           </h1>
           <p className="text-slate-600 dark:text-slate-400">{message}</p>
+
+          {showClaim && (
+            <section className="pt-4 border-t border-gray-200 dark:border-gray-600">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-gray-100 mb-2">
+                Claim Your WorkVouch Profile
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                You helped verify someone&apos;s employment. Create your own WorkVouch profile and start building your verified work history.
+              </p>
+              <Button asChild className="w-full sm:w-auto">
+                <a href={claimHref}>Create My Profile</a>
+              </Button>
+            </section>
+          )}
         </div>
       </main>
     );
