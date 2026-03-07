@@ -30,7 +30,7 @@ export interface RequireRoleResult {
  * Get effective roles for the current user: profile.role + employer_users + tenant_memberships (mapped to spec roles).
  */
 export async function getEffectiveRoles(userId: string): Promise<string[]> {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAny = supabase as any;
   const roles: string[] = [];
 
@@ -81,7 +81,7 @@ export async function getEffectiveRoles(userId: string): Promise<string[]> {
 export async function requireRole(
   allowedRoles: AllowedRole[]
 ): Promise<RequireRoleResult> {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");

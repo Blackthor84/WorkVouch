@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     let user_id: string | null = null;
     let user_role: string | null = null;
     try {
-      const supabaseAuth = createServerSupabaseClient();
+      const supabaseAuth = await createServerSupabaseClient();
       const { data: { user } } = await supabaseAuth.auth.getUser();
       if (user?.id) {
         user_id = user.id;

@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     let query = supabaseAny

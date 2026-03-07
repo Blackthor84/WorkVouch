@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const adminSupabase = getSupabaseServer();
 
     const { data: account } = await supabase.from("employer_accounts").select("id").eq("user_id", user.id).single();

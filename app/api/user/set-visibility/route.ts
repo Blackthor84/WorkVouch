@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = setVisibilitySchema.parse(body);
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     // Verify ownership

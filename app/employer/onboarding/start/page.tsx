@@ -18,7 +18,7 @@ export default async function EmployerOnboardingStartPage() {
     redirect("/login?callbackUrl=/employer/onboarding/start");
   }
 
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAny = supabase as any;
 
   const [{ data: existingEmployer }, { data: existingMemberships }] = await Promise.all([

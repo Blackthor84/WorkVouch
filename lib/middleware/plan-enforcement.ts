@@ -11,7 +11,7 @@ export async function checkEmployerPlan(employerId: string): Promise<{
   planTier: PlanTier
   message?: string
 }> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
   
   const { data: employerAccount } = await supabaseAny

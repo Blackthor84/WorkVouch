@@ -24,7 +24,7 @@ export type AdminAuthUser = {
 export async function requireAdminSupabase(): Promise<
   { user: AdminAuthUser } | NextResponse
 > {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

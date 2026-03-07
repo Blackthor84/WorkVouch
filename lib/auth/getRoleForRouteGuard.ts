@@ -11,7 +11,7 @@ export type RouteGuardRole = "employee" | "employer" | "admin";
  * Returns normalized role: 'employee' | 'employer' | 'admin' (admin includes superadmin), or null if not authenticated.
  */
 export async function getRoleForRouteGuard(): Promise<RouteGuardRole | null> {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const {
     data: { session },
   } = await supabase.auth.getSession();

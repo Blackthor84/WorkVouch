@@ -45,7 +45,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAny = supabase as unknown as Parameters<typeof getReferenceCredibilityBadges>[0];
 
   const { data: refs, error } = await supabase

@@ -14,7 +14,7 @@ export async function searchUsers(query: {
   limit?: number
 }) {
   await requireRole('employer')
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   let queryBuilder = supabaseAny
@@ -49,7 +49,7 @@ export async function searchUsers(query: {
  */
 export async function getPublicProfile(userId: string) {
   await requireRole('employer')
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   // Get profile

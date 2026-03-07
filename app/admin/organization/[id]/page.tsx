@@ -12,7 +12,7 @@ export default async function AdminOrganizationPage({
 }) {
   const admin = await getAdminContext();
   if (!admin.isAdmin) redirect("/login");
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAny = supabase as any;
   const { id: orgId } = await params;
   const userId = admin.authUserId;

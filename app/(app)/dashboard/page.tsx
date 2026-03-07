@@ -37,7 +37,7 @@ export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 export default async function UserDashboardPage() {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const {
     data: { session },
   } = await supabase.auth.getSession();

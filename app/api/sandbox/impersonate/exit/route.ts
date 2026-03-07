@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
         // ignore
       }
     }
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await writeImpersonationAudit({

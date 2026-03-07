@@ -16,7 +16,7 @@ export async function updateProfile(data: {
   visibility?: ProfileVisibility
 }) {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   const { data: profile, error } = await supabaseAny
@@ -40,7 +40,7 @@ export async function updateProfile(data: {
  */
 export async function uploadProfilePhoto(file: File) {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // TODO: Implement file upload to Supabase Storage
   // For now, return a placeholder URL

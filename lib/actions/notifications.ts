@@ -9,7 +9,7 @@ import { revalidatePath } from 'next/cache'
  */
 export async function getUserNotifications(limit: number = 50) {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   const { data: notifications, error } = await supabaseAny
@@ -35,7 +35,7 @@ export async function getUserNotifications(limit: number = 50) {
  * Get notifications (simplified version for compatibility)
  */
 export async function getNotifications(userId: string) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAny = supabase as any
 
   const { data, error } = await supabaseAny
@@ -53,7 +53,7 @@ export async function getNotifications(userId: string) {
  */
 export async function markNotificationRead(notificationId: string) {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   const { data, error } = await supabaseAny
@@ -80,7 +80,7 @@ export async function markNotificationRead(notificationId: string) {
  */
 export async function markAllNotificationsRead() {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   const { error } = await supabaseAny
@@ -108,7 +108,7 @@ export async function getUnreadNotificationCount(): Promise<number> {
     const user = await getCurrentUser()
     if (!user?.id) return 0
 
-    const supabase = createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient()
     const supabaseAny = supabase as any
 
     const { count, error } = await supabaseAny

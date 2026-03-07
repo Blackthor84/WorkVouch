@@ -79,7 +79,7 @@ export async function PATCH(req: NextRequest) {
     const searchable_by_shared_employers =
       visibility === "public" || visibility === "verified_employers" || visibility === "shared_network";
 
-    const serverSupabase = createServerSupabaseClient();
+    const serverSupabase = await createServerSupabaseClient();
     const serverSb = serverSupabase as any;
 
     const updatePayload: Record<string, boolean> = {

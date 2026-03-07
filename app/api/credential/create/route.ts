@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = getSupabaseServer();
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   const { data: employmentRecords } = await admin
     .from("employment_records")

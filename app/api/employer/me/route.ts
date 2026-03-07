@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
 
     // Type definition for employer_accounts (includes profile completion fields)
     type EmployerAccountRow = {

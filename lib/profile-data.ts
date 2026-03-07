@@ -24,7 +24,7 @@ export type ProfileDataResult = VerticalDashboardProfile & {
 export async function getProfileData(): Promise<ProfileDataResult | null> {
   try {
     const user = await requireAuth();
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
 
     const employeeFields = await getEmployeeProfileFields(supabase, user.id);
     if (!employeeFields) {

@@ -110,7 +110,7 @@ export async function searchDirectoryPublic(params: {
   const offset = (page - 1) * PUBLIC_PAGE_SIZE;
   const name = (params.name ?? "").trim();
 
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const sb = supabase as any;
 
   let chain = sb

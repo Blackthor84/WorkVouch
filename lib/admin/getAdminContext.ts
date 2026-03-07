@@ -86,7 +86,7 @@ export async function getAdminContext(req?: NextRequest): Promise<AdminContext> 
     }
 
     const { authUserId, authRole, effectiveUserId, effectiveRole } = effectiveSession;
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id || !user?.email) {
       return { ...UNAUTHORIZED_CONTEXT };

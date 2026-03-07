@@ -10,7 +10,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function EmployerReviewsPage(props: any) {
   const { id: employerId } = await props.params;
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAny = supabase as any;
 
   // Fetch employer info (optional, for display)

@@ -19,7 +19,7 @@ export default async function EnterpriseLocationsPage({ params }: { params: Prom
   const h = await headers();
   const c = await cookies();
   const env = getEnvironmentForServer(h, c);
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   const { data: locations, error } = await supabase
     .from("locations")

@@ -34,7 +34,7 @@ export async function GET() {
       return NextResponse.json({ error: "Service misconfigured" }, { status: 503 });
     }
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: records, error } = await supabase
       .from("employment_records")
       .select("id, user_id, company_name, job_title, start_date, end_date, is_current, created_at")

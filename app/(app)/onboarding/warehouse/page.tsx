@@ -16,7 +16,7 @@ export default async function WarehouseOnboardingPage() {
   }
 
   const userId = admin.authUserId;
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   const { data, error } = await supabase
     .from("profiles")

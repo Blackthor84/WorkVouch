@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
     await runSandboxIntelligenceRecalculation(sandboxId);
     await calculateSandboxMetrics(sandboxId);
 
-    const serverSupabase = createServerSupabaseClient();
+    const serverSupabase = await createServerSupabaseClient();
     const { data: { user } } = await serverSupabase.auth.getUser();
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await writeAdminAuditLog({

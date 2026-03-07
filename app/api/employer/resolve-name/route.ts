@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ query: "", matches: [], suggestedMatch: null });
     }
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: rows } = await supabase
       .from("employer_accounts")
       .select("id, company_name, claimed, claim_verified")

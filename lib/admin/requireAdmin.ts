@@ -53,7 +53,7 @@ export async function requireAdmin(): Promise<AdminSession> {
   }
 
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -114,7 +114,7 @@ export async function requireAdminForApi(): Promise<AdminSession | null> {
     return null;
   }
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return null;
     const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
@@ -157,7 +157,7 @@ export async function requireFinanceForApi(): Promise<AdminSession | null> {
   const admin = await getAdminContext();
   if (adminOrGodMode(admin)) return requireAdminForApi();
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return null;
     const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
@@ -185,7 +185,7 @@ export async function requireBoardForApi(): Promise<AdminSession | null> {
   const admin = await getAdminContext();
   if (adminOrGodMode(admin)) return requireAdminForApi();
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return null;
     const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
@@ -210,7 +210,7 @@ export async function requireBoardForApi(): Promise<AdminSession | null> {
 
 export async function requireRole(allowedRoles: string[]): Promise<AdminSession> {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -283,7 +283,7 @@ export async function requireAdminThrow(): Promise<{
   userId: string;
   role: string;
 }> {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data } = await supabase.auth.getUser();
 
   if (!data?.user) {

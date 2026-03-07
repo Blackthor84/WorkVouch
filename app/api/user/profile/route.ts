@@ -36,7 +36,7 @@ export async function GET() {
       onboarding_completed: profile.onboarding_completed,
       sandbox_mode,
     };
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { session } } = await supabase.auth.getSession();
     return NextResponse.json(applyScenario(payload, (session as any)?.impersonation));
   } catch (e) {

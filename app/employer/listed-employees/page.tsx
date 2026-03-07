@@ -11,7 +11,7 @@ export default async function ListedEmployeesPage() {
   if (!user) redirect("/login");
   if (!(await hasRole("employer"))) redirect("/dashboard");
 
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAny = supabase as any;
   const { data: account } = await supabaseAny.from("employer_accounts").select("id, plan_tier").eq("user_id", user.id).single();
   if (!account) redirect("/employer/dashboard");

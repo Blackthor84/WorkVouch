@@ -25,7 +25,7 @@ export async function GET(
     const { id } = await params;
     if (!id) return NextResponse.json({ error: "Missing credential id" }, { status: 400 });
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data, error } = await supabase
       .from("workvouch_credentials")
       .select("id, candidate_id, payload, visibility, share_token, issued_at, expires_at, revoked_at, created_at, updated_at")
@@ -66,7 +66,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Send { revoke: true } to revoke" }, { status: 400 });
     }
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data, error } = await supabase
       .from("workvouch_credentials")
       .update({ revoked_at: new Date().toISOString() })

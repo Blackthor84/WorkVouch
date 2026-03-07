@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 export default async function MyJobsPage() {
   const user = await getCurrentUser();
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   const supabaseAny = supabase as any;
   const { data: jobs, error } = await supabaseAny

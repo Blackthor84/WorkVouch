@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const action = typeof body?.action === "string" ? body.action : "unknown";
     const metadata = body?.metadata && typeof body.metadata === "object" ? body.metadata : {};
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { error } = await supabase.from("audit_logs").insert({
       actor_id: user.user.id,
       action,

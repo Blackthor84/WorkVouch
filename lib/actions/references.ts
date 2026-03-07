@@ -21,7 +21,7 @@ export interface CreateReferenceInput {
  */
 export async function createReference(input: CreateReferenceInput) {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Verify connection exists
   const { data: connection } = await supabase
@@ -103,7 +103,7 @@ export async function createReference(input: CreateReferenceInput) {
  */
 export async function getUserReferences(userId: string) {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Users can see references they gave or received
   // Employers can see public references for public jobs

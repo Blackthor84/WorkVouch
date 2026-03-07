@@ -18,7 +18,7 @@ export type EnterpriseSession = {
  * Throws Unauthorized if no session.
  */
 export async function getEnterpriseSession(): Promise<EnterpriseSession> {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");

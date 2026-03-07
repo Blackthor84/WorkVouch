@@ -12,7 +12,7 @@ export const runtime = "nodejs";
  */
 export async function GET(request: Request) {
   try {
-    const serverSupabase = createServerSupabaseClient();
+    const serverSupabase = await createServerSupabaseClient();
     const { data: { session } } = await serverSupabase.auth.getSession();
     const userId = session?.user?.id ?? null;
     if (!userId) {

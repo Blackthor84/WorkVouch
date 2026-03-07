@@ -39,7 +39,7 @@ export async function GET() {
       return NextResponse.json({ showOnboarding: false });
     }
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")

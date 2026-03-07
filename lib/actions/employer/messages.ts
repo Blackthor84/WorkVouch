@@ -26,7 +26,7 @@ export async function sendMessage(
   relatedJobPostingId?: string
 ) {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   const { data, error } = await supabaseAny
@@ -67,7 +67,7 @@ export async function sendMessage(
  */
 export async function getMessages() {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   const { data, error } = await supabaseAny
@@ -93,7 +93,7 @@ export async function getMessages() {
  */
 export async function getMessageThread(otherUserId: string) {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   const { data, error } = await supabaseAny
@@ -118,7 +118,7 @@ export async function getMessageThread(otherUserId: string) {
  */
 export async function markMessageAsRead(messageId: string) {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   const supabaseAny = supabase as any
   const { error } = await supabaseAny
@@ -140,7 +140,7 @@ export async function markMessageAsRead(messageId: string) {
  */
 export async function getUnreadMessageCount() {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   const { count, error } = await supabaseAny

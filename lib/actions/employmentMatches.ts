@@ -23,7 +23,7 @@ export type EmploymentMatchRow = {
 export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[]> {
   try {
     const user = await requireAuth();
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const sb = supabase as any;
 
     const { data: rows, error } = await sb

@@ -6,7 +6,7 @@ import { EmployersMarketplaceClient } from "@/components/directory/EmployersMark
 export const dynamic = "force-dynamic";
 
 export default async function DirectoryEmployersPage() {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) redirect("/login");
 

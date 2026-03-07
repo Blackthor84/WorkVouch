@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
 
     // Update the profile with warehouse-specific data
     // Note: warehouse-specific fields may not be in Database types yet

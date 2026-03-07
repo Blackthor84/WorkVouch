@@ -34,7 +34,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("profiles")
     .select("employer_visibility")
@@ -65,7 +65,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const dbValue = VISIBILITY_MAP[parsed.data.visibility];
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { error } = await supabase
     .from("profiles")
     .update({ employer_visibility: dbValue })

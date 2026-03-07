@@ -50,7 +50,7 @@ export async function GET() {
       underReview: profile?.trust_score_under_review ?? false,
       activeDisputeCount: profile?.active_dispute_count ?? 0,
     };
-    const serverSupabase = createServerSupabaseClient();
+    const serverSupabase = await createServerSupabaseClient();
     const { data: { session } } = await serverSupabase.auth.getSession();
     return NextResponse.json(applyScenario(baseData, (session as any)?.impersonation));
   } catch (e) {

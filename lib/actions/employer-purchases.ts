@@ -15,7 +15,7 @@ export async function hasPurchasedReport(candidateId: string) {
     return false
   }
 
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // First check if they have a subscription with available quota
   const supabaseAny = supabase as any
@@ -61,7 +61,7 @@ export async function getEmployerPurchases() {
     throw new Error('Only employers can view purchases')
   }
 
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   const { data: purchases, error } = await supabaseAny
@@ -105,7 +105,7 @@ export async function getCandidateReport(candidateId: string) {
   }
 
   // Record lookup if using subscription
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
   const { data: quotaCheck } = await supabaseAny.rpc('check_employer_lookup_quota', {
     p_employer_id: user.id,
@@ -171,7 +171,7 @@ export async function getCandidateReport(candidateId: string) {
  * Checks access (subscription quota or one-time purchase) before returning profile
  */
 export const recordEmployerLookup = async (userId: string, candidateId: string) => {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   // First check if they have a subscription with available quota

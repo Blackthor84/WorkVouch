@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = rejectVerificationSchema.parse(body);
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
 
     // Type definitions for verification_requests (not in Database types yet)
     type VerificationRequestRow = {

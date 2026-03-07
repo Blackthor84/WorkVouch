@@ -56,7 +56,7 @@ export type PassportPageData =
  * Get passport page data for /passport/[username]. Returns public data, private (show Profile Protected card), or not_found.
  */
 export async function getPassportPageData(slug: string): Promise<PassportPageData> {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const sb = supabase as any;
 
   const isUuid = UUID_REGEX.test(slug);

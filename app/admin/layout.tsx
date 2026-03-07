@@ -64,7 +64,7 @@ export default async function AdminLayout({
     redirect("/unauthorized");
   }
 
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: adminUserRow, error: adminUserError } = await supabase
     .from("admin_users")
     .select("god_mode")

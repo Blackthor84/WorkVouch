@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminIntelligenceDashboardPage() {
   const admin = await getAdminContext();
   if (!admin.isAdmin) redirect("/login");
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAny = supabase as any;
   const { data: profiles } = await supabaseAny
     .from("profiles")

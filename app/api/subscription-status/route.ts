@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     // Check for active subscription in user_subscriptions table

@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
 
     // Type definitions for tables not in Database types yet
     type EmployerAccountRow = { id: string; company_name: string };

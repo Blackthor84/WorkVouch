@@ -10,7 +10,7 @@ export async function NavbarServer() {
   const showAdmin = admin.isAdmin;
   const showSandboxAdmin = admin.appEnvironment === "sandbox" && admin.isAdmin;
 
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: { session } } = await supabase.auth.getSession();
   const profile = session?.user ? await getCurrentUserProfile() : null;
   const role = profile?.role ?? null;

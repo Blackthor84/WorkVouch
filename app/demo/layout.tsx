@@ -16,7 +16,7 @@ export default async function DemoLayout({
   if (!user) {
     return <>{children}</>;
   }
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAny = supabase as any;
   const { data: profile } = await supabaseAny
     .from("profiles")

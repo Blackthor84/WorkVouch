@@ -41,7 +41,7 @@ export async function getEffectiveUser(): Promise<EffectiveUser | null> {
   const withAuth = await getEffectiveUserIdWithAuth();
   if (!withAuth) return null;
   const { effectiveUserId, isImpersonating } = withAuth;
-  const supabase = isImpersonating ? getSupabaseServer() : createServerSupabaseClient();
+  const supabase = isImpersonating ? getSupabaseServer() : await createServerSupabaseClient();
   const supabaseAny = supabase as any;
   const { data: profile, error } = await supabaseAny
     .from("profiles")
@@ -94,7 +94,7 @@ export async function getProfile(userId: string): Promise<{
   role: string | null;
   onboarding_completed: boolean;
 }> {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAny = supabase as any;
   const { data, error } = await supabaseAny
     .from("profiles")
@@ -116,7 +116,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   const { getEffectiveUserId } = await import("@/lib/server/effectiveUserId");
   const effectiveUserId = await getEffectiveUserId();
   if (!effectiveUserId) return null;
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAny = supabase as any;
   const { data: profile, error } = await supabaseAny
     .from("profiles")

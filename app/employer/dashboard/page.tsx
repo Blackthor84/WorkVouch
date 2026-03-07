@@ -25,7 +25,7 @@ export default async function EmployerDashboardPage({
   const showWelcome = params.welcome === "1";
 
   if (!isSandbox) {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const {
       data: { session },
     } = await supabase.auth.getSession();

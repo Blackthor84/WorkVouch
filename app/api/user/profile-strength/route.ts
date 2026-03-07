@@ -38,7 +38,7 @@ export async function GET() {
     const lastUpdated = snapshot.last_calculated_at ?? null;
 
     const baseData = { profileStrength, lastUpdated } satisfies ProfileStrengthResponse;
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { session } } = await supabase.auth.getSession();
     return NextResponse.json(applyScenario(baseData, (session as any)?.impersonation));
   } catch {

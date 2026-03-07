@@ -33,7 +33,7 @@ export interface AdminSessionMinimal {
 export async function getAdminSession(): Promise<AdminSessionMinimal | null> {
   try {
     const cookieStore = await cookies();
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();

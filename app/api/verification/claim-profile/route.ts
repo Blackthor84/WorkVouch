@@ -22,7 +22,7 @@ export async function POST() {
 
   let verifierEmail = (effective.email ?? "").trim().toLowerCase();
   if (!verifierEmail) {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     verifierEmail = (user?.email ?? "").trim().toLowerCase();
   }

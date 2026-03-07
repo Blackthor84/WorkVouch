@@ -19,7 +19,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data, error } = await supabase
       .from("profile_trades")
       .select("trade_id, trades(slug, display_name)")
@@ -66,7 +66,7 @@ export async function PUT(request: NextRequest) {
       ? body.trade_slugs.filter((s: unknown): s is string => typeof s === "string")
       : [];
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
 
     type TradeRow = { id: string };
     let validIds: string[] = [];

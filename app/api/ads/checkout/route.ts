@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     }
 
     // Check admin access
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { session } } = await supabase.auth.getSession();
     const role = (session?.user as { role?: string } | undefined)?.role ?? "";
     const isAdmin = role === "admin" || role === "superadmin";

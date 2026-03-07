@@ -33,7 +33,7 @@ export async function POST(
     const hired = body.hired as boolean | undefined;
     const would_rehire = body.would_rehire as boolean | undefined;
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
 
     if (dismissed) {
       const { error } = await supabase.from("hiring_outcome_feedback").upsert(

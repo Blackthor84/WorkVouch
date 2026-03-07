@@ -34,7 +34,7 @@ export async function GET(
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data, error } = await supabase
       .from("saved_candidates")
       .select("notes")
@@ -80,7 +80,7 @@ export async function PATCH(
       // use null
     }
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { error } = await supabase
       .from("saved_candidates")
       .upsert(

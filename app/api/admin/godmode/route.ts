@@ -17,7 +17,7 @@ const COOKIE_NAME = getGodModeCookieName();
  */
 export async function GET() {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return NextResponse.json({ enabled: false }, { status: 401 });
 
@@ -44,7 +44,7 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

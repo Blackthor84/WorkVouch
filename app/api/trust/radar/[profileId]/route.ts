@@ -35,7 +35,7 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const isAdmin =
     effective.role === "admin" ||
     effective.role === "superadmin" ||

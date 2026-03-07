@@ -36,7 +36,7 @@ export async function GET() {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!(await hasRole("employer"))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const adminSupabase = getSupabaseServer();
 
     const { data: account } = await supabase

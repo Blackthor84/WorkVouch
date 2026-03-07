@@ -26,7 +26,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: rows, error } = await supabase
     .from("employment_records")
     .select("id, company_name, job_title, start_date, end_date, is_current, verification_status")

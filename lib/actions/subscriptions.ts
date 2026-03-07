@@ -11,7 +11,7 @@ import { revalidatePath } from 'next/cache'
  */
 export async function getUserSubscription() {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Get stripe_customer_id from profile
   const supabaseAny = supabase as any
@@ -58,7 +58,7 @@ export async function getUserSubscription() {
  */
 export async function getUserSubscriptionTier() {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Get stripe_customer_id from profile
   const supabaseAny = supabase as any
@@ -177,7 +177,7 @@ export async function createOneTimeCheckout(
  */
 export async function cancelSubscription(subscriptionId: string) {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Verify ownership
   const supabaseAny = supabase as any
@@ -225,7 +225,7 @@ export async function cancelSubscription(subscriptionId: string) {
  */
 export async function getEmployerLookupUsage() {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
 
   // Get active subscription
   const supabaseAny = supabase as any

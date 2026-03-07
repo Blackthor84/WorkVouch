@@ -17,7 +17,7 @@ const CONFIRM_PAYLOAD = "DELETE";
  * 5. Deletes auth user via service role (auth.admin.deleteUser).
  */
 export async function POST(req: NextRequest) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

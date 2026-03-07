@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const supabaseAny = supabase as any;
     type EmployerAccountRow = { id: string; plan_tier: string };
     const { data: employerAccount } = await supabaseAny

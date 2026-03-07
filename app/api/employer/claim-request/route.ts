@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { employer_id } = parsed.data;
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const supabaseAny = supabase as any;
     const adminSupabase = getSupabaseServer() as any;
 

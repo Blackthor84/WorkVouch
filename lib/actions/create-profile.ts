@@ -13,7 +13,7 @@ export async function createProfileIfMissing() {
     throw new Error('Not authenticated')
   }
 
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   // Check if profile exists

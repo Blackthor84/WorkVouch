@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const { recipientId, message, subject } = validationResult.data;
 
     // Get user's subscription tier
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     // Check if user is employer or worker
@@ -133,7 +133,7 @@ export async function GET(req: NextRequest) {
     const conversationId = searchParams.get("conversationId");
     const otherUserId = searchParams.get("otherUserId");
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     let query = supabaseAny

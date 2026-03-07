@@ -37,7 +37,7 @@ function getImprovementGuidance(components: TrustScoreComponents): string | null
 }
 
 export async function TrustScoreCard({ userId }: { userId: string }) {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: trustScoreRow } = await (supabase as any)
     .from("trust_scores")
     .select("score, job_count, reference_count, average_rating")

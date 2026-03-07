@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       session_id = row?.id ?? null;
     }
 
-    const supabaseAuth = createServerSupabaseClient();
+    const supabaseAuth = await createServerSupabaseClient();
     const { data: { user } } = await supabaseAuth.auth.getUser();
     const user_id = user?.id ?? null;
 

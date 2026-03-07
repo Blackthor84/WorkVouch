@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
 
     if (!employerId) {
       // Get employer account ID from user
-      const supabase = createServerSupabaseClient();
+      const supabase = await createServerSupabaseClient();
       const supabaseAny = supabase as any;
       type EmployerAccountRow = { id: string };
       const { data: employerAccount } = await supabaseAny

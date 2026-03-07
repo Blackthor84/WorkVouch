@@ -21,7 +21,7 @@ export interface TrustScore {
  */
 export async function getRehireData(employerId: string): Promise<RehireData[]> {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   // Get employer account
@@ -92,7 +92,7 @@ export async function getRehireData(employerId: string): Promise<RehireData[]> {
  */
 export async function getTrustScoresForEmployer(employerId: string): Promise<TrustScore[]> {
   const user = await requireAuth()
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   // Get employer account

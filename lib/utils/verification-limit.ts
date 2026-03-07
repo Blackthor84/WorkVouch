@@ -20,7 +20,7 @@ export interface VerificationLimitResult {
 export async function checkVerificationLimit(
   employerId: string
 ): Promise<VerificationLimitResult> {
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   // Get employer account to check plan tier

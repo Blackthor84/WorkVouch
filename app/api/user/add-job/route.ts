@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const reject = await rejectWriteIfImpersonating();
     if (reject) return reject;
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const {
       data: { session },
     } = await supabase.auth.getSession();

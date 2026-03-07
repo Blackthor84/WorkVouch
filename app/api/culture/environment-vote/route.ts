@@ -20,7 +20,7 @@ function isValidTraitKey(k: string): k is JobEnvironmentTraitKey {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabaseAuth = createServerSupabaseClient();
+    const supabaseAuth = await createServerSupabaseClient();
     const {
       data: { user },
     } = await supabaseAuth.auth.getUser();

@@ -14,7 +14,7 @@ type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export default async function AdminSignupsPage() {
   const admin = await getAdminContext();
   if (!admin.isAdmin || !admin.isSuperAdmin) redirect("/login");
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAny = supabase as any;
 
   // Get all profiles (which includes user IDs)

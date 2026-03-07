@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify employer exists
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     const { data: employer, error: employerError } = await supabaseAny
@@ -128,7 +128,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     const { data: reviews, error } = await supabaseAny

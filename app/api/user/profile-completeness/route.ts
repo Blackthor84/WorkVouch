@@ -57,7 +57,7 @@ export async function GET() {
       referencesCount,
       emailVerified,
     } satisfies ProfileCompletenessResponse;
-    const authClient = createServerSupabaseClient();
+    const authClient = await createServerSupabaseClient();
     const { data: { session } } = await authClient.auth.getSession();
     return NextResponse.json(applyScenario(baseData, (session as any)?.impersonation));
   } catch {

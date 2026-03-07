@@ -22,7 +22,7 @@ export async function insertActivityLog({
   sandboxId = null,
   scenarioId = null,
 }: InsertActivityArgs): Promise<void> {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   await supabase.from("activity_log").insert({
     user_id: userId,
     action,

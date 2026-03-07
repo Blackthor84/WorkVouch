@@ -20,7 +20,7 @@ export interface ReportUsage {
  * Get current report usage for an employer
  */
 export async function getReportUsage(employerId: string, tierId: string): Promise<ReportUsage> {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAny = supabase as any;
 
   // Get plan features to determine limit
@@ -74,7 +74,7 @@ export async function canGenerateReport(employerId: string, tierId: string): Pro
  * Record a report generation (increment usage)
  */
 export async function recordReport(employerId: string, workerId: string, reportType: string): Promise<void> {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const supabaseAny = supabase as any;
 
   const { error } = await supabaseAny

@@ -6,7 +6,7 @@ import { Database } from "@/types/database";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { session } } = await supabase.auth.getSession();
     const user = session?.user;
 

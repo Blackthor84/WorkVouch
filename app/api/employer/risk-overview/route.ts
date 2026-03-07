@@ -81,7 +81,7 @@ export async function GET() {
       workforceLastCalculated: ea.workforce_last_calculated ?? null,
       riskSnapshotSample: riskSnapshotSample ?? null,
     };
-    const serverSupabase = createServerSupabaseClient();
+    const serverSupabase = await createServerSupabaseClient();
     const { data: { session } } = await serverSupabase.auth.getSession();
     return NextResponse.json(applyScenario(baseData, (session as any)?.impersonation));
   } catch (e) {
