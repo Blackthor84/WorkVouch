@@ -154,7 +154,7 @@ export default function VerifyTokenPage() {
   }
 
   if (result === "success") {
-    const showClaim = invite.status === "confirmed";
+    const showClaim = String(invite.status) === "confirmed";
     const verifierEmail = invite.verifierEmail?.trim() ?? "";
     const company = invite.company?.trim() ?? "";
     const claimQuery = new URLSearchParams({ source: "verification" });
