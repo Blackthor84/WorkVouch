@@ -27,6 +27,7 @@ import { InviteCoworkerForm } from "@/components/dashboard/InviteCoworkerForm";
 export default function WorkerDashboard() {
   const searchParams = useSearchParams();
   const [requestModalOpen, setRequestModalOpen] = useState(false);
+  const [inviteFormOpen, setInviteFormOpen] = useState(false);
 
   useEffect(() => {
     const open = () => setRequestModalOpen(true);
