@@ -27,7 +27,7 @@ export type AdminSession = {
     role: string;
     [key: string]: unknown;
   };
-  supabase: ReturnType<typeof createServerSupabaseClient>;
+  supabase: SupabaseClient;
   userId: string;
   /** Authenticated admin user id (for audit logging). Use this, not userId, when recording who performed the action. */
   authUserId: string;
