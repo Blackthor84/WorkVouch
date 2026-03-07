@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { supabaseServer } from "@/lib/supabase/server";
+import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
+import { z } from "zod";
 
 export const runtime = "nodejs";
-import { createServerSupabase } from "@/lib/supabase/server";
-import { getEffectiveUser } from "@/lib/auth";
-import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
-import { Database } from "@/types/database";
-import { z } from "zod";
 
 const addJobSchema = z.object({
   employerName: z.string().min(1),
@@ -15,20 +13,24 @@ const addJobSchema = z.object({
   isVisibleToEmployer: z.boolean().default(false),
 });
 
+/** Job creation API: returns only JSON (401/500). Never redirects to /login. */
 export async function POST(req: NextRequest) {
   try {
     const reject = await rejectWriteIfImpersonating();
     if (reject) return reject;
 
-    const effective = await getEffectiveUser();
-    if (!effective || effective.deleted_at) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const supabase = await supabaseServer();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     const body = await req.json();
     const data = addJobSchema.parse(body);
 
-    const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
 
     const title = data.jobTitle;
@@ -41,7 +43,7 @@ export async function POST(req: NextRequest) {
         job_title: title,
         start_date,
         end_date,
-        user_id: effective.id,
+        user_id: user.id,
         company_name: data.employerName,
         is_current: !data.endDate,
         is_visible_to_employer: data.isVisibleToEmployer,
@@ -54,7 +56,7 @@ export async function POST(req: NextRequest) {
     if (jobError) {
       console.error("Add job error:", jobError);
       return NextResponse.json(
-        { error: "Failed to add job", details: jobError.message },
+        { error: jobError.message },
         { status: 500 },
       );
     }
@@ -78,7 +80,7 @@ export async function POST(req: NextRequest) {
       `,
       )
       .ilike("company_name", data.employerName)
-      .neq("user_id", effective.id);
+      .neq("user_id", user.id);
 
     // Filter for overlapping dates in JavaScript (more reliable than complex SQL)
     const startDate = new Date(data.startDate);
