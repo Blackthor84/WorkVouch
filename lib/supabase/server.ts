@@ -1,23 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
-import { jwtVerify } from "jose";
-import { attachImpersonation } from "@/lib/auth/withImpersonation";
-import type { ImpersonationContext } from "@/types/impersonation";
-import {
-  IMPERSONATION_SIMULATION_COOKIE,
-  parseSimulationContextFromCookie,
-} from "@/lib/impersonation-simulation/context";
 
-const IMPERSONATION_COOKIE = "workvouch_impersonation";
+export function createServerSupabaseClient() {
+  const cookieStore = cookies();
 
-/**
- * Supabase server client for App Router (SSR).
- * Uses get/set/remove cookies; set/remove are no-ops so session is read-only here.
- * Session refresh happens in middleware (setAll). Next.js 15: cookies() is async.
- */
-export async function createServerSupabaseClient() {
-  const cookieStore = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -31,98 +17,4 @@ export async function createServerSupabaseClient() {
       },
     }
   );
-}
-
-/** Alias for createServerSupabaseClient so existing code (supabaseServer, createServerSupabase) keeps working. */
-export async function supabaseServer() {
-  return createServerSupabaseClient();
-}
-
-/** Use in protected API routes when session is missing. */
-export function upgradeRequired401() {
-  return NextResponse.json({ error: "🚨 Upgrade Required" }, { status: 401 });
-}
-
-/** @deprecated Use supabaseServer */
-export const createSupabaseServerClient = supabaseServer;
-
-/** @deprecated Use supabaseServer */
-export const createServerSupabase = supabaseServer;
-
-/** @deprecated Use supabaseServer */
-export const getSupabaseServer = supabaseServer;
-
-/**
- * Get current Supabase session (use instead of NextAuth getServerSession).
- * Auth context resolution: effectiveUserId = impersonatingUserId ?? session.user.id.
- * When impersonation cookie is set, returns the impersonated user as session.user so the entire site behaves as that user.
- */
-export async function getSupabaseSession() {
-  const supabase = await supabaseServer();
-  const cookieStore = await cookies();
-  const impersonationToken = cookieStore.get(IMPERSONATION_COOKIE)?.value;
-
-  if (impersonationToken) {
-    try {
-      const secret = new TextEncoder().encode(
-        process.env.NEXTAUTH_SECRET || process.env.IMPERSONATION_JWT_SECRET || "impersonation-secret"
-      );
-      const { payload } = await jwtVerify(impersonationToken, secret);
-      const impersonatedUserId = payload.impersonated_user_id as string | undefined;
-      if (impersonatedUserId) {
-        const { getSupabaseServer } = await import("@/lib/supabase/admin");
-        const admin = getSupabaseServer();
-        const { data: profile } = await admin
-          .from("profiles")
-          .select("id, email, full_name, role")
-          .eq("id", impersonatedUserId)
-          .single();
-        const user = profile
-          ? {
-              id: profile.id,
-              email: profile.email ?? undefined,
-              user_metadata: { full_name: profile.full_name },
-              role: (profile as { role?: string }).role ?? undefined,
-            }
-          : null;
-        if (user) {
-          const sessionLike = {
-            user: { ...user, id: profile!.id },
-            impersonating: true as const,
-          };
-          const impersonation = resolveImpersonationContext(cookieStore, true);
-          return { session: attachImpersonation(sessionLike as any, impersonation), user };
-        }
-      }
-    } catch {
-      // Invalid or expired; fall through to real session
-    }
-  }
-
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session?.user ?? null;
-  const impersonation = resolveImpersonationContext(cookieStore, false);
-  return {
-    user,
-    session: user ? attachImpersonation({ user }, impersonation) : null,
-  };
-}
-
-function resolveImpersonationContext(
-  cookieStore: Awaited<ReturnType<typeof cookies>>,
-  impersonating: boolean
-): ImpersonationContext {
-  const raw = cookieStore.get(IMPERSONATION_SIMULATION_COOKIE)?.value;
-  const sim = parseSimulationContextFromCookie(raw);
-  if (sim) {
-    return {
-      impersonating: impersonating || sim.impersonating,
-      actorType: sim.actorType,
-      scenario: sim.scenario ?? undefined,
-    };
-  }
-  return {
-    impersonating,
-    actorType: "employee",
-  };
 }
