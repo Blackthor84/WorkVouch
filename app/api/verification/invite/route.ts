@@ -14,6 +14,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const DAILY_INVITE_LIMIT_PER_CANDIDATE = 10;
+const INVITE_EXPIRATION_HOURS = 72;
 
 function secureToken(): string {
   return randomBytes(32).toString("hex");
