@@ -31,23 +31,23 @@ export async function POST(req: NextRequest) {
     const supabase = await createServerSupabase();
     const supabaseAny = supabase as any;
 
-    // Insert job
-    // Note: verification_status and is_visible_to_employer may not be in Database types yet
+    const title = data.jobTitle;
+    const start_date = data.startDate;
+    const end_date = data.endDate || null;
+
     const { data: jobHistory, error: jobError } = await supabaseAny
       .from("jobs")
-      .insert([
-        {
-          user_id: effective.id,
-          company_name: data.employerName,
-          job_title: data.jobTitle,
-          start_date: data.startDate,
-          end_date: data.endDate || null,
-          is_current: !data.endDate,
-          is_visible_to_employer: data.isVisibleToEmployer,
-          verification_status: "unverified",
-          employment_type: "full_time", // Default, can be updated later
-        },
-      ])
+      .insert({
+        job_title: title,
+        start_date,
+        end_date,
+        user_id: effective.id,
+        company_name: data.employerName,
+        is_current: !data.endDate,
+        is_visible_to_employer: data.isVisibleToEmployer,
+        verification_status: "unverified",
+        employment_type: "full_time",
+      })
       .select()
       .single();
 

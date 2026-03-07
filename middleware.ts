@@ -12,8 +12,9 @@ const ANALYTICS_SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 const IMPERSONATION_COOKIE = "impersonation_session";
 
 /**
- * Middleware: refresh Supabase session; inject impersonation headers when impersonation_session cookie is set.
- * Simulation headers are only set when the session user is admin/superadmin (safety: impersonation for admins only).
+ * Middleware: refresh Supabase auth session on every request (dashboard, profile, api) so cookies stay valid
+ * and users are not logged out when navigating or calling API routes. Also inject impersonation headers
+ * when impersonation_session cookie is set. Simulation headers only when session user is admin/superadmin.
  */
 export async function middleware(req: NextRequest) {
   const impersonation = req.cookies.get(IMPERSONATION_COOKIE)?.value;
@@ -131,5 +132,12 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*", "/((?!_next|favicon.ico|api).*)"],
+  matcher: [
+    "/dashboard/:path*",
+    "/profile/:path*",
+    "/api/:path*",
+    "/admin/:path*",
+    "/api/admin/:path*",
+    "/((?!_next|favicon.ico).*)",
+  ],
 };
