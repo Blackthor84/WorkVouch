@@ -24,7 +24,8 @@ export default async function EmployeePage(props: any) {
     }
 
     const { data: { session } } = await supabase.auth.getSession();
-    const profileWithScenario = applyScenario(profile, session?.impersonation);
+    const impersonation = (session as any)?.impersonation;
+    const profileWithScenario = applyScenario(profile, impersonation);
 
     // Fetch employee's jobs
     const { data: jobs } = await supabaseAny
