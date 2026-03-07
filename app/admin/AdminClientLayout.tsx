@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AuthContextProvider } from "@/components/AuthContext"
+import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession"
 
 type LayoutUser = {
   id: string
@@ -18,25 +18,22 @@ export default function AdminClientLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const { status } = useSupabaseSession()
 
-  // ✅ hooks ALWAYS declared
-  const [ready, setReady] = useState(false)
-
-  useEffect(() => {
-    // server already enforced auth — this is just safety
-    if (!user) {
-      router.replace("/login")
-      return
-    }
-    setReady(true)
-  }, [user, router])
-
-  if (!ready) {
+  // Wait for client session to finish loading before redirecting
+  if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center text-slate-600">
         Loading admin…
       </div>
     )
+  }
+
+  if (status === "unauthenticated") {
+    if (typeof window !== "undefined") {
+      window.location.href = "/login"
+    }
+    return null
   }
 
   return (

@@ -17,6 +17,7 @@ export function HealthcareCoworkersClient() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [sessionLoaded, setSessionLoaded] = useState(false);
   const [effectiveUser, setEffectiveUser] = useState<{ __impersonated?: boolean } | null>(null);
 
   useEffect(() => {
@@ -46,13 +47,14 @@ export function HealthcareCoworkersClient() {
 
   useEffect(() => {
     (async () => {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        router.push("/login");
+      const { data: { session } } = await supabase.auth.getSession();
+      setSessionLoaded(true);
+      if (!session?.user) {
+        window.location.href = "/login";
         return;
       }
-      setUser(currentUser);
-      fetchCoworkers(currentUser.id);
+      setUser(session.user);
+      fetchCoworkers(session.user.id);
     })();
   }, [router]);
 
@@ -120,7 +122,7 @@ export function HealthcareCoworkersClient() {
     router.push("/dashboard");
   };
 
-  if (!user) {
+  if (!sessionLoaded || !user) {
     return (
       <div className="text-center">
         <p className="text-grey-medium dark:text-gray-400">Loading...</p>

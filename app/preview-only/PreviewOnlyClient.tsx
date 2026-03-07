@@ -14,7 +14,7 @@ export default function PreviewOnlyClient() {
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/login");
+      window.location.href = "/login";
       return;
     }
     if (status === "authenticated" && user?.id) {

@@ -17,14 +17,17 @@ export function CnaCertificationClient() {
   const [documentUrl, setDocumentUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [sessionLoaded, setSessionLoaded] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        router.push("/login");
+      const { data: { session } } = await supabase.auth.getSession();
+      setSessionLoaded(true);
+      if (!session?.user) {
+        window.location.href = "/login";
         return;
       }
+      const currentUser = session.user;
       const { data: hp } = await supabase
         .from("healthcare_profiles")
         .select("role")
@@ -86,7 +89,7 @@ export function CnaCertificationClient() {
     }
   };
 
-  if (!user) {
+  if (!sessionLoaded || !user) {
     return (
       <div className="text-center">
         <p className="text-grey-medium dark:text-gray-400">Loading...</p>

@@ -25,6 +25,7 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [sessionLoaded, setSessionLoaded] = useState(false);
   const [effectiveUser, setEffectiveUser] = useState<{ __impersonated?: boolean } | null>(null);
 
   useEffect(() => {
@@ -127,7 +128,7 @@ export function CoworkersFormClient({ industry }: CoworkersFormClientProps) {
     router.push("/dashboard");
   };
 
-  if (!user) {
+  if (!sessionLoaded || !user) {
     return (
       <div className="text-center">
         <p className="text-grey-medium dark:text-gray-400">Loading...</p>

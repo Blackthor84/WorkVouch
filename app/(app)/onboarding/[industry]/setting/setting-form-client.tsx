@@ -21,15 +21,17 @@ export function SettingFormClient({ industry }: SettingFormClientProps) {
   const [setting, setSetting] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [sessionLoaded, setSessionLoaded] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        router.push("/login");
+      const { data: { session } } = await supabase.auth.getSession();
+      setSessionLoaded(true);
+      if (!session?.user) {
+        window.location.href = "/login";
         return;
       }
-      setUser(currentUser);
+      setUser(session.user);
     })();
   }, [router]);
 
@@ -63,7 +65,7 @@ export function SettingFormClient({ industry }: SettingFormClientProps) {
     }
   };
 
-  if (!user) {
+  if (!sessionLoaded || !user) {
     return (
       <div className="text-center">
         <p className="text-grey-medium dark:text-gray-400">Loading...</p>
