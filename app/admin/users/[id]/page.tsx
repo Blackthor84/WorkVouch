@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { UserDetailActions } from "@/components/admin/user-detail-actions";
 import { UserForensicsTabs } from "@/components/admin/user-forensics-tabs";
@@ -29,7 +29,7 @@ export default async function AdminUserPage({
   const { id } = await params;
   const admin = await getAdminContext();
   if (!admin.isAdmin) redirect("/login");
-  const supabase = await supabaseServer();
+  const supabase = createServerSupabaseClient();
   const supabaseAny = supabase as any;
 
   const { data: targetProfile, error } = await supabaseAny

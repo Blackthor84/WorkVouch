@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { EmployerHeader } from "@/components/employer/employer-header";
 import { EmployerSidebar } from "@/components/employer/employer-sidebar";
 import { EmployerDashboardClient } from "@/components/employer/EmployerDashboardClient";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getAppModeFromHeaders, getSandboxIdFromHeaders } from "@/lib/app-mode";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
@@ -25,7 +25,7 @@ export default async function EmployerDashboardPage({
   const showWelcome = params.welcome === "1";
 
   if (!isSandbox) {
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const {
       data: { session },
     } = await supabase.auth.getSession();

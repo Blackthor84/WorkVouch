@@ -4,7 +4,7 @@ export const runtime = "nodejs";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { checkFeatureAccess } from "@/lib/feature-flags";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export const dynamic = "force-dynamic";
@@ -81,7 +81,8 @@ export async function GET() {
       workforceLastCalculated: ea.workforce_last_calculated ?? null,
       riskSnapshotSample: riskSnapshotSample ?? null,
     };
-    const { session } = await getSupabaseSession();
+    const serverSupabase = createServerSupabaseClient();
+    const { data: { session } } = await serverSupabase.auth.getSession();
     return NextResponse.json(applyScenario(baseData, session?.impersonation));
   } catch (e) {
     console.error("Risk overview error:", e);

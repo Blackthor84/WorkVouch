@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { resolveEmployerNameFromRows, type EmployerAccountRow } from "@/lib/employer-resolution/core";
 
 export const runtime = "nodejs";
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ query: "", matches: [], suggestedMatch: null });
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const { data: rows } = await supabase
       .from("employer_accounts")
       .select("id, company_name, claimed, claim_verified")

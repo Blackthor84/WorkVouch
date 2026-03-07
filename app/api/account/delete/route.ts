@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { auditLog, getAuditMetaFromRequest } from "@/lib/auditLogger";
 
@@ -17,7 +17,8 @@ const CONFIRM_PAYLOAD = "DELETE";
  * 5. Deletes auth user via service role (auth.admin.deleteUser).
  */
 export async function POST(req: NextRequest) {
-  const { session } = await getSupabaseSession();
+  const supabase = createServerSupabaseClient();
+  const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

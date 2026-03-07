@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { hasRole } from "@/lib/auth";
 
@@ -18,7 +18,8 @@ function validateEmail(email: string): boolean {
  */
 export async function PATCH(request: Request) {
   try {
-    const { session } = await getSupabaseSession();
+    const supabase = createServerSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

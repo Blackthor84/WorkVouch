@@ -5,7 +5,7 @@
 
 import { NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,7 +26,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = await createServerSupabase();
+  const supabase = createServerSupabaseClient();
   const { data: rows, error } = await supabase
     .from("employment_records")
     .select("id, company_name, job_title, start_date, end_date, is_current, verification_status")

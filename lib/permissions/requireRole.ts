@@ -3,8 +3,7 @@
  * Use for server-side route protection: /admin (superadmin), /admin/org (org_admin), /admin/location (location_admin), /employer (location_admin + hiring_manager + employer).
  */
 
-import { getSupabaseSession } from "@/lib/supabase/server";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type AllowedRole =
   | "superadmin"
@@ -31,7 +30,7 @@ export interface RequireRoleResult {
  * Get effective roles for the current user: profile.role + employer_users + tenant_memberships (mapped to spec roles).
  */
 export async function getEffectiveRoles(userId: string): Promise<string[]> {
-  const supabase = await createServerSupabase();
+  const supabase = createServerSupabaseClient();
   const supabaseAny = supabase as any;
   const roles: string[] = [];
 
@@ -82,7 +81,8 @@ export async function getEffectiveRoles(userId: string): Promise<string[]> {
 export async function requireRole(
   allowedRoles: AllowedRole[]
 ): Promise<RequireRoleResult> {
-  const { session } = await getSupabaseSession();
+  const supabase = createServerSupabaseClient();
+  const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
@@ -94,7 +94,6 @@ export async function requireRole(
   }
 
   let employerUser: RequireRoleResult["employerUser"] | undefined;
-  const supabase = await createServerSupabase();
   const supabaseAny = supabase as any;
   const { data: eu } = await supabaseAny
     .from("employer_users")

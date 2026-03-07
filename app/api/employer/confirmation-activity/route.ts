@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
 import { hasRole } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +36,7 @@ export async function GET() {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!(await hasRole("employer"))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const adminSupabase = getSupabaseServer();
 
     const { data: account } = await supabase

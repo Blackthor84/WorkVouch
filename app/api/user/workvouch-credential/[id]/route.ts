@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 
 export const runtime = "nodejs";
@@ -25,7 +25,7 @@ export async function GET(
     const { id } = await params;
     if (!id) return NextResponse.json({ error: "Missing credential id" }, { status: 400 });
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("workvouch_credentials")
       .select("id, candidate_id, payload, visibility, share_token, issued_at, expires_at, revoked_at, created_at, updated_at")
@@ -66,7 +66,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Send { revoke: true } to revoke" }, { status: 400 });
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("workvouch_credentials")
       .update({ revoked_at: new Date().toISOString() })

@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
@@ -15,7 +15,8 @@ import { getOrgHealthScore } from "@/lib/enterprise/orgHealthScore";
 
 export async function GET(req: NextRequest) {
   try {
-    const { session } = await getSupabaseSession();
+    const supabase = createServerSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

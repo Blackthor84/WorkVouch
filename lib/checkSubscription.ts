@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 /**
  * Get user subscription tier by userId
@@ -11,7 +11,7 @@ import { createServerSupabase } from '@/lib/supabase/server'
  * if (tier !== "elite") return <UpgradePrompt />;
  */
 export async function getUserSubscription(userId: string): Promise<'free' | 'pro' | 'elite'> {
-  const supabase = await createServerSupabase()
+  const supabase = createServerSupabaseClient()
 
   // Get stripe_customer_id from profile
   const supabaseAny = supabase as any

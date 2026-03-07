@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { recordJobEnvironmentVote } from "@/lib/culture/jobEnvironment";
 import type { JobEnvironmentTraitKey } from "@/lib/culture/constants";
 import { JOB_ENVIRONMENT_TRAIT_KEYS, MAX_TRAITS_PER_VOTE } from "@/lib/culture/constants";
@@ -20,7 +20,7 @@ function isValidTraitKey(k: string): k is JobEnvironmentTraitKey {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabaseAuth = await supabaseServer();
+    const supabaseAuth = createServerSupabaseClient();
     const {
       data: { user },
     } = await supabaseAuth.auth.getUser();

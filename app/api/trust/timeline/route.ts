@@ -5,7 +5,7 @@
 
 import { NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { TrustEventImpact } from "@/types/database";
 
 export const runtime = "nodejs";
@@ -29,7 +29,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = await createServerSupabase();
+  const supabase = createServerSupabaseClient();
   const { data: rows, error } = await supabase
     .from("trust_events")
     .select("id, event_type, impact, metadata, created_at")

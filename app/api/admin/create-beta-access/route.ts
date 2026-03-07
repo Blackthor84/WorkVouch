@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { isAdmin } from "@/lib/roles";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     // Generate unique login token

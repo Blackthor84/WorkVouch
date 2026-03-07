@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { isAdminRole } from "@/lib/auth/isAdminRole";
 import { isGodMode } from "@/lib/auth/isGodMode";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { canModifyUser, canAssignRole } from "@/lib/roles";
 import { recordFailedAdminAccess } from "@/lib/admin/adminAlertsStore";
 import type { AdminContext } from "@/lib/admin/getAdminContext";
@@ -26,7 +26,7 @@ export type AdminSession = {
     role: string;
     [key: string]: unknown;
   };
-  supabase: Awaited<ReturnType<typeof supabaseServer>>;
+  supabase: ReturnType<typeof createServerSupabaseClient>;
   userId: string;
   /** Authenticated admin user id (for audit logging). Use this, not userId, when recording who performed the action. */
   authUserId: string;
@@ -53,7 +53,7 @@ export async function requireAdmin(): Promise<AdminSession> {
   }
 
   try {
-    const supabase = await supabaseServer();
+    const supabase = createServerSupabaseClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -114,7 +114,7 @@ export async function requireAdminForApi(): Promise<AdminSession | null> {
     return null;
   }
   try {
-    const supabase = await supabaseServer();
+    const supabase = createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return null;
     const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
@@ -157,7 +157,7 @@ export async function requireFinanceForApi(): Promise<AdminSession | null> {
   const admin = await getAdminContext();
   if (adminOrGodMode(admin)) return requireAdminForApi();
   try {
-    const supabase = await supabaseServer();
+    const supabase = createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return null;
     const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
@@ -185,7 +185,7 @@ export async function requireBoardForApi(): Promise<AdminSession | null> {
   const admin = await getAdminContext();
   if (adminOrGodMode(admin)) return requireAdminForApi();
   try {
-    const supabase = await supabaseServer();
+    const supabase = createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return null;
     const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
@@ -210,7 +210,7 @@ export async function requireBoardForApi(): Promise<AdminSession | null> {
 
 export async function requireRole(allowedRoles: string[]): Promise<AdminSession> {
   try {
-    const supabase = await supabaseServer();
+    const supabase = createServerSupabaseClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -279,11 +279,11 @@ export function assertAdminCanModify(
  * Use on every admin API route. Profiles use id = auth user id (no user_id column).
  */
 export async function requireAdminThrow(): Promise<{
-  supabase: Awaited<ReturnType<typeof supabaseServer>>;
+  supabase: ReturnType<typeof createServerSupabaseClient>;
   userId: string;
   role: string;
 }> {
-  const supabase = await supabaseServer();
+  const supabase = createServerSupabaseClient();
   const { data } = await supabase.auth.getUser();
 
   if (!data?.user) {

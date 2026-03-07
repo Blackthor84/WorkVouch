@@ -9,7 +9,7 @@ import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { getCurrentUserRole } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,7 +34,7 @@ export async function GET(
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("saved_candidates")
       .select("notes")
@@ -80,7 +80,7 @@ export async function PATCH(
       // use null
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const { error } = await supabase
       .from("saved_candidates")
       .upsert(

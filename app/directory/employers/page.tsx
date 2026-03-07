@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { EmployersMarketplaceClient } from "@/components/directory/EmployersMarketplaceClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function DirectoryEmployersPage() {
-  const { session } = await getSupabaseSession();
+  const supabase = createServerSupabaseClient();
+  const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) redirect("/login");
 
   const sb = getSupabaseServer() as any;

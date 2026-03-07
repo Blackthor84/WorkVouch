@@ -5,14 +5,15 @@
  */
 
 import { NextResponse } from "next/server";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const { session } = await getSupabaseSession();
+  const supabase = createServerSupabaseClient();
+  const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
 import { Database } from "@/types/database";
 
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
 
     // Update the profile with warehouse-specific data
     // Note: warehouse-specific fields may not be in Database types yet

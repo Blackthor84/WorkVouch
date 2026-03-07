@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUser, getCurrentUserRole, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { enforceLimit } from "@/lib/enforceLimit";
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     type EmployerAccountRow = {
       id: string;
       plan_tier: string | null;

@@ -2,7 +2,7 @@ import { AD_PRICING } from "@/lib/ads/pricing";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe";
 
 export async function POST(req: Request) {
@@ -15,7 +15,8 @@ export async function POST(req: Request) {
     }
 
     // Check admin access
-    const { session } = await getSupabaseSession();
+    const supabase = createServerSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
     const role = (session?.user as { role?: string } | undefined)?.role ?? "";
     const isAdmin = role === "admin" || role === "superadmin";
     

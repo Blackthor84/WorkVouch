@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { ProfileVisibility } from '@/types/database'
@@ -16,7 +16,7 @@ export async function updateProfile(data: {
   visibility?: ProfileVisibility
 }) {
   const user = await requireAuth()
-  const supabase = await createServerSupabase()
+  const supabase = createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   const { data: profile, error } = await supabaseAny
@@ -40,7 +40,7 @@ export async function updateProfile(data: {
  */
 export async function uploadProfilePhoto(file: File) {
   const user = await requireAuth()
-  const supabase = await createServerSupabase()
+  const supabase = createServerSupabaseClient()
 
   // TODO: Implement file upload to Supabase Storage
   // For now, return a placeholder URL

@@ -6,11 +6,11 @@
  */
 
 import { ReviewForm, ReviewList } from "@/components/reviews";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function EmployerReviewsPage(props: any) {
   const { id: employerId } = await props.params;
-  const supabase = await createServerSupabase();
+  const supabase = createServerSupabaseClient();
   const supabaseAny = supabase as any;
 
   // Fetch employer info (optional, for display)

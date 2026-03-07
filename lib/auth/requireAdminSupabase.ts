@@ -9,7 +9,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type AdminAuthUser = {
   id: string;
@@ -24,7 +24,7 @@ export type AdminAuthUser = {
 export async function requireAdminSupabase(): Promise<
   { user: AdminAuthUser } | NextResponse
 > {
-  const supabase = await supabaseServer();
+  const supabase = createServerSupabaseClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

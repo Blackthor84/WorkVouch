@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { stripe } from "@/lib/stripe/config";
 
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     type EmployerAccountRow = { stripe_customer_id: string | null };

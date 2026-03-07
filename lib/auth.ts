@@ -1,4 +1,4 @@
-import { supabaseServer, getSupabaseSession } from "./supabase/server";
+import { createServerSupabaseClient } from "./supabase/server";
 import { getSupabaseServer } from "./supabase/admin";
 import { getEffectiveUserIdWithAuth } from "./server/effectiveUserId";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
@@ -41,7 +41,7 @@ export async function getEffectiveUser(): Promise<EffectiveUser | null> {
   const withAuth = await getEffectiveUserIdWithAuth();
   if (!withAuth) return null;
   const { effectiveUserId, isImpersonating } = withAuth;
-  const supabase = isImpersonating ? getSupabaseServer() : (await supabaseServer());
+  const supabase = isImpersonating ? getSupabaseServer() : createServerSupabaseClient();
   const supabaseAny = supabase as any;
   const { data: profile, error } = await supabaseAny
     .from("profiles")
@@ -94,7 +94,7 @@ export async function getProfile(userId: string): Promise<{
   role: string | null;
   onboarding_completed: boolean;
 }> {
-  const supabase = await supabaseServer();
+  const supabase = createServerSupabaseClient();
   const supabaseAny = supabase as any;
   const { data, error } = await supabaseAny
     .from("profiles")
@@ -116,7 +116,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   const { getEffectiveUserId } = await import("@/lib/server/effectiveUserId");
   const effectiveUserId = await getEffectiveUserId();
   if (!effectiveUserId) return null;
-  const supabase = await supabaseServer();
+  const supabase = createServerSupabaseClient();
   const supabaseAny = supabase as any;
   const { data: profile, error } = await supabaseAny
     .from("profiles")
@@ -126,7 +126,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
     .eq("id", effectiveUserId)
     .single();
   if (error || !profile) return null;
-  const { session } = await getSupabaseSession();
+  const { data: { session } } = await supabase.auth.getSession();
   return applyScenario(profile as UserProfile, session?.impersonation) as UserProfile;
 }
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { canViewEmployees } from "@/lib/middleware/plan-enforcement-supabase";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const supabaseAny = supabase as any;
     const { data: employerAccount } = await supabaseAny
       .from("employer_accounts")

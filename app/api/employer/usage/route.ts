@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getUsageForEmployer } from "@/lib/usage";
 
 /**
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const supabaseAny = supabase as any;
     const { data: employerAccount } = await supabaseAny
       .from("employer_accounts")

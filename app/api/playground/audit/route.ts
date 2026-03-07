@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthedUser } from "@/lib/auth/getAuthedUser";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const action = typeof body?.action === "string" ? body.action : "unknown";
     const metadata = body?.metadata && typeof body.metadata === "object" ? body.metadata : {};
-    const supabase = await supabaseServer();
+    const supabase = createServerSupabaseClient();
     const { error } = await supabase.from("audit_logs").insert({
       actor_id: user.user.id,
       action,

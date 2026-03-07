@@ -1,7 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { checkPublicDirectoryRateLimit, consumePublicDirectoryRateLimit } from "@/lib/directory/rate-limit";
@@ -110,7 +110,7 @@ export async function searchDirectoryPublic(params: {
   const offset = (page - 1) * PUBLIC_PAGE_SIZE;
   const name = (params.name ?? "").trim();
 
-  const supabase = await createServerSupabase();
+  const supabase = createServerSupabaseClient();
   const sb = supabase as any;
 
   let chain = sb

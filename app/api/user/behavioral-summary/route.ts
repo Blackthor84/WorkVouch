@@ -7,7 +7,7 @@ import { getEffectiveUser } from "@/lib/auth";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { getBehavioralVector } from "@/lib/intelligence/getBehavioralVector";
 import { buildBehavioralSummary } from "@/lib/intelligence/behavioralSummary";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 import { NextResponse } from "next/server";
 
@@ -36,7 +36,8 @@ export async function GET() {
 
     const summary = buildBehavioralSummary(vector);
     const baseData = { summary };
-    const { session } = await getSupabaseSession();
+    const supabase = createServerSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
     return NextResponse.json(applyScenario(baseData, session?.impersonation), { status: 200 });
   } catch {
     return NextResponse.json({ summary: null }, { status: 200 });

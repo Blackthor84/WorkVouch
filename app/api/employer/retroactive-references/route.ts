@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { RetroactiveReferencesSummary } from "@/lib/employer-retroactive/types";
 
 export const runtime = "nodejs";
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
 
     const { data: employerAccount } = await supabase
       .from("employer_accounts")

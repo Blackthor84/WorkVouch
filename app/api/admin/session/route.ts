@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { normalizeRole } from "@/lib/auth/normalizeRole";
 import { isAdminRole } from "@/lib/auth/roles";
 import { isSandbox } from "@/lib/app-mode";
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   try {
-    const supabase = await supabaseServer();
+    const supabase = createServerSupabaseClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();

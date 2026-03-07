@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, hasRole } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import {
   computeInsights,
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing candidateId" }, { status: 400 });
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     const { data: employerAccount } = await supabaseAny

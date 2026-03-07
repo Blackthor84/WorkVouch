@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import {
   hashIp,
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     let user_id: string | null = null;
     let user_role: string | null = null;
     try {
-      const supabaseAuth = await supabaseServer();
+      const supabaseAuth = createServerSupabaseClient();
       const { data: { user } } = await supabaseAuth.auth.getUser();
       if (user?.id) {
         user_id = user.id;

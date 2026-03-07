@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getAuthedUser } from "@/lib/auth/getAuthedUser";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { writeImpersonationAudit } from "@/lib/impersonationAudit";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
 import { logSandboxEvent } from "@/lib/sandbox/sandboxEvents";
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
         // ignore
       }
     }
-    const supabase = await supabaseServer();
+    const supabase = createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await writeImpersonationAudit({

@@ -8,6 +8,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type AdminRole = "user" | "admin" | "superadmin";
 
@@ -80,8 +81,7 @@ export function isSuperAdminRole(role: string): boolean {
  * Returns 403 Response if not admin, or null if allowed (caller gets user from getAdminContext or getUser).
  */
 export async function requireAdminFromSupabase(): Promise<NextResponse | null> {
-  const { supabaseServer } = await import("@/lib/supabase/server");
-  const supabase = await supabaseServer();
+  const supabase = createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   const session: SessionLike = user
     ? { user: { id: user.id, email: user.email, app_metadata: (user as { app_metadata?: { role?: string } }).app_metadata } }
@@ -93,8 +93,7 @@ export async function requireAdminFromSupabase(): Promise<NextResponse | null> {
  * Get session-like from Supabase and run requireSuperAdmin. For use in API routes.
  */
 export async function requireSuperAdminFromSupabase(): Promise<NextResponse | null> {
-  const { supabaseServer } = await import("@/lib/supabase/server");
-  const supabase = await supabaseServer();
+  const supabase = createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   const session: SessionLike = user
     ? { user: { id: user.id, email: user.email, app_metadata: (user as { app_metadata?: { role?: string } }).app_metadata } }

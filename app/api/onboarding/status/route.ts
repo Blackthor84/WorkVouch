@@ -3,8 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 import { hasRole } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/auth/isAdmin";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
@@ -40,7 +39,7 @@ export async function GET() {
       return NextResponse.json({ showOnboarding: false });
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
@@ -101,7 +100,7 @@ export async function GET() {
 
     const showOnboarding = !profileComplete || !hasJobs;
     const baseData = { showOnboarding, flow: "worker" as const, steps: WORKER_STEPS, completed: false };
-    const { session } = await getSupabaseSession();
+    const { data: { session } } = await supabase.auth.getSession();
     return NextResponse.json(applyScenario(baseData, session?.impersonation));
   } catch (e) {
     console.error("[onboarding/status]", e);

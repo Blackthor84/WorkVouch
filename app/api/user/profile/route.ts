@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getEffectiveUser, getProfile } from "@/lib/auth";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export const runtime = "nodejs";
@@ -36,7 +36,8 @@ export async function GET() {
       onboarding_completed: profile.onboarding_completed,
       sandbox_mode,
     };
-    const { session } = await getSupabaseSession();
+    const supabase = createServerSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
     return NextResponse.json(applyScenario(payload, session?.impersonation));
   } catch (e) {
     console.error("[api/user/profile]", e);

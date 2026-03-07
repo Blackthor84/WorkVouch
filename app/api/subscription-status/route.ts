@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { z } from "zod";
 
 // Mark route as dynamic
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     // Check for active subscription in user_subscriptions table

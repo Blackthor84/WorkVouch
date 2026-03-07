@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireEnterpriseOwner } from "@/lib/enterprise/requireEnterprise";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getEnvironmentForServer } from "@/lib/app-mode";
 import { headers, cookies } from "next/headers";
 
@@ -19,7 +19,7 @@ export default async function EnterpriseLocationsPage({ params }: { params: Prom
   const h = await headers();
   const c = await cookies();
   const env = getEnvironmentForServer(h, c);
-  const supabase = await createServerSupabase();
+  const supabase = createServerSupabaseClient();
 
   const { data: locations, error } = await supabase
     .from("locations")

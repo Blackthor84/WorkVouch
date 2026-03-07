@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 import { z } from "zod";
 
@@ -19,10 +19,11 @@ export async function POST(req: NextRequest) {
     const reject = await rejectWriteIfImpersonating();
     if (reject) return reject;
 
-    const supabase = await supabaseServer();
+    const supabase = createServerSupabaseClient();
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
 
     if (!user) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });

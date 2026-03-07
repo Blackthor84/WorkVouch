@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 /**
  * POST /api/reviews/employer
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify employer exists
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     const { data: employer, error: employerError } = await supabaseAny
@@ -128,7 +128,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     const { data: reviews, error } = await supabaseAny

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { EmployerOnboardingClient } from "../EmployerOnboardingClient";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ export default async function EmployerOnboardingStartPage() {
     redirect("/login?callbackUrl=/employer/onboarding/start");
   }
 
-  const supabase = await createServerSupabase();
+  const supabase = createServerSupabaseClient();
   const supabaseAny = supabase as any;
 
   const [{ data: existingEmployer }, { data: existingMemberships }] = await Promise.all([

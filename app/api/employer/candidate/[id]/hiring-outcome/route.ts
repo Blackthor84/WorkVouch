@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, isEmployer } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,7 +33,7 @@ export async function POST(
     const hired = body.hired as boolean | undefined;
     const would_rehire = body.would_rehire as boolean | undefined;
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
 
     if (dismissed) {
       const { error } = await supabase.from("hiring_outcome_feedback").upsert(

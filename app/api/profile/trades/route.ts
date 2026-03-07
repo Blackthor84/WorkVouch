@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("profile_trades")
       .select("trade_id, trades(slug, display_name)")
@@ -66,7 +66,7 @@ export async function PUT(request: NextRequest) {
       ? body.trade_slugs.filter((s: unknown): s is string => typeof s === "string")
       : [];
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
 
     type TradeRow = { id: string };
     let validIds: string[] = [];

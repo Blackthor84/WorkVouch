@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPostLoginRedirect } from "@/lib/auth/getPostLoginRedirect";
 
 export const runtime = "nodejs";
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const { origin } = new URL(request.url);
   try {
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();

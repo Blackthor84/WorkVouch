@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getEffectiveUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +50,8 @@ export async function GET() {
       underReview: profile?.trust_score_under_review ?? false,
       activeDisputeCount: profile?.active_dispute_count ?? 0,
     };
-    const { session } = await getSupabaseSession();
+    const serverSupabase = createServerSupabaseClient();
+    const { data: { session } } = await serverSupabase.auth.getSession();
     return NextResponse.json(applyScenario(baseData, session?.impersonation));
   } catch (e) {
     console.error("[dispute-status] error:", e);

@@ -7,10 +7,10 @@
  */
 
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function requireAdminRoute() {
-  const supabase = await supabaseServer();
+  const supabase = createServerSupabaseClient();
 
   const {
     data: { user },

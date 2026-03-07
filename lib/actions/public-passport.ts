@@ -1,6 +1,6 @@
 "use server";
 
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -56,7 +56,7 @@ export type PassportPageData =
  * Get passport page data for /passport/[username]. Returns public data, private (show Profile Protected card), or not_found.
  */
 export async function getPassportPageData(slug: string): Promise<PassportPageData> {
-  const supabase = await createServerSupabase();
+  const supabase = createServerSupabaseClient();
   const sb = supabase as any;
 
   const isUuid = UUID_REGEX.test(slug);

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getEffectiveUser } from "@/lib/auth";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 import { z } from "zod";
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = requestVerificationSchema.parse(body);
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     // Verify ownership

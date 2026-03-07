@@ -5,7 +5,7 @@
 import { NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export const runtime = "nodejs";
@@ -57,7 +57,8 @@ export async function GET() {
       referencesCount,
       emailVerified,
     } satisfies ProfileCompletenessResponse;
-    const { session } = await getSupabaseSession();
+    const supabase = createServerSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
     return NextResponse.json(applyScenario(baseData, session?.impersonation));
   } catch {
     return NextResponse.json(

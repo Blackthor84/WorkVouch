@@ -7,13 +7,13 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("trades")
       .select("id, slug, display_name")

@@ -1,4 +1,4 @@
-import { createServerSupabase, getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import VerticalBadges from "@/components/VerticalBadges";
@@ -9,7 +9,7 @@ export default async function EmployeePage(props: any) {
   const resolvedSearchParams = props.searchParams ? await props.searchParams : undefined;
 
   try {
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     // Fetch employee profile
@@ -23,7 +23,7 @@ export default async function EmployeePage(props: any) {
       notFound();
     }
 
-    const { session } = await getSupabaseSession();
+    const { data: { session } } = await supabase.auth.getSession();
     const profileWithScenario = applyScenario(profile, session?.impersonation);
 
     // Fetch employee's jobs

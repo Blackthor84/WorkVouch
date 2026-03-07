@@ -1,4 +1,4 @@
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getTrustScoreComponents } from "@/lib/trustScore";
 import type { TrustScoreComponents } from "@/lib/trustScore";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
@@ -37,7 +37,7 @@ function getImprovementGuidance(components: TrustScoreComponents): string | null
 }
 
 export async function TrustScoreCard({ userId }: { userId: string }) {
-  const supabase = await createServerSupabase();
+  const supabase = createServerSupabaseClient();
   const { data: trustScoreRow } = await (supabase as any)
     .from("trust_scores")
     .select("score, job_count, reference_count, average_rating")

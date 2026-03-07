@@ -1,4 +1,4 @@
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import type { TenantMembership, EnterpriseRole } from "./types";
 
@@ -18,12 +18,13 @@ export type EnterpriseSession = {
  * Throws Unauthorized if no session.
  */
 export async function getEnterpriseSession(): Promise<EnterpriseSession> {
-  const { session } = await getSupabaseSession();
+  const supabase = createServerSupabaseClient();
+  const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
-  const supabase = getSupabaseServer();
-  const { data: rows, error } = await supabase
+  const admin = getSupabaseServer();
+  const { data: rows, error } = await admin
     .from("tenant_memberships")
     .select("id, user_id, organization_id, location_id, role, created_at, updated_at")
     .eq("user_id", session.user.id);

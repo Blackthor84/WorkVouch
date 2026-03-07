@@ -6,7 +6,7 @@
  */
 
 import { type NextRequest, NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isSandbox } from "@/lib/app-mode";
 import { getRoleFromSession } from "@/lib/auth/admin-role-guards";
 import { isAdminRole } from "@/lib/auth/isAdminRole";
@@ -86,7 +86,7 @@ export async function getAdminContext(req?: NextRequest): Promise<AdminContext> 
     }
 
     const { authUserId, authRole, effectiveUserId, effectiveRole } = effectiveSession;
-    const supabase = await supabaseServer();
+    const supabase = createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id || !user?.email) {
       return { ...UNAUTHORIZED_CONTEXT };

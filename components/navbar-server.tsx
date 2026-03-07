@@ -1,7 +1,6 @@
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
 import { getEffectiveRoles } from "@/lib/permissions/requireRole";
-import { createServerSupabase } from "@/lib/supabase/server";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { type OrgSwitcherItem } from "./navbar-client";
 import { NavbarClientDynamic } from "./navbar-client-dynamic";
@@ -11,14 +10,14 @@ export async function NavbarServer() {
   const showAdmin = admin.isAdmin;
   const showSandboxAdmin = admin.appEnvironment === "sandbox" && admin.isAdmin;
 
-  const { session } = await getSupabaseSession();
+  const supabase = createServerSupabaseClient();
+  const { data: { session } } = await supabase.auth.getSession();
   const profile = session?.user ? await getCurrentUserProfile() : null;
   const role = profile?.role ?? null;
   let orgSwitcherItems: OrgSwitcherItem[] | null = null;
   if (session?.user?.id) {
     const effectiveRoles = await getEffectiveRoles(session.user.id);
     if (effectiveRoles.includes("org_admin") || effectiveRoles.includes("enterprise_owner")) {
-      const supabase = await createServerSupabase();
       const { data: euOrgs } = await (supabase as any)
         .from("employer_users")
         .select("organization_id")

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     let query = supabaseAny

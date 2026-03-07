@@ -1,4 +1,4 @@
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { NextResponse } from "next/server";
@@ -12,7 +12,8 @@ export const runtime = "nodejs";
  */
 export async function GET(request: Request) {
   try {
-    const { session } = await getSupabaseSession();
+    const serverSupabase = createServerSupabaseClient();
+    const { data: { session } } = await serverSupabase.auth.getSession();
     const userId = session?.user?.id ?? null;
     if (!userId) {
       return NextResponse.json({ enabled: false }, { status: 200 });

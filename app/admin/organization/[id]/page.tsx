@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ export default async function AdminOrganizationPage({
 }) {
   const admin = await getAdminContext();
   if (!admin.isAdmin) redirect("/login");
-  const supabase = await supabaseServer();
+  const supabase = createServerSupabaseClient();
   const supabaseAny = supabase as any;
   const { id: orgId } = await params;
   const userId = admin.authUserId;

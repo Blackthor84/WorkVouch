@@ -38,6 +38,7 @@ import { ReferenceConsistencyPanel } from "@/components/employer/ReferenceConsis
 import { TrustTimelinePanel } from "@/components/employer/TrustTimelinePanel";
 import TrustScoreBreakdown from "@/components/trust/TrustScoreBreakdown";
 import TrustScoreGauge from "@/components/trust/TrustScoreGauge";
+import VerifiedWorkTimeline from "@/components/trust/VerifiedWorkTimeline";
 import { CandidateComparisonPanel } from "@/components/employer/CandidateComparisonPanel";
 import { EmployerNotesPanel } from "@/components/employer/EmployerNotesPanel";
 import { TeamSharingPanel } from "@/components/employer/TeamSharingPanel";
@@ -233,6 +234,9 @@ export function CandidateProfileViewer({
         <TrustScoreGauge score={trust_score ?? 0} />
         <TrustScoreBreakdown profileId={safeProfile.id} />
       </div>
+
+      {/* Verified Work Timeline: jobs + manager/coworker verifications and trust impact */}
+      <VerifiedWorkTimeline profileId={safeProfile.id} />
 
       {/* WorkVouch Insights (employer-only, feature-flagged) */}
       <WorkVouchInsightsSection candidateId={safeProfile.id} />

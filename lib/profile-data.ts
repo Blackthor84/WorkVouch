@@ -4,7 +4,7 @@
  * Does not replace core scoring; provides a unified shape for vertical metric compute().
  */
 
-import { createServerSupabase, getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/auth";
 import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
 import type { VerticalDashboardProfile } from "@/lib/verticals/dashboard";
@@ -24,7 +24,7 @@ export type ProfileDataResult = VerticalDashboardProfile & {
 export async function getProfileData(): Promise<ProfileDataResult | null> {
   try {
     const user = await requireAuth();
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
 
     const employeeFields = await getEmployeeProfileFields(supabase, user.id);
     if (!employeeFields) {
@@ -42,7 +42,7 @@ export async function getProfileData(): Promise<ProfileDataResult | null> {
       sentiment_average: undefined,
     };
 
-    const { session } = await getSupabaseSession();
+    const { data: { session } } = await supabase.auth.getSession();
     return applyScenario(result, session?.impersonation) as ProfileDataResult;
   } catch {
     return null;

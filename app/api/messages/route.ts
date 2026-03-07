@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
 import { checkPaywall } from "@/lib/middleware/paywall";
 import { z } from "zod";
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const { recipientId, message, subject } = validationResult.data;
 
     // Get user's subscription tier
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     // Check if user is employer or worker
@@ -133,7 +133,7 @@ export async function GET(req: NextRequest) {
     const conversationId = searchParams.get("conversationId");
     const otherUserId = searchParams.get("otherUserId");
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     let query = supabaseAny

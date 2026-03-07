@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { insertActivityLog } from "@/lib/activity";
 import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = await supabaseServer();
+    const supabase = createServerSupabaseClient();
     const body = await req.json().catch(() => ({}));
     const role = body?.role as Role | undefined;
 

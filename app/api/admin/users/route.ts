@@ -1,4 +1,4 @@
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
@@ -24,7 +24,8 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-
  */
 export async function GET(request: Request) {
   try {
-    const { session } = await getSupabaseSession();
+    const serverSupabase = createServerSupabaseClient();
+    const { data: { session } } = await serverSupabase.auth.getSession();
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }

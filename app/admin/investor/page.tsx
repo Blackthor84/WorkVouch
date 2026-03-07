@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import InvestorDashboardClient from "./InvestorDashboardClient";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +44,7 @@ async function getRealCounts(supabase: any) {
 export default async function AdminInvestorPage() {
   const admin = await getAdminContext();
   if (!admin.isAdmin || !admin.isSuperAdmin) redirect("/login");
-  const supabase = await supabaseServer();
+  const supabase = createServerSupabaseClient();
   const realCounts = await getRealCounts(supabase);
 
   return (

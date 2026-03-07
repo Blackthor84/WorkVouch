@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseSession } from "@/lib/supabase/server";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 /**
  * GET /api/account/email-change-history
@@ -10,13 +9,12 @@ import { createServerSupabase } from "@/lib/supabase/server";
  */
 export async function GET() {
   try {
-    const { session } = await getSupabaseSession();
+    const supabase = createServerSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const userId = session.user.id as string;
-
-    const supabase = await createServerSupabase();
     const { data, error } = await (supabase as any)
       .from("email_change_history")
       .select("id, previous_email, new_email, changed_by, created_at")

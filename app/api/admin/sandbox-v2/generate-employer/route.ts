@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
 import { createSandboxProfile } from "@/lib/sandbox/createSandboxProfile";
 import { INDUSTRIES } from "@/lib/constants/industries";
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
-    const serverSupabase = await supabaseServer();
+    const serverSupabase = createServerSupabaseClient();
     const { data: { user } } = await serverSupabase.auth.getUser();
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await writeAdminAuditLog({

@@ -4,7 +4,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = await supabaseServer();
+  const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("activity_log")
     .select("id, action, target, metadata, created_at")

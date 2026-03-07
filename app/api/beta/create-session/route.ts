@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { createServerSupabase } from "@/lib/supabase/server";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,7 +11,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User ID and email are required" }, { status: 400 });
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     // Verify user has beta access and check expiration

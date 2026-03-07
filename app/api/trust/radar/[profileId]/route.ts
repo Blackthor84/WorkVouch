@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getTrustRadarDimensions } from "@/lib/trust/radar";
 
 export const runtime = "nodejs";
@@ -35,7 +35,7 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = await createServerSupabase();
+  const supabase = createServerSupabaseClient();
   const isAdmin =
     effective.role === "admin" ||
     effective.role === "superadmin" ||

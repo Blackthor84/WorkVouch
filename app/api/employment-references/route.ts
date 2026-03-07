@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { submitReview } from "@/lib/core/reviews";
 import { logAudit, type AuditEntity } from "@/lib/dispute-audit";
 import { processReviewIntelligence } from "@/lib/intelligence/processReviewIntelligence";
@@ -24,7 +24,8 @@ const bodySchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const { session } = await getSupabaseSession();
+    const supabase = createServerSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

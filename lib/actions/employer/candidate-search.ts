@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireAuth } from '@/lib/auth'
 import {
   requireEmployerLegalAcceptance,
@@ -45,7 +45,7 @@ export interface CandidateSearchResult {
  */
 export async function searchCandidates(filters: CandidateSearchFilters = {}) {
   const user = await requireAuth()
-  const supabase = await createServerSupabase()
+  const supabase = createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   // Verify user is an employer
@@ -200,7 +200,7 @@ export type CandidateProfilePayload = {
  * Used by getCandidateProfileForEmployer and getMyProfileAsEmployerSeesIt.
  */
 export async function getCandidateProfileData(candidateId: string): Promise<CandidateProfilePayload> {
-  const supabase = await createServerSupabase()
+  const supabase = createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   const { data: candidateProfile, error: profileError } = await supabaseAny
@@ -306,7 +306,7 @@ export async function getCandidateProfileData(candidateId: string): Promise<Cand
  */
 export async function getCandidateProfileForEmployer(candidateId: string): Promise<CandidateProfilePayload> {
   const user = await requireAuth()
-  const supabase = await createServerSupabase()
+  const supabase = createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   const { data: profile } = await supabaseAny

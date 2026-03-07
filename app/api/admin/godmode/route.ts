@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getGodModeState, buildGodModeToken, getGodModeCookieName, GODMODE_MAX_AGE_SECONDS } from "@/lib/auth/godModeCookie";
 import { writeGodModeAudit } from "@/lib/godModeAudit";
 import { isAdmin } from "@/lib/auth/isAdmin";
@@ -17,7 +17,7 @@ const COOKIE_NAME = getGodModeCookieName();
  */
 export async function GET() {
   try {
-    const supabase = await supabaseServer();
+    const supabase = createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return NextResponse.json({ enabled: false }, { status: 401 });
 
@@ -44,7 +44,7 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const supabase = await supabaseServer();
+    const supabase = createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

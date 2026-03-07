@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 import { z } from "zod";
 
@@ -34,7 +34,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = await createServerSupabase();
+  const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from("profiles")
     .select("employer_visibility")
@@ -65,7 +65,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const dbValue = VISIBILITY_MAP[parsed.data.visibility];
-  const supabase = await createServerSupabase();
+  const supabase = createServerSupabaseClient();
   const { error } = await supabase
     .from("profiles")
     .update({ employer_visibility: dbValue })

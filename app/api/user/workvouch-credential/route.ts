@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { buildCredentialPayload } from "@/lib/workvouch-credential/core";
 import type { CredentialVisibility } from "@/lib/workvouch-credential/types";
@@ -29,7 +29,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const { data: rows, error } = await supabase
       .from("workvouch_credentials")
       .select("id, candidate_id, payload, visibility, share_token, issued_at, expires_at, revoked_at, created_at, updated_at")
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
       expiresInDays = Math.max(1, Math.min(90, expiresInDays));
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
     const admin = getSupabaseServer();
 
     // Use admin to read employment_records (candidate may be in different RLS context)

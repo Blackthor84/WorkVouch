@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { createServerSupabase, getSupabaseSession } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = await createServerSupabase();
+    const supabase = createServerSupabaseClient();
 
     // Type definition for employer_accounts (includes profile completion fields)
     type EmployerAccountRow = {
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
       },
       planTier: employerAccountTyped.plan_tier,
     };
-    const { session } = await getSupabaseSession();
+    const { data: { session } } = await supabase.auth.getSession();
     return NextResponse.json(applyScenario(payload, session?.impersonation));
   } catch (error) {
     console.error("Get employer error:", error);

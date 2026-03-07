@@ -5,7 +5,7 @@ import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";
 import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
 import { writeAdminAuditLog } from "@/lib/admin/audit-enterprise";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
     await runSandboxIntelligenceRecalculation(sandboxId);
     await calculateSandboxMetrics(sandboxId);
 
-    const serverSupabase = await supabaseServer();
+    const serverSupabase = createServerSupabaseClient();
     const { data: { user } } = await serverSupabase.auth.getUser();
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await writeAdminAuditLog({

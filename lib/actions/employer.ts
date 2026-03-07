@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireRole } from '@/lib/auth'
 import { UserRole } from '@/types/database'
 
@@ -14,7 +14,7 @@ export async function searchUsers(query: {
   limit?: number
 }) {
   await requireRole('employer')
-  const supabase = await createServerSupabase()
+  const supabase = createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   let queryBuilder = supabaseAny
@@ -49,7 +49,7 @@ export async function searchUsers(query: {
  */
 export async function getPublicProfile(userId: string) {
   await requireRole('employer')
-  const supabase = await createServerSupabase()
+  const supabase = createServerSupabaseClient()
   const supabaseAny = supabase as any
 
   // Get profile

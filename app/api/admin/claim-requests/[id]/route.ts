@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireAdminRoute } from "@/lib/auth/requireAdminRoute";
 
 export const runtime = "nodejs";
@@ -14,7 +14,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Response> {
-  const supabase = await supabaseServer();
+  const supabase = createServerSupabaseClient();
 
   let user;
   try {
