@@ -6,6 +6,7 @@
  * Never rely on UI-only checks. Fail closed: deny by default.
  */
 import { redirect } from "next/navigation";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { isAdminRole } from "@/lib/auth/isAdminRole";
 import { isGodMode } from "@/lib/auth/isGodMode";
@@ -279,7 +280,7 @@ export function assertAdminCanModify(
  * Use on every admin API route. Profiles use id = auth user id (no user_id column).
  */
 export async function requireAdminThrow(): Promise<{
-  supabase: ReturnType<typeof createServerSupabaseClient>;
+  supabase: SupabaseClient;
   userId: string;
   role: string;
 }> {
