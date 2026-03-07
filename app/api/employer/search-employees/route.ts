@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    let userIdsFilter: string[] | null = null;
+    let userIdsFilter: string[] = [];
     if (tradeSlug && tradeSlug.trim()) {
       const { data: tradeRow } = await supabase
         .from("trades")
