@@ -49,7 +49,7 @@ export default async function EnterpriseLocationsPage({ params }: { params: Prom
       .select("id")
       .eq("location_id", loc)
       .eq("environment", env);
-    const ids = (empIds ?? []).map((e) => e.id);
+    const ids = (empIds ?? []).map((e: { id: string }) => e.id);
     if (ids.length === 0) {
       refCounts[loc] = 0;
     } else {
