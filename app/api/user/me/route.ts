@@ -16,6 +16,6 @@ export async function GET() {
   const supabase = createServerSupabaseClient();
   const { data: { session } } = await supabase.auth.getSession();
   const baseData = { user: { ...user, __impersonated: user.isImpersonating } };
-  const finalData = applyScenario(baseData, session?.impersonation);
+  const finalData = applyScenario(baseData, (session as any)?.impersonation);
   return NextResponse.json(finalData);
 }

@@ -38,7 +38,7 @@ export async function GET() {
     const baseData = { summary };
     const supabase = createServerSupabaseClient();
     const { data: { session } } = await supabase.auth.getSession();
-    return NextResponse.json(applyScenario(baseData, session?.impersonation), { status: 200 });
+    return NextResponse.json(applyScenario(baseData, (session as any)?.impersonation), { status: 200 });
   } catch {
     return NextResponse.json({ summary: null }, { status: 200 });
   }

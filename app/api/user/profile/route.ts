@@ -38,7 +38,7 @@ export async function GET() {
     };
     const supabase = createServerSupabaseClient();
     const { data: { session } } = await supabase.auth.getSession();
-    return NextResponse.json(applyScenario(payload, session?.impersonation));
+    return NextResponse.json(applyScenario(payload, (session as any)?.impersonation));
   } catch (e) {
     console.error("[api/user/profile]", e);
     return NextResponse.json({

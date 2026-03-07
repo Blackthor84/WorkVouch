@@ -43,7 +43,7 @@ export async function getProfileData(): Promise<ProfileDataResult | null> {
     };
 
     const { data: { session } } = await supabase.auth.getSession();
-    return applyScenario(result, session?.impersonation) as ProfileDataResult;
+    return applyScenario(result, (session as any)?.impersonation) as ProfileDataResult;
   } catch {
     return null;
   }

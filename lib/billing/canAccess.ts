@@ -28,7 +28,7 @@ export function hasAccess(
   feature: FeatureKey,
   session: BillingSessionLike
 ): boolean {
-  if (session?.demoMode || session?.impersonation?.impersonating) {
+  if (session?.demoMode || (session as any)?.impersonation?.impersonating) {
     return true;
   }
   return canAccess(plan, feature);

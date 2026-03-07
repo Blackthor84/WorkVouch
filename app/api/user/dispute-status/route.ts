@@ -52,7 +52,7 @@ export async function GET() {
     };
     const serverSupabase = createServerSupabaseClient();
     const { data: { session } } = await serverSupabase.auth.getSession();
-    return NextResponse.json(applyScenario(baseData, session?.impersonation));
+    return NextResponse.json(applyScenario(baseData, (session as any)?.impersonation));
   } catch (e) {
     console.error("[dispute-status] error:", e);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

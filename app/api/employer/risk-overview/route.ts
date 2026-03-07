@@ -83,7 +83,7 @@ export async function GET() {
     };
     const serverSupabase = createServerSupabaseClient();
     const { data: { session } } = await serverSupabase.auth.getSession();
-    return NextResponse.json(applyScenario(baseData, session?.impersonation));
+    return NextResponse.json(applyScenario(baseData, (session as any)?.impersonation));
   } catch (e) {
     console.error("Risk overview error:", e);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

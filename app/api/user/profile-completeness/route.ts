@@ -59,7 +59,7 @@ export async function GET() {
     } satisfies ProfileCompletenessResponse;
     const authClient = createServerSupabaseClient();
     const { data: { session } } = await authClient.auth.getSession();
-    return NextResponse.json(applyScenario(baseData, session?.impersonation));
+    return NextResponse.json(applyScenario(baseData, (session as any)?.impersonation));
   } catch {
     return NextResponse.json(
       { error: "Failed to load profile completeness" },

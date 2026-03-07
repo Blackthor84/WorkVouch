@@ -127,7 +127,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
     .single();
   if (error || !profile) return null;
   const { data: { session } } = await supabase.auth.getSession();
-  return applyScenario(profile as UserProfile, session?.impersonation) as UserProfile;
+  return applyScenario(profile as UserProfile, (session as any)?.impersonation) as UserProfile;
 }
 
 /** Roles come only from profiles.role. */

@@ -67,7 +67,7 @@ export async function GET() {
     const baseData = { careerHealth, components } satisfies CareerHealthResponse;
     const supabase = createServerSupabaseClient();
     const { data: { session } } = await supabase.auth.getSession();
-    return NextResponse.json(applyScenario(baseData, session?.impersonation));
+    return NextResponse.json(applyScenario(baseData, (session as any)?.impersonation));
   } catch {
     return fallback();
   }
