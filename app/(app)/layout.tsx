@@ -1,13 +1,12 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
-import { ChooseRoleGuard } from "@/components/ChooseRoleGuard";
 import Sidebar from "@/components/Sidebar";
 
 /**
  * Single auth guard for all routes under (app). Uses supabase.auth.getUser()
  * to verify the token with the auth server (never getSession() on the server).
- * Unauthenticated users are redirected to /login before any protected page loads.
+ * Unauthenticated users → redirect /login. No role yet → redirect /choose-role (outside this layout).
  */
 function normalizeRole(role: string | null | undefined): "employee" | "employer" | "admin" | null {
   if (!role) return null;
@@ -34,11 +33,7 @@ export default async function AppLayout({
   const role = normalizeRole(roleRaw);
 
   if (!role) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#0D1117]">
-        <ChooseRoleGuard>{children}</ChooseRoleGuard>
-      </div>
-    );
+    redirect("/choose-role");
   }
 
   return (

@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BriefcaseIcon, BuildingOffice2Icon } from "@heroicons/react/24/outline";
 
-export default function ChooseRolePage() {
+export function ChooseRoleForm() {
   const router = useRouter();
   const [loading, setLoading] = useState<"employee" | "employer" | null>(null);
   const [error, setError] = useState<string | null>(null);
