@@ -19,6 +19,7 @@ import { VerificationCoverageCard } from "@/components/trust/VerificationCoverag
 import { TrustGraphDepthCard } from "@/components/trust/TrustGraphDepthCard";
 import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
 import ExpandTrustNetworkCard from "@/components/dashboard/ExpandTrustNetworkCard";
+import Link from "next/link";
 import {
   UserCircleIcon,
   BriefcaseIcon,
@@ -254,9 +255,12 @@ export default async function UserDashboardPage() {
                 Next steps
               </h3>
               <div className="space-y-3">
-                <Button href="/profile" variant="secondary" className="w-full justify-start">
-                  Add Verified Job
-                </Button>
+                <Link
+                  href="/jobs/new"
+                  className="bg-blue-600 text-white px-4 py-2 rounded inline-block w-full text-center"
+                >
+                  + Add Verified Job
+                </Link>
                 <Button href="/coworker-matches" variant="secondary" className="w-full justify-start">
                   Request confirmation
                 </Button>
