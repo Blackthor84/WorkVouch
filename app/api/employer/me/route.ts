@@ -31,7 +31,6 @@ export async function GET(req: NextRequest) {
       company_name: string;
       plan_tier: string;
       stripe_customer_id: string | null;
-      created_at: string;
       industry_type?: string | null;
       claimed?: boolean | null;
       claim_verified?: boolean | null;
@@ -39,7 +38,7 @@ export async function GET(req: NextRequest) {
     };
 
     const { data: employerAccount, error } = await admin.from("employer_accounts")
-      .select("id, company_name, plan_tier, stripe_customer_id, created_at, industry_type, claimed, claim_verified, location")
+      .select("id, company_name, plan_tier, stripe_customer_id, industry_type, claimed, claim_verified, location")
       .eq("user_id", user.id)
       .single();
 
@@ -60,7 +59,6 @@ export async function GET(req: NextRequest) {
         email: user.email,
         planTier: employerAccountTyped.plan_tier,
         stripeCustomerId: employerAccountTyped.stripe_customer_id,
-        createdAt: employerAccountTyped.created_at,
         industryType: employerAccountTyped.industry_type ?? null,
         claimed: employerAccountTyped.claimed ?? false,
         claimVerified: employerAccountTyped.claim_verified ?? false,
