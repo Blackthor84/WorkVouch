@@ -70,26 +70,28 @@ export async function POST(
       return NextResponse.json({ error: "Failed to update appeal" }, { status: 500 });
     }
 
+    const disputeId = appeal.dispute_id as string;
     const { data: dispute } = await admin
       .from("disputes")
       .select("id, user_id, dispute_type, status")
-      .eq("id", appeal.dispute_id)
+      .eq("id", disputeId)
       .single();
 
     await logAudit({
       entityType: "dispute",
-      entityId: appeal.dispute_id,
+      entityId: disputeId,
       changedBy: user.id,
       newValue: { appeal_id: appealId, appeal_review: parsed.data.status, notes: parsed.data.notes ?? null },
       changeReason: `Appeal ${parsed.data.status}: ${parsed.data.notes ?? ""}`,
     });
 
     if (dispute && (parsed.data.status === "approved" || parsed.data.status === "denied")) {
-      await refreshUserDisputeTransparency(dispute.user_id);
+      const disputeRow = dispute as { user_id: string; dispute_type: string };
+      await refreshUserDisputeTransparency(disputeRow.user_id);
       if (parsed.data.status === "approved") {
         await onDisputeResolvedAffectsTrust({
-          userId: dispute.user_id,
-          disputeType: dispute.dispute_type,
+          userId: disputeRow.user_id,
+          disputeType: disputeRow.dispute_type,
           adminId: user.id,
         });
       }
