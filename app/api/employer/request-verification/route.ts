@@ -48,17 +48,7 @@ export async function POST(req: NextRequest) {
 
     const supabase = await createServerSupabaseClient();
 
-    type EmployerAccountRow = {
-      id: string;
-      company_name: string;
-      plan_tier: string;
-      reports_used?: number | null;
-      searches_used?: number | null;
-      seats_used?: number | null;
-      stripe_report_overage_item_id?: string | null;
-      stripe_search_overage_item_id?: string | null;
-      stripe_seat_overage_item_id?: string | null;
-    };
+    type EmployerAccountRow = { id: string; company_name: string | null; plan_tier: string | null };
     type VerificationRequestInsert = {
       job_id: string;
       requested_by_type: string;
@@ -66,13 +56,12 @@ export async function POST(req: NextRequest) {
       status: string;
     };
 
-    // Get employer's company name and plan tier
-    const supabaseAny = admin as any;
-    const { data: employerAccount, error: employerError } = await supabaseAny
+    const { data: employerAccount, error: employerError } = await admin
       .from("employer_accounts")
-      .select("id, company_name, plan_tier, reports_used, searches_used, seats_used, stripe_report_overage_item_id, stripe_search_overage_item_id, stripe_seat_overage_item_id")
+      .select("id, company_name, plan_tier")
       .eq("user_id", user.id)
-      .single();
+      .single()
+      .returns<EmployerAccountRow | null>();
 
     if (employerError || !employerAccount) {
       return NextResponse.json(
@@ -81,12 +70,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const employerAccountTyped = employerAccount as EmployerAccountRow;
-    const tier = employerAccountTyped.plan_tier?.toLowerCase();
+    const tier = employerAccount.plan_tier?.toLowerCase();
     if (tier === "lite" || tier === "free" || tier === "basic" || !tier) {
       const { checkVerificationLimit } =
         await import("@/lib/utils/verification-limit");
-      const limitCheck = await checkVerificationLimit(employerAccountTyped.id);
+      const limitCheck = await checkVerificationLimit(employerAccount.id);
       if (!limitCheck.canVerify) {
         return NextResponse.json(
           {
@@ -100,12 +88,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Verify job history exists and is for this employer
-    const { data: jobHistory, error: jobError } = await supabaseAny
+    type JobHistoryRow = { id: string; company_name: string | null; user_id: string | null };
+    const { data: jobHistory, error: jobError } = await admin
       .from("jobs")
       .select("id, company_name, user_id")
       .eq("id", data.jobHistoryId)
-      .single();
+      .single()
+      .returns<JobHistoryRow | null>();
 
     if (jobError || !jobHistory) {
       return NextResponse.json(
@@ -114,13 +103,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    type JobHistoryRow = { id: string; company_name: string; user_id?: string };
-    const jobHistoryTyped = jobHistory as JobHistoryRow;
-
-    if (
-      jobHistoryTyped.company_name.toLowerCase() !==
-      employerAccountTyped.company_name.toLowerCase()
-    ) {
+    const empName = (employerAccount.company_name ?? "").toLowerCase();
+    const jobName = (jobHistory.company_name ?? "").toLowerCase();
+    if (jobName !== empName) {
       return NextResponse.json(
         { error: "Unauthorized to request verification for this job history" },
         { status: 403 },
@@ -128,13 +113,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Create verification request
-    const { data: verificationRequest, error: createError } = await supabaseAny
+    const { data: verificationRequest, error: createError } = await admin
       .from("verification_requests")
       .insert([
         {
           job_id: data.jobHistoryId,
           requested_by_type: "employer",
-          requested_by_id: employerAccountTyped.id,
+          requested_by_id: employerAccount.id,
           status: "pending",
         },
       ] as VerificationRequestInsert[])
@@ -149,17 +134,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await incrementUsage(employerAccountTyped.id, "report", 1);
+    await incrementUsage(employerAccount.id, "report", 1);
 
     try {
-      const jobUserId = jobHistoryTyped.user_id;
+      const jobUserId = jobHistory.user_id;
       if (jobUserId) {
-        const metrics = await calculateEnterpriseMetrics(jobUserId, employerAccountTyped.id);
+        const metrics = await calculateEnterpriseMetrics(jobUserId, employerAccount.id);
         if (metrics) {
-          const adminSupabase = admin as any;
-          await adminSupabase.from("enterprise_metrics").insert({
+            await admin.from("enterprise_metrics").insert({
             user_id: jobUserId,
-            employer_id: employerAccountTyped.id,
+            employer_id: employerAccount.id,
             rehire_probability: metrics.rehire_probability,
             compatibility_score: metrics.compatibility_score,
             workforce_risk_score: metrics.workforce_risk_score,
@@ -169,9 +153,9 @@ export async function POST(req: NextRequest) {
         const { triggerProfileIntelligence, triggerEmployerIntelligence } = await import("@/lib/intelligence/engines");
         try {
           await triggerProfileIntelligence(jobUserId);
-          await triggerEmployerIntelligence(employerAccountTyped.id);
+          await triggerEmployerIntelligence(employerAccount.id);
         } catch (err: unknown) {
-          console.error("[API][request-verification] enterprise intelligence", { jobUserId, employerId: employerAccountTyped.id, err });
+          console.error("[API][request-verification] enterprise intelligence", { jobUserId, employerId: employerAccount.id, err });
         }
       }
     } catch (err: unknown) {
@@ -191,10 +175,10 @@ export async function POST(req: NextRequest) {
       admin_profile_id: user.id,
       action: "verification_requested",
       target_type: "organization",
-      target_id: employerAccountTyped.id,
+      target_id: employerAccount.id,
       new_value: {
-        employer_id: employerAccountTyped.id,
-        profile_id: jobHistoryTyped.user_id ?? undefined,
+        employer_id: employerAccount.id,
+        profile_id: jobHistory.user_id ?? undefined,
         details: JSON.stringify({ job_id: data.jobHistoryId }),
       },
     });

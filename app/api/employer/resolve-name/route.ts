@@ -26,13 +26,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ query: "", matches: [], suggestedMatch: null });
     }
 
-    const supabase = await createServerSupabaseClient();
-    const { data: rows } = await admin.from("employer_accounts")
-      .select("id, company_name, claimed, claim_verified")
+    type EmployerRow = { id: string; company_name: string | null };
+    const { data: rows } = await admin
+      .from("employer_accounts")
+      .select("id, company_name")
       .ilike("company_name", `%${q}%`)
-      .limit(20);
+      .limit(20)
+      .returns<EmployerRow[]>();
 
-    const list = (rows ?? []) as EmployerAccountRow[];
+    const list: EmployerAccountRow[] = (rows ?? []).map((r) => ({
+      id: r.id,
+      company_name: r.company_name ?? "",
+    }));
     const result = resolveEmployerNameFromRows(q, list);
 
     return NextResponse.json(result);

@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
+import type { Database } from "@/types/supabase";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { canFileDispute } from "@/lib/middleware/plan-enforcement-supabase";
-import { Database } from "@/types/database";
 import { z } from "zod";
+
+type EmployerAccountRow = Pick<Database["public"]["Tables"]["employer_accounts"]["Row"], "id" | "company_name">;
+type JobRow = Pick<Database["public"]["Tables"]["jobs"]["Row"], "id" | "company_name" | "user_id">;
 
 const fileDisputeSchema = z.object({
   jobHistoryId: z.string().uuid(),
@@ -40,13 +43,6 @@ export async function POST(req: NextRequest) {
 
     const supabase = await createServerSupabaseClient();
 
-    // Type definitions for tables not in Database types yet
-    type EmployerAccountRow = {
-      id: string;
-      company_name: string;
-      user_id: string;
-    };
-    type JobHistoryRow = { id: string; company_name: string };
     type EmployerDisputeInsert = {
       employer_account_id: string;
       job_id: string;
@@ -55,12 +51,12 @@ export async function POST(req: NextRequest) {
     };
 
     // Get employer's company name
-    const supabaseAny = admin as any;
-    const { data: employerAccount, error: employerError } = await supabaseAny
+    const { data: employerAccount, error: employerError } = await admin
       .from("employer_accounts")
       .select("id, company_name")
       .eq("user_id", user.id)
-      .single();
+      .single()
+      .overrideTypes<EmployerAccountRow>();
 
     if (employerError || !employerAccount) {
       return NextResponse.json(
@@ -70,11 +66,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify job history exists and is for this employer
-    const { data: jobHistory, error: jobError } = await supabaseAny
+    const { data: jobHistory, error: jobError } = await admin
       .from("jobs")
       .select("id, company_name")
       .eq("id", data.jobHistoryId)
-      .single();
+      .single()
+      .overrideTypes<Pick<JobRow, "id" | "company_name">>();
 
     if (jobError || !jobHistory) {
       return NextResponse.json(
@@ -83,13 +80,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const jobHistoryTyped = jobHistory as JobHistoryRow;
-    const employerAccountTyped = employerAccount as EmployerAccountRow;
-
-    if (
-      jobHistoryTyped.company_name.toLowerCase() !==
-      employerAccountTyped.company_name.toLowerCase()
-    ) {
+    const jobName = (jobHistory?.company_name ?? "").toLowerCase();
+    const empName = (employerAccount?.company_name ?? "").toLowerCase();
+    if (jobName !== empName) {
       return NextResponse.json(
         { error: "Unauthorized to dispute this job history" },
         { status: 403 },
@@ -97,11 +90,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Create dispute
-    const { data: dispute, error: disputeError } = await supabaseAny
+    const { data: dispute, error: disputeError } = await admin
       .from("employer_disputes")
       .insert([
         {
-          employer_account_id: employerAccountTyped.id,
+          employer_account_id: employerAccount!.id,
           job_id: data.jobHistoryId,
           dispute_reason: data.disputeReason,
           status: "open",
@@ -125,8 +118,13 @@ export async function POST(req: NextRequest) {
       .eq("id", data.jobHistoryId);
 
     // Refresh guard credential score (Security Agency) for the candidate
-    const { data: job } = await supabaseAny.from("jobs").select("user_id").eq("id", data.jobHistoryId).single();
-    const userId = (job as { user_id?: string } | null)?.user_id;
+    const { data: job } = await admin
+      .from("jobs")
+      .select("user_id")
+      .eq("id", data.jobHistoryId)
+      .single()
+      .overrideTypes<Pick<JobRow, "user_id">>();
+    const userId = job?.user_id;
     if (userId) {
       const { calculateCredentialScore } = await import("@/lib/security/credentialScore");
       try {

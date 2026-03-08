@@ -7,15 +7,9 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { hasRole } from "@/lib/auth";
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function validateEmail(email: string): boolean {
-  return EMAIL_REGEX.test(email.trim());
-}
-
 /**
  * PATCH /api/employer/update-company
- * Employer only. Editable: company_name, contact_email.
+ * Employer only. Editable: company_name.
  * Logs to admin_audit_logs with action "employer_update_company".
  */
 export async function PATCH(request: Request) {
@@ -32,23 +26,19 @@ export async function PATCH(request: Request) {
     const userId = user.id as string;
     const body = await request.json();
     const company_name = typeof body.company_name === "string" ? body.company_name.trim() : undefined;
-    const contact_email = typeof body.contact_email === "string" ? body.contact_email.trim().toLowerCase() : undefined;
 
     if (company_name !== undefined && company_name.length < 2) {
       return NextResponse.json({ error: "company_name must be at least 2 characters" }, { status: 400 });
     }
-    if (contact_email !== undefined && contact_email !== "" && !validateEmail(contact_email)) {
-      return NextResponse.json({ error: "Invalid contact_email format" }, { status: 400 });
-    }
 
     const admin = getServiceRoleClient();
-    const supabaseAny = admin as any;
-
-    const { data: account, error: fetchErr } = await supabaseAny
+    type EmployerRow = { id: string; user_id: string; company_name: string | null };
+    const { data: account, error: fetchErr } = await admin
       .from("employer_accounts")
-      .select("id, user_id, company_name, contact_email")
+      .select("id, user_id, company_name")
       .eq("user_id", userId)
-      .single();
+      .single()
+      .returns<EmployerRow | null>();
 
     if (fetchErr || !account) {
       return NextResponse.json({ error: "Employer account not found" }, { status: 404 });
@@ -56,13 +46,12 @@ export async function PATCH(request: Request) {
 
     const updates: Record<string, unknown> = {};
     if (company_name !== undefined) updates.company_name = company_name;
-    if (contact_email !== undefined) updates.contact_email = contact_email || null;
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ success: true });
     }
 
-    const previous_value = { company_name: account.company_name, contact_email: account.contact_email ?? null };
-    const { error: updateErr } = await supabaseAny
+    const previous_value = { company_name: account.company_name };
+    const { error: updateErr } = await admin
       .from("employer_accounts")
       .update(updates)
       .eq("id", account.id);
@@ -71,8 +60,8 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Failed to update company" }, { status: 500 });
     }
 
-    const new_value = { company_name: company_name ?? account.company_name, contact_email: contact_email ?? account.contact_email ?? null };
-    await supabaseAny.from("admin_audit_logs").insert({
+    const new_value = { company_name: company_name ?? account.company_name };
+    await admin.from("admin_audit_logs").insert({
       admin_id: userId,
       target_user_id: userId,
       action: "employer_update_company",

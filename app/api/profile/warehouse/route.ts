@@ -32,8 +32,7 @@ export async function POST(req: Request) {
 
     const supabase = await createServerSupabaseClient();
 
-    // Update the profile with warehouse-specific data
-    // Note: warehouse-specific fields may not be in Database types yet
+    // Update the profile with warehouse-specific data (fields may exist in DB but not in generated types)
     const { error: updateError } = await admin
       .from("profiles")
       .update({
@@ -41,7 +40,7 @@ export async function POST(req: Request) {
         equipment_operated: equipmentOperated || [],
         warehouse_responsibilities: responsibilities || [],
         warehouse_certifications: certifications || [],
-      })
+      } as Record<string, unknown>)
       .eq("id", user.id);
 
     if (updateError) {

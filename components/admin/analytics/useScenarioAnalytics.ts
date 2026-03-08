@@ -13,17 +13,21 @@ function toNumber(v: unknown): number {
   return 0;
 }
 
+type RehireBreakdownRow = { playground_scenario_id: string; would_rehire: boolean; total: unknown };
+
 export function useRehireBreakdown(scenarioId: string | null) {
   return useQuery({
     queryKey: ["rehire", scenarioId],
     queryFn: async () => {
+      const id = scenarioId ?? "";
       const { data: rows, error } = await supabaseBrowser
         .from("playground_rehire_breakdown")
         .select("*")
-        .eq("playground_scenario_id", scenarioId);
+        .eq("playground_scenario_id", id)
+        .overrideTypes<RehireBreakdownRow[]>();
       if (error) throw error;
       return (rows ?? []).map(
-        (r: { playground_scenario_id: string; would_rehire: boolean; total: unknown }): ScenarioRehireRow => ({
+        (r): ScenarioRehireRow => ({
           playground_scenario_id: r.playground_scenario_id,
           would_rehire: r.would_rehire,
           total: toNumber(r.total),
@@ -60,8 +64,9 @@ export function useEmployerDamage(scenarioId: string | null) {
           setData(undefined);
           return;
         }
+        type EmployerDamageRowRpc = { job_id: string; avg_rating: unknown };
         setData(
-          (rows ?? []).map((r: { job_id: string; avg_rating: unknown }) => ({
+          ((rows as EmployerDamageRowRpc[] | null) ?? []).map((r) => ({
             job_id: r.job_id,
             avg_rating: toNumber(r.avg_rating),
           }))
@@ -107,14 +112,13 @@ export function useReputationHeatmap(scenarioId: string | null) {
           setData(undefined);
           return;
         }
+        type HeatmapRow = { would_rehire: boolean; intensity: unknown; reputation_score: unknown };
         setData(
-          (rows ?? []).map(
-            (r: { would_rehire: boolean; intensity: unknown; reputation_score: unknown }) => ({
-              would_rehire: r.would_rehire,
-              intensity: toNumber(r.intensity),
-              reputation_score: toNumber(r.reputation_score),
-            })
-          )
+          ((rows as HeatmapRow[] | null) ?? []).map((r) => ({
+            would_rehire: r.would_rehire,
+            intensity: toNumber(r.intensity),
+            reputation_score: toNumber(r.reputation_score),
+          }))
         );
       } catch (err) {
         console.error(err);

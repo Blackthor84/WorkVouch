@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import type { Database } from "@/types/supabase";
 import { NextResponse, type NextRequest } from "next/server";
 import {
   IMPERSONATION_SIMULATION_COOKIE,
@@ -91,7 +92,7 @@ export async function proxy(req: NextRequest) {
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (url && anonKey) {
     try {
-      const supabase = createServerClient(url, anonKey, {
+      const supabase = createServerClient<Database>(url, anonKey, {
         cookies: {
           getAll() {
             return req.cookies.getAll();

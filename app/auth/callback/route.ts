@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import type { Database } from "@/types/supabase";
 import { getPostLoginRedirect } from "@/lib/auth/getPostLoginRedirect";
 
 export const runtime = "nodejs";
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
 
     const cookieStore = await cookies();
 
-    const supabase = createServerClient(url, anonKey, {
+    const supabase = createServerClient<Database>(url, anonKey, {
       cookies: {
         getAll() {
           return cookieStore.getAll();
@@ -44,7 +45,7 @@ export async function GET(request: Request) {
 
     const { data, error } = await supabase
       .from("profiles")
-      .select("role, onboarding_completed, full_name, industry")
+      .select("role, full_name, industry")
       .eq("id", user.id)
       .single();
 

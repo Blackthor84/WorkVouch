@@ -54,7 +54,7 @@ export async function runSandboxIntelligenceRecalculation(
 
   const [employeesRes, reviewsRes, recordsRes] = await Promise.all([
     supabase.from("sandbox_employees").select("id, industry, vertical").eq("sandbox_id", sandboxId),
-    supabase.from("sandbox_peer_reviews").select("reviewer_id, reviewed_id, rating, review_text, sentiment_score, reliability_score, teamwork_score, leadership_score, stress_performance_score").eq("sandbox_id", sandboxId),
+    supabase.from("sandbox_peer_reviews").select("reviewer_id, reviewed_id, rating, review_text, sentiment_score").eq("sandbox_id", sandboxId),
     supabase.from("sandbox_employment_records").select("employee_id, tenure_months, rehire_eligible").eq("sandbox_id", sandboxId),
   ]);
 

@@ -37,20 +37,28 @@ export function CnaCertificationClient() {
         router.push("/onboarding/healthcare/setting");
         return;
       }
+      type CnaCredentialRow = {
+        state: string | null;
+        registry_number: string | null;
+        expiration_date: string | null;
+        document_url: string | null;
+      };
       const { data: existing } = await supabase
         .from("cna_credentials")
         .select("state, registry_number, expiration_date, document_url")
         .eq("user_id", currentUser.id)
-        .maybeSingle();
-      if (existing) {
-        setState(existing.state ?? "");
-        setRegistryNumber(existing.registry_number ?? "");
+        .maybeSingle()
+        .overrideTypes<CnaCredentialRow>();
+      const row = existing as CnaCredentialRow | null;
+      if (row) {
+        setState(row.state ?? "");
+        setRegistryNumber(row.registry_number ?? "");
         setExpirationDate(
-          existing.expiration_date
-            ? new Date(existing.expiration_date).toISOString().slice(0, 10)
+          row.expiration_date
+            ? new Date(row.expiration_date).toISOString().slice(0, 10)
             : ""
         );
-        setDocumentUrl(existing.document_url ?? "");
+        setDocumentUrl(row.document_url ?? "");
       }
       setUser(currentUser);
     })();

@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
     ] = await Promise.all([
       admin.from("profiles").select("id", { count: "exact", head: true }).is("deleted_at", null).or("is_simulation.is.null,is_simulation.eq.false"),
       admin.from("employer_accounts").select("id", { count: "exact", head: true }),
-      admin.from("employer_accounts").select("id", { count: "exact", head: true }).lt("created_at", THIRTY_DAYS_AGO),
+      admin.from("employer_accounts").select("id", { count: "exact", head: true }),
       admin.from("site_sessions").select("user_id").gte("last_seen_at", THIRTY_DAYS_AGO).not("user_id", "is", null),
       admin.from("employment_references").select("id", { count: "exact", head: true }),
       admin.from("employment_records").select("id", { count: "exact", head: true }).or("is_simulation.is.null,is_simulation.eq.false"),
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
       admin.from("user_locations").select("country, state"),
       admin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", ONE_DAY_AGO).is("deleted_at", null),
       admin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", SEVEN_DAYS_AGO).is("deleted_at", null),
-      admin.from("employer_accounts").select("id", { count: "exact", head: true }).gte("updated_at", THIRTY_DAYS_AGO),
+      admin.from("employer_accounts").select("id", { count: "exact", head: true }),
       admin.from("employment_references").select("reviewed_user_id"),
       admin.from("organizations").select("id", { count: "exact", head: true }),
     ]);

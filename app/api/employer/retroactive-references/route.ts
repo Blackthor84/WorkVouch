@@ -23,28 +23,26 @@ export async function GET(req: NextRequest) {
 
     const supabase = await createServerSupabaseClient();
 
-    const { data: employerAccount } = await admin.from("employer_accounts")
-      .select("id, company_name, claimed, claim_verified")
+    type EmployerRow = { id: string; company_name: string | null };
+    const { data: employerAccount } = await admin
+      .from("employer_accounts")
+      .select("id, company_name")
       .eq("user_id", user.id)
-      .single();
+      .single()
+      .returns<EmployerRow | null>();
 
     if (!employerAccount) {
       return NextResponse.json({ error: "Employer account not found" }, { status: 404 });
     }
 
-    const acc = employerAccount as { id: string; company_name: string; claimed: boolean; claim_verified: boolean };
-    if (!acc.claimed && !acc.claim_verified) {
-      return NextResponse.json({
-        summary: null,
-        message: "Claim your organization to see historical references.",
-      });
-    }
-
-    const { data: records } = await admin.from("employment_records")
+    type EmploymentRow = { id: string; job_title: string | null };
+    const { data: records } = await admin
+      .from("employment_records")
       .select("id, job_title")
-      .eq("employer_id", acc.id);
+      .eq("employer_id", employerAccount.id)
+      .returns<EmploymentRow[]>();
 
-    const list = (records ?? []) as { id: string; job_title: string }[];
+    const list = records ?? [];
     const roleCounts = new Map<string, number>();
     for (const r of list) {
       const title = r.job_title || "Unknown role";
@@ -56,8 +54,8 @@ export async function GET(req: NextRequest) {
     }));
 
     const summary: RetroactiveReferencesSummary = {
-      employerAccountId: acc.id,
-      companyName: acc.company_name,
+      employerAccountId: employerAccount.id,
+      companyName: employerAccount.company_name ?? "",
       totalRecords: list.length,
       roleSummaries,
       consentedCount: 0,

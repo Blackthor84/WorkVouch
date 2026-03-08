@@ -46,7 +46,7 @@ export async function GET(
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
     const result = await getEmployerRiskAlerts(
-      supabase as Parameters<typeof getEmployerRiskAlerts>[0],
+      admin as Parameters<typeof getEmployerRiskAlerts>[0],
       candidateId
     );
     return NextResponse.json(result satisfies EmployerRiskResponse);

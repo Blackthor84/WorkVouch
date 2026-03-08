@@ -3,7 +3,7 @@
  * ⚠️ MUST remain secret — never expose to browser. Only use in API routes and server code.
  */
 import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/database";
+import type { Database } from "@/types/supabase";
 
 export const admin = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

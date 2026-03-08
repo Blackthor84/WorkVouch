@@ -25,8 +25,8 @@ function confidenceScore(input: string, candidate: string): number {
 export interface EmployerAccountRow {
   id: string;
   company_name: string;
-  claimed: boolean;
-  claim_verified: boolean;
+  claimed?: boolean;
+  claim_verified?: boolean;
 }
 
 /**
@@ -42,9 +42,9 @@ export function resolveEmployerNameFromRows(
 
   const matches: EmployerResolutionMatch[] = rows.map((row) => {
     const confidence = confidenceScore(q, row.company_name);
-    const status = row.claim_verified
+    const status = row.claim_verified === true
       ? ("claimed_verified" as const)
-      : row.claimed
+      : row.claimed === true
         ? ("pending_claim" as const)
         : ("unclaimed" as const);
     return {

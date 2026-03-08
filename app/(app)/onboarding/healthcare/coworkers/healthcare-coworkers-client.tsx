@@ -27,12 +27,14 @@ export function HealthcareCoworkersClient() {
       .catch(() => setEffectiveUser(null));
   }, []);
 
+  type CoworkerRow = { id?: string; coworker_name: string };
   const fetchCoworkers = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from("coworker_matches")
-        .select("*")
-        .eq("user_id", userId);
+        .select("id, coworker_name")
+        .eq("user_id", userId)
+        .overrideTypes<CoworkerRow[]>();
 
       if (error) {
         console.error("Error fetching coworkers:", error);
@@ -74,8 +76,9 @@ export function HealthcareCoworkersClient() {
             coworker_name: input.trim(),
           },
         ])
-        .select()
-        .single();
+        .select("id, coworker_name")
+        .single()
+        .overrideTypes<CoworkerRow>();
 
       if (error) {
         console.error("Error adding coworker:", error);

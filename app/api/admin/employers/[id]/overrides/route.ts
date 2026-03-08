@@ -25,7 +25,8 @@ export async function PATCH(
     const { id: employerId } = await params;
     if (!employerId) return NextResponse.json({ success: false, error: "Missing employer id" }, { status: 400 });
     const body = await req.json().catch(() => ({})) as Record<string, unknown>;
-    const { data: employer } = await admin.from("employer_accounts").select("id, user_id").eq("id", employerId).single();
+    type EmployerRow = { id: string };
+    const { data: employer } = await admin.from("employer_accounts").select("id").eq("id", employerId).single().returns<EmployerRow | null>();
     if (!employer) return NextResponse.json({ success: false, error: "Employer not found" }, { status: 404 });
     const updates: Record<string, unknown> = {};
     if (body.plan_tier !== undefined) updates.plan_tier = body.plan_tier;

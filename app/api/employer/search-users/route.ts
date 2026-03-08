@@ -48,22 +48,13 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createServerSupabaseClient();
-    type EmployerAccountRow = {
-      id: string;
-      plan_tier: string | null;
-      industry_type: string | null;
-      reports_used: number;
-      searches_used: number;
-      seats_used: number;
-      stripe_report_overage_item_id: string | null;
-      stripe_search_overage_item_id: string | null;
-      stripe_seat_overage_item_id: string | null;
-    };
-    const { data: employerAccount } = await admin.from("employer_accounts")
-      .select("id, plan_tier, industry_type, reports_used, searches_used, seats_used, stripe_report_overage_item_id, stripe_search_overage_item_id, stripe_seat_overage_item_id")
+    type EmployerRow = { id: string; plan_tier: string | null };
+    const { data: employerAccount } = await admin
+      .from("employer_accounts")
+      .select("id, plan_tier")
       .eq("user_id", user.id)
-      .single();
-    // industry_type used by UI for emphasis ordering only; core trust score is single stored value
+      .single()
+      .returns<EmployerRow | null>();
     if (!employerAccount) {
       return NextResponse.json(
         { error: "Employer account not found" },
@@ -71,7 +62,7 @@ export async function GET(request: NextRequest) {
       );
     }
     const result = await enforceLimit(
-      { ...employerAccount, plan_tier: employerAccount.plan_tier ?? "" },
+      { plan_tier: employerAccount.plan_tier ?? "" },
       "searches"
     );
     if (!result.allowed) {
@@ -143,14 +134,14 @@ export async function GET(request: NextRequest) {
 
     const userIds = (candidates as { user_id: string }[]).map((c) => c.user_id);
 
+    type SkillRow = { user_id: string; skill_name: string };
     const [auditScoresMap, skillsResult, trajectoryMap] = await Promise.all([
       getEmployeeAuditScoresBatch(userIds),
-      admin.from("skills").select("user_id, skill_name").in("user_id", userIds),
+      admin.from("skills").select("user_id, skill_name").in("user_id", userIds).returns<SkillRow[]>(),
       getTrustTrajectoryBatch(userIds),
     ]);
 
-    type SkillRow = { user_id: string; skill_name: string };
-    const skillsData = skillsResult.data as SkillRow[] | null;
+    const skillsData: SkillRow[] | null = skillsResult.data ?? null;
     const skillsByUser = new Map<string, string[]>();
     if (skillsData) {
       skillsData.forEach((s) => {
@@ -206,7 +197,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       users,
-      employerIndustryType: employerAccount.industry_type ?? null,
+      employerIndustryType: null,
     });
   } catch (error) {
     console.error("Search users error:", error);

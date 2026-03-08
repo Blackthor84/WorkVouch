@@ -13,14 +13,6 @@ import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export const dynamic = "force-dynamic";
 
-interface EmployerAccountRow {
-  id: string;
-  workforce_risk_average: number | null;
-  workforce_high_risk_count: number | null;
-  workforce_risk_confidence: number | null;
-  workforce_last_calculated: string | null;
-}
-
 interface ProfileRiskRow {
   id: string;
   risk_snapshot: {
@@ -53,30 +45,36 @@ export async function GET() {
       return NextResponse.json({ error: "Feature not enabled" }, { status: 403 });
     }
 
-    const eaResult = await admin.from("employer_accounts").select("id, workforce_risk_average, workforce_high_risk_count, workforce_risk_confidence, workforce_last_calculated").eq("user_id", user.id);
-    const ea = (Array.isArray(eaResult.data) ? eaResult.data[0] : eaResult.data) as EmployerAccountRow | undefined;
+    type EmployerRow = { id: string };
+    const eaResult = await admin
+      .from("employer_accounts")
+      .select("id")
+      .eq("user_id", user.id)
+      .returns<EmployerRow[]>();
+    const eaList = eaResult.data ?? [];
+    const ea = Array.isArray(eaList) ? eaList[0] : eaList;
     if (eaResult.error || !ea) {
       return NextResponse.json({ error: "Employer account not found" }, { status: 404 });
     }
 
     const employerId = ea.id;
 
-    // Optional: one profile's risk_snapshot for component bars (first from rehire_registry for this employer)
-    const rrResult = await admin.from("rehire_registry").select("profile_id").eq("employer_id", employerId);
-    const rrData = (rrResult.data ?? []) as { profile_id: string }[];
+    type RehireRow = { profile_id: string };
+    const rrResult = await admin.from("rehire_registry").select("profile_id").eq("employer_id", employerId).returns<RehireRow[]>();
+    const rrData = rrResult.data ?? [];
     const profileIds = rrData.map((r) => r.profile_id).slice(0, 1);
     let riskSnapshotSample: ProfileRiskRow["risk_snapshot"] = null;
     if (profileIds.length > 0) {
-      const profResult = await admin.from("profiles").select("id, risk_snapshot").in("id", profileIds);
-      const first = (Array.isArray(profResult.data) ? profResult.data[0] : profResult.data) as ProfileRiskRow | undefined;
+      const profResult = await admin.from("profiles").select("id, risk_snapshot").in("id", profileIds).returns<ProfileRiskRow[]>();
+      const first = (profResult.data ?? [])[0];
       if (first?.risk_snapshot) riskSnapshotSample = first.risk_snapshot;
     }
 
     const baseData = {
-      workforceRiskAverage: ea.workforce_risk_average ?? null,
-      workforceHighRiskCount: ea.workforce_high_risk_count ?? 0,
-      workforceRiskConfidence: ea.workforce_risk_confidence ?? null,
-      workforceLastCalculated: ea.workforce_last_calculated ?? null,
+      workforceRiskAverage: null as number | null,
+      workforceHighRiskCount: 0,
+      workforceRiskConfidence: null as number | null,
+      workforceLastCalculated: null as string | null,
       riskSnapshotSample: riskSnapshotSample ?? null,
     };
     const authUser = await getUser();

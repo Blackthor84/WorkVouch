@@ -225,7 +225,7 @@ export async function submitSandboxReference(
     ok: true,
     review: {
       id: data.id,
-      rating: data.rating,
+      rating: data.rating ?? 0,
       sentiment_score: data.sentiment_score ?? null,
     },
   };

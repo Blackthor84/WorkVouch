@@ -30,17 +30,19 @@ export default function VerifiedWorkTimeline({ profileId }: VerifiedWorkTimeline
     async function load() {
       const { data: jobsData } = await supabase
         .from("jobs")
-        .select("*")
+        .select("id, job_title, company_name, user_id, start_date, end_date")
         .eq("user_id", profileId)
-        .order("start_date", { ascending: false });
+        .order("start_date", { ascending: false })
+        .overrideTypes<Job[]>();
 
       const { data: verifyData } = await supabase
         .from("trust_events")
-        .select("*")
-        .eq("profile_id", profileId);
+        .select("id, event_type, payload")
+        .eq("profile_id", profileId)
+        .overrideTypes<TrustEvent[]>();
 
-      setJobs((jobsData as Job[]) || []);
-      setVerifications((verifyData as TrustEvent[]) || []);
+      setJobs(jobsData ?? []);
+      setVerifications(verifyData ?? []);
     }
 
     load();

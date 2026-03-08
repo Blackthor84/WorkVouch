@@ -53,15 +53,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ employers: [], total: 0 });
     }
 
+    type EmployerRow = { id: string; company_name: string | null };
     const { data: accounts } = await admin
       .from("employer_accounts")
-      .select("id, company_name, industry_type")
-      .in("id", employerIds);
+      .select("id, company_name")
+      .in("id", employerIds)
+      .returns<EmployerRow[]>();
 
-    const accountMap = new Map<string, { company_name: string; industry_type?: string }>();
+    const accountMap = new Map<string, { company_name: string | null }>();
     for (const a of accounts ?? []) {
-      const row = a as { id: string; company_name: string; industry_type?: string };
-      accountMap.set(row.id, { company_name: row.company_name, industry_type: row.industry_type });
+      accountMap.set(a.id, { company_name: a.company_name });
     }
 
     type SnapshotRow = {
@@ -74,7 +75,7 @@ export async function GET(req: NextRequest) {
     let results = list.map((s: SnapshotRow) => ({
       employer_id: s.employer_id,
       company_name: accountMap.get(s.employer_id)?.company_name ?? "—",
-      industry_type: accountMap.get(s.employer_id)?.industry_type ?? null,
+      industry_type: null as string | null,
       reputation_score: Number(s.reputation_score),
       percentile_rank: s.percentile_rank != null ? Number(s.percentile_rank) : null,
       industry_percentile_rank: s.industry_percentile_rank != null ? Number(s.industry_percentile_rank) : null,

@@ -24,11 +24,6 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const effectiveUserId = effective.id;
-    const { data: profile } = await admin
-      .from("profiles")
-      .select("active_dispute_count, trust_score_under_review")
-      .eq("id", effectiveUserId)
-      .single();
 
     const { data: openDisputes } = await admin
       .from("disputes")
@@ -45,11 +40,12 @@ export async function GET() {
       .limit(1)
       .maybeSingle();
 
+    const disputeList = openDisputes ?? [];
     const baseData = {
-      openDisputes: openDisputes ?? [],
+      openDisputes: disputeList,
       currentTrustScore: trustRow?.score ?? 0,
-      underReview: profile?.trust_score_under_review ?? false,
-      activeDisputeCount: profile?.active_dispute_count ?? 0,
+      underReview: false,
+      activeDisputeCount: disputeList.length,
     };
     const authUser = await getUser();
     return NextResponse.json(applyScenario(baseData, (authUser as any)?.user_metadata?.impersonation));

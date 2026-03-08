@@ -29,11 +29,14 @@ export async function GET(
     }
 
     const { id } = await params;
+    type EvidenceRow = { id: string; dispute_id: string; file_url: string };
+    type DisputeRow = { user_id: string };
     const { data: evidence, error: evidenceErr } = await admin
       .from("dispute_evidence")
       .select("id, dispute_id, file_url")
       .eq("id", id)
-      .single();
+      .single()
+      .returns<EvidenceRow | null>();
 
     if (evidenceErr || !evidence) {
       return NextResponse.json({ error: "Evidence not found" }, { status: 404 });
@@ -43,7 +46,8 @@ export async function GET(
       .from("disputes")
       .select("user_id")
       .eq("id", evidence.dispute_id)
-      .single();
+      .single()
+      .returns<DisputeRow | null>();
 
     if (!dispute || dispute.user_id !== effective.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -51,7 +55,7 @@ export async function GET(
 
     const { data: signed, error: signErr } = await admin.storage
       .from(BUCKET)
-      .createSignedUrl(evidence.file_url, EXPIRES_IN);
+      .createSignedUrl(evidence.file_url as string, EXPIRES_IN);
 
     if (signErr) {
       console.error("[dispute-evidence/signed-url] sign error:", signErr);

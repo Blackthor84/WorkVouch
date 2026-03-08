@@ -33,24 +33,17 @@ export async function POST(req: NextRequest) {
     }
 
     const { employer_id } = parsed.data;
-    const supabase = await createServerSupabaseClient();
-    const supabaseAny = admin as any;
-    const adminSupabase = admin as any;
-
-    const { data: employer } = await adminSupabase
+    type EmployerRow = { id: string; company_name: string | null };
+    const { data: employer } = await admin
       .from("employer_accounts")
-      .select("id, user_id, company_name, claimed, claim_verified")
+      .select("id, company_name")
       .eq("id", employer_id)
-      .single();
+      .single()
+      .returns<EmployerRow | null>();
 
     if (!employer) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
 
-    const acc = employer as { user_id: string; claimed?: boolean; claim_verified?: boolean };
-    if (acc.claimed && acc.claim_verified) {
-      return NextResponse.json({ error: "This company is already claimed and verified" }, { status: 400 });
-    }
-
-    const { data: existing } = await adminSupabase
+    const { data: existing } = await admin
       .from("employer_claim_requests")
       .select("id, status")
       .eq("employer_id", employer_id)
@@ -62,7 +55,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "You already have a pending claim request for this company" }, { status: 400 });
     }
 
-    const { data: inserted, error } = await adminSupabase
+    const { data: inserted, error } = await admin
       .from("employer_claim_requests")
       .insert({
         employer_id,

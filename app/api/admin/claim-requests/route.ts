@@ -41,18 +41,26 @@ export async function GET(req: NextRequest) {
     const employerIds = [...new Set(list.map((r: { employer_id: string }) => r.employer_id))];
     const userIds = [...new Set(list.map((r: { requested_by_user_id: string }) => r.requested_by_user_id))];
 
-    const { data: employers } = await admin.from("employer_accounts").select("id, company_name, user_id, claimed, claim_verified").in("id", employerIds);
-    const { data: profiles } = await admin.from("profiles").select("id, full_name, email").in("id", userIds);
+    type EmployerRow = { id: string; company_name: string | null };
+    type ProfileRow = { id: string; full_name: string | null; email: string | null };
+    const { data: employers } = await admin
+      .from("employer_accounts")
+      .select("id, company_name")
+      .in("id", employerIds)
+      .returns<EmployerRow[]>();
+    const { data: profiles } = await admin
+      .from("profiles")
+      .select("id, full_name, email")
+      .in("id", userIds)
+      .returns<ProfileRow[]>();
 
-    const employerMap = new Map<string, { company_name?: string; user_id?: string; claimed?: boolean; claim_verified?: boolean }>();
+    const employerMap = new Map<string, { company_name?: string | null }>();
     for (const e of employers ?? []) {
-      const row = e as { id: string; company_name?: string; user_id?: string; claimed?: boolean; claim_verified?: boolean };
-      employerMap.set(row.id, { company_name: row.company_name, user_id: row.user_id, claimed: row.claimed, claim_verified: row.claim_verified });
+      employerMap.set(e.id, { company_name: e.company_name });
     }
-    const profileMap = new Map<string, { full_name?: string; email?: string }>();
+    const profileMap = new Map<string, { full_name?: string | null; email?: string | null }>();
     for (const p of profiles ?? []) {
-      const row = p as { id: string; full_name?: string; email?: string };
-      profileMap.set(row.id, { full_name: row.full_name, email: row.email });
+      profileMap.set(p.id, { full_name: p.full_name, email: p.email });
     }
 
     const items = list.map((r: { id: string; employer_id: string; requested_by_user_id: string; status: string; reviewed_by: string | null; reviewed_at: string | null; created_at: string }) => ({

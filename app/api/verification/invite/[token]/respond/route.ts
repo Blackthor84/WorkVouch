@@ -65,11 +65,13 @@ export async function POST(
   }
 
   const clientIp = getClientIp(req);
+  type InviteRow = { id: string; candidate_id: string; email: string; company: string | null; status: string; expires_at: string | null };
   const { data: invite, error: fetchError } = await admin
     .from("verification_invites")
     .select("id, candidate_id, email, company, status, expires_at")
     .eq("token", token.trim())
-    .maybeSingle();
+    .maybeSingle()
+    .returns<InviteRow | null>();
 
   if (fetchError) {
     return NextResponse.json({ error: fetchError.message }, { status: 500 });
@@ -86,7 +88,7 @@ export async function POST(
 
   // 1) Invite expiration: prevents use of old/stolen links.
   if (invite.expires_at) {
-    const expiresAt = new Date(invite.expires_at).getTime();
+    const expiresAt = new Date(invite.expires_at as string).getTime();
     if (Date.now() > expiresAt) {
       return NextResponse.json(
         { error: "Verification link expired" },
@@ -97,15 +99,16 @@ export async function POST(
 
   // 2) Verification ring – Rule 1: one verifier cannot verify the same candidate twice (prevents duplicate loops).
   if (action === "confirm") {
+    type TrustEventRow = { id: string; payload: Json };
     const { data: existingEvents } = await admin
       .from("trust_events")
       .select("id, payload")
       .eq("profile_id", invite.candidate_id)
-      .in("event_type", ["coworker_verified", "coworker_verification_confirmed"]);
+      .in("event_type", ["coworker_verified", "coworker_verification_confirmed"])
+      .returns<TrustEventRow[]>();
 
-    const alreadyVerified = (existingEvents ?? []).some(
-      (e: { payload?: { verifier_id?: string } }) =>
-        e.payload?.verifier_id === invite.email
+    const alreadyVerified = (existingEvents ?? []).some((e) =>
+      (e.payload as { verifier_id?: string } | null)?.verifier_id === invite.email
     );
     if (alreadyVerified) {
       return NextResponse.json(
@@ -118,13 +121,15 @@ export async function POST(
   // 3) Same-company check: candidate’s employment company vs invite company (fraud signal).
   let companyMismatch = false;
   if (action === "confirm" && invite.company) {
+    type EmpRow = { company_name: string | null; company_normalized: string | null };
     const { data: empRows } = await admin
       .from("employment_records")
       .select("company_name, company_normalized")
-      .eq("user_id", invite.candidate_id);
+      .eq("user_id", invite.candidate_id)
+      .returns<EmpRow[]>();
 
     const inviteCompanyNorm = normalizeCompany(invite.company);
-    const candidateCompanies = (empRows ?? []).map((r: { company_name?: string; company_normalized?: string }) =>
+    const candidateCompanies = (empRows ?? []).map((r) =>
       normalizeCompany(r.company_normalized ?? r.company_name)
     );
     companyMismatch =
@@ -166,18 +171,18 @@ export async function POST(
     responded_via: "invite_link",
   };
 
-  const insertPayload: Record<string, unknown> = {
+  const insertPayload = {
     profile_id: invite.candidate_id,
     event_type: eventType,
     event_source: "invite_verification",
     impact_score: impactScore,
-    payload: payload as unknown as Json,
+    payload: payload as Json,
     verification_ip: clientIp,
   };
 
   const { error: eventError } = await admin
     .from("trust_events")
-    .insert(insertPayload);
+    .insert(insertPayload as { profile_id: string; event_type: string; event_source: string; impact_score: number; payload?: Json; verification_ip?: string | null });
 
   if (eventError) {
     console.error("[verification/invite/respond] trust_events insert", eventError);
@@ -197,7 +202,7 @@ export async function POST(
       .maybeSingle();
     const candidateCompany = (candEmp as { company_name?: string } | null)?.company_name ?? null;
     await admin.from("trust_events").insert({
-      profile_id: invite.candidate_id,
+      profile_id: invite.candidate_id as string,
       event_type: "suspicious_verification",
       event_source: "invite_verification",
       impact_score: 0,
@@ -205,7 +210,7 @@ export async function POST(
         candidate_company: candidateCompany,
         invite_company: invite.company,
         verifier_id: invite.email,
-      } as unknown as Json,
+      } as Json,
       verification_ip: clientIp,
     });
   }
@@ -217,14 +222,14 @@ export async function POST(
     verifierAccountAgeHours < ACCOUNT_AGE_HOURS_THRESHOLD
   ) {
     await admin.from("trust_events").insert({
-      profile_id: invite.candidate_id,
+      profile_id: invite.candidate_id as string,
       event_type: "low_trust_verifier",
       event_source: "invite_verification",
       impact_score: 0,
       payload: {
         verifier_id: invite.email,
         account_age_hours: Math.round(verifierAccountAgeHours * 10) / 10,
-      } as unknown as Json,
+      } as Json,
       verification_ip: clientIp,
     });
   }
@@ -308,13 +313,13 @@ export async function POST(
       }
       if (suspiciousRing) {
         await admin.from("trust_events").insert({
-          profile_id: invite.candidate_id,
+          profile_id: invite.candidate_id as string,
           event_type: "suspicious_network",
           event_source: "invite_verification",
           impact_score: 0,
           payload: {
             users_involved: "3-way mutual verification in 24h",
-          } as unknown as Json,
+          } as Json,
           verification_ip: clientIp,
         });
       }

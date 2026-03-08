@@ -23,17 +23,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = await createServerSupabaseClient();
-
-    // Type definition for employer_accounts (only columns that exist in DB)
-    type EmployerAccountRow = {
-      id: string;
-      company_name: string;
-      plan_tier: string;
-      stripe_customer_id: string | null;
-    };
-
-    const { data: employerAccount, error } = await admin.from("employer_accounts")
+    const { data: employerAccount, error } = await admin
+      .from("employer_accounts")
       .select("id, company_name, plan_tier, stripe_customer_id")
       .eq("user_id", user.id)
       .single();
@@ -45,21 +36,19 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const employerAccountTyped = employerAccount as EmployerAccountRow;
-
     const payload = {
       employer: {
-        id: employerAccountTyped.id,
-        companyName: employerAccountTyped.company_name,
+        id: employerAccount.id,
+        companyName: employerAccount.company_name,
         contactEmail: user.email ?? null,
         email: user.email,
-        planTier: employerAccountTyped.plan_tier,
-        stripeCustomerId: employerAccountTyped.stripe_customer_id,
+        planTier: employerAccount.plan_tier,
+        stripeCustomerId: employerAccount.stripe_customer_id ?? null,
       },
-      planTier: employerAccountTyped.plan_tier,
+      planTier: employerAccount.plan_tier,
     };
     const authUser = await getUser();
-    return NextResponse.json(applyScenario(payload, (authUser as any)?.user_metadata?.impersonation));
+    return NextResponse.json(applyScenario(payload, authUser?.user_metadata?.impersonation));
   } catch (error) {
     console.error("Get employer error:", error);
     return NextResponse.json(

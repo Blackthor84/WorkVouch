@@ -48,15 +48,18 @@ export async function GET() {
     let highRiskEmployeesCount = 0;
     let topCredentialScores: { user_id: string; full_name: string | null; guard_credential_score: number }[] = [];
     try {
-      const { data: vrList } = await admin.from("verification_requests").select("job_id").eq("requested_by_id", eid);
-      const jobIds = (vrList ?? []).map((r: { job_id: string }) => r.job_id);
+      type VrRow = { job_id: string };
+      type JobRow = { user_id: string | null };
+      type ProfRow = { id: string; full_name: string | null; guard_credential_score: number | null };
+      const { data: vrList } = await admin.from("verification_requests").select("job_id").eq("requested_by_id", eid).returns<VrRow[]>();
+      const jobIds = (vrList ?? []).map((r) => r.job_id);
       if (jobIds.length > 0) {
-        const { data: jobs } = await admin.from("jobs").select("user_id").in("id", jobIds);
-        const userIds = [...new Set((jobs ?? []).map((j: { user_id?: string }) => j.user_id).filter(Boolean))] as string[];
+        const { data: jobs } = await admin.from("jobs").select("user_id").in("id", jobIds).returns<JobRow[]>();
+        const userIds = [...new Set((jobs ?? []).map((j) => j.user_id).filter(Boolean))] as string[];
         if (userIds.length > 0) {
-          const { data: prof } = await admin.from("profiles").select("id, full_name, risk_score, guard_credential_score").in("id", userIds);
-          const profList = (prof ?? []) as { id: string; full_name: string | null; risk_score: number | null; guard_credential_score: number | null }[];
-          highRiskEmployeesCount = profList.filter((p) => (p.guard_credential_score != null ? p.guard_credential_score < 50 : (p.risk_score ?? 100) < 50)).length;
+          const { data: prof } = await admin.from("profiles").select("id, full_name, guard_credential_score").in("id", userIds).returns<ProfRow[]>();
+          const profList = prof ?? [];
+          highRiskEmployeesCount = profList.filter((p) => (p.guard_credential_score != null ? p.guard_credential_score < 50 : false)).length;
           topCredentialScores = profList
             .filter((p) => p.guard_credential_score != null)
             .sort((a, b) => (b.guard_credential_score ?? 0) - (a.guard_credential_score ?? 0))

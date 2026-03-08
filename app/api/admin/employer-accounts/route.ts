@@ -19,10 +19,12 @@ export async function GET() {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const role = await getCurrentUserRole();
     if (!isAdmin(role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    type EmployerRow = { id: string; company_name: string | null };
     const { data, error } = await admin
       .from("employer_accounts")
-      .select("id, company_name, user_id")
-      .order("company_name");
+      .select("id, company_name")
+      .order("company_name")
+      .returns<EmployerRow[]>();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

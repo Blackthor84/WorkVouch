@@ -43,42 +43,42 @@ export async function GET() {
 
     const supabase = await createServerSupabaseClient();
 
-    const { data: profile, error: profileError } = await admin.from("profiles")
-      .select("*")
+    type ProfileOnboardingRow = { id: string; role: string | null; full_name: string | null; industry: string | null };
+    const { data: profile, error: profileError } = await admin
+      .from("profiles")
+      .select("id, role, full_name, industry")
       .eq("id", effectiveUserId)
-      .single();
+      .single()
+      .returns<ProfileOnboardingRow | null>();
 
     const profileRow = profileError ? null : profile;
-    if (isAdmin(profileRow ?? undefined)) {
-      return NextResponse.json({ showOnboarding: false, completed: true });
-    }
-
-    const onboardingCompleted = profileRow?.onboarding_completed === true;
-    if (onboardingCompleted) {
+    if (isAdmin(profileRow ? { role: profileRow.role ?? undefined } : undefined)) {
       return NextResponse.json({ showOnboarding: false, completed: true });
     }
 
     const isEmployer = (profileRow?.role ?? "").toLowerCase() === "employer";
 
     if (isEmployer) {
-      const { data: employerAccount, error: employerError } = await admin.from("employer_accounts")
-        .select("*")
+      type EmployerRow = { id: string };
+      const { data: employerAccount, error: employerError } = await admin
+        .from("employer_accounts")
+        .select("id")
         .eq("user_id", effectiveUserId)
-        .single();
+        .single()
+        .returns<EmployerRow | null>();
 
       const employerId = employerError ? undefined : employerAccount?.id;
       let verificationCount = 0;
       if (employerId) {
         const { count } = await admin.from("verification_requests")
-          .select("*", { count: "exact", head: true })
+          .select("id", { count: "exact", head: true })
           .eq("requested_by_id", employerId)
           .eq("requested_by_type", "employer");
         verificationCount = count ?? 0;
       }
 
-      const seatsUsed = employerAccount?.seats_used ?? employerAccount?.seats_allowed ?? 1;
       const hasVerifications = verificationCount > 0;
-      const hasSeats = Number(seatsUsed) > 0;
+      const hasSeats = true;
 
       const showOnboarding = !hasVerifications || !hasSeats;
       return NextResponse.json({
