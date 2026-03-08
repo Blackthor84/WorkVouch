@@ -4,8 +4,8 @@ import { createServerClient } from "@supabase/ssr";
 /**
  * Main server Supabase client
  */
-export function createClient() {
-  const cookieStore = cookies();
+export async function createClient() {
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,6 +23,6 @@ export function createClient() {
 /**
  * Backwards compatibility for existing imports
  */
-export function createServerSupabaseClient() {
+export async function createServerSupabaseClient() {
   return createClient();
 }
