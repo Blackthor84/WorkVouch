@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import { TrustBadgeTier } from "@/components/TrustBadgeTier";
 
 type ScoreResponse = {
   score: number;
+  /** Confidence score in points (+20 job, +10 per verification, +5 bonus for 2+). */
+  confidenceScore?: number;
   components?: {
     verifiedEmployments?: number;
     referenceCount?: number;
@@ -51,22 +54,28 @@ export default function ConfidenceScore() {
   }
 
   const score = data ? Math.max(0, Math.min(100, data.score)) : 0;
+  const confidencePoints = Math.max(0, data?.confidenceScore ?? 0);
+  const displayPercent = Math.min(100, confidencePoints);
   const comp = data?.components ?? {};
   const hasVerifiedCoworkers = (comp.referenceCount ?? 0) > 0;
   const hasVerifiedJobHistory = (comp.verifiedEmployments ?? 0) > 0;
   const hasResumeConsistency = score >= 30;
 
   return (
-    <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-6 mb-8 bg-white dark:bg-gray-900">
+    <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-6 mb-8 bg-white dark:bg-gray-900 shadow-sm">
       <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Confidence Score</h2>
       <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">A trust score for employment — how trustworthy your resume is.</p>
       <div className="w-full bg-gray-200 dark:bg-gray-700 h-4 rounded-full mt-4 overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all duration-500 ${getBarColor(score)}`}
-          style={{ width: `${score}%` }}
+          className={`h-full rounded-full transition-all duration-500 ${getBarColor(displayPercent)}`}
+          style={{ width: `${displayPercent}%` }}
         />
       </div>
-      <p className="mt-2 font-bold text-2xl text-gray-900 dark:text-gray-100">{Math.round(score)}%</p>
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{confidencePoints} pts</p>
+        <TrustBadgeTier score={confidencePoints} />
+      </div>
+      {confidencePoints >= 100 && <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Max display 100%</p>}
       <ul className="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
         <li className="flex items-center gap-2">
           {hasVerifiedCoworkers ? (

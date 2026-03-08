@@ -30,8 +30,22 @@ export async function GET() {
     const score = Math.max(0, Math.min(100, Number((row as { score?: number } | null)?.score ?? 0)));
     const components: TrustScoreComponents = await getTrustScoreComponents(effective.id);
 
+    // Confidence score (points): +20 verified job, +10 per coworker verification, +5 bonus for 2+
+    let confidenceScorePoints = 0;
+    try {
+      const { data: csRow } = await (admin as any)
+        .from("user_confidence_scores")
+        .select("confidence_score")
+        .eq("user_id", effective.id)
+        .maybeSingle();
+      confidenceScorePoints = Number((csRow as { confidence_score?: number } | null)?.confidence_score ?? 0);
+    } catch {
+      // view may not exist yet; keep 0
+    }
+
     return NextResponse.json({
       score,
+      confidenceScore: Math.max(0, confidenceScorePoints),
       jobCount: (row as { job_count?: number } | null)?.job_count ?? 0,
       referenceCount: (row as { reference_count?: number } | null)?.reference_count ?? components.referenceCount,
       averageRating: (row as { average_rating?: number } | null)?.average_rating ?? components.averageReferenceRating,

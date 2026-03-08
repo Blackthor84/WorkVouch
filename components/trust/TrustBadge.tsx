@@ -12,6 +12,8 @@ export function TrustBadge({ profileId, embed }: TrustBadgeProps) {
   const [data, setData] = useState<{
     trustScore: number;
     verificationCount: number;
+    confidenceScore?: number;
+    tier?: string;
   } | null>(null);
   const [error, setError] = useState(false);
 
@@ -21,12 +23,14 @@ export function TrustBadge({ profileId, embed }: TrustBadgeProps) {
       credentials: "include",
     })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d: { trustScore?: number; verificationCount?: number }) => {
+      .then((d: { trustScore?: number; verificationCount?: number; confidenceScore?: number; tier?: string }) => {
         if (!cancelled)
           setData({
             trustScore: typeof d.trustScore === "number" ? d.trustScore : 0,
             verificationCount:
               typeof d.verificationCount === "number" ? d.verificationCount : 0,
+            confidenceScore: typeof d.confidenceScore === "number" ? d.confidenceScore : 0,
+            tier: typeof d.tier === "string" ? d.tier : undefined,
           });
       })
       .catch(() => {
@@ -89,6 +93,17 @@ export function TrustBadge({ profileId, embed }: TrustBadgeProps) {
         Verified by {data.verificationCount} coworker
         {data.verificationCount !== 1 ? "s" : ""}
       </p>
+      {data.tier && (
+        <p
+          className={
+            embed
+              ? "text-xs font-medium text-blue-600 mt-1"
+              : "text-sm font-medium text-blue-600 mt-2"
+          }
+        >
+          {data.tier}
+        </p>
+      )}
     </div>
   );
 }

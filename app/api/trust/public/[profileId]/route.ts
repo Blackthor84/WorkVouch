@@ -35,10 +35,33 @@ export async function GET(
   const name = (profile as { full_name?: string }).full_name ?? "—";
   const { trustScore, verificationCount } = await getTrustScore(profileId.trim());
 
+  let confidenceScore = 0;
+  try {
+    const { data: csRow } = await (admin as any)
+      .from("user_confidence_scores")
+      .select("confidence_score")
+      .eq("user_id", profileId.trim())
+      .maybeSingle();
+    confidenceScore = Number((csRow as { confidence_score?: number } | null)?.confidence_score ?? 0);
+  } catch {
+    // view may not exist
+  }
+
+  const tier =
+    confidenceScore >= 90
+      ? "Elite Verified"
+      : confidenceScore >= 60
+        ? "Verified Professional"
+        : confidenceScore >= 30
+          ? "Trusted Worker"
+          : "New Profile";
+
   return NextResponse.json({
     profileId: profileId.trim(),
     name,
     trustScore,
     verificationCount,
+    confidenceScore,
+    tier,
   });
 }
