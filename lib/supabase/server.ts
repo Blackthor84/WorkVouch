@@ -1,3 +1,7 @@
+/**
+ * Next.js App Router server Supabase client.
+ * Use in server components and API routes. For auth, use getUser() from @/lib/auth/getUser (getUser() calls supabase.auth.getUser(), not getSession()).
+ */
 import { createServerClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
@@ -20,3 +24,6 @@ export async function createServerSupabaseClient(): Promise<SupabaseClient<Datab
     }
   );
 }
+
+/** Alias for createServerSupabaseClient. Use in server components and API routes. */
+export { createServerSupabaseClient as createClient };

@@ -1,6 +1,6 @@
 import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import VerticalBadges from "@/components/VerticalBadges";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
@@ -25,6 +25,7 @@ export default async function EmployeePage(props: any) {
     }
 
     const user = await getUser();
+    if (!user) redirect("/login");
     const impersonation = (user as any)?.user_metadata?.impersonation;
     const profileWithScenario = applyScenario(profile, impersonation);
 

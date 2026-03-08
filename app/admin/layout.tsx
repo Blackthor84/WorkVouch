@@ -31,7 +31,7 @@ export default async function AdminLayout({
   let admin;
   try {
     admin = await getAdminContext();
-  } catch {
+    } catch {
     if (isSandboxEnv) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-amber-50/50 p-6">
@@ -43,7 +43,7 @@ export default async function AdminLayout({
         </div>
       );
     }
-    throw new Error("Admin context failed");
+    redirect("/login");
   }
   console.log("ROUTE CHECK", { path: "/admin", role: admin.profileRole });
 
