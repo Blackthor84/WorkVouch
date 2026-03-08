@@ -7,17 +7,11 @@
  */
 
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth/getUser";
 
 export async function requireAdminRoute() {
-  const supabase = await createServerSupabaseClient();
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
+  const user = await getUser();
+  if (!user) {
     throw NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 

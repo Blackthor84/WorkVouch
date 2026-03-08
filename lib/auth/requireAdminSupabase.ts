@@ -9,7 +9,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth/getUser";
 
 export type AdminAuthUser = {
   id: string;
@@ -24,11 +24,7 @@ export type AdminAuthUser = {
 export async function requireAdminSupabase(): Promise<
   { user: AdminAuthUser } | NextResponse
 > {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getUser();
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }

@@ -1,3 +1,4 @@
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
 import { getEffectiveRoles } from "@/lib/permissions/requireRole";
@@ -15,7 +16,7 @@ export async function NavbarServer() {
   const profile = user ? await getCurrentUserProfile() : null;
   const role = profile?.role ?? null;
   let orgSwitcherItems: OrgSwitcherItem[] | null = null;
-  if (user?.id) {
+  if (user?.id && supabase) {
     const effectiveRoles = await getEffectiveRoles(user.id);
     if (effectiveRoles.includes("org_admin") || effectiveRoles.includes("enterprise_owner")) {
       const { data: euOrgs } = await (supabase as any)

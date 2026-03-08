@@ -7,8 +7,8 @@
 
 import { NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
+import { getUser } from "@/lib/auth/getUser";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { emitTrustEvent } from "@/lib/trust/eventEngine";
 
 export const runtime = "nodejs";
@@ -22,8 +22,7 @@ export async function POST() {
 
   let verifierEmail = (effective.email ?? "").trim().toLowerCase();
   if (!verifierEmail) {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
     verifierEmail = (user?.email ?? "").trim().toLowerCase();
   }
   if (!verifierEmail) {

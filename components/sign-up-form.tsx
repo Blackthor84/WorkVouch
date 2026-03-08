@@ -45,7 +45,7 @@ export function SignUpForm() {
       await new Promise((r) => setTimeout(r, 1000));
 
       if (data.session) {
-        await supabase.auth.getSession();
+        await supabase.auth.getUser();
         await new Promise((r) => setTimeout(r, 150));
         const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
         const callbackUrl =
@@ -72,7 +72,7 @@ export function SignUpForm() {
         return;
       }
       if (signInData?.session) {
-        await supabase.auth.getSession();
+        await supabase.auth.getUser();
         await new Promise((r) => setTimeout(r, 150));
         const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
         const callbackUrl =

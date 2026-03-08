@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getCurrentUser, hasRole } from "@/lib/auth";
+import { getUser } from "@/lib/auth/getUser";
 import { checkFeatureAccess } from "@/lib/feature-flags";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export const dynamic = "force-dynamic";
@@ -81,8 +81,7 @@ export async function GET() {
       workforceLastCalculated: ea.workforce_last_calculated ?? null,
       riskSnapshotSample: riskSnapshotSample ?? null,
     };
-    const serverSupabase = await createServerSupabaseClient();
-    const { data: { user: authUser } } = await serverSupabase.auth.getUser();
+    const authUser = await getUser();
     return NextResponse.json(applyScenario(baseData, (authUser as any)?.user_metadata?.impersonation));
   } catch (e) {
     console.error("Risk overview error:", e);

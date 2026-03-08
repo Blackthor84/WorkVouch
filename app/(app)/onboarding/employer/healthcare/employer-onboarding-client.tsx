@@ -31,13 +31,13 @@ export function EmployerOnboardingClient() {
 
   useEffect(() => {
     (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { user } } = await supabase.auth.getUser();
       setSessionLoaded(true);
-      if (!session?.user) {
+      if (!user) {
         window.location.href = "/login";
         return;
       }
-      const currentUser = session.user;
+      const currentUser = user;
       const { data: profile } = await (supabase as any).from("profiles").select("role").eq("id", currentUser.id).single();
       type ProfileRow = { role: string | null };
       const profileTyped = profile as ProfileRow | null;

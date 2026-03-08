@@ -17,11 +17,11 @@ export interface UserRole {
 }
 
 /**
- * Get current session
+ * Get current session (uses getUser for secure auth)
  */
 export async function getSession(): Promise<Session | null> {
-  const { data: { session } } = await supabase.auth.getSession()
-  return session
+  const { data: { user } } = await supabase.auth.getUser()
+  return user ? ({ user } as Session) : null
 }
 
 /**

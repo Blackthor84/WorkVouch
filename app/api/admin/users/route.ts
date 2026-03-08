@@ -1,9 +1,9 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth/getUser";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
+import { auditLog, getAuditMetaFromRequest } from "@/lib/auditLogger";
 
 export const runtime = "nodejs";
-import { auditLog, getAuditMetaFromRequest } from "@/lib/auditLogger";
 
 /** Local type for admin users list. Do not import Supabase-generated types here. */
 type ProfileRow = {
@@ -24,8 +24,7 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-
  */
 export async function GET(request: Request) {
   try {
-    const serverSupabase = await createServerSupabaseClient();
-    const { data: { user } } = await serverSupabase.auth.getUser();
+    const user = await getUser();
     if (!user?.id) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }

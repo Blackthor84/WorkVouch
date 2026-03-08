@@ -3,6 +3,7 @@
  * Use with redirect('/unauthorized') when role doesn't match the route.
  */
 
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type RouteGuardRole = "employee" | "employer" | "admin";
@@ -11,11 +12,10 @@ export type RouteGuardRole = "employee" | "employer" | "admin";
  * Returns normalized role: 'employee' | 'employer' | 'admin' (admin includes superadmin), or null if not authenticated.
  */
 export async function getRoleForRouteGuard(): Promise<RouteGuardRole | null> {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return null;
+
+  const supabase = await createServerSupabaseClient();
 
   const { data } = await supabase
     .from("profiles")

@@ -1,7 +1,8 @@
 'use server'
 
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUser } from '@/lib/auth'
+import { getUser } from "@/lib/auth/getUser";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 /**
  * Manually create profile for current user if it doesn't exist
@@ -28,8 +29,8 @@ export async function createProfileIfMissing() {
   }
 
   // Get user metadata
-  const { data: authUser } = await supabase.auth.getUser()
-  const fullName = authUser?.user?.user_metadata?.full_name || 'User'
+  const authUser = await getUser()
+  const fullName = (authUser as { user_metadata?: { full_name?: string } })?.user_metadata?.full_name || 'User'
 
   // Create profile (using service role would bypass RLS, but we'll try with current user)
   const { data: profile, error: profileError } = await supabaseAny

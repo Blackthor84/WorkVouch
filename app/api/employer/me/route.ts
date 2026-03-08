@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
+import { getUser } from "@/lib/auth/getUser";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export async function GET(req: NextRequest) {
@@ -67,7 +68,7 @@ export async function GET(req: NextRequest) {
       },
       planTier: employerAccountTyped.plan_tier,
     };
-    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const authUser = await getUser();
     return NextResponse.json(applyScenario(payload, (authUser as any)?.user_metadata?.impersonation));
   } catch (error) {
     console.error("Get employer error:", error);

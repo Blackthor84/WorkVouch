@@ -1,19 +1,18 @@
 import { NextResponse } from "next/server";
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const supabase = await createServerSupabaseClient();
-    const { data: auth } = await supabase.auth.getUser();
-
-    if (!auth?.user) {
+    const user = await getUser();
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const employerId = auth.user.id;
-
+    const employerId = user.id;
+    const supabase = await createServerSupabaseClient();
     const supabaseAny = supabase as any;
     const { data: employer } = await supabaseAny
       .from("profiles")

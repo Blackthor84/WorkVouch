@@ -4,8 +4,8 @@
  */
 import { NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
+import { getUser } from "@/lib/auth/getUser";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export const runtime = "nodejs";
@@ -57,8 +57,7 @@ export async function GET() {
       referencesCount,
       emailVerified,
     } satisfies ProfileCompletenessResponse;
-    const authClient = await createServerSupabaseClient();
-    const { data: { user } } = await authClient.auth.getUser();
+    const user = await getUser();
     return NextResponse.json(applyScenario(baseData, (user as any)?.user_metadata?.impersonation));
   } catch {
     return NextResponse.json(

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+import { getUser } from "@/lib/auth/getUser";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
 import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";
 import { createSandboxProfile } from "@/lib/sandbox/createSandboxProfile";
@@ -115,8 +115,7 @@ export async function POST(req: NextRequest) {
         }
       : null;
 
-    const serverSupabase = await createServerSupabaseClient();
-    const { data: { user } } = await serverSupabase.auth.getUser();
+    const user = await getUser();
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await writeAdminAuditLog({
       admin_user_id: adminSession.id,

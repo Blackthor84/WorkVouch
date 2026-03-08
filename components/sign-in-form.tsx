@@ -28,7 +28,7 @@ export function SignInForm() {
         throw error;
       }
 
-      await supabase.auth.getSession();
+      await supabase.auth.getUser();
       // Small delay guarantees cookie flush
       await new Promise((r) => setTimeout(r, 150));
 

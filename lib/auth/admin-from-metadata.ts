@@ -4,7 +4,7 @@
  * Use for: nav visibility, admin route guard, API 403.
  */
 
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth/getUser";
 import type { AdminRole } from "@/lib/auth/admin-role-guards";
 import { getRoleFromSession } from "@/lib/auth/admin-role-guards";
 
@@ -20,8 +20,7 @@ export type AdminMetadataResult = {
  */
 export async function getAdminFromMetadata(): Promise<AdminMetadataResult> {
   try {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
     if (!user?.id) return { isAdmin: false, isSuperAdmin: false, role: "user", userId: null };
     const sessionLike = { user: { id: user.id, app_metadata: (user as { app_metadata?: { role?: string } }).app_metadata } };
     const role = getRoleFromSession(sessionLike);

@@ -9,8 +9,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    supabase.auth.getUser().then(({ data }) => {
+      setSession(data?.user ? { user: data.user } as Session : null);
       setLoading(false);
     });
 

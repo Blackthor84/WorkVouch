@@ -3,6 +3,7 @@
  * Use for server-side route protection: /admin (superadmin), /admin/org (org_admin), /admin/location (location_admin), /employer (location_admin + hiring_manager + employer).
  */
 
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type AllowedRole =
@@ -81,12 +82,12 @@ export async function getEffectiveRoles(userId: string): Promise<string[]> {
 export async function requireRole(
   allowedRoles: AllowedRole[]
 ): Promise<RequireRoleResult> {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user?.id) {
     throw new Error("Unauthorized");
   }
   const userId = user.id;
+  const supabase = await createServerSupabaseClient();
   const effectiveRoles = await getEffectiveRoles(userId);
   const hasRole = allowedRoles.some((r) => effectiveRoles.includes(r));
   if (!hasRole) {

@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth/getUser";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import type { TenantMembership, EnterpriseRole } from "./types";
 
@@ -18,8 +18,7 @@ export type EnterpriseSession = {
  * Throws Unauthorized if no session.
  */
 export async function getEnterpriseSession(): Promise<EnterpriseSession> {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user?.id) {
     throw new Error("Unauthorized");
   }

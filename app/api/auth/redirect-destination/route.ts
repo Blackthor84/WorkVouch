@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPostLoginRedirect } from "@/lib/auth/getPostLoginRedirect";
 
@@ -12,10 +13,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const { origin } = new URL(request.url);
   try {
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getUser();
     if (!user?.id) {
       return NextResponse.redirect(`${origin}/onboarding`);
     }
@@ -25,6 +23,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}/verify-email`);
     }
 
+    const supabase = await createServerSupabaseClient();
     const { data, error } = await supabase
       .from("profiles")
       .select("role")

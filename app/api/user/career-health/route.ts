@@ -3,8 +3,8 @@
  * Returns career health and component scores from intelligence_snapshots (canonical). Event-driven; no stale recalc.
  */
 import { getEffectiveUser } from "@/lib/auth/getEffectiveUser";
+import { getUser } from "@/lib/auth/getUser";
 import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 import { NextResponse } from "next/server";
 
@@ -65,8 +65,7 @@ export async function GET() {
     };
 
     const baseData = { careerHealth, components } satisfies CareerHealthResponse;
-    const supabase = await createServerSupabaseClient();
-    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const authUser = await getUser();
     return NextResponse.json(applyScenario(baseData, (authUser as any)?.user_metadata?.impersonation));
   } catch {
     return fallback();

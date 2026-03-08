@@ -5,6 +5,7 @@
  */
 
 import { cookies } from "next/headers";
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { normalizeRole } from "@/lib/auth/normalizeRole";
@@ -33,12 +34,9 @@ export interface AdminSessionMinimal {
 export async function getAdminSession(): Promise<AdminSessionMinimal | null> {
   try {
     const cookieStore = await cookies();
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
+    const user = await getUser();
     if (user?.id) {
+      const supabase = await createServerSupabaseClient();
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("role")

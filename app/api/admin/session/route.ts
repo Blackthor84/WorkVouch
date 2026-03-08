@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-
-export const runtime = "nodejs";
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { normalizeRole } from "@/lib/auth/normalizeRole";
 import { isAdminRole } from "@/lib/auth/roles";
 import { isSandbox } from "@/lib/app-mode";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
@@ -15,15 +15,12 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   try {
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
+    const user = await getUser();
     if (!user?.id) {
       return NextResponse.json({ role: null });
     }
 
+    const supabase = await createServerSupabaseClient();
     const { data } = await supabase
       .from("profiles")
       .select("role")

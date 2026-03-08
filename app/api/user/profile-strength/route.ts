@@ -3,8 +3,8 @@
  * Returns profile strength from intelligence_snapshots (canonical). Event-driven; no stale recalc.
  */
 import { getEffectiveUser } from "@/lib/auth";
+import { getUser } from "@/lib/auth/getUser";
 import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 import { NextResponse } from "next/server";
 
@@ -38,8 +38,7 @@ export async function GET() {
     const lastUpdated = snapshot.last_calculated_at ?? null;
 
     const baseData = { profileStrength, lastUpdated } satisfies ProfileStrengthResponse;
-    const supabase = await createServerSupabaseClient();
-    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const authUser = await getUser();
     return NextResponse.json(applyScenario(baseData, (authUser as any)?.user_metadata?.impersonation));
   } catch {
     return fallback();

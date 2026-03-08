@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth/getUser";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getEnvironmentForServer } from "@/lib/app-mode";
 import { cookies } from "next/headers";
@@ -42,8 +42,7 @@ export async function POST(req: NextRequest) {
       session_id = row?.id ?? null;
     }
 
-    const supabaseAuth = await createServerSupabaseClient();
-    const { data: { user } } = await supabaseAuth.auth.getUser();
+    const user = await getUser();
     const user_id = user?.id ?? null;
 
     const { error } = await supabase.from("site_events").insert({

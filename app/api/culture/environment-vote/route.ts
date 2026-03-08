@@ -5,8 +5,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { getUser } from "@/lib/auth/getUser";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { recordJobEnvironmentVote } from "@/lib/culture/jobEnvironment";
 import type { JobEnvironmentTraitKey } from "@/lib/culture/constants";
 import { JOB_ENVIRONMENT_TRAIT_KEYS, MAX_TRAITS_PER_VOTE } from "@/lib/culture/constants";
@@ -20,10 +20,7 @@ function isValidTraitKey(k: string): k is JobEnvironmentTraitKey {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabaseAuth = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabaseAuth.auth.getUser();
+    const user = await getUser();
     if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));

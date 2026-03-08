@@ -16,9 +16,10 @@ export function useSupabaseSession(): {
   const supabase = useMemo(() => supabaseBrowser, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setStatus(s?.user ? "authenticated" : "unauthenticated");
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      const s = user ? { user } : null;
+      setSession(s as Session | null);
+      setStatus(user ? "authenticated" : "unauthenticated");
     });
 
     const {

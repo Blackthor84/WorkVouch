@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getGodModeState, buildGodModeToken, getGodModeCookieName, GODMODE_MAX_AGE_SECONDS } from "@/lib/auth/godModeCookie";
 import { writeGodModeAudit } from "@/lib/godModeAudit";
@@ -17,10 +18,10 @@ const COOKIE_NAME = getGodModeCookieName();
  */
 export async function GET() {
   try {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
     if (!user?.id) return NextResponse.json({ enabled: false }, { status: 401 });
 
+    const supabase = await createServerSupabaseClient();
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("role")
@@ -44,10 +45,10 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
     if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    const supabase = await createServerSupabaseClient();
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("role")

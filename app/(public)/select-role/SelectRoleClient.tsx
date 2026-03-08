@@ -35,16 +35,16 @@ export default function SelectRoleClient() {
       // ignore
     }
     const checkSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
+      const { data, error } = await supabase.auth.getUser();
       if (error) {
         router.replace("/signup");
         return;
       }
-      if (!data.session?.user) {
+      if (!data.user) {
         router.replace("/signup");
         return;
       }
-      setUser(data.session.user);
+      setUser(data.user);
       setLoading(false);
     };
     checkSession();

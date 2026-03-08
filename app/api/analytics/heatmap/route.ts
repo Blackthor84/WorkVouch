@@ -8,8 +8,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { getUser } from "@/lib/auth/getUser";
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/soc2-audit";
 
 export const runtime = "nodejs";
@@ -41,8 +41,7 @@ export async function GET(req: NextRequest) {
 
     let actorId: string | null = null;
     if (includeState) {
-      const supabaseAuth = await createServerSupabaseClient();
-      const { data: { user } } = await supabaseAuth.auth.getUser();
+      const user = await getUser();
       if (!user?.id) {
         console.warn("[AUTH]", { route: "/api/analytics/heatmap", reason: "state=true requires authenticated user" });
         return NextResponse.json({ error: "Unauthorized", data: [], message: PRIVACY_MESSAGE }, { status: 401 });

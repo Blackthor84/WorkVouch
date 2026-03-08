@@ -23,13 +23,13 @@ export function JobPostClient() {
 
   useEffect(() => {
     (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { user } } = await supabase.auth.getUser();
       setSessionLoaded(true);
-      if (!session?.user) {
+      if (!user) {
         window.location.href = "/login";
         return;
       }
-      setUser(session.user);
+      setUser(user);
     })();
   }, [router]);
 

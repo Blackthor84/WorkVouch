@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth/getUser";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { NextResponse } from "next/server";
@@ -12,8 +12,7 @@ export const runtime = "nodejs";
  */
 export async function GET(request: Request) {
   try {
-    const serverSupabase = await createServerSupabaseClient();
-    const { data: { user } } = await serverSupabase.auth.getUser();
+    const user = await getUser();
     const userId = user?.id ?? null;
     if (!userId) {
       return NextResponse.json({ enabled: false }, { status: 200 });

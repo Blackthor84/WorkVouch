@@ -1,3 +1,4 @@
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "./supabase/server";
 import { getSupabaseServer } from "./supabase/admin";
 import { getEffectiveUserIdWithAuth } from "./server/effectiveUserId";
@@ -126,7 +127,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
     .eq("id", effectiveUserId)
     .single();
   if (error || !profile) return null;
-  const { data: { user: authUser } } = await supabase.auth.getUser();
+  const authUser = await getUser();
   return applyScenario(profile as UserProfile, (authUser as any)?.user_metadata?.impersonation) as UserProfile;
 }
 

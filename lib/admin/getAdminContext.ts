@@ -6,6 +6,7 @@
  */
 
 import { type NextRequest, NextResponse } from "next/server";
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isSandbox } from "@/lib/app-mode";
 import { getRoleFromSession } from "@/lib/auth/admin-role-guards";
@@ -86,12 +87,12 @@ export async function getAdminContext(req?: NextRequest): Promise<AdminContext> 
     }
 
     const { authUserId, authRole, effectiveUserId, effectiveRole } = effectiveSession;
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
     if (!user?.id || !user?.email) {
       return { ...UNAUTHORIZED_CONTEXT };
     }
 
+    const supabase = await createServerSupabaseClient();
     // Spec: app_metadata.role is primary; fallback to profiles.role when not set (e.g. before token refresh).
     let resolvedRole = effectiveRole;
     if (resolvedRole === "user") {

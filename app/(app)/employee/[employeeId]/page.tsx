@@ -1,3 +1,4 @@
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Image from "next/image";
@@ -23,7 +24,7 @@ export default async function EmployeePage(props: any) {
       notFound();
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
     const impersonation = (user as any)?.user_metadata?.impersonation;
     const profileWithScenario = applyScenario(profile, impersonation);
 

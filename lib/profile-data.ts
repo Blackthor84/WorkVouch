@@ -42,8 +42,7 @@ export async function getProfileData(): Promise<ProfileDataResult | null> {
       sentiment_average: undefined,
     };
 
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    return applyScenario(result, authUser?.user_metadata?.impersonation) as ProfileDataResult;
+    return applyScenario(result, user?.user_metadata?.impersonation) as ProfileDataResult;
   } catch {
     return null;
   }

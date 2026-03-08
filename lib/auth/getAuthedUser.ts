@@ -4,7 +4,7 @@
  * Role from app_metadata.role (user | admin | superadmin). Never reads cookies/headers directly.
  */
 
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth/getUser";
 import { getRoleFromSession, type SessionLike } from "@/lib/auth/admin-role-guards";
 
 export type AuthedUser = {
@@ -14,8 +14,7 @@ export type AuthedUser = {
 
 export async function getAuthedUser(): Promise<AuthedUser | null> {
   try {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
     if (!user) return null;
 
     if (!user?.id || !user?.email) {

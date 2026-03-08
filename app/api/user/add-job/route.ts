@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 import { z } from "zod";
@@ -19,14 +20,12 @@ export async function POST(req: NextRequest) {
     const reject = await rejectWriteIfImpersonating();
     if (reject) return reject;
 
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
+    const user = await getUser();
     if (!user) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
+
+    const supabase = await createServerSupabaseClient();
 
     const body = await req.json();
     const data = addJobSchema.parse(body);

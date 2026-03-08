@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { Database } from "@/types/database";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
+    const user = await getUser();
     if (!user) {
       return NextResponse.json({ error: "🚨 Upgrade Required" }, { status: 401 });
     }
+    const supabase = await createServerSupabaseClient();
     const supabaseAny = supabase as any;
 
     const body = await request.json();

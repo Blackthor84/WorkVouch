@@ -6,9 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-
-export const runtime = "nodejs";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth/getUser";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { parseResumeAndUpdateRecord } from "@/lib/resume/parseAndStore";
 import { env } from "@/lib/env";
@@ -95,8 +93,7 @@ function normalizeEmployment(raw: EmploymentInput[]): NormalizedEmployment[] {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
     if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import {
@@ -64,10 +65,10 @@ export async function POST(req: NextRequest) {
     let user_id: string | null = null;
     let user_role: string | null = null;
     try {
-      const supabaseAuth = await createServerSupabaseClient();
-      const { data: { user } } = await supabaseAuth.auth.getUser();
+      const user = await getUser();
       if (user?.id) {
         user_id = user.id;
+        const supabaseAuth = await createServerSupabaseClient();
         const { data: profile } = await supabaseAuth.from("profiles").select("role").eq("id", user.id).maybeSingle();
         user_role = (profile as { role?: string | null } | null)?.role ?? null;
       }

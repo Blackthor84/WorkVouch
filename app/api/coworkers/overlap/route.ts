@@ -1,22 +1,19 @@
 import { NextResponse } from "next/server";
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const supabase = await createServerSupabaseClient();
-    const { data: auth } = await supabase.auth.getUser();
-
-    if (!auth?.user) {
+    const user = await getUser();
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = auth.user.id;
-
-    // Raw SQL for accurate overlap detection
+    const supabase = await createServerSupabaseClient();
     const { data, error } = await supabase.rpc("get_coworker_overlaps", {
-      requester_id: userId,
+      requester_id: user.id,
     });
 
     if (error) {

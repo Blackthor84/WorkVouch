@@ -4,6 +4,7 @@
  * Auth via getUser(); role from profiles table.
  */
 
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isAdminRole, normalizeRole } from "@/lib/auth/roles";
 import { isSandbox } from "@/lib/app-mode";
@@ -14,15 +15,12 @@ export type AdminCheck =
 
 export async function requireAdminSafe(): Promise<AdminCheck> {
   try {
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
+    const user = await getUser();
     if (!user?.id || !user?.email) {
       return { ok: false, reason: "no_user" };
     }
 
+    const supabase = await createServerSupabaseClient();
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("role")

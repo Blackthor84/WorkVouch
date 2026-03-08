@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth/getEffectiveUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth/getUser";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export async function GET() {
@@ -13,8 +13,7 @@ export async function GET() {
     );
   }
 
-  const supabase = await createServerSupabaseClient();
-  const { data: { user: authUser } } = await supabase.auth.getUser();
+  const authUser = await getUser();
   const baseData = { user: { ...user, __impersonated: user.isImpersonating } };
   const finalData = applyScenario(baseData, (authUser as any)?.user_metadata?.impersonation);
   return NextResponse.json(finalData);

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getUser } from "@/lib/auth/getUser";
 import { getCurrentUserProfile } from "@/lib/auth";
 import { getUserJobs } from "@/lib/actions/jobs";
 import { getUserReferences } from "@/lib/actions/references";
@@ -15,6 +17,11 @@ export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
+  const user = await getUser();
+  if (!user) {
+    redirect("/login");
+  }
+
   const profile = await getCurrentUserProfile();
   const jobs = await getUserJobs();
   const references = profile ? await getUserReferences(profile.id) : [];

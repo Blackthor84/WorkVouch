@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { EmployerHeader } from "@/components/employer/employer-header";
 import { EmployerSidebar } from "@/components/employer/employer-sidebar";
 import { EmployerDashboardClient } from "@/components/employer/EmployerDashboardClient";
+import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getAppModeFromHeaders, getSandboxIdFromHeaders } from "@/lib/app-mode";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -25,11 +26,7 @@ export default async function EmployerDashboardPage({
   const showWelcome = params.welcome === "1";
 
   if (!isSandbox) {
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
+    const user = await getUser();
     if (!user) {
       redirect("/login");
     }
@@ -41,6 +38,7 @@ export default async function EmployerDashboardPage({
 
     type EmployerAccountRow = { id: string; plan_tier: string; industry_type?: string | null };
     type ProfileRow = { role?: string | null };
+    const supabase = await createServerSupabaseClient();
     const { data: profileRow } = await (supabase as any)
       .from("profiles")
       .select("role")

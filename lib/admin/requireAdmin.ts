@@ -8,6 +8,7 @@
 import { redirect } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
+import { getUser } from "@/lib/auth/getUser";
 import { isAdminRole } from "@/lib/auth/isAdminRole";
 import { isGodMode } from "@/lib/auth/isGodMode";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -54,16 +55,13 @@ export async function requireAdmin(): Promise<AdminSession> {
   }
 
   try {
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
+    const user = await getUser();
     if (!user?.id) {
       logAdminAuthFailure("requireAdmin", "no-user");
       redirect("/login");
     }
 
+    const supabase = await createServerSupabaseClient();
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")
@@ -115,9 +113,9 @@ export async function requireAdminForApi(): Promise<AdminSession | null> {
     return null;
   }
   try {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
     if (!user?.id) return null;
+    const supabase = await createServerSupabaseClient();
     const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
     const role = admin.isSuperAdmin ? "super_admin" : "admin";
     const sessionLike = { user: { ...user, id: user.id, email: user.email } };
@@ -186,9 +184,9 @@ export async function requireBoardForApi(): Promise<AdminSession | null> {
   const admin = await getAdminContext();
   if (adminOrGodMode(admin)) return requireAdminForApi();
   try {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
     if (!user?.id) return null;
+    const supabase = await createServerSupabaseClient();
     const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
     if (error || !profile) return null;
     const profileRole = String((profile as { role?: string }).role ?? "").toLowerCase();
@@ -211,14 +209,12 @@ export async function requireBoardForApi(): Promise<AdminSession | null> {
 
 export async function requireRole(allowedRoles: string[]): Promise<AdminSession> {
   try {
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getUser();
     if (!user?.id) {
       logAdminAuthFailure("requireRole", "no-user");
       redirect("/login");
     }
+    const supabase = await createServerSupabaseClient();
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")
@@ -284,22 +280,21 @@ export async function requireAdminThrow(): Promise<{
   userId: string;
   role: string;
 }> {
-  const supabase = await createServerSupabaseClient();
-  const { data } = await supabase.auth.getUser();
-
-  if (!data?.user) {
+  const user = await getUser();
+  if (!user?.id) {
     throw new Error("Unauthorized");
   }
 
+  const supabase = await createServerSupabaseClient();
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
-    .eq("id", data.user.id)
+    .eq("id", user.id)
     .single();
 
   if (!profile || !["admin", "superadmin"].includes(String(profile.role ?? "").toLowerCase())) {
     throw new Error("Forbidden");
   }
 
-  return { supabase, userId: data.user.id, role: String(profile.role) };
+  return { supabase, userId: user.id, role: String(profile.role) };
 }
