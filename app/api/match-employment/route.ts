@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       }
     } else {
       const parsed = createBodySchema.safeParse({
-        user_id: body.user_id ?? session.user.id,
+        user_id: body.user_id ?? user.id,
         company_name: body.company_name,
         job_title: body.job_title,
         start_date: body.start_date,
