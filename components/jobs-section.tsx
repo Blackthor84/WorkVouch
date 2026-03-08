@@ -97,7 +97,7 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
             Job History
           </CardTitle>
           <Button size="sm" onClick={() => setShowForm(!showForm)}>
-            {showForm ? "Cancel" : "Add Job"}
+            {showForm ? "Cancel" : "Add Verified Job"}
           </Button>
         </div>
       </CardHeader>
@@ -257,7 +257,7 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
             </div>
 
             <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Adding job…" : "Add Job"}
+              {loading ? "Adding…" : "Add Verified Job"}
             </Button>
           </form>
         )}

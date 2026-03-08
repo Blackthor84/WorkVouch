@@ -80,7 +80,7 @@ export function EmployeeProfileCompletenessCard() {
       label: "Job history",
       count: data.jobsCount,
       href: "/profile#jobs",
-      action: "Add job",
+      action: "Add Verified Job",
     },
     {
       done: data.referencesCount > 0,

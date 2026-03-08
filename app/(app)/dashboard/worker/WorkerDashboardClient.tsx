@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { TrustScoreCardClient } from "@/components/trust/TrustScoreCardClient";
 import { TrustForecastCard } from "@/components/trust/TrustForecastCard";
@@ -12,17 +13,19 @@ import { TrustNetworkPanel } from "@/components/trust/TrustNetworkPanel";
 import { ExpandTrustNetworkCard } from "@/components/employee/ExpandTrustNetworkCard";
 import { VerificationRequestModal } from "@/components/verification/VerificationRequestModal";
 import { VerificationInbox } from "@/components/verification/VerificationInbox";
+import DashboardActions from "@/components/DashboardActions";
+import ConfidenceScore from "@/components/ConfidenceScore";
 import { Button } from "@/components/ui/button";
 import { PaperAirplaneIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { InviteCoworkerForm } from "@/components/dashboard/InviteCoworkerForm";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 /**
- * Employee Dashboard — Trust Command Center.
- * Section 1: TrustScoreCard, TrustForecastCard, VerificationCoverageCard
- * Section 2: TrustRadar (primary visual)
- * Section 3: TrustNetworkPanel | IndustryBenchmarkCard
- * Section 4: TrustTimeline (verifications, references, trust events)
- * Section 5: ExpandTrustNetworkCard (invite coworkers, verify employment, strengthen profile)
+ * Employee Dashboard — YC-style SaaS layout (Stripe / Notion / Linear).
+ * LEFT: Sidebar (Dashboard, Verified Work History, Resume, Coworker Verifications, Network, Settings)
+ * TOP: Primary actions — + Add Verified Job, Upload Resume, Request Verification
+ * CENTER: Confidence Score (Employment Trust Score: progress bar + Verified Coworkers / Job History / Resume Consistency)
+ * BOTTOM: Verified Work History, Verification Requests, Coworker Activity, Trust panels
  */
 export default function WorkerDashboard() {
   const searchParams = useSearchParams();
@@ -53,45 +56,78 @@ export default function WorkerDashboard() {
       <div className="max-w-6xl mx-auto space-y-6">
         <header>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Trust Command Center
+            Dashboard
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Your trust strength, network, and next actions at a glance.
+            Employment Trust Score — verification and trust for your resume.
           </p>
         </header>
 
-        {/* SECTION 1 — Top summary strip: TrustScoreCard, TrustForecastCard, VerificationCoverageCard */}
-        <section aria-label="Trust summary">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <TrustScoreCardClient />
-            <TrustForecastCard />
-            <VerificationCoverageCard />
-          </div>
+        {/* TOP: Primary actions — Add Verified Job, Upload Resume, Request Verification */}
+        <DashboardActions onRequestVerification={() => setRequestModalOpen(true)} />
+
+        {/* Confidence Score — core product value (progress bar + Verified Coworkers / Job History / Resume Consistency) */}
+        <ConfidenceScore />
+
+        {/* Job History / Trust Score / Recent Verifications */}
+        {/* Verified Work History */}
+        <section aria-label="Verified Work History">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg">Verified Work History</CardTitle>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/my-jobs">View all</Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Jobs verified by coworkers increase your Confidence Score.
+              </p>
+              <Button asChild className="inline-flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700">
+                <Link href="/profile">+ Add Verified Job</Link>
+              </Button>
+            </CardContent>
+          </Card>
         </section>
 
-        {/* SECTION 2 — Primary visual: TrustRadar full width centered */}
-        <section aria-label="Trust radar">
-          <div className="w-full flex justify-center">
-            <div className="w-full max-w-4xl">
-              <TrustRadarChart />
-            </div>
+        {/* Recent Verification Requests */}
+        <section aria-label="Verification Requests">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Verification Requests
+            </h2>
+            <Button
+              variant="secondary"
+              onClick={() => setRequestModalOpen(true)}
+              className="inline-flex items-center gap-2"
+            >
+              <PaperAirplaneIcon className="h-5 w-5" />
+              Request verification
+            </Button>
           </div>
+          <VerificationInbox />
         </section>
 
-        {/* SECTION 3 — Network + Benchmark: split layout */}
-        <section aria-label="Network and benchmark">
+        {/* BOTTOM: Coworker Activity + Trust data */}
+        <section aria-label="Coworker Activity">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            Coworker Activity
+          </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TrustNetworkPanel />
             <IndustryBenchmarkCard />
           </div>
+          <div className="mt-6">
+            <TrustTimeline />
+          </div>
         </section>
 
-        {/* SECTION 4 — Activity: TrustTimeline full width */}
-        <section aria-label="Trust activity">
-          <TrustTimeline />
+        {/* Trust radar + expand network */}
+        <section aria-label="Trust radar">
+          <div className="w-full max-w-4xl mx-auto">
+            <TrustRadarChart />
+          </div>
         </section>
-
-        {/* SECTION 5 — Action panel: ExpandTrustNetworkCard */}
         <section aria-label="Expand trust network">
           <div className="flex flex-wrap gap-3 mb-4">
             <Button
@@ -111,22 +147,11 @@ export default function WorkerDashboard() {
           <ExpandTrustNetworkCard onRequestVerification={() => setRequestModalOpen(true)} />
         </section>
 
-        {/* Verification inbox (compact): pending requests */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Verification requests
-            </h2>
-            <Button
-              variant="secondary"
-              onClick={() => setRequestModalOpen(true)}
-              className="inline-flex items-center gap-2"
-            >
-              <PaperAirplaneIcon className="h-5 w-5" />
-              Request verification
-            </Button>
-          </div>
-          <VerificationInbox />
+        {/* Trust summary cards */}
+        <section aria-label="Trust summary" className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <TrustScoreCardClient />
+          <TrustForecastCard />
+          <VerificationCoverageCard />
         </section>
       </div>
 

@@ -83,7 +83,7 @@ export function ProfileStrengthCard({ userId, className }: ProfileStrengthCardPr
       <h3 className="text-base font-semibold text-[#1E293B] dark:text-slate-200">Profile Strength</h3>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         {isZero
-          ? "Building your score… Add jobs and references to see your profile strength."
+          ? "Building your score… Add verified jobs and references to see your profile strength."
           : "How employers see your verified profile. Improve any area to strengthen your profile."}
       </p>
 

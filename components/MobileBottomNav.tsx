@@ -18,7 +18,7 @@ import {
 const navItems = [
   { href: "/dashboard", label: "Dashboard", Icon: HomeIcon, IconSolid: HomeIconSolid },
   { href: "/profile", label: "Profile", Icon: UserCircleIcon, IconSolid: UserCircleIconSolid },
-  { href: "/profile", label: "Add Job", Icon: PlusCircleIcon, IconSolid: PlusCircleIconSolid },
+  { href: "/profile", label: "Add Verified Job", Icon: PlusCircleIcon, IconSolid: PlusCircleIconSolid },
   { href: "/notifications", label: "Notifications", Icon: BellAlertIcon, IconSolid: BellAlertIconSolid },
 ];
 
@@ -34,7 +34,7 @@ export function MobileBottomNav() {
       {navItems.map(({ href, label, Icon, IconSolid }) => {
         const isActive =
           pathname === href || (pathname?.startsWith(href) && href !== "/dashboard");
-        const isAddJob = label === "Add Job";
+        const isAddJob = label === "Add Verified Job";
         const active = isAddJob ? false : isActive;
 
         return (

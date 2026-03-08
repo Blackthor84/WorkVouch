@@ -12,7 +12,7 @@ export function AddJobButton() {
     <>
       <Button onClick={() => setIsOpen(true)}>
         <PlusIcon className="h-5 w-5 mr-2" />
-        Add Job
+        Add Verified Job
       </Button>
       <AddJobModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>

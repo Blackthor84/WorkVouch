@@ -12,6 +12,7 @@ import {
   CreditCardIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
+import DashboardActions from "@/components/DashboardActions";
 import { TrustPolicyBuilder } from "@/components/trust/TrustPolicyBuilder";
 import { TrustPolicyCard } from "@/components/trust/TrustPolicyCard";
 import type { TrustPolicy } from "@/components/trust/TrustPolicyCard";
@@ -96,12 +97,12 @@ export default function EmployerDashboard() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Employer Dashboard
           </h1>
           <p className="text-gray-600 mb-4">
-            Search workers, track hires, and manage your team
+            Search candidates, view verified work histories, and hire with confidence
           </p>
           {planTier && planTier !== "free" && (
             <span className="inline-block px-3 py-1 bg-[#1A73E8] text-white rounded-full text-sm font-semibold">
@@ -109,6 +110,9 @@ export default function EmployerDashboard() {
             </span>
           )}
         </div>
+
+        {/* Priority actions: Search Candidates, Verified Work Histories, Post Job, Invite References */}
+        <DashboardActions variant="employer" />
 
         {/* Usage Cards - Only show if user has subscription */}
         {planTier !== "free" && searchUsage && reportUsage && (

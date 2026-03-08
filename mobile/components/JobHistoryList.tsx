@@ -15,7 +15,7 @@ export function JobHistoryList({ jobs }: JobHistoryListProps) {
           Job History
         </Text>
         <TouchableOpacity onPress={() => router.push('/(tabs)/settings')}>
-          <Text className="text-primary font-semibold">Add Job</Text>
+          <Text className="text-primary font-semibold">Add Verified Job</Text>
         </TouchableOpacity>
       </View>
       {jobs.length === 0 ? (

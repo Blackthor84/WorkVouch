@@ -72,7 +72,7 @@ export function AddJobModal({ isOpen, onClose }: AddJobModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add Job History</DialogTitle>
+          <DialogTitle>Add Verified Job</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -162,7 +162,7 @@ export function AddJobModal({ isOpen, onClose }: AddJobModalProps) {
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Adding..." : "Add Job"}
+              {loading ? "Adding..." : "Add Verified Job"}
             </Button>
           </div>
         </form>

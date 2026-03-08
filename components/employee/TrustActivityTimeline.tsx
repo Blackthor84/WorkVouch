@@ -67,7 +67,7 @@ export function TrustActivityTimeline() {
         Real events that affect your trust profile: verifications, references, disputes, and credentials.
       </p>
       {events.length === 0 ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">No activity yet. Add jobs, get verified, and request references to build your timeline.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">No activity yet. Add verified jobs, get verified, and request references to build your timeline.</p>
       ) : (
         <ul className="space-y-3">
           {events.map((entry, i) => {

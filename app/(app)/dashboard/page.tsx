@@ -57,7 +57,7 @@ export default async function UserDashboardPage() {
   if (effectiveRole === "employer") {
     redirect("/dashboard/employer");
   }
-  if (effectiveRole === "employee") {
+  if (effectiveRole === "employee" || effectiveRole === "user" || effectiveRole === "worker") {
     redirect("/dashboard/employee");
   }
 
@@ -255,7 +255,7 @@ export default async function UserDashboardPage() {
               </h3>
               <div className="space-y-3">
                 <Button href="/profile" variant="secondary" className="w-full justify-start">
-                  Add job
+                  Add Verified Job
                 </Button>
                 <Button href="/coworker-matches" variant="secondary" className="w-full justify-start">
                   Request confirmation

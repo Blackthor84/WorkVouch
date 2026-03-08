@@ -185,7 +185,7 @@ export function TrustNetworkPanel({ profileId: propProfileId, title = "Trust Net
 
       {!hasAny ? (
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          No trust connections yet. Add jobs and request references to build your network.
+          No trust connections yet. Add verified jobs and request references to build your network.
         </p>
       ) : (
         <div className="space-y-6">

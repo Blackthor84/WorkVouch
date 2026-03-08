@@ -77,7 +77,7 @@ export function EmploymentHistoryPanel() {
       </p>
       {entries.length === 0 ? (
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          No employment records yet. Add jobs from your profile to build your history.
+          No employment records yet. Add verified jobs from your profile to build your history.
         </p>
       ) : (
         <ul className="space-y-3" aria-label="Employment history">
