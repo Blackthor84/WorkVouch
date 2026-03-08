@@ -10,11 +10,11 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user?.id) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const userId = session.user.id as string;
+    const userId = user.id as string;
     const { data, error } = await (supabase as any)
       .from("email_change_history")
       .select("id, previous_email, new_email, changed_by, created_at")

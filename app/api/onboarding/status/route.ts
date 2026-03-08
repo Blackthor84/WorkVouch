@@ -100,8 +100,8 @@ export async function GET() {
 
     const showOnboarding = !profileComplete || !hasJobs;
     const baseData = { showOnboarding, flow: "worker" as const, steps: WORKER_STEPS, completed: false };
-    const { data: { session } } = await supabase.auth.getSession();
-    return NextResponse.json(applyScenario(baseData, (session as any)?.impersonation));
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    return NextResponse.json(applyScenario(baseData, (authUser as any)?.user_metadata?.impersonation));
   } catch (e) {
     console.error("[onboarding/status]", e);
     return NextResponse.json({ showOnboarding: false });

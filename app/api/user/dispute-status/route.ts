@@ -51,8 +51,8 @@ export async function GET() {
       activeDisputeCount: profile?.active_dispute_count ?? 0,
     };
     const serverSupabase = await createServerSupabaseClient();
-    const { data: { session } } = await serverSupabase.auth.getSession();
-    return NextResponse.json(applyScenario(baseData, (session as any)?.impersonation));
+    const { data: { user: authUser } } = await serverSupabase.auth.getUser();
+    return NextResponse.json(applyScenario(baseData, (authUser as any)?.user_metadata?.impersonation));
   } catch (e) {
     console.error("[dispute-status] error:", e);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -19,8 +19,8 @@ function validateEmail(email: string): boolean {
 export async function PATCH(request: Request) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user?.id) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const isEmployer = await hasRole("employer");
@@ -28,7 +28,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Employer role required" }, { status: 403 });
     }
 
-    const userId = session.user.id as string;
+    const userId = user.id as string;
     const body = await request.json();
     const company_name = typeof body.company_name === "string" ? body.company_name.trim() : undefined;
     const contact_email = typeof body.contact_email === "string" ? body.contact_email.trim().toLowerCase() : undefined;

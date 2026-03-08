@@ -82,8 +82,8 @@ export async function GET() {
       riskSnapshotSample: riskSnapshotSample ?? null,
     };
     const serverSupabase = await createServerSupabaseClient();
-    const { data: { session } } = await serverSupabase.auth.getSession();
-    return NextResponse.json(applyScenario(baseData, (session as any)?.impersonation));
+    const { data: { user: authUser } } = await serverSupabase.auth.getUser();
+    return NextResponse.json(applyScenario(baseData, (authUser as any)?.user_metadata?.impersonation));
   } catch (e) {
     console.error("Risk overview error:", e);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

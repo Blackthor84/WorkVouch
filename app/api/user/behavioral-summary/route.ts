@@ -37,8 +37,8 @@ export async function GET() {
     const summary = buildBehavioralSummary(vector);
     const baseData = { summary };
     const supabase = await createServerSupabaseClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    return NextResponse.json(applyScenario(baseData, (session as any)?.impersonation), { status: 200 });
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    return NextResponse.json(applyScenario(baseData, (authUser as any)?.user_metadata?.impersonation), { status: 200 });
   } catch {
     return NextResponse.json({ summary: null }, { status: 200 });
   }

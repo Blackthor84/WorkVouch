@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic";
 
 export default async function DirectoryEmployersPage() {
   const supabase = await createServerSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) redirect("/login");
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   const sb = getSupabaseServer() as any;
   const { data: flag } = await sb

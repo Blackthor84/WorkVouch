@@ -82,11 +82,11 @@ export async function requireRole(
   allowedRoles: AllowedRole[]
 ): Promise<RequireRoleResult> {
   const supabase = await createServerSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user?.id) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.id) {
     throw new Error("Unauthorized");
   }
-  const userId = session.user.id;
+  const userId = user.id;
   const effectiveRoles = await getEffectiveRoles(userId);
   const hasRole = allowedRoles.some((r) => effectiveRoles.includes(r));
   if (!hasRole) {

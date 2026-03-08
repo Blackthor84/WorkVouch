@@ -30,8 +30,8 @@ const matchBodySchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user?.id) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
       if (fetchErr || !rec) {
         return NextResponse.json({ error: "Employment record not found" }, { status: 404 });
       }
-      if (rec.user_id !== session.user.id) {
+      if (rec.user_id !== user.id) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     } else {
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
       }
       const { user_id, company_name, job_title, start_date, end_date, is_current } = parsed.data;
-      if (user_id !== session.user.id) {
+      if (user_id !== user.id) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 

@@ -39,13 +39,13 @@ export async function middleware(req: NextRequest) {
           },
         });
         const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (session?.user?.id) {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user?.id) {
           const { data: profile } = await supabase
             .from("profiles")
             .select("role")
-            .eq("user_id", session.user.id)
+            .eq("user_id", user.id)
             .maybeSingle();
           const role = (profile as { role?: string } | null)?.role;
           allowSimulationHeaders = role === "admin" || role === "superadmin";
@@ -103,7 +103,7 @@ export async function middleware(req: NextRequest) {
           },
         },
       });
-      await supabase.auth.getSession();
+      await supabase.auth.getUser();
     } catch {
       // Supabase session refresh must not block impersonation
     }

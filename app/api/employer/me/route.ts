@@ -67,8 +67,8 @@ export async function GET(req: NextRequest) {
       },
       planTier: employerAccountTyped.plan_tier,
     };
-    const { data: { session } } = await supabase.auth.getSession();
-    return NextResponse.json(applyScenario(payload, (session as any)?.impersonation));
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    return NextResponse.json(applyScenario(payload, (authUser as any)?.user_metadata?.impersonation));
   } catch (error) {
     console.error("Get employer error:", error);
     return NextResponse.json(

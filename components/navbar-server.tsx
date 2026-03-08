@@ -11,21 +11,21 @@ export async function NavbarServer() {
   const showSandboxAdmin = admin.appEnvironment === "sandbox" && admin.isAdmin;
 
   const supabase = await createServerSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  const profile = session?.user ? await getCurrentUserProfile() : null;
+  const { data: { user } } = await supabase.auth.getUser();
+  const profile = user ? await getCurrentUserProfile() : null;
   const role = profile?.role ?? null;
   let orgSwitcherItems: OrgSwitcherItem[] | null = null;
-  if (session?.user?.id) {
-    const effectiveRoles = await getEffectiveRoles(session.user.id);
+  if (user?.id) {
+    const effectiveRoles = await getEffectiveRoles(user.id);
     if (effectiveRoles.includes("org_admin") || effectiveRoles.includes("enterprise_owner")) {
       const { data: euOrgs } = await (supabase as any)
         .from("employer_users")
         .select("organization_id")
-        .eq("profile_id", session.user.id);
+        .eq("profile_id", user.id);
       const { data: tenantRows } = await (supabase as any)
         .from("tenant_memberships")
         .select("organization_id")
-        .eq("user_id", session.user.id)
+        .eq("user_id", user.id)
         .in("role", ["enterprise_owner", "location_admin"]);
       const orgIds = [...new Set([
         ...(euOrgs ?? []).map((r: { organization_id: string }) => r.organization_id),
@@ -57,10 +57,10 @@ export async function NavbarServer() {
       }
     }
   }
-  const impersonating = Boolean((session as { impersonating?: boolean } | null)?.impersonating);
+  const impersonating = Boolean((user as { user_metadata?: { impersonating?: boolean } } | null)?.user_metadata?.impersonating);
   return (
     <NavbarClientDynamic
-      user={session?.user ?? undefined}
+      user={user ?? undefined}
       role={role ?? undefined}
       showAdmin={showAdmin}
       showSandboxAdmin={showSandboxAdmin}

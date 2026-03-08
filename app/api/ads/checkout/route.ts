@@ -16,8 +16,8 @@ export async function POST(req: Request) {
 
     // Check admin access
     const supabase = await createServerSupabaseClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    const role = (session?.user as { role?: string } | undefined)?.role ?? "";
+    const { data: { user } } = await supabase.auth.getUser();
+    const role = (user as { app_metadata?: { role?: string } } | undefined)?.app_metadata?.role ?? "";
     const isAdmin = role === "admin" || role === "superadmin";
     
     if (!isAdmin) {
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
         adType,
         price: priceItem.price.toString(),
         duration: priceItem.durationDays.toString(),
-        userId: session?.user?.id || '',
+        userId: user?.id || '',
       },
     });
 

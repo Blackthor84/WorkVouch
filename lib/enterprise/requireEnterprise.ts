@@ -19,15 +19,15 @@ export type EnterpriseSession = {
  */
 export async function getEnterpriseSession(): Promise<EnterpriseSession> {
   const supabase = await createServerSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user?.id) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.id) {
     throw new Error("Unauthorized");
   }
   const admin = getSupabaseServer();
   const { data: rows, error } = await admin
     .from("tenant_memberships")
     .select("id, user_id, organization_id, location_id, role, created_at, updated_at")
-    .eq("user_id", session.user.id);
+    .eq("user_id", user.id);
 
   if (error) {
     console.error("[requireEnterprise] tenant_memberships select error:", error);
@@ -42,7 +42,7 @@ export async function getEnterpriseSession(): Promise<EnterpriseSession> {
     .map((m) => m.location_id as string);
 
   return {
-    userId: session.user.id,
+    userId: user.id,
     memberships,
     defaultOrganizationId: enterpriseOwnerOrgIds[0] ?? null,
     enterpriseOwnerOrgIds,

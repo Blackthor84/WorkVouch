@@ -25,8 +25,8 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-
 export async function GET(request: Request) {
   try {
     const serverSupabase = await createServerSupabaseClient();
-    const { data: { session } } = await serverSupabase.auth.getSession();
-    if (!session?.user?.id) {
+    const { data: { user } } = await serverSupabase.auth.getUser();
+    if (!user?.id) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     const { data: actorProfile } = await supabase
       .from("profiles")
       .select("role")
-      .eq("id", session.user.id)
+      .eq("id", user.id)
       .single();
     const actorRole = (actorProfile as { role?: string } | null)?.role ?? "";
     const isAdmin = actorRole === "admin" || actorRole === "superadmin";
@@ -110,7 +110,7 @@ export async function GET(request: Request) {
 
     const { ipAddress, userAgent } = getAuditMetaFromRequest(request);
     await auditLog({
-      actorUserId: session.user.id,
+      actorUserId: user.id,
       actorRole: actorRole === "superadmin" ? "superadmin" : "admin",
       action: "admin_list_users",
       metadata: { count: users.length },

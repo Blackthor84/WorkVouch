@@ -18,8 +18,8 @@ const CONFIRM_PAYLOAD = "DELETE";
  */
 export async function POST(req: NextRequest) {
   const supabase = await createServerSupabaseClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user?.id) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const userId = session.user.id;
+  const userId = user.id;
   const { ipAddress, userAgent } = getAuditMetaFromRequest(req);
 
   try {

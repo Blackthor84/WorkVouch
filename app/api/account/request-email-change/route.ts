@@ -34,11 +34,11 @@ function generateSecureToken(): string {
 export async function POST(request: Request) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user?.id) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const userId = session.user.id as string;
+    const userId = user.id as string;
 
     const rl = withRateLimit(request, { userId, ...RATE_LIMITS.defaultWrite, prefix: "rl:email:" });
     if (!rl.allowed) return rl.response;

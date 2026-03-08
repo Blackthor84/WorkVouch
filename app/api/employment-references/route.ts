@@ -25,12 +25,12 @@ const bodySchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user?.id) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const rl = withRateLimit(req, {
-      userId: session.user.id,
+      userId: user.id,
       ...RATE_LIMITS.employmentReferences,
       prefix: "rl:ref:",
     });
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     const result = await submitReview(
       {
         employment_match_id: parsed.data.employment_match_id,
-        reviewer_id: session.user.id,
+        reviewer_id: user.id,
         rating: parsed.data.rating,
         comment: parsed.data.comment,
       },
