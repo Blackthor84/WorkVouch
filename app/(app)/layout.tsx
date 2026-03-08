@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
 import Sidebar from "@/components/Sidebar";
@@ -6,7 +7,8 @@ import Sidebar from "@/components/Sidebar";
 /**
  * Single auth guard for all routes under (app). Uses supabase.auth.getUser()
  * to verify the token with the auth server (never getSession() on the server).
- * Unauthenticated users → redirect /login. No role yet → redirect /choose-role (outside this layout).
+ * Unauthenticated users → redirect /login. No role yet → redirect /choose-role,
+ * unless pathname is /choose-role (allow that path to bypass the role check).
  */
 function normalizeRole(role: string | null | undefined): "employee" | "employer" | "admin" | null {
   if (!role) return null;
@@ -28,11 +30,13 @@ export default async function AppLayout({
     redirect("/login");
   }
 
+  const pathname = (await headers()).get("x-pathname") ?? "";
+
   const profile = await getCurrentUserProfile();
   const roleRaw = profile?.role ?? null;
   const role = normalizeRole(roleRaw);
 
-  if (!role) {
+  if (!role && pathname !== "/choose-role") {
     redirect("/choose-role");
   }
 
