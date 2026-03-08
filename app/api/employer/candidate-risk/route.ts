@@ -34,8 +34,13 @@ export type EmployerCandidateRiskResponse = {
 };
 
 async function computePlaceholders(candidateId: string): Promise<EmployerCandidateRiskResponse> {
-  const { data: jobs } = await admin.from("jobs").select("id, start_date, end_date, verification_status").eq("user_id", candidateId);
-  const jobList = (jobs ?? []) as { id: string; start_date: string; end_date: string | null; verification_status?: string }[];
+  type JobRow = { id: string; start_date: string; end_date: string | null; verification_status?: string };
+  const { data: jobs } = await admin
+    .from("jobs")
+    .select("id, start_date, end_date, verification_status")
+    .eq("user_id", candidateId)
+    .returns<JobRow[]>();
+  const jobList = jobs ?? [];
   let tenureMonths = 0;
   for (const j of jobList) {
     const s = new Date(j.start_date).getTime();
