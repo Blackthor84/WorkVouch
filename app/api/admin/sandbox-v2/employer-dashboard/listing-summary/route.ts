@@ -48,12 +48,12 @@ export async function GET(req: NextRequest) {
         .select("employee_id, profile_strength")
         .eq("sandbox_id", sandboxId)
         .in("employee_id", employeeIds);
-      const strengths = (snapshots ?? []).filter(
-        (s: { profile_strength?: number }) => (s as { profile_strength?: number }).profile_strength != null
-      ) as { profile_strength: number }[];
+      const strengths = (snapshots ?? [])
+        .map((s) => s.profile_strength)
+        .filter((n): n is number => typeof n === "number");
       if (strengths.length > 0) {
         out.average_profile_strength = Math.round(
-          strengths.reduce((a: number, s: { profile_strength: number }) => a + s.profile_strength, 0) / strengths.length
+          strengths.reduce((a, n) => a + n, 0) / strengths.length
         );
       }
     }
