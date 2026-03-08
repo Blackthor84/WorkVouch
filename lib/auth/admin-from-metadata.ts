@@ -1,12 +1,12 @@
 /**
  * Admin check using ONLY auth metadata (no DB).
- * session.user.app_metadata.role: "user" | "admin" | "superadmin"
+ * user.app_metadata.role from getUser(): "user" | "admin" | "superadmin"
  * Use for: nav visibility, admin route guard, API 403.
  */
 
 import { getUser } from "@/lib/auth/getUser";
 import type { AdminRole } from "@/lib/auth/admin-role-guards";
-import { getRoleFromSession } from "@/lib/auth/admin-role-guards";
+import { getRoleFromUser } from "@/lib/auth/admin-role-guards";
 
 export type AdminMetadataResult = {
   isAdmin: boolean;
@@ -22,8 +22,8 @@ export async function getAdminFromMetadata(): Promise<AdminMetadataResult> {
   try {
     const user = await getUser();
     if (!user?.id) return { isAdmin: false, isSuperAdmin: false, role: "user", userId: null };
-    const sessionLike = { user: { id: user.id, app_metadata: (user as { app_metadata?: { role?: string } }).app_metadata } };
-    const role = getRoleFromSession(sessionLike);
+    const userLike = { id: user.id, app_metadata: (user as { app_metadata?: { role?: string } }).app_metadata };
+    const role = getRoleFromUser(userLike);
     const isAdmin = role === "admin" || role === "superadmin";
     const isSuperAdmin = role === "superadmin";
     return { isAdmin, isSuperAdmin, role, userId: user.id };

@@ -1,6 +1,6 @@
 /**
  * Global role guards. Source of truth: Supabase Auth auth.users.raw_app_meta_data.role.
- * Exposed in session as session.user.app_metadata.role.
+ * All auth uses getUser(); never use getSession() or session.
  *
  * WHY: Admin access is NEVER UI-only. Every guard must be enforced server-side.
  * WHY 403: Never redirect from API/layout guards; return 403 so clients can handle.
@@ -12,34 +12,33 @@ import { getUser } from "@/lib/auth/getUser";
 
 export type AdminRole = "user" | "admin" | "superadmin";
 
-export type SessionLike = {
-  user?: {
-    id?: string;
-    email?: string;
-    app_metadata?: { role?: string };
-  } | null;
-};
+/** User shape from getUser() used for role checks. */
+export type UserLike = {
+  id?: string;
+  email?: string;
+  app_metadata?: { role?: string };
+} | null;
 
 /**
  * Normalize role from app_metadata. Allowed: user, admin, superadmin.
  */
-export function getRoleFromSession(session: SessionLike | null): AdminRole {
-  if (!session?.user?.app_metadata?.role) return "user";
-  const r = String(session.user.app_metadata.role).toLowerCase().trim();
+export function getRoleFromUser(user: UserLike): AdminRole {
+  if (!user?.app_metadata?.role) return "user";
+  const r = String(user.app_metadata.role).toLowerCase().trim();
   if (r === "superadmin" || r === "super_admin") return "superadmin";
   if (r === "admin") return "admin";
   return "user";
 }
 
 /**
- * Require admin (admin or superadmin). Returns 403 Response if not allowed; null if allowed.
+ * Require admin (admin or superadmin). Returns 401/403 Response if not allowed; null if allowed.
  * Use in API routes and server logic. NEVER rely on UI-only checks.
  */
-export function requireAdmin(session: SessionLike | null): NextResponse | null {
-  if (!session?.user?.id) {
+export function requireAdmin(user: UserLike): NextResponse | null {
+  if (!user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const role = getRoleFromSession(session);
+  const role = getRoleFromUser(user);
   if (role !== "admin" && role !== "superadmin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -47,14 +46,14 @@ export function requireAdmin(session: SessionLike | null): NextResponse | null {
 }
 
 /**
- * Require superadmin. Returns 403 Response if not superadmin; null if allowed.
+ * Require superadmin. Returns 401/403 Response if not superadmin; null if allowed.
  * Use for: promote/demote admins, emergency shutdown, system settings.
  */
-export function requireSuperAdmin(session: SessionLike | null): NextResponse | null {
-  if (!session?.user?.id) {
+export function requireSuperAdmin(user: UserLike): NextResponse | null {
+  if (!user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const role = getRoleFromSession(session);
+  const role = getRoleFromUser(user);
   if (role !== "superadmin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -77,24 +76,24 @@ export function isSuperAdminRole(role: string): boolean {
 }
 
 /**
- * Get session-like from Supabase and run requireAdmin. For use in API routes.
- * Returns 403 Response if not admin, or null if allowed (caller gets user from getAdminContext or getUser).
+ * Get user via getUser() and run requireAdmin. For use in API routes.
+ * Returns 401/403 if not admin, or null if allowed.
  */
 export async function requireAdminFromSupabase(): Promise<NextResponse | null> {
   const user = await getUser();
-  const session: SessionLike = user
-    ? { user: { id: user.id, email: user.email, app_metadata: (user as { app_metadata?: { role?: string } }).app_metadata } }
-    : { user: null };
-  return requireAdmin(session);
+  const userLike: UserLike = user
+    ? { id: user.id, email: user.email, app_metadata: (user as { app_metadata?: { role?: string } }).app_metadata }
+    : null;
+  return requireAdmin(userLike);
 }
 
 /**
- * Get session-like from Supabase and run requireSuperAdmin. For use in API routes.
+ * Get user via getUser() and run requireSuperAdmin. For use in API routes.
  */
 export async function requireSuperAdminFromSupabase(): Promise<NextResponse | null> {
   const user = await getUser();
-  const session: SessionLike = user
-    ? { user: { id: user.id, email: user.email, app_metadata: (user as { app_metadata?: { role?: string } }).app_metadata } }
-    : { user: null };
-  return requireSuperAdmin(session);
+  const userLike: UserLike = user
+    ? { id: user.id, email: user.email, app_metadata: (user as { app_metadata?: { role?: string } }).app_metadata }
+    : null;
+  return requireSuperAdmin(userLike);
 }

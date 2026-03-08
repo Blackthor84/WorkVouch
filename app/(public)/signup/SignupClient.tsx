@@ -93,8 +93,8 @@ export default function SignupClient() {
         return;
       }
 
-      // Email confirmation OFF: session exists; mark claim-profile if from verification, then go to onboarding
-      if (data.session) {
+      // Email confirmation OFF: user from signUp; mark claim-profile if from verification, then go to onboarding
+      if (data.user) {
         if (sourceVerification) {
           try {
             await fetch("/api/verification/claim-profile", { method: "POST", credentials: "include" });

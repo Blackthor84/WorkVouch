@@ -44,7 +44,7 @@ export function SignUpForm() {
       // Post-signup: redirect (profile is created by DB trigger on auth.users)
       await new Promise((r) => setTimeout(r, 1000));
 
-      if (data.session) {
+      if (data.user) {
         await supabase.auth.getUser();
         await new Promise((r) => setTimeout(r, 150));
         const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;
@@ -71,7 +71,7 @@ export function SignUpForm() {
         setError("Account created! Please check your email to confirm your account, then sign in.");
         return;
       }
-      if (signInData?.session) {
+      if (signInData?.user) {
         await supabase.auth.getUser();
         await new Promise((r) => setTimeout(r, 150));
         const key = industry ? INDUSTRY_TO_ONBOARDING_KEY[industry as keyof typeof INDUSTRY_TO_ONBOARDING_KEY] : undefined;

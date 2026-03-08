@@ -1,6 +1,6 @@
 /**
  * SINGLE SOURCE OF TRUTH — Admin context. Server-side only.
- * Role: session.user.app_metadata.role only (user, admin, superadmin). Do NOT use profiles.role for auth.
+ * Role from getUser().app_metadata.role only (user, admin, superadmin). Do NOT use profiles.role for auth.
  * Never use getSession() or trust cookies for role. Never throws.
  * API routes MUST call getAdminContext(req) and pass the request.
  */
@@ -9,7 +9,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isSandbox } from "@/lib/app-mode";
-import { getRoleFromSession } from "@/lib/auth/admin-role-guards";
 import { isAdminRole } from "@/lib/auth/isAdminRole";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
 import { isSandboxEnv } from "@/lib/sandbox/env";

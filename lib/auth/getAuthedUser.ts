@@ -5,7 +5,7 @@
  */
 
 import { getUser } from "@/lib/auth/getUser";
-import { getRoleFromSession, type SessionLike } from "@/lib/auth/admin-role-guards";
+import { getRoleFromUser, type UserLike } from "@/lib/auth/admin-role-guards";
 
 export type AuthedUser = {
   user: { id: string; email: string };
@@ -21,15 +21,13 @@ export async function getAuthedUser(): Promise<AuthedUser | null> {
       return null;
     }
 
-    const sessionLike: SessionLike = {
-      user: {
-        id: user.id,
-        email: user.email,
-        app_metadata: (user as { app_metadata?: { role?: string } }).app_metadata,
-      },
+    const userLike: UserLike = {
+      id: user.id,
+      email: user.email,
+      app_metadata: (user as { app_metadata?: { role?: string } }).app_metadata,
     };
 
-    const role = getRoleFromSession(sessionLike);
+    const role = getRoleFromUser(userLike);
 
     return {
       user: { id: user.id, email: user.email },

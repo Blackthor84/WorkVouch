@@ -1,5 +1,5 @@
 import { supabase } from './supabase/client'
-import { Session, User } from '@supabase/supabase-js'
+import { User } from '@supabase/supabase-js'
 
 export interface UserProfile {
   id: string
@@ -17,20 +17,18 @@ export interface UserRole {
 }
 
 /**
- * Get current session. Uses getUser() (not getSession()) for secure auth.
- * Prefer getCurrentUser() when you only need the user.
+ * Get current user. Uses supabase.auth.getUser() (not getSession()) for secure auth.
  */
-export async function getSession(): Promise<Session | null> {
+export async function getUser(): Promise<User | null> {
   const { data: { user } } = await supabase.auth.getUser()
-  return user ? ({ user } as Session) : null
+  return user
 }
 
 /**
- * Get current user
+ * Get current user (alias for getUser).
  */
 export async function getCurrentUser(): Promise<User | null> {
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
+  return getUser()
 }
 
 /**
