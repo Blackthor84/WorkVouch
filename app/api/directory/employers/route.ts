@@ -64,14 +64,21 @@ export async function GET(req: NextRequest) {
       accountMap.set(row.id, { company_name: row.company_name, industry_type: row.industry_type });
     }
 
-    let results = list.map((s: { employer_id: string; reputation_score: number; percentile_rank?: number; industry_percentile_rank?: number; last_calculated_at?: string }) => ({
+    type SnapshotRow = {
+      employer_id: string;
+      reputation_score: number;
+      percentile_rank: number | null;
+      industry_percentile_rank: number | null;
+      last_calculated_at: string | null;
+    };
+    let results = list.map((s: SnapshotRow) => ({
       employer_id: s.employer_id,
       company_name: accountMap.get(s.employer_id)?.company_name ?? "—",
       industry_type: accountMap.get(s.employer_id)?.industry_type ?? null,
       reputation_score: Number(s.reputation_score),
       percentile_rank: s.percentile_rank != null ? Number(s.percentile_rank) : null,
       industry_percentile_rank: s.industry_percentile_rank != null ? Number(s.industry_percentile_rank) : null,
-      last_calculated_at: s.last_calculated_at ?? null,
+      last_calculated_at: s.last_calculated_at != null ? s.last_calculated_at : null,
     }));
 
     if (industry) {
