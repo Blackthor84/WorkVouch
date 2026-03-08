@@ -34,14 +34,12 @@ export async function GET() {
 
     const { data: employmentRows } = await admin
       .from("employment_records")
-      .select("id, user_id, employer_confirmation_status, verification_status")
+      .select("id, user_id, verification_status")
       .eq("employer_id", employerId)
       .eq("is_current", false);
     const employmentList = Array.isArray(employmentRows) ? employmentRows : [];
     const totalVerified = employmentList.filter(
-      (r: { employer_confirmation_status?: string; verification_status?: string }) =>
-        (r as { employer_confirmation_status?: string }).employer_confirmation_status === "approved" ||
-        (r as { verification_status?: string }).verification_status === "verified"
+      (r: { verification_status?: string }) => r.verification_status === "verified"
     ).length;
 
     const employmentIds = employmentList.map((r: { id: string }) => (r as { id: string }).id);
