@@ -26,12 +26,12 @@ export default function LoginScreen() {
         return
       }
 
-      if (data.session) {
+      if (data.user) {
         // Check user role
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')
-          .eq('id', data.session.user.id)
+          .eq('id', data.user.id)
           .single()
 
         if ((profile as { role?: string })?.role === 'employer') {

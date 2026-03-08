@@ -39,13 +39,13 @@ export function DemoModeFromParams() {
  */
 export function DemoModeActivatorWithParams() {
   const [enabled, setEnabled] = useState(false);
-  const { data: session, status: sessionStatus } = useSupabaseSession();
+  const { data, status: sessionStatus } = useSupabaseSession();
   const { setPreview } = usePreview();
 
   useEffect(() => {
     const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
     const demoParam = params.get("demo");
-    const userRole = (session?.user as { role?: string } | undefined)?.role;
+    const userRole = (data.user as { role?: string } | undefined)?.role;
     const eliteEnabled = isEliteDemoEnabled(params, userRole);
 
     if (sessionStatus === "loading") {
@@ -75,7 +75,7 @@ export function DemoModeActivatorWithParams() {
     }
 
     setEnabled(demoParam === "1" || (demoParam === "elite" && eliteEnabled));
-  }, [session?.user?.role, sessionStatus, setPreview]);
+  }, [data.user?.id, data.user ? (data.user as { role?: string }).role : undefined, sessionStatus, setPreview]);
 
   if (!enabled) return null;
   return <DemoModeActivator enabled={enabled} />;

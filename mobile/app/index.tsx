@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { View, Text, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
-import { getSession } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth'
 import { supabase } from '@/lib/supabase/client'
 import Animated, { FadeIn } from 'react-native-reanimated'
 
@@ -15,17 +15,17 @@ export default function SplashScreen() {
 
   async function checkAuth() {
     try {
-      const session = await getSession()
+      const user = await getCurrentUser()
       
       // Small delay for splash animation
       await new Promise(resolve => setTimeout(resolve, 1500))
       
-      if (session) {
+      if (user?.id) {
         // Check if user is employer
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')
-          .eq('id', session.user.id)
+          .eq('id', user.id)
           .single()
         
         if ((profile as { role?: string })?.role === 'employer') {

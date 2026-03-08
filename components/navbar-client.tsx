@@ -179,7 +179,7 @@ function AuthenticatedNavbar({
 }
 
 export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems, impersonating: impersonatingProp }: NavbarClientProps = {}) {
-  const session = null as { user?: User } | null;
+  const { data } = useSupabaseSession();
   const status = "authenticated" as "loading" | "authenticated" | "unauthenticated";
   const authRole: string | null = null;
   const authLoading = false;
@@ -187,11 +187,11 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
   const router = useRouter();
   const pathname = usePathname();
 
-  const resolvedUser = userProp ?? session?.user ?? null;
+  const resolvedUser = userProp ?? data.user ?? null;
   const resolvedRole = authLoading ? null : (authRole ?? roleProp ?? null);
   const isAuthenticated = status === "authenticated" && resolvedUser !== null;
 
-  const impersonating = Boolean(impersonatingProp ?? (session as { impersonating?: boolean } | null)?.impersonating);
+  const impersonating = Boolean(impersonatingProp);
   const eliteDemo = Boolean(preview?.demoActive);
   const isEmployerArea = pathname?.startsWith("/employer");
   const [complianceCount, setComplianceCount] = useState(0);
@@ -207,9 +207,9 @@ export function NavbarClient({ user: userProp, role: roleProp, orgSwitcherItems,
       .catch(() => setComplianceCount(0));
   }, [isEmployerArea, resolvedUser?.id, resolvedRole]);
 
-  const roleFromMetadata = (session?.user as { app_metadata?: { role?: string } } | undefined)?.app_metadata?.role;
+  const roleFromMetadata = (data.user as { app_metadata?: { role?: string } } | undefined)?.app_metadata?.role;
   const showAdmin =
-    !!session &&
+    !!data.user &&
     roleFromMetadata != null &&
     ["admin", "superadmin"].includes(String(roleFromMetadata).toLowerCase());
   const showSandboxAdmin = String(roleFromMetadata ?? "").toLowerCase() === "superadmin";

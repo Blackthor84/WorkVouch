@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 import { usePreview } from "@/lib/preview-context";
 
-function isPreviewAdmin(session: { user?: { role?: string } } | null): boolean {
-  if (!session?.user) return false;
-  const role = session.user.role;
+function isPreviewAdmin(user: { role?: string } | null | undefined): boolean {
+  if (!user) return false;
+  const role = user.role;
   return role === "admin" || role === "superadmin";
 }
 
@@ -98,9 +98,9 @@ export function useFeatureFlagWithLoading(featureKey: string): {
   enabled: boolean;
   loading: boolean;
 } {
-  const { data: session } = useSupabaseSession();
+  const { data } = useSupabaseSession();
   const { preview } = usePreview();
-  const previewModeActive = Boolean(preview && (preview.demoActive || preview.featureFlags?.length) && isPreviewAdmin(session as { user?: { role?: string } } | null));
+  const previewModeActive = Boolean(preview && (preview.demoActive || preview.featureFlags?.length) && isPreviewAdmin(data.user as { role?: string } | null));
   const previewEnabled =
     previewModeActive &&
     (preview?.previewFeatures?.[featureKey] === true || (preview?.previewFeatures?.[featureKey] !== false && preview?.featureFlags?.includes(featureKey)));

@@ -7,9 +7,9 @@ import CareersGrid from "@/components/CareersGrid";
 import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
 
 export default function PreviewOnlyClient() {
-  const { data: session, status } = useSupabaseSession();
+  const { data, status } = useSupabaseSession();
   const router = useRouter();
-  const user = session?.user ?? null;
+  const user = data.user ?? null;
   const [roleCheck, setRoleCheck] = useState<"beta" | "other" | null>(null);
 
   useEffect(() => {

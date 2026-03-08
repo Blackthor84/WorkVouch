@@ -9,8 +9,8 @@ import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession";
  * Allows security agencies to upload and verify guard licenses
  */
 export default function LicenseManagement() {
-  const { data: session } = useSupabaseSession();
-  const user = session?.user ?? null;
+  const { data } = useSupabaseSession();
+  const user = data.user ?? null;
   const [licenses, setLicenses] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);
 

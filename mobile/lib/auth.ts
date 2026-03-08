@@ -17,7 +17,8 @@ export interface UserRole {
 }
 
 /**
- * Get current session (uses getUser for secure auth)
+ * Get current session. Uses getUser() (not getSession()) for secure auth.
+ * Prefer getCurrentUser() when you only need the user.
  */
 export async function getSession(): Promise<Session | null> {
   const { data: { user } } = await supabase.auth.getUser()

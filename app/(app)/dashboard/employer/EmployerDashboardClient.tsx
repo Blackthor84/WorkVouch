@@ -27,8 +27,8 @@ import { TrustAutomationPanel } from "@/components/trust/TrustAutomationPanel";
  * - Security Bundle features (if applicable)
  */
 export default function EmployerDashboard() {
-  const { data: session } = useSupabaseSession();
-  const user = session?.user ?? null;
+  const { data } = useSupabaseSession();
+  const user = data.user ?? null;
   const [employerAccount, setEmployerAccount] = useState<any>(null);
   const [searchUsage, setSearchUsage] = useState<any>(null);
   const [reportUsage, setReportUsage] = useState<any>(null);

@@ -18,7 +18,7 @@ export default function ReviewForm({
   onReviewSubmitted,
   className = "",
 }: ReviewFormProps) {
-  const { data: session } = useSupabaseSession();
+  const { data } = useSupabaseSession();
   const [rating, setRating] = useState<number>(0);
   const [hoveredRating, setHoveredRating] = useState<number>(0);
   const [reviewText, setReviewText] = useState("");
@@ -26,7 +26,7 @@ export default function ReviewForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const reviewerId = session?.user?.id ?? null;
+  const reviewerId = data.user?.id ?? null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

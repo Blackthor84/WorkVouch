@@ -24,7 +24,7 @@ export default function LoginClient() {
         password,
       });
       if (signInError) throw signInError;
-      const role = String((signInData?.session?.user as { app_metadata?: { role?: string } } | undefined)?.app_metadata?.role ?? "").trim().toLowerCase();
+      const role = String((signInData?.user as { app_metadata?: { role?: string } } | undefined)?.app_metadata?.role ?? "").trim().toLowerCase();
       if (role === "admin" || role === "superadmin") {
         router.push("/admin");
         return;
