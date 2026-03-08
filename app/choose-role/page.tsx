@@ -1,29 +1,28 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { ChooseRoleForm } from "./ChooseRoleForm";
+"use client";
 
-/**
- * Choose-role lives outside (app) so that router.replace("/dashboard") after saving
- * actually navigates to the protected dashboard instead of staying in the same layout.
- * Auth and role checks: logged-in users without a role see the form; others are redirected.
- */
-export default async function ChooseRolePage() {
-  const supabase = await createClient();
-  const { data: authData } = await supabase.auth.getUser();
-  if (!authData?.user) {
-    redirect("/login");
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase/client";
+
+export default function ChooseRole() {
+  const router = useRouter();
+
+  async function setRole(role: "employee" | "employer") {
+    const { data } = await supabase.auth.getUser();
+
+    if (!data?.user) return;
+
+    await supabase
+      .from("profiles")
+      .update({ role })
+      .eq("id", data.user.id);
+
+    router.replace("/dashboard");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", authData.user.id)
-    .maybeSingle();
-
-  const role = (profile as { role?: string | null } | null)?.role?.trim?.();
-  if (role && ["employee", "employer", "admin", "superadmin", "worker", "user"].includes(role.toLowerCase())) {
-    redirect("/dashboard");
-  }
-
-  return <ChooseRoleForm />;
+  return (
+    <div className="flex gap-6">
+      <button onClick={() => setRole("employee")}>I&apos;m an Employee</button>
+      <button onClick={() => setRole("employer")}>I&apos;m an Employer</button>
+    </div>
+  );
 }
