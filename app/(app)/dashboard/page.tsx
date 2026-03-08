@@ -28,40 +28,15 @@ import {
   BriefcaseIcon as JobsIcon,
   DocumentArrowUpIcon,
 } from "@heroicons/react/24/outline";
-import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth/getUser";
-import { getEffectiveSession } from "@/lib/auth/actingUser";
-import { isImpersonating } from "@/lib/auth/isImpersonating";
 
-// Ensure runtime rendering - prevents build-time prerendering
+// Auth and role checks are done only in app/(app)/layout.tsx — no redirects here.
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 export default async function UserDashboardPage() {
   const user = await getUser();
-  if (!user) redirect("/login");
-  const emailVerified = Boolean((user as { email_confirmed_at?: string | null }).email_confirmed_at);
-  if (!emailVerified) {
-    redirect("/verify-email");
-  }
-
-  const effectiveSession = await getEffectiveSession();
-  const effectiveUserId = effectiveSession?.effectiveUserId ?? user.id;
-  const effectiveRole = (effectiveSession?.effectiveRole ?? "").toString().trim().toLowerCase();
-
-  if (
-    (effectiveRole === "admin" || effectiveRole === "superadmin" || effectiveRole === "super_admin") &&
-    !(await isImpersonating())
-  ) {
-    redirect("/admin");
-  }
-  if (effectiveRole === "employer") {
-    redirect("/dashboard/employer");
-  }
-  if (effectiveRole === "employee" || effectiveRole === "user" || effectiveRole === "worker") {
-    redirect("/dashboard/employee");
-  }
-
+  if (!user) return null;
   const profile = await getCurrentUserProfile();
 
   // Normalize profile: convert string | null to string

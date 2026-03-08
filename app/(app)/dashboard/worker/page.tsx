@@ -1,13 +1,13 @@
 export const dynamic = "force-dynamic";
 
 import { getUser } from "@/lib/auth/getUser";
-import { redirect } from "next/navigation";
 import { admin } from "@/lib/supabase-admin";
 import WorkerDashboard from "./WorkerDashboardClient";
 
+// Auth and role are enforced by (app)/layout.tsx — no redirect here.
 export default async function WorkerDashboardPage() {
   const user = await getUser();
-  if (!user) redirect("/login");
+  if (!user) return null;
 
   let confidenceScore = 0;
   try {
