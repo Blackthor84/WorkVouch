@@ -96,11 +96,11 @@ export async function PATCH(
 
     if (updates.status === "resolved" || updates.status === "rejected") {
       await onDisputeResolvedAffectsTrust({
-        userId: existing.user_id,
-        disputeType: existing.dispute_type,
+        userId: existing.user_id as string,
+        disputeType: existing.dispute_type as string,
         adminId: user.id,
       });
-      await refreshUserDisputeTransparency(existing.user_id);
+      await refreshUserDisputeTransparency(existing.user_id as string);
     }
 
     const { data: updated } = await admin.from("disputes").select("*").eq("id", id).single();
