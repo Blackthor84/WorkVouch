@@ -21,21 +21,19 @@ export default function ChooseRolePage() {
         setLoading(null);
         return;
       }
-      // Strict lowercase to satisfy profiles_role_check; upsert so missing profile row is created
+      // Strict lowercase to satisfy profiles_role_check; profile row already exists after signup
       const roleValue = role.trim().toLowerCase() as "employee" | "employer";
       if (roleValue !== "employee" && roleValue !== "employer") {
         setError("Invalid role.");
         setLoading(null);
         return;
       }
-      const { error: upsertError } = await supabase
+      const { error: updateError } = await supabase
         .from("profiles")
-        .upsert(
-          { id: authData.user.id, role: roleValue },
-          { onConflict: "id" }
-        );
-      if (upsertError) {
-        setError(upsertError.message);
+        .update({ role: roleValue })
+        .eq("id", authData.user.id);
+      if (updateError) {
+        setError(updateError.message);
         setLoading(null);
         return;
       }
