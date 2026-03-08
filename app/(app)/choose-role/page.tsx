@@ -15,30 +15,22 @@ export default function ChooseRolePage() {
     setError(null);
     setLoading(role);
     try {
-      const { data: authData } = await supabase.auth.getUser();
-      if (!authData?.user?.id) {
+      const { data } = await supabase.auth.getUser();
+      if (!data?.user) {
         setError("Not signed in.");
-        setLoading(null);
-        return;
-      }
-      // Strict lowercase to satisfy profiles_role_check; profile row already exists after signup
-      const roleValue = role.trim().toLowerCase() as "employee" | "employer";
-      if (roleValue !== "employee" && roleValue !== "employer") {
-        setError("Invalid role.");
         setLoading(null);
         return;
       }
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ role: roleValue })
-        .eq("id", authData.user.id);
+        .update({ role })
+        .eq("id", data.user.id);
       if (updateError) {
         setError(updateError.message);
         setLoading(null);
         return;
       }
-      router.push("/dashboard");
-      router.refresh();
+      router.replace("/dashboard");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
       setLoading(null);

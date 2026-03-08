@@ -24,10 +24,14 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
  * Employee Dashboard — YC-style SaaS layout (Stripe / Notion / Linear).
  * LEFT: Sidebar (Dashboard, Verified Work History, Resume, Coworker Verifications, Network, Settings)
  * TOP: Primary actions — + Add Verified Job, Upload Resume, Request Verification
- * CENTER: Confidence Score (Employment Trust Score: progress bar + Verified Coworkers / Job History / Resume Consistency)
+ * CENTER: Confidence Score (score, next goal, tips)
  * BOTTOM: Verified Work History, Verification Requests, Coworker Activity, Trust panels
  */
-export default function WorkerDashboard() {
+export default function WorkerDashboard({
+  initialConfidenceScore = 0,
+}: {
+  initialConfidenceScore?: number;
+}) {
   const searchParams = useSearchParams();
   const [requestModalOpen, setRequestModalOpen] = useState(false);
   const [inviteFormOpen, setInviteFormOpen] = useState(false);
@@ -66,8 +70,8 @@ export default function WorkerDashboard() {
         {/* TOP: Primary actions — Add Verified Job, Upload Resume, Request Verification */}
         <DashboardActions onRequestVerification={() => setRequestModalOpen(true)} />
 
-        {/* Confidence Score — core product value (progress bar + Verified Coworkers / Job History / Resume Consistency) */}
-        <ConfidenceScore />
+        {/* Confidence Score — score, next level, tips (fetched in page, passed as prop) */}
+        <ConfidenceScore score={initialConfidenceScore} />
 
         {/* Job History / Trust Score / Recent Verifications */}
         {/* Verified Work History */}
