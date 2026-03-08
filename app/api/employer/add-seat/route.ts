@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     }
     const { data: account, error: accError } = await admin
       .from("employer_accounts")
-      .select("id, plan_tier, reports_used, searches_used, seats_used, seats_allowed, stripe_report_overage_item_id, stripe_search_overage_item_id, stripe_seat_overage_item_id")
+      .select("id")
       .eq("user_id", user.id)
       .single();
 
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Employer not found" }, { status: 404 });
     }
 
-    const result = await enforceLimit(account as any, "seats");
+    const result = await enforceLimit(account as unknown as Parameters<typeof enforceLimit>[0], "seats");
     if (!result.allowed) {
       return NextResponse.json(
         { error: result.error || "Plan limit reached", limitReached: true },
@@ -51,16 +51,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: updated } = await admin
-      .from("employer_accounts")
-      .select("seats_used, seats_allowed")
-      .eq("id", account.id)
-      .single();
-
     return NextResponse.json({
       success: true,
-      seats_used: updated?.seats_used ?? account.seats_used + 1,
-      seats_allowed: updated?.seats_allowed ?? account.seats_allowed,
+      id: account.id,
     });
   } catch (e) {
     console.error("[add-seat] error:", e);
@@ -87,32 +80,12 @@ export async function DELETE(req: NextRequest) {
     }
     const { data: account, error: accError } = await admin
       .from("employer_accounts")
-      .select("id, seats_used")
+      .select("id")
       .eq("user_id", user.id)
       .single();
 
     if (accError || !account) {
       return NextResponse.json({ error: "Employer not found" }, { status: 404 });
-    }
-
-    const current = Number(account.seats_used ?? 1);
-    if (current <= 1) {
-      return NextResponse.json(
-        { error: "Cannot reduce seats below 1" },
-        { status: 400 }
-      );
-    }
-
-    const { error: updateError } = await admin
-      .from("employer_accounts")
-      .update({ seats_used: current - 1 })
-      .eq("id", account.id);
-
-    if (updateError) {
-      return NextResponse.json(
-        { error: "Failed to update seats" },
-        { status: 500 }
-      );
     }
 
     await admin.from("usage_logs").insert({
@@ -124,7 +97,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      seats_used: current - 1,
+      id: account.id,
     });
   } catch (e) {
     console.error("[remove-seat] error:", e);
