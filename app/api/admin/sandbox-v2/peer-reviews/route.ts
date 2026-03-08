@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -84,8 +85,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: existing } = await supabase
-      .from("sandbox_peer_reviews")
+    const { data: existing } = await admin.from("sandbox_peer_reviews")
       .select("id")
       .eq("sandbox_id", sandbox_id)
       .eq("reviewer_id", reviewer_id)
@@ -105,8 +105,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: reviewerEmp } = await supabase
-      .from("sandbox_employees")
+    const { data: reviewerEmp } = await admin.from("sandbox_employees")
       .select("id, sandbox_id")
       .eq("id", reviewer_id)
       .eq("sandbox_id", sandbox_id)
@@ -118,8 +117,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: reviewedEmp } = await supabase
-      .from("sandbox_employees")
+    const { data: reviewedEmp } = await admin.from("sandbox_employees")
       .select("id, sandbox_id")
       .eq("id", reviewed_id)
       .eq("sandbox_id", sandbox_id)
@@ -131,13 +129,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: reviewerRecords } = await supabase
-      .from("sandbox_employment_records")
+    const { data: reviewerRecords } = await admin.from("sandbox_employment_records")
       .select("employer_id, tenure_months")
       .eq("sandbox_id", sandbox_id)
       .eq("employee_id", reviewer_id);
-    const { data: reviewedRecords } = await supabase
-      .from("sandbox_employment_records")
+    const { data: reviewedRecords } = await admin.from("sandbox_employment_records")
       .select("employer_id, tenure_months")
       .eq("sandbox_id", sandbox_id)
       .eq("employee_id", reviewed_id);
@@ -198,8 +194,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: employerRow } = await supabase
-      .from("sandbox_employers")
+    const { data: employerRow } = await admin.from("sandbox_employers")
       .select("id, sandbox_id")
       .eq("sandbox_id", sandbox_id)
       .limit(1)
@@ -213,8 +208,7 @@ export async function POST(req: NextRequest) {
 
     const sentiment_score = calculateSentimentFromText(review_text ?? null);
 
-    const { data, error } = await supabase
-      .from("sandbox_peer_reviews")
+    const { data, error } = await admin.from("sandbox_peer_reviews")
       .insert({
         sandbox_id,
         reviewer_id,

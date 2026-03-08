@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/analytics/journeys — user/session journey timeline.
  * Query: session_id= or user_id=. Returns page views, events, errors; no PII.
@@ -7,19 +11,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { logAdminViewedAnalytics } from "@/lib/admin/analytics-audit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
 
   try {
     await logAdminViewedAnalytics(
-      { userId: admin.authUserId, authUserId: admin.authUserId, email: admin.user?.email ?? null, role: admin.isSuperAdmin ? "super_admin" : "admin" },
+      { userId: adminSession.authUserId, authUserId: adminSession.authUserId, email: adminSession.user?.email ?? null, role: adminSession.isSuperAdmin ? "super_admin" : "admin" },
       req,
       "journeys"
     );
@@ -33,13 +37,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Provide session_id or user_id" }, { status: 400 });
   }
 
-  const supabase = getSupabaseServer() as any;
+  const supabase = admin as any;
   let sessionIds: string[] = [];
   let sessionMeta: { id: string; country: string | null; device_type: string | null; is_sandbox: boolean; started_at: string; last_seen_at: string } | null = null;
 
   if (sessionId) {
-    const { data: sess } = await supabase
-      .from("site_sessions")
+    const { data: sess } = await admin.from("site_sessions")
       .select("id, country, device_type, is_sandbox, started_at, last_seen_at")
       .eq("id", sessionId)
       .maybeSingle();
@@ -49,8 +52,7 @@ export async function GET(req: NextRequest) {
     sessionMeta = sess;
     sessionIds = [sessionId];
   } else if (userId) {
-    const { data: sessions } = await supabase
-      .from("site_sessions")
+    const { data: sessions } = await admin.from("site_sessions")
       .select("id, country, device_type, is_sandbox, started_at, last_seen_at")
       .eq("user_id", userId)
       .order("last_seen_at", { ascending: false })
@@ -63,13 +65,11 @@ export async function GET(req: NextRequest) {
   }
 
   const [pvRes, evRes] = await Promise.all([
-    supabase
-      .from("site_page_views")
+    admin.from("site_page_views")
       .select("id, path, referrer, created_at")
       .in("session_id", sessionIds)
       .order("created_at", { ascending: true }),
-    supabase
-      .from("site_events")
+    admin.from("site_events")
       .select("id, event_type, event_metadata, created_at")
       .in("session_id", sessionIds)
       .order("created_at", { ascending: true }),

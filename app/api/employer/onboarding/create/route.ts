@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
 
     const baseSlug = slugFromName(orgName);
     let slug = baseSlug;

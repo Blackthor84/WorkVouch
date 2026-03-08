@@ -11,8 +11,8 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET() {
-  const admin = await getAdminContext();
-  if (!admin.isAdmin) return adminForbiddenResponse();
+  const adminContext = await getAdminContext();
+  if (!adminContext.isAdmin) return adminForbiddenResponse();
 
   const status = await getAdminOverrideStatus();
   return NextResponse.json({

@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getEffectiveUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { TrustRelationshipType, TrustVerificationLevel } from "@/types/database";
@@ -70,8 +71,7 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { data: edges, error: edgesError } = await supabase
-    .from("trust_relationships")
+  const { data: edges, error: edgesError } = await admin.from("trust_relationships")
     .select("id, source_profile_id, target_profile_id, relationship_type, verification_level, created_at")
     .or(`source_profile_id.eq.${profileId},target_profile_id.eq.${profileId}`);
 
@@ -91,8 +91,7 @@ export async function GET(
   const otherIds = [...new Set(list.map((e) => (e.source_profile_id === profileId ? e.target_profile_id : e.source_profile_id)))];
   const profileMap = new Map<string, { full_name: string | null }>();
   if (otherIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from("profiles")
+    const { data: profiles } = await admin.from("profiles")
       .select("id, full_name")
       .in("id", otherIds);
     for (const p of profiles ?? []) {

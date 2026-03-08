@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/user/appeals
  * Submit an appeal for a resolved or rejected dispute. Only 1 appeal per dispute. Zod validated.
@@ -8,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 import { z } from "zod";
 
@@ -34,11 +38,9 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
-
-    const sb = getSupabaseServer() as any;
     const { dispute_id, appeal_reason } = parsed.data;
 
-    const { data: dispute, error: disputeErr } = await sb
+    const { data: dispute, error: disputeErr } = await admin
       .from("disputes")
       .select("id, user_id, status")
       .eq("id", dispute_id)
@@ -59,7 +61,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: existing } = await sb
+    const { data: existing } = await admin
       .from("appeals")
       .select("id")
       .eq("dispute_id", dispute_id)
@@ -72,7 +74,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: appeal, error: insertErr } = await sb
+    const { data: appeal, error: insertErr } = await admin
       .from("appeals")
       .insert({
         dispute_id,

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { normalizeRole } from "@/lib/auth/normalizeRole";
@@ -21,8 +22,7 @@ export async function GET() {
     }
 
     const supabase = await createServerSupabaseClient();
-    const { data } = await supabase
-      .from("profiles")
+    const { data } = await admin.from("profiles")
       .select("role")
       .eq("id", user.id)
       .maybeSingle();

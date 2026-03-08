@@ -1,10 +1,14 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/metrics — investor-safe aggregated metrics (read-only).
  * No auth required. No PII. Revenue included when financeMetrics flag is on.
  */
 
 import { NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getAnalyticsFeatureFlags } from "@/lib/admin/analytics-feature-flags";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +18,6 @@ const SEVEN_DAYS_AGO = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOStrin
 
 export async function GET() {
   try {
-    const supabase = getSupabaseServer();
     const flags = getAnalyticsFeatureFlags();
 
     const [
@@ -26,13 +29,13 @@ export async function GET() {
       verifiedRes,
       locationsRes,
     ] = await Promise.all([
-      supabase.from("profiles").select("id", { count: "exact", head: true }).is("deleted_at", null).or("is_simulation.is.null,is_simulation.eq.false"),
-      supabase.from("employer_accounts").select("id", { count: "exact", head: true }),
-      supabase.from("site_sessions").select("user_id").gte("last_seen_at", SEVEN_DAYS_AGO).not("user_id", "is", null),
-      supabase.from("employment_references").select("id", { count: "exact", head: true }),
-      supabase.from("employment_records").select("id", { count: "exact", head: true }).or("is_simulation.is.null,is_simulation.eq.false"),
-      supabase.from("employment_records").select("id", { count: "exact", head: true }).in("verification_status", ["verified", "matched"]).or("is_simulation.is.null,is_simulation.eq.false"),
-      supabase.from("user_locations").select("country, state"),
+      admin.from("profiles").select("id", { count: "exact", head: true }).is("deleted_at", null).or("is_simulation.is.null,is_simulation.eq.false"),
+      admin.from("employer_accounts").select("id", { count: "exact", head: true }),
+      admin.from("site_sessions").select("user_id").gte("last_seen_at", SEVEN_DAYS_AGO).not("user_id", "is", null),
+      admin.from("employment_references").select("id", { count: "exact", head: true }),
+      admin.from("employment_records").select("id", { count: "exact", head: true }).or("is_simulation.is.null,is_simulation.eq.false"),
+      admin.from("employment_records").select("id", { count: "exact", head: true }).in("verification_status", ["verified", "matched"]).or("is_simulation.is.null,is_simulation.eq.false"),
+      admin.from("user_locations").select("country, state"),
     ]);
 
     const users = typeof profilesRes.count === "number" ? profilesRes.count : 0;
@@ -55,7 +58,7 @@ export async function GET() {
     let totalRevenue: number | undefined;
     if (flags.financeMetrics) {
       try {
-        const { data: paymentsData } = await supabase.from("finance_payments").select("amount_cents");
+        const { data: paymentsData } = await admin.from("finance_payments").select("amount_cents");
         type PaymentRow = { amount_cents: number | null };
         const payments: PaymentRow[] = (paymentsData ?? []) as PaymentRow[];
         const cents = payments.reduce((sum, row) => sum + (row.amount_cents ?? 0), 0);

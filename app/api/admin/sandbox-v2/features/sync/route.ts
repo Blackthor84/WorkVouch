@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 
 export const dynamic = "force-dynamic";
@@ -9,12 +13,12 @@ export const dynamic = "force-dynamic";
 export async function POST() {
   try {
     await requireSandboxV2Admin();
-    const { data: flags, error: listErr } = await getSupabaseServer().from("feature_flags").select("key");
+    const { data: flags, error: listErr } = await admin.from("feature_flags").select("key");
     if (listErr || !flags?.length) return NextResponse.json({ synced: 0 });
     const keys = flags.map((f: { key: string }) => f.key).filter(Boolean);
     let synced = 0;
     for (const feature_key of keys) {
-      const { error } = await getSupabaseServer().from("sandbox_feature_registry").upsert({ feature_key, is_enabled: true }, { onConflict: "feature_key" });
+      const { error } = await admin.from("sandbox_feature_registry").upsert({ feature_key, is_enabled: true }, { onConflict: "feature_key" });
       if (!error) synced++;
     }
     return NextResponse.json({ success: true, synced });

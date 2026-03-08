@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/compliance/export?format=csv|pdf&organizationId=...
  * Admin-only. Super admin: all orgs or one; org admin: their org only. Enterprise plan required (Starter/Growth get 403 + upgrade CTA).
@@ -7,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { getOrgHealthScore } from "@/lib/enterprise/orgHealthScore";
@@ -25,16 +29,13 @@ function normalizePlanKey(planType: string | null | undefined): string {
 
 export async function GET(request: NextRequest) {
   try {
-    const admin = await requireAdminForApi();
-    if (!admin) return adminForbiddenResponse();
+    const adminSession = await requireAdminForApi();
+    if (!adminSession) return adminForbiddenResponse();
     const { searchParams } = request.nextUrl;
     const format = searchParams.get("format")?.toLowerCase() === "pdf" ? "pdf" : "csv";
     const organizationId = searchParams.get("organizationId")?.trim() ?? null;
-
-    const supabase = getSupabaseServer();
-
     let allowedOrgId: string | null = null;
-    if (admin.isSuperAdmin) {
+    if (adminSession.isSuperAdmin) {
       allowedOrgId = organizationId;
     } else {
       if (!organizationId) {
@@ -43,11 +44,11 @@ export async function GET(request: NextRequest) {
           { status: 400 }
         );
       }
-      const { data: membership } = await supabase
+      const { data: membership } = await admin
         .from("tenant_memberships")
         .select("id")
         .eq("organization_id", organizationId)
-        .eq("user_id", admin.authUserId)
+        .eq("user_id", adminSession.authUserId)
         .in("role", ["org_admin", "admin", "superadmin"])
         .maybeSingle();
       if (!membership) {
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { data: org } = await supabase
+    const { data: org } = await admin
       .from("organizations")
       .select("id, plan_type, name")
       .eq("id", allowedOrgId)
@@ -98,12 +99,12 @@ export async function GET(request: NextRequest) {
 
     const [health, workforce, auditScores, refCounts] = await Promise.all([
       getOrgHealthScore(allowedOrgId),
-      supabase
+      admin
         .from("workforce_employees")
         .select("id, full_name, email, profile_id")
         .eq("organization_id", allowedOrgId),
-      supabase.from("employee_audit_scores").select("user_id, score, band, calculated_at"),
-      supabase.from("user_references").select("to_user_id").eq("is_deleted", false),
+      admin.from("employee_audit_scores").select("user_id, score, band, calculated_at"),
+      admin.from("user_references").select("to_user_id").eq("is_deleted", false),
     ]);
 
     const profileIds = ((workforce.data ?? []) as { profile_id: string | null }[])
@@ -135,8 +136,8 @@ export async function GET(request: NextRequest) {
     }
 
     await auditLog({
-      actorUserId: admin.authUserId,
-      actorRole: admin.role,
+      actorUserId: adminSession.authUserId,
+      actorRole: (adminSession as { profile?: { role?: string } }).profile?.role ?? (adminSession.isSuperAdmin ? "super_admin" : "admin"),
       action: "compliance_export",
       metadata: {
         organizationId: allowedOrgId,

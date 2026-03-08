@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { insertActivityLog } from "@/lib/activity";
 import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
     }
 
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
     const { data: profile } = await supabaseAny
       .from("profiles")
       .select("role")
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
 
     const path = `${effectiveUserId}/resume.pdf`;
 
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await admin.storage
       .from("resumes")
       .upload(path, file, {
         upsert: true,

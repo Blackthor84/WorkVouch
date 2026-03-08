@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -18,8 +19,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const admin = await isAdmin();
-    if (!admin) {
+    const isAdminUser = await isAdmin();
+    if (!isAdminUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
     type VerificationRequestUpdate = { status?: string };
 
     // Get verification request to find job_id
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
     const { data: verificationRequest, error: fetchError } = await supabaseAny
       .from("verification_requests")
       .select("id, job_id, requested_by_id")
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
 
     // Update job history verification status
     // Note: verification_status field may not be in Database types yet
-    const { error: jobUpdateError } = await (supabase as any)
+    const { error: jobUpdateError } = await admin
       .from("jobs")
       .update({ verification_status: "verified" })
       .eq("id", verificationRequest.job_id);

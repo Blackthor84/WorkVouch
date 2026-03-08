@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * Enterprise load simulation: create Casino test org, 10 admins, 5 locations,
  * 1000 candidate profiles, peer reviews, and run calculateUserIntelligence.
@@ -7,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSimulationLabAdmin } from "@/lib/simulation-lab";
 import { requireEnterpriseSimulationMode } from "@/lib/enterprise/simulation-guard";
 import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
@@ -77,11 +81,10 @@ export async function POST(req: NextRequest) {
     const planTier = (body.plan_tier === "starter" || body.plan_tier === "growth" ? body.plan_tier : "enterprise") as string;
     const preset = PRESETS[presetKey] ?? DEFAULT_PRESET;
 
-    const supabase = getSupabaseServer() as any;
+    const supabase = admin as any;
 
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    const { data: sessionRow, error: sessionErr } = await supabase
-      .from("simulation_sessions")
+    const { data: sessionRow, error: sessionErr } = await admin.from("simulation_sessions")
       .insert({
         created_by_admin_id: adminId,
         expires_at: expiresAt,
@@ -99,8 +102,7 @@ export async function POST(req: NextRequest) {
     const simulationContext = { simulationSessionId: sessionId, expiresAt };
 
     const slug = `${preset.slugPrefix}-${sessionId.slice(0, 8)}`;
-    const { data: orgRow, error: orgErr } = await supabase
-      .from("organizations")
+    const { data: orgRow, error: orgErr } = await admin.from("organizations")
       .insert({
         name: preset.orgName,
         slug,
@@ -126,14 +128,14 @@ export async function POST(req: NextRequest) {
         return planLimit403Response(addAdminCheck, "add_admin", { status: health.status, recommended_plan: health.recommended_plan });
       }
       const email = `casino-admin-${i}-${sessionId.slice(0, 8)}@simulation.local`;
-      const { data: authUser, error: authErr } = await supabase.auth.admin.createUser({
+      const { data: authUser, error: authErr } = await admin.auth.admin.createUser({
         email,
         password: `Sim${i}Casino!Sec`,
         email_confirm: true,
       });
       if (authErr || !authUser?.user?.id) continue;
       const uid = authUser.user.id;
-      await supabase.from("profiles").upsert({
+      await admin.from("profiles").upsert({
         id: uid,
         full_name: `Casino Admin ${i + 1}`,
         email,
@@ -142,7 +144,7 @@ export async function POST(req: NextRequest) {
         expires_at: expiresAt,
         updated_at: new Date().toISOString(),
       }, { onConflict: "id" });
-      await supabase.from("employer_users").insert({
+      await admin.from("employer_users").insert({
         organization_id: orgId,
         profile_id: uid,
         role: "org_admin",
@@ -157,8 +159,7 @@ export async function POST(req: NextRequest) {
         const health = await getOrgHealthScore(orgId);
         return planLimit403Response(addLocationCheck, "add_location", { status: health.status, recommended_plan: health.recommended_plan });
       }
-      const { data: loc, error: locErr } = await supabase
-        .from("locations")
+      const { data: loc, error: locErr } = await admin.from("locations")
         .insert({
           organization_id: orgId,
           name: `Casino Location ${i + 1}`,
@@ -171,8 +172,7 @@ export async function POST(req: NextRequest) {
     updateOrgHealth(orgId).catch(() => {});
 
     const firstEmployerId = adminProfileIds[0];
-    const { data: empAcc } = await supabase
-      .from("employer_accounts")
+    const { data: empAcc } = await admin.from("employer_accounts")
       .insert({
         user_id: firstEmployerId,
         organization_id: orgId,
@@ -191,7 +191,7 @@ export async function POST(req: NextRequest) {
     const companyNorm = preset.companyName.toLowerCase().trim();
 
     type TradeRow = { id: string };
-    const { data: allTrades } = await supabase.from("trades").select("id");
+    const { data: allTrades } = await admin.from("trades").select("id");
     const tradeIds = (allTrades ?? []).map((t: TradeRow) => t.id);
 
     for (let batchStart = 0; batchStart < CANDIDATE_COUNT; batchStart += BATCH_SIZE) {
@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
       const t0 = Date.now();
       for (let i = batchStart; i < batchEnd; i++) {
         const email = `casino-cand-${i}-${sessionId.slice(0, 8)}@simulation.local`;
-        const { data: authUser, error: authErr } = await supabase.auth.admin.createUser({
+        const { data: authUser, error: authErr } = await admin.auth.admin.createUser({
           email,
           password: `Cand${i}!Sec`,
           email_confirm: true,
@@ -207,7 +207,7 @@ export async function POST(req: NextRequest) {
         if (authErr || !authUser?.user?.id) continue;
         const userId = authUser.user.id;
         const fullName = `${randomPick(FIRST_NAMES)} ${randomPick(LAST_NAMES)} ${i}`;
-        await supabase.from("profiles").upsert({
+        await admin.from("profiles").upsert({
           id: userId,
           full_name: fullName,
           email,
@@ -222,8 +222,7 @@ export async function POST(req: NextRequest) {
 
         const startDate = new Date(Date.now() - randomInt(12, 60) * 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
         const endDate = Math.random() > 0.3 ? new Date(Date.now() - randomInt(0, 24) * 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10) : null;
-        const { data: erRow, error: erErr } = await supabase
-          .from("employment_records")
+        const { data: erRow, error: erErr } = await admin.from("employment_records")
           .insert({
             user_id: userId,
             company_name: preset.companyName,
@@ -248,7 +247,7 @@ export async function POST(req: NextRequest) {
           const shuffled = [...tradeIds].sort(() => Math.random() - 0.5);
           const chosen = shuffled.slice(0, numTrades);
           for (const tradeId of chosen) {
-            await supabase.from("profile_trades").insert({
+            await admin.from("profile_trades").insert({
               profile_id: userId,
               trade_id: tradeId,
             });

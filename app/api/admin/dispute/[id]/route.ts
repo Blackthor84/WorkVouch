@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * PATCH /api/admin/dispute/[id]
  * Update dispute (status, resolution). Only admins. Logs to dispute_actions and audit_logs.
@@ -8,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { logAudit, onDisputeResolvedAffectsTrust, refreshUserDisputeTransparency } from "@/lib/dispute-audit";
 import { z } from "zod";
 
@@ -30,8 +34,8 @@ export async function PATCH(
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const admin = await isAdmin();
-    if (!admin) {
+    const isAdminUser = await isAdmin();
+    if (!isAdminUser) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -41,10 +45,7 @@ export async function PATCH(
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
-
-    const sb = getSupabaseServer() as any;
-
-    const { data: existing, error: fetchErr } = await sb
+    const { data: existing, error: fetchErr } = await admin
       .from("disputes")
       .select("id, user_id, dispute_type, status, resolution_summary, resolved_by, resolved_at")
       .eq("id", id)
@@ -65,7 +66,7 @@ export async function PATCH(
     }
     if (parsed.data.resolution_summary !== undefined) updates.resolution_summary = parsed.data.resolution_summary;
 
-    const { error: updateErr } = await sb
+    const { error: updateErr } = await admin
       .from("disputes")
       .update(updates)
       .eq("id", id);
@@ -76,7 +77,7 @@ export async function PATCH(
     }
 
     if (parsed.data.action_type) {
-      await sb.from("dispute_actions").insert({
+      await admin.from("dispute_actions").insert({
         dispute_id: id,
         admin_id: user.id,
         action_type: parsed.data.action_type,
@@ -102,7 +103,7 @@ export async function PATCH(
       await refreshUserDisputeTransparency(existing.user_id);
     }
 
-    const { data: updated } = await sb.from("disputes").select("*").eq("id", id).single();
+    const { data: updated } = await admin.from("disputes").select("*").eq("id", id).single();
     return NextResponse.json(updated ?? { id });
   } catch (e) {
     console.error("[admin/dispute] error:", e);

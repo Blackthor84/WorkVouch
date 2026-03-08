@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +14,7 @@ export const dynamic = "force-dynamic";
 export async function POST() {
   try {
     await requireSandboxV2Admin();
-    const { data, error } = await getSupabaseServer()
+    const { data, error } = await admin
       .from("sandbox_sessions")
       .delete()
       .lt("ends_at", new Date().toISOString())

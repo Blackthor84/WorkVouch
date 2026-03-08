@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/verification/claim-profile
  * After signup from "Claim Your WorkVouch Profile" flow: mark verification_invites as profile_claimed
@@ -8,7 +12,7 @@
 import { NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
 import { getUser } from "@/lib/auth/getUser";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { emitTrustEvent } from "@/lib/trust/eventEngine";
 
 export const runtime = "nodejs";
@@ -28,12 +32,9 @@ export async function POST() {
   if (!verifierEmail) {
     return NextResponse.json({ error: "Email not found" }, { status: 400 });
   }
-
-  const sb = getSupabaseServer() as any;
-
   const [byVerifier, byEmail] = await Promise.all([
-    sb.from("verification_invites").select("id, candidate_id").eq("verifier_email", verifierEmail).eq("profile_claimed", false),
-    sb.from("verification_invites").select("id, candidate_id").eq("email", verifierEmail).eq("profile_claimed", false),
+    admin.from("verification_invites").select("id, candidate_id").eq("verifier_email", verifierEmail).eq("profile_claimed", false),
+    admin.from("verification_invites").select("id, candidate_id").eq("email", verifierEmail).eq("profile_claimed", false),
   ]);
 
   const seen = new Set<string>();
@@ -60,7 +61,7 @@ export async function POST() {
     return NextResponse.json({ success: true, claimed: 0 });
   }
 
-  const { error: updateError } = await sb
+  const { error: updateError } = await admin
     .from("verification_invites")
     .update({ profile_claimed: true })
     .in("id", rows.map((r) => r.id));

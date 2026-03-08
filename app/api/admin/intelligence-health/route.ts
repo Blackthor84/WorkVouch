@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/intelligence-health?days=7
  * Admin only. Integrity health dashboard: % recalc success, fraud blocks/day, avg sentiment shift, overlap failures.
@@ -6,7 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { isAdmin } from "@/lib/roles";
 
 export async function GET(req: NextRequest) {
@@ -26,10 +30,7 @@ export async function GET(req: NextRequest) {
     const since = new Date();
     since.setDate(since.getDate() - days);
     const sinceIso = since.toISOString();
-
-    const sb = getSupabaseServer();
-
-    const { data: events } = await sb
+    const { data: events } = await admin
       .from("intelligence_health_events")
       .select("event_type, payload, created_at")
       .gte("created_at", sinceIso);
@@ -65,7 +66,7 @@ export async function GET(req: NextRequest) {
 
     let intelligenceVersion = "v1";
     try {
-      const { data: sysSettings } = await sb.from("system_settings").select("value").eq("key", "intelligence_version").maybeSingle();
+      const { data: sysSettings } = await admin.from("system_settings").select("value").eq("key", "intelligence_version").maybeSingle();
       intelligenceVersion = (sysSettings as { value?: { version?: string } } | null)?.value?.version ?? "v1";
     } catch {
       // system_settings may not exist before migration

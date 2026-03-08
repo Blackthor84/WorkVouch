@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { cookies } from "next/headers";
 import { requireSuperadmin } from "@/lib/auth/requireSuperadmin";
 import { getAuthedUser } from "@/lib/auth/getAuthedUser";
@@ -31,8 +32,7 @@ export async function POST(req: Request) {
     }
 
     const supabase = getServiceRoleClient();
-    const { data: profile } = await supabase
-      .from("profiles")
+    const { data: profile } = await admin.from("profiles")
       .select("id, email, role")
       .eq("id", id)
       .single();

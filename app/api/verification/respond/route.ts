@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/verification/respond
  * Respond to a verification request: accept | decline.
@@ -7,7 +11,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { evaluateTrustAutomationRules } from "@/lib/trust/automation";
 import { mapToTrustRelationshipType } from "@/lib/verification/relationshipTypes";
 
@@ -31,11 +35,7 @@ export async function POST(req: NextRequest) {
   if (!response) {
     return NextResponse.json({ error: "response must be 'accept' or 'decline'" }, { status: 400 });
   }
-
-  const supabase = getSupabaseServer();
-
-  const { data: profileRow } = await supabase
-    .from("profiles")
+  const { data: profileRow } = await admin.from("profiles")
     .select("id, email")
     .or(`id.eq.${effective.id},user_id.eq.${effective.id}`)
     .maybeSingle();
@@ -55,8 +55,7 @@ export async function POST(req: NextRequest) {
   let requestRow: RequestRow | null = null;
 
   if (body.request_id) {
-    const { data, error } = await supabase
-      .from("verification_requests")
+    const { data, error } = await admin.from("verification_requests")
       .select("id, requester_profile_id, target_email, target_profile_id, employment_record_id, relationship_type, status")
       .eq("id", body.request_id)
       .eq("status", "pending")
@@ -66,8 +65,7 @@ export async function POST(req: NextRequest) {
     }
     requestRow = data as unknown as RequestRow;
   } else if (body.response_token) {
-    const { data, error } = await supabase
-      .from("verification_requests")
+    const { data, error } = await admin.from("verification_requests")
       .select("id, requester_profile_id, target_email, target_profile_id, employment_record_id, relationship_type, status")
       .eq("response_token", body.response_token)
       .eq("status", "pending")
@@ -93,14 +91,12 @@ export async function POST(req: NextRequest) {
 
   // If target had no profile when request was sent, link them now
   if (!requestRow.target_profile_id) {
-    await supabase
-      .from("verification_requests")
+    await admin.from("verification_requests")
       .update({ target_profile_id: currentProfileId })
       .eq("id", requestRow.id);
   }
 
-  const { error: updateErr } = await supabase
-    .from("verification_requests")
+  const { error: updateErr } = await admin.from("verification_requests")
     .update({
       status: response === "accept" ? "accepted" : "declined",
       responded_at: new Date().toISOString(),
@@ -118,7 +114,7 @@ export async function POST(req: NextRequest) {
 
     // 1) Create trust_relationships (manager/coworker confirmation → verification_source mutual_confirmation)
     const verificationLevel = "verified";
-    await supabase.from("trust_relationships").upsert(
+    await admin.from("trust_relationships").upsert(
       [
         {
           source_profile_id: requesterId,
@@ -133,15 +129,14 @@ export async function POST(req: NextRequest) {
     );
 
     // 2) Log trust_events for the profile that gets the verification (employment record owner = requester)
-    const { data: empRecord } = await supabase
-      .from("employment_records")
+    const { data: empRecord } = await admin.from("employment_records")
       .select("company_name, job_title")
       .eq("id", requestRow.employment_record_id)
       .maybeSingle();
     const meta = empRecord
       ? { company_name: (empRecord as { company_name?: string }).company_name, job_title: (empRecord as { job_title?: string }).job_title, source: "verification_request" }
       : { source: "verification_request" };
-    await supabase.from("trust_events").insert({
+    await admin.from("trust_events").insert({
       profile_id: requesterId,
       event_type: "verification",
       event_source: "verification_request_accepted",
@@ -152,7 +147,7 @@ export async function POST(req: NextRequest) {
       created_at: new Date().toISOString(),
     });
     // Section 4: trust_event for verification_confirmed (growth/analytics)
-    await supabase.from("trust_events").insert({
+    await admin.from("trust_events").insert({
       profile_id: requesterId,
       event_type: "verification_confirmed",
       event_source: "verification_request_accepted",
@@ -164,7 +159,7 @@ export async function POST(req: NextRequest) {
     });
     // Coworker discovery: when coworker confirms, log coworker_verification_confirmed
     if (requestRow.relationship_type === "coworker") {
-      await supabase.from("trust_events").insert({
+      await admin.from("trust_events").insert({
         profile_id: requesterId,
         event_type: "coworker_verification_confirmed",
         event_source: "verification_request_accepted",
@@ -176,14 +171,13 @@ export async function POST(req: NextRequest) {
       });
     }
     try {
-      await evaluateTrustAutomationRules(requesterId, "verification", supabase);
+      await evaluateTrustAutomationRules(requesterId, "verification", admin);
     } catch (e) {
       console.error("[verification/respond] Trust automation:", e);
     }
 
     // 3) Update employment_records.verification_status to verified
-    await supabase
-      .from("employment_records")
+    await admin.from("employment_records")
       .update({ verification_status: "verified", updated_at: new Date().toISOString() })
       .eq("id", requestRow.employment_record_id);
   }

@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/user/trust-activity — Trust Activity timeline for the current user.
  * Returns real events only: employment verification, reference added, dispute resolved,
@@ -6,8 +10,7 @@
 
 import { NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -46,13 +49,11 @@ export async function GET() {
   }
 
   const userId = effective.id;
-  const supabase = getSupabaseServer();
   const now = new Date().toISOString();
   const entries: TrustActivityEntry[] = [];
 
   // 1. Employment verification (employment_records where verification_status = verified)
-  const { data: employmentRows } = await supabase
-    .from("employment_records")
+  const { data: employmentRows } = await admin.from("employment_records")
     .select("id, company_name, job_title, updated_at, verification_status")
     .eq("user_id", userId)
     .eq("verification_status", "verified")
@@ -74,8 +75,7 @@ export async function GET() {
   }
 
   // 2. Reference added (user_references for this user)
-  const { data: refRows } = await supabase
-    .from("user_references")
+  const { data: refRows } = await admin.from("user_references")
     .select("id, created_at, rating")
     .eq("to_user_id", userId)
     .eq("is_deleted", false)
@@ -91,8 +91,7 @@ export async function GET() {
   }
 
   // 3. Disputes (opened and resolved)
-  const { data: disputeRows } = await supabase
-    .from("disputes")
+  const { data: disputeRows } = await admin.from("disputes")
     .select("id, status, created_at, updated_at, dispute_type")
     .eq("user_id", userId)
     .order("updated_at", { ascending: false })
@@ -112,8 +111,7 @@ export async function GET() {
   }
 
   // 4. Trust score change (intelligence_score_history)
-  const { data: historyRows } = await supabase
-    .from("intelligence_score_history")
+  const { data: historyRows } = await admin.from("intelligence_score_history")
     .select("reason, delta, created_at")
     .eq("user_id", userId)
     .eq("entity_type", "trust_score")
@@ -130,8 +128,7 @@ export async function GET() {
   }
 
   // 5. Credentials: created, expired, revoked
-  const { data: credRows } = await supabase
-    .from("workvouch_credentials")
+  const { data: credRows } = await admin.from("workvouch_credentials")
     .select("id, issued_at, expires_at, revoked_at")
     .eq("candidate_id", userId)
     .order("issued_at", { ascending: false })

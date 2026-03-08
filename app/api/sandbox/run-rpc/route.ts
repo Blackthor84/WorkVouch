@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/sandbox/run-rpc — run a Supabase RPC by name (admin/sandbox only).
  * Body: { name: string, params?: Record<string, unknown> }
@@ -6,7 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { runScenarioRpc } from "@/lib/sandbox/runScenarioRpc";
 
 export const dynamic = "force-dynamic";
@@ -31,9 +35,7 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-
-  const supabase = getSupabaseServer();
-  const { data, error } = await runScenarioRpc(supabase, name, params);
+  const { data, error } = await runScenarioRpc(admin, name, params);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

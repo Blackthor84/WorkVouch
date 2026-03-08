@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -54,7 +55,7 @@ export async function GET(req: NextRequest) {
     type EmployerAccountRow = { id: string; company_name: string };
 
     // Get employer's company name
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
     const { data: employerAccount } = await supabaseAny
       .from("employer_accounts")
       .select("id, company_name")

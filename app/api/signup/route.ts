@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 export const runtime = "nodejs";
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
   cooldown.set(cleanEmail, now);
 
   const supabase = getServiceRoleClient();
-  const { data, error } = await (supabase as any).auth.admin.createUser({
+  const { data, error } = await admin.auth.admin.createUser({
     email: cleanEmail,
     password,
     email_confirm: false,

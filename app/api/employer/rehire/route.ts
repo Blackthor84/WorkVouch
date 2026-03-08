@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser, hasRole, getCurrentUserRole } from "@/lib/auth";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { calculateAndStoreRisk } from "@/lib/risk/calculateAndPersist";
@@ -30,8 +34,7 @@ interface EmployerAccountRow {
 }
 
 async function getEmployerAccountId(userId: string): Promise<string | null> {
-  const sb = getSupabaseServer();
-  const { data } = await sb.from("employer_accounts").select("id").eq("user_id", userId);
+  const { data } = await admin.from("employer_accounts").select("id").eq("user_id", userId);
   const row = Array.isArray(data) ? data[0] : data;
   return (row as EmployerAccountRow | null | undefined)?.id ?? null;
 }
@@ -142,11 +145,9 @@ export async function POST(req: NextRequest) {
     const { profileId, confirmedAccuracy, internalNotes } = parsed.data;
     const rehireEligible =
       rec === RehireStatusEnum.Approved || rec === RehireStatusEnum.EligibleWithReview;
-
-    const sb = getSupabaseServer();
     const now = new Date().toISOString();
 
-    const existing = await sb
+    const existing = await admin
       .from("rehire_registry")
       .select("id, submitted_at, rehire_status, reason, detailed_explanation, confirmed_accuracy")
       .eq("employer_id", employerAccountId)
@@ -176,7 +177,7 @@ export async function POST(req: NextRequest) {
         confirmed_accuracy: existingRow.confirmed_accuracy,
         submitted_at: existingRow.submitted_at,
       };
-      await sb.from("rehire_evaluation_versions")
+      await admin.from("rehire_evaluation_versions")
         .insert(versionInsert);
     }
 
@@ -194,7 +195,7 @@ export async function POST(req: NextRequest) {
       submitted_at: confirmedAccuracy ? now : (existingRow?.submitted_at ?? null),
     };
 
-    const { error } = await sb.from("rehire_registry").upsert(upsertPayload, {
+    const { error } = await admin.from("rehire_registry").upsert(upsertPayload, {
       onConflict: "employer_id,profile_id",
     });
 
@@ -255,9 +256,7 @@ export async function GET() {
     const employerAccountId = await getEmployerAccountId(user.id);
     if (!employerAccountId)
       return NextResponse.json({ error: "Employer account not found" }, { status: 404 });
-
-    const sb = getSupabaseServer();
-    const { data: rows, error } = await sb
+    const { data: rows, error } = await admin
       .from("rehire_registry")
       .select(
         "id, profile_id, rehire_eligible, rehire_status, reason, justification, detailed_explanation, confirmed_accuracy, submitted_at, internal_notes, created_at, updated_at"
@@ -286,7 +285,7 @@ export async function GET() {
     const profileIds = list.map((r) => r.profile_id);
     const names: Record<string, string> = {};
     if (profileIds.length > 0) {
-      const { data: profiles } = await getSupabaseServer()
+      const { data: profiles } = await admin
         .from("profiles")
         .select("id, full_name")
         .in("id", profileIds);
@@ -385,9 +384,7 @@ export async function PATCH(req: NextRequest) {
     const detailedExplanation =
       parsed.data.detailedExplanation ?? parsed.data.justification ?? null;
     const { profileId, confirmedAccuracy, internalNotes } = parsed.data;
-
-    const sb = getSupabaseServer() as ReturnType<typeof getSupabaseServer>;
-    const existing = await sb
+    const existing = await admin
       .from("rehire_registry")
       .select("id, submitted_at, rehire_status, reason, detailed_explanation, confirmed_accuracy")
       .eq("employer_id", employerAccountId)
@@ -419,7 +416,7 @@ export async function PATCH(req: NextRequest) {
         confirmed_accuracy: existingRow.confirmed_accuracy,
         submitted_at: existingRow.submitted_at,
       };
-      await sb.from("rehire_evaluation_versions")
+      await admin.from("rehire_evaluation_versions")
         .insert(versionInsert);
     }
 
@@ -437,7 +434,7 @@ export async function PATCH(req: NextRequest) {
     if (confirmedAccuracy !== undefined) updatePayload.confirmed_accuracy = confirmedAccuracy;
     if (internalNotes !== undefined) updatePayload.internal_notes = internalNotes ?? null;
 
-    const { error } = await sb
+    const { error } = await admin
       .from("rehire_registry")
       .update(updatePayload)
       .eq("employer_id", employerAccountId)

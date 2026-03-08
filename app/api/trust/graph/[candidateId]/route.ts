@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/trust/graph/[candidateId]
  * Returns nodes and edges for Trust Graph visualization.
@@ -6,7 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { runFraudDetection } from "@/lib/trust/fraudDetection";
 import type { GraphNode, GraphEdge, TrustGraphData } from "@/types/trustGraph";
 import type { TrustRelationshipType } from "@/types/database";
@@ -53,10 +57,7 @@ export async function GET(
   if (!isAdmin && !isEmployer) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-
-  const sb = getSupabaseServer();
-
-  const { data: profileRow } = await sb
+  const { data: profileRow } = await admin
     .from("profiles")
     .select("full_name")
     .eq("id", candidateId)
@@ -65,7 +66,7 @@ export async function GET(
   const candidateName =
     (profileRow as { full_name?: string } | null)?.full_name ?? "Candidate";
 
-  const { data: level1Rows, error: level1Error } = await sb
+  const { data: level1Rows, error: level1Error } = await admin
     .from("trust_relationships")
     .select("source_profile_id, target_profile_id, relationship_type, created_at")
     .or(`source_profile_id.eq.${candidateId},target_profile_id.eq.${candidateId}`);
@@ -92,7 +93,7 @@ export async function GET(
   if (level1Ids.size > 0 && allIds.size < MAX_NODES) {
     const level1Arr = [...level1Ids];
     const inClause = `(${level1Arr.join(",")})`;
-    const { data: level2Rows } = await sb
+    const { data: level2Rows } = await admin
       .from("trust_relationships")
       .select("source_profile_id, target_profile_id, relationship_type, created_at")
       .or(`source_profile_id.in.${inClause},target_profile_id.in.${inClause}`);
@@ -114,7 +115,7 @@ export async function GET(
   }
 
   const profileIdsToFetch = [...allIds];
-  const { data: profileRows } = await sb
+  const { data: profileRows } = await admin
     .from("profiles")
     .select("id, full_name")
     .in("id", profileIdsToFetch);
@@ -199,7 +200,7 @@ export async function GET(
   let suspicious = false;
   let suspiciousReason: string | undefined;
   try {
-    const fraud = await runFraudDetection(sb);
+    const fraud = await runFraudDetection(admin);
     if (fraud.suspicious) {
       suspicious = true;
       suspiciousReason = fraud.reason;

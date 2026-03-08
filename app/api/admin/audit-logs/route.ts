@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/audit-logs — read-only audit log from admin_audit_logs.
  * Filters: admin_id, action, is_sandbox (true|false|all). Every admin action is logged here.
@@ -8,14 +12,13 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    const admin = await getAdminContext(req);
-    if (!admin.isAdmin) return adminForbiddenResponse();
+    const adminContext = await getAdminContext(req);
+    if (!adminContext.isAdmin) return adminForbiddenResponse();
 
     const url = new URL(req.url);
     const limit = Math.min(500, Math.max(1, parseInt(url.searchParams.get("limit") || "100", 10)));
@@ -23,9 +26,8 @@ export async function GET(req: NextRequest) {
     const action = url.searchParams.get("action")?.trim() || undefined;
     const isSandboxParam = url.searchParams.get("is_sandbox")?.toLowerCase();
 
-    const supabase = getSupabaseServer() as any;
-    let query = supabase
-      .from("admin_audit_logs")
+    const supabase = admin as any;
+    let query = admin.from("admin_audit_logs")
       .select("id, admin_user_id, admin_email, admin_role, action_type, target_type, target_id, before_state, after_state, reason, is_sandbox, ip_address, user_agent, created_at")
       .order("created_at", { ascending: false })
       .limit(limit);

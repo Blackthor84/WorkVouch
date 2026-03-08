@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -12,8 +13,8 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
-  const admin = await getAdminContext(req);
-  if (!admin.isAdmin) return adminForbiddenResponse();
+  const adminContext = await getAdminContext(req);
+  if (!adminContext.isAdmin) return adminForbiddenResponse();
 
   try {
     const url = new URL(req.url);
@@ -24,8 +25,7 @@ export async function GET(req: NextRequest) {
     const status = url.searchParams.get("status")?.trim();
 
     const supabase = getServiceRoleClient() as any;
-    let query = supabase
-      .from("admin_alerts")
+    let query = admin.from("admin_alerts")
       .select("id, category, alert_type, severity, title, summary, context, recommended_action, is_sandbox, status, acknowledged_by, acknowledged_at, dismissed_by, dismissed_at, silenced_until, escalation_count, source_ref, created_at")
       .order("created_at", { ascending: false })
       .limit(limit);

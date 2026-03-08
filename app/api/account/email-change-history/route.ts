@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -16,7 +17,7 @@ export async function GET() {
     }
     const userId = user.id as string;
     const supabase = await createServerSupabaseClient();
-    const { data, error } = await (supabase as any)
+    const { data, error } = await admin
       .from("email_change_history")
       .select("id, previous_email, new_email, changed_by, created_at")
       .eq("user_id", userId)

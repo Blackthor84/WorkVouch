@@ -1,9 +1,13 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/admin/preview-links/create
  * Superadmin only. Creates a shareable preview link (preview_sessions).
  */
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
@@ -37,9 +41,8 @@ export async function POST(request: Request) {
     const token = secureToken();
     const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000).toISOString();
 
-    const supabase = getSupabaseServer() as any;
-    const { data: row, error } = await supabase
-      .from("preview_sessions")
+    const supabase = admin as any;
+    const { data: row, error } = await admin.from("preview_sessions")
       .insert({
         token,
         preview_role: previewRole,

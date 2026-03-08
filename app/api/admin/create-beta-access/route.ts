@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
 
     // Generate unique login token
     const loginToken = crypto.randomBytes(32).toString('hex');

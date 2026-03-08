@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/cron/nightly-intelligence-recalc
  * Optional nightly trust score recalculation. Protected by CRON_SECRET.
@@ -9,7 +13,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { recalculateTrustScore } from "@/lib/trustScore";
 import { logIntel, LOG_TAGS } from "@/lib/core/intelligence";
 
@@ -42,17 +46,16 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    const sb = getSupabaseServer();
     const since = new Date();
     since.setHours(since.getHours() - 24);
     const sinceIso = since.toISOString();
 
-    const { data: recent } = await sb
+    const { data: recent } = await admin
       .from("profiles")
       .select("id")
       .eq("is_deleted", false)
       .gte("updated_at", sinceIso);
-    const { data: allActive } = await sb
+    const { data: allActive } = await admin
       .from("profiles")
       .select("id")
       .eq("is_deleted", false)

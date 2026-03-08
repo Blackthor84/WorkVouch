@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/directory/employers
  * List employers ranked by reputation_score. Gated by employer_reputation_marketplace feature flag.
@@ -8,17 +12,14 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const sb = getSupabaseServer() as any;
-    const { data: flag } = await sb
+    const { data: flag } = await admin
       .from("feature_flags")
       .select("id, is_globally_enabled")
       .eq("key", "employer_reputation_marketplace")
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") ?? "50", 10)));
     const offset = Math.max(0, parseInt(searchParams.get("offset") ?? "0", 10));
 
-    let q = sb
+    let q = admin
       .from("employer_reputation_snapshots")
       .select("employer_id, reputation_score, percentile_rank, industry_percentile_rank, last_calculated_at")
       .order("reputation_score", { ascending: false })
@@ -52,7 +53,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ employers: [], total: 0 });
     }
 
-    const { data: accounts } = await sb
+    const { data: accounts } = await admin
       .from("employer_accounts")
       .select("id, company_name, industry_type")
       .in("id", employerIds);

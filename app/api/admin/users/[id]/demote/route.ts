@@ -1,5 +1,9 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
@@ -17,8 +21,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const admin = await requireSuperAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireSuperAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
 
   try {
     const { id: targetUserId } = await params;
@@ -26,7 +30,7 @@ export async function POST(
       return NextResponse.json({ success: false, error: "Missing user id" }, { status: 400 });
     }
 
-    if (admin.authUserId === targetUserId) {
+    if (adminSession.authUserId === targetUserId) {
       return NextResponse.json(
         { success: false, error: "Cannot demote yourself" },
         { status: 403 }
@@ -41,9 +45,7 @@ export async function POST(
         { status: 400 }
       );
     }
-
-    const supabase = getSupabaseServer();
-    const { data: profile } = await supabase
+    const { data: profile } = await admin
       .from("profiles")
       .select("id, role")
       .eq("id", targetUserId)
@@ -66,7 +68,7 @@ export async function POST(
       );
     }
 
-    const { error: authError } = await supabase.auth.admin.updateUserById(targetUserId, {
+    const { error: authError } = await admin.auth.admin.updateUserById(targetUserId, {
       app_metadata: { role: "user" },
     });
     if (authError) {
@@ -76,13 +78,13 @@ export async function POST(
       );
     }
 
-    await supabase.from("profiles").update({ role: "user" }).eq("id", targetUserId);
+    await admin.from("profiles").update({ role: "user" }).eq("id", targetUserId);
 
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     const isSandbox = await getAdminSandboxModeFromCookies();
     await insertAdminAuditLog({
-      adminId: admin.authUserId,
-      adminEmail: (admin.user as { email?: string })?.email ?? null,
+      adminId: adminSession.authUserId,
+      adminEmail: (adminSession.user as { email?: string })?.email ?? null,
       targetType: "user",
       targetId: targetUserId,
       action: "role_change",

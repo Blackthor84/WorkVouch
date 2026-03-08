@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * DB performance and scaling audit: measure query times, suggest improvements.
  * Only when ENTERPRISE_SIMULATION_MODE=true.
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSimulationLabAdmin } from "@/lib/simulation-lab";
 import { requireEnterpriseSimulationMode } from "@/lib/enterprise/simulation-guard";
 
@@ -18,32 +22,30 @@ export async function POST(req: NextRequest) {
   try {
     requireEnterpriseSimulationMode();
     await requireSimulationLabAdmin();
-
-    const sb = getSupabaseServer() as any;
     const results: { query: string; ms: number; slow: boolean }[] = [];
     const recommended_improvements: string[] = [];
 
     let t0 = Date.now();
-    await sb.from("organization_usage").select("id").limit(10);
+    await admin.from("organization_usage").select("id").limit(10);
     let ms = Date.now() - t0;
     results.push({ query: "organization_usage (limit 10)", ms, slow: ms > SLOW_MS });
     if (ms > SLOW_MS) recommended_improvements.push("Consider index on organization_usage(organization_id, month).");
 
     t0 = Date.now();
-    await sb.from("trust_scores").select("id").limit(10);
+    await admin.from("trust_scores").select("id").limit(10);
     ms = Date.now() - t0;
     results.push({ query: "trust_scores (limit 10)", ms, slow: ms > SLOW_MS });
     if (ms > SLOW_MS) recommended_improvements.push("Consider index on trust_scores(user_id).");
 
     t0 = Date.now();
-    await sb.from("profiles").select("id, full_name, industry, state").ilike("full_name", "%Casino%").limit(20);
+    await admin.from("profiles").select("id, full_name, industry, state").ilike("full_name", "%Casino%").limit(20);
     ms = Date.now() - t0;
     results.push({ query: "profiles search (ilike name)", ms, slow: ms > SLOW_MS });
     if (ms > SLOW_MS) recommended_improvements.push("Consider trigram index on profiles(full_name) for search.");
 
     t0 = Date.now();
-    await sb.from("employer_users").select("id").limit(5);
-    await sb.from("locations").select("id").limit(5);
+    await admin.from("employer_users").select("id").limit(5);
+    await admin.from("locations").select("id").limit(5);
     ms = Date.now() - t0;
     results.push({ query: "employer_users + locations (sequential)", ms, slow: ms > SLOW_MS });
 

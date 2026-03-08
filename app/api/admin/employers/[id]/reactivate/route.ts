@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/admin/employers/[id]/reactivate — clear suspended_at. Admin only. Audit required.
  */
@@ -5,7 +9,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
 import { logAdminAction } from "@/lib/admin/audit";
 
@@ -16,8 +20,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
   try {
     const { id: orgId } = await params;
     if (!orgId) return NextResponse.json({ success: false, error: "Missing employer id" }, { status: 400 });
@@ -25,18 +29,14 @@ export async function POST(
     const body = await req.json().catch(() => ({}));
     const reason = typeof body.reason === "string" ? body.reason.trim() : "";
     if (!reason) return NextResponse.json({ success: false, error: "Reason is required" }, { status: 400 });
-
-    const supabase = getSupabaseServer();
-    const { data: oldRow } = await supabase
-      .from("organizations")
+    const { data: oldRow } = await admin.from("organizations")
       .select("id, name, slug, suspended_at")
       .eq("id", orgId)
       .single();
 
     if (!oldRow) return NextResponse.json({ success: false, error: "Employer not found" }, { status: 404 });
 
-    const { error } = await supabase
-      .from("organizations")
+    const { error } = await admin.from("organizations")
       .update({ suspended_at: null })
       .eq("id", orgId);
 
@@ -46,10 +46,10 @@ export async function POST(
     const isSandbox = await getAdminSandboxModeFromCookies();
     await logAdminAction(
       {
-        userId: admin.authUserId,
-        authUserId: admin.authUserId,
-        email: (admin.user as { email?: string })?.email ?? null,
-        isSuperAdmin: admin.isSuperAdmin,
+        userId: adminSession.authUserId,
+        authUserId: adminSession.authUserId,
+        email: (adminSession.user as { email?: string })?.email ?? null,
+        isSuperAdmin: adminSession.isSuperAdmin,
       },
       req,
       {

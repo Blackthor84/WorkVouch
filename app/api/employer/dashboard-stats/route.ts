@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/dashboard-stats
  * Workforce overview for employer dashboard: total verified, verification rate, dispute rate, rehire eligibility %.
@@ -8,8 +12,7 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, hasRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
@@ -18,18 +21,18 @@ export async function GET() {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!(await hasRole("employer"))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const supabase = getSupabaseServer() as unknown as {
+    const supabase = admin as unknown as {
       from: (table: string) => {
         select: (cols: string) => { eq: (col: string, val: string) => Promise<{ data: unknown; error: unknown }>; in: (col: string, vals: string[]) => Promise<{ data: unknown; error: unknown }> };
       };
     };
 
-    const eaResult = await supabase.from("employer_accounts").select("id").eq("user_id", user.id);
+    const eaResult = await admin.from("employer_accounts").select("id").eq("user_id", user.id);
     const ea = Array.isArray(eaResult.data) ? eaResult.data[0] : eaResult.data;
     if (eaResult.error || !ea) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
     const employerId = (ea as { id: string }).id;
 
-    const { data: employmentRows } = await (supabase as any)
+    const { data: employmentRows } = await admin
       .from("employment_records")
       .select("id, user_id, employer_confirmation_status, verification_status")
       .eq("employer_id", employerId)
@@ -47,14 +50,14 @@ export async function GET() {
     const iso30 = thirtyDaysAgo.toISOString();
 
     let verificationCompletionRate: number | null = null;
-    const { count: requested } = await (supabase as any)
+    const { count: requested } = await admin
       .from("verification_requests")
       .select("id", { count: "exact", head: true })
       .eq("requested_by_id", employerId)
       .gte("created_at", iso30);
     const req = requested ?? 0;
     if (req > 0) {
-      const { count: completed } = await (supabase as any)
+      const { count: completed } = await admin
         .from("verification_requests")
         .select("id", { count: "exact", head: true })
         .eq("requested_by_id", employerId)
@@ -65,7 +68,7 @@ export async function GET() {
 
     let disputeRate: number | null = null;
     if (employmentIds.length > 0) {
-      const { data: disputes } = await (supabase as any)
+      const { data: disputes } = await admin
         .from("disputes")
         .select("id")
         .in("related_record_id", employmentIds);
@@ -74,7 +77,7 @@ export async function GET() {
     }
 
     let rehireEligibilityPct: number | null = null;
-    const { data: rehireRows } = await supabase.from("rehire_registry").select("id, rehire_eligible").eq("employer_id", employerId);
+    const { data: rehireRows } = await admin.from("rehire_registry").select("id, rehire_eligible").eq("employer_id", employerId);
     const rehireList = Array.isArray(rehireRows) ? rehireRows : [];
     if (rehireList.length > 0) {
       const eligible = rehireList.filter((r: { rehire_eligible?: boolean }) => (r as { rehire_eligible?: boolean }).rehire_eligible === true).length;

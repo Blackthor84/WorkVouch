@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/candidate/[id]/timeline
  * Employer-only. Returns trust timeline events for the candidate.
@@ -8,7 +12,7 @@ import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import type { TrustEventImpact } from "@/types/database";
 
 export const runtime = "nodejs";
@@ -41,10 +45,7 @@ export async function GET(
     if (!candidateId) {
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: rows, error } = await supabase
-      .from("trust_events")
+    const { data: rows, error } = await admin.from("trust_events")
       .select("id, event_type, created_at")
       .eq("profile_id", candidateId)
       .order("created_at", { ascending: false })

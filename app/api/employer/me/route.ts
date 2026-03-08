@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -38,8 +39,7 @@ export async function GET(req: NextRequest) {
       location?: string | null;
     };
 
-    const { data: employerAccount, error } = await supabase
-      .from("employer_accounts")
+    const { data: employerAccount, error } = await admin.from("employer_accounts")
       .select("id, company_name, contact_email, plan_tier, stripe_customer_id, created_at, industry_type, claimed, claim_verified, location")
       .eq("user_id", user.id)
       .single();

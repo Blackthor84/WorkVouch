@@ -1,10 +1,14 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { logAdminAction } from "@/lib/audit";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { validateLicenseFormat } from "@/lib/security/licenseValidator";
 import { generateComplianceAlerts } from "@/lib/security/complianceAlerts";
 import { calculateCredentialScore } from "@/lib/security/credentialScore";
@@ -20,8 +24,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const supabase = await createServerSupabaseClient();
-    const { data: employerAccount } = await supabase
-      .from("employer_accounts")
+    const { data: employerAccount } = await admin.from("employer_accounts")
       .select("plan_tier")
       .eq("user_id", user.id)
       .single();
@@ -51,7 +54,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const adminSupabase = getSupabaseServer();
+    const adminSupabase = admin;
     const { data: emp } = await adminSupabase.from("employer_accounts").select("id").eq("user_id", user.id).single();
     const employerId = emp?.id ?? null;
     if (!employerId) {

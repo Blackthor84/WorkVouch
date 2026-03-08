@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { insertActivityLog } from "@/lib/activity";
 import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
     const { error: updateError } = await supabaseAny
       .from("profiles")
       .update({

@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/notifications — list unread + recent for current employer.
  * PATCH /api/employer/notifications — mark as read (body: { id } or { ids: [] }).
@@ -7,8 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { hasRole } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -18,13 +21,10 @@ export async function GET() {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!(await hasRole("employer"))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
-    const supabase = await createServerSupabaseClient();
-    const { data: account } = await supabase.from("employer_accounts").select("id").eq("user_id", user.id).single();
+    const { data: account } = await admin.from("employer_accounts").select("id").eq("user_id", user.id).single();
     if (!account) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
 
-    const adminSupabase = getSupabaseServer();
-    const { data: notifications } = await adminSupabase
+    const { data: notifications } = await admin
       .from("employer_notifications")
       .select("id, type, related_user_id, related_record_id, read, created_at")
       .eq("employer_id", account.id)
@@ -46,9 +46,7 @@ export async function PATCH(req: NextRequest) {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!(await hasRole("employer"))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
-    const supabase = await createServerSupabaseClient();
-    const { data: account } = await supabase.from("employer_accounts").select("id").eq("user_id", user.id).single();
+    const { data: account } = await admin.from("employer_accounts").select("id").eq("user_id", user.id).single();
     if (!account) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
 
     const body = await req.json().catch(() => ({}));
@@ -57,8 +55,7 @@ export async function PATCH(req: NextRequest) {
 
     if (ids.length === 0) return NextResponse.json({ ok: true });
 
-    const adminSupabase = getSupabaseServer();
-    const { error } = await adminSupabase
+    const { error } = await admin
       .from("employer_notifications")
       .update({ read: true })
       .eq("employer_id", (account as { id: string }).id)

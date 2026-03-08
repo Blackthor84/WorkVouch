@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/trust/coverage
  * Returns verified employment coverage for the current user.
@@ -6,8 +10,7 @@
 
 import { NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -22,10 +25,7 @@ export async function GET() {
   if (!effective?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const supabase = getSupabaseServer();
-  const { data: rows, error } = await supabase
-    .from("employment_records")
+  const { data: rows, error } = await admin.from("employment_records")
     .select("verification_status")
     .eq("user_id", effective.id);
 

@@ -1,9 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, hasRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 /**
  * GET /api/employer/compliance-alerts
  * Security Agency only. Returns unresolved compliance alerts for the employer.
@@ -14,9 +17,7 @@ export async function GET() {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const isEmployer = await hasRole("employer");
     if (!isEmployer) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
-    const sb = getSupabaseServer();
-    const { data: ea } = await sb.from("employer_accounts").select("id, plan_tier").eq("user_id", user.id).single();
+    const { data: ea } = await admin.from("employer_accounts").select("id, plan_tier").eq("user_id", user.id).single();
     const employerId = ea?.id;
     const planTier = ea?.plan_tier ?? "";
     const normalized = planTier.toLowerCase().replace(/-/g, "_");
@@ -24,7 +25,7 @@ export async function GET() {
       return NextResponse.json({ error: "Security Agency plan required" }, { status: 403 });
     }
 
-    const { data: alerts } = await sb
+    const { data: alerts } = await admin
       .from("compliance_alerts")
       .select("id, user_id, license_id, alert_type, resolved, created_at")
       .eq("employer_id", employerId)

@@ -1,5 +1,9 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { isSuperAdmin } from "@/lib/roles";
 import { APP_MODE } from "@/lib/app-mode";
 import { NextResponse } from "next/server";
@@ -35,14 +39,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid type. Use employee | employer | security | custom" }, { status: 400 });
     }
 
-    const supabase = getSupabaseServer() as any;
+    const supabase = admin as any;
     const suffix = randomSuffix();
     const email = `demo-${type}-${suffix}@workvouch.demo`;
     const info = type === "employee" ? FAKE.employee : type === "security" ? FAKE.security : type === "custom" ? FAKE.custom : FAKE.employer;
     const companyName = "company" in info ? (info as { company: string }).company : (FAKE.employer as { company: string }).company;
     const plan = "plan" in info ? (info as { plan: string }).plan : "pro";
 
-    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+    const { data: authUser, error: authError } = await admin.auth.admin.createUser({
       email,
       password: DEMO_PASSWORD,
       email_confirm: true,
@@ -55,7 +59,7 @@ export async function POST(request: Request) {
 
     const userId = authUser.user.id;
 
-    await supabase.from("profiles").upsert(
+    await admin.from("profiles").upsert(
       {
         id: userId,
         full_name: info.fullName,
@@ -67,24 +71,23 @@ export async function POST(request: Request) {
     );
 
     const roleValue = type === "employee" ? "user" : "employer";
-    await supabase.from("profiles").update({ role: roleValue }).eq("id", userId);
+    await admin.from("profiles").update({ role: roleValue }).eq("id", userId);
 
     if (type !== "employee") {
-      const { data: empRow } = await supabase
-        .from("employer_accounts")
+      const { data: empRow } = await admin.from("employer_accounts")
         .select("id")
         .eq("user_id", userId)
         .maybeSingle();
 
       if (!empRow) {
-        await supabase.from("employer_accounts").insert({
+        await admin.from("employer_accounts").insert({
           user_id: userId,
           company_name: companyName,
           plan_tier: plan,
           demo_account: true,
         });
       } else {
-        await supabase.from("employer_accounts").update({ plan_tier: plan, demo_account: true }).eq("user_id", userId);
+        await admin.from("employer_accounts").update({ plan_tier: plan, demo_account: true }).eq("user_id", userId);
       }
     }
 

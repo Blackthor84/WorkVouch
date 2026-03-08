@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/automation/rules — list automation rules
  * POST /api/employer/automation/rules — create rule
@@ -8,8 +12,7 @@ import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -31,10 +34,7 @@ export async function GET(_req: NextRequest) {
     if (!sub.allowed) {
       return NextResponse.json({ error: sub.error ?? "Subscription required" }, { status: 403 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data, error } = await supabase
-      .from("trust_automation_rules")
+    const { data, error } = await admin.from("trust_automation_rules")
       .select("id, employer_id, rule_name, rule_type, rule_conditions, notification_type, created_at")
       .eq("employer_id", user.id)
       .order("created_at", { ascending: false });
@@ -77,10 +77,7 @@ export async function POST(req: NextRequest) {
     if (!rule_name) {
       return NextResponse.json({ error: "rule_name is required" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data, error } = await supabase
-      .from("trust_automation_rules")
+    const { data, error } = await admin.from("trust_automation_rules")
       .insert({
         employer_id: user.id,
         rule_name,

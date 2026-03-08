@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/admin/content-flags/[id]/resolve — resolve a flag (approve, remove, escalate). Admin only. Audit logged.
  */
@@ -5,7 +9,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
@@ -29,8 +33,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
 
   try {
     const { id: flagId } = await params;
@@ -48,11 +52,7 @@ export async function POST(
     const status = ACTION_TO_STATUS[action];
     const isSandbox = await getAdminSandboxModeFromCookies();
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
-
-    const supabase = getSupabaseServer();
-
-    const { data: existing, error: fetchError } = await supabase
-      .from("content_flags")
+    const { data: existing, error: fetchError } = await admin.from("content_flags")
       .select("id, content_type, content_id, reason, status")
       .eq("id", flagId)
       .single();
@@ -66,12 +66,11 @@ export async function POST(
     }
 
     const resolvedAt = new Date().toISOString();
-    const { error: updateError } = await supabase
-      .from("content_flags")
+    const { error: updateError } = await admin.from("content_flags")
       .update({
         status,
         resolved_at: resolvedAt,
-        resolved_by: admin.authUserId,
+        resolved_by: adminSession.authUserId,
         resolution_action: action,
       })
       .eq("id", flagId);
@@ -82,8 +81,8 @@ export async function POST(
 
     const reasonText = (reason?.trim() ?? "").slice(0, 500) || "(no reason provided)";
     await insertAdminAuditLog({
-      adminId: admin.authUserId,
-      adminEmail: (admin.user as { email?: string })?.email ?? null,
+      adminId: adminSession.authUserId,
+      adminEmail: (adminSession.user as { email?: string })?.email ?? null,
       targetType: "content_flag",
       targetId: flagId,
       action: "content_flag_resolve",
@@ -96,7 +95,7 @@ export async function POST(
       reason: reasonText,
       ipAddress,
       userAgent,
-      adminRole: admin.isSuperAdmin ? "superadmin" : "admin",
+      adminRole: adminSession.isSuperAdmin ? "superadmin" : "admin",
       isSandbox,
     });
 

@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/profile/trades — current user's selected trades.
  * PUT /api/profile/trades — set current user's trades (body: { trade_slugs: string[] }).
@@ -8,8 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-
+import { admin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
@@ -18,9 +21,7 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase
+    const { data, error } = await admin
       .from("profile_trades")
       .select("trade_id, trades(slug, display_name)")
       .eq("profile_id", user.id);
@@ -65,26 +66,23 @@ export async function PUT(request: NextRequest) {
     const tradeSlugs: string[] = Array.isArray(body.trade_slugs)
       ? body.trade_slugs.filter((s: unknown): s is string => typeof s === "string")
       : [];
-
-    const supabase = await createServerSupabaseClient();
-
     type TradeRow = { id: string };
     let validIds: string[] = [];
     if (tradeSlugs.length > 0) {
-      const { data: tradeRows } = await supabase
+      const { data: tradeRows } = await admin
         .from("trades")
         .select("id")
         .in("slug", tradeSlugs);
       validIds = (tradeRows ?? []).map((r: TradeRow) => r.id);
     }
 
-    await supabase
+    await admin
       .from("profile_trades")
       .delete()
       .eq("profile_id", user.id);
 
     if (validIds.length > 0) {
-      const { error: insertErr } = await supabase.from("profile_trades").insert(
+      const { error: insertErr } = await admin.from("profile_trades").insert(
         validIds.map((trade_id) => ({
           profile_id: user.id,
           trade_id,

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -46,8 +47,7 @@ export async function POST(req: Request) {
 
     console.log("Insert payload:", insertPayload);
 
-    const { data, error } = await supabase
-      .from(TABLE)
+    const { data, error } = await admin.from(TABLE)
       .insert(insertPayload)
       .select()
       .single();
@@ -88,8 +88,7 @@ export async function GET() {
     }
 
     const supabase = getServiceRoleClient();
-    let query = supabase
-      .from(TABLE)
+    let query = admin.from(TABLE)
       .select("*")
       .order("created_at", { ascending: false })
       .limit(500);

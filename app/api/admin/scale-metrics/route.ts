@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/scale-metrics
  * Read-only scale metrics for super_admin: orgs at limit, blocked actions, abuse flags.
@@ -9,15 +13,12 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const _session = await requireSuperAdminForApi();
   if (!_session) return adminForbiddenResponse();
-
-  const supabase = getSupabaseServer();
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
   const [
@@ -25,18 +26,15 @@ export async function GET() {
     abuseFlagRes,
     usageRes,
   ] = await Promise.all([
-    supabase
-      .from("organization_metrics")
+    admin.from("organization_metrics")
       .select("organization_id")
       .eq("metric_name", "limit_block")
       .gte("created_at", since),
-    supabase
-      .from("organization_metrics")
+    admin.from("organization_metrics")
       .select("organization_id, metric_value")
       .eq("metric_name", "abuse_flag_triggered")
       .gte("created_at", since),
-    supabase
-      .from("organization_usage")
+    admin.from("organization_usage")
       .select("organization_id, monthly_checks")
       .eq("month", new Date().toISOString().slice(0, 7)),
   ]);
@@ -49,8 +47,7 @@ export async function GET() {
   const orgIdsWithBlock = new Set(limitBlocks.map((r) => r.organization_id));
   const orgIdsWithAbuse = new Set(abuseFlags.map((r) => r.organization_id));
 
-  const { data: orgs } = await supabase
-    .from("organizations")
+  const { data: orgs } = await admin.from("organizations")
     .select("id, plan_type");
   const orgList = (orgs ?? []) as { id: string; plan_type: string | null }[];
   const planLimits = await import("@/lib/enterprise/orgPlanLimits").then((m) => m.ORG_PLAN_LIMITS);

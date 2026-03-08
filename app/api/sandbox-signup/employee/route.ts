@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -29,8 +30,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const supabase = getServiceRoleClient();
-    const { data: session } = await supabase
-      .from("sandbox_sessions")
+    const { data: session } = await admin.from("sandbox_sessions")
       .select("id")
       .eq("id", sandboxId)
       .maybeSingle();
@@ -45,8 +45,7 @@ export async function POST(req: NextRequest) {
         ? rawIndustry
         : INDUSTRIES[Math.floor(Math.random() * INDUSTRIES.length)];
 
-    const { data, error } = await supabase
-      .from("sandbox_employees")
+    const { data, error } = await admin.from("sandbox_employees")
       .insert({ sandbox_id: sandboxId, full_name, industry })
       .select()
       .single();

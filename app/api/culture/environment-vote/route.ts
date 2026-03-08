@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/culture/environment-vote — record optional job environment traits (internal).
  * Triggered after vouch, match confirm, or job verification. No scores shown to user.
@@ -6,7 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/auth/getUser";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { recordJobEnvironmentVote } from "@/lib/culture/jobEnvironment";
 import type { JobEnvironmentTraitKey } from "@/lib/culture/constants";
 import { JOB_ENVIRONMENT_TRAIT_KEYS, MAX_TRAITS_PER_VOTE } from "@/lib/culture/constants";
@@ -35,9 +39,7 @@ export async function POST(req: NextRequest) {
     if (traitKeys.length === 0) {
       return NextResponse.json({ ok: true });
     }
-
-    const sb = getSupabaseServer();
-    const { data: match } = await sb
+    const { data: match } = await admin
       .from("employment_matches")
       .select("id")
       .eq("employment_record_id", jobId)
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest) {
       .eq("match_status", "confirmed")
       .maybeSingle();
     if (!match) {
-      const { data: refs } = await sb
+      const { data: refs } = await admin
         .from("employment_references")
         .select("employment_match_id")
         .eq("reviewer_id", user.id);
@@ -53,7 +55,7 @@ export async function POST(req: NextRequest) {
       if (matchIds.length === 0) {
         return NextResponse.json({ error: "Not authorized to vote for this job" }, { status: 403 });
       }
-      const { data: m } = await sb
+      const { data: m } = await admin
         .from("employment_matches")
         .select("id")
         .eq("employment_record_id", jobId)
@@ -65,7 +67,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const { data: trustRow } = await sb
+    const { data: trustRow } = await admin
       .from("trust_scores")
       .select("score")
       .eq("user_id", user.id)

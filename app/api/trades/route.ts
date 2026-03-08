@@ -5,6 +5,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -14,8 +15,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase
-      .from("trades")
+    const { data, error } = await admin.from("trades")
       .select("id, slug, display_name")
       .order("display_name");
 

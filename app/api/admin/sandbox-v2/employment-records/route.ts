@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -36,8 +37,7 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = getServiceRoleClient();
-    const { data, error } = await supabase
-      .from("sandbox_employment_records")
+    const { data, error } = await admin.from("sandbox_employment_records")
       .insert({ sandbox_id, employee_id, employer_id, role, tenure_months, rehire_eligible })
       .select("id")
       .single();

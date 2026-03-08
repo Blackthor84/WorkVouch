@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
@@ -42,8 +43,7 @@ export async function GET() {
 
     const supabase = await createServerSupabaseClient();
 
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
+    const { data: profile, error: profileError } = await admin.from("profiles")
       .select("*")
       .eq("id", effectiveUserId)
       .single();
@@ -61,8 +61,7 @@ export async function GET() {
     const isEmployer = (profileRow?.role ?? "").toLowerCase() === "employer";
 
     if (isEmployer) {
-      const { data: employerAccount, error: employerError } = await supabase
-        .from("employer_accounts")
+      const { data: employerAccount, error: employerError } = await admin.from("employer_accounts")
         .select("*")
         .eq("user_id", effectiveUserId)
         .single();
@@ -70,8 +69,7 @@ export async function GET() {
       const employerId = employerError ? undefined : employerAccount?.id;
       let verificationCount = 0;
       if (employerId) {
-        const { count } = await supabase
-          .from("verification_requests")
+        const { count } = await admin.from("verification_requests")
           .select("*", { count: "exact", head: true })
           .eq("requested_by_id", employerId)
           .eq("requested_by_type", "employer");
@@ -91,8 +89,7 @@ export async function GET() {
       });
     }
 
-    const { count: jobsCount } = await supabase
-      .from("jobs")
+    const { count: jobsCount } = await admin.from("jobs")
       .select("*", { count: "exact", head: true })
       .eq("user_id", effectiveUserId);
 

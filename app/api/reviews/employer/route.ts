@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     // Verify employer exists
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
 
     const { data: employer, error: employerError } = await supabaseAny
       .from("employer_accounts")
@@ -129,7 +130,7 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
 
     const { data: reviews, error } = await supabaseAny
       .from("employee_reviews")

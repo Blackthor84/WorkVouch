@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * ⚠️ ADMIN ROUTE
  * Uses requireAdminRoute() — Supabase Route Handler auth (getUser + user_metadata/app_metadata role).
@@ -9,8 +13,7 @@
 
 import { NextResponse } from "next/server";
 import { requireAdminRoute } from "@/lib/auth/requireAdminRoute";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -54,7 +57,6 @@ export async function GET() {
   }
 
   try {
-    const supabase = getSupabaseServer();
     const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
     const [
@@ -65,15 +67,15 @@ export async function GET() {
       financePaymentsRes,
       financeSubsRes,
     ] = await Promise.all([
-      supabase.from("profiles").select("id", { count: "exact", head: true }),
-      supabase.from("employer_accounts").select("id", { count: "exact", head: true }),
-      supabase
+      admin.from("profiles").select("id", { count: "exact", head: true }),
+      admin.from("employer_accounts").select("id", { count: "exact", head: true }),
+      admin
         .from("user_references")
         .select("id", { count: "exact", head: true })
         .gte("created_at", dayAgo),
-      supabase.from("trust_scores").select("user_id, score"),
-      supabase.from("finance_payments").select("amount_cents").limit(10000),
-      supabase.from("finance_subscriptions").select("id").eq("status", "active"),
+      admin.from("trust_scores").select("user_id, score"),
+      admin.from("finance_payments").select("amount_cents").limit(10000),
+      admin.from("finance_subscriptions").select("id").eq("status", "active"),
     ]);
 
     const totalUsers = typeof profilesRes.count === "number" ? profilesRes.count : 0;

@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
 import { getFuzzRun } from "@/lib/sandbox/dsl/fuzzer/runFuzzer";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -33,14 +34,12 @@ export async function GET(
       return NextResponse.json({ abuse: [], rate_limit: [] });
     }
     const supabase = getServiceRoleClient();
-    const { data: abuse } = await supabase
-      .from("sandbox_events")
+    const { data: abuse } = await admin.from("sandbox_events")
       .select("id, type, step_id, created_at, metadata")
       .eq("scenario_id", scenarioId)
       .eq("type", "abuse_flagged")
       .order("created_at");
-    const { data: rateLimit } = await supabase
-      .from("sandbox_events")
+    const { data: rateLimit } = await admin.from("sandbox_events")
       .select("id, type, step_id, created_at, metadata")
       .eq("scenario_id", scenarioId)
       .or("type.eq.rate_limit,type.eq.rate_limited,type.ilike.%limit%")

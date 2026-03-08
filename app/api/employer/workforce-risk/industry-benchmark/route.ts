@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { requireWorkforceRiskEmployer } from "@/lib/employer-workforce-risk-auth";
@@ -19,8 +20,7 @@ export async function GET() {
     if (!ctx) return NextResponse.json({ error: "Unauthorized or feature not enabled" }, { status: 403 });
     const { supabase, auth } = ctx;
 
-    const { data: reports } = await supabase
-      .from("verification_reports")
+    const { data: reports } = await admin.from("verification_reports")
       .select("risk_score")
       .eq("employer_id", auth.employerId)
       .not("risk_score", "is", null);
@@ -33,8 +33,7 @@ export async function GET() {
     let industryAverage = 0;
     if (auth.industry) {
       try {
-        const { data: industryReports } = await supabase
-          .from("verification_reports")
+        const { data: industryReports } = await admin.from("verification_reports")
           .select("risk_score")
           .eq("industry", auth.industry)
           .not("risk_score", "is", null);

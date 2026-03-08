@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/resume/confirm
  * Auth required. Validates employment array with Zod, inserts into employment_records
@@ -9,7 +13,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getUser } from "@/lib/auth/getUser";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { insertActivityLog } from "@/lib/activity";
 import { z } from "zod";
 
@@ -47,13 +51,11 @@ export async function POST(req: NextRequest) {
     }
 
     const { employment } = parsed.data;
-    const sb = getSupabaseServer();
-
     const insertedIds: string[] = [];
     for (const item of employment) {
       const company_normalized =
         (item.company_normalized ?? item.company_name.trim().toLowerCase()) || item.company_name.trim().toLowerCase();
-      const { data: row, error } = await sb
+      const { data: row, error } = await admin
         .from("employment_records")
         .insert({
           user_id: userId,
@@ -98,7 +100,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    await sb.from("audit_logs").insert({
+    await admin.from("audit_logs").insert({
       entity_type: "resume_import",
       entity_id: userId,
       changed_by: userId,

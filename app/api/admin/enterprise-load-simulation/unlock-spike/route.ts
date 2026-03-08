@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * Simulate unlock spike: run N unlock increments with configurable concurrency.
  * Only when ENTERPRISE_SIMULATION_MODE=true. Admin only.
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSimulationLabAdmin } from "@/lib/simulation-lab";
 import { requireEnterpriseSimulationMode } from "@/lib/enterprise/simulation-guard";
 import { checkOrgLimits, incrementOrgUnlockCount } from "@/lib/enterprise/enforceOrgLimits";
@@ -76,9 +80,7 @@ export async function POST(req: NextRequest) {
       const batchSize = Math.min(concurrency, count - i);
       await runBatch(i, batchSize);
     }
-
-    const sb = getSupabaseServer() as any;
-    const { data: usageRow } = await sb
+    const { data: usageRow } = await admin
       .from("organization_usage")
       .select("unlock_count")
       .eq("organization_id", orgId)

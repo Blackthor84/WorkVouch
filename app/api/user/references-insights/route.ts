@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/user/references-insights — References for current user with badge and recency insights.
  * Used by employee reference view to show Direct Manager, Repeated Coworker, Verified Match and Strong/Aging/Stale.
@@ -5,7 +9,7 @@
 
 import { NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { admin } from "@/lib/supabase-admin";
 import { getReferenceCredibilityBadges } from "@/lib/employer/referenceCredibilityBadges";
 
 export const runtime = "nodejs";
@@ -44,11 +48,9 @@ export async function GET() {
   if (!effective?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const supabaseAny = admin as unknown as Parameters<typeof getReferenceCredibilityBadges>[0];
 
-  const supabase = await createServerSupabaseClient();
-  const supabaseAny = supabase as unknown as Parameters<typeof getReferenceCredibilityBadges>[0];
-
-  const { data: refs, error } = await supabase
+  const { data: refs, error } = await admin
     .from("user_references")
     .select("id, created_at, rating, written_feedback, relationship_type, from_user_id, job_id")
     .eq("to_user_id", effective.id)
@@ -73,17 +75,17 @@ export async function GET() {
   const fromIds = [...new Set(list.map((r) => r.from_user_id).filter(Boolean))];
   const [jobsData, profilesData] = await Promise.all([
     jobIds.length > 0
-      ? supabase.from("jobs").select("id, company_name, job_title").in("id", jobIds)
+      ? admin.from("jobs").select("id, company_name, job_title").in("id", jobIds)
       : Promise.resolve({ data: [] }),
     fromIds.length > 0
-      ? supabase.from("profiles").select("id, full_name, profile_photo_url").in("id", fromIds)
+      ? admin.from("profiles").select("id, full_name, profile_photo_url").in("id", fromIds)
       : Promise.resolve({ data: [] }),
   ]);
   const jobsMap = new Map(
-    ((jobsData.data ?? []) as { id: string; company_name?: string; job_title?: string }[]).map((j) => [j.id, j])
+    ((jobsData.data ?? []) as unknown as { id: string; company_name?: string; job_title?: string }[]).map((j) => [j.id, j])
   );
   const profilesMap = new Map(
-    ((profilesData.data ?? []) as { id: string; full_name?: string; profile_photo_url?: string | null }[]).map((p) => [p.id, p])
+    ((profilesData.data ?? []) as unknown as { id: string; full_name?: string; profile_photo_url?: string | null }[]).map((p) => [p.id, p])
   );
 
   const refInputs = list.map((r) => ({

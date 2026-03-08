@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * Simulation Lab: add peer review between two simulated users.
  * Finds or creates employment_match, inserts employment_references, reruns intelligence.
@@ -7,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSimulationLabAdmin, validateSessionForWrite } from "@/lib/simulation-lab";
 import { calculateUserIntelligence } from "@/lib/intelligence/calculateUserIntelligence";
 
@@ -30,16 +34,11 @@ export async function POST(req: NextRequest) {
     const session = await validateSessionForWrite(sessionId, adminId);
     const expiresAt = session.expires_at;
     const simulationContext = { simulationSessionId: sessionId, expiresAt };
-
-    const supabase = getSupabaseServer();
-
-    const { data: recsA } = await supabase
-      .from("employment_records")
+    const { data: recsA } = await admin.from("employment_records")
       .select("id, user_id, company_normalized")
       .eq("user_id", reviewerUserId)
       .eq("is_simulation", true);
-    const { data: recsB } = await supabase
-      .from("employment_records")
+    const { data: recsB } = await admin.from("employment_records")
       .select("id, user_id, company_normalized")
       .eq("user_id", reviewedUserId)
       .eq("is_simulation", true);
@@ -53,8 +52,7 @@ export async function POST(req: NextRequest) {
 
     let matchId: string | null = null;
     try {
-      const { data: d1 } = await supabase
-        .from("coworker_matches")
+      const { data: d1 } = await admin.from("coworker_matches")
         .select("id")
         .eq("user1_id", reviewerUserId)
         .eq("user2_id", reviewedUserId)
@@ -62,8 +60,7 @@ export async function POST(req: NextRequest) {
       if ((d1 as { id?: string } | null)?.id) {
         matchId = (d1 as { id: string }).id;
       } else {
-        const { data: d2 } = await supabase
-          .from("coworker_matches")
+        const { data: d2 } = await admin.from("coworker_matches")
           .select("id")
           .eq("user1_id", reviewedUserId)
           .eq("user2_id", reviewerUserId)
@@ -80,7 +77,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { error: refErr } = await supabase.from("employment_references").insert({
+    const { error: refErr } = await admin.from("employment_references").insert({
       employment_match_id: matchId,
       reviewer_id: reviewerUserId,
       reviewed_user_id: reviewedUserId,

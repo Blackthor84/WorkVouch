@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/automation/alerts — list recent trust alerts for employer
  */
@@ -7,8 +11,7 @@ import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -31,9 +34,7 @@ export async function GET(req: NextRequest) {
     }
 
     const limit = Math.min(100, Math.max(1, Number(req.nextUrl.searchParams.get("limit")) || DEFAULT_LIMIT));
-    const supabase = getSupabaseServer();
-    const { data, error } = await supabase
-      .from("trust_alerts")
+    const { data, error } = await admin.from("trust_alerts")
       .select("id, employer_id, candidate_id, alert_type, alert_message, rule_id, created_at")
       .eq("employer_id", user.id)
       .order("created_at", { ascending: false })

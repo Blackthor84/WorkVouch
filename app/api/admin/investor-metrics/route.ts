@@ -1,9 +1,13 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/investor-metrics
  * Real platform counts for investor dashboard. Superadmin only. Read-only.
  */
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
@@ -11,10 +15,9 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function count(supabase: ReturnType<typeof getSupabaseServer>, table: string): Promise<number> {
+async function count(table: string): Promise<number> {
   try {
-    const { count, error } = await supabase
-      .from(table)
+    const { count, error } = await admin.from(table)
       .select("*", { count: "exact", head: true });
     if (error) return 0;
     return typeof count === "number" ? count : 0;
@@ -29,14 +32,11 @@ export async function GET() {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const role = await getCurrentUserRole();
     if (!isSuperAdmin(role)) return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
-
-    const supabase = getSupabaseServer();
-
     const [totalUsers, totalEmployers, verificationVolume, demoResult] = await Promise.all([
-      count(supabase, "profiles"),
-      count(supabase, "employer_accounts"),
-      count(supabase, "verification_requests"),
-      supabase.from("profiles").select("id", { count: "exact", head: true }).eq("demo_account", true),
+      count("profiles"),
+      count("employer_accounts"),
+      count("verification_requests"),
+      admin.from("profiles").select("id", { count: "exact", head: true }).eq("demo_account", true),
     ]);
 
     const demoCount = typeof demoResult?.count === "number" ? demoResult.count : 0;

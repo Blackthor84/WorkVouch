@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { getUser } from "@/lib/auth/getUser";
 import { checkFeatureAccess } from "@/lib/feature-flags";
@@ -49,13 +53,7 @@ export async function GET() {
       return NextResponse.json({ error: "Feature not enabled" }, { status: 403 });
     }
 
-    const supabase = getSupabaseServer() as unknown as {
-      from: (table: string) => {
-        select: (cols: string) => { eq: (col: string, val: string) => Promise<{ data: unknown; error: unknown }>; in: (col: string, vals: string[]) => Promise<{ data: unknown; error: unknown }> };
-      };
-    };
-
-    const eaResult = await supabase.from("employer_accounts").select("id, workforce_risk_average, workforce_high_risk_count, workforce_risk_confidence, workforce_last_calculated").eq("user_id", user.id);
+    const eaResult = await admin.from("employer_accounts").select("id, workforce_risk_average, workforce_high_risk_count, workforce_risk_confidence, workforce_last_calculated").eq("user_id", user.id);
     const ea = (Array.isArray(eaResult.data) ? eaResult.data[0] : eaResult.data) as EmployerAccountRow | undefined;
     if (eaResult.error || !ea) {
       return NextResponse.json({ error: "Employer account not found" }, { status: 404 });
@@ -64,12 +62,12 @@ export async function GET() {
     const employerId = ea.id;
 
     // Optional: one profile's risk_snapshot for component bars (first from rehire_registry for this employer)
-    const rrResult = await supabase.from("rehire_registry").select("profile_id").eq("employer_id", employerId);
+    const rrResult = await admin.from("rehire_registry").select("profile_id").eq("employer_id", employerId);
     const rrData = (rrResult.data ?? []) as { profile_id: string }[];
     const profileIds = rrData.map((r) => r.profile_id).slice(0, 1);
     let riskSnapshotSample: ProfileRiskRow["risk_snapshot"] = null;
     if (profileIds.length > 0) {
-      const profResult = await supabase.from("profiles").select("id, risk_snapshot").in("id", profileIds);
+      const profResult = await admin.from("profiles").select("id, risk_snapshot").in("id", profileIds);
       const first = (Array.isArray(profResult.data) ? profResult.data[0] : profResult.data) as ProfileRiskRow | undefined;
       if (first?.risk_snapshot) riskSnapshotSample = first.risk_snapshot;
     }

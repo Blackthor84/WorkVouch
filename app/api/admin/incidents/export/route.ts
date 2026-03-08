@@ -14,8 +14,8 @@ export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
-    const admin = await getAdminContext(req);
-    if (!admin.isAdmin) return adminForbiddenResponse();
+    const adminContext = await getAdminContext(req);
+    if (!adminContext.isAdmin) return adminForbiddenResponse();
 
     const url = new URL(req.url);
     const format = url.searchParams.get("format") || "json";
@@ -27,16 +27,16 @@ export async function GET(req: NextRequest) {
     const meta = getAuditRequestMeta(req);
 
     await writeAdminAuditLog({
-      admin_user_id: admin.authUserId,
-      admin_email: admin.email,
-      admin_role: admin.isSuperAdmin ? "superadmin" : "admin",
+      admin_user_id: adminContext.authUserId,
+      admin_email: adminContext.email,
+      admin_role: adminContext.isSuperAdmin ? "superadmin" : "admin",
       action_type: "EXPORT_INCIDENTS",
       target_type: "system",
       target_id: null,
       before_state: null,
       after_state: { format, count: incidents.length, environment: environment ?? "all", status: status ?? "all" },
       reason: `Exported ${incidents.length} incidents (${format})`,
-      is_sandbox: admin.isSandbox,
+      is_sandbox: adminContext.isSandbox,
       ip_address: meta.ipAddress,
       user_agent: meta.userAgent,
     });

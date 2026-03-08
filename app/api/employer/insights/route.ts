@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getCurrentUser, hasRole } from "@/lib/auth";
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
 
     const { data: employerAccount } = await supabaseAny
       .from("employer_accounts")

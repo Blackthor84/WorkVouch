@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/candidate/[id]/reference-consistency
  * Employer-only. Returns reference consistency summary for the candidate.
@@ -8,8 +12,7 @@ import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -39,10 +42,7 @@ export async function GET(
     if (!candidateId) {
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: refs, error } = await supabase
-      .from("employment_references")
+    const { data: refs, error } = await admin.from("employment_references")
       .select("rating")
       .eq("reviewed_user_id", candidateId);
     if (error) {

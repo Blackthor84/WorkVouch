@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/orgs/[orgId]/limit-explainer
  * Super_admin only. Aggregates plan limits, current usage, blocked actions (30d), abuse signals.
@@ -9,7 +13,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getOrgPlanLimits } from "@/lib/enterprise/orgPlanLimits";
 import { getAbuseSignals } from "@/lib/enterprise/abuseSignals";
 import { getOrgHealthScore } from "@/lib/enterprise/orgHealthScore";
@@ -27,25 +31,20 @@ export async function GET(
   if (!orgId) {
     return NextResponse.json({ error: "orgId required" }, { status: 400 });
   }
-
-  const supabase = getSupabaseServer();
   const since30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const month = new Date().toISOString().slice(0, 7);
 
   const [orgRow, usageRow, blockRows, abuse, health] = await Promise.all([
-    supabase
-      .from("organizations")
+    admin.from("organizations")
       .select("id, plan_type")
       .eq("id", orgId)
       .single(),
-    supabase
-      .from("organization_usage")
+    admin.from("organization_usage")
       .select("monthly_checks")
       .eq("organization_id", orgId)
       .eq("month", month)
       .maybeSingle(),
-    supabase
-      .from("organization_metrics")
+    admin.from("organization_metrics")
       .select("id, created_at")
       .eq("organization_id", orgId)
       .eq("metric_name", "limit_block")

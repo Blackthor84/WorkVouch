@@ -1,5 +1,9 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { getUser } from "@/lib/auth/getUser";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { NextResponse } from "next/server";
 
@@ -25,9 +29,8 @@ export async function GET(request: Request) {
     }
 
     let employerId: string | null = null;
-    const supabase = getSupabaseServer() as any;
-    const { data: employer } = await supabase
-      .from("employer_accounts")
+    const supabase = admin as any;
+    const { data: employer } = await admin.from("employer_accounts")
       .select("id")
       .eq("user_id", userId)
       .maybeSingle();

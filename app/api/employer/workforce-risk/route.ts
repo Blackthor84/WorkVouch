@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { requireWorkforceRiskEmployer } from "@/lib/employer-workforce-risk-auth";
@@ -17,8 +18,7 @@ export async function GET() {
     const { supabase, auth } = ctx;
     const employerId = auth.employerId;
 
-    const { data: reports } = await supabase
-      .from("verification_reports")
+    const { data: reports } = await admin.from("verification_reports")
       .select("risk_score, created_at, worker_id")
       .eq("employer_id", employerId)
       .not("risk_score", "is", null);
@@ -39,8 +39,7 @@ export async function GET() {
       else high++;
     }
 
-    const { count: disputeCount } = await supabase
-      .from("employer_disputes")
+    const { count: disputeCount } = await admin.from("employer_disputes")
       .select("id", { count: "exact", head: true })
       .eq("employer_account_id", employerId);
 
@@ -67,8 +66,7 @@ export async function GET() {
     let industryDelta: number | null = null;
     if (auth.industry) {
       try {
-        const { data: industryReports } = await supabase
-          .from("verification_reports")
+        const { data: industryReports } = await admin.from("verification_reports")
           .select("risk_score")
           .eq("industry", auth.industry)
           .not("risk_score", "is", null);

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -27,7 +28,7 @@ export async function GET(
     }
 
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
 
     const { data, error } = await supabaseAny
       .from("employee_reviews")
@@ -103,7 +104,7 @@ export async function DELETE(
     }
 
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
 
     const { error } = await supabaseAny
       .from("employee_reviews")

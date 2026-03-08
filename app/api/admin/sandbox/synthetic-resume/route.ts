@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/admin/sandbox/synthetic-resume
  * Sandbox-only. Create a synthetic resume record (fake parsed_data) for testing.
@@ -8,20 +12,19 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { APP_MODE } from "@/lib/app-mode";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  const admin = await getAdminContext(req);
-  if (APP_MODE !== "sandbox" || !admin.canSeedData) return adminForbiddenResponse();
+  const adminContext = await getAdminContext(req);
+  if (APP_MODE !== "sandbox" || !adminContext.canSeedData) return adminForbiddenResponse();
 
   try {
     const body = (await req.json().catch(() => ({}))) as { userId?: string };
-    const userId = body.userId ?? admin.authUserId;
-    const sb = getSupabaseServer();
-    const { data: row, error } = await sb
+    const userId = body.userId ?? adminContext.authUserId;
+    const { data: row, error } = await admin
       .from("employment_records")
       .insert({
         user_id: userId,

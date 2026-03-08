@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import {
   SecurityReportSeverity,
   SecurityReportSeverityValue,
@@ -38,9 +42,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    const sb = getSupabaseServer();
-    const { data: row, error } = await sb
+    const { data: row, error } = await admin
       .from("security_reports")
       .insert({
         reporter_email: parsed.data.reporterEmail,

@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/admin/override/enable — founder-only, enable time-boxed production override.
  * Body: { durationMinutes: 15 | 30 | 60, reason: string }
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
 
 export const dynamic = "force-dynamic";
@@ -16,8 +20,8 @@ const FOUNDER_EMAIL = process.env.FOUNDER_EMAIL?.trim()?.toLowerCase();
 const ALLOWED_DURATIONS = [15, 30, 60] as const;
 
 export async function POST(req: NextRequest) {
-  const admin = await getAdminContext(req);
-  if (!admin.isAdmin) return adminForbiddenResponse();
+  const adminContext = await getAdminContext(req);
+  if (!adminContext.isAdmin) return adminForbiddenResponse();
 
   if (!FOUNDER_EMAIL) {
     return NextResponse.json(
@@ -26,7 +30,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const callerEmail = (admin.email ?? "").trim().toLowerCase();
+  const callerEmail = (adminContext.email ?? "").trim().toLowerCase();
   if (callerEmail !== FOUNDER_EMAIL) {
     return NextResponse.json(
       { error: "Only the founder can enable production override" },
@@ -51,12 +55,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const supabase = getSupabaseServer() as any;
-  const { data: id, error } = await supabase.rpc("enable_admin_override", {
+  const { data: id, error } = await admin.rpc("enable_admin_override", {
     duration_minutes: durationMinutes,
     reason,
-    caller_email: admin.email ?? callerEmail,
-    enabled_by: admin.authUserId,
+    caller_email: adminContext.email ?? callerEmail,
+    enabled_by: adminContext.authUserId,
   });
 
   if (error) {
@@ -67,14 +70,14 @@ export async function POST(req: NextRequest) {
   }
 
   await insertAdminAuditLog({
-    adminId: admin.authUserId,
-    adminEmail: admin.email ?? null,
+    adminId: adminContext.authUserId,
+    adminEmail: adminContext.email ?? null,
     targetType: "system",
-    targetId: id ?? null,
+    targetId: (id as string) ?? null,
     action: "admin_override_enabled",
     newValue: { durationMinutes, reason, expiresIn: `${durationMinutes} minutes` },
     reason: `Production override enabled for ${durationMinutes} min. Reason: ${reason}`,
-    adminRole: admin.isSuperAdmin ? "superadmin" : "admin",
+    adminRole: adminContext.isSuperAdmin ? "superadmin" : "admin",
     isSandbox: false,
   });
 

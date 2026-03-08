@@ -1,10 +1,14 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/resume/export?profileId=xxx
  * Returns a PDF: Verified Resume — WorkVouch (name, verified jobs, confirmation count, trust score).
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getEffectiveUser } from "@/lib/auth";
 import { calculateTrustScore } from "@/lib/trust/trustScore";
 import { jsPDF } from "jspdf";
@@ -39,17 +43,14 @@ export async function GET(request: NextRequest) {
   if (!isOwner && !isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-
-  const sb = getSupabaseServer();
-
   const [profileRes, jobsRes, eventsRes, trustScore] = await Promise.all([
-    sb.from("profiles").select("full_name").eq("id", profileId).maybeSingle(),
-    sb
+    admin.from("profiles").select("full_name").eq("id", profileId).maybeSingle(),
+    admin
       .from("employment_records")
       .select("company_name, job_title, start_date, end_date, verification_status")
       .eq("user_id", profileId)
       .in("verification_status", ["verified", "matched"]),
-    sb
+    admin
       .from("trust_events")
       .select("event_type")
       .eq("profile_id", profileId)

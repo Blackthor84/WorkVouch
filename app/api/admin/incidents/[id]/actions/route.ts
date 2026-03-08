@@ -16,8 +16,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const admin = await getAdminContext(req);
-    if (!admin.isAdmin) return adminForbiddenResponse();
+    const adminContext = await getAdminContext(req);
+    if (!adminContext.isAdmin) return adminForbiddenResponse();
 
     const { id } = await params;
     const body = await req.json().catch(() => ({}));
@@ -31,11 +31,11 @@ export async function POST(
     const meta = getAuditRequestMeta(req);
     const actionId = await addIncidentAction({
       incidentId: id,
-      admin_user_id: admin.authUserId,
-      admin_role: admin.isSuperAdmin ? "superadmin" : "admin",
+      admin_user_id: adminContext.authUserId,
+      admin_role: adminContext.isSuperAdmin ? "superadmin" : "admin",
       action_type,
       action_metadata,
-      is_sandbox: admin.isSandbox,
+      is_sandbox: adminContext.isSandbox,
       reason,
       ip_address: meta.ipAddress,
       user_agent: meta.userAgent,

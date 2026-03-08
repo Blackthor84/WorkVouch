@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/admin/employer-reputation-preview
  * Create a 10-minute preview_employer_simulations row for testing. Admin only.
@@ -5,7 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminSupabase } from "@/lib/auth/requireAdminSupabase";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -25,10 +29,8 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: "employer_id required" }, { status: 400 });
     }
-
-    const sb = getSupabaseServer() as any;
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-    const { data: row, error } = await sb
+    const { data: row, error } = await admin
       .from("preview_employer_simulations")
       .insert({
         employer_id: parsed.data.employer_id,

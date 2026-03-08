@@ -1,8 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { ComplianceDisputeType } from "@/lib/compliance-types";
 import type { Database } from "@/types/supabase";
 import { z } from "zod";
@@ -31,8 +35,7 @@ async function requireIdentityVerification(userId: string): Promise<{
   allowed: boolean;
   error?: string;
 }> {
-  const sb = getSupabaseServer();
-  const { data: profile } = await sb
+  const { data: profile } = await admin
     .from("profiles")
     .select("id")
     .eq("id", userId)
@@ -75,8 +78,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    const sb = getSupabaseServer();
     const insertPayload: ComplianceDisputeInsert = {
       user_id: user.id,
       profile_id: parsed.data.profileId,
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
         ? { evaluation_id: parsed.data.evaluationId }
         : {}),
     };
-    const { data: row, error } = await sb
+    const { data: row, error } = await admin
       .from("compliance_disputes")
       .insert(insertPayload)
       .select("id, status, created_at")

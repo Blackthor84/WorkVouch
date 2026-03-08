@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * Cleanup enterprise simulation: delete simulation org and all linked data.
  * Safe only when org.is_simulation = true. Deletes auth users for session profiles.
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSimulationLabAdmin } from "@/lib/simulation-lab";
 import { requireEnterpriseSimulationMode } from "@/lib/enterprise/simulation-guard";
 
@@ -21,9 +25,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const orgId = body.orgId as string;
     if (!orgId) return NextResponse.json({ error: "orgId required" }, { status: 400 });
-
-    const sb = getSupabaseServer() as any;
-    const { data: org, error: orgErr } = await sb
+    const { data: org, error: orgErr } = await admin
       .from("organizations")
       .select("id, is_simulation, simulation_session_id")
       .eq("id", orgId)
@@ -42,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     const profileIds: string[] = [];
     if (sessionId) {
-      const { data: ids } = await sb.rpc("get_simulation_profile_ids_for_session", {
+      const { data: ids } = await admin.rpc("get_simulation_profile_ids_for_session", {
         p_session_id: sessionId,
       });
       if (Array.isArray(ids)) {
@@ -53,7 +55,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const { data: cleanupResult, error: cleanupErr } = await sb.rpc("cleanup_enterprise_simulation", {
+    const { data: cleanupResult, error: cleanupErr } = await admin.rpc("cleanup_enterprise_simulation", {
       p_org_id: orgId,
     });
     if (cleanupErr) {
@@ -65,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     let authDeleted = 0;
     for (const pid of profileIds) {
-      const { error: delErr } = await sb.auth.admin.deleteUser(pid);
+      const { error: delErr } = await admin.auth.admin.deleteUser(pid);
       if (!delErr) authDeleted++;
     }
 

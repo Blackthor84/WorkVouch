@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/intelligence/breakdown?userId=... | ?sandboxId=...&employeeId=...
  * Admin only. Returns scoring breakdown for defensibility:
@@ -11,8 +15,7 @@ import { isAdmin } from "@/lib/roles";
 import { calculateV1Breakdown, buildProductionProfileInput } from "@/lib/core/intelligence";
 import { buildSandboxProfileInput } from "@/lib/sandbox/buildProfileInput";
 import { calculateSentimentFromText } from "@/lib/sandbox/enterpriseEngine";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export async function GET(req: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -40,15 +43,12 @@ export async function GET(req: NextRequest) {
     }
 
     if (sandboxId && employeeId) {
-      const supabase = getSupabaseServer();
       const [reviewsRes, recordsRes] = await Promise.all([
-        supabase
-          .from("sandbox_peer_reviews")
+        admin.from("sandbox_peer_reviews")
           .select("reviewer_id, reviewed_id, rating, review_text, sentiment_score, reliability_score, teamwork_score, leadership_score, stress_performance_score")
           .eq("sandbox_id", sandboxId)
           .eq("reviewed_id", employeeId),
-        supabase
-          .from("sandbox_employment_records")
+        admin.from("sandbox_employment_records")
           .select("employee_id, tenure_months, rehire_eligible")
           .eq("sandbox_id", sandboxId)
           .eq("employee_id", employeeId),

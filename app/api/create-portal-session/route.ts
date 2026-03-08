@@ -1,6 +1,10 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextResponse } from "next/server";
 import { stripe, isStripeConfigured, getCheckoutBaseUrl } from "@/lib/stripe/config";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -27,10 +31,7 @@ export async function POST() {
         { status: 401 },
       );
     }
-
-    const sb = getSupabaseServer() as any;
-
-    const { data: employer } = await sb
+    const { data: employer } = await admin
       .from("employer_accounts")
       .select("stripe_customer_id")
       .eq("user_id", user.id)
@@ -47,7 +48,7 @@ export async function POST() {
       return NextResponse.json({ url: portal.url ?? null });
     }
 
-    const { data: profile } = await sb
+    const { data: profile } = await admin
       .from("profiles")
       .select("stripe_customer_id")
       .eq("id", user.id)

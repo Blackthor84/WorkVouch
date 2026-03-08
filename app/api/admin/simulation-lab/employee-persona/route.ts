@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * Simulation Lab: create simulated employee persona.
  * Creates auth user (no email send), profile, employment record, runs intelligence pipeline.
@@ -7,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSimulationLabAdmin, validateSessionForWrite } from "@/lib/simulation-lab";
 import { calculateUserIntelligence } from "@/lib/intelligence/calculateUserIntelligence";
 import { runCandidateIntelligence } from "@/lib/intelligence/runIntelligencePipeline";
@@ -36,13 +40,10 @@ export async function POST(req: NextRequest) {
     const session = await validateSessionForWrite(sessionId, adminId);
     const expiresAt = session.expires_at;
     const simulationContext = { simulationSessionId: sessionId, expiresAt };
-
-    const supabase = getSupabaseServer();
-
     const suffix = randomSuffix();
     const email = `sim-${sessionId.slice(0, 8)}-${suffix}@simulation.local`;
 
-    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+    const { data: authUser, error: authError } = await admin.auth.admin.createUser({
       email,
       password: `Sim${suffix}!Sec`,
       email_confirm: true,
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
     const userId = authUser.user.id;
 
     const companyNormalized = companyName.toLowerCase().trim();
-    await supabase.from("profiles").upsert(
+    await admin.from("profiles").upsert(
       {
         id: userId,
         full_name: fullName,
@@ -66,10 +67,9 @@ export async function POST(req: NextRequest) {
       { onConflict: "id" }
     );
 
-    await supabase.from("profiles").update({ role: "user" }).eq("id", userId);
+    await admin.from("profiles").update({ role: "user" }).eq("id", userId);
 
-    const { data: erRow, error: erErr } = await supabase
-      .from("employment_records")
+    const { data: erRow, error: erErr } = await admin.from("employment_records")
       .insert({
         user_id: userId,
         company_name: companyName,
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       .select("id")
       .single();
     if (erErr) {
-      await supabase.auth.admin.deleteUser(userId);
+      await admin.auth.admin.deleteUser(userId);
       return NextResponse.json({ error: erErr.message }, { status: 500 });
     }
 

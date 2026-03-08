@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * PATCH /api/user/passport-visibility
  * Set Verified Work Profile visibility. Body: { visibility: "private" | "verified_employers" | "shared_network" | "public" }
@@ -9,7 +13,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
@@ -34,9 +38,7 @@ export async function PATCH(req: NextRequest) {
     if (!effective || effective.deleted_at) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const visibility = parseVisibility(await req.json().catch(() => ({})));
-
-    const sb = getSupabaseServer() as any;
-    const { data: sub } = await sb
+    const { data: sub } = await admin
       .from("user_subscriptions")
       .select("tier")
       .eq("user_id", effective.id)

@@ -1,8 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, hasRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { updateCredentialStatus } from "@/lib/credentials/statusUpdater";
 import { generateComplianceAlerts } from "@/lib/compliance/generateAlerts";
 
@@ -15,9 +19,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const isEmployer = await hasRole("employer");
     if (!isEmployer) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
-    const sb = getSupabaseServer() as any;
-    const { data: ea } = await sb.from("employer_accounts").select("id").eq("user_id", user.id);
+    const { data: ea } = await admin.from("employer_accounts").select("id").eq("user_id", user.id);
     const account = Array.isArray(ea) ? ea[0] : ea;
     if (!account?.id) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
     const employerId = (account as { id: string }).id;
@@ -47,7 +49,7 @@ export async function POST(req: NextRequest) {
       status: "active",
     };
 
-    const { data: inserted, error } = await sb
+    const { data: inserted, error } = await admin
       .from("professional_credentials")
       .insert(row)
       .select("id")

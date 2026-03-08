@@ -1,8 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getUser } from "@/lib/auth/getUser";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
 import { runSandboxIntelligenceRecalculation } from "@/lib/sandbox/recalculate";
 import { createSandboxProfile } from "@/lib/sandbox/createSandboxProfile";
@@ -35,9 +39,7 @@ export async function POST(req: NextRequest) {
     if (!sandboxId || typeof sandboxId !== "string") {
       return NextResponse.json({ success: false, error: "Missing or invalid sandboxId" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: session, error: sessionError } = await supabase
+    const { data: session, error: sessionError } = await admin
       .from("sandbox_sessions")
       .select("id, status")
       .eq("id", sandboxId)
@@ -50,7 +52,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Sandbox not found or not active" }, { status: 400 });
     }
 
-    const { data: employers } = await supabase
+    const { data: employers } = await admin
       .from("sandbox_employers")
       .select("id")
       .eq("sandbox_id", sandboxId)
@@ -62,12 +64,12 @@ export async function POST(req: NextRequest) {
     const job_title = pick(JOB_TITLES);
     const tenure_months = randomInt(6, 60);
 
-    const profileId = await createSandboxProfile(supabase, {
+    const profileId = await createSandboxProfile(admin, {
       full_name,
       role: "user",
       sandbox_id: sandboxId,
     });
-    const { data: employee, error: empError } = await supabase
+    const { data: employee, error: empError } = await admin
       .from("sandbox_employees")
       .insert({ sandbox_id: sandboxId, full_name, industry: pick(INDUSTRIES), profile_id: profileId })
       .select("id, full_name, industry, profile_id")
@@ -79,7 +81,7 @@ export async function POST(req: NextRequest) {
 
     if (employers?.length && employers.length > 0) {
       const employerId = pick(employers).id;
-      await supabase.from("sandbox_employment_records").insert({
+      await admin.from("sandbox_employment_records").insert({
         sandbox_id: sandboxId,
         employee_id: employee.id,
         employer_id: employerId,
@@ -97,7 +99,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: intelRow } = await supabase
+    const { data: intelRow } = await admin
       .from("sandbox_intelligence_outputs")
       .select("profile_strength, career_health, risk_index, team_fit, hiring_confidence, network_density")
       .eq("sandbox_id", sandboxId)

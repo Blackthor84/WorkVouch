@@ -1,10 +1,13 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 
 /** GET: list coworker matches for this user (employment_matches does not exist). Admin only. Fail soft. */
@@ -12,15 +15,14 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
   const { id: userId } = await params;
   if (!userId) return NextResponse.json({ error: "Missing user id" }, { status: 400 });
 
   let enriched: { id: string; employment_record_id: string; matched_user_id: string; match_status: string; overlap_start: string; overlap_end: string; company_name: string | null; record_owner_id: string | null }[] = [];
   try {
-    const sb = getSupabaseServer();
-    const { data: rows } = await sb
+    const { data: rows } = await admin
       .from("coworker_matches")
       .select("id, user1_id, user2_id, company_name")
       .or(`user1_id.eq.${userId},user2_id.eq.${userId}`);

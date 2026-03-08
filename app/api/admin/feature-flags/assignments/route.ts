@@ -1,5 +1,9 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { isAdmin, isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
@@ -38,9 +42,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-
-    const supabase = getSupabaseServer();
-    const { data: flag, error: flagError } = await (supabase as any)
+    const { data: flag, error: flagError } = await admin
       .from("feature_flags")
       .select("is_globally_enabled")
       .eq("id", feature_flag_id)
@@ -65,7 +67,7 @@ export async function POST(request: Request) {
     if (expires_at) {
       insertRow.expires_at = expires_at;
     }
-    const { data, error } = await (supabase as any)
+    const { data, error } = await admin
       .from("feature_flag_assignments")
       .insert(insertRow)
       .select()

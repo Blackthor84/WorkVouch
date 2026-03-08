@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/analytics/abuse — list abuse signals. Admin-only. Audited.
  */
@@ -5,19 +9,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { logAdminViewedAnalytics } from "@/lib/admin/analytics-audit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
 
   try {
     await logAdminViewedAnalytics(
-      { userId: admin.authUserId, authUserId: admin.authUserId, email: admin.user?.email ?? null, role: admin.isSuperAdmin ? "super_admin" : "admin" },
+      { userId: adminSession.authUserId, authUserId: adminSession.authUserId, email: adminSession.user?.email ?? null, role: adminSession.isSuperAdmin ? "super_admin" : "admin" },
       req,
       "abuse"
     );
@@ -31,7 +35,7 @@ export async function GET(req: NextRequest) {
   const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
   const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get("limit") || "50", 10)));
 
-  let q = getSupabaseServer()
+  let q = admin
     .from("abuse_signals")
     .select("id, session_id, signal_type, severity, metadata, is_sandbox, created_at")
     .gte("created_at", since)

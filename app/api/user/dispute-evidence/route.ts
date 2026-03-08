@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/user/dispute-evidence
  * Register evidence after client uploads to Supabase Storage (bucket: dispute-evidence).
@@ -9,7 +13,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 import { z } from "zod";
 
@@ -43,9 +47,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { dispute_id, file_path, file_type } = parsed.data;
-    const sb = getSupabaseServer() as any;
-
-    const { data: dispute, error: disputeErr } = await sb
+    const { data: dispute, error: disputeErr } = await admin
       .from("disputes")
       .select("id, user_id, status")
       .eq("id", dispute_id)
@@ -67,7 +69,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: row, error: insertErr } = await sb
+    const { data: row, error: insertErr } = await admin
       .from("dispute_evidence")
       .insert({
         dispute_id,

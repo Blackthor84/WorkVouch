@@ -1,0 +1,29 @@
+---
+description: API routes must use the shared admin Supabase client only. No supabase in API routes.
+globs: app/api/**/*
+alwaysApply: true
+---
+
+# WorkVouch Supabase Admin (API routes)
+
+Scope: **All files under `app/api/**`**.
+
+## REQUIRED
+
+- **All server routes must use the `admin` Supabase client** from `@/lib/supabase-admin`.
+- Import: `import { admin } from "@/lib/supabase-admin"`
+- Do **not** use `getSupabaseServer()` in API routes; use the shared `admin` import instead.
+- Do **not** use `supabase` (user-scoped or anonymous client) in API routes.
+
+## FORBIDDEN IN API ROUTES
+
+- `createServerSupabaseClient()` for table access (use `admin` for DB).
+- `supabase.from(...)` — use `admin.from(...)`.
+- Any pattern that creates a per-request Supabase client for database writes/reads in API routes; use the shared `admin` client.
+
+## CURSOR BEHAVIOR
+
+When generating or editing code in `app/api/**`, Cursor MUST:
+- Add or keep `import { admin } from "@/lib/supabase-admin"` for any route that touches Supabase.
+- Use `admin.from("table_name")` for all table access.
+- Not introduce `supabase` or `getSupabaseServer()` in new or edited API route code.

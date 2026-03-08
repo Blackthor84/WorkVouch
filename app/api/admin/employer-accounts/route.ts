@@ -1,5 +1,9 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { isAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
@@ -15,9 +19,7 @@ export async function GET() {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const role = await getCurrentUserRole();
     if (!isAdmin(role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
-    const supabase = getSupabaseServer();
-    const { data, error } = await (supabase as any)
+    const { data, error } = await admin
       .from("employer_accounts")
       .select("id, company_name, user_id")
       .order("company_name");

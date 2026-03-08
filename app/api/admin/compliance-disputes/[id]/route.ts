@@ -1,8 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { ComplianceDisputeStatus } from "@/lib/compliance-types";
 import type { Database } from "@/types/supabase";
 import { z } from "zod";
@@ -38,15 +42,14 @@ export async function GET(
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const admin = await isAdmin();
-    if (!admin) {
+    const isAdminUser = await isAdmin();
+    if (!isAdminUser) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { id } = await params;
-    const sb = getSupabaseServer();
 
-    const { data: dispute, error: disputeErr } = await sb
+    const { data: dispute, error: disputeErr } = await admin
       .from("compliance_disputes")
       .select(
         "id, user_id, profile_id, dispute_type, description, status, reviewer_notes, created_at, resolved_at"
@@ -63,7 +66,7 @@ export async function GET(
     const employerSubmissions: unknown[] = [];
 
     try {
-      const { data: registryRows } = await sb
+      const { data: registryRows } = await admin
         .from("rehire_registry")
         .select(
           "id, employer_id, profile_id, rehire_eligible, rehire_status, reason, justification, updated_at"
@@ -77,7 +80,7 @@ export async function GET(
     }
 
     try {
-      const { data: employmentIds } = await sb
+      const { data: employmentIds } = await admin
         .from("employment_records")
         .select("id")
         .eq("user_id", profileId);
@@ -85,7 +88,7 @@ export async function GET(
         (r: { id: string }) => r.id
       ) as string[];
       if (ids.length > 0) {
-        const { data: rehireRows } = await sb
+        const { data: rehireRows } = await admin
           .from("rehire_logs")
           .select(
             "id, employment_record_id, employer_id, rehire_status, reason, justification, created_at"
@@ -127,8 +130,8 @@ export async function PATCH(
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const admin = await isAdmin();
-    if (!admin) {
+    const isAdminUser = await isAdmin();
+    if (!isAdminUser) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -141,8 +144,6 @@ export async function PATCH(
         { status: 400 }
       );
     }
-
-    const sb = getSupabaseServer();
     const updates: ComplianceDisputeUpdate = {};
     if (parsed.data.status !== undefined) {
       updates.status = parsed.data.status as ComplianceDisputeUpdate["status"];
@@ -161,7 +162,7 @@ export async function PATCH(
       return NextResponse.json({ error: "No updates provided" }, { status: 400 });
     }
 
-    const { data: row, error } = await sb
+    const { data: row, error } = await admin
       .from("compliance_disputes")
       .update(updates)
       .eq("id", id)

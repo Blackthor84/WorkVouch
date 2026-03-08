@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/organizations — list organizations (admin/super_admin). Org search by name/slug.
  * Demo orgs only when isSandboxRequest(); production never sees demo rows.
@@ -7,7 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { isSandboxRequest } from "@/lib/sandboxRequest";
 import { getRequestId } from "@/lib/requestContext";
 import { logAdminAction } from "@/lib/adminAudit";
@@ -22,25 +26,16 @@ if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
 }
 
 export async function GET(req: NextRequest) {
-  const admin = await getAdminContext(req);
-  if (!admin || !admin.isAdmin) {
+  const adminContext = await getAdminContext(req);
+  if (!adminContext.isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
-    const supabase = getSupabaseServer();
-    if (!supabase) {
-      return NextResponse.json(
-        { error: "Supabase not initialized" },
-        { status: 500 }
-      );
-    }
-
     const url = new URL(req.url);
     const search = url.searchParams.get("search")?.trim() || "";
 
-    let query = supabase
-      .from("organizations")
+    let query = admin.from("organizations")
       .select("*")
       .order("name");
 
@@ -64,7 +59,7 @@ export async function GET(req: NextRequest) {
     const organizations = Array.isArray(data) ? data : [];
 
     logAdminAction({
-      adminId: admin.authUserId,
+      adminId: adminContext.authUserId,
       action: "READ",
       resource: "ORGANIZATIONS",
       requestId: getRequestId(req),

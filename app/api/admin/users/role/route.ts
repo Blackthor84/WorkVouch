@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { requireAdminThrow } from "@/lib/admin/requireAdmin";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
 
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
     const { error } = await supabaseAny
       .from("profiles")
       .update({ role })

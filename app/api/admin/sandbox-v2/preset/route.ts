@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -54,8 +55,7 @@ export async function POST(req: NextRequest) {
 
   const employerIds: string[] = [];
   for (let i = 0; i < employerCount; i++) {
-    const { data: emp, error } = await supabase
-      .from("sandbox_employers")
+    const { data: emp, error } = await admin.from("sandbox_employers")
       .insert({
         sandbox_id: sandboxId,
         company_name: pickCompany(),
@@ -74,8 +74,7 @@ export async function POST(req: NextRequest) {
 
   const employeeIds: { id: string }[] = [];
   for (let i = 0; i < employeeCount; i++) {
-    const { data: emp, error } = await supabase
-      .from("sandbox_employees")
+    const { data: emp, error } = await admin.from("sandbox_employees")
       .insert({
         sandbox_id: sandboxId,
         full_name: pickFullName(),
@@ -109,8 +108,7 @@ export async function POST(req: NextRequest) {
   await runSandboxIntelligenceRecalculation(String(sandboxId));
   await calculateSandboxMetrics(String(sandboxId));
 
-  const { count } = await supabase
-    .from("sandbox_employees")
+  const { count } = await admin.from("sandbox_employees")
     .select("*", { count: "exact", head: true })
     .eq("sandbox_id", sandboxId);
   console.log("EMPLOYEE COUNT AFTER INSERT:", count);

@@ -1,8 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -27,8 +31,8 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const admin = await isAdmin();
-    if (!admin) {
+    const isAdminUser = await isAdmin();
+    if (!isAdminUser) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -40,11 +44,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    const sb = getSupabaseServer() as any;
     const entityId = parsed.data.fraudFlagId ?? crypto.randomUUID();
 
-    await sb.from("audit_logs").insert({
+    await admin.from("audit_logs").insert({
       entity_type: "fraud_investigation",
       entity_id: entityId,
       changed_by: user.id,

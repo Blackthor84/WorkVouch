@@ -11,8 +11,8 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
-  const admin = await getAdminContext(req);
-  if (!admin.isAdmin) return adminForbiddenResponse();
+  const adminContext = await getAdminContext(req);
+  if (!adminContext.isAdmin) return adminForbiddenResponse();
 
   try {
     const url = new URL(req.url);

@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/credential/create
  * Create a WorkVouch Credential for the current user. Returns share_token and share URL.
@@ -7,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { buildCredentialPayload } from "@/lib/workvouch-credential/core";
 import type { CredentialVisibility } from "@/lib/workvouch-credential/types";
 import { getReferenceCredibilitySummary } from "@/lib/workvouch-credential/referenceCredibility";
@@ -37,8 +41,6 @@ export async function POST(req: NextRequest) {
   } catch {
     // defaults
   }
-
-  const admin = getSupabaseServer();
   const supabase = await createServerSupabaseClient();
 
   const { data: employmentRecords } = await admin
@@ -105,8 +107,7 @@ export async function POST(req: NextRequest) {
   const expiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString();
   const shareToken = generateShareToken();
 
-  const { data: inserted, error } = await supabase
-    .from("workvouch_credentials")
+  const { data: inserted, error } = await admin.from("workvouch_credentials")
     .insert({
       candidate_id: effective.id,
       payload,

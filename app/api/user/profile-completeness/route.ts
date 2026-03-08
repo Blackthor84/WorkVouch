@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/user/profile-completeness
  * Returns profile completeness for the current user (employee dashboard).
@@ -5,7 +9,7 @@
 import { NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
 import { getUser } from "@/lib/auth/getUser";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
 export const runtime = "nodejs";
@@ -25,8 +29,6 @@ export async function GET() {
     if (!effective || effective.deleted_at) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const admin = getSupabaseServer();
     const supabaseAny = admin as any;
 
     const [profileRes, jobsRes] = await Promise.all([

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
 
     const employerId = user.id;
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
     const { data: employer } = await supabaseAny
       .from("profiles")
       .select("role, subscription_tier, subscription_expires_at")
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
 
     const path = target.resume_url.replace("resumes/", "");
 
-    const { data: signed, error } = await supabase.storage
+    const { data: signed, error } = await admin.storage
       .from("resumes")
       .createSignedUrl(path, 60); // 60 seconds
 

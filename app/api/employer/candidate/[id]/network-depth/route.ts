@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/candidate/[id]/network-depth
  * Employer-only. Same shape as trust/network-depth for candidate.
@@ -8,7 +12,7 @@ import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { toNetworkDepthBand } from "@/lib/trust/depthBands";
 
 export const runtime = "nodejs";
@@ -41,10 +45,7 @@ export async function GET(
     if (!profileId) {
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: rows, error } = await supabase
-      .from("trust_relationships")
+    const { data: rows, error } = await admin.from("trust_relationships")
       .select("source_profile_id, target_profile_id, relationship_type")
       .or(`source_profile_id.eq.${profileId},target_profile_id.eq.${profileId}`);
     if (error) {

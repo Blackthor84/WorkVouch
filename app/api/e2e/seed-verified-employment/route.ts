@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/e2e/seed-verified-employment
  * Only when E2E_TEST_SECRET is set. Inserts one employment_record with verification_status=verified
@@ -5,8 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -22,8 +25,6 @@ export async function POST(req: NextRequest) {
   if (!profileId || !/^[0-9a-f-]{36}$/i.test(profileId)) {
     return NextResponse.json({ error: "Missing or invalid profileId" }, { status: 400 });
   }
-
-  const admin = getSupabaseServer();
   const now = new Date().toISOString();
   const { data, error } = await admin
     .from("employment_records")

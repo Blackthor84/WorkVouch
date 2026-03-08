@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
 
     // Update the profile with warehouse-specific data
     // Note: warehouse-specific fields may not be in Database types yet
-    const { error: updateError } = await (supabase as any)
+    const { error: updateError } = await admin
       .from("profiles")
       .update({
         warehouse_type: warehouseType,

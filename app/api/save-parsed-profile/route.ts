@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getUser } from "@/lib/auth/getUser";
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "🚨 Upgrade Required" }, { status: 401 });
     }
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
 
     const body = await request.json();
     const { jobs, education, skills, certifications, contactInfo, summary } =
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
         responsibilities: job.responsibilities || null,
       }));
 
-      const { error: jobsError } = await (supabase as any)
+      const { error: jobsError } = await admin
         .from("jobs")
         .upsert(jobsToInsert, {
           onConflict: "id",
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
         gpa: number | null;
         description: string | null;
       };
-      const supabaseAny = supabase as any;
+      const supabaseAny = admin as any;
       const { error: educationError } = await supabaseAny
         .from("education")
         .upsert(educationToInsert, {
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
         skill_category: string;
         proficiency_level: null;
       };
-      const supabaseAny = supabase as any;
+      const supabaseAny = admin as any;
       // Delete existing skills first to avoid duplicates
       await supabaseAny.from("skills").delete().eq("user_id", user.id);
 

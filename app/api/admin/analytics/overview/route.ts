@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/analytics/overview — internal analytics (enterprise schema).
  * Uses site_sessions + site_page_views. Admin-only. Always returns safe shape (visitorMap, last24h, pagePerformance).
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { logAdminViewedAnalytics } from "@/lib/admin/analytics-audit";
 
 export const dynamic = "force-dynamic";
@@ -20,12 +24,12 @@ const SAFE_OVERVIEW = {
 };
 
 export async function GET(req: NextRequest) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
 
   try {
     await logAdminViewedAnalytics(
-      { userId: admin.authUserId, authUserId: admin.authUserId, email: admin.user?.email ?? null, role: admin.isSuperAdmin ? "super_admin" : "admin" },
+      { userId: adminSession.authUserId, authUserId: adminSession.authUserId, email: adminSession.user?.email ?? null, role: adminSession.isSuperAdmin ? "super_admin" : "admin" },
       req,
       "overview"
     );
@@ -36,15 +40,13 @@ export async function GET(req: NextRequest) {
   const envFilter = url.searchParams.get("env");
   const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const supabase = getSupabaseServer();
-
-  let sessionsQuery = supabase.from("site_sessions").select("id, last_seen_at").gte("last_seen_at", fiveMinAgo);
+  let sessionsQuery = admin.from("site_sessions").select("id, last_seen_at").gte("last_seen_at", fiveMinAgo);
   if (envFilter === "sandbox") sessionsQuery = sessionsQuery.eq("is_sandbox", true);
   if (envFilter === "production") sessionsQuery = sessionsQuery.eq("is_sandbox", false);
   const { data: activeSessions } = await sessionsQuery.limit(5000);
   const realTimeVisitors = activeSessions?.length ?? 0;
 
-  let pvQuery = supabase
+  let pvQuery = admin
     .from("site_page_views")
     .select("session_id, path, is_sandbox")
     .gte("created_at", oneDayAgo)
@@ -56,7 +58,7 @@ export async function GET(req: NextRequest) {
   const sessionIds = [...new Set((views24h ?? []).map((v: { session_id: string | null }) => v.session_id).filter(Boolean))] as string[];
   let countryBySession: Record<string, string> = {};
   if (sessionIds.length > 0) {
-    const { data: sessRows } = await supabase.from("site_sessions").select("id, country").in("id", sessionIds.slice(0, 5000));
+    const { data: sessRows } = await admin.from("site_sessions").select("id, country").in("id", sessionIds.slice(0, 5000));
     for (const r of sessRows ?? []) {
       countryBySession[r.id] = (r as { country: string | null }).country ?? "unknown";
     }

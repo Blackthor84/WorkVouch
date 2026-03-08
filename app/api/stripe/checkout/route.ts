@@ -1,5 +1,9 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { stripe } from "@/lib/stripe";
 
 // Mark route as dynamic to prevent build-time evaluation
@@ -14,8 +18,6 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
-    const supabase = supabaseServer;
-
     const body = await req.json();
 
     const session = await stripe.checkout.sessions.create({

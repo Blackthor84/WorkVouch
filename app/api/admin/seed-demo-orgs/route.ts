@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/admin/seed-demo-orgs
  * Re-seed demo organizations. SANDBOX MODE only; super_admin only.
@@ -9,7 +13,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { APP_MODE } from "@/lib/app-mode";
 
 export const dynamic = "force-dynamic";
@@ -30,23 +34,21 @@ export async function POST() {
   const _session = await requireSuperAdminForApi();
   if (!_session) return adminForbiddenResponse();
 
-  const supabase = getSupabaseServer() as any;
+  const supabase = admin as any;
 
-  const existing = await supabase
-    .from("organizations")
+  const existing = await admin.from("organizations")
     .select("id")
     .eq("mode", "sandbox")
     .eq("demo", true);
   const toDelete = (existing.data ?? []) as { id: string }[];
   for (const row of toDelete) {
-    await supabase.from("organizations").delete().eq("id", row.id);
+    await admin.from("organizations").delete().eq("id", row.id);
   }
 
   const created: { id: string; name: string; slug: string }[] = [];
 
   for (const org of DEMO_ORGS) {
-    const { data: orgRow, error: orgErr } = await supabase
-      .from("organizations")
+    const { data: orgRow, error: orgErr } = await admin.from("organizations")
       .insert({
         name: org.name,
         slug: org.slug,
@@ -67,8 +69,7 @@ export async function POST() {
     created.push(orgRow as { id: string; name: string; slug: string });
 
     const locSlug = `${org.slug}-hq`;
-    const { data: locRow, error: locErr } = await supabase
-      .from("locations")
+    const { data: locRow, error: locErr } = await admin.from("locations")
       .insert({
         organization_id: (orgRow as { id: string }).id,
         name: `${org.name} HQ`,

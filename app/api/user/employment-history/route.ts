@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getEffectiveUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -27,8 +28,7 @@ export async function GET() {
   }
 
   const supabase = await createServerSupabaseClient();
-  const { data: rows, error } = await supabase
-    .from("employment_records")
+  const { data: rows, error } = await admin.from("employment_records")
     .select("id, company_name, job_title, start_date, end_date, is_current, verification_status")
     .eq("user_id", effective.id)
     .order("start_date", { ascending: false })

@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/public/credential?token=<share_token>
  * Public, no login. Read-only, verifiable credential view by share token.
@@ -5,8 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -18,9 +21,6 @@ export async function GET(req: NextRequest) {
     if (!token || typeof token !== "string" || token.length < 10) {
       return NextResponse.json({ error: "Invalid or missing token" }, { status: 400 });
     }
-
-    const admin = getSupabaseServer();
-
     const { data: cred, error } = await admin
       .from("workvouch_credentials")
       .select("id, payload, visibility, issued_at, expires_at, revoked_at")

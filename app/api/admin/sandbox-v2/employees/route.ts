@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -69,8 +70,7 @@ export async function POST(req: NextRequest) {
     console.log("=== EMPLOYEE INSERT START ===");
     console.log("INSERT sandboxId:", sandboxId);
 
-    const { data, error } = await supabase
-      .from("sandbox_employees")
+    const { data, error } = await admin.from("sandbox_employees")
       .insert(payload as Record<string, unknown>)
       .select()
       .single();
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const { data: allEmployees } = await supabase.from("sandbox_employees").select("id").eq("sandbox_id", sandboxId);
+    const { data: allEmployees } = await admin.from("sandbox_employees").select("id").eq("sandbox_id", sandboxId);
     const employeePool = (allEmployees ?? []).map((e: { id: string }) => ({ id: e.id }));
     await generatePeerReviews({ sandboxId: String(sandboxId), employeeId: String(employeeId), employeePool });
 
@@ -144,8 +144,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const supabase = getServiceRoleClient();
-    const { data, error } = await supabase
-      .from("sandbox_employees")
+    const { data, error } = await admin.from("sandbox_employees")
       .select("*")
       .eq("sandbox_id", sandboxId)
       .order("created_at", { ascending: false });

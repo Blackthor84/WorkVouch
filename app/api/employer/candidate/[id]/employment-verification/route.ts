@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/candidate/[id]/employment-verification
  * Employer-only. Returns candidate employment records with verification status.
@@ -8,8 +12,7 @@ import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -42,10 +45,7 @@ export async function GET(
     if (!candidateId) {
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: rows, error } = await supabase
-      .from("employment_records")
+    const { data: rows, error } = await admin.from("employment_records")
       .select("id, company_name, job_title, start_date, end_date, is_current, verification_status")
       .eq("user_id", candidateId)
       .order("start_date", { ascending: false })

@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/employment-references
  * Single path: core submitReview. Rate limited, Zod validated.
@@ -12,6 +16,7 @@ import { logAudit, type AuditEntity } from "@/lib/dispute-audit";
 import { processReviewIntelligence } from "@/lib/intelligence/processReviewIntelligence";
 import { runAnomalyChecksAfterReview } from "@/lib/admin/runAnomalyChecks";
 import { withRateLimit, RATE_LIMITS } from "@/lib/rateLimit";
+import { admin } from "@/lib/supabase-admin";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +33,7 @@ export async function POST(req: NextRequest) {
     if (!user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const supabase = await createServerSupabaseClient();
+    const _admin = admin;
     const rl = withRateLimit(req, {
       userId: user.id,
       ...RATE_LIMITS.employmentReferences,

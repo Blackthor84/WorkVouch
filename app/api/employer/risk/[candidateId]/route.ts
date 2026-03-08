@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/risk/[candidateId]
  * Employer-only. Returns risk level and neutral-language alerts for the candidate.
@@ -8,7 +12,7 @@ import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getEmployerRiskAlerts } from "@/lib/employer/riskAlerts";
 
 export const runtime = "nodejs";
@@ -41,8 +45,6 @@ export async function GET(
     if (!candidateId) {
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
     const result = await getEmployerRiskAlerts(
       supabase as Parameters<typeof getEmployerRiskAlerts>[0],
       candidateId

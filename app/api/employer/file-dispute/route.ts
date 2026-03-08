@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
     };
 
     // Get employer's company name
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
     const { data: employerAccount, error: employerError } = await supabaseAny
       .from("employer_accounts")
       .select("id, company_name")
@@ -118,7 +119,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Update job history status to disputed
-    await (supabase as any)
+    await admin
       .from("jobs")
       .update({ verification_status: "disputed" })
       .eq("id", data.jobHistoryId);

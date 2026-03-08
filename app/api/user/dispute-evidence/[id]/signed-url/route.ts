@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/user/dispute-evidence/[id]/signed-url
  * Returns a signed URL to view/download evidence. User must own the dispute.
@@ -8,8 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 
 const BUCKET = "dispute-evidence";
@@ -26,9 +29,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    const sb = getSupabaseServer() as any;
-
-    const { data: evidence, error: evidenceErr } = await sb
+    const { data: evidence, error: evidenceErr } = await admin
       .from("dispute_evidence")
       .select("id, dispute_id, file_url")
       .eq("id", id)
@@ -38,7 +39,7 @@ export async function GET(
       return NextResponse.json({ error: "Evidence not found" }, { status: 404 });
     }
 
-    const { data: dispute } = await sb
+    const { data: dispute } = await admin
       .from("disputes")
       .select("user_id")
       .eq("id", evidence.dispute_id)
@@ -48,7 +49,7 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { data: signed, error: signErr } = await sb.storage
+    const { data: signed, error: signErr } = await admin.storage
       .from(BUCKET)
       .createSignedUrl(evidence.file_url, EXPIRES_IN);
 

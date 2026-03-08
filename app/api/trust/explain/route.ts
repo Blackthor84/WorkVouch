@@ -1,9 +1,13 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
 import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
 import { explainTrustScore } from "@/lib/trust/explainTrustScore";
 import type { TrustEngineSnapshot } from "@/lib/trust/types";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getTrustTrajectory } from "@/lib/trust/trustTrajectory";
 
 export const runtime = "nodejs";
@@ -68,15 +72,12 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const profileId = searchParams.get("profileId")?.trim() || effective.id;
-
-  const supabase = getSupabaseServer();
   const row = await getOrCreateSnapshot(profileId);
   const trustScore = Math.max(0, Math.min(100, Number(row.career_health_score) ?? 0));
   const profileStrength = Math.max(0, Math.min(100, Number(row.profile_strength) ?? 0));
   const referenceScore = Math.max(0, Math.min(100, Number(row.reference_score) ?? 0));
 
-  const { data: employmentRows } = await supabase
-    .from("employment_records")
+  const { data: employmentRows } = await admin.from("employment_records")
     .select("verification_status")
     .eq("user_id", profileId);
   const totalEmployment = (employmentRows ?? []).length;
@@ -127,8 +128,7 @@ export async function GET(req: NextRequest) {
 
   // Only include score history when user is viewing their own profile (read-only, user-safe).
   if (profileId === effective.id) {
-    const { data: historyRows } = await supabase
-      .from("intelligence_score_history")
+    const { data: historyRows } = await admin.from("intelligence_score_history")
       .select("reason, delta, created_at")
       .eq("user_id", effective.id)
       .eq("entity_type", "trust_score")

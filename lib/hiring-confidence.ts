@@ -53,8 +53,9 @@ async function loadComponentScores(
   fraudConfidence: number | null;
 }> {
   try {
+    const admin = supabase;
     const [teamRes, riskRes, riskGlobalRes, networkRes] = await Promise.all([
-      supabase
+      admin
         .from("team_fit_scores")
         .select("alignment_score")
         .eq("candidate_id", candidateId)
@@ -62,7 +63,7 @@ async function loadComponentScores(
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      supabase
+      admin
         .from("risk_model_outputs")
         .select("overall_score")
         .eq("candidate_id", candidateId)
@@ -70,7 +71,7 @@ async function loadComponentScores(
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      supabase
+      admin
         .from("risk_model_outputs")
         .select("overall_score")
         .eq("candidate_id", candidateId)

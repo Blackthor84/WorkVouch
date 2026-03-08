@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/employer/roster-upload
  * Bulk roster upload (Pro/Custom tiers). Body: { rows: [{ employee_name, employee_email?, role?, start_date?, end_date? }] }.
@@ -10,7 +14,7 @@ export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
 import { hasRole } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -34,8 +38,8 @@ export async function POST(req: NextRequest) {
     if (!(await hasRole("employer"))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
-    const adminSupabase = getSupabaseServer() as any;
+    const supabaseAny = admin as any;
+    const adminSupabase = admin as any;
 
     const { data: account } = await supabaseAny
       .from("employer_accounts")

@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/claim-requests
  * List pending (and optionally all) employer claim requests. Admin only.
@@ -5,8 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminSupabase } from "@/lib/auth/requireAdminSupabase";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -17,9 +20,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const statusFilter = searchParams.get("status") ?? "pending";
-
-    const sb = getSupabaseServer() as any;
-    let q = sb
+    let q = admin
       .from("employer_claim_requests")
       .select("id, employer_id, requested_by_user_id, status, reviewed_by, reviewed_at, created_at")
       .order("created_at", { ascending: false })
@@ -40,8 +41,8 @@ export async function GET(req: NextRequest) {
     const employerIds = [...new Set(list.map((r: { employer_id: string }) => r.employer_id))];
     const userIds = [...new Set(list.map((r: { requested_by_user_id: string }) => r.requested_by_user_id))];
 
-    const { data: employers } = await sb.from("employer_accounts").select("id, company_name, user_id, claimed, claim_verified").in("id", employerIds);
-    const { data: profiles } = await sb.from("profiles").select("id, full_name, email").in("id", userIds);
+    const { data: employers } = await admin.from("employer_accounts").select("id, company_name, user_id, claimed, claim_verified").in("id", employerIds);
+    const { data: profiles } = await admin.from("profiles").select("id, full_name, email").in("id", userIds);
 
     const employerMap = new Map<string, { company_name?: string; user_id?: string; claimed?: boolean; claim_verified?: boolean }>();
     for (const e of employers ?? []) {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { checkVerificationLimit } from "@/lib/utils/verification-limit";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
 
     // Get employer account ID
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
     type EmployerAccountRow = { id: string };
     const { data: employerAccount } = await supabaseAny
       .from("employer_accounts")

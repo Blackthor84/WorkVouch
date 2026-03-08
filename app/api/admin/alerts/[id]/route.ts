@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -22,13 +23,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const admin = await getAdminContext(req);
-    if (!admin.isAdmin) return adminForbiddenResponse();
+    const adminContext = await getAdminContext(req);
+    if (!adminContext.isAdmin) return adminForbiddenResponse();
 
     const { id } = await params;
     const supabase = getServiceRoleClient() as any;
-    const { data, error } = await supabase
-      .from("admin_alerts")
+    const { data, error } = await admin.from("admin_alerts")
       .select("*")
       .eq("id", id)
       .single();
@@ -49,8 +49,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const admin = await getAdminContext(req);
-    if (!admin.isAdmin) return adminForbiddenResponse();
+    const adminContext = await getAdminContext(req);
+    if (!adminContext.isAdmin) return adminForbiddenResponse();
 
     const { id } = await params;
     const body = await req.json().catch(() => ({}));
@@ -58,8 +58,8 @@ export async function PATCH(
     const reason = typeof body.reason === "string" ? body.reason.trim() : "";
     const silenced_until = typeof body.silenced_until === "string" ? body.silenced_until : undefined;
 
-    const adminRole = admin.isSuperAdmin ? "superadmin" : "admin";
-    const isSandbox = admin.isSandbox;
+    const adminRole = adminContext.isSuperAdmin ? "superadmin" : "admin";
+    const isSandbox = adminContext.isSandbox;
 
     if (action === "read") {
       await markAlertRead(id);
@@ -69,8 +69,8 @@ export async function PATCH(
     if (action === "acknowledge") {
       await acknowledgeAlert({
         alertId: id,
-        admin_user_id: admin.authUserId,
-        admin_email: admin.email,
+        admin_user_id: adminContext.authUserId,
+        admin_email: adminContext.email,
         admin_role: adminRole,
         is_sandbox: isSandbox,
       });
@@ -79,13 +79,12 @@ export async function PATCH(
 
     if (action === "dismiss") {
       const supabase = getServiceRoleClient() as any;
-      const { data: alert } = await supabase
-        .from("admin_alerts")
+      const { data: alert } = await admin.from("admin_alerts")
         .select("severity")
         .eq("id", id)
         .single();
       const isCritical = (alert as { severity?: string } | null)?.severity === "critical";
-      if (isCritical && !admin.isSuperAdmin && !reason) {
+      if (isCritical && !adminContext.isSuperAdmin && !reason) {
         return NextResponse.json(
           { error: "Dismissing a critical alert requires a reason (or superadmin)" },
           { status: 400 }
@@ -93,8 +92,8 @@ export async function PATCH(
       }
       await dismissAlert({
         alertId: id,
-        admin_user_id: admin.authUserId,
-        admin_email: admin.email,
+        admin_user_id: adminContext.authUserId,
+        admin_email: adminContext.email,
         admin_role: adminRole,
         is_sandbox: isSandbox,
         reason: reason || "Dismissed from admin UI",
@@ -103,7 +102,7 @@ export async function PATCH(
     }
 
     if (action === "silence") {
-      if (!admin.isSuperAdmin) {
+      if (!adminContext.isSuperAdmin) {
         return NextResponse.json({ error: "Only superadmin can silence alerts" }, { status: 403 });
       }
       if (!silenced_until) {
@@ -112,8 +111,8 @@ export async function PATCH(
       await silenceAlert({
         alertId: id,
         silenced_until,
-        admin_user_id: admin.authUserId,
-        admin_email: admin.email,
+        admin_user_id: adminContext.authUserId,
+        admin_email: adminContext.email,
         admin_role: "superadmin",
         is_sandbox: isSandbox,
         reason: reason || "Silenced from admin UI",

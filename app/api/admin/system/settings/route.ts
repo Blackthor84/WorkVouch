@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
@@ -13,8 +17,7 @@ export async function GET() {
   const _session = await requireAdminForApi();
   if (!_session) return adminForbiddenResponse();
   try {
-    const supabase = getSupabaseServer();
-    const { data, error } = await supabase.from("system_settings").select("key, value, updated_at").in("key", ["maintenance_mode", "intelligence_version"]);
+    const { data, error } = await admin.from("system_settings").select("key, value, updated_at").in("key", ["maintenance_mode", "intelligence_version"]);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     const map: Record<string, unknown> = {};
     for (const row of (data ?? []) as { key: string; value: unknown }[]) {
@@ -31,17 +34,16 @@ export async function GET() {
 
 /** PATCH: update system settings — superadmin only */
 export async function PATCH(req: NextRequest) {
-  const admin = await requireSuperAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireSuperAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
   try {
     const body = await req.json().catch(() => ({})) as { maintenance_mode?: { enabled?: boolean; block_signups?: boolean; block_reviews?: boolean; block_employment?: boolean; banner_message?: string } };
-    const supabase = getSupabaseServer();
     if (body.maintenance_mode !== undefined) {
-      const { error } = await supabase.from("system_settings").upsert({
+      const { error } = await admin.from("system_settings").upsert({
         key: "maintenance_mode",
         value: body.maintenance_mode,
         updated_at: new Date().toISOString(),
-        updated_by: admin.authUserId,
+        updated_by: adminSession.authUserId,
       }, { onConflict: "key" });
       if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }

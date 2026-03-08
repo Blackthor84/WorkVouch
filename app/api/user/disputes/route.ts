@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/user/disputes
  * Submit a dispute. Rate limit: 3 open disputes; 30-day cooldown per related_record_id.
@@ -8,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { refreshUserDisputeTransparency } from "@/lib/dispute-audit";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 import { z } from "zod";
@@ -40,11 +44,9 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
-
-    const sb = getSupabaseServer() as any;
     const { dispute_type, related_record_id, description } = parsed.data;
 
-    const { count: openCount } = await sb
+    const { count: openCount } = await admin
       .from("disputes")
       .select("id", { count: "exact", head: true })
       .eq("user_id", effectiveUserId)
@@ -59,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     const cooldownSince = new Date();
     cooldownSince.setDate(cooldownSince.getDate() - COOLDOWN_DAYS);
-    const { data: recentSame } = await sb
+    const { data: recentSame } = await admin
       .from("disputes")
       .select("id, created_at")
       .eq("user_id", effectiveUserId)
@@ -77,7 +79,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: dispute, error } = await sb
+    const { data: dispute, error } = await admin
       .from("disputes")
       .insert({
         user_id: effectiveUserId,

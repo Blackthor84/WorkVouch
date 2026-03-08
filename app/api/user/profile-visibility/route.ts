@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getEffectiveUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
@@ -35,8 +36,7 @@ export async function GET() {
   }
 
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("profiles")
+  const { data, error } = await admin.from("profiles")
     .select("employer_visibility")
     .eq("id", effective.id)
     .single();
@@ -66,8 +66,7 @@ export async function PATCH(req: NextRequest) {
 
   const dbValue = VISIBILITY_MAP[parsed.data.visibility];
   const supabase = await createServerSupabaseClient();
-  const { error } = await supabase
-    .from("profiles")
+  const { error } = await admin.from("profiles")
     .update({ employer_visibility: dbValue })
     .eq("id", effective.id);
 

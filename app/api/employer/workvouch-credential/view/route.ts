@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/workvouch-credential/view — Read-only credential view for employer.
  * Query: token=<share_token> OR applicationId=<job_application_id>
@@ -7,8 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -29,8 +32,6 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = await createServerSupabaseClient();
-    const admin = getSupabaseServer();
-
     let credentialId: string | null = null;
     let context: "link" | "job_application" = "link";
     let jobApplicationId: string | null = null;

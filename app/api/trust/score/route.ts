@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/trust/score — Trust score and components for current user.
  * Backend calculation only; used by dashboard TrustScoreCard.
@@ -7,8 +11,7 @@ import { NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
 import { getTrustScoreComponents } from "@/lib/trustScore";
 import type { TrustScoreComponents } from "@/lib/trustScore";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -19,9 +22,7 @@ export async function GET() {
   }
 
   try {
-    const supabase = getSupabaseServer();
-    const { data: row } = await supabase
-      .from("trust_scores")
+    const { data: row } = await admin.from("trust_scores")
       .select("score, job_count, reference_count, average_rating")
       .eq("user_id", effective.id)
       .maybeSingle();

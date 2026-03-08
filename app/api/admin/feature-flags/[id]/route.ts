@@ -1,5 +1,9 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
@@ -33,9 +37,7 @@ export async function PATCH(
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data, error } = await (supabase as any)
+    const { data, error } = await admin
       .from("feature_flags")
       .update(updates)
       .eq("id", id)
@@ -47,7 +49,7 @@ export async function PATCH(
 
     try {
       const flagKey = (data as { key?: string }).key ?? "";
-      await (getSupabaseServer() as any).from("admin_actions").insert({
+      await (admin as any).from("admin_actions").insert({
         admin_id: user.id,
         impersonated_user_id: "",
         action_type: "feature_flag_updated",
@@ -79,15 +81,14 @@ export async function DELETE(
     if (!isSuperAdmin(role)) return NextResponse.json({ error: "Forbidden: SuperAdmin only" }, { status: 403 });
 
     const { id } = await params;
-    const supabase = getSupabaseServer();
-    const { data: flag } = await (supabase as any).from("feature_flags").select("key").eq("id", id).single();
+    const { data: flag } = await admin.from("feature_flags").select("key").eq("id", id).single();
     const flagKey = (flag as { key?: string } | null)?.key ?? "";
-    const { error } = await (supabase as any).from("feature_flags").delete().eq("id", id);
+    const { error } = await admin.from("feature_flags").delete().eq("id", id);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     try {
-      await (supabase as any).from("admin_actions").insert({
+      await admin.from("admin_actions").insert({
         admin_id: user.id,
         impersonated_user_id: "",
         action_type: "feature_flag_updated",

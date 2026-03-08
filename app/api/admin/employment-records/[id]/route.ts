@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
@@ -15,17 +19,14 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
   try {
     const { id: recordId } = await params;
     if (!recordId) {
       return NextResponse.json({ success: false, error: "Missing record id" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: row, error: fetchError } = await supabase
-      .from("employment_records")
+    const { data: row, error: fetchError } = await admin.from("employment_records")
       .select("id, user_id, company_name, job_title, start_date, end_date")
       .eq("id", recordId)
       .single();
@@ -36,8 +37,7 @@ export async function DELETE(
 
     const targetUserId = (row as { user_id: string }).user_id;
 
-    const { error: deleteError } = await supabase
-      .from("employment_records")
+    const { error: deleteError } = await admin.from("employment_records")
       .delete()
       .eq("id", recordId);
 
@@ -49,7 +49,7 @@ export async function DELETE(
 
     const { ipAddress, userAgent } = getAuditRequestMeta(_req);
     await insertAdminAuditLog({
-      adminId: admin.authUserId,
+      adminId: adminSession.authUserId,
       targetUserId,
       action: "employment_record_delete",
       oldValue: row as Record<string, unknown>,

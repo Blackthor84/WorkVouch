@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getEffectiveUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { TrustEventImpact } from "@/types/database";
@@ -30,8 +31,7 @@ export async function GET() {
   }
 
   const supabase = await createServerSupabaseClient();
-  const { data: rows, error } = await supabase
-    .from("trust_events")
+  const { data: rows, error } = await admin.from("trust_events")
     .select("id, event_type, impact, metadata, created_at")
     .eq("profile_id", effective.id)
     .order("created_at", { ascending: false })

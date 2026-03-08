@@ -1,11 +1,14 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/verification/invite/[token]
  * Public: fetch verification invite by token for the verify page.
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -17,9 +20,7 @@ export async function GET(
   if (!token?.trim()) {
     return NextResponse.json({ error: "Token required" }, { status: 400 });
   }
-
-  const supabase = getSupabaseServer();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await admin
     .from("verification_invites")
     .select("id, token, candidate_id, company, role, status, expires_at, verifier_email, email")
     .eq("token", token.trim())

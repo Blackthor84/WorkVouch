@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/trust/timeline/[profileId]
  * Returns chronological trust_events for a profile (candidate). Used by Trust Timeline visualization.
@@ -6,8 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -56,9 +59,7 @@ export async function GET(
     Math.max(1, parseInt(url.searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT)
   );
   const offset = Math.max(0, parseInt(url.searchParams.get("offset") ?? "0", 10) || 0);
-
-  const sb = getSupabaseServer() as any;
-  const { data: rows, error } = await sb
+  const { data: rows, error } = await admin
     .from("trust_events")
     .select("id, event_type, created_at, payload")
     .eq("profile_id", profileId.trim())

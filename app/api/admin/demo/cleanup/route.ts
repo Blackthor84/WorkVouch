@@ -1,5 +1,9 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
@@ -16,11 +20,10 @@ export async function POST() {
     const role = await getCurrentUserRole();
     if (!isSuperAdmin(role)) return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
 
-    const supabase = getSupabaseServer() as any;
+    const supabase = admin as any;
     const cutoff = new Date(Date.now() - DEMO_MAX_AGE_HOURS * 60 * 60 * 1000).toISOString();
 
-    const { data: profiles } = await supabase
-      .from("profiles")
+    const { data: profiles } = await admin.from("profiles")
       .select("id")
       .eq("demo_account", true)
       .lt("created_at", cutoff);
@@ -32,17 +35,17 @@ export async function POST() {
 
     for (const userId of ids) {
       try {
-        await supabase.from("employer_accounts").delete().eq("user_id", userId);
+        await admin.from("employer_accounts").delete().eq("user_id", userId);
       } catch {
         /* ignore */
       }
       try {
-        await supabase.from("profiles").delete().eq("id", userId);
+        await admin.from("profiles").delete().eq("id", userId);
       } catch {
         /* ignore */
       }
       try {
-        await supabase.auth.admin.deleteUser(userId);
+        await admin.auth.admin.deleteUser(userId);
       } catch {
         /* ignore */
       }

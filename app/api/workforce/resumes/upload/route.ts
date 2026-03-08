@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/workforce/resumes/upload
  * Upload resume (PDF/DOCX), extract text, AI parse, store parsed_json, run overlap detection.
@@ -7,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireLocationAccess } from "@/lib/enterprise/requireEnterprise";
 import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
 import { getOrgHealthScore } from "@/lib/enterprise/orgHealthScore";
@@ -52,10 +56,7 @@ export async function POST(req: NextRequest) {
 
     await requireLocationAccess(locationId);
     const env = getEnvironmentForServer(req.headers, undefined, req.url);
-    const supabase = getSupabaseServer();
-
-    const { data: employee } = await supabase
-      .from("workforce_employees")
+    const { data: employee } = await admin.from("workforce_employees")
       .select("id, organization_id, location_id")
       .eq("id", employeeId)
       .eq("environment", env)
@@ -77,10 +78,10 @@ export async function POST(req: NextRequest) {
     const storagePath = `workforce/${employee.organization_id}/${employeeId}/${randomUUID()}.${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
+    const { data: urlData } = admin.storage.from(BUCKET).getPublicUrl(storagePath);
     const rawFileUrl = urlData?.publicUrl ?? "";
 
-    const { error: uploadErr } = await supabase.storage.from(BUCKET).upload(storagePath, buffer, {
+    const { error: uploadErr } = await admin.storage.from(BUCKET).upload(storagePath, buffer, {
       contentType: file.type,
       upsert: false,
     });
@@ -89,8 +90,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Upload failed" }, { status: 500 });
     }
 
-    const { data: resumeRow, error: insertErr } = await supabase
-      .from("workforce_resumes")
+    const { data: resumeRow, error: insertErr } = await admin.from("workforce_resumes")
       .insert({
         employee_id: employeeId,
         raw_file_url: rawFileUrl,
@@ -110,8 +110,7 @@ export async function POST(req: NextRequest) {
       extractedText = out.text;
     } catch (e) {
       console.error("[workforce/resumes/upload] extract:", e);
-      await supabase
-        .from("workforce_resumes")
+      await admin.from("workforce_resumes")
         .update({ parsing_status: "failed", parsing_error: e instanceof Error ? e.message : "Extraction failed" })
         .eq("id", resumeRow.id);
       return NextResponse.json({ success: false, error: "Text extraction failed" }, { status: 400 });
@@ -122,20 +121,17 @@ export async function POST(req: NextRequest) {
       parsedJson = await parseResumeWithAI(extractedText);
     } catch (e) {
       console.error("[workforce/resumes/upload] parse:", e);
-      await supabase
-        .from("workforce_resumes")
+      await admin.from("workforce_resumes")
         .update({ parsing_status: "failed", parsing_error: e instanceof Error ? e.message : "Parsing failed" })
         .eq("id", resumeRow.id);
       return NextResponse.json({ success: false, error: "AI parsing failed" }, { status: 400 });
     }
 
-    await supabase
-      .from("workforce_resumes")
+    await admin.from("workforce_resumes")
       .update({ parsed_json: parsedJson, parsing_status: "completed", parsing_error: null })
       .eq("id", resumeRow.id);
 
-    const { data: otherEmployees } = await supabase
-      .from("workforce_employees")
+    const { data: otherEmployees } = await admin.from("workforce_employees")
       .select("id")
       .eq("organization_id", employee.organization_id)
       .eq("environment", env)
@@ -143,8 +139,7 @@ export async function POST(req: NextRequest) {
     const otherIds = (otherEmployees ?? []).map((r) => r.id);
     const otherResumes: { id: string; parsedJobHistory: { company: string; start_date: string; end_date: string | null }[] }[] = [];
     for (const id of otherIds) {
-      const { data: res } = await supabase
-        .from("workforce_resumes")
+      const { data: res } = await admin.from("workforce_resumes")
         .select("id, parsed_json")
         .eq("employee_id", id)
         .eq("environment", env)
@@ -181,7 +176,7 @@ export async function POST(req: NextRequest) {
 
     const suggestions = computePeerSuggestions(employeeId, normalizedResume, otherResumes);
     for (const s of suggestions) {
-      await supabase.from("peer_match_suggestions").insert({
+      await admin.from("peer_match_suggestions").insert({
         organization_id: employee.organization_id,
         employee_id: employeeId,
         suggested_employee_id: s.suggested_employee_id,

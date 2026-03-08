@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/employer/compare
  * Returns normalized comparison data for 2–4 candidates. No raw trust scores.
@@ -8,7 +12,7 @@ import { z } from "zod";
 import { getCurrentUser, getCurrentUserRole, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import {
   getEmployeeAuditScoresBatch,
   getAuditLabel,
@@ -85,26 +89,19 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
-
-    const supabase = getSupabaseServer();
-
     const [profilesRes, auditMap, employmentCountsRes, trustRefCountsRes, fraudCountsRes, trajectoryMap] =
       await Promise.all([
-        supabase
-          .from("profiles")
+        admin.from("profiles")
           .select("id, full_name, flagged_for_fraud")
           .in("id", candidateIds),
         getEmployeeAuditScoresBatch(candidateIds),
-        supabase
-          .from("employment_records")
+        admin.from("employment_records")
           .select("user_id, verification_status")
           .in("user_id", candidateIds),
-        supabase
-          .from("trust_scores")
+        admin.from("trust_scores")
           .select("user_id, reference_count")
           .in("user_id", candidateIds),
-        supabase
-          .from("fraud_flags")
+        admin.from("fraud_flags")
           .select("user_id")
           .in("user_id", candidateIds),
         getTrustTrajectoryBatch(candidateIds),

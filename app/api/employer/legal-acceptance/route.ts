@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/employer/legal-acceptance
  * Record employer legal disclaimer acceptance. Required before candidate search / profile view.
@@ -6,7 +10,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { hasRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { EMPLOYER_DISCLAIMER_VERSION } from "@/lib/employer/requireEmployerLegalAcceptance";
 
 export const runtime = "nodejs";
@@ -26,9 +30,7 @@ export async function POST() {
         { status: 403 },
       );
     }
-
-    const supabase = getSupabaseServer();
-    const { error } = await supabase.from("employer_legal_acceptance").upsert(
+    const { error } = await admin.from("employer_legal_acceptance").upsert(
       {
         profile_id: user.id,
         version: EMPLOYER_DISCLAIMER_VERSION,

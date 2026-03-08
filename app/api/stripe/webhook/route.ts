@@ -1,8 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { stripe } from "@/lib/stripe";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getTierFromSubscription, getMeteredSubscriptionItemIds, getLookupQuotaForTier } from "@/lib/stripe/config";
 import type { Database } from "@/types/supabase";
 import Stripe from "stripe";
@@ -81,7 +85,7 @@ async function updateEmployerFromSubscription(
     const subscriptionStatus = subscription.status ?? "active";
     const subscriptionInterval = getSubscriptionInterval(subscription);
     const lookupQuota = getLookupQuotaForTier(tier);
-    const adminSupabase = getSupabaseServer();
+    const adminSupabase = admin;
     const update: EmployerAccountUpdate = {
       plan_tier: tier,
       stripe_subscription_id: subscription.id,
@@ -113,7 +117,7 @@ async function updateEmployerFromSubscription(
 /** Update employer plan_tier only (e.g. on subscription deleted). */
 async function updateEmployerPlanTier(stripeCustomerId: string, tier: string): Promise<void> {
   try {
-    const adminSupabase = getSupabaseServer();
+    const adminSupabase = admin;
     const { error } = await adminSupabase
       .from("employer_accounts")
       .update({ plan_tier: tier })
@@ -129,7 +133,7 @@ async function resetUsageForCustomer(stripeCustomerId: string, periodEnd: Date):
   try {
     const periodStart = new Date(periodEnd);
     periodStart.setMonth(periodStart.getMonth() - 1);
-    const adminSupabase = getSupabaseServer();
+    const adminSupabase = admin;
     const { error } = await adminSupabase
       .from("employer_accounts")
       .update({
@@ -152,7 +156,7 @@ async function upsertFinanceSubscription(
   employerId?: string
 ): Promise<void> {
   try {
-    const adminSupabase = getSupabaseServer();
+    const adminSupabase = admin;
     let employer_id = employerId;
     if (!employer_id) {
       const { data: row } = await adminSupabase
@@ -195,7 +199,7 @@ async function recordFinancePayment(invoice: Stripe.Invoice): Promise<void> {
         ? inv.subscription
         : (inv.subscription as { id?: string } | undefined)?.id;
     if (!subId) return;
-    const adminSupabase = getSupabaseServer();
+    const adminSupabase = admin;
     const paidAt = (invoice as { status_transitions?: { paid_at?: number } }).status_transitions?.paid_at;
     await adminSupabase.from("finance_payments").insert({
       stripe_subscription_id: subId,
@@ -211,7 +215,7 @@ async function recordFinancePayment(invoice: Stripe.Invoice): Promise<void> {
 
 /** Get profile by Stripe customer id for webhook updates. Returns null if not found. */
 async function getProfileByStripeCustomerId(customerId: string): Promise<ProfileSubscriptionRow | null> {
-  const adminSupabase = getSupabaseServer();
+  const adminSupabase = admin;
   const { data } = await (adminSupabase as any)
     .from("profiles")
     .select("id, last_stripe_event_id, stripe_customer_id, admin_override")
@@ -222,7 +226,7 @@ async function getProfileByStripeCustomerId(customerId: string): Promise<Profile
 
 /** Get profile by Supabase user id (profiles.id = auth user id). */
 async function getProfileByUserId(userId: string): Promise<ProfileSubscriptionRow | null> {
-  const adminSupabase = getSupabaseServer();
+  const adminSupabase = admin;
   const { data } = await (adminSupabase as any)
     .from("profiles")
     .select("id, last_stripe_event_id, stripe_customer_id")
@@ -246,7 +250,7 @@ async function updateProfileSubscription(
   eventId: string
 ): Promise<void> {
   try {
-    const adminSupabase = getSupabaseServer();
+    const adminSupabase = admin;
     await (adminSupabase as any)
       .from("profiles")
       .update({ ...update, last_stripe_event_id: eventId })
@@ -270,7 +274,7 @@ async function logStripeEvent(
   errorMessage?: string | null
 ): Promise<boolean> {
   try {
-    const adminSupabase = getSupabaseServer();
+    const adminSupabase = admin;
     const { data: existing } = await adminSupabase
       .from("stripe_events")
       .select("event_id")
@@ -344,7 +348,7 @@ export async function POST(req: NextRequest) {
               session.subscription as string,
             );
             const customerId = subscription.customer as string;
-            const adminSupabase = getSupabaseServer();
+            const adminSupabase = admin;
             const employerId = session.metadata?.employerId as string | undefined;
             const supabaseUserId = session.metadata?.supabase_user_id as string | undefined;
 

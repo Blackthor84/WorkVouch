@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/candidate/[id]/verification-summary
  * Section 7 — Employer value: Verified By (Manager, Coworker, Client) and Total Confirmations.
@@ -6,8 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -24,11 +27,7 @@ export async function GET(
   if (!effective?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const supabase = getSupabaseServer();
-
-  const { data: callerProfile } = await supabase
-    .from("profiles")
+  const { data: callerProfile } = await admin.from("profiles")
     .select("role")
     .or(`id.eq.${effective.id},user_id.eq.${effective.id}`)
     .maybeSingle();
@@ -37,8 +36,7 @@ export async function GET(
     return NextResponse.json({ error: "Employer access only" }, { status: 403 });
   }
 
-  const { data: rows, error } = await supabase
-    .from("verification_requests")
+  const { data: rows, error } = await admin.from("verification_requests")
     .select("relationship_type")
     .eq("requester_profile_id", candidateId)
     .eq("status", "accepted");

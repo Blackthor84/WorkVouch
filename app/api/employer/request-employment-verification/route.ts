@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/employer/request-employment-verification
  * Employer requests verification for a listed employment record. Notifies employee; does not change verification_status.
@@ -7,8 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { hasRole } from "@/lib/auth";
 import { z } from "zod";
 
@@ -29,15 +32,11 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
-
-    const supabase = await createServerSupabaseClient();
-    const adminSupabase = getSupabaseServer();
-
-    const { data: account } = await supabase.from("employer_accounts").select("id").eq("user_id", user.id).single();
+    const { data: account } = await admin.from("employer_accounts").select("id").eq("user_id", user.id).single();
     if (!account) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
     const employerId = account.id;
 
-    const { data: rec, error: fetchErr } = await adminSupabase
+    const { data: rec, error: fetchErr } = await admin
       .from("employment_records")
       .select("id, user_id, employer_id")
       .eq("id", parsed.data.record_id)
@@ -50,7 +49,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "You can only request verification for your own company" }, { status: 403 });
     }
 
-    await adminSupabase.from("employer_notifications").insert({
+    await admin.from("employer_notifications").insert({
       employer_id: employerId,
       type: "verification_requested",
       related_user_id: row.user_id,

@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -31,7 +32,7 @@ export async function GET(request: Request) {
   };
 
   const supabase = getServiceRoleClient();
-  const supabaseAny = supabase as any;
+  const supabaseAny = admin as any;
 
   try {
     console.info("[CRON_RUN] Starting nightly-recalc", { timestamp: new Date().toISOString() });

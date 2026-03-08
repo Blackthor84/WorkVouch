@@ -1,5 +1,9 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { getUser } from "@/lib/auth/getUser";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { NextResponse } from "next/server";
 import { auditLog, getAuditMetaFromRequest } from "@/lib/auditLogger";
 
@@ -28,10 +32,7 @@ export async function GET(request: Request) {
     if (!user?.id) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: actorProfile } = await supabase
-      .from("profiles")
+    const { data: actorProfile } = await admin.from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
@@ -46,8 +47,7 @@ export async function GET(request: Request) {
     const searchName = url.searchParams.get("name")?.trim() || "";
     const searchOrg = url.searchParams.get("org")?.trim() || "";
 
-    let query = supabase
-      .from("profiles")
+    let query = admin.from("profiles")
       .select("user_id, email, full_name, created_at, role, status, isSandbox")
       .order("created_at", { ascending: false });
 
@@ -60,16 +60,14 @@ export async function GET(request: Request) {
 
     let profileIdsFilter: string[] | null = null;
     if (searchOrg) {
-      const { data: orgs } = await supabase
-        .from("organizations")
+      const { data: orgs } = await admin.from("organizations")
         .select("id")
         .ilike("name", `%${searchOrg}%`);
       const orgIds = (orgs ?? []).map((o: { id: string }) => o.id);
       if (orgIds.length === 0) {
         profileIdsFilter = [];
       } else {
-        const { data: members } = await supabase
-          .from("tenant_memberships")
+        const { data: members } = await admin.from("tenant_memberships")
           .select("user_id")
           .in("organization_id", orgIds);
         profileIdsFilter = [...new Set((members ?? []).map((m: { user_id: string }) => m.user_id))];

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { requireAdminThrow } from "@/lib/admin/requireAdmin";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing or invalid display_name" }, { status: 400 });
     }
 
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
     const { data, error } = await supabaseAny
       .from("sandbox_users")
       .insert({ display_name: display_name.trim() })

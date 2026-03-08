@@ -1,9 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, hasRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 /**
  * GET /api/employer/compliance-badge
  * Returns unresolved compliance alert count for Security Agency employers (for navbar badge).
@@ -15,9 +18,7 @@ export async function GET() {
 
     const isEmployer = await hasRole("employer");
     if (!isEmployer) return NextResponse.json({ count: 0, planTier: null });
-
-    const sb = getSupabaseServer() as any;
-    const { data: ea } = await sb.from("employer_accounts").select("id, plan_tier").eq("user_id", user.id);
+    const { data: ea } = await admin.from("employer_accounts").select("id, plan_tier").eq("user_id", user.id);
     const account = Array.isArray(ea) ? ea[0] : ea;
     if (!account?.id) return NextResponse.json({ count: 0, planTier: null });
 
@@ -27,7 +28,7 @@ export async function GET() {
       return NextResponse.json({ count: 0, planTier });
     }
 
-    const { data: alerts } = await sb
+    const { data: alerts } = await admin
       .from("compliance_alerts")
       .select("id")
       .eq("employer_id", account.id)

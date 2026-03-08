@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
@@ -26,8 +27,7 @@ export async function GET(
     if (!id) return NextResponse.json({ error: "Missing credential id" }, { status: 400 });
 
     const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase
-      .from("workvouch_credentials")
+    const { data, error } = await admin.from("workvouch_credentials")
       .select("id, candidate_id, payload, visibility, share_token, issued_at, expires_at, revoked_at, created_at, updated_at")
       .eq("id", id)
       .eq("candidate_id", user.id)
@@ -67,8 +67,7 @@ export async function PATCH(
     }
 
     const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase
-      .from("workvouch_credentials")
+    const { data, error } = await admin.from("workvouch_credentials")
       .update({ revoked_at: new Date().toISOString() })
       .eq("id", id)
       .eq("candidate_id", user.id)

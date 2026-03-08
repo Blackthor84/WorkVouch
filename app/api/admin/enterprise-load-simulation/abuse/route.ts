@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * Seat abuse simulation: attempt 11th admin, 6th location, over-unlock.
  * Expect 403 from server. Only when ENTERPRISE_SIMULATION_MODE=true.
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSimulationLabAdmin } from "@/lib/simulation-lab";
 import { requireEnterpriseSimulationMode } from "@/lib/enterprise/simulation-guard";
 import { checkOrgLimits } from "@/lib/enterprise/checkOrgLimits";
@@ -21,9 +25,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const orgId = body.orgId as string;
     if (!orgId) return NextResponse.json({ error: "orgId required" }, { status: 400 });
-
-    const sb = getSupabaseServer() as any;
-    const { data: org } = await sb
+    const { data: org } = await admin
       .from("organizations")
       .select("id, plan_type, is_simulation")
       .eq("id", orgId)

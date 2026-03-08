@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/analytics/heatmap
  *
@@ -9,7 +13,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/auth/getUser";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { logAudit } from "@/lib/soc2-audit";
 
 export const runtime = "nodejs";
@@ -54,11 +58,7 @@ export async function GET(req: NextRequest) {
       action: "VIEW_HEATMAP",
       resource: "analytics/heatmap",
     });
-
-    const supabase = getSupabaseServer();
-
-    const { data: locationRows, error } = await supabase
-      .from("user_locations")
+    const { data: locationRows, error } = await admin.from("user_locations")
       .select("country, state");
 
     if (error) {

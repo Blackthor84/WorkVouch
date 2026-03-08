@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/verification/bulk-request
  * Create verification requests for multiple coworkers (by profile id).
@@ -7,7 +11,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { randomBytes } from "crypto";
 
 export const runtime = "nodejs";
@@ -41,17 +45,13 @@ export async function POST(req: NextRequest) {
   }
 
   const coworkerIds = rawIds.slice(0, MAX_BULK_PER_REQUEST);
-  const supabase = getSupabaseServer();
-
-  const { data: requesterProfile } = await supabase
-    .from("profiles")
+  const { data: requesterProfile } = await admin.from("profiles")
     .select("id")
     .or(`id.eq.${effective.id},user_id.eq.${effective.id}`)
     .maybeSingle();
   const requesterProfileId = (requesterProfile as { id: string } | null)?.id ?? effective.id;
 
-  const { data: empRecord, error: empErr } = await supabase
-    .from("employment_records")
+  const { data: empRecord, error: empErr } = await admin.from("employment_records")
     .select("id")
     .eq("id", employmentRecordId)
     .eq("user_id", requesterProfileId)
@@ -61,8 +61,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Employment record not found or not yours" }, { status: 404 });
   }
 
-  const { data: profiles } = await supabase
-    .from("profiles")
+  const { data: profiles } = await admin.from("profiles")
     .select("id, email")
     .in("id", coworkerIds);
 
@@ -73,7 +72,7 @@ export async function POST(req: NextRequest) {
     if (email) idToEmail.set(row.id, email);
   }
 
-  const myEmailRow = await supabase.from("profiles").select("email").eq("id", requesterProfileId).maybeSingle();
+  const myEmailRow = await admin.from("profiles").select("email").eq("id", requesterProfileId).maybeSingle();
   const myEmail = (myEmailRow.data as { email?: string } | null)?.email?.trim().toLowerCase() ?? null;
 
   const created: string[] = [];
@@ -90,8 +89,7 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
-    const { data: existing } = await supabase
-      .from("verification_requests")
+    const { data: existing } = await admin.from("verification_requests")
       .select("id")
       .eq("requester_profile_id", requesterProfileId)
       .eq("target_email", targetEmail)
@@ -105,7 +103,7 @@ export async function POST(req: NextRequest) {
     }
 
     const responseToken = randomBytes(32).toString("base64url");
-    const { error: insertErr } = await supabase.from("verification_requests").insert({
+    const { error: insertErr } = await admin.from("verification_requests").insert({
       requester_profile_id: requesterProfileId,
       target_email: targetEmail,
       target_profile_id: profileId,

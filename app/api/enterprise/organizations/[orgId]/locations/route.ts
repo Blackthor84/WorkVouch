@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireEnterpriseOwner } from "@/lib/enterprise/requireEnterprise";
 import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
 import { getOrgHealthScore, updateOrgHealth } from "@/lib/enterprise/orgHealthScore";
@@ -17,9 +21,7 @@ export async function GET(
   try {
     const { orgId } = await params;
     await requireEnterpriseOwner(orgId);
-    const supabase = getSupabaseServer();
-    const { data, error } = await supabase
-      .from("locations")
+    const { data, error } = await admin.from("locations")
       .select("id, organization_id, name, slug, created_at, updated_at")
       .eq("organization_id", orgId)
       .order("name");
@@ -79,10 +81,7 @@ export async function POST(
       const health = await getOrgHealthScore(orgId);
       return planLimit403Response(orgLimit, "add_location", { status: health.status, recommended_plan: health.recommended_plan });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: existing } = await supabase
-      .from("locations")
+    const { data: existing } = await admin.from("locations")
       .select("id")
       .eq("organization_id", orgId)
       .eq("slug", finalSlug)
@@ -94,8 +93,7 @@ export async function POST(
       );
     }
 
-    const { data: inserted, error } = await supabase
-      .from("locations")
+    const { data: inserted, error } = await admin.from("locations")
       .insert({
         organization_id: orgId,
         name,
@@ -111,9 +109,9 @@ export async function POST(
         { status: 500 }
       );
     }
-    const { count } = await supabase.from("locations").select("id", { count: "exact", head: true }).eq("organization_id", orgId);
+    const { count } = await admin.from("locations").select("id", { count: "exact", head: true }).eq("organization_id", orgId);
     if (typeof count === "number") {
-      await supabase.from("organizations").update({ number_of_locations: count }).eq("id", orgId);
+      await admin.from("organizations").update({ number_of_locations: count }).eq("id", orgId);
     }
     updateOrgHealth(orgId).catch(() => {});
     return NextResponse.json({ success: true, location: inserted });

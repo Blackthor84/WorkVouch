@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/confirmation-activity
  * Returns real confirmation and peer-activity metrics for employer dashboard.
@@ -10,8 +14,7 @@ export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
 import { hasRole } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 
 function getStr(obj: unknown, key: string): string | null {
@@ -37,10 +40,9 @@ export async function GET() {
     if (!(await hasRole("employer"))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const supabase = await createServerSupabaseClient();
-    const adminSupabase = getSupabaseServer();
+    const adminSupabase = admin;
 
-    const { data: account } = await supabase
-      .from("employer_accounts")
+    const { data: account } = await admin.from("employer_accounts")
       .select("id")
       .eq("user_id", user.id)
       .single();

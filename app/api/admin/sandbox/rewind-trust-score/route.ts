@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/admin/sandbox/rewind-trust-score
  * Sandbox-only. Set trust score for a user to a value (for testing rewind).
@@ -8,22 +12,21 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { APP_MODE } from "@/lib/app-mode";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  const admin = await getAdminContext(req);
-  if (APP_MODE !== "sandbox" || !admin.isSandbox) return adminForbiddenResponse();
+  const adminContext = await getAdminContext(req);
+  if (APP_MODE !== "sandbox" || !adminContext.isSandbox) return adminForbiddenResponse();
 
   try {
     const body = (await req.json().catch(() => ({}))) as { userId?: string; score?: number };
     const userId = body.userId;
     const score = typeof body.score === "number" ? Math.max(0, Math.min(100, body.score)) : 0;
     if (!userId || typeof userId !== "string") return NextResponse.json({ success: false, error: "userId required" }, { status: 400 });
-    const sb = getSupabaseServer();
-    const { error } = await sb.from("trust_scores").upsert({
+    const { error } = await admin.from("trust_scores").upsert({
       user_id: userId,
       score,
       job_count: 0,

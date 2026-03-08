@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/admin/sandbox/clone-org
  * Sandbox-only. Clone a production org into sandbox (structure only). Requires admin.isSandbox. Production returns 403.
@@ -8,14 +12,14 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { APP_MODE } from "@/lib/app-mode";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  const admin = await getAdminContext(req);
-  if (APP_MODE !== "sandbox" || !admin.isSandbox) return adminForbiddenResponse();
+  const adminContext = await getAdminContext(req);
+  if (APP_MODE !== "sandbox" || !adminContext.isSandbox) return adminForbiddenResponse();
 
   try {
     const body = await req.json().catch(() => ({})) as { sourceOrgId?: string; organizationId?: string; name?: string };
@@ -25,9 +29,7 @@ export async function POST(req: NextRequest) {
     if (!sourceOrgId || typeof sourceOrgId !== "string") {
       return NextResponse.json({ success: false, error: "sourceOrgId required" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: source } = await supabase
+    const { data: source } = await admin
       .from("organizations")
       .select("id, name, plan_type, number_of_locations")
       .eq("id", sourceOrgId)
@@ -38,7 +40,7 @@ export async function POST(req: NextRequest) {
     }
 
     const slug = "sandbox-clone-" + sourceOrgId.slice(0, 8) + "-" + Date.now();
-    const { data: newOrg, error: orgErr } = await supabase
+    const { data: newOrg, error: orgErr } = await admin
       .from("organizations")
       .insert({
         name,
@@ -57,9 +59,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: orgErr?.message ?? "Failed to create org" }, { status: 500 });
     }
 
-    const { data: locs } = await supabase.from("locations").select("id, name, slug, city, state").eq("organization_id", sourceOrgId);
+    const { data: locs } = await admin.from("locations").select("id, name, slug, city, state").eq("organization_id", sourceOrgId);
     for (const loc of (locs ?? []) as { name: string; slug: string; city: string; state: string }[]) {
-      await supabase.from("locations").insert({
+      await admin.from("locations").insert({
         organization_id: (newOrg as { id: string }).id,
         name: loc.name,
         slug: loc.slug + "-clone-" + Date.now(),

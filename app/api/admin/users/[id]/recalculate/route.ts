@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
@@ -16,17 +20,14 @@ export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
   try {
     const { id: targetUserId } = await params;
     if (!targetUserId) {
       return NextResponse.json({ success: false, error: "Missing user id" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: profile } = await supabase
-      .from("profiles")
+    const { data: profile } = await admin.from("profiles")
       .select("id")
       .eq("id", targetUserId)
       .single();
@@ -38,16 +39,14 @@ export async function POST(
     const input = await buildProductionProfileInput(targetUserId);
     const profileStrength = calculateProfileStrength("v1", input);
 
-    const { data: existing } = await supabase
-      .from("intelligence_snapshots")
+    const { data: existing } = await admin.from("intelligence_snapshots")
       .select("profile_strength")
       .eq("user_id", targetUserId)
       .maybeSingle();
 
     const oldStrength = (existing as { profile_strength?: number } | null)?.profile_strength ?? null;
 
-    const { error: upsertError } = await supabase
-      .from("intelligence_snapshots")
+    const { error: upsertError } = await admin.from("intelligence_snapshots")
       .upsert(
         {
           user_id: targetUserId,
@@ -70,7 +69,7 @@ export async function POST(
 
     const { ipAddress, userAgent } = getAuditRequestMeta(_req);
     await insertAdminAuditLog({
-      adminId: admin.authUserId,
+      adminId: adminSession.authUserId,
       targetUserId,
       action: "recalculate",
       oldValue: oldStrength != null ? { profile_strength: oldStrength } : null,

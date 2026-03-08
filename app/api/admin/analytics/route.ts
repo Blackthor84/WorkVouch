@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/analytics — role-based platform metrics (aggregated only).
  * Query: ?view=admin|sales|marketing|ops|support|finance. Auth, role, rate limit, audit. 404 when feature disabled.
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { logAudit } from "@/lib/soc2-audit";
 import { withRateLimit } from "@/lib/rateLimit";
 import {
@@ -29,10 +33,10 @@ const SEVEN_DAYS_AGO = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOStrin
 const ONE_DAY_AGO = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
 export async function GET(req: NextRequest) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
 
-  const userId = admin.authUserId ?? null;
+  const userId = adminSession.authUserId ?? null;
   const rateLimitResult = withRateLimit(req, {
     userId,
     windowMs: 60_000,
@@ -41,7 +45,7 @@ export async function GET(req: NextRequest) {
   });
   if (!rateLimitResult.allowed) return rateLimitResult.response;
 
-  const profileRole = (admin.profile as { role?: string | null })?.role ?? null;
+  const profileRole = (adminSession.profile as { role?: string | null })?.role ?? null;
   const analyticsRole = getAnalyticsRole(profileRole);
   const url = new URL(req.url);
   const requestedView = (url.searchParams.get("view") ?? "").trim().toLowerCase() || getDefaultView(analyticsRole);
@@ -63,8 +67,6 @@ export async function GET(req: NextRequest) {
   });
 
   try {
-    const supabase = getSupabaseServer();
-
     const [
       profilesRes,
       employersRes,
@@ -80,19 +82,19 @@ export async function GET(req: NextRequest) {
       activatedUsersRes,
       orgsRes,
     ] = await Promise.all([
-      supabase.from("profiles").select("id", { count: "exact", head: true }).is("deleted_at", null).or("is_simulation.is.null,is_simulation.eq.false"),
-      supabase.from("employer_accounts").select("id", { count: "exact", head: true }),
-      supabase.from("employer_accounts").select("id", { count: "exact", head: true }).lt("created_at", THIRTY_DAYS_AGO),
-      supabase.from("site_sessions").select("user_id").gte("last_seen_at", THIRTY_DAYS_AGO).not("user_id", "is", null),
-      supabase.from("employment_references").select("id", { count: "exact", head: true }),
-      supabase.from("employment_records").select("id", { count: "exact", head: true }).or("is_simulation.is.null,is_simulation.eq.false"),
-      supabase.from("employment_records").select("id", { count: "exact", head: true }).in("verification_status", ["verified", "matched"]).or("is_simulation.is.null,is_simulation.eq.false"),
-      supabase.from("user_locations").select("country, state"),
-      supabase.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", ONE_DAY_AGO).is("deleted_at", null),
-      supabase.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", SEVEN_DAYS_AGO).is("deleted_at", null),
-      supabase.from("employer_accounts").select("id", { count: "exact", head: true }).gte("updated_at", THIRTY_DAYS_AGO),
-      supabase.from("employment_references").select("reviewed_user_id"),
-      supabase.from("organizations").select("id", { count: "exact", head: true }),
+      admin.from("profiles").select("id", { count: "exact", head: true }).is("deleted_at", null).or("is_simulation.is.null,is_simulation.eq.false"),
+      admin.from("employer_accounts").select("id", { count: "exact", head: true }),
+      admin.from("employer_accounts").select("id", { count: "exact", head: true }).lt("created_at", THIRTY_DAYS_AGO),
+      admin.from("site_sessions").select("user_id").gte("last_seen_at", THIRTY_DAYS_AGO).not("user_id", "is", null),
+      admin.from("employment_references").select("id", { count: "exact", head: true }),
+      admin.from("employment_records").select("id", { count: "exact", head: true }).or("is_simulation.is.null,is_simulation.eq.false"),
+      admin.from("employment_records").select("id", { count: "exact", head: true }).in("verification_status", ["verified", "matched"]).or("is_simulation.is.null,is_simulation.eq.false"),
+      admin.from("user_locations").select("country, state"),
+      admin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", ONE_DAY_AGO).is("deleted_at", null),
+      admin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", SEVEN_DAYS_AGO).is("deleted_at", null),
+      admin.from("employer_accounts").select("id", { count: "exact", head: true }).gte("updated_at", THIRTY_DAYS_AGO),
+      admin.from("employment_references").select("reviewed_user_id"),
+      admin.from("organizations").select("id", { count: "exact", head: true }),
     ]);
 
     const totalUsers = typeof profilesRes.count === "number" ? profilesRes.count : 0;

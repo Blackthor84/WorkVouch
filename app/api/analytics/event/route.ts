@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/analytics/event — record discrete event (enterprise schema).
  * Links to site_sessions via session_token cookie. No PII in event_metadata.
@@ -5,7 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/auth/getUser";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getEnvironmentForServer } from "@/lib/app-mode";
 import { cookies } from "next/headers";
 
@@ -34,18 +38,16 @@ export async function POST(req: NextRequest) {
     const session_token = cookieStore.get(SESSION_COOKIE)?.value?.trim();
     const appEnv = getEnvironmentForServer(req.headers, cookieStore, req.url);
     const is_sandbox = appEnv === "sandbox";
-
-    const supabase = getSupabaseServer();
     let session_id: string | null = null;
     if (session_token) {
-      const { data: row } = await supabase.from("site_sessions").select("id").eq("session_token", session_token).maybeSingle();
+      const { data: row } = await admin.from("site_sessions").select("id").eq("session_token", session_token).maybeSingle();
       session_id = row?.id ?? null;
     }
 
     const user = await getUser();
     const user_id = user?.id ?? null;
 
-    const { error } = await supabase.from("site_events").insert({
+    const { error } = await admin.from("site_events").insert({
       session_id,
       user_id,
       event_type,

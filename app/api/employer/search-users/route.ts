@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -58,8 +59,7 @@ export async function GET(request: NextRequest) {
       stripe_search_overage_item_id: string | null;
       stripe_seat_overage_item_id: string | null;
     };
-    const { data: employerAccount } = await supabase
-      .from("employer_accounts")
+    const { data: employerAccount } = await admin.from("employer_accounts")
       .select("id, plan_tier, industry_type, reports_used, searches_used, seats_used, stripe_report_overage_item_id, stripe_search_overage_item_id, stripe_seat_overage_item_id")
       .eq("user_id", user.id)
       .single();
@@ -116,8 +116,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Use employer_candidate_view: no email, no private identifiers. Exclude restricted profiles.
-    const { data: candidates, error: viewError } = await supabase
-      .from("employer_candidate_view")
+    const { data: candidates, error: viewError } = await admin.from("employer_candidate_view")
       .select(
         "user_id, full_name, industry, city, state, verified_employment_count, total_employment_count, verified_employment_coverage_pct, trust_score, reference_count, aggregate_rating, rehire_eligible_count"
       )
@@ -146,7 +145,7 @@ export async function GET(request: NextRequest) {
 
     const [auditScoresMap, skillsResult, trajectoryMap] = await Promise.all([
       getEmployeeAuditScoresBatch(userIds),
-      supabase.from("skills").select("user_id, skill_name").in("user_id", userIds),
+      admin.from("skills").select("user_id, skill_name").in("user_id", userIds),
       getTrustTrajectoryBatch(userIds),
     ]);
 

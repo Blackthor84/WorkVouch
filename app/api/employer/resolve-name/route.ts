@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { resolveEmployerNameFromRows, type EmployerAccountRow } from "@/lib/employer-resolution/core";
@@ -26,8 +27,7 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = await createServerSupabaseClient();
-    const { data: rows } = await supabase
-      .from("employer_accounts")
+    const { data: rows } = await admin.from("employer_accounts")
       .select("id, company_name, claimed, claim_verified")
       .ilike("company_name", `%${q}%`)
       .limit(20);

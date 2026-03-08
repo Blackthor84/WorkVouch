@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/trust/coworkers/[employmentRecordId]
  * Returns discovered coworkers (same company, overlapping dates) for the given employment record.
@@ -6,7 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { discoverCoworkers } from "@/lib/trust/discoverCoworkers";
 
 export const runtime = "nodejs";
@@ -25,18 +29,13 @@ export async function GET(
   if (!effective?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const supabase = getSupabaseServer();
-
-  const { data: profileRow } = await supabase
-    .from("profiles")
+  const { data: profileRow } = await admin.from("profiles")
     .select("id")
     .or(`id.eq.${effective.id},user_id.eq.${effective.id}`)
     .maybeSingle();
   const profileId = (profileRow as { id: string } | null)?.id ?? effective.id;
 
-  const { data: record } = await supabase
-    .from("employment_records")
+  const { data: record } = await admin.from("employment_records")
     .select("id")
     .eq("id", employmentRecordId)
     .eq("user_id", profileId)
@@ -46,7 +45,7 @@ export async function GET(
     return NextResponse.json({ error: "Employment record not found or not yours" }, { status: 404 });
   }
 
-  const coworkers = await discoverCoworkers(supabase, employmentRecordId, profileId);
+  const coworkers = await discoverCoworkers(admin, employmentRecordId, profileId);
 
   return NextResponse.json({
     coworkers: coworkers.map((c) => ({

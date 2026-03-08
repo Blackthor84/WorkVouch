@@ -1,8 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import OpenAI from "openai";
-import { supabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { env } from "@/lib/env";
 
 export async function POST(req: Request) {
@@ -12,8 +16,6 @@ export async function POST(req: Request) {
         "OPENAI_API_KEY is required. Please set it in Vercel Project Settings → Environment Variables.",
       );
     }
-
-    const supabase = supabaseServer;
     const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
     const formData = await req.formData();

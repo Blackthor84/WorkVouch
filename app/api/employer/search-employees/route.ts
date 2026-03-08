@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
     const { data: employerAccount } = await supabaseAny
       .from("employer_accounts")
       .select("company_name")
@@ -65,14 +66,12 @@ export async function GET(req: NextRequest) {
 
     let userIdsFilter: string[] = [];
     if (tradeSlug && tradeSlug.trim()) {
-      const { data: tradeRow } = await supabase
-        .from("trades")
+      const { data: tradeRow } = await admin.from("trades")
         .select("id")
         .eq("slug", tradeSlug.trim())
         .maybeSingle();
       if (tradeRow?.id) {
-        const { data: pt } = await supabase
-          .from("profile_trades")
+        const { data: pt } = await admin.from("profile_trades")
           .select("profile_id")
           .eq("trade_id", tradeRow.id);
         userIdsFilter = (pt ?? []).map((r: { profile_id: string }) => r.profile_id);
@@ -82,8 +81,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    let query = supabase
-      .from("jobs")
+    let query = admin.from("jobs")
       .select(
         `
         id,
@@ -125,8 +123,7 @@ export async function GET(req: NextRequest) {
 
     const employeesWithReferences = await Promise.all(
       visibleJobs.map(async (job: any) => {
-        const { data: references } = await supabase
-          .from("user_references")
+        const { data: references } = await admin.from("user_references")
           .select(
             `
             id,

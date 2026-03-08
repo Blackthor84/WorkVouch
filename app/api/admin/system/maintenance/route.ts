@@ -1,5 +1,9 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireAdminFromSupabase, requireSuperAdminFromSupabase } from "@/lib/auth/admin-role-guards";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 
@@ -11,9 +15,7 @@ export async function GET() {
   const forbidden = await requireAdminFromSupabase();
   if (forbidden) return forbidden;
   try {
-    const supabase = getSupabaseServer();
-    const { data, error } = await supabase
-      .from("system_settings")
+    const { data, error } = await admin.from("system_settings")
       .select("value")
       .eq("key", "maintenance_mode")
       .maybeSingle();
@@ -31,9 +33,7 @@ export async function PATCH(req: NextRequest) {
   if (forbidden) return forbidden;
   try {
     const body = await req.json().catch(() => ({})) as { enabled?: boolean; banner_message?: string };
-    const supabase = getSupabaseServer();
-    const { data: existing } = await supabase
-      .from("system_settings")
+    const { data: existing } = await admin.from("system_settings")
       .select("value")
       .eq("key", "maintenance_mode")
       .maybeSingle();
@@ -43,8 +43,7 @@ export async function PATCH(req: NextRequest) {
       enabled: body.enabled ?? current.enabled,
       banner_message: body.banner_message ?? current.banner_message,
     };
-    const { error } = await supabase
-      .from("system_settings")
+    const { error } = await admin.from("system_settings")
       .upsert({ key: "maintenance_mode", value, updated_at: new Date().toISOString() }, { onConflict: "key" });
     if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     return NextResponse.json({ success: true, maintenance_mode: value });

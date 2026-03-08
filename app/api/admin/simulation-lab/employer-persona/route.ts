@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * Simulation Lab: create simulated employer persona.
  * Creates auth user (no email), profile, employer_account. Optionally usage_logs.
@@ -7,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSimulationLabAdmin, validateSessionForWrite } from "@/lib/simulation-lab";
 
 export const dynamic = "force-dynamic";
@@ -30,13 +34,10 @@ export async function POST(req: NextRequest) {
 
     const session = await validateSessionForWrite(sessionId, adminId);
     const expiresAt = session.expires_at;
-
-    const supabase = getSupabaseServer();
-
     const suffix = randomSuffix();
     const email = `sim-employer-${sessionId.slice(0, 8)}-${suffix}@simulation.local`;
 
-    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+    const { data: authUser, error: authError } = await admin.auth.admin.createUser({
       email,
       password: `SimEmp${suffix}!Sec`,
       email_confirm: true,
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
     }
     const userId = authUser.user.id;
 
-    await supabase.from("profiles").upsert(
+    await admin.from("profiles").upsert(
       {
         id: userId,
         full_name: companyName,
@@ -59,10 +60,9 @@ export async function POST(req: NextRequest) {
       { onConflict: "id" }
     );
 
-    await supabase.from("profiles").update({ role: "employer" }).eq("id", userId);
+    await admin.from("profiles").update({ role: "employer" }).eq("id", userId);
 
-    const { data: eaRow, error: eaErr } = await supabase
-      .from("employer_accounts")
+    const { data: eaRow, error: eaErr } = await admin.from("employer_accounts")
       .insert({
         user_id: userId,
         company_name: companyName,
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       .select("id")
       .single();
     if (eaErr) {
-      await supabase.auth.admin.deleteUser(userId);
+      await admin.auth.admin.deleteUser(userId);
       return NextResponse.json({ error: eaErr.message }, { status: 500 });
     }
     const employerId = eaRow.id;
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       const rows: { employer_id: string; action_type: string; quantity: number; is_simulation: boolean; simulation_session_id: string; expires_at: string }[] = [];
       if (searchesUsed > 0) rows.push({ employer_id: employerId, action_type: "search", quantity: searchesUsed, is_simulation: true, simulation_session_id: sessionId, expires_at: expiresAt });
       if (reportsUsed > 0) rows.push({ employer_id: employerId, action_type: "report", quantity: reportsUsed, is_simulation: true, simulation_session_id: sessionId, expires_at: expiresAt });
-      if (rows.length) await supabase.from("usage_logs").insert(rows);
+      if (rows.length) await admin.from("usage_logs").insert(rows);
     }
 
     return NextResponse.json({

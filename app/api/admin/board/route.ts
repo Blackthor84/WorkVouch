@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/board — executive snapshot for board meetings. No tables, no PII.
  * Access: board | admin. Audit VIEW_BOARD_DASHBOARD, rate limit 60/min. Aggregated only.
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireBoardForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { logAudit } from "@/lib/soc2-audit";
 import { withRateLimit } from "@/lib/rateLimit";
 
@@ -38,8 +42,6 @@ export async function GET(req: NextRequest) {
   });
 
   try {
-    const supabase = getSupabaseServer();
-
     const [
       profilesRes,
       employersRes,
@@ -50,14 +52,14 @@ export async function GET(req: NextRequest) {
       canceledSubsRes,
       arpaSubsRes,
     ] = await Promise.all([
-      supabase.from("profiles").select("id", { count: "exact", head: true }).is("deleted_at", null).or("is_simulation.is.null,is_simulation.eq.false"),
-      supabase.from("employer_accounts").select("id", { count: "exact", head: true }),
-      supabase.from("site_sessions").select("user_id").gte("last_seen_at", SEVEN_DAYS_AGO).not("user_id", "is", null),
-      supabase.from("user_locations").select("country, state"),
-      supabase.from("finance_payments").select("amount_cents"),
-      supabase.from("finance_subscriptions").select("monthly_amount_cents").eq("status", "active"),
-      supabase.from("finance_subscriptions").select("id").eq("status", "canceled"),
-      supabase.from("finance_subscriptions").select("monthly_amount_cents").eq("status", "active"),
+      admin.from("profiles").select("id", { count: "exact", head: true }).is("deleted_at", null).or("is_simulation.is.null,is_simulation.eq.false"),
+      admin.from("employer_accounts").select("id", { count: "exact", head: true }),
+      admin.from("site_sessions").select("user_id").gte("last_seen_at", SEVEN_DAYS_AGO).not("user_id", "is", null),
+      admin.from("user_locations").select("country, state"),
+      admin.from("finance_payments").select("amount_cents"),
+      admin.from("finance_subscriptions").select("monthly_amount_cents").eq("status", "active"),
+      admin.from("finance_subscriptions").select("id").eq("status", "canceled"),
+      admin.from("finance_subscriptions").select("monthly_amount_cents").eq("status", "active"),
     ]);
 
     const users = typeof profilesRes.count === "number" ? profilesRes.count : 0;

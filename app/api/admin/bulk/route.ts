@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireAdminForApi, assertAdminCanModify } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
@@ -14,8 +18,8 @@ type BulkAction = "suspend" | "soft_delete" | "recalculate" | "fraud_flag" | "do
 
 /** POST: bulk moderation. Body: { action: BulkAction, user_ids: string[] } or { action: "delete_reviews", review_ids: string[] } */
 export async function POST(req: NextRequest) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
   try {
     const body = await req.json().catch(() => ({})) as {
       action: BulkAction;
@@ -24,21 +28,19 @@ export async function POST(req: NextRequest) {
     };
     const { action, user_ids = [], review_ids = [] } = body;
     if (!action) return NextResponse.json({ success: false, error: "Missing action" }, { status: 400 });
-
-    const supabase = getSupabaseServer();
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     const results: { id: string; success: boolean; error?: string }[] = [];
 
     if (action === "delete_reviews" && review_ids.length > 0) {
       for (const id of review_ids) {
-        const { data: row } = await supabase.from("employment_references").select("reviewed_user_id").eq("id", id).single();
-        const { error } = await supabase.from("employment_references").delete().eq("id", id);
+        const { data: row } = await admin.from("employment_references").select("reviewed_user_id").eq("id", id).single();
+        const { error } = await admin.from("employment_references").delete().eq("id", id);
         if (error) {
           results.push({ id, success: false, error: error.message });
         } else {
           const uid = (row as { reviewed_user_id?: string } | null)?.reviewed_user_id;
           if (uid) await calculateUserIntelligence(uid);
-          await insertAdminAuditLog({ adminId: admin.authUserId, targetUserId: uid ?? id, action: "peer_review_delete", newValue: { review_id: id }, ipAddress, userAgent });
+          await insertAdminAuditLog({ adminId: adminSession.authUserId, targetUserId: uid ?? id, action: "peer_review_delete", newValue: { review_id: id }, ipAddress, userAgent });
           results.push({ id, success: true });
         }
       }
@@ -50,51 +52,51 @@ export async function POST(req: NextRequest) {
     }
 
     for (const targetUserId of user_ids) {
-      const { data: profile } = await supabase.from("profiles").select("id, role").eq("id", targetUserId).single();
+      const { data: profile } = await admin.from("profiles").select("id, role").eq("id", targetUserId).single();
       if (!profile) {
         results.push({ id: targetUserId, success: false, error: "User not found" });
         continue;
       }
       const targetRole = (profile as { role?: string }).role ?? "user";
       try {
-        assertAdminCanModify(admin, targetUserId, targetRole);
+        assertAdminCanModify(adminSession, targetUserId, targetRole);
       } catch (e) {
         results.push({ id: targetUserId, success: false, error: e instanceof Error ? e.message : "Forbidden" });
         continue;
       }
 
       if (action === "suspend") {
-        const { error } = await supabase.from("profiles").update({ status: "suspended" }).eq("id", targetUserId);
+        const { error } = await admin.from("profiles").update({ status: "suspended" }).eq("id", targetUserId);
         if (error) results.push({ id: targetUserId, success: false, error: error.message });
         else {
-          await insertAdminAuditLog({ adminId: admin.authUserId, targetUserId, action: "suspend", newValue: { status: "suspended" }, ipAddress, userAgent });
+          await insertAdminAuditLog({ adminId: adminSession.authUserId, targetUserId, action: "suspend", newValue: { status: "suspended" }, ipAddress, userAgent });
           results.push({ id: targetUserId, success: true });
         }
       } else if (action === "soft_delete") {
         const now = new Date().toISOString();
-        const { error } = await supabase.from("profiles").update({ status: "deleted", deleted_at: now }).eq("id", targetUserId);
+        const { error } = await admin.from("profiles").update({ status: "deleted", deleted_at: now }).eq("id", targetUserId);
         if (error) results.push({ id: targetUserId, success: false, error: error.message });
         else {
-          await insertAdminAuditLog({ adminId: admin.authUserId, targetUserId, action: "soft_delete", newValue: { status: "deleted", deleted_at: now }, ipAddress, userAgent });
+          await insertAdminAuditLog({ adminId: adminSession.authUserId, targetUserId, action: "soft_delete", newValue: { status: "deleted", deleted_at: now }, ipAddress, userAgent });
           results.push({ id: targetUserId, success: true });
         }
       } else if (action === "recalculate") {
         try {
           await calculateUserIntelligence(targetUserId);
-          await insertAdminAuditLog({ adminId: admin.authUserId, targetUserId, action: "recalculate", ipAddress, userAgent });
+          await insertAdminAuditLog({ adminId: adminSession.authUserId, targetUserId, action: "recalculate", ipAddress, userAgent });
           results.push({ id: targetUserId, success: true });
         } catch (e) {
           results.push({ id: targetUserId, success: false, error: e instanceof Error ? e.message : "Recalc failed" });
         }
       } else if (action === "fraud_flag") {
-        const { error } = await supabase.from("profiles").update({ flagged_for_fraud: true }).eq("id", targetUserId);
+        const { error } = await admin.from("profiles").update({ flagged_for_fraud: true }).eq("id", targetUserId);
         if (error) results.push({ id: targetUserId, success: false, error: error.message });
         else {
-          await insertAdminAuditLog({ adminId: admin.authUserId, targetUserId, action: "profile_update", newValue: { flagged_for_fraud: true }, ipAddress, userAgent });
+          await insertAdminAuditLog({ adminId: adminSession.authUserId, targetUserId, action: "profile_update", newValue: { flagged_for_fraud: true }, ipAddress, userAgent });
           results.push({ id: targetUserId, success: true });
         }
       } else if (action === "downgrade_employers") {
-        const { error } = await supabase.from("employer_accounts").update({ plan_tier: "free" }).eq("user_id", targetUserId);
+        const { error } = await admin.from("employer_accounts").update({ plan_tier: "free" }).eq("user_id", targetUserId);
         if (error) results.push({ id: targetUserId, success: false, error: error.message });
         else results.push({ id: targetUserId, success: true });
       } else {

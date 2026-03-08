@@ -1,5 +1,9 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { isAdmin, isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
@@ -45,9 +49,7 @@ export async function GET() {
     if (!isAdmin(role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-
-    const supabase = getSupabaseServer();
-    let { data: flags, error } = await (supabase as any)
+    let { data: flags, error } = await admin
       .from("feature_flags")
       .select("*")
       .order("name");
@@ -60,7 +62,7 @@ export async function GET() {
     const existingKeys = new Set((flags || []).map((f: { key?: string }) => f.key));
     for (const core of CORE_FEATURE_FLAGS) {
       if (!existingKeys.has(core.key)) {
-        const { error: insertErr } = await (supabase as any)
+        const { error: insertErr } = await admin
           .from("feature_flags")
           .insert({
             name: core.name,
@@ -81,11 +83,11 @@ export async function GET() {
     }
 
     if (existingKeys.size > (flags?.length ?? 0)) {
-      const refetch = await (supabase as any).from("feature_flags").select("*").order("name");
+      const refetch = await admin.from("feature_flags").select("*").order("name");
       if (!refetch.error) flags = refetch.data;
     }
 
-    const { data: assignments } = await (supabase as any)
+    const { data: assignments } = await admin
       .from("feature_flag_assignments")
       .select("id, feature_flag_id, user_id, employer_id, enabled, expires_at");
 
@@ -130,9 +132,7 @@ export async function POST(request: Request) {
 
     if (!name) return NextResponse.json({ error: "name is required" }, { status: 400 });
     const finalKey = key || name.toLowerCase().replace(/\s+/g, "_");
-
-    const supabase = getSupabaseServer();
-    const { data, error } = await (supabase as any)
+    const { data, error } = await admin
       .from("feature_flags")
       .insert({
         name,
@@ -154,7 +154,7 @@ export async function POST(request: Request) {
     }
 
     try {
-      await (getSupabaseServer() as any).from("admin_actions").insert({
+      await (admin as any).from("admin_actions").insert({
         admin_id: user.id,
         impersonated_user_id: "",
         action_type: "feature_flag_updated",

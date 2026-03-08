@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/workvouch/profile/[id]
  * Recruiter API: profile_id, trust_score, verification_count, manager_confirmations, coworker_confirmations, network_depth.
@@ -5,7 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getEffectiveUser } from "@/lib/auth";
 import { calculateTrustScore } from "@/lib/trust/trustScore";
 
@@ -34,12 +38,9 @@ export async function GET(
   if (!isOwner && !isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-
-  const sb = getSupabaseServer();
-
   const [eventsRes, relRes, trustScore] = await Promise.all([
-    sb.from("trust_events").select("event_type").eq("profile_id", profileId),
-    sb
+    admin.from("trust_events").select("event_type").eq("profile_id", profileId),
+    admin
       .from("trust_relationships")
       .select("relationship_type")
       .or(`source_profile_id.eq.${profileId},target_profile_id.eq.${profileId}`),

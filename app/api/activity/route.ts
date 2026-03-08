@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 
@@ -16,8 +17,7 @@ export async function GET() {
   }
 
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("activity_log")
+  const { data, error } = await admin.from("activity_log")
     .select("id, action, target, metadata, created_at")
     .eq("user_id", effectiveUserId)
     .order("created_at", { ascending: false })

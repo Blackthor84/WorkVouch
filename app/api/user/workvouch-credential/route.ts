@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/user/workvouch-credential — Issue a WorkVouch Credential (candidate).
  * GET /api/user/workvouch-credential — List own credentials.
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { buildCredentialPayload } from "@/lib/workvouch-credential/core";
 import type { CredentialVisibility } from "@/lib/workvouch-credential/types";
 import { getReferenceCredibilitySummary } from "@/lib/workvouch-credential/referenceCredibility";
@@ -30,8 +34,7 @@ export async function GET() {
     }
 
     const supabase = await createServerSupabaseClient();
-    const { data: rows, error } = await supabase
-      .from("workvouch_credentials")
+    const { data: rows, error } = await admin.from("workvouch_credentials")
       .select("id, candidate_id, payload, visibility, share_token, issued_at, expires_at, revoked_at, created_at, updated_at")
       .eq("candidate_id", user.id)
       .order("issued_at", { ascending: false })
@@ -76,8 +79,6 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = await createServerSupabaseClient();
-    const admin = getSupabaseServer();
-
     // Use admin to read employment_records (candidate may be in different RLS context)
     const { data: employmentRecords } = await admin
       .from("employment_records")
@@ -142,8 +143,7 @@ export async function POST(req: NextRequest) {
       : null;
     const shareToken = includeShareToken ? generateShareToken() : null;
 
-    const { data: inserted, error } = await supabase
-      .from("workvouch_credentials")
+    const { data: inserted, error } = await admin.from("workvouch_credentials")
       .insert({
         candidate_id: user.id,
         payload,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -61,8 +62,7 @@ export async function POST(req: NextRequest) {
     console.log("=== EMPLOYER INSERT START ===");
     console.log("INSERT sandboxId:", sandboxId);
 
-    const { data, error } = await supabase
-      .from("sandbox_employers")
+    const { data, error } = await admin.from("sandbox_employers")
       .insert({
         sandbox_id,
         company_name,
@@ -125,8 +125,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const supabase = getServiceRoleClient();
-    const { data, error } = await supabase
-      .from("sandbox_employers")
+    const { data, error } = await admin.from("sandbox_employers")
       .select("*")
       .eq("sandbox_id", sandboxId)
       .order("created_at", { ascending: false });

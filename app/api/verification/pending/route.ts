@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/verification/pending
  * Returns verification requests where current user is the target (by email or profile id).
@@ -6,8 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -28,13 +31,9 @@ export type PendingVerificationRequest = {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const token = searchParams.get("token")?.trim() || null;
-
-  const supabase = getSupabaseServer();
-
   if (token) {
     // Fetch single request by token (for response page; may be unauthenticated)
-    const { data: row, error } = await supabase
-      .from("verification_requests")
+    const { data: row, error } = await admin.from("verification_requests")
       .select(`
         id,
         requester_profile_id,
@@ -56,13 +55,11 @@ export async function GET(req: NextRequest) {
     }
     const r = row as Record<string, unknown>;
     const empId = r.employment_record_id as string;
-    const { data: emp } = await supabase
-      .from("employment_records")
+    const { data: emp } = await admin.from("employment_records")
       .select("company_name, job_title")
       .eq("id", empId)
       .maybeSingle();
-    const { data: prof } = await supabase
-      .from("profiles")
+    const { data: prof } = await admin.from("profiles")
       .select("full_name")
       .eq("id", r.requester_profile_id as string)
       .maybeSingle();
@@ -89,8 +86,7 @@ export async function GET(req: NextRequest) {
   }
 
   const email = effective.email ? effective.email.trim().toLowerCase() : null;
-  const { data: profileRow } = await supabase
-    .from("profiles")
+  const { data: profileRow } = await admin.from("profiles")
     .select("id")
     .or(`id.eq.${effective.id},user_id.eq.${effective.id}`)
     .maybeSingle();
@@ -103,8 +99,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ requests: [] });
   }
 
-  const { data: rows, error } = await supabase
-    .from("verification_requests")
+  const { data: rows, error } = await admin.from("verification_requests")
     .select("id, requester_profile_id, target_email, employment_record_id, relationship_type, status, response_token, created_at")
     .eq("status", "pending")
     .or(orParts.join(","))
@@ -129,10 +124,10 @@ export async function GET(req: NextRequest) {
   const empIds = [...new Set(list.map((r) => r.employment_record_id))];
   const [profilesData, empData] = await Promise.all([
     requesterIds.length > 0
-      ? supabase.from("profiles").select("id, full_name").in("id", requesterIds)
+      ? admin.from("profiles").select("id, full_name").in("id", requesterIds)
       : { data: [] },
     empIds.length > 0
-      ? supabase.from("employment_records").select("id, company_name, job_title").in("id", empIds)
+      ? admin.from("employment_records").select("id, company_name, job_title").in("id", empIds)
       : { data: [] },
   ]);
   const profilesMap = new Map(

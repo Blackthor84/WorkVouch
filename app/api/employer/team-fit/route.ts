@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * Employer Team Fit API. Gated by enterprise_team_fit (enterprise tier, admins, preview).
  * Returns team fit, risk, network, hiring confidence for candidateId + employerId.
@@ -8,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getUser } from "@/lib/auth/getUser";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
 import { getOrgHealthScore } from "@/lib/enterprise/orgHealthScore";
@@ -30,8 +34,6 @@ export async function GET(req: NextRequest) {
     if (!candidateId) {
       return NextResponse.json({ error: "Missing candidateId" }, { status: 400 });
     }
-
-    const admin = getSupabaseServer() as any;
     const { data: emp } = await admin.from("employer_accounts").select("id").eq("user_id", userId).maybeSingle();
     const employerId = employerIdParam || (emp as { id?: string } | null)?.id;
     if (!employerId) {

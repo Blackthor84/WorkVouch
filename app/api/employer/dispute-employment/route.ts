@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/employer/dispute-employment
  * Employer flags an employment record (sets verification_status to flagged).
@@ -8,8 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { hasRole } from "@/lib/auth";
 import { logAudit } from "@/lib/dispute-audit";
 import { z } from "zod";
@@ -32,15 +35,11 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
-
-    const supabase = await createServerSupabaseClient();
-    const adminSupabase = getSupabaseServer();
-
-    const { data: account } = await supabase.from("employer_accounts").select("id").eq("user_id", user.id).single();
+    const { data: account } = await admin.from("employer_accounts").select("id").eq("user_id", user.id).single();
     if (!account) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
     const employerId = account.id;
 
-    const { data: rec, error: fetchErr } = await adminSupabase
+    const { data: rec, error: fetchErr } = await admin
       .from("employment_records")
       .select("id, user_id, employer_id, verification_status")
       .eq("id", parsed.data.record_id)
@@ -55,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     const oldStatus = (rec as { verification_status?: string }).verification_status ?? "pending";
 
-    const { error: updateErr } = await adminSupabase
+    const { error: updateErr } = await admin
       .from("employment_records")
       .update({ verification_status: "flagged", updated_at: new Date().toISOString() })
       .eq("id", parsed.data.record_id);
@@ -86,7 +85,7 @@ export async function POST(req: NextRequest) {
       console.error("[API][dispute-employment] intelligence", { userId: row.user_id, recordId: parsed.data.record_id, employerId, err });
     }
 
-    await adminSupabase.from("employer_notifications").insert({
+    await admin.from("employer_notifications").insert({
       employer_id: employerId,
       type: "employment_disputed",
       related_user_id: row.user_id,

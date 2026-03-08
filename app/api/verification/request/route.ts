@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/verification/request
  * Create a verification request. Target may not have an account (invite flow).
@@ -8,7 +12,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { parseVerificationRelationshipType } from "@/lib/verification/parseVerificationRelationshipType";
 import { normalizePhoneNumber } from "@/lib/verification/normalizePhoneNumber";
 import { sendVerificationSms } from "@/lib/sms/sendSms";
@@ -56,15 +60,11 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-
-  const supabase = getSupabaseServer();
-
   let targetEmail: string | null = typeof body.target_email === "string" ? normalizeEmail(body.target_email) : null;
   let targetProfileId: string | null = typeof body.target_profile_id === "string" ? body.target_profile_id : null;
 
   if (targetProfileId && !targetEmail) {
-    const { data: targetProfile } = await supabase
-      .from("profiles")
+    const { data: targetProfile } = await admin.from("profiles")
       .select("id, email")
       .eq("id", targetProfileId)
       .maybeSingle();
@@ -108,8 +108,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Resolve requester profile id (effective.id may be user_id or profile id)
-  const { data: requesterProfile } = await supabase
-    .from("profiles")
+  const { data: requesterProfile } = await admin.from("profiles")
     .select("id, full_name")
     .or(`id.eq.${effective.id},user_id.eq.${effective.id}`)
     .maybeSingle();
@@ -118,8 +117,7 @@ export async function POST(req: NextRequest) {
 
   // Rate limit: count requests by this user in the last hour
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const { count: recentCount, error: countErr } = await supabase
-    .from("verification_requests")
+  const { count: recentCount, error: countErr } = await admin.from("verification_requests")
     .select("id", { count: "exact", head: true })
     .eq("requester_profile_id", requesterProfileId)
     .gte("created_at", oneHourAgo);
@@ -132,8 +130,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Ensure employment record belongs to requester
-  const { data: empRecord, error: empErr } = await supabase
-    .from("employment_records")
+  const { data: empRecord, error: empErr } = await admin.from("employment_records")
     .select("id, user_id, company_name, job_title")
     .eq("id", employmentRecordId)
     .eq("user_id", requesterProfileId)
@@ -143,8 +140,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Don't allow requesting from own email
-  const { data: myProfile } = await supabase
-    .from("profiles")
+  const { data: myProfile } = await admin.from("profiles")
     .select("email")
     .eq("id", requesterProfileId)
     .maybeSingle();
@@ -155,8 +151,7 @@ export async function POST(req: NextRequest) {
 
   // Find target profile by email if not already set (e.g. from target_profile_id)
   if (!targetProfileId) {
-    const { data: targetProfile } = await supabase
-      .from("profiles")
+    const { data: targetProfile } = await admin.from("profiles")
       .select("id")
       .ilike("email", targetEmail)
       .maybeSingle();
@@ -164,8 +159,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Optional: prevent duplicate pending request for same (requester, target_email, employment_record_id)
-  const { data: existing } = await supabase
-    .from("verification_requests")
+  const { data: existing } = await admin.from("verification_requests")
     .select("id")
     .eq("requester_profile_id", requesterProfileId)
     .eq("target_email", targetEmail)
@@ -193,8 +187,7 @@ export async function POST(req: NextRequest) {
   };
   if (phoneNumber) insertPayload.phone_number = phoneNumber;
 
-  const { data: inserted, error } = await supabase
-    .from("verification_requests")
+  const { data: inserted, error } = await admin.from("verification_requests")
     .insert(insertPayload)
     .select("id, target_email, status, response_token, created_at")
     .single();

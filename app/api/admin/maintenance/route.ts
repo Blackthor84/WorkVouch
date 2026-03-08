@@ -1,15 +1,17 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 
 /** GET: public endpoint to check maintenance mode (no auth). Used by middleware or signup/review flows. */
 export async function GET() {
   try {
-    const supabase = getSupabaseServer();
-    const { data } = await supabase.from("system_settings").select("value").eq("key", "maintenance_mode").maybeSingle();
+    const { data } = await admin.from("system_settings").select("value").eq("key", "maintenance_mode").maybeSingle();
     const value = (data as { value?: { enabled?: boolean; block_signups?: boolean; block_reviews?: boolean; block_employment?: boolean; banner_message?: string } } | null)?.value;
     const enabled = value?.enabled === true;
     return NextResponse.json({

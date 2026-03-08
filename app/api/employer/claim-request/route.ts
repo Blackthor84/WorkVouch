@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/employer/claim-request
  * Submit a request to claim an employer account (company). Admin must approve.
@@ -8,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -30,8 +34,8 @@ export async function POST(req: NextRequest) {
 
     const { employer_id } = parsed.data;
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
-    const adminSupabase = getSupabaseServer() as any;
+    const supabaseAny = admin as any;
+    const adminSupabase = admin as any;
 
     const { data: employer } = await adminSupabase
       .from("employer_accounts")
@@ -74,8 +78,7 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      await supabase
-        .from("employer_claim_verification_audit")
+      await admin.from("employer_claim_verification_audit")
         .insert({
           event_type: "claim_request",
           employer_account_id: employer_id,

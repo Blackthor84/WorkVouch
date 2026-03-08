@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 
@@ -19,15 +23,12 @@ export async function GET(
     if (!userId) {
       return NextResponse.json({ error: "Missing user id" }, { status: 400 });
     }
-    const supabase = getSupabaseServer();
     const [receivedRes, sentRes] = await Promise.all([
-      supabase
-        .from("employment_references")
+      admin.from("employment_references")
         .select("id, employment_match_id, reviewer_id, reviewed_user_id, rating, comment, created_at")
         .eq("reviewed_user_id", userId)
         .order("created_at", { ascending: false }),
-      supabase
-        .from("employment_references")
+      admin.from("employment_references")
         .select("id, employment_match_id, reviewer_id, reviewed_user_id, rating, comment, created_at")
         .eq("reviewer_id", userId)
         .order("created_at", { ascending: false }),

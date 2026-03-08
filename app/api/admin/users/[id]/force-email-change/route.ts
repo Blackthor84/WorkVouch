@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { getAuditMeta } from "@/lib/email/system-audit";
@@ -34,8 +38,8 @@ export async function POST(
       );
     }
 
-    const admin = await requireAdminForApi();
-    if (!admin) return adminForbiddenResponse();
+    const adminSession = await requireAdminForApi();
+    if (!adminSession) return adminForbiddenResponse();
     const { id: targetUserId } = await params;
     if (!targetUserId || typeof targetUserId !== "string") {
       return NextResponse.json(
@@ -74,10 +78,7 @@ export async function POST(
         { status: 400 }
       );
     }
-
-    const supabase = getSupabaseServer();
-
-    const { data: profile, error: fetchErr } = await supabase
+    const { data: profile, error: fetchErr } = await admin
       .from("profiles")
       .select("id, email")
       .eq("id", targetUserId)
@@ -98,7 +99,7 @@ export async function POST(
       );
     }
 
-    const { data: existing } = await supabase
+    const { data: existing } = await admin
       .from("profiles")
       .select("id")
       .eq("email", newEmail)
@@ -111,7 +112,7 @@ export async function POST(
       );
     }
 
-    const { error: authError } = await supabase.auth.admin.updateUserById(
+    const { error: authError } = await admin.auth.admin.updateUserById(
       targetUserId,
       { email: newEmail }
     );
@@ -120,7 +121,7 @@ export async function POST(
       throw authError;
     }
 
-    const { error: profileError } = await supabase
+    const { error: profileError } = await admin
       .from("profiles")
       .update({ email: newEmail, email_verified: true })
       .eq("id", targetUserId);
@@ -132,7 +133,7 @@ export async function POST(
     const { ipAddress, userAgent } = getAuditMeta(req);
 
     try {
-      await supabase.from("email_change_history").insert({
+      await admin.from("email_change_history").insert({
         user_id: targetUserId,
         previous_email: oldEmail,
         new_email: newEmail,
@@ -144,8 +145,8 @@ export async function POST(
     }
 
     try {
-      await supabase.from("admin_audit_logs").insert({
-        admin_id: admin.authUserId,
+      await admin.from("admin_audit_logs").insert({
+        admin_id: adminSession.authUserId,
         target_user_id: targetUserId,
         action: "user_email_change",
         old_value: { email: oldEmail },
@@ -161,14 +162,14 @@ export async function POST(
     try {
       await logSystemAudit({
         eventType: "EMAIL_CHANGE_FORCED_ADMIN",
-        userId: admin.authUserId,
+        userId: adminSession.authUserId,
         payload: { target_user_id: targetUserId, old_email: oldEmail, new_email: newEmail, reason },
         ipAddress,
         userAgent,
       });
       await auditLog({
-        actorUserId: admin.authUserId,
-        actorRole: admin.role,
+        actorUserId: adminSession.authUserId,
+        actorRole: (adminSession as { profile?: { role?: string } }).profile?.role ?? "admin",
         action: "email_change_forced_admin",
         targetUserId,
         metadata: { old_email: oldEmail, new_email: newEmail, reason },

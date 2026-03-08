@@ -1,10 +1,13 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 
 /** Computed resume row (no resumes table). Built from employment_records. */
@@ -24,8 +27,8 @@ type ComputedResumeRow = {
  * Lists "resumes" as computed from employment_records. Optional filters: userId, organizationId (employer_id).
  */
 export async function GET(req: NextRequest) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
 
   const url = new URL(req.url);
   const userId = url.searchParams.get("userId")?.trim() || undefined;
@@ -34,8 +37,7 @@ export async function GET(req: NextRequest) {
 
   let resumes: ComputedResumeRow[] = [];
   try {
-    const sb = getSupabaseServer();
-    let query = sb
+    let query = admin
       .from("employment_records")
       .select("id, user_id, company_name, job_title, start_date, end_date, is_current, employer_id, created_at")
       .order("created_at", { ascending: false })

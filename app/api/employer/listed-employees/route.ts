@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/listed-employees
  * Returns former workers who listed this employer (employment_records.employer_id = current employer).
@@ -10,7 +14,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { hasRole } from "@/lib/auth";
 import { getPlanLimits, normalizeTier } from "@/lib/planLimits";
 
@@ -33,8 +37,8 @@ export async function GET() {
     if (!isEmployer) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
-    const adminSupabase = getSupabaseServer() as any;
+    const supabaseAny = admin as any;
+    const adminSupabase = admin as any;
 
     const { data: account } = await supabaseAny
       .from("employer_accounts")

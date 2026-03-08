@@ -1,8 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, hasRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { enforceLimit } from "@/lib/enforceLimit";
 import { incrementUsage } from "@/lib/usage";
 
@@ -21,9 +25,7 @@ export async function POST(req: NextRequest) {
     if (!isEmployer) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-
-    const supabase = getSupabaseServer() as any;
-    const { data: account, error: accError } = await supabase
+    const { data: account, error: accError } = await admin
       .from("employer_accounts")
       .select("id, plan_tier, reports_used, searches_used, seats_used, seats_allowed, stripe_report_overage_item_id, stripe_search_overage_item_id, stripe_seat_overage_item_id")
       .eq("user_id", user.id)
@@ -49,7 +51,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: updated } = await supabase
+    const { data: updated } = await admin
       .from("employer_accounts")
       .select("seats_used, seats_allowed")
       .eq("id", account.id)
@@ -83,9 +85,7 @@ export async function DELETE(req: NextRequest) {
     if (!isEmployer) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-
-    const supabase = getSupabaseServer() as any;
-    const { data: account, error: accError } = await supabase
+    const { data: account, error: accError } = await admin
       .from("employer_accounts")
       .select("id, seats_used")
       .eq("user_id", user.id)
@@ -103,7 +103,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await admin
       .from("employer_accounts")
       .update({ seats_used: current - 1 })
       .eq("id", account.id);
@@ -115,7 +115,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    await supabase.from("usage_logs").insert({
+    await admin.from("usage_logs").insert({
       employer_id: account.id,
       action_type: "seat_remove",
       quantity: 1,

@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * Fraud/integrity simulation: self-review, duplicate review attempts.
  * Expect API/DB to reject. Only when ENTERPRISE_SIMULATION_MODE=true.
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSimulationLabAdmin } from "@/lib/simulation-lab";
 import { requireEnterpriseSimulationMode } from "@/lib/enterprise/simulation-guard";
 
@@ -27,12 +31,10 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    const sb = getSupabaseServer() as any;
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     const results: { test: string; expected: string; got: string; passed: boolean }[] = [];
 
-    const selfReview = await sb.from("employment_references").insert({
+    const selfReview = await admin.from("employment_references").insert({
       employment_match_id: matchId,
       reviewer_id: candidateId,
       reviewed_user_id: candidateId,
@@ -50,7 +52,7 @@ export async function POST(req: NextRequest) {
       passed: selfBlocked,
     });
 
-    const { data: existingRef } = await sb
+    const { data: existingRef } = await admin
       .from("employment_references")
       .select("reviewer_id, reviewed_user_id")
       .eq("employment_match_id", matchId)
@@ -59,7 +61,7 @@ export async function POST(req: NextRequest) {
     let duplicateBlocked = true;
     if (existingRef) {
       const row = existingRef as { reviewer_id: string; reviewed_user_id: string };
-      const dup = await sb.from("employment_references").insert({
+      const dup = await admin.from("employment_references").insert({
         employment_match_id: matchId,
         reviewer_id: row.reviewer_id,
         reviewed_user_id: row.reviewed_user_id,

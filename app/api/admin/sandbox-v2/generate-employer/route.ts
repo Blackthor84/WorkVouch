@@ -1,8 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getUser } from "@/lib/auth/getUser";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSandboxV2AdminWithRole } from "@/lib/sandbox/adminAuth";
 import { createSandboxProfile } from "@/lib/sandbox/createSandboxProfile";
 import { INDUSTRIES } from "@/lib/constants/industries";
@@ -33,10 +37,7 @@ export async function POST(req: NextRequest) {
     if (!sandboxId || typeof sandboxId !== "string") {
       return NextResponse.json({ success: false, error: "Missing or invalid sandboxId" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: session, error: sessionError } = await supabase
-      .from("sandbox_sessions")
+    const { data: session, error: sessionError } = await admin.from("sandbox_sessions")
       .select("id, status")
       .eq("id", sandboxId)
       .maybeSingle();
@@ -52,13 +53,12 @@ export async function POST(req: NextRequest) {
     const industry = pick(INDUSTRIES);
     const plan_tier = pick(PLAN_TIERS);
 
-    const profileId = await createSandboxProfile(supabase, {
+    const profileId = await createSandboxProfile(admin, {
       full_name: company_name,
       role: "employer",
       sandbox_id: sandboxId,
     });
-    const { data, error } = await supabase
-      .from("sandbox_employers")
+    const { data, error } = await admin.from("sandbox_employers")
       .insert({ sandbox_id: sandboxId, company_name, industry, plan_tier, profile_id: profileId })
       .select("id, company_name, industry, plan_tier, profile_id")
       .single();

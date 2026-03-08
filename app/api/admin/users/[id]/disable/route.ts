@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireAdminForApi, assertAdminCanModify } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
@@ -18,8 +22,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
   try {
     const { id: targetUserId } = await params;
     if (!targetUserId) {
@@ -31,10 +35,7 @@ export async function POST(
     if (!reason) {
       return NextResponse.json({ success: false, error: "Reason is required for disable" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: oldRow } = await supabase
-      .from("profiles")
+    const { data: oldRow } = await admin.from("profiles")
       .select("id, status, role, deleted_at")
       .eq("id", targetUserId)
       .single();
@@ -43,11 +44,10 @@ export async function POST(
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     }
     const targetRole = (oldRow as { role?: string }).role ?? "user";
-    assertAdminCanModify(admin, targetUserId, targetRole);
+    assertAdminCanModify(adminSession, targetUserId, targetRole);
 
     const now = new Date().toISOString();
-    const { error } = await supabase
-      .from("profiles")
+    const { error } = await admin.from("profiles")
       .update({ status: "deleted", deleted_at: now })
       .eq("id", targetUserId);
 
@@ -58,8 +58,8 @@ export async function POST(
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     const isSandbox = await getAdminSandboxModeFromCookies();
     await insertAdminAuditLog({
-      adminId: admin.authUserId,
-      adminEmail: (admin.user as { email?: string })?.email ?? null,
+      adminId: adminSession.authUserId,
+      adminEmail: (adminSession.user as { email?: string })?.email ?? null,
       targetType: "user",
       targetId: targetUserId,
       action: "disable",
@@ -68,7 +68,7 @@ export async function POST(
       reason,
       ipAddress,
       userAgent,
-      adminRole: admin.isSuperAdmin ? "superadmin" : "admin",
+      adminRole: adminSession.isSuperAdmin ? "superadmin" : "admin",
       isSandbox,
     });
 

@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -36,7 +37,7 @@ export async function POST(
     const supabase = await createServerSupabaseClient();
 
     if (dismissed) {
-      const { error } = await supabase.from("hiring_outcome_feedback").upsert(
+      const { error } = await admin.from("hiring_outcome_feedback").upsert(
         {
           employer_id: user.id,
           candidate_id: candidateId,
@@ -57,7 +58,7 @@ export async function POST(
       return new NextResponse(null, { status: 204 });
     }
 
-    const { error } = await supabase.from("hiring_outcome_feedback").upsert(
+    const { error } = await admin.from("hiring_outcome_feedback").upsert(
       {
         employer_id: user.id,
         candidate_id: candidateId,

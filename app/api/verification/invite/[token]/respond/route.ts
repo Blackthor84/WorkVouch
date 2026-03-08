@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/verification/invite/[token]/respond
  * Public: confirm or deny employment (invite link response).
@@ -8,7 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import type { Json } from "@/types/supabase";
 
 export const runtime = "nodejs";
@@ -61,10 +65,7 @@ export async function POST(
   }
 
   const clientIp = getClientIp(req);
-  const supabase = getSupabaseServer();
-  const sb = supabase as any;
-
-  const { data: invite, error: fetchError } = await sb
+  const { data: invite, error: fetchError } = await admin
     .from("verification_invites")
     .select("id, candidate_id, email, company, status, expires_at")
     .eq("token", token.trim())
@@ -96,7 +97,7 @@ export async function POST(
 
   // 2) Verification ring – Rule 1: one verifier cannot verify the same candidate twice (prevents duplicate loops).
   if (action === "confirm") {
-    const { data: existingEvents } = await sb
+    const { data: existingEvents } = await admin
       .from("trust_events")
       .select("id, payload")
       .eq("profile_id", invite.candidate_id)
@@ -117,7 +118,7 @@ export async function POST(
   // 3) Same-company check: candidate’s employment company vs invite company (fraud signal).
   let companyMismatch = false;
   if (action === "confirm" && invite.company) {
-    const { data: empRows } = await sb
+    const { data: empRows } = await admin
       .from("employment_records")
       .select("company_name, company_normalized")
       .eq("user_id", invite.candidate_id);
@@ -139,7 +140,7 @@ export async function POST(
   let verifierProfileId: string | null = null;
   let verifierAccountAgeHours: number | null = null;
 
-  const { data: verifierProfile } = await sb
+  const { data: verifierProfile } = await admin
     .from("profiles")
     .select("id, created_at")
     .eq("email", invite.email)
@@ -174,7 +175,7 @@ export async function POST(
     verification_ip: clientIp,
   };
 
-  const { error: eventError } = await sb
+  const { error: eventError } = await admin
     .from("trust_events")
     .insert(insertPayload);
 
@@ -188,14 +189,14 @@ export async function POST(
 
   // Same-company mismatch: log for fraud monitoring; verification already succeeded.
   if (companyMismatch) {
-    const { data: candEmp } = await sb
+    const { data: candEmp } = await admin
       .from("employment_records")
       .select("company_name")
       .eq("user_id", invite.candidate_id)
       .limit(1)
       .maybeSingle();
     const candidateCompany = (candEmp as { company_name?: string } | null)?.company_name ?? null;
-    await sb.from("trust_events").insert({
+    await admin.from("trust_events").insert({
       profile_id: invite.candidate_id,
       event_type: "suspicious_verification",
       event_source: "invite_verification",
@@ -215,7 +216,7 @@ export async function POST(
     verifierAccountAgeHours != null &&
     verifierAccountAgeHours < ACCOUNT_AGE_HOURS_THRESHOLD
   ) {
-    await sb.from("trust_events").insert({
+    await admin.from("trust_events").insert({
       profile_id: invite.candidate_id,
       event_type: "low_trust_verifier",
       event_source: "invite_verification",
@@ -231,14 +232,14 @@ export async function POST(
   // Suspicious IP: many verifications from same IP in short window.
   if (clientIp) {
     const windowStart = new Date(Date.now() - SUSPICIOUS_IP_WINDOW_HOURS * 60 * 60 * 1000).toISOString();
-    const { count } = await sb
+    const { count } = await admin
       .from("trust_events")
       .select("id", { count: "exact", head: true })
       .eq("verification_ip", clientIp)
       .gte("created_at", windowStart);
 
     if ((count ?? 0) >= SUSPICIOUS_IP_COUNT_THRESHOLD) {
-      await sb.from("trust_events").insert({
+      await admin.from("trust_events").insert({
         profile_id: invite.candidate_id,
         event_type: "suspicious_ip_activity",
         event_source: "invite_verification",
@@ -255,7 +256,7 @@ export async function POST(
   // 5) Verification ring – Rule 2: if 3 users mutually verify each other within 24h, log suspicious_network (reduces fake rings).
   if (action === "confirm") {
     const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const { data: recent } = await sb
+    const { data: recent } = await admin
       .from("trust_events")
       .select("profile_id, payload")
       .in("event_type", ["coworker_verified", "coworker_verification_confirmed"])
@@ -267,7 +268,7 @@ export async function POST(
       if (typeof v === "string") verifierEmails.add(v);
     }
     if (verifierEmails.size >= 2) {
-      const { data: profiles } = await sb
+      const { data: profiles } = await admin
         .from("profiles")
         .select("id, email")
         .in("email", [...verifierEmails]);
@@ -306,7 +307,7 @@ export async function POST(
         if (suspiciousRing) break;
       }
       if (suspiciousRing) {
-        await sb.from("trust_events").insert({
+        await admin.from("trust_events").insert({
           profile_id: invite.candidate_id,
           event_type: "suspicious_network",
           event_source: "invite_verification",
@@ -320,7 +321,7 @@ export async function POST(
     }
   }
 
-  const { error: updateError } = await sb
+  const { error: updateError } = await admin
     .from("verification_invites")
     .update({
       status: newStatus,

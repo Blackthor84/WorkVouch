@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/admin/add-employer-user
  * Add an employer user (admin) to an organization. Server-side limit enforcement before insert.
@@ -8,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { checkOrgLimits, planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
 import { getOrgHealthScore, updateOrgHealth } from "@/lib/enterprise/orgHealthScore";
 
@@ -39,10 +43,7 @@ export async function POST(req: NextRequest) {
       const health = await getOrgHealthScore(organizationId);
       return planLimit403Response(limitCheck, "add_admin", { status: health.status, recommended_plan: health.recommended_plan });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: inserted, error } = await supabase
-      .from("employer_users")
+    const { data: inserted, error } = await admin.from("employer_users")
       .insert({
         organization_id: organizationId,
         profile_id: profileId,

@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/analytics/funnels — funnel conversion (landing → signup → profile, etc.).
  * Filterable by country, device, sandbox/prod. Admin-only. Audited.
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { logAdminViewedAnalytics } from "@/lib/admin/analytics-audit";
 
 export const dynamic = "force-dynamic";
@@ -20,12 +24,12 @@ const FUNNEL_STEPS: { name: string; paths: string[] }[] = [
 ];
 
 export async function GET(req: NextRequest) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
 
   try {
     await logAdminViewedAnalytics(
-      { userId: admin.authUserId, authUserId: admin.authUserId, email: admin.user?.email ?? null, role: admin.isSuperAdmin ? "super_admin" : "admin" },
+      { userId: adminSession.authUserId, authUserId: adminSession.authUserId, email: adminSession.user?.email ?? null, role: adminSession.isSuperAdmin ? "super_admin" : "admin" },
       req,
       "funnels"
     );
@@ -37,9 +41,7 @@ export async function GET(req: NextRequest) {
   const device = url.searchParams.get("device")?.trim();
   const hours = Math.min(168, Math.max(1, parseInt(url.searchParams.get("hours") || "24", 10)));
   const since = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
-  const supabase = getSupabaseServer();
-
-  let pvQuery = supabase
+  let pvQuery = admin
     .from("site_page_views")
     .select("session_id, path")
     .gte("created_at", since);
@@ -50,7 +52,7 @@ export async function GET(req: NextRequest) {
   const sessionIds = [...new Set((views ?? []).map((v: { session_id: string | null }) => v.session_id).filter(Boolean))] as string[];
   let sessionMeta: { id: string; country: string | null; device_type: string | null }[] = [];
   if (sessionIds.length > 0) {
-    let sQ = supabase.from("site_sessions").select("id, country, device_type").in("id", sessionIds.slice(0, 10000));
+    let sQ = admin.from("site_sessions").select("id, country, device_type").in("id", sessionIds.slice(0, 10000));
     const { data: sess } = await sQ;
     sessionMeta = (sess ?? []) as { id: string; country: string | null; device_type: string | null }[];
   }

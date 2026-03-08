@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { getIncidentWithActions, updateIncidentStatus } from "@/lib/admin/incidents";
@@ -18,8 +19,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const admin = await getAdminContext(req);
-    if (!admin.isAdmin) return adminForbiddenResponse();
+    const adminContext = await getAdminContext(req);
+    if (!adminContext.isAdmin) return adminForbiddenResponse();
 
     const { id } = await params;
     const { incident, actions } = await getIncidentWithActions(id);
@@ -36,8 +37,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const admin = await getAdminContext(req);
-    if (!admin.isAdmin) return adminForbiddenResponse();
+    const adminContext = await getAdminContext(req);
+    if (!adminContext.isAdmin) return adminForbiddenResponse();
 
     const { id } = await params;
     const body = await req.json().catch(() => ({}));
@@ -52,14 +53,13 @@ export async function PATCH(
     }
 
     const supabase = getServiceRoleClient() as any;
-    const { data: incident } = await supabase
-      .from("incidents")
+    const { data: incident } = await admin.from("incidents")
       .select("id, severity, status")
       .eq("id", id)
       .single();
     if (!incident) return NextResponse.json({ error: "Incident not found" }, { status: 404 });
 
-    if ((incident as { severity: string }).severity === "critical" && status === "resolved" && !admin.isSuperAdmin) {
+    if ((incident as { severity: string }).severity === "critical" && status === "resolved" && !adminContext.isSuperAdmin) {
       return NextResponse.json(
         { error: "CRITICAL incidents require superadmin to resolve" },
         { status: 403 }
@@ -70,10 +70,10 @@ export async function PATCH(
     await updateIncidentStatus({
       incidentId: id,
       status,
-      admin_user_id: admin.authUserId,
-      admin_email: admin.email,
-      admin_role: admin.isSuperAdmin ? "superadmin" : "admin",
-      is_sandbox: admin.isSandbox,
+      admin_user_id: adminContext.authUserId,
+      admin_email: adminContext.email,
+      admin_role: adminContext.isSuperAdmin ? "superadmin" : "admin",
+      is_sandbox: adminContext.isSandbox,
       reason,
       ip_address: meta.ipAddress,
       user_agent: meta.userAgent,

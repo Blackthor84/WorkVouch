@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     // Get user's subscription tier
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
 
     // Check if user is employer or worker
     const { data: profile } = await supabaseAny
@@ -134,7 +135,7 @@ export async function GET(req: NextRequest) {
     const otherUserId = searchParams.get("otherUserId");
 
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
 
     let query = supabaseAny
       .from("messages")

@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/employer/policies — create policy
  * GET /api/employer/policies — list employer's trust policies
@@ -8,8 +12,7 @@ import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -28,10 +31,7 @@ export async function GET(_req: NextRequest) {
     if (!sub.allowed) {
       return NextResponse.json({ error: sub.error ?? "Subscription required" }, { status: 403 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data, error } = await supabase
-      .from("trust_policies")
+    const { data, error } = await admin.from("trust_policies")
       .select("id, employer_id, policy_name, min_trust_score, min_verification_coverage, required_reference_type, min_trust_graph_depth, allow_recent_disputes, created_at")
       .eq("employer_id", user.id)
       .order("created_at", { ascending: false });
@@ -89,10 +89,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    const supabase = getSupabaseServer();
-    const { data, error } = await supabase
-      .from("trust_policies")
+    const { data, error } = await admin.from("trust_policies")
       .insert({
         employer_id: user.id,
         policy_name,

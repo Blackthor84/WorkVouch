@@ -1,8 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import {
   stripe,
@@ -62,7 +66,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const adminSupabase = getSupabaseServer() as any;
+    const adminSupabase = admin as any;
     if (planId === "pro") {
       const { data: flag } = await adminSupabase
         .from("feature_flags")
@@ -78,7 +82,7 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
 
     // Get employer account
     type EmployerAccountRow = {

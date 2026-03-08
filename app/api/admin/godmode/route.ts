@@ -1,4 +1,9 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { cookies } from "next/headers";
 import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -22,8 +27,7 @@ export async function GET() {
     if (!user?.id) return NextResponse.json({ enabled: false }, { status: 401 });
 
     const supabase = await createServerSupabaseClient();
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
+    const { data: profile, error: profileError } = await admin.from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
@@ -49,8 +53,7 @@ export async function POST(request: Request) {
     if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const supabase = await createServerSupabaseClient();
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
+    const { data: profile, error: profileError } = await admin.from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
@@ -75,9 +78,7 @@ export async function POST(request: Request) {
       user_agent: userAgent,
     });
 
-    const { getSupabaseServer } = await import("@/lib/supabase/admin");
-    const adminSupabase = getSupabaseServer();
-    await adminSupabase
+    await admin
       .from("admin_users")
       .upsert(
         { user_id: user.id, god_mode: enabled, updated_at: new Date().toISOString() },

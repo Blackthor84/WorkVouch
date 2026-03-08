@@ -1,8 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { isSuperAdmin } from "@/lib/roles";
 import { logAdminAction } from "@/lib/audit";
 import { z } from "zod";
@@ -27,7 +31,7 @@ export async function POST(req: NextRequest) {
     if (!isSuperAdmin(role)) return NextResponse.json({ error: "Forbidden: superadmin only" }, { status: 403 });
 
     const data = bodySchema.parse(await req.json());
-    const supabase = getSupabaseServer() as any;
+    const supabase = admin as any;
 
     const row: Record<string, unknown> = {
       company_id: data.companyId,
@@ -41,13 +45,13 @@ export async function POST(req: NextRequest) {
     if (data.gapWeight != null) row.gap_weight = data.gapWeight;
     if (data.fraudWeight != null) row.fraud_weight = data.fraudWeight;
 
-    const { data: existing } = await supabase.from("risk_model_configs").select("id").eq("company_id", data.companyId).maybeSingle();
+    const { data: existing } = await admin.from("risk_model_configs").select("id").eq("company_id", data.companyId).maybeSingle();
 
     if (existing) {
-      const { error } = await supabase.from("risk_model_configs").update(row).eq("company_id", data.companyId);
+      const { error } = await admin.from("risk_model_configs").update(row).eq("company_id", data.companyId);
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     } else {
-      const { error } = await supabase.from("risk_model_configs").insert(row);
+      const { error } = await admin.from("risk_model_configs").insert(row);
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     }
 

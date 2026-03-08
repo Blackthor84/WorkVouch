@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { RetroactiveReferencesSummary } from "@/lib/employer-retroactive/types";
@@ -22,8 +23,7 @@ export async function GET(req: NextRequest) {
 
     const supabase = await createServerSupabaseClient();
 
-    const { data: employerAccount } = await supabase
-      .from("employer_accounts")
+    const { data: employerAccount } = await admin.from("employer_accounts")
       .select("id, company_name, claimed, claim_verified")
       .eq("user_id", user.id)
       .single();
@@ -40,8 +40,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const { data: records } = await supabase
-      .from("employment_records")
+    const { data: records } = await admin.from("employment_records")
       .select("id, job_title")
       .eq("employer_id", acc.id);
 

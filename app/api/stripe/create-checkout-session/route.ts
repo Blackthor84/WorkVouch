@@ -1,7 +1,10 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 import { stripe, isStripeConfigured } from "@/lib/stripe/config";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 // Mark route as dynamic
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -36,9 +39,7 @@ export async function POST(req: NextRequest) {
     if (userType) metadata.userType = userType;
 
     if (userId) {
-      const supabase = getSupabaseServer();
-      const { data: employer } = await supabase
-        .from("employer_accounts")
+      const { data: employer } = await admin.from("employer_accounts")
         .select("id")
         .eq("user_id", userId)
         .maybeSingle();

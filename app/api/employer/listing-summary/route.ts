@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/listing-summary
  * Returns counts for former workers who listed this employer (is_current = false only).
@@ -8,8 +12,7 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { hasRole } from "@/lib/auth";
 import { normalizeTier } from "@/lib/planLimits";
 
@@ -38,16 +41,13 @@ export async function GET() {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!(await hasRole("employer"))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
-    const supabase = await createServerSupabaseClient();
-    const { data: account } = await supabase.from("employer_accounts").select("id, plan_tier").eq("user_id", user.id).single();
+    const { data: account } = await admin.from("employer_accounts").select("id, plan_tier").eq("user_id", user.id).single();
     if (!account) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
 
     const employerId = account.id;
     const planTier = normalizeTier(account.plan_tier);
-    const adminSupabase = getSupabaseServer();
 
-    const { data: rows } = await adminSupabase
+    const { data: rows } = await admin
       .from("employment_records")
       .select("id, user_id, verification_status")
       .eq("employer_id", employerId)
@@ -74,7 +74,7 @@ export async function GET() {
 
     if (planTier !== "free" && list.length > 0) {
       const userIds = [...new Set(list.map(userIdString).filter((id): id is string => id !== null))];
-      const { data: snapshots } = await adminSupabase.from("intelligence_snapshots").select("user_id, profile_strength").in("user_id", userIds);
+      const { data: snapshots } = await admin.from("intelligence_snapshots").select("user_id, profile_strength").in("user_id", userIds);
       const strengthValues: number[] = [];
       for (const s of snapshots ?? []) {
         if (hasNumericProfileStrength(s)) strengthValues.push(s.profile_strength);

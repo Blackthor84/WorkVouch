@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
     const data = requestVerificationSchema.parse(body);
 
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
 
     // Verify ownership
     type JobRow = { id: string; user_id: string };

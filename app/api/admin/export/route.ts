@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getAdminRole } from "@/lib/admin";
 import { AdminRole } from "@/lib/permissions";
@@ -12,8 +16,8 @@ export const dynamic = "force-dynamic";
 
 /** GET: SOC-2 export only. ?type=soc2. Read-only, auditable. Other types return 400. */
 export async function GET(req: NextRequest) {
-  const admin = await getAdminContext(req);
-  if (!admin || !admin.isAdmin) {
+  const adminContext = await getAdminContext(req);
+  if (!admin || !adminContext.isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -29,7 +33,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const email = admin.email;
+    const email = adminContext.email;
     if (!email || typeof email !== "string") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -37,10 +41,7 @@ export async function GET(req: NextRequest) {
     if (role !== AdminRole.PLATFORM_ADMIN) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data, error } = await supabase
-      .from("admin_audit_logs")
+    const { data, error } = await admin.from("admin_audit_logs")
       .select("admin_id, action, target_user_id, new_value, created_at")
       .order("created_at", { ascending: false })
       .limit(10000);
@@ -71,7 +72,7 @@ export async function GET(req: NextRequest) {
     const csv = toCSV(rows);
 
     logAdminAction({
-      adminId: admin.authUserId,
+      adminId: adminContext.authUserId,
       action: "EXPORT",
       resource: "SOC2",
       requestId,

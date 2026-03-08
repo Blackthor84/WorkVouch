@@ -1,5 +1,9 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getUsageForEmployer } from "@/lib/usage";
 import { isAdmin } from "@/lib/roles";
 import { NextRequest, NextResponse } from "next/server";
@@ -18,15 +22,14 @@ export async function GET(req: NextRequest) {
     if (!isAdmin(role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const employerId = req.nextUrl.searchParams.get("employerId");
-    const supabase = getSupabaseServer() as any;
+    const supabase = admin as any;
 
     if (employerId) {
       const usage = await getUsageForEmployer(employerId);
       if (!usage) {
         return NextResponse.json({ error: "Employer not found" }, { status: 404 });
       }
-      const { data: account } = await supabase
-        .from("employer_accounts")
+      const { data: account } = await admin.from("employer_accounts")
         .select("id, company_name")
         .eq("id", employerId)
         .single();
@@ -36,8 +39,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const { data: accounts, error } = await supabase
-      .from("employer_accounts")
+    const { data: accounts, error } = await admin.from("employer_accounts")
       .select("id, company_name")
       .order("company_name");
 
@@ -50,7 +52,7 @@ export async function GET(req: NextRequest) {
     let complianceCounts: Record<string, number> = {};
     let avgScores: Record<string, number | null> = {};
     try {
-      const { data: gl } = await supabase.from("guard_licenses").select("employer_id, user_id");
+      const { data: gl } = await admin.from("guard_licenses").select("employer_id, user_id");
       const glList = (gl ?? []) as { employer_id: string; user_id: string }[];
       for (const r of glList) {
         licenseCounts[r.employer_id] = (licenseCounts[r.employer_id] ?? 0) + 1;
@@ -59,7 +61,7 @@ export async function GET(req: NextRequest) {
       // guard_licenses may not exist
     }
     try {
-      const { data: alerts } = await supabase.from("compliance_alerts").select("employer_id").eq("resolved", false);
+      const { data: alerts } = await admin.from("compliance_alerts").select("employer_id").eq("resolved", false);
       const alertList = (alerts ?? []) as { employer_id: string }[];
       for (const a of alertList) {
         complianceCounts[a.employer_id] = (complianceCounts[a.employer_id] ?? 0) + 1;
@@ -68,7 +70,7 @@ export async function GET(req: NextRequest) {
       // compliance_alerts may not exist
     }
     try {
-      const { data: gl } = await supabase.from("guard_licenses").select("employer_id, user_id");
+      const { data: gl } = await admin.from("guard_licenses").select("employer_id, user_id");
       const glList = (gl ?? []) as { employer_id: string; user_id: string }[];
       const userIdsByEmployer: Record<string, string[]> = {};
       for (const r of glList) {
@@ -81,7 +83,7 @@ export async function GET(req: NextRequest) {
           avgScores[eid] = null;
           continue;
         }
-        const { data: prof } = await supabase.from("profiles").select("guard_credential_score").in("id", uids);
+        const { data: prof } = await admin.from("profiles").select("guard_credential_score").in("id", uids);
         const scores = (prof ?? []).map((p: { guard_credential_score?: number | null }) => p.guard_credential_score).filter((s: number | null): s is number => typeof s === "number");
         avgScores[eid] = scores.length ? Math.round((scores.reduce((a: number, b: number) => a + b, 0) / scores.length) * 10) / 10 : null;
       }
@@ -149,9 +151,8 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
     }
 
-    const supabase = getSupabaseServer() as any;
-    const { error } = await supabase
-      .from("employer_accounts")
+    const supabase = admin as any;
+    const { error } = await admin.from("employer_accounts")
       .update(updates)
       .eq("id", employerId);
 

@@ -1,5 +1,9 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { isAdmin, isSuperAdmin } from "@/lib/roles";
 import { NextResponse } from "next/server";
 
@@ -27,9 +31,7 @@ export async function PATCH(
     if (enabled === undefined) {
       return NextResponse.json({ error: "enabled required" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: assignment } = await (supabase as any)
+    const { data: assignment } = await admin
       .from("feature_flag_assignments")
       .select("id, feature_flag_id")
       .eq("id", id)
@@ -39,7 +41,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
     }
 
-    const { data: flag } = await (supabase as any)
+    const { data: flag } = await admin
       .from("feature_flags")
       .select("is_globally_enabled")
       .eq("id", assignment.feature_flag_id)
@@ -49,7 +51,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { data, error } = await (supabase as any)
+    const { data, error } = await admin
       .from("feature_flag_assignments")
       .update({ enabled })
       .eq("id", id)
@@ -83,9 +85,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const supabase = getSupabaseServer();
-
-    const { data: assignment } = await (supabase as any)
+    const { data: assignment } = await admin
       .from("feature_flag_assignments")
       .select("id, feature_flag_id")
       .eq("id", id)
@@ -95,7 +95,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
     }
 
-    const { data: flag } = await (supabase as any)
+    const { data: flag } = await admin
       .from("feature_flags")
       .select("is_globally_enabled")
       .eq("id", assignment.feature_flag_id)
@@ -105,7 +105,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    await (supabase as any).from("feature_flag_assignments").delete().eq("id", id);
+    await admin.from("feature_flag_assignments").delete().eq("id", id);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("Admin feature flag assignment DELETE error:", err);

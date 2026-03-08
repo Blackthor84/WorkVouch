@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/analytics/capture — record page view (enterprise schema).
  * Best-effort only: NEVER return 500. Missing body, no session, or DB errors → still return 200 { ok: true }.
@@ -7,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import {
   hashIp,
   getGeoFromHeaders,
@@ -77,14 +81,7 @@ export async function POST(req: NextRequest) {
     }
     const is_authenticated = !!user_id;
 
-    let supabase;
-    try {
-      supabase = getSupabaseServer();
-    } catch {
-      return ok();
-    }
-
-    const { data: existing } = await supabase
+    const { data: existing } = await admin
       .from("site_sessions")
       .select("id")
       .eq("session_token", session_token)
@@ -94,7 +91,7 @@ export async function POST(req: NextRequest) {
 
     if (existing?.id) {
       session_id = existing.id;
-      await supabase
+      await admin
         .from("site_sessions")
         .update({
           last_seen_at: new Date().toISOString(),
@@ -102,7 +99,7 @@ export async function POST(req: NextRequest) {
         })
         .eq("id", session_id);
     } else {
-      const { data: inserted, error: insertErr } = await supabase
+      const { data: inserted, error: insertErr } = await admin
         .from("site_sessions")
         .insert({
           session_token,
@@ -132,7 +129,7 @@ export async function POST(req: NextRequest) {
       session_id = inserted?.id ?? null;
     }
 
-    const { error: pvError } = await supabase.from("site_page_views").insert({
+    const { error: pvError } = await admin.from("site_page_views").insert({
       session_id,
       user_id: user_id ?? null,
       path,
@@ -148,9 +145,9 @@ export async function POST(req: NextRequest) {
 
     try {
       const { maybeRecordRapidRefresh } = await import("@/lib/analytics/abuse");
-      void maybeRecordRapidRefresh(supabase, session_id, is_sandbox);
+      void maybeRecordRapidRefresh(admin, session_id, is_sandbox);
       if (user_id && geo?.country) {
-        void upsertUserLocationFromGeo(supabase, user_id, geo.country, geo.region ?? null);
+        void upsertUserLocationFromGeo(admin, user_id, geo.country, geo.region ?? null);
       }
     } catch {
       // best-effort only

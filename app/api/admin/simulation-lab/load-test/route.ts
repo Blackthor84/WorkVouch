@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * Simulation Lab: load testing engine.
  * Creates N simulated employee personas in one session. Real scoring pipeline.
@@ -7,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSimulationLabAdmin, validateSessionForWrite } from "@/lib/simulation-lab";
 import { calculateUserIntelligence } from "@/lib/intelligence/calculateUserIntelligence";
 import { runCandidateIntelligence } from "@/lib/intelligence/runIntelligencePipeline";
@@ -35,9 +39,6 @@ export async function POST(req: NextRequest) {
     const session = await validateSessionForWrite(sessionId, adminId);
     const expiresAt = session.expires_at;
     const simulationContext = { simulationSessionId: sessionId, expiresAt };
-
-    const supabase = getSupabaseServer();
-
     const companyNormalized = companyName.toLowerCase().trim();
     const createdIds: string[] = [];
     const errors: string[] = [];
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
       const fullName = `Load Employee ${i + 1}`;
       const startDate = new Date(Date.now() - (i + 1) * 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
-      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+      const { data: authUser, error: authError } = await admin.auth.admin.createUser({
         email,
         password: `Load${suffix}!Sec`,
         email_confirm: true,
@@ -59,7 +60,7 @@ export async function POST(req: NextRequest) {
       }
       const userId = authUser.user.id;
 
-      await supabase.from("profiles").upsert(
+      await admin.from("profiles").upsert(
         {
           id: userId,
           full_name: fullName,
@@ -72,9 +73,9 @@ export async function POST(req: NextRequest) {
         { onConflict: "id" }
       );
 
-      await supabase.from("profiles").update({ role: "user" }).eq("id", userId);
+      await admin.from("profiles").update({ role: "user" }).eq("id", userId);
 
-      const { error: erErr } = await supabase.from("employment_records").insert({
+      const { error: erErr } = await admin.from("employment_records").insert({
         user_id: userId,
         company_name: companyName,
         company_normalized: companyNormalized,
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
         expires_at: expiresAt,
       });
       if (erErr) {
-        await supabase.auth.admin.deleteUser(userId);
+        await admin.auth.admin.deleteUser(userId);
         errors.push(`Persona ${i + 1}: ${erErr.message}`);
         continue;
       }

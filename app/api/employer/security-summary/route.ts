@@ -1,9 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, hasRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 /**
  * GET /api/employer/security-summary
  * Security Agency Dashboard: expiring licenses, high-risk count, pending verifications, internal notes count.
@@ -15,9 +18,7 @@ export async function GET() {
 
     const isEmployer = await hasRole("employer");
     if (!isEmployer) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
-    const sb = getSupabaseServer() as any;
-    const { data: ea } = await sb.from("employer_accounts").select("id").eq("user_id", user.id);
+    const { data: ea } = await admin.from("employer_accounts").select("id").eq("user_id", user.id);
     const employerId = (Array.isArray(ea) ? ea[0] : ea) as { id?: string } | null;
     if (!employerId?.id) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
     const eid = employerId.id;
@@ -32,7 +33,7 @@ export async function GET() {
     let expiredLicensesCount = 0;
     let suspendedLicensesCount = 0;
     try {
-      const { data: gl } = await sb.from("guard_licenses").select("id, status, expiration_date").eq("employer_id", eid);
+      const { data: gl } = await admin.from("guard_licenses").select("id, status, expiration_date").eq("employer_id", eid);
       const glList = (gl ?? []) as { status: string; expiration_date: string | null }[];
       for (const l of glList) {
         if (l.status === "suspended") suspendedLicensesCount++;
@@ -47,13 +48,13 @@ export async function GET() {
     let highRiskEmployeesCount = 0;
     let topCredentialScores: { user_id: string; full_name: string | null; guard_credential_score: number }[] = [];
     try {
-      const { data: vrList } = await sb.from("verification_requests").select("job_id").eq("requested_by_id", eid);
+      const { data: vrList } = await admin.from("verification_requests").select("job_id").eq("requested_by_id", eid);
       const jobIds = (vrList ?? []).map((r: { job_id: string }) => r.job_id);
       if (jobIds.length > 0) {
-        const { data: jobs } = await sb.from("jobs").select("user_id").in("id", jobIds);
+        const { data: jobs } = await admin.from("jobs").select("user_id").in("id", jobIds);
         const userIds = [...new Set((jobs ?? []).map((j: { user_id?: string }) => j.user_id).filter(Boolean))] as string[];
         if (userIds.length > 0) {
-          const { data: prof } = await sb.from("profiles").select("id, full_name, risk_score, guard_credential_score").in("id", userIds);
+          const { data: prof } = await admin.from("profiles").select("id, full_name, risk_score, guard_credential_score").in("id", userIds);
           const profList = (prof ?? []) as { id: string; full_name: string | null; risk_score: number | null; guard_credential_score: number | null }[];
           highRiskEmployeesCount = profList.filter((p) => (p.guard_credential_score != null ? p.guard_credential_score < 50 : (p.risk_score ?? 100) < 50)).length;
           topCredentialScores = profList
@@ -70,7 +71,7 @@ export async function GET() {
     let expiredAlertsCount = 0;
     let warning30DayCount = 0;
     try {
-      const { data: alerts } = await sb.from("compliance_alerts").select("id, alert_type").eq("employer_id", eid).eq("resolved", false);
+      const { data: alerts } = await admin.from("compliance_alerts").select("id, alert_type").eq("employer_id", eid).eq("resolved", false);
       const alertList = (alerts ?? []) as { alert_type: string }[];
       expiredAlertsCount = alertList.filter((a) => a.alert_type === "expired").length;
       warning30DayCount = alertList.filter((a) => a.alert_type === "30_day_warning").length;
@@ -80,7 +81,7 @@ export async function GET() {
 
     let pendingVerificationsCount = 0;
     try {
-      const { data: pending } = await sb
+      const { data: pending } = await admin
         .from("verification_requests")
         .select("id")
         .eq("requested_by_id", eid)
@@ -92,7 +93,7 @@ export async function GET() {
 
     let internalNotesCount = 0;
     try {
-      const { data: rr } = await sb
+      const { data: rr } = await admin
         .from("rehire_registry")
         .select("id")
         .eq("employer_id", eid)

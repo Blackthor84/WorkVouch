@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * Simulation Lab: list simulated employees and employers for a session.
  * Admin only. Used for peer review dropdowns and lab display.
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSimulationLabAdmin } from "@/lib/simulation-lab";
 
 export const dynamic = "force-dynamic";
@@ -16,9 +20,7 @@ export async function GET(req: NextRequest) {
     const { id: adminId } = await requireSimulationLabAdmin();
     const sessionId = req.nextUrl.searchParams.get("sessionId");
     if (!sessionId) return NextResponse.json({ error: "sessionId required" }, { status: 400 });
-
-    const supabase = getSupabaseServer();
-    const { data: session } = await supabase
+    const { data: session } = await admin
       .from("simulation_sessions")
       .select("id")
       .eq("id", sessionId)
@@ -27,8 +29,8 @@ export async function GET(req: NextRequest) {
     if (!session) return NextResponse.json({ error: "Session not found" }, { status: 404 });
 
     const [profilesRes, employersRes] = await Promise.all([
-      supabase.from("profiles").select("id, full_name, email").eq("simulation_session_id", sessionId).eq("is_simulation", true),
-      supabase.from("employer_accounts").select("id, company_name, plan_tier").eq("simulation_session_id", sessionId).eq("is_simulation", true),
+      admin.from("profiles").select("id, full_name, email").eq("simulation_session_id", sessionId).eq("is_simulation", true),
+      admin.from("employer_accounts").select("id, company_name, plan_tier").eq("simulation_session_id", sessionId).eq("is_simulation", true),
     ]);
     const employees = (profilesRes.data ?? []) as { id: string; full_name?: string; email?: string }[];
     const employers = (employersRes.data ?? []) as { id: string; company_name?: string; plan_tier?: string }[];

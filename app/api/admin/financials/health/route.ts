@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/financials/health — churn, LTV, ARPA (investor-critical).
  * Access: finance | admin | board. Audit VIEW_CHURN_LTV, rate limit 60/min. Aggregated only.
@@ -7,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireFinanceForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { logAudit } from "@/lib/soc2-audit";
 import { withRateLimit } from "@/lib/rateLimit";
 
@@ -33,12 +37,10 @@ export async function GET(req: NextRequest) {
   });
 
   try {
-    const supabase = getSupabaseServer();
-
     const [activeRes, canceledRes, arpaRes] = await Promise.all([
-      supabase.from("finance_subscriptions").select("id, monthly_amount_cents").eq("status", "active"),
-      supabase.from("finance_subscriptions").select("id").eq("status", "canceled"),
-      supabase.from("finance_subscriptions").select("monthly_amount_cents").eq("status", "active"),
+      admin.from("finance_subscriptions").select("id, monthly_amount_cents").eq("status", "active"),
+      admin.from("finance_subscriptions").select("id").eq("status", "canceled"),
+      admin.from("finance_subscriptions").select("monthly_amount_cents").eq("status", "active"),
     ]);
 
     const active = (activeRes.data ?? []).length;

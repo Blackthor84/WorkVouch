@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
@@ -14,16 +18,14 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const admin = await requireSuperAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireSuperAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
   try {
     const { id: targetUserId } = await params;
     if (!targetUserId) {
       return NextResponse.json({ success: false, error: "Missing user id" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: oldRow } = await supabase
+    const { data: oldRow } = await admin
       .from("profiles")
       .select("id, full_name, email, role")
       .eq("id", targetUserId)
@@ -33,7 +35,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     }
 
-    const { error } = await supabase.from("profiles").delete().eq("id", targetUserId);
+    const { error } = await admin.from("profiles").delete().eq("id", targetUserId);
 
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -41,7 +43,7 @@ export async function DELETE(
 
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await insertAdminAuditLog({
-      adminId: admin.authUserId,
+      adminId: adminSession.authUserId,
       targetUserId,
       action: "hard_delete",
       oldValue: oldRow as Record<string, unknown>,

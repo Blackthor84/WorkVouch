@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/verification/invite
  * Create a coworker verification invite. Generates secure token and returns invite link.
@@ -7,7 +11,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { randomBytes } from "crypto";
 
 export const runtime = "nodejs";
@@ -60,13 +64,9 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-
-  const supabase = getSupabaseServer();
-  const sb = supabase as any;
-
   // Rate limit: prevent invite spam. Max 10 invites per candidate per 24h.
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const { count, error: countError } = await sb
+  const { count, error: countError } = await admin
     .from("verification_invites")
     .select("id", { count: "exact", head: true })
     .eq("candidate_id", candidateId)
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
   const now = new Date();
   const expiresAt = new Date(now.getTime() + INVITE_EXPIRATION_HOURS * 60 * 60 * 1000);
 
-  const { error } = await sb.from("verification_invites").insert({
+  const { error } = await admin.from("verification_invites").insert({
     token,
     candidate_id: candidateId,
     email,

@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * Simulation Lab: session control. Admin/superadmin only.
  * Start, end, extend session. Never affects production users.
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import {
   requireSimulationLabAdmin,
   SIMULATION_SESSION_DEFAULT_MINUTES,
@@ -18,9 +22,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     await requireSimulationLabAdmin();
-    const supabase = getSupabaseServer();
-    const { data: sessions, error } = await supabase
-      .from("simulation_sessions")
+    const { data: sessions, error } = await admin.from("simulation_sessions")
       .select("id, created_by_admin_id, created_at, start_at, expires_at, is_active, auto_delete, status")
       .order("created_at", { ascending: false })
       .limit(25);
@@ -64,10 +66,7 @@ export async function POST(req: NextRequest) {
     const autoDelete = typeof body.autoDelete === "boolean" ? body.autoDelete : true;
     const startTs = new Date(startAt).getTime();
     const status = startTs > now ? "scheduled" : "running";
-
-    const supabase = getSupabaseServer();
-    const { data: session, error } = await supabase
-      .from("simulation_sessions")
+    const { data: session, error } = await admin.from("simulation_sessions")
       .insert({
         created_by_admin_id: adminId,
         start_at: startAt,
@@ -98,18 +97,14 @@ export async function PATCH(req: NextRequest) {
       SIMULATION_MAX_EXTEND_MINUTES
     );
     if (!sessionId) return NextResponse.json({ error: "sessionId required" }, { status: 400 });
-
-    const supabase = getSupabaseServer();
-    const { data: row } = await supabase
-      .from("simulation_sessions")
+    const { data: row } = await admin.from("simulation_sessions")
       .select("expires_at")
       .eq("id", sessionId)
       .single();
     if (!row) return NextResponse.json({ error: "Session not found" }, { status: 404 });
     const current = new Date(row.expires_at).getTime();
     const newExpires = new Date(Math.max(Date.now(), current) + extendMinutes * 60 * 1000).toISOString();
-    const { data: session, error } = await supabase
-      .from("simulation_sessions")
+    const { data: session, error } = await admin.from("simulation_sessions")
       .update({ expires_at: newExpires })
       .eq("id", sessionId)
       .select("id, start_at, expires_at, is_active, auto_delete, status")
@@ -130,10 +125,7 @@ export async function DELETE(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const sessionId = searchParams.get("sessionId");
     if (!sessionId) return NextResponse.json({ error: "sessionId required" }, { status: 400 });
-
-    const supabase = getSupabaseServer();
-    const { error } = await supabase
-      .from("simulation_sessions")
+    const { error } = await admin.from("simulation_sessions")
       .update({ is_active: false })
       .eq("id", sessionId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

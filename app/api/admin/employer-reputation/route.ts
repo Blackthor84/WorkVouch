@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/employer-reputation?employer_id=...
  * Return employer_reputation_snapshots row for an employer. Admin only.
@@ -5,8 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminSupabase } from "@/lib/auth/requireAdminSupabase";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -18,9 +21,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const employerId = searchParams.get("employer_id");
     if (!employerId) return NextResponse.json({ error: "employer_id required" }, { status: 400 });
-
-    const sb = getSupabaseServer() as any;
-    const { data: snapshot, error } = await sb
+    const { data: snapshot, error } = await admin
       .from("employer_reputation_snapshots")
       .select("*")
       .eq("employer_id", employerId)

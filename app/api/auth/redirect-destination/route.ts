@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPostLoginRedirect } from "@/lib/auth/getPostLoginRedirect";
@@ -24,8 +25,7 @@ export async function GET(request: Request) {
     }
 
     const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase
-      .from("profiles")
+    const { data, error } = await admin.from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();

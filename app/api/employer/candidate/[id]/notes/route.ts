@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
@@ -35,8 +36,7 @@ export async function GET(
     }
 
     const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase
-      .from("saved_candidates")
+    const { data, error } = await admin.from("saved_candidates")
       .select("notes")
       .eq("employer_id", user.id)
       .eq("candidate_id", candidateId)
@@ -81,8 +81,7 @@ export async function PATCH(
     }
 
     const supabase = await createServerSupabaseClient();
-    const { error } = await supabase
-      .from("saved_candidates")
+    const { error } = await admin.from("saved_candidates")
       .upsert(
         {
           employer_id: user.id,

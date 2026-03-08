@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 
@@ -21,8 +25,7 @@ export async function PATCH(
     const { id: employerId } = await params;
     if (!employerId) return NextResponse.json({ success: false, error: "Missing employer id" }, { status: 400 });
     const body = await req.json().catch(() => ({})) as Record<string, unknown>;
-    const supabase = getSupabaseServer();
-    const { data: employer } = await supabase.from("employer_accounts").select("id, user_id").eq("id", employerId).single();
+    const { data: employer } = await admin.from("employer_accounts").select("id, user_id").eq("id", employerId).single();
     if (!employer) return NextResponse.json({ success: false, error: "Employer not found" }, { status: 404 });
     const updates: Record<string, unknown> = {};
     if (body.plan_tier !== undefined) updates.plan_tier = body.plan_tier;
@@ -31,7 +34,7 @@ export async function PATCH(
     if (body.reports_used !== undefined) updates.reports_used = Number(body.reports_used);
     if (body.searches_used !== undefined) updates.searches_used = Number(body.searches_used);
     if (Object.keys(updates).length === 0) return NextResponse.json({ success: true });
-    const { error } = await supabase.from("employer_accounts").update(updates).eq("id", employerId);
+    const { error } = await admin.from("employer_accounts").update(updates).eq("id", employerId);
     if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     return NextResponse.json({ success: true });
   } catch (e) {

@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/analytics/stream — Server-Sent Events for real-time analytics.
  * Admin-only. Streams active visitors, recent page views, sandbox vs prod. Audited once on connect.
@@ -6,7 +10,7 @@
 import { NextRequest } from "next/server";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { logAdminViewedAnalytics } from "@/lib/admin/analytics-audit";
 
 export const dynamic = "force-dynamic";
@@ -15,12 +19,12 @@ export const runtime = "nodejs";
 const INTERVAL_MS = 4000;
 
 export async function GET(req: NextRequest) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
 
   try {
     await logAdminViewedAnalytics(
-      { userId: admin.authUserId, authUserId: admin.authUserId, email: admin.user?.email ?? null, role: admin.isSuperAdmin ? "super_admin" : "admin" },
+      { userId: adminSession.authUserId, authUserId: adminSession.authUserId, email: adminSession.user?.email ?? null, role: adminSession.isSuperAdmin ? "super_admin" : "admin" },
       req,
       "realtime-stream"
     );
@@ -40,13 +44,13 @@ export async function GET(req: NextRequest) {
       const tick = async () => {
         try {
           const since = fiveMinAgo();
-          let sessQ = getSupabaseServer().from("site_sessions").select("id").gte("last_seen_at", since).limit(5000);
+          let sessQ = admin.from("site_sessions").select("id").gte("last_seen_at", since).limit(5000);
           if (envFilter === "sandbox") sessQ = sessQ.eq("is_sandbox", true);
           if (envFilter === "production") sessQ = sessQ.eq("is_sandbox", false);
           const { data: activeRows } = await sessQ;
           const active = activeRows?.length ?? 0;
 
-          let pvQ = getSupabaseServer()
+          let pvQ = admin
             .from("site_page_views")
             .select("id, path, is_sandbox, created_at")
             .order("created_at", { ascending: false })
@@ -56,8 +60,8 @@ export async function GET(req: NextRequest) {
           const { data: recentViews } = await pvQ;
 
           const [sandboxRes, prodRes] = await Promise.all([
-            getSupabaseServer().from("site_sessions").select("id").gte("last_seen_at", since).eq("is_sandbox", true).limit(5000),
-            getSupabaseServer().from("site_sessions").select("id").gte("last_seen_at", since).eq("is_sandbox", false).limit(5000),
+            admin.from("site_sessions").select("id").gte("last_seen_at", since).eq("is_sandbox", true).limit(5000),
+            admin.from("site_sessions").select("id").gte("last_seen_at", since).eq("is_sandbox", false).limit(5000),
           ]);
           const sandbox = sandboxRes.data?.length ?? 0;
           const prod = prodRes.data?.length ?? 0;

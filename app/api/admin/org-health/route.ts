@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/org-health
  * Super admin only. Returns silent org health (score, band, top signals) for all orgs.
@@ -7,7 +11,7 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSuperAdminForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 
@@ -28,10 +32,7 @@ function topSignals(signals: Record<string, unknown>, max = 5): Record<string, u
 export async function GET() {
   const _session = await requireSuperAdminForApi();
   if (!_session) return adminForbiddenResponse();
-
-  const supabase = getSupabaseServer();
-  const { data: rows, error } = await supabase
-    .from("organization_health")
+  const { data: rows, error } = await admin.from("organization_health")
     .select("organization_id, score, band, signals, last_calculated_at");
 
   if (error) {
@@ -43,8 +44,7 @@ export async function GET() {
     return NextResponse.json({ orgs: [] });
   }
 
-  const { data: orgs } = await supabase
-    .from("organizations")
+  const { data: orgs } = await admin.from("organizations")
     .select("id, plan_type")
     .in("id", orgIds);
 

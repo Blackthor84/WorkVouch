@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSandboxV2Admin } from "@/lib/sandbox/adminAuth";
 import { runSandboxIntelligence } from "@/lib/sandbox/enterpriseEngine";
 import { calculateSandboxMetrics } from "@/lib/sandbox/metricsAggregator";
@@ -22,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     if (!sandbox_id) return NextResponse.json({ error: "Missing sandbox_id" }, { status: 400 });
 
-    const { data, error } = await getSupabaseServer()
+    const { data, error } = await admin
       .from("sandbox_ads")
       .insert({ sandbox_id, employer_id: employer_id ?? null, impressions, clicks, spend, roi })
       .select("id, impressions, clicks, spend, roi")

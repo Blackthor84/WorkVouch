@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -19,8 +20,7 @@ export async function GET(req: NextRequest) {
     if (!sandboxId) return NextResponse.json({ error: "Missing sandboxId" }, { status: 400 });
 
     const supabase = getServiceRoleClient();
-    const { data: records } = await supabase
-      .from("sandbox_employment_records")
+    const { data: records } = await admin.from("sandbox_employment_records")
       .select("id, employee_id")
       .eq("sandbox_id", sandboxId);
     const list = Array.isArray(records) ? records : [];
@@ -44,8 +44,7 @@ export async function GET(req: NextRequest) {
 
     if (list.length > 0) {
       const employeeIds = [...new Set(list.map((r: { employee_id: string }) => r.employee_id))];
-      const { data: snapshots } = await supabase
-        .from("sandbox_intelligence_outputs")
+      const { data: snapshots } = await admin.from("sandbox_intelligence_outputs")
         .select("employee_id, profile_strength")
         .eq("sandbox_id", sandboxId)
         .in("employee_id", employeeIds);

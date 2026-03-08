@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireAdminRoute } from "@/lib/auth/requireAdminRoute";
 
@@ -40,8 +41,7 @@ export async function PATCH(
     );
   }
 
-  const { error } = await supabase
-    .from("employer_claim_requests")
+  const { error } = await admin.from("employer_claim_requests")
     .update({
       status: action === "approve" ? "approved" : "rejected",
       reviewed_by: user.id,

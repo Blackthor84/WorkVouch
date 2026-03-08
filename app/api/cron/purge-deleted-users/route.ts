@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/cron/purge-deleted-users
  * Purge users soft-deleted 30+ days ago. Protected by CRON_SECRET.
@@ -8,8 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
@@ -25,12 +28,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const sb = getSupabaseServer();
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 30);
     const cutoffIso = cutoff.toISOString();
 
-    const { data: rows, error: selectError } = await sb
+    const { data: rows, error: selectError } = await admin
       .from("profiles")
       .select("id")
       .eq("is_deleted", true)
@@ -50,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     for (const id of toPurge) {
       try {
-        const { error } = await sb.auth.admin.deleteUser(id);
+        const { error } = await admin.auth.admin.deleteUser(id);
         if (error) {
           console.error("Purge deleteUser error for", id, error);
           continue;

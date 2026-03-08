@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/match-employment
  * Creates employment record (if body has user_id, company_name, etc.).
@@ -7,7 +11,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/auth/getUser";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -33,8 +37,6 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const sb = getSupabaseServer() as any;
-
     let employmentRecordId: string;
 
     if (body.employment_record_id) {
@@ -43,7 +45,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Invalid employment_record_id" }, { status: 400 });
       }
       employmentRecordId = parsed.data.employment_record_id;
-      const { data: rec, error: fetchErr } = await sb
+      const { data: rec, error: fetchErr } = await admin
         .from("employment_records")
         .select("id, user_id")
         .eq("id", employmentRecordId)
@@ -72,7 +74,7 @@ export async function POST(req: NextRequest) {
       }
 
       const company_normalized = company_name.trim().toLowerCase();
-      const { data: inserted, error: insertErr } = await sb
+      const { data: inserted, error: insertErr } = await admin
         .from("employment_records")
         .insert({
           user_id,
@@ -101,7 +103,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const { data: myRecord } = await sb
+    const { data: myRecord } = await admin
       .from("employment_records")
       .select("id, user_id, company_normalized, start_date, end_date")
       .eq("id", employmentRecordId)

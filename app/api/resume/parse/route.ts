@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/resume/parse
  * Receives uploaded file path, fetches from Supabase (service role), extracts text,
@@ -7,7 +11,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/auth/getUser";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { parseResumeAndUpdateRecord } from "@/lib/resume/parseAndStore";
 import { env } from "@/lib/env";
 import OpenAI from "openai";
@@ -108,13 +112,9 @@ export async function POST(req: NextRequest) {
     if (!path.startsWith(userId + "/") && !path.startsWith("sandbox/")) {
       if (path.includes("..")) return NextResponse.json({ error: "Invalid file path" }, { status: 403 });
     }
-
-    const sb = getSupabaseServer();
-
-
     const todayStart = new Date();
     todayStart.setUTCHours(0, 0, 0, 0);
-    const { count } = await sb
+    const { count } = await admin
       .from("audit_logs")
       .select("*", { count: "exact", head: true })
       .eq("entity_type", PARSE_ENTITY_TYPE)
@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: fileData, error: downloadError } = await sb.storage
+    const { data: fileData, error: downloadError } = await admin.storage
       .from(BUCKET)
       .download(path);
 
@@ -224,7 +224,7 @@ ${rawText.slice(0, 12000)}`;
     const employment = result.data.employment;
     const normalized = normalizeEmployment(employment);
 
-    await sb.from("audit_logs").insert({
+    await admin.from("audit_logs").insert({
       entity_type: PARSE_ENTITY_TYPE,
       entity_id: userId,
       changed_by: userId,

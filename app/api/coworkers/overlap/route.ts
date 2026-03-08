@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -12,7 +13,7 @@ export async function GET() {
     }
 
     const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase.rpc("get_coworker_overlaps", {
+    const { data, error } = await admin.rpc("get_coworker_overlaps", {
       requester_id: user.id,
     });
 

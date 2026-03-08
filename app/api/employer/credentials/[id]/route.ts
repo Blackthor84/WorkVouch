@@ -1,8 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, hasRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { updateCredentialStatus } from "@/lib/credentials/statusUpdater";
 import { generateComplianceAlerts } from "@/lib/compliance/generateAlerts";
 
@@ -22,13 +26,12 @@ export async function PATCH(
     if (!isEmployer) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id: credentialId } = await params;
-    const sb = getSupabaseServer() as any;
-    const { data: ea } = await sb.from("employer_accounts").select("id").eq("user_id", user.id);
+    const { data: ea } = await admin.from("employer_accounts").select("id").eq("user_id", user.id);
     const account = Array.isArray(ea) ? ea[0] : ea;
     if (!account?.id) return NextResponse.json({ error: "Employer not found" }, { status: 404 });
     const employerId = (account as { id: string }).id;
 
-    const { data: existing, error: fetchError } = await sb
+    const { data: existing, error: fetchError } = await admin
       .from("professional_credentials")
       .select("id, employer_id")
       .eq("id", credentialId)
@@ -53,7 +56,7 @@ export async function PATCH(
       return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
     }
 
-    const { error: updateError } = await sb
+    const { error: updateError } = await admin
       .from("professional_credentials")
       .update(updates)
       .eq("id", credentialId);

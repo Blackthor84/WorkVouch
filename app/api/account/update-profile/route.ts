@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
     }
 
     const supabase = getServiceRoleClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
 
     const { error: updateError } = await supabaseAny
       .from("profiles")

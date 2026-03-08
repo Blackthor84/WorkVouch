@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireAdminForApi, assertAdminCanModify } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
@@ -13,17 +17,14 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
   try {
     const { id: targetUserId } = await params;
     if (!targetUserId) {
       return NextResponse.json({ success: false, error: "Missing user id" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: oldRow } = await supabase
-      .from("profiles")
+    const { data: oldRow } = await admin.from("profiles")
       .select("id, status, deleted_at, role")
       .eq("id", targetUserId)
       .single();
@@ -32,11 +33,10 @@ export async function POST(
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     }
     const targetRole = (oldRow as { role?: string }).role ?? "user";
-    assertAdminCanModify(admin, targetUserId, targetRole);
+    assertAdminCanModify(adminSession, targetUserId, targetRole);
 
     const now = new Date().toISOString();
-    const { error } = await supabase
-      .from("profiles")
+    const { error } = await admin.from("profiles")
       .update({
         status: "deleted",
         deleted_at: now,
@@ -50,7 +50,7 @@ export async function POST(
 
     const { ipAddress, userAgent } = getAuditRequestMeta(req);
     await insertAdminAuditLog({
-      adminId: admin.authUserId,
+      adminId: adminSession.authUserId,
       targetUserId,
       action: "soft_delete",
       oldValue: oldRow as Record<string, unknown>,

@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getCandidateProfileForEmployer } from "@/lib/actions/employer/candidate-search";
 import { getEffectiveUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -25,8 +26,7 @@ export async function GET(req: NextRequest) {
   }
 
   const supabase = await createServerSupabaseClient();
-  const { data: profile } = await supabase
-    .from("profiles")
+  const { data: profile } = await admin.from("profiles")
     .select("role")
     .eq("id", user.id)
     .single();

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -16,8 +17,7 @@ export async function GET(req: Request) {
 
     const supabase = getServiceRoleClient();
 
-    const { data, error } = await supabase
-      .from("sandbox_features")
+    const { data, error } = await admin.from("sandbox_features")
       .select("*")
       .eq("sandbox_id", sandboxId);
 

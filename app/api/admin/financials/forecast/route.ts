@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/financials/forecast — 12-month MRR projection (trend-based).
  * Access: finance | admin | board. Audit VIEW_FORECAST, rate limit 60/min. Aggregated only.
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireFinanceForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { logAudit } from "@/lib/soc2-audit";
 import { withRateLimit } from "@/lib/rateLimit";
 
@@ -34,9 +38,7 @@ export async function GET(req: NextRequest) {
   });
 
   try {
-    const supabase = getSupabaseServer();
-    const { data: activeSubsData } = await supabase
-      .from("finance_subscriptions")
+    const { data: activeSubsData } = await admin.from("finance_subscriptions")
       .select("monthly_amount_cents")
       .eq("status", "active");
 

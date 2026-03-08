@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = addJobSchema.parse(body);
 
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
 
     const title = data.jobTitle;
     const start_date = data.startDate;

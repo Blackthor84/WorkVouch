@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/intelligence-dashboard?userId=...&employerId=...
  * Admin/superadmin only. Returns full intelligence breakdown: snapshot, risk, network, team fit, hiring, model version, last calculated.
@@ -7,7 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
 import { isAdmin } from "@/lib/roles";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { calculateUnifiedIntelligence } from "@/lib/intelligence/unified-intelligence";
 import { getIndustryBehavioralBaseline, getEmployerBehavioralBaseline, getHybridBehavioralBaseline } from "@/lib/intelligence/hybridBehavioralModel";
 import { resolveIndustryKey } from "@/lib/industry-normalization";
@@ -30,8 +34,6 @@ export async function GET(req: NextRequest) {
     }
 
     const unified = await calculateUnifiedIntelligence(userId, employerId ?? null);
-    const admin = getSupabaseServer();
-
     const [snapshotRes, riskRes, networkRes, teamRes, hiringRes, reviewIntelRes, behavioralVectorRes] =
       await Promise.all([
         admin
@@ -72,13 +74,13 @@ export async function GET(req: NextRequest) {
               .limit(1)
               .maybeSingle()
           : Promise.resolve({ data: null }),
-        supabase
+        admin
           .from("review_intelligence")
           .select("*")
           .eq("candidate_id", userId)
           .order("created_at", { ascending: false })
           .limit(50),
-        supabase
+        admin
           .from("behavioral_profile_vector")
           .select("*")
           .eq("candidate_id", userId)

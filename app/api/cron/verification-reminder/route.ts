@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * Cron: send SMS reminders for pending verification requests older than 24h.
  * Call with Authorization: Bearer CRON_SECRET or x-cron-secret header.
@@ -5,7 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { sendVerificationSms } from "@/lib/sms/sendSms";
 
 export const runtime = "nodejs";
@@ -22,12 +26,9 @@ export async function GET(req: NextRequest) {
   if (!cronSecret || secret !== cronSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const supabase = getSupabaseServer();
   const since = new Date(Date.now() - REMINDER_AGE_HOURS * 60 * 60 * 1000).toISOString();
 
-  const { data: rows, error } = await supabase
-    .from("verification_requests")
+  const { data: rows, error } = await admin.from("verification_requests")
     .select("id, phone_number, response_token, requester_profile_id, reminder_sent_at")
     .eq("status", "pending")
     .not("phone_number", "is", null)
@@ -60,8 +61,7 @@ export async function GET(req: NextRequest) {
       "WorkVouch"
     );
     if (result.ok) {
-      await supabase
-        .from("verification_requests")
+      await admin.from("verification_requests")
         .update({ reminder_sent_at: new Date().toISOString() })
         .eq("id", row.id);
       sent++;

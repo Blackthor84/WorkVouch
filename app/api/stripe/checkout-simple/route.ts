@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { supabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { stripe } from "@/lib/stripe";
 
 export async function POST(req: NextRequest) {
@@ -12,11 +16,8 @@ export async function POST(req: NextRequest) {
         { status: 500 },
       );
     }
-
-    const supabase = supabaseServer;
-
     // Example: fetch user data if needed
-    // const { data, error } = await supabase.from('users').select('*')
+    // const { data, error } = await admin.from('users').select('*')
     // if (error) throw error
 
     // Read JSON payload from frontend

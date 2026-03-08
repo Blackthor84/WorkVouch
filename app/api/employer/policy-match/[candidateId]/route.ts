@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/employer/policy-match/[candidateId]
  * Returns trust policy match results for the candidate against all of the employer's policies.
@@ -8,7 +12,7 @@ import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { evaluateTrustPolicy } from "@/lib/trust/policy";
 
 export const runtime = "nodejs";
@@ -37,10 +41,7 @@ export async function GET(
     if (!candidateId) {
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
-
-    const supabase = getSupabaseServer();
-    const { data: policies, error: listError } = await supabase
-      .from("trust_policies")
+    const { data: policies, error: listError } = await admin.from("trust_policies")
       .select("id")
       .eq("employer_id", user.id);
 
@@ -49,7 +50,7 @@ export async function GET(
     }
     const list = (policies ?? []) as { id: string }[];
     const results = await Promise.all(
-      list.map((p) => evaluateTrustPolicy(candidateId, p.id, supabase))
+      list.map((p) => evaluateTrustPolicy(candidateId, p.id, admin))
     );
     return NextResponse.json({ matches: results });
   } catch (e) {

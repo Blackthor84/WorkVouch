@@ -1,10 +1,14 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET: list platform_verticals (admin only).
  * PATCH: toggle enabled for a vertical by name (admin only).
  */
 
 import { getCurrentUser, getCurrentUserRole } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { isAdmin } from "@/lib/roles";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -24,9 +28,7 @@ export async function GET() {
   if (!isAdmin(role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   try {
-    const supabase = getSupabaseServer();
-    const { data: rows, error } = await supabase
-      .from("platform_verticals")
+    const { data: rows, error } = await admin.from("platform_verticals")
       .select("id, name, enabled, created_at")
       .order("name");
 
@@ -85,16 +87,13 @@ export async function PATCH(req: NextRequest) {
   }
 
   try {
-    const supabase = getSupabaseServer();
-    const { data: existing } = await supabase
-      .from("platform_verticals")
+    const { data: existing } = await admin.from("platform_verticals")
       .select("id")
       .eq("name", name)
       .maybeSingle();
 
     if (existing?.id) {
-      const { error: updateError } = await supabase
-        .from("platform_verticals")
+      const { error: updateError } = await admin.from("platform_verticals")
         .update({ enabled })
         .eq("name", name);
       if (updateError) {
@@ -102,8 +101,7 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: updateError.message }, { status: 500 });
       }
     } else {
-      const { error: insertError } = await supabase
-        .from("platform_verticals")
+      const { error: insertError } = await admin.from("platform_verticals")
         .insert({ name, enabled });
       if (insertError) {
         console.error("vertical-control PATCH insert error:", insertError);

@@ -1,9 +1,13 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireSandboxOrOverrideEnvironment } from "@/lib/server/requireSandboxOrOverride";
 
 export const dynamic = "force-dynamic";
@@ -11,19 +15,18 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   const envCheck = await requireSandboxOrOverrideEnvironment();
   if (!envCheck.allowed) return envCheck.response;
-  const admin = await getAdminContext(req);
-  if (!admin.isAdmin) return adminForbiddenResponse();
+  const adminContext = await getAdminContext(req);
+  if (!adminContext.isAdmin) return adminForbiddenResponse();
   try {
     const body = (await req.json().catch(() => ({}))) as { orgId?: string; scope?: string };
     const orgId = body.orgId;
     const scope = body.scope ?? "usage";
     if (!orgId || typeof orgId !== "string") return NextResponse.json({ success: false, error: "orgId required" }, { status: 400 });
-    const supabase = getSupabaseServer();
-    const { data: org } = await supabase.from("organizations").select("id, mode").eq("id", orgId).single();
+    const { data: org } = await admin.from("organizations").select("id, mode").eq("id", orgId).single();
     if (!org || (org as { mode?: string }).mode !== "sandbox") return NextResponse.json({ success: false, error: "Sandbox org not found" }, { status: 404 });
     if (scope === "usage") {
       const month = new Date().toISOString().slice(0, 7);
-      await supabase.from("organization_usage").delete().eq("organization_id", orgId).eq("month", month);
+      await admin.from("organization_usage").delete().eq("organization_id", orgId).eq("month", month);
     }
     return NextResponse.json({ success: true, message: "Sandbox reset" });
   } catch (e) {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -17,12 +18,10 @@ export async function GET(req: NextRequest) {
     console.log("DASHBOARD QUERY sandboxId:", sandboxId);
 
     const supabase = getServiceRoleClient();
-    const { data: employers, error: employersError } = await supabase
-      .from("sandbox_employers")
+    const { data: employers, error: employersError } = await admin.from("sandbox_employers")
       .select("*")
       .eq("sandbox_id", sandboxId);
-    const { data: employees, error: employeesError } = await supabase
-      .from("sandbox_employees")
+    const { data: employees, error: employeesError } = await admin.from("sandbox_employees")
       .select("*")
       .eq("sandbox_id", sandboxId);
     console.log("DASHBOARD employers:", employers);
@@ -31,15 +30,15 @@ export async function GET(req: NextRequest) {
     const employeesList = employees ?? [];
 
     const [sessionRes, metricsRes, employersRes, employeesRes, recordsRes, reviewsRes, intelRes, revenueRes, adsRes] = await Promise.all([
-      supabase.from("sandbox_sessions").select("id, name, starts_at, ends_at, status").eq("id", sandboxId).maybeSingle(),
-      supabase.from("sandbox_metrics").select("*").eq("sandbox_id", sandboxId).maybeSingle(),
-      supabase.from("sandbox_employers").select("id, company_name, industry, plan_tier").eq("sandbox_id", sandboxId),
-      supabase.from("sandbox_employees").select("id, full_name, industry").eq("sandbox_id", sandboxId),
-      supabase.from("sandbox_employment_records").select("id").eq("sandbox_id", sandboxId),
-      supabase.from("sandbox_peer_reviews").select("id, rating, sentiment_score").eq("sandbox_id", sandboxId),
-      supabase.from("sandbox_intelligence_outputs").select("employee_id, profile_strength, career_health, risk_index, team_fit, hiring_confidence, network_density").eq("sandbox_id", sandboxId),
-      supabase.from("sandbox_revenue").select("mrr, churn_rate").eq("sandbox_id", sandboxId),
-      supabase.from("sandbox_ads").select("impressions, clicks, spend, roi").eq("sandbox_id", sandboxId),
+      admin.from("sandbox_sessions").select("id, name, starts_at, ends_at, status").eq("id", sandboxId).maybeSingle(),
+      admin.from("sandbox_metrics").select("*").eq("sandbox_id", sandboxId).maybeSingle(),
+      admin.from("sandbox_employers").select("id, company_name, industry, plan_tier").eq("sandbox_id", sandboxId),
+      admin.from("sandbox_employees").select("id, full_name, industry").eq("sandbox_id", sandboxId),
+      admin.from("sandbox_employment_records").select("id").eq("sandbox_id", sandboxId),
+      admin.from("sandbox_peer_reviews").select("id, rating, sentiment_score").eq("sandbox_id", sandboxId),
+      admin.from("sandbox_intelligence_outputs").select("employee_id, profile_strength, career_health, risk_index, team_fit, hiring_confidence, network_density").eq("sandbox_id", sandboxId),
+      admin.from("sandbox_revenue").select("mrr, churn_rate").eq("sandbox_id", sandboxId),
+      admin.from("sandbox_ads").select("impressions, clicks, spend, roi").eq("sandbox_id", sandboxId),
     ]);
 
     if (sessionRes.error) {
@@ -56,7 +55,7 @@ export async function GET(req: NextRequest) {
     let metricsRow = metricsRes.data;
     if (!metricsRow && !metricsRes.error) {
       await calculateSandboxMetrics(sandboxId);
-      const { data: refreshed } = await supabase.from("sandbox_metrics").select("*").eq("sandbox_id", sandboxId).maybeSingle();
+      const { data: refreshed } = await admin.from("sandbox_metrics").select("*").eq("sandbox_id", sandboxId).maybeSingle();
       metricsRow = refreshed ?? null;
     }
 

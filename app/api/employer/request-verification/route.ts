@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -7,7 +11,7 @@ import { canRequestVerification } from "@/lib/middleware/plan-enforcement-supaba
 import { incrementUsage } from "@/lib/usage";
 import { calculateEnterpriseMetrics } from "@/lib/enterpriseEngine";
 import { logAdminAction } from "@/lib/audit";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { z } from "zod";
 
 const requestVerificationSchema = z.object({
@@ -63,7 +67,7 @@ export async function POST(req: NextRequest) {
     };
 
     // Get employer's company name and plan tier
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
     const { data: employerAccount, error: employerError } = await supabaseAny
       .from("employer_accounts")
       .select("id, company_name, plan_tier, reports_used, searches_used, seats_used, stripe_report_overage_item_id, stripe_search_overage_item_id, stripe_seat_overage_item_id")
@@ -152,7 +156,7 @@ export async function POST(req: NextRequest) {
       if (jobUserId) {
         const metrics = await calculateEnterpriseMetrics(jobUserId, employerAccountTyped.id);
         if (metrics) {
-          const adminSupabase = getSupabaseServer() as any;
+          const adminSupabase = admin as any;
           await adminSupabase.from("enterprise_metrics").insert({
             user_id: jobUserId,
             employer_id: employerAccountTyped.id,
@@ -175,7 +179,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Update job history to make it visible and set status to pending
-    await (supabase as any)
+    await admin
       .from("jobs")
       .update({
         is_visible_to_employer: true,

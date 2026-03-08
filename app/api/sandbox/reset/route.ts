@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { sandboxAdminGuard } from "@/lib/server/sandboxGuard";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
@@ -21,11 +22,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const supabase = getServiceRoleClient();
-    await supabase.from("abuse_signals").delete().eq("is_sandbox", true);
-    const { data: sessions } = await supabase.from("sandbox_sessions").select("id");
+    await admin.from("abuse_signals").delete().eq("is_sandbox", true);
+    const { data: sessions } = await admin.from("sandbox_sessions").select("id");
     const ids = (sessions ?? []) as { id: string }[];
     if (ids.length > 0) {
-      const { error } = await supabase.from("sandbox_sessions").delete().in("id", ids.map((s) => s.id));
+      const { error } = await admin.from("sandbox_sessions").delete().in("id", ids.map((s) => s.id));
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }

@@ -1,8 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { calculateUserScore } from "@/lib/scoring/engine";
 import { insertAdminAuditLog, getClientIpFromHeaders } from "@/lib/admin/audit";
@@ -22,8 +26,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const admin = await isAdmin();
-    if (!admin) {
+    const isAdminUser = await isAdmin();
+    if (!isAdminUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -37,7 +41,7 @@ export async function POST(req: NextRequest) {
     type EmployerDisputeUpdate = { status?: string };
 
     // Get dispute to find job_id
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
     const { data: dispute, error: disputeError } = await supabaseAny
       .from("employer_disputes")
       .select("id, job_id")
@@ -67,7 +71,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Update job history verification status
-    const { error: jobUpdateError } = await (supabase as any)
+    const { error: jobUpdateError } = await admin
       .from("jobs")
       .update({
         verification_status: data.verificationStatus,
@@ -110,7 +114,7 @@ export async function POST(req: NextRequest) {
           console.error("[API][resolve-dispute] triggerProfileIntelligence", { userId, err });
         }
         const score = data.resolution === "resolved" ? 100 : 0;
-        const adminSupabase = getSupabaseServer() as any;
+        const adminSupabase = admin as any;
         const { error: disputeScoreErr } = await adminSupabase.from("employer_disputes").update({ dispute_resolution_score: score }).eq("id", data.disputeId);
         if (disputeScoreErr) console.error("[API][resolve-dispute] employer_disputes dispute_resolution_score", { err: disputeScoreErr });
         try {

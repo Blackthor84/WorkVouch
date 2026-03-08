@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * POST /api/admin/appeal/[id]/review
  * Review an appeal. Only admins. Body: { status: "approved" | "denied", notes?: string }
@@ -7,7 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { logAudit, onDisputeResolvedAffectsTrust, refreshUserDisputeTransparency } from "@/lib/dispute-audit";
 import { z } from "zod";
 
@@ -27,8 +31,8 @@ export async function POST(
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const admin = await isAdmin();
-    if (!admin) {
+    const isAdminUser = await isAdmin();
+    if (!isAdminUser) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -38,10 +42,7 @@ export async function POST(
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 });
     }
-
-    const sb = getSupabaseServer() as any;
-
-    const { data: appeal, error: appealErr } = await sb
+    const { data: appeal, error: appealErr } = await admin
       .from("appeals")
       .select("id, dispute_id, user_id, status")
       .eq("id", appealId)
@@ -55,7 +56,7 @@ export async function POST(
       return NextResponse.json({ error: "Appeal already reviewed" }, { status: 409 });
     }
 
-    const { error: updateErr } = await sb
+    const { error: updateErr } = await admin
       .from("appeals")
       .update({
         status: parsed.data.status,
@@ -69,7 +70,7 @@ export async function POST(
       return NextResponse.json({ error: "Failed to update appeal" }, { status: 500 });
     }
 
-    const { data: dispute } = await sb
+    const { data: dispute } = await admin
       .from("disputes")
       .select("id, user_id, dispute_type, status")
       .eq("id", appeal.dispute_id)
@@ -94,7 +95,7 @@ export async function POST(
       }
     }
 
-    const { data: updated } = await sb
+    const { data: updated } = await admin
       .from("appeals")
       .select("id, status, reviewed_by, reviewed_at")
       .eq("id", appealId)

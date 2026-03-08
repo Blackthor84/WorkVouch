@@ -1,9 +1,12 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
+import { admin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 
 /**
@@ -21,9 +24,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    const sb = getSupabaseServer() as ReturnType<typeof getSupabaseServer>;
-
-    const { data: row, error } = await sb
+    const { data: row, error } = await admin
       .from("compliance_disputes")
       .select(
         "id, user_id, profile_id, dispute_type, description, status, reviewer_notes, created_at, resolved_at"
@@ -35,7 +36,7 @@ export async function GET(
       return NextResponse.json({ error: "Dispute not found" }, { status: 404 });
     }
 
-    const admin = await isAdmin();
+    const isAdminUser = await isAdmin();
     const isOwn = (row as { user_id: string }).user_id === user.id;
     if (!admin && !isOwn) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });

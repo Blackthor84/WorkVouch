@@ -6,6 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import { getEffectiveUser } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { toDepthBand } from "@/lib/trust/depthBands";
@@ -46,8 +47,7 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { data: rows, error } = await supabase
-    .from("trust_relationships")
+  const { data: rows, error } = await admin.from("trust_relationships")
     .select("source_profile_id, target_profile_id, relationship_type")
     .or(`source_profile_id.eq.${profileId},target_profile_id.eq.${profileId}`);
 

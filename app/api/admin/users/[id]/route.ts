@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireAdminForApi, assertAdminCanModify } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
@@ -23,9 +27,7 @@ export async function GET(
     if (!id) {
       return NextResponse.json({ error: "Missing user id" }, { status: 400 });
     }
-    const supabase = getSupabaseServer();
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
+    const { data: profile, error: profileError } = await admin.from("profiles")
       .select("id, full_name, email, role, industry, status, risk_level, flagged_for_fraud, deleted_at, created_at, restricted_from_employer_search")
       .eq("id", id)
       .single();
@@ -37,8 +39,7 @@ export async function GET(
     const profileRole = (profile as { role?: string }).role;
     const roles = profileRole ? [profileRole] : [];
 
-    const { data: snapshot } = await supabase
-      .from("intelligence_snapshots")
+    const { data: snapshot } = await admin.from("intelligence_snapshots")
       .select("profile_strength")
       .eq("user_id", id)
       .is("is_simulation", null)
@@ -46,8 +47,8 @@ export async function GET(
     const profileStrength = (snapshot as { profile_strength?: number } | null)?.profile_strength ?? null;
 
     const baseData = { ...(profile as unknown as Record<string, unknown>), roles, profile_strength: profileStrength };
-    const admin = await getAdminContext(req);
-    return NextResponse.json(applyScenario(baseData, admin.impersonation));
+    const adminContext = await getAdminContext(req);
+    return NextResponse.json(applyScenario(baseData, adminContext.impersonation));
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Internal error";
     if (msg === "Unauthorized") return NextResponse.json({ error: msg }, { status: 401 });
@@ -61,8 +62,8 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const admin = await requireAdminForApi();
-  if (!admin) return adminForbiddenResponse();
+  const adminSession = await requireAdminForApi();
+  if (!adminSession) return adminForbiddenResponse();
   try {
     const { id: targetUserId } = await params;
     if (!targetUserId) {
@@ -80,10 +81,7 @@ export async function PATCH(
       stripe_subscription_id?: string | null;
       restricted_from_employer_search?: boolean;
     };
-
-    const supabase = getSupabaseServer();
-    const { data: oldRow } = await supabase
-      .from("profiles")
+    const { data: oldRow } = await admin.from("profiles")
       .select("full_name, role, status, risk_level, flagged_for_fraud, industry, restricted_from_employer_search")
       .eq("id", targetUserId)
       .single();
@@ -93,10 +91,10 @@ export async function PATCH(
     }
 
     const targetRole = (oldRow as { role?: string }).role ?? "user";
-    assertAdminCanModify(admin, targetUserId, targetRole, body.role);
+    assertAdminCanModify(adminSession, targetUserId, targetRole, body.role);
 
     // Only superadmin can edit Stripe IDs
-    if ((body.stripe_customer_id !== undefined || body.stripe_subscription_id !== undefined) && !admin.isSuperAdmin) {
+    if ((body.stripe_customer_id !== undefined || body.stripe_subscription_id !== undefined) && !adminSession.isSuperAdmin) {
       return NextResponse.json({ success: false, error: "Forbidden: Only superadmin can edit Stripe IDs" }, { status: 403 });
     }
 
@@ -108,15 +106,14 @@ export async function PATCH(
     if (body.flagged_for_fraud !== undefined) updates.flagged_for_fraud = body.flagged_for_fraud;
     if (body.industry !== undefined) updates.industry = body.industry;
     if (body.restricted_from_employer_search !== undefined) updates.restricted_from_employer_search = body.restricted_from_employer_search;
-    if (admin.isSuperAdmin && body.stripe_customer_id !== undefined) updates.stripe_customer_id = body.stripe_customer_id;
-    if (admin.isSuperAdmin && body.stripe_subscription_id !== undefined) updates.stripe_subscription_id = body.stripe_subscription_id;
+    if (adminSession.isSuperAdmin && body.stripe_customer_id !== undefined) updates.stripe_customer_id = body.stripe_customer_id;
+    if (adminSession.isSuperAdmin && body.stripe_subscription_id !== undefined) updates.stripe_subscription_id = body.stripe_subscription_id;
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ success: true });
     }
 
-    const { error } = await supabase
-      .from("profiles")
+    const { error } = await admin.from("profiles")
       .update(updates)
       .eq("id", targetUserId);
 
@@ -129,7 +126,7 @@ export async function PATCH(
     const oldRecord = oldRow as unknown as Record<string, unknown>;
     const newRecord = { ...oldRecord, ...updates } as Record<string, unknown>;
     await insertAdminAuditLog({
-      adminId: admin.authUserId,
+      adminId: adminSession.authUserId,
       targetUserId,
       action: isRestrictionToggle ? "search_restriction_toggle" : "profile_update",
       oldValue: isRestrictionToggle ? { restricted_from_employer_search: oldRecord.restricted_from_employer_search } : oldRecord,

@@ -1,3 +1,7 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 /**
  * GET /api/admin/financials/export — aggregated financials as JSON (deck-ready).
  * Role-gated: finance | admin. Rate-limited, audit EXPORT_FINANCIALS. No PII.
@@ -6,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireFinanceForApi } from "@/lib/admin/requireAdmin";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { logAudit } from "@/lib/soc2-audit";
 import { withRateLimit } from "@/lib/rateLimit";
 
@@ -32,10 +36,9 @@ export async function GET(req: NextRequest) {
   });
 
   try {
-    const supabase = getSupabaseServer();
     const [paymentsRes, subsRes] = await Promise.all([
-      supabase.from("finance_payments").select("amount_cents"),
-      supabase.from("finance_subscriptions").select("monthly_amount_cents").eq("status", "active"),
+      admin.from("finance_payments").select("amount_cents"),
+      admin.from("finance_subscriptions").select("monthly_amount_cents").eq("status", "active"),
     ]);
 
     type PaymentRow = { amount_cents: number | null };

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { admin } from "@/lib/supabase-admin";
 import {
   getRehireData,
   getTrustScoresForEmployer,
@@ -56,7 +57,7 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = await createServerSupabaseClient();
-    const supabaseAny = supabase as any;
+    const supabaseAny = admin as any;
     type EmployerAccountRow = { id: string; plan_tier: string };
     const { data: employerAccount } = await supabaseAny
       .from("employer_accounts")

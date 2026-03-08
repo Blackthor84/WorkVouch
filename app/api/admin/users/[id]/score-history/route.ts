@@ -1,7 +1,11 @@
+// IMPORTANT:
+// All server routes must use the `admin` Supabase client.
+// Do not use `supabase` in API routes.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { getSupabaseServer } from "@/lib/supabase/admin";
+import { admin } from "@/lib/supabase-admin";
 import { requireAdminForApi } from "@/lib/auth/requireAdminForApi";
 import { adminForbiddenResponse } from "@/lib/api/adminResponses";
 
@@ -17,9 +21,7 @@ export async function GET(
   try {
     const { id: userId } = await params;
     if (!userId) return NextResponse.json({ error: "Missing user id" }, { status: 400 });
-    const supabase = getSupabaseServer();
-    const { data, error } = await supabase
-      .from("intelligence_score_history")
+    const { data, error } = await admin.from("intelligence_score_history")
       .select("id, previous_score, new_score, delta, reason, triggered_by, created_at")
       .eq("user_id", userId)
       .eq("entity_type", "trust_score")

@@ -42,7 +42,7 @@ export async function getProfileData(): Promise<ProfileDataResult | null> {
       sentiment_average: undefined,
     };
 
-    return applyScenario(result, user?.user_metadata?.impersonation) as ProfileDataResult;
+    return applyScenario(result, (user as { user_metadata?: { impersonation?: import("@/types/impersonation").ImpersonationContext } })?.user_metadata?.impersonation) as ProfileDataResult;
   } catch {
     return null;
   }
