@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
       profileMap.set(row.id, { full_name: row.full_name, email: row.email });
     }
 
-    const items = list.map((r: { id: string; employer_id: string; requested_by_user_id: string; status: string; reviewed_by?: string; reviewed_at?: string; created_at: string }) => ({
+    const items = list.map((r: { id: string; employer_id: string; requested_by_user_id: string; status: string; reviewed_by: string | null; reviewed_at: string | null; created_at: string }) => ({
       id: r.id,
       employer_id: r.employer_id,
       requested_by_user_id: r.requested_by_user_id,
