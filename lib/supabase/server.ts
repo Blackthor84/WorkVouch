@@ -1,6 +1,10 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
+/**
+ * Official server client (single place). Uses cookies() for auth; use getUser() for auth, not session.
+ * Next.js App Router: cookies() is async, so createClient is async.
+ */
 export async function createClient() {
   const cookieStore = await cookies();
 
