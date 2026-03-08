@@ -218,14 +218,15 @@ export async function computeAndPersistTeamFit(
       row.simulation_session_id = simulationContext.simulationSessionId;
       row.expires_at = simulationContext.expiresAt;
     }
-    const { data: existing } = await supabase
+    const admin = supabase;
+    const { data: existing } = await admin
       .from("team_fit_scores")
       .select("id")
       .eq("candidate_id", candidateId)
       .eq("employer_id", employerId)
       .maybeSingle();
     if (existing?.id) {
-      await supabase.from("team_fit_scores").update(row).eq("id", (existing as { id: string }).id);
+      await admin.from("team_fit_scores").update(row).eq("id", (existing as { id: string }).id);
     } else {
       const insertRow: Record<string, unknown> = {
         candidate_id: candidateId,
@@ -242,7 +243,7 @@ export async function computeAndPersistTeamFit(
         }
         if (simulationContext.sandboxId) insertRow.sandbox_id = simulationContext.sandboxId;
       }
-      await supabase.from("team_fit_scores").insert(insertRow);
+      await admin.from("team_fit_scores").insert(insertRow);
     }
     return { alignmentScore: alignment, breakdown };
   } catch (e) {

@@ -56,10 +56,10 @@ export async function GET(req: NextRequest) {
     }
 
     const [teamFitRes, riskResEmp, riskResGlobal, networkRes, hiringRes] = await Promise.all([
-      supabase.from("team_fit_scores").select("alignment_score, breakdown, model_version, updated_at").eq("candidate_id", candidateId).eq("employer_id", employerId).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      admin.from("team_fit_scores").select("alignment_score, breakdown, model_version, updated_at").eq("candidate_id", candidateId).eq("employer_id", employerId).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
       admin.from("risk_model_outputs").select("overall_score, breakdown, model_version, updated_at").eq("candidate_id", candidateId).eq("employer_id", employerId).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
       admin.from("risk_model_outputs").select("overall_score, breakdown, model_version, updated_at").eq("candidate_id", candidateId).is("employer_id", null).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("network_density_index").select("density_score, fraud_confidence, breakdown, model_version, updated_at").eq("candidate_id", candidateId).maybeSingle(),
+      admin.from("network_density_index").select("density_score, fraud_confidence, breakdown, model_version, updated_at").eq("candidate_id", candidateId).maybeSingle(),
       admin.from("hiring_confidence_scores").select("composite_score, breakdown, model_version, updated_at").eq("candidate_id", candidateId).eq("employer_id", employerId).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
     const riskRes = { data: riskResEmp.data ?? riskResGlobal.data };

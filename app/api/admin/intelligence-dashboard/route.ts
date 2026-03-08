@@ -30,16 +30,16 @@ export async function GET(req: NextRequest) {
     }
 
     const unified = await calculateUnifiedIntelligence(userId, employerId ?? null);
-    const supabase = getSupabaseServer();
+    const admin = getSupabaseServer();
 
     const [snapshotRes, riskRes, networkRes, teamRes, hiringRes, reviewIntelRes, behavioralVectorRes] =
       await Promise.all([
-        supabase
+        admin
           .from("intelligence_snapshots")
           .select("*")
           .eq("user_id", userId)
           .maybeSingle(),
-        supabase
+        admin
           .from("risk_model_outputs")
           .select("overall_score, breakdown, model_version, updated_at")
           .eq("candidate_id", userId)
@@ -47,13 +47,13 @@ export async function GET(req: NextRequest) {
           .order("updated_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
-        supabase
+        admin
           .from("network_density_index")
           .select("density_score, fraud_confidence, breakdown, model_version, updated_at")
           .eq("candidate_id", userId)
           .maybeSingle(),
         employerId
-          ? supabase
+          ? admin
               .from("team_fit_scores")
               .select("alignment_score, breakdown, model_version, updated_at")
               .eq("candidate_id", userId)
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
               .maybeSingle()
           : Promise.resolve({ data: null }),
         employerId
-          ? supabase
+          ? admin
               .from("hiring_confidence_scores")
               .select("composite_score, breakdown, model_version, updated_at")
               .eq("candidate_id", userId)
@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
     let employer_baseline: Record<string, unknown> | null = null;
     let hybrid_baseline: Record<string, unknown> | null = null;
     try {
-      const profileRes = await supabase.from("profiles").select("industry, industry_key").eq("id", userId).maybeSingle();
+      const profileRes = await admin.from("profiles").select("industry, industry_key").eq("id", userId).maybeSingle();
       const profile = profileRes.data as { industry?: string; industry_key?: string } | null;
       const candidateIndustry = resolveIndustryKey(profile?.industry_key, profile?.industry);
       const industryRow = await getIndustryBehavioralBaseline(candidateIndustry);

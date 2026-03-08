@@ -78,7 +78,7 @@ async function loadComponentScores(
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      supabase
+      admin
         .from("network_density_index")
         .select("density_score, fraud_confidence")
         .eq("candidate_id", candidateId)

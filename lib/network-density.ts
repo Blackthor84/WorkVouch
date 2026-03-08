@@ -97,13 +97,14 @@ export async function computeAndPersistNetworkDensity(
       }
       if (simulationContext.sandboxId) row.sandbox_id = simulationContext.sandboxId;
     }
-    const { data: existing } = await supabase
+    const admin = supabase;
+    const { data: existing } = await admin
       .from("network_density_index")
       .select("id")
       .eq("candidate_id", candidateId)
       .maybeSingle();
     if (existing?.id) {
-      await supabase.from("network_density_index").update(row).eq("id", (existing as { id: string }).id);
+      await admin.from("network_density_index").update(row).eq("id", (existing as { id: string }).id);
     } else {
       const insertRow: Record<string, unknown> = {
         candidate_id: candidateId,
@@ -120,7 +121,7 @@ export async function computeAndPersistNetworkDensity(
         }
         if (simulationContext.sandboxId) insertRow.sandbox_id = simulationContext.sandboxId;
       }
-      await supabase.from("network_density_index").insert(insertRow);
+      await admin.from("network_density_index").insert(insertRow);
     }
     return { densityScore, fraudConfidence, breakdown };
   } catch (e) {

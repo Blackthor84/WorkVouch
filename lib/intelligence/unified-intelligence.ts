@@ -82,9 +82,9 @@ export async function calculateUnifiedIntelligence(
       );
     }
 
-    const supabase = getSupabaseServer();
+    const admin = getSupabaseServer();
     const [riskRes, networkRes, teamRes, hiringRes] = await Promise.all([
-      supabase
+      admin
         .from("risk_model_outputs")
         .select("overall_score, breakdown")
         .eq("candidate_id", userId)
@@ -92,13 +92,13 @@ export async function calculateUnifiedIntelligence(
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      supabase
+      admin
         .from("network_density_index")
         .select("density_score, fraud_confidence")
         .eq("candidate_id", userId)
         .maybeSingle(),
       employerId
-        ? supabase
+        ? admin
             .from("team_fit_scores")
             .select("alignment_score")
             .eq("candidate_id", userId)
@@ -108,7 +108,7 @@ export async function calculateUnifiedIntelligence(
             .maybeSingle()
         : Promise.resolve({ data: null }),
       employerId
-        ? supabase
+        ? admin
             .from("hiring_confidence_scores")
             .select("composite_score")
             .eq("candidate_id", userId)
