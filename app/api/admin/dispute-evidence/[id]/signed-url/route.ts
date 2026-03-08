@@ -44,7 +44,7 @@ export async function GET(
 
     const { data: signed, error: signErr } = await admin.storage
       .from(BUCKET)
-      .createSignedUrl(evidence.file_url, EXPIRES_IN);
+      .createSignedUrl(evidence.file_url as string, EXPIRES_IN);
 
     if (signErr) {
       console.error("[admin/dispute-evidence/signed-url] sign error:", signErr);
