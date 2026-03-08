@@ -25,20 +25,16 @@ export async function GET(req: NextRequest) {
 
     const supabase = await createServerSupabaseClient();
 
-    // Type definition for employer_accounts (includes profile completion fields)
+    // Type definition for employer_accounts (only columns that exist in DB)
     type EmployerAccountRow = {
       id: string;
       company_name: string;
       plan_tier: string;
       stripe_customer_id: string | null;
-      industry_type?: string | null;
-      claimed?: boolean | null;
-      claim_verified?: boolean | null;
-      location?: string | null;
     };
 
     const { data: employerAccount, error } = await admin.from("employer_accounts")
-      .select("id, company_name, plan_tier, stripe_customer_id, industry_type, claimed, claim_verified, location")
+      .select("id, company_name, plan_tier, stripe_customer_id")
       .eq("user_id", user.id)
       .single();
 
@@ -59,9 +55,6 @@ export async function GET(req: NextRequest) {
         email: user.email,
         planTier: employerAccountTyped.plan_tier,
         stripeCustomerId: employerAccountTyped.stripe_customer_id,
-        industryType: employerAccountTyped.industry_type ?? null,
-        claimed: employerAccountTyped.claimed ?? false,
-        claimVerified: employerAccountTyped.claim_verified ?? false,
       },
       planTier: employerAccountTyped.plan_tier,
     };
