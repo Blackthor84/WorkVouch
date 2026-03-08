@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
-import { getUser } from "@/lib/auth/getUser";
+import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
 import { ChooseRoleGuard } from "@/components/ChooseRoleGuard";
 import Sidebar from "@/components/Sidebar";
 
+/**
+ * Single auth guard for all routes under (app). Uses supabase.auth.getUser()
+ * to verify the token with the auth server (never getSession() on the server).
+ * Unauthenticated users are redirected to /login before any protected page loads.
+ */
 function normalizeRole(role: string | null | undefined): "employee" | "employer" | "admin" | null {
   if (!role) return null;
   const r = role.trim().toLowerCase();
@@ -18,8 +23,9 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getUser();
-  if (!user) {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data?.user) {
     redirect("/login");
   }
 
