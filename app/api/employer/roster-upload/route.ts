@@ -13,7 +13,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
 import { hasRole } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { admin } from "@/lib/supabase-admin";
 import { z } from "zod";
 
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!(await hasRole("employer"))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const supabaseAny = admin as any;
     const adminSupabase = admin as any;
 

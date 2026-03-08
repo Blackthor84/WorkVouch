@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { admin } from "@/lib/supabase-admin";
 import { buildCredentialPayload } from "@/lib/workvouch-credential/core";
 import type { CredentialVisibility } from "@/lib/workvouch-credential/types";
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   } catch {
     // defaults
   }
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
 
   const { data: employmentRecords } = await admin
     .from("employment_records")

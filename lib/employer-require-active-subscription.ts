@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export interface RequireActiveSubscriptionResult {
   allowed: boolean;
@@ -26,7 +26,7 @@ const ENTERPRISE_PLAN_EMPLOYEE_LIMITS: Record<string, number> = {
 export async function requireActiveSubscription(
   userId: string
 ): Promise<RequireActiveSubscriptionResult> {
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
   const supabaseAny = supabase as any;
   const { data: account, error } = await supabaseAny
     .from("employer_accounts")

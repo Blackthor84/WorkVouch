@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User ID and email are required" }, { status: 400 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const supabaseAny = admin as any;
 
     // Verify user has beta access and check expiration

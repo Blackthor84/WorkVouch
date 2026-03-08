@@ -3,7 +3,7 @@ import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { hasRole } from "@/lib/auth";
 

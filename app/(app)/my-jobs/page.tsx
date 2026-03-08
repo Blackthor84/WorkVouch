@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 export default async function MyJobsPage() {
   const user = await getCurrentUser();
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
 
   const supabaseAny = supabase as any;
   const { data: jobs, error } = await supabaseAny

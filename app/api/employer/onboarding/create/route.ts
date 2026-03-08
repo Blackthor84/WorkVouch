@@ -9,7 +9,7 @@ import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Primary admin email must match your account" }, { status: 400 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const supabaseAny = admin as any;
 
     const baseSlug = slugFromName(orgName);

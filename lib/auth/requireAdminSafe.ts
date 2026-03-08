@@ -5,7 +5,7 @@
  */
 
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { isAdminRole, normalizeRole } from "@/lib/auth/roles";
 import { isSandbox } from "@/lib/app-mode";
 
@@ -20,7 +20,7 @@ export async function requireAdminSafe(): Promise<AdminCheck> {
       return { ok: false, reason: "no_user" };
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("role")

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     }
 
     const employerId = user.id;
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const supabaseAny = admin as any;
     const { data: employer } = await supabaseAny
       .from("profiles")

@@ -4,7 +4,7 @@
  */
 
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export type AllowedRole =
   | "superadmin"
@@ -31,7 +31,7 @@ export interface RequireRoleResult {
  * Get effective roles for the current user: profile.role + employer_users + tenant_memberships (mapped to spec roles).
  */
 export async function getEffectiveRoles(userId: string): Promise<string[]> {
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
   const supabaseAny = supabase as any;
   const roles: string[] = [];
 
@@ -87,7 +87,7 @@ export async function requireRole(
     throw new Error("Unauthorized");
   }
   const userId = user.id;
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
   const effectiveRoles = await getEffectiveRoles(userId);
   const hasRole = allowedRoles.some((r) => effectiveRoles.includes(r));
   if (!hasRole) {

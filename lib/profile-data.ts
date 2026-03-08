@@ -4,7 +4,7 @@
  * Does not replace core scoring; provides a unified shape for vertical metric compute().
  */
 
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/auth";
 import { getOrCreateSnapshot } from "@/lib/intelligence/getOrCreateSnapshot";
 import type { VerticalDashboardProfile } from "@/lib/verticals/dashboard";
@@ -24,7 +24,7 @@ export type ProfileDataResult = VerticalDashboardProfile & {
 export async function getProfileData(): Promise<ProfileDataResult | null> {
   try {
     const user = await requireAuth();
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
 
     const employeeFields = await getEmployeeProfileFields(supabase, user.id);
     if (!employeeFields) {

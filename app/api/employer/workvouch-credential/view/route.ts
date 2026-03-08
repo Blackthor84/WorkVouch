@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { admin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Provide token or applicationId" }, { status: 400 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     let credentialId: string | null = null;
     let context: "link" | "job_application" = "link";
     let jobApplicationId: string | null = null;

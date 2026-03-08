@@ -3,7 +3,7 @@
  * Uses server Supabase client so inserts run in request auth context.
  */
 
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 type InsertActivityArgs = {
   userId: string;
@@ -22,7 +22,7 @@ export async function insertActivityLog({
   sandboxId = null,
   scenarioId = null,
 }: InsertActivityArgs): Promise<void> {
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
   await supabase.from("activity_log").insert({
     user_id: userId,
     action,

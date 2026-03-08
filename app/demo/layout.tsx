@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { isSandboxOrg } from "@/lib/env/isSandboxOrg";
 
 /**
@@ -16,7 +16,7 @@ export default async function DemoLayout({
   if (!user) {
     return <>{children}</>;
   }
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
   const supabaseAny = supabase as any;
   const { data: profile } = await supabaseAny
     .from("profiles")

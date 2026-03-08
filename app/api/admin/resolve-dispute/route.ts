@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { calculateUserScore } from "@/lib/scoring/engine";
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = resolveDisputeSchema.parse(body);
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
 
     // Type definitions for employer_disputes (not in Database types yet)
     type EmployerDisputeRow = { id: string; job_id: string; status: string };

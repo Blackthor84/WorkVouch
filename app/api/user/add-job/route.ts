@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 import { z } from "zod";
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
 
     const body = await req.json();
     const data = addJobSchema.parse(body);

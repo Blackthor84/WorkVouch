@@ -11,7 +11,7 @@ import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getUser } from "@/lib/auth/getUser";
 import { isAdminRole } from "@/lib/auth/isAdminRole";
 import { isGodMode } from "@/lib/auth/isGodMode";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { canModifyUser, canAssignRole } from "@/lib/roles";
 import { recordFailedAdminAccess } from "@/lib/admin/adminAlertsStore";
 import type { AdminContext } from "@/lib/admin/getAdminContext";
@@ -61,7 +61,7 @@ export async function requireAdmin(): Promise<AdminSession> {
       redirect("/login");
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")
@@ -115,7 +115,7 @@ export async function requireAdminForApi(): Promise<AdminSession | null> {
   try {
     const user = await getUser();
     if (!user?.id) return null;
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
     const role = admin.isSuperAdmin ? "super_admin" : "admin";
     const sessionLike = { user: { ...user, id: user.id, email: user.email } };
@@ -156,7 +156,7 @@ export async function requireFinanceForApi(): Promise<AdminSession | null> {
   const admin = await getAdminContext();
   if (adminOrGodMode(admin)) return requireAdminForApi();
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return null;
     const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
@@ -186,7 +186,7 @@ export async function requireBoardForApi(): Promise<AdminSession | null> {
   try {
     const user = await getUser();
     if (!user?.id) return null;
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
     if (error || !profile) return null;
     const profileRole = String((profile as { role?: string }).role ?? "").toLowerCase();
@@ -214,7 +214,7 @@ export async function requireRole(allowedRoles: string[]): Promise<AdminSession>
       logAdminAuthFailure("requireRole", "no-user");
       redirect("/login");
     }
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")
@@ -285,7 +285,7 @@ export async function requireAdminThrow(): Promise<{
     throw new Error("Unauthorized");
   }
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")

@@ -3,7 +3,7 @@ import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getCurrentUser, hasRole } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import {
   computeInsights,
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing candidateId" }, { status: 400 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const supabaseAny = admin as any;
 
     const { data: employerAccount } = await supabaseAny

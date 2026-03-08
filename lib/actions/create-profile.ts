@@ -2,7 +2,7 @@
 
 import { getCurrentUser } from '@/lib/auth'
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 /**
  * Manually create profile for current user if it doesn't exist
@@ -14,7 +14,7 @@ export async function createProfileIfMissing() {
     throw new Error('Not authenticated')
   }
 
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
   const supabaseAny = supabase as any
 
   // Check if profile exists

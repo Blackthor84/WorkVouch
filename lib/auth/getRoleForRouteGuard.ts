@@ -4,7 +4,7 @@
  */
 
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export type RouteGuardRole = "employee" | "employer" | "admin";
 
@@ -15,7 +15,7 @@ export async function getRoleForRouteGuard(): Promise<RouteGuardRole | null> {
   const user = await getUser();
   if (!user) return null;
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
 
   const { data } = await supabase
     .from("profiles")

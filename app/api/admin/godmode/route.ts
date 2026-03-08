@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 import { cookies } from "next/headers";
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { getGodModeState, buildGodModeToken, getGodModeCookieName, GODMODE_MAX_AGE_SECONDS } from "@/lib/auth/godModeCookie";
 import { writeGodModeAudit } from "@/lib/godModeAudit";
 import { isAdmin } from "@/lib/auth/isAdmin";
@@ -26,7 +26,7 @@ export async function GET() {
     const user = await getUser();
     if (!user?.id) return NextResponse.json({ enabled: false }, { status: 401 });
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const { data: profile, error: profileError } = await admin.from("profiles")
       .select("role")
       .eq("id", user.id)
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     const user = await getUser();
     if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const { data: profile, error: profileError } = await admin.from("profiles")
       .select("role")
       .eq("id", user.id)

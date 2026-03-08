@@ -9,5 +9,6 @@ export async function getUser() {
   } = await supabase.auth.getUser();
 
   if (error || !user) return null;
+
   return user;
 }

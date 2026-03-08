@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 import { hasRole } from "@/lib/auth";
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/auth/isAdmin";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
 
@@ -41,7 +41,7 @@ export async function GET() {
       return NextResponse.json({ showOnboarding: false });
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
 
     type ProfileOnboardingRow = { id: string; role: string | null; full_name: string | null; industry: string | null };
     const { data: profile, error: profileError } = await admin

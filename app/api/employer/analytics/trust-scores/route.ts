@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 import { getTrustScoresForEmployer } from "@/lib/actions/employer/analytics";
 import { getCurrentUser, hasRole } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
 
     if (!employerId) {
       // Get employer account ID from user
-      const supabase = await createServerSupabaseClient();
+      const supabase = await createClient();
       const supabaseAny = admin as any;
       type EmployerAccountRow = { id: string };
       const { data: employerAccount } = await supabaseAny

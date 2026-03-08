@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from '@/lib/auth'
 
 /**
@@ -10,7 +10,7 @@ import { requireAuth } from '@/lib/auth'
  */
 export async function getUserSubscriptionTierSimple() {
   const user = await requireAuth()
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
 
   // Get stripe_customer_id from profile
   const supabaseAny = supabase as any
@@ -49,7 +49,7 @@ export async function getUserSubscriptionTierSimple() {
  * Returns: 'free', 'pro', or 'elite'
  */
 export async function getUserSubscriptionTierByUserId(userId: string) {
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
   const supabaseAny = supabase as any
 
   const { data: profile } = await supabaseAny

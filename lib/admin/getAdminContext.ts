@@ -7,7 +7,7 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { isSandbox } from "@/lib/app-mode";
 import { isAdminRole } from "@/lib/auth/isAdminRole";
 import { getAdminSandboxModeFromCookies } from "@/lib/sandbox/sandboxContext";
@@ -91,7 +91,7 @@ export async function getAdminContext(req?: NextRequest): Promise<AdminContext> 
       return { ...UNAUTHORIZED_CONTEXT };
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     // Spec: app_metadata.role is primary; fallback to profiles.role when not set (e.g. before token refresh).
     let resolvedRole = effectiveRole;
     if (resolvedRole === "user") {

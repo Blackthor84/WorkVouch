@@ -1,5 +1,5 @@
 import { WarehouseOnboardingWrapper } from "./warehouse-onboarding-wrapper";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { isImpersonating } from "@/lib/auth/isImpersonating";
@@ -16,7 +16,7 @@ export default async function WarehouseOnboardingPage() {
   }
 
   const userId = admin.authUserId;
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("profiles")

@@ -13,7 +13,7 @@ import {
   canViewBoard,
 } from "@/lib/adminPermissions";
 import type { LabAwareAdminShellConfig } from "@/types/admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { getAdminOverrideStatus } from "@/lib/admin/overrideStatus";
 
 export const dynamic = "force-dynamic";
@@ -64,7 +64,7 @@ export default async function AdminLayout({
     redirect("/unauthorized");
   }
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
   const { data: adminUserRow, error: adminUserError } = await supabase
     .from("admin_users")
     .select("god_mode")

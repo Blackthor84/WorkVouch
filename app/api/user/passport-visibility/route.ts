@@ -14,7 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 import { getEffectiveUser } from "@/lib/auth";
 import { admin } from "@/lib/supabase-admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 
@@ -81,7 +81,7 @@ export async function PATCH(req: NextRequest) {
     const searchable_by_shared_employers =
       visibility === "public" || visibility === "verified_employers" || visibility === "shared_network";
 
-    const serverSupabase = await createServerSupabaseClient();
+    const serverSupabase = await createClient();
     const serverSb = serverSupabase as any;
 
     const updatePayload: Record<string, boolean> = {

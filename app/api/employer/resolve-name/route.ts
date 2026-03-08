@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { resolveEmployerNameFromRows, type EmployerAccountRow } from "@/lib/employer-resolution/core";
 
 export const runtime = "nodejs";

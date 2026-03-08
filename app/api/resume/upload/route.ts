@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { insertActivityLog } from "@/lib/activity";
 import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const supabaseAny = admin as any;
     const { data: profile } = await supabaseAny
       .from("profiles")

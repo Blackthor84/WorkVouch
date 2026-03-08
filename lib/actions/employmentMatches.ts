@@ -1,6 +1,6 @@
 "use server";
 
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/auth";
 
 export type EmploymentMatchRow = {
@@ -23,7 +23,7 @@ export type EmploymentMatchRow = {
 export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[]> {
   try {
     const user = await requireAuth();
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const sb = supabase as any;
 
     const { data: rows, error } = await sb

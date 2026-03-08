@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { getPostLoginRedirect } from "@/lib/auth/getPostLoginRedirect";
 
 export const runtime = "nodejs";
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}/verify-email`);
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const { data, error } = await admin.from("profiles")
       .select("role")
       .eq("id", user.id)

@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { EmploymentType } from '@/types/database'
@@ -22,7 +22,7 @@ export interface CreateJobInput {
  */
 export async function createJob(input: CreateJobInput) {
   const user = await requireAuth()
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
   const supabaseAny = supabase as any
 
   const { data: job, error } = await supabaseAny
@@ -59,7 +59,7 @@ export async function createJob(input: CreateJobInput) {
  */
 export async function updateJob(jobId: string, input: Partial<CreateJobInput>) {
   const user = await requireAuth()
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
 
   // Verify ownership
   const supabaseAny = supabase as any
@@ -93,7 +93,7 @@ export async function updateJob(jobId: string, input: Partial<CreateJobInput>) {
  */
 export async function deleteJob(jobId: string) {
   const user = await requireAuth()
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
 
   // Verify ownership
   const supabaseAny = supabase as any
@@ -125,7 +125,7 @@ export async function deleteJob(jobId: string) {
 export async function getUserJobs(userId?: string) {
   const user = await requireAuth()
   const targetUserId = userId || user.id
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
   const supabaseAny = supabase as any
 
   const { data: jobs, error } = await supabaseAny
@@ -147,7 +147,7 @@ export async function getUserJobs(userId?: string) {
  */
 export async function getJobsForUser(targetUserId: string) {
   await requireAuth() // User must be authenticated
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
   const supabaseAny = supabase as any
 
   const { data: jobs, error } = await supabaseAny

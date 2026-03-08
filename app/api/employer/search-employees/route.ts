@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { canViewEmployees } from "@/lib/middleware/plan-enforcement-supabase";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const supabaseAny = admin as any;
     const { data: employerAccount } = await supabaseAny
       .from("employer_accounts")

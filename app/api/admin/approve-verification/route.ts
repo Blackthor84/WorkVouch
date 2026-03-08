@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { calculateUserScore } from "@/lib/scoring/engine";
 import { z } from "zod";
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = approveVerificationSchema.parse(body);
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
 
     // Type definitions for verification_requests (not in Database types yet)
     type VerificationRequestRow = {

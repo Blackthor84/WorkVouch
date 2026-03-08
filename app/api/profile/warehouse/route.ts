@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
 import { Database } from "@/types/database";
 
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
 
     // Update the profile with warehouse-specific data (fields may exist in DB but not in generated types)
     const { error: updateError } = await admin

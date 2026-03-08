@@ -1,5 +1,5 @@
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { getCurrentUserProfile } from "@/lib/auth";
 import { getEffectiveRoles } from "@/lib/permissions/requireRole";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
@@ -11,7 +11,7 @@ export async function NavbarServer() {
   const showAdmin = admin.isAdmin;
   const showSandboxAdmin = admin.appEnvironment === "sandbox" && admin.isAdmin;
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const profile = user ? await getCurrentUserProfile() : null;
   const role = profile?.role ?? null;

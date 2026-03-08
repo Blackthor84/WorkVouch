@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { AdminIntelligencePreviewClient } from "./AdminIntelligencePreviewClient";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminIntelligencePreviewPage() {
   const admin = await getAdminContext();
   if (!admin.isAdmin) redirect("/login");
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
   const supabaseAny = supabase as any;
   const { data: profiles } = await supabaseAny.from("profiles").select("id, email, full_name").order("created_at", { ascending: false }).limit(100);
   const candidateList = (profiles ?? []) as { id: string; email?: string; full_name?: string }[];

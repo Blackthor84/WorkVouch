@@ -1,5 +1,5 @@
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import VerticalBadges from "@/components/VerticalBadges";
@@ -10,7 +10,7 @@ export default async function EmployeePage(props: any) {
   const resolvedSearchParams = props.searchParams ? await props.searchParams : undefined;
 
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = createClient();
     const supabaseAny = supabase as any;
 
     // Fetch employee profile

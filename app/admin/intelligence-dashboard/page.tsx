@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { AdminIntelligenceDashboardClient } from "./AdminIntelligenceDashboardClient";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminIntelligenceDashboardPage() {
   const admin = await getAdminContext();
   if (!admin.isAdmin) redirect("/login");
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
   const supabaseAny = supabase as any;
   const { data: profiles } = await supabaseAny
     .from("profiles")

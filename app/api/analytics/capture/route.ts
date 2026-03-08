@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { admin } from "@/lib/supabase-admin";
 import {
   hashIp,
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       const user = await getUser();
       if (user?.id) {
         user_id = user.id;
-        const supabaseAuth = await createServerSupabaseClient();
+        const supabaseAuth = await createClient();
         const { data: profile } = await supabaseAuth.from("profiles").select("role").eq("id", user.id).maybeSingle();
         user_role = (profile as { role?: string | null } | null)?.role ?? null;
       }

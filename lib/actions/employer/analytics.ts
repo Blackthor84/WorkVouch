@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from '@/lib/auth'
 
 export interface RehireData {
@@ -21,7 +21,7 @@ export interface TrustScore {
  */
 export async function getRehireData(employerId: string): Promise<RehireData[]> {
   const user = await requireAuth()
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
   const supabaseAny = supabase as any
 
   // Get employer account
@@ -92,7 +92,7 @@ export async function getRehireData(employerId: string): Promise<RehireData[]> {
  */
 export async function getTrustScoresForEmployer(employerId: string): Promise<TrustScore[]> {
   const user = await requireAuth()
-  const supabase = await createServerSupabaseClient()
+  const supabase = await createClient()
   const supabaseAny = supabase as any
 
   // Get employer account

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
 
 // Mark route as dynamic
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const supabaseAny = admin as any;
 
     // Check for active subscription in user_subscriptions table

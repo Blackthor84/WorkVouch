@@ -3,7 +3,7 @@ import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
 import { getUser } from "@/lib/auth/getUser";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { Database } from "@/types/database";
 
 export async function POST(request: NextRequest) {
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "🚨 Upgrade Required" }, { status: 401 });
     }
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const supabaseAny = admin as any;
 
     const body = await request.json();

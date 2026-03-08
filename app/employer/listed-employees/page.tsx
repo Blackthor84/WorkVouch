@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { hasRole } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { ListedEmployeesPageClient } from "./ListedEmployeesPageClient";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export default async function ListedEmployeesPage() {
   if (!user) redirect("/login");
   if (!(await hasRole("employer"))) redirect("/dashboard");
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
   const supabaseAny = supabase as any;
   const { data: account } = await supabaseAny.from("employer_accounts").select("id, plan_tier").eq("user_id", user.id).single();
   if (!account) redirect("/employer/dashboard");

@@ -3,7 +3,7 @@ import { admin } from "@/lib/supabase-admin";
 import type { Database } from "@/types/supabase";
 
 export const runtime = "nodejs";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { canFileDispute } from "@/lib/middleware/plan-enforcement-supabase";
 import { z } from "zod";
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = fileDisputeSchema.parse(body);
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
 
     type EmployerDisputeInsert = {
       employer_account_id: string;
