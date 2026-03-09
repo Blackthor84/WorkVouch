@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { isEmployer } from "@/lib/auth";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { admin } from "@/lib/supabase-admin";
+import { safeData } from "@/lib/safeData";
 import { Button } from "@/components/ui/button";
 
 const adminAny = admin as any;
