@@ -3,31 +3,12 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { isEmployer } from "@/lib/auth";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
-import { admin } from "@/lib/supabase-admin";
-import { safeData } from "@/lib/safeData";
+import { getCandidateProfile, getCandidatePreview } from "@/lib/services/profiles";
 import { Button } from "@/components/ui/button";
-
-const adminAny = admin as any;
-
-type ProfileRow = {
-  id: string;
-  full_name: string | null;
-  industry: string | null;
-  professional_summary: string | null;
-};
-
-type JobRow = {
-  id: string;
-  company_name: string;
-  job_title: string;
-  start_date: string;
-  end_date: string | null;
-  is_current: boolean;
-  location: string | null;
-};
 
 /**
  * Candidate profile: public preview (blurred) or full employer view.
+ * Pages call services only; no direct Supabase.
  * - Not logged in / not employer / no subscription → blurred preview + Login CTA
  * - Logged-in employer with active subscription → full verification report
  */
@@ -38,64 +19,25 @@ export default async function CandidatePage({
 }) {
   const { slug } = await params;
 
-  const { data: profile } = await adminAny
-    .from("profiles")
-    .select("id, full_name, industry, professional_summary")
-    .eq("public_slug", slug)
-    .maybeSingle();
+  const preview = await getCandidatePreview(slug);
+  if (!preview) notFound();
 
-  if (!profile) {
-    notFound();
-  }
-
-  const profileId = (profile as ProfileRow).id;
-  const fullName = (profile as ProfileRow).full_name ?? "Candidate";
-  const industry = (profile as ProfileRow).industry;
-  const summary = (profile as ProfileRow).professional_summary;
-
-  // Optional: get confidence score for both preview and full view
-  let confidenceScore: number | null = null;
-  try {
-    const { data: csRow } = await adminAny
-      .from("user_confidence_scores")
-      .select("confidence_score")
-      .eq("user_id", profileId)
-      .maybeSingle();
-    confidenceScore = (csRow as { confidence_score?: number } | null)?.confidence_score ?? null;
-  } catch {
-    // view may not exist
-  }
+  const { profile, confidenceScore: previewScore, jobCount: numJobs } = preview;
+  const fullName = profile.full_name ?? "Candidate";
+  const industry = profile.industry;
+  const summary = profile.professional_summary;
 
   const user = await getCurrentUser();
   const isEmployerUser = user ? await isEmployer() : false;
   const subCheck = user ? await requireActiveSubscription(user.id) : { allowed: false };
-
   const hasFullAccess = Boolean(user && isEmployerUser && subCheck.allowed);
 
   if (hasFullAccess) {
-    const [
-      jobsRes,
-      verificationsRes,
-    ] = await Promise.all([
-      admin
-        .from("jobs")
-        .select("id, company_name, job_title, start_date, end_date, is_current, location")
-        .eq("user_id", profileId)
-        .eq("verification_status", "verified")
-        .eq("is_private", false)
-        .order("start_date", { ascending: false }),
-      admin.from("job_verifications").select("job_id").then((r) => r.data ?? []),
-    ]);
+    const candidate = await getCandidateProfile(slug);
+    if (!candidate) notFound();
 
-    const jobs = safeData<JobRow>(jobsRes.data);
-    const jobIds = new Set(jobs.map((j) => j.id));
-    const verifications = (verificationsRes as { job_id: string }[]).filter((v) =>
-      jobIds.has(v.job_id)
-    );
-    const confirmationsByJob: Record<string, number> = {};
-    for (const v of verifications) {
-      confirmationsByJob[v.job_id] = (confirmationsByJob[v.job_id] ?? 0) + 1;
-    }
+    const { jobs, confirmationsByJob } = candidate;
+    const confidenceScore = candidate.confidenceScore;
 
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#0D1117]">
@@ -173,15 +115,6 @@ export default async function CandidatePage({
   }
 
   // Public preview: blurred work history + CTA
-  const { count: jobCount } = await admin
-    .from("jobs")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", profileId)
-    .eq("verification_status", "verified")
-    .eq("is_private", false);
-
-  const numJobs = jobCount ?? 0;
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0D1117]">
       <div className="max-w-3xl mx-auto px-4 py-8 md:px-6">
@@ -190,10 +123,10 @@ export default async function CandidatePage({
           {industry && (
             <p className="text-gray-500 dark:text-gray-400 mt-1">{industry}</p>
           )}
-          {confidenceScore !== null && (
+          {previewScore !== null && (
             <p className="mt-2 text-gray-700 dark:text-gray-300">
               <span className="font-medium">Confidence Score:</span>{" "}
-              <span className="font-semibold">{confidenceScore}</span>
+              <span className="font-semibold">{previewScore}</span>
             </p>
           )}
         </header>
