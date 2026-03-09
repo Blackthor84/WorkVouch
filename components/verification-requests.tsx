@@ -30,15 +30,15 @@ export async function VerificationRequests({ profileId }: { profileId: string })
   }>;
 
   const jobIds = [...new Set(list.map((r) => r.job_id).filter(Boolean))] as string[];
-  const jobMap = new Map<string, { company_name: string; job_title: string }>();
+  const jobMap = new Map<string, { company_name: string; title: string }>();
   if (jobIds.length > 0) {
     const { data: jobs } = await supabase
       .from("jobs")
-      .select("id, company_name, job_title")
+      .select("id, company_name, title")
       .in("id", jobIds);
     for (const j of jobs ?? []) {
-      const row = j as { id: string; company_name: string; job_title: string };
-      jobMap.set(row.id, { company_name: row.company_name, job_title: row.job_title });
+      const row = j as { id: string; company_name: string; title: string };
+      jobMap.set(row.id, { company_name: row.company_name, title: row.title });
     }
   }
 

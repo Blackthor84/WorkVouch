@@ -18,15 +18,23 @@ const MIN_SCORE = 0;
 export async function calculateTrustScore(profileId: string): Promise<number> {
   const sb = getSupabaseServer();
 
+  type EventRow = { event_type: string };
+  type RelRow = { id: string };
+
   const [eventsRes, relRes] = await Promise.all([
-    sb.from("trust_events").select("event_type").eq("profile_id", profileId),
+    sb
+      .from("trust_events")
+      .select("event_type")
+      .eq("profile_id", profileId)
+      .returns<EventRow[]>(),
     sb
       .from("trust_relationships")
       .select("id")
-      .or(`source_profile_id.eq.${profileId},target_profile_id.eq.${profileId}`),
+      .or(`source_profile_id.eq.${profileId},target_profile_id.eq.${profileId}`)
+      .returns<RelRow[]>(),
   ]);
 
-  const events = (eventsRes.data ?? []) as unknown as { event_type: string }[];
+  const events: EventRow[] = eventsRes.data ?? [];
   const coworkerCount = events.filter(
     (e) =>
       e.event_type === "coworker_verified" ||
@@ -39,7 +47,7 @@ export async function calculateTrustScore(profileId: string): Promise<number> {
       e.event_type === "verification_confirmed"
   ).length;
 
-  const connections = (relRes.data ?? []) as unknown as { id: string }[];
+  const connections: RelRow[] = relRes.data ?? [];
   const networkCount = connections.length;
 
   let score =

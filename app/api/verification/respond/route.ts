@@ -156,12 +156,12 @@ export async function POST(req: NextRequest) {
     let meta: Record<string, unknown> = { source: "verification_request" };
     if (requestRow.job_id) {
       const { data: jobRow } = await admin.from("jobs")
-        .select("user_id, company_name, job_title")
+        .select("user_id, company_name, title")
         .eq("id", requestRow.job_id)
         .maybeSingle();
       if (jobRow) {
-        const j = jobRow as { company_name?: string; job_title?: string; user_id?: string };
-        meta = { company_name: j.company_name, job_title: j.job_title, job_id: requestRow.job_id, source: "verification_request" };
+        const j = jobRow as { company_name?: string; title?: string; user_id?: string };
+        meta = { company_name: j.company_name, job_title: j.title, job_id: requestRow.job_id, source: "verification_request" };
       }
     } else if (requestRow.employment_record_id) {
       const { data: empRecord } = await admin.from("employment_records")

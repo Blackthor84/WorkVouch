@@ -148,7 +148,7 @@ export function EmployerDirectoryClient() {
                       </p>
                       {item.employmentTimelinePreview?.length > 0 && (
                         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                          {item.employmentTimelinePreview.map((e) => `${e.job_title} at ${e.company_name}`).join("; ")}
+                          {item.employmentTimelinePreview.map((e) => `${e.title} at ${e.company_name}`).join("; ")}
                         </p>
                       )}
                     </div>

@@ -40,7 +40,7 @@ export type ReferenceInsight = {
   is_verified_match: boolean;
   recency: "Strong" | "Aging" | "Stale";
   from_user?: { full_name?: string; profile_photo_url?: string | null } | null;
-  job?: { company_name?: string; job_title?: string } | null;
+  job?: { company_name?: string; title?: string } | null;
 };
 
 export async function GET() {
@@ -75,14 +75,14 @@ export async function GET() {
   const fromIds = [...new Set(list.map((r) => r.from_user_id).filter(Boolean))];
   const [jobsData, profilesData] = await Promise.all([
     jobIds.length > 0
-      ? admin.from("jobs").select("id, company_name, job_title").in("id", jobIds)
+      ? admin.from("jobs").select("id, company_name, title").in("id", jobIds)
       : Promise.resolve({ data: [] }),
     fromIds.length > 0
       ? admin.from("profiles").select("id, full_name, profile_photo_url").in("id", fromIds)
       : Promise.resolve({ data: [] }),
   ]);
   const jobsMap = new Map(
-    ((jobsData.data ?? []) as unknown as { id: string; company_name?: string; job_title?: string }[]).map((j) => [j.id, j])
+    ((jobsData.data ?? []) as unknown as { id: string; company_name?: string; title?: string }[]).map((j) => [j.id, j])
   );
   const profilesMap = new Map(
     ((profilesData.data ?? []) as unknown as { id: string; full_name?: string; profile_photo_url?: string | null }[]).map((p) => [p.id, p])

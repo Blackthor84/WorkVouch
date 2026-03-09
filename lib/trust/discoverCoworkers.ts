@@ -43,7 +43,7 @@ export async function discoverCoworkers(
 
   const { data: others, error } = await supabase
     .from("employment_records")
-    .select("id, user_id, job_title, start_date, end_date")
+    .select("id, user_id, title, start_date, end_date")
     .eq("company_normalized", companyNormalized)
     .neq("user_id", ownerProfileId)
     .limit(MAX_COWORKERS * 2);
@@ -53,7 +53,7 @@ export async function discoverCoworkers(
   const list = others as Array<{
     id: string;
     user_id: string;
-    job_title: string;
+    title: string;
     start_date: string;
     end_date: string | null;
   }>;
@@ -72,7 +72,7 @@ export async function discoverCoworkers(
     if (overlapStart <= overlapEnd) {
       overlapping.push({
         profileId: o.user_id,
-        jobTitle: o.job_title ?? "",
+        jobTitle: o.title ?? "",
         overlapStart,
         overlapEnd,
       });

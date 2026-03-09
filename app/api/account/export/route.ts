@@ -32,7 +32,7 @@ export async function GET() {
         .single(),
       supabaseAny
         .from("employment_records")
-        .select("id, company_name, job_title, start_date, end_date, created_at")
+        .select("id, company_name, title, start_date, end_date, created_at")
         .eq("user_id", userId)
         .order("start_date", { ascending: false }),
     ]);

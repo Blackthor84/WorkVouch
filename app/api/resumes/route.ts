@@ -37,7 +37,7 @@ export async function GET() {
 
     const supabase = await createClient();
     const { data: records, error } = await admin.from("employment_records")
-      .select("id, user_id, company_name, job_title, start_date, end_date, is_current, created_at")
+      .select("id, user_id, company_name, title, start_date, end_date, is_current, created_at")
       .eq("user_id", effectiveUserId)
       .order("created_at", { ascending: false });
 
@@ -49,7 +49,7 @@ export async function GET() {
     const list = Array.isArray(records) ? records : [];
     const employment = list.map((r) => ({
       company_name: r.company_name ?? "",
-      job_title: r.job_title ?? "",
+      job_title: r.title ?? "",
       start_date: r.start_date ?? "",
       end_date: r.end_date ?? null,
       is_current: r.is_current ?? false,

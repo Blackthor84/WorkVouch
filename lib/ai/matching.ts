@@ -50,7 +50,7 @@ export async function calculateMatchScore(
   // Get candidate jobs
   const { data: jobs } = await supabaseAny
     .from('jobs')
-    .select('job_title, company_name, description, start_date, end_date')
+    .select('title, company_name, description, start_date, end_date')
     .eq('user_id', candidateId)
     .eq('is_private', false)
     .order('start_date', { ascending: false })
@@ -143,7 +143,7 @@ export async function calculateMatchScore(
  */
 function calculateExperienceScore(
   candidateJobs: Array<{
-    job_title: string
+    title: string
     company_name: string
     description?: string
   }>,
@@ -153,7 +153,7 @@ function calculateExperienceScore(
 
   // Check for exact or similar job titles
   const titleMatch = candidateJobs.some((job) => {
-    const candidateTitle = job.job_title.toLowerCase()
+    const candidateTitle = job.title.toLowerCase()
     const jobTitle = jobInput.jobTitle.toLowerCase()
     return (
       candidateTitle === jobTitle ||

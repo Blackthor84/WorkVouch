@@ -269,6 +269,7 @@ export interface Database {
           user_id: string
           company_name: string
           job_title: string
+          title: string | null
           employment_type: EmploymentType
           start_date: string
           end_date: string | null
@@ -284,7 +285,8 @@ export interface Database {
           id?: string
           user_id: string
           company_name: string
-          job_title: string
+          job_title?: string
+          title?: string
           employment_type: EmploymentType
           start_date: string
           end_date?: string | null
@@ -301,6 +303,7 @@ export interface Database {
           user_id?: string
           company_name?: string
           job_title?: string
+          title?: string
           employment_type?: EmploymentType
           start_date?: string
           end_date?: string | null

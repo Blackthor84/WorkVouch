@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase/client";
 
 type Job = {
   id: string;
-  job_title: string;
+  title: string;
   company_name?: string;
   user_id: string;
   start_date: string;
@@ -30,7 +30,7 @@ export default function VerifiedWorkTimeline({ profileId }: VerifiedWorkTimeline
     async function load() {
       const { data: jobsData } = await supabase
         .from("jobs")
-        .select("id, job_title, company_name, user_id, start_date, end_date")
+        .select("id, title, company_name, user_id, start_date, end_date")
         .eq("user_id", profileId)
         .order("start_date", { ascending: false })
         .overrideTypes<Job[]>();
@@ -85,7 +85,7 @@ export default function VerifiedWorkTimeline({ profileId }: VerifiedWorkTimeline
             className="border border-grey-background dark:border-[#374151] rounded-lg p-4 bg-white dark:bg-[#111827] shadow-sm"
           >
             <div className="font-semibold text-lg text-grey-dark dark:text-gray-200">
-              {job.job_title}
+              {job.title}
             </div>
             {job.company_name && (
               <div className="text-sm text-grey-medium dark:text-gray-400">

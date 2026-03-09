@@ -25,10 +25,12 @@ export async function createJob(input: CreateJobInput) {
   const supabase = await createClient()
   const supabaseAny = supabase as any
 
+  const { job_title: _jt, ...rest } = input
   const { data: job, error } = await supabaseAny
     .from('jobs')
     .insert([{
-      ...input,
+      ...rest,
+      title: input.job_title,
       user_id: user.id,
     }])
     .select()
@@ -73,9 +75,11 @@ export async function updateJob(jobId: string, input: Partial<CreateJobInput>) {
     throw new Error('Unauthorized: You can only update your own jobs')
   }
 
+  const { job_title: _jt, ...rest } = input
+  const updatePayload = _jt !== undefined ? { ...rest, title: _jt } : rest
   const { data: job, error } = await supabaseAny
     .from('jobs')
-    .update(input)
+    .update(updatePayload)
     .eq('id', jobId)
     .select()
     .single()

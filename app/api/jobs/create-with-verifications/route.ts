@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     .insert({
       user_id: user.id,
       company_name: String(company_name).trim(),
-      job_title: String(job_title).trim(),
+      title: String(job_title).trim(),
       start_date: String(start_date),
       end_date: end_date ? String(end_date) : null,
       is_current: !end_date,

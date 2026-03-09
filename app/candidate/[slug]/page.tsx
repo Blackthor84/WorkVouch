@@ -80,7 +80,7 @@ export default async function CandidatePage({
                     <div className="font-semibold text-gray-900 dark:text-white">
                       {job.company_name}
                     </div>
-                    <div className="text-gray-700 dark:text-gray-300">{job.job_title}</div>
+                    <div className="text-gray-700 dark:text-gray-300">{job.title}</div>
                     {job.location && (
                       <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         {job.location}

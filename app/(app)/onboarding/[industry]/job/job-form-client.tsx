@@ -65,7 +65,7 @@ export function JobFormClient({ industry }: JobFormClientProps) {
         {
           user_id: user.id,
           company_name: employer,
-          job_title: jobTitle,
+          title: jobTitle,
           start_date: startDate,
           end_date: currentJob ? null : endDate || null,
           is_current: currentJob,

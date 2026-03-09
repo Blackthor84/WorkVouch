@@ -9,7 +9,7 @@ const adminAny = admin as any;
 export async function getVerifiedJobsByUserId(userId: string): Promise<JobRow[]> {
   const { data, error } = await adminAny
     .from("jobs")
-    .select("id, company_name, job_title, start_date, end_date, is_current, location")
+    .select("id, company_name, title, start_date, end_date, is_current, location")
     .eq("user_id", userId)
     .eq("verification_status", "verified")
     .eq("is_private", false)

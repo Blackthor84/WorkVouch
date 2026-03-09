@@ -106,7 +106,7 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
     // Get jobs (only visible to employers; archived/hidden never appear)
     const { data: jobs } = await supabaseAny
       .from('jobs')
-      .select('id, company_name, job_title, start_date, end_date')
+      .select('id, company_name, title, start_date, end_date')
       .eq('user_id', profileAny.id)
       .or('is_visible_to_employer.eq.true,is_visible_to_employer.is.null')
       .order('start_date', { ascending: false })
@@ -114,7 +114,7 @@ export async function searchCandidates(filters: CandidateSearchFilters = {}) {
     // Apply job title filter if provided
     if (filters.job_title && jobs) {
       const filteredJobs = (jobs as any[]).filter((job: any) =>
-        job.job_title?.toLowerCase().includes(filters.job_title!.toLowerCase())
+        (job.title ?? job.job_title)?.toLowerCase().includes(filters.job_title!.toLowerCase())
       )
       if (filteredJobs.length === 0) continue
     }
@@ -286,7 +286,7 @@ export async function getCandidateProfileData(candidateId: string): Promise<Cand
   const safeJobs = (jobs || []).map((job: Record<string, unknown>) => ({
     ...job,
     company_name: (job.company_name as string) ?? '',
-    job_title: (job.job_title as string) ?? '',
+    job_title: (job.title ?? (job as { job_title?: string }).job_title) ?? '',
   }))
 
   return {

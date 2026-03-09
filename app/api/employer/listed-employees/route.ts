@@ -96,7 +96,7 @@ export async function GET() {
         record_id: rec.id,
         user_id: rec.user_id,
         name,
-        job_title: rec.job_title,
+        job_title: rec.job_title ?? "",
         start_date: rec.start_date,
         end_date: rec.end_date,
         verification_status: rec.verification_status,

@@ -13,7 +13,7 @@ export type ProfileRow = {
 export type JobRow = {
   id: string;
   company_name: string;
-  job_title: string;
+  title: string;
   start_date: string;
   end_date: string | null;
   is_current: boolean;

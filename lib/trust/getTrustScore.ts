@@ -25,16 +25,19 @@ export async function getTrustScore(
   profileId: string
 ): Promise<GetTrustScoreResult> {
   const sb = getSupabaseServer();
+  type EventRow = { event_type: string };
+
   const { data: rows, error } = await sb
     .from("trust_events")
     .select("event_type")
-    .eq("profile_id", profileId);
+    .eq("profile_id", profileId)
+    .returns<EventRow[]>();
 
   if (error) {
     return { trustScore: BASE_SCORE, verificationCount: 0 };
   }
 
-  const list = (rows ?? []) as unknown as { event_type: string }[];
+  const list: EventRow[] = rows ?? [];
   let score = BASE_SCORE;
   let verificationCount = 0;
 

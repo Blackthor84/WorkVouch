@@ -33,13 +33,13 @@ export default async function VerifyPage({
   const { data: job } = jobId
     ? await supabase
         .from("jobs")
-        .select("company_name, job_title")
+        .select("company_name, title")
         .eq("id", jobId)
         .maybeSingle()
     : { data: null };
 
   const companyName = (job as { company_name?: string } | null)?.company_name ?? "the company";
-  const jobTitle = (job as { job_title?: string } | null)?.job_title;
+  const jobTitle = (job as { title?: string } | null)?.title;
 
   return (
     <div className="max-w-xl mx-auto p-8">

@@ -7,7 +7,7 @@ export async function VerifiedJobs({ userId }: { userId: string }) {
   const supabase = await createClient();
   const { data: jobs } = await supabase
     .from("jobs")
-    .select("id, company_name, job_title, start_date, end_date, is_current")
+    .select("id, company_name, title, start_date, end_date, is_current")
     .eq("user_id", userId)
     .eq("verification_status", "verified")
     .order("start_date", { ascending: false })
@@ -16,7 +16,7 @@ export async function VerifiedJobs({ userId }: { userId: string }) {
   const list = (jobs ?? []) as Array<{
     id: string;
     company_name: string;
-    job_title: string;
+    title: string;
     start_date: string;
     end_date: string | null;
     is_current: boolean;
@@ -43,9 +43,9 @@ export async function VerifiedJobs({ userId }: { userId: string }) {
                   <span className="font-medium text-gray-900 dark:text-white">
                     {job.company_name}
                   </span>
-                  {job.job_title && (
+                  {job.title && (
                     <span className="text-gray-500 dark:text-gray-400">
-                      {" — "}{job.job_title}
+                      {" — "}{job.title}
                     </span>
                   )}
                 </div>

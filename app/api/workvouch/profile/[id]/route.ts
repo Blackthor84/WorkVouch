@@ -38,17 +38,28 @@ export async function GET(
   if (!isOwner && !isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+  type EventRow = { event_type: string };
+  type RelRow = { relationship_type: string };
+
   const [eventsRes, relRes, trustScore] = await Promise.all([
-    admin.from("trust_events").select("event_type").eq("profile_id", profileId),
+    admin
+      .from("trust_events")
+      .select("event_type")
+      .eq("profile_id", profileId)
+      .returns<EventRow[]>(),
     admin
       .from("trust_relationships")
       .select("relationship_type")
-      .or(`source_profile_id.eq.${profileId},target_profile_id.eq.${profileId}`),
+      .or(`source_profile_id.eq.${profileId},target_profile_id.eq.${profileId}`)
+      .returns<RelRow[]>(),
     calculateTrustScore(profileId),
   ]);
 
-  const events = (eventsRes.data ?? []) as unknown as { event_type: string }[];
-  const rels = (relRes.data ?? []) as unknown as { relationship_type: string }[];
+  if (eventsRes.error) throw new Error(eventsRes.error.message);
+  if (relRes.error) throw new Error(relRes.error.message);
+
+  const events: EventRow[] = eventsRes.data ?? [];
+  const rels: RelRow[] = relRes.data ?? [];
 
   const coworkerConfirmations = events.filter(
     (e) =>

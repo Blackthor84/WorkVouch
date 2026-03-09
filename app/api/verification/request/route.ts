@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
 
   // Ensure employment record belongs to requester
   const { data: empRecord, error: empErr } = await admin.from("employment_records")
-    .select("id, user_id, company_name, job_title")
+    .select("id, user_id, company_name, title")
     .eq("id", employmentRecordId)
     .eq("user_id", requesterProfileId)
     .maybeSingle();

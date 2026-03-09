@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     const updateData: any = {};
     if (data.employerName) updateData.company_name = data.employerName;
-    if (data.jobTitle) updateData.job_title = data.jobTitle;
+    if (data.jobTitle) updateData.title = data.jobTitle;
     if (data.startDate) updateData.start_date = data.startDate;
     if (data.endDate !== undefined) {
       updateData.end_date = data.endDate || null;

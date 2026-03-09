@@ -28,7 +28,7 @@ export default async function PublicProfile({
 
   const { data: jobs } = await supabase
     .from("jobs")
-    .select("id, company_name, job_title, start_date, end_date, is_current, location")
+    .select("id, company_name, title, start_date, end_date, is_current, location")
     .eq("user_id", profileId)
     .eq("verification_status", "verified")
     .eq("is_private", false)
@@ -49,7 +49,7 @@ export default async function PublicProfile({
   const jobList = (jobs ?? []) as Array<{
     id: string;
     company_name: string;
-    job_title: string;
+    title: string;
     start_date: string;
     end_date: string | null;
     is_current: boolean;
@@ -98,7 +98,7 @@ export default async function PublicProfile({
                 {job.company_name}
               </div>
               <div className="text-gray-700 dark:text-gray-300">
-                {job.job_title}
+                {job.title}
               </div>
               {job.location && (
                 <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">

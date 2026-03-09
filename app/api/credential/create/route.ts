@@ -45,11 +45,11 @@ export async function POST(req: NextRequest) {
 
   const { data: employmentRecords } = await admin
     .from("employment_records")
-    .select("company_name, job_title, start_date, end_date, is_current, verification_status")
+    .select("company_name, title, start_date, end_date, is_current, verification_status")
     .eq("user_id", effective.id);
   const records = (employmentRecords ?? []) as {
     company_name: string;
-    job_title: string;
+    title: string;
     start_date: string;
     end_date: string | null;
     is_current: boolean;

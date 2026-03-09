@@ -54,7 +54,7 @@ export async function GET() {
 
   // 1. Employment verification (employment_records where verification_status = verified)
   const { data: employmentRows } = await admin.from("employment_records")
-    .select("id, company_name, job_title, updated_at, verification_status")
+    .select("id, company_name, title, updated_at, verification_status")
     .eq("user_id", userId)
     .eq("verification_status", "verified")
     .order("updated_at", { ascending: false })
@@ -68,7 +68,7 @@ export async function GET() {
           `Employment verified${row.company_name ? ` at ${row.company_name}` : ""}`,
           row.updated_at,
           null,
-          { company_name: row.company_name, job_title: row.job_title }
+          { company_name: row.company_name, job_title: row.title }
         )
       );
     }

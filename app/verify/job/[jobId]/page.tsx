@@ -12,16 +12,16 @@ export default function VerifyJobPage() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [job, setJob] = useState<{ company_name?: string; job_title?: string } | null>(null);
+  const [job, setJob] = useState<{ company_name?: string; title?: string } | null>(null);
 
   useEffect(() => {
     if (!jobId) return;
     supabase
       .from("jobs")
-      .select("company_name, job_title")
+      .select("company_name, title")
       .eq("id", jobId)
       .maybeSingle()
-      .then(({ data }) => setJob((data as { company_name?: string; job_title?: string } | null) ?? null));
+      .then(({ data }) => setJob((data as { company_name?: string; title?: string } | null) ?? null));
   }, [jobId]);
 
   async function confirmJob() {
@@ -92,7 +92,7 @@ export default function VerifyJobPage() {
         {job?.company_name && (
           <span className="block mt-2 font-medium text-gray-900 dark:text-white">
             {job.company_name}
-            {job.job_title ? ` — ${job.job_title}` : ""}
+            {job.title ? ` — ${job.title}` : ""}
           </span>
         )}
       </p>

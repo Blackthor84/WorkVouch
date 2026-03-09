@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
   try {
     let query = admin
       .from("employment_records")
-      .select("id, user_id, company_name, job_title, start_date, end_date, is_current, employer_id, created_at")
+      .select("id, user_id, company_name, title, start_date, end_date, is_current, employer_id, created_at")
       .order("created_at", { ascending: false })
       .limit(limit * 5);
 
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
     for (const [uid, recs] of byUser) {
       const employment = recs.map((r) => ({
         company_name: r.company_name ?? "",
-        job_title: r.job_title ?? "",
+        job_title: r.title ?? "",
         start_date: r.start_date ?? "",
         end_date: r.end_date ?? null,
         is_current: r.is_current ?? false,

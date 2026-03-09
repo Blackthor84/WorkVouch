@@ -29,7 +29,7 @@ export async function GET() {
 
   const supabase = await createClient();
   const { data: rows, error } = await admin.from("employment_records")
-    .select("id, company_name, job_title, start_date, end_date, is_current, verification_status")
+    .select("id, company_name, title, start_date, end_date, is_current, verification_status")
     .eq("user_id", effective.id)
     .order("start_date", { ascending: false })
     .limit(50);

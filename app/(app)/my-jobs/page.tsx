@@ -27,7 +27,7 @@ export default async function MyJobsPage() {
     ? jobs.map((job: any) => ({
         ...job,
         company_name: job.company_name ?? "",
-        job_title: job.job_title ?? "",
+        job_title: (job as { title?: string; job_title?: string }).title ?? (job as { title?: string; job_title?: string }).job_title ?? "",
       }))
     : [];
 

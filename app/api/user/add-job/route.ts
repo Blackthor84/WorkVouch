@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const { data: jobHistory, error: jobError } = await supabaseAny
       .from("jobs")
       .insert({
-        job_title: title,
+        title: title,
         start_date,
         end_date,
         user_id: user.id,
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
         `
         id,
         user_id,
-        job_title,
+        title,
         start_date,
         end_date,
         profiles!inner (
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
         userId: job.user_id,
         name: job.profiles?.full_name || null,
         email: job.profiles?.email || null,
-        jobTitle: job.job_title,
+        jobTitle: job.title,
         startDate: job.start_date,
         endDate: job.end_date,
       }));
@@ -107,13 +107,15 @@ export async function POST(req: NextRequest) {
       id: string;
       user_id: string;
       company_name: string;
-      job_title: string;
+      job_title?: string;
+      title?: string | null;
       start_date: string;
       end_date: string | null;
       is_visible_to_employer: boolean;
       verification_status: string;
     };
     const jobHistoryTyped = jobHistory as JobHistoryRow;
+    const jobTitle = jobHistoryTyped.title ?? jobHistoryTyped.job_title ?? data.jobTitle;
 
     return NextResponse.json({
       success: true,
@@ -121,7 +123,7 @@ export async function POST(req: NextRequest) {
         id: jobHistoryTyped.id,
         userId: jobHistoryTyped.user_id,
         employerName: jobHistoryTyped.company_name,
-        jobTitle: jobHistoryTyped.job_title,
+        jobTitle,
         startDate: jobHistoryTyped.start_date,
         endDate: jobHistoryTyped.end_date,
         isVisibleToEmployer: jobHistoryTyped.is_visible_to_employer,

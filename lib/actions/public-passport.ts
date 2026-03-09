@@ -19,7 +19,7 @@ export interface PublicPassportProfile {
 export interface PublicPassportJob {
   id: string;
   company_name: string;
-  job_title: string;
+  title: string;
   start_date: string;
   end_date: string | null;
   verification_status: string | null;
@@ -101,7 +101,7 @@ export async function getPassportPageData(slug: string): Promise<PassportPageDat
 
   const { data: jobs } = await sb
     .from("jobs")
-    .select("id, company_name, job_title, start_date, end_date, verification_status")
+    .select("id, company_name, title, start_date, end_date, verification_status")
     .eq("user_id", profileId)
     .eq("is_private", false)
     .order("start_date", { ascending: false });

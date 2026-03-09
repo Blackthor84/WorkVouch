@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
         `
         id,
         user_id,
-        job_title,
+        title,
         start_date,
         end_date,
         verification_status,
@@ -143,7 +143,7 @@ export async function GET(req: NextRequest) {
           jobId: job.id,
           name: job.profiles?.full_name || null,
           industry: job.profiles?.industry || null,
-          jobTitle: job.job_title,
+          jobTitle: job.title,
           startDate: job.start_date,
           endDate: job.end_date,
           verificationStatus: job.verification_status,

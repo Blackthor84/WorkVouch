@@ -13,7 +13,7 @@ export type PassportSearchResultItem =
       fullName: string;
       industry: string | null;
       profileStrength?: number;
-      employmentPreview?: { company_name: string; job_title: string }[];
+      employmentPreview?: { company_name: string; title: string }[];
       credentialCount?: number;
       coworkerVerificationCount?: number;
     }
@@ -71,7 +71,7 @@ async function buildLimitedView(sb: any, profileId: string): Promise<Record<stri
   if (!profile) return {};
   const { data: jobs } = await sb
     .from("jobs")
-    .select("id, company_name, job_title, start_date, end_date, verification_status")
+    .select("id, company_name, title, start_date, end_date, verification_status")
     .eq("user_id", profileId)
     .eq("is_private", false)
     .order("start_date", { ascending: false });
@@ -193,7 +193,7 @@ export async function searchPassport(params: {
       const score = (trustRow as { score?: number } | null)?.score ?? 0;
       const { data: jobPreview } = await sb
         .from("jobs")
-        .select("company_name, job_title")
+        .select("company_name, title")
         .eq("user_id", p.id)
         .order("start_date", { ascending: false })
         .limit(3);
@@ -215,7 +215,7 @@ export async function searchPassport(params: {
         fullName: p.full_name ?? "",
         industry: p.industry,
         profileStrength: Math.min(100, Math.max(0, Number(score))),
-        employmentPreview: (jobPreview ?? []).map((j: { company_name: string; job_title: string }) => ({ company_name: j.company_name, job_title: j.job_title })),
+        employmentPreview: (jobPreview ?? []).map((j: { company_name: string; title: string }) => ({ company_name: j.company_name, title: j.title })),
         credentialCount: credCount,
         coworkerVerificationCount: refCount ?? 0,
       });
@@ -233,7 +233,7 @@ export async function searchPassport(params: {
       const score = (trustRow as { score?: number } | null)?.score ?? 0;
       const { data: jobPreview } = await sb
         .from("jobs")
-        .select("company_name, job_title")
+        .select("company_name, title")
         .eq("user_id", p.id)
         .order("start_date", { ascending: false })
         .limit(3);
@@ -255,7 +255,7 @@ export async function searchPassport(params: {
         fullName: p.full_name ?? "",
         industry: p.industry,
         profileStrength: Math.min(100, Math.max(0, Number(score))),
-        employmentPreview: (jobPreview ?? []).map((j: { company_name: string; job_title: string }) => ({ company_name: j.company_name, job_title: j.job_title })),
+        employmentPreview: (jobPreview ?? []).map((j: { company_name: string; title: string }) => ({ company_name: j.company_name, title: j.title })),
         credentialCount: credCount,
         coworkerVerificationCount: refCount ?? 0,
       });
@@ -275,7 +275,7 @@ export async function searchPassport(params: {
         const score = (trustRow as { score?: number } | null)?.score ?? 0;
         const { data: jobPreview } = await sb
           .from("jobs")
-          .select("company_name, job_title")
+          .select("company_name, title")
           .eq("user_id", p.id)
           .order("start_date", { ascending: false })
           .limit(3);
@@ -297,7 +297,7 @@ export async function searchPassport(params: {
           fullName: p.full_name ?? "",
           industry: p.industry,
           profileStrength: Math.min(100, Math.max(0, Number(score))),
-          employmentPreview: (jobPreview ?? []).map((j: { company_name: string; job_title: string }) => ({ company_name: j.company_name, job_title: j.job_title })),
+          employmentPreview: (jobPreview ?? []).map((j: { company_name: string; title: string }) => ({ company_name: j.company_name, title: j.title })),
           credentialCount: credCount,
           coworkerVerificationCount: refCount ?? 0,
         });

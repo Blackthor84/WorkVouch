@@ -49,7 +49,8 @@ export async function GET(request: NextRequest) {
       .from("employment_records")
       .select("company_name, job_title, start_date, end_date, verification_status")
       .eq("user_id", profileId)
-      .in("verification_status", ["verified", "matched"]),
+      .in("verification_status", ["verified", "matched"])
+      .returns<EmploymentRow[]>(),
     admin
       .from("trust_events")
       .select("event_type")
@@ -59,14 +60,19 @@ export async function GET(request: NextRequest) {
         "coworker_verification_confirmed",
         "employment_verified",
         "verification_confirmed",
-      ]),
+      ])
+      .returns<{ event_type: string }[]>(),
     calculateTrustScore(profileId),
   ]);
 
+  type EventRow = { event_type: string };
+  if (jobsRes.error) throw new Error(jobsRes.error.message);
+  if (eventsRes.error) throw new Error(eventsRes.error.message);
+
   const name =
     (profileRes.data as { full_name?: string } | null)?.full_name ?? "—";
-  const jobs = (jobsRes.data ?? []) as unknown as EmploymentRow[];
-  const events = (eventsRes.data ?? []) as unknown as { event_type: string }[];
+  const jobs: EmploymentRow[] = jobsRes.data ?? [];
+  const events: EventRow[] = eventsRes.data ?? [];
   const confirmationCount = events.length;
 
   const pdf = new jsPDF();

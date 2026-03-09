@@ -72,7 +72,7 @@ export type EmployerDirectoryItem = {
   credentialSummary: string;
   referenceResponseRate: number | null;
   integrityStatus: string;
-  employmentTimelinePreview: { company_name: string; job_title: string }[];
+  employmentTimelinePreview: { company_name: string; title: string }[];
   url: string;
 };
 
@@ -286,7 +286,7 @@ export async function searchDirectoryEmployer(params: {
 
   for (const p of list) {
     const score = Math.min(100, Math.max(0, trustByUser.get(p.id) ?? 0));
-    const { data: jobs } = await sb.from("jobs").select("company_name, job_title").eq("user_id", p.id).order("start_date", { ascending: false }).limit(5);
+    const { data: jobs } = await sb.from("jobs").select("company_name, title").eq("user_id", p.id).order("start_date", { ascending: false }).limit(5);
     const { count: refCount } = await sb.from("user_references").select("id", { count: "exact", head: true }).eq("to_user_id", p.id);
     const { data: jobList } = await sb.from("jobs").select("id").eq("user_id", p.id);
     const jobIds = (jobList ?? []).map((j: { id: string }) => j.id);
@@ -309,7 +309,7 @@ export async function searchDirectoryEmployer(params: {
       credentialSummary: credCount > 0 ? `${credCount} credential(s) on file` : "None on file",
       referenceResponseRate: refRate,
       integrityStatus: score >= 70 ? "Strong" : score >= 40 ? "Moderate" : "Building",
-      employmentTimelinePreview: (jobs ?? []).slice(0, 3).map((j: { company_name: string; job_title: string }) => ({ company_name: j.company_name, job_title: j.job_title })),
+      employmentTimelinePreview: (jobs ?? []).slice(0, 3).map((j: { company_name: string; title: string }) => ({ company_name: j.company_name, title: j.title })),
       url: `/employer/candidates/${p.id}`,
     });
   }
