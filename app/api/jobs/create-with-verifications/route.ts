@@ -18,8 +18,7 @@ export async function POST(req: Request) {
     coworkers = [],
   } = body;
 
-  const { data: authData } = await supabase.auth.getUser();
-  const user = authData?.user;
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });

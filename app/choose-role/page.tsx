@@ -7,14 +7,14 @@ export default function ChooseRole() {
   const router = useRouter();
 
   async function setRole(role: "employee" | "employer") {
-    const { data } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!data?.user) return;
+    if (!user) return;
 
     await supabase
       .from("profiles")
       .update({ role })
-      .eq("id", data.user.id);
+      .eq("id", user.id);
 
     router.replace("/dashboard");
   }
