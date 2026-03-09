@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const inviteLink = `/verify/${token}`;
+  const inviteLink = `/verify/coworker/${token}`;
 
   return NextResponse.json({
     inviteLink,

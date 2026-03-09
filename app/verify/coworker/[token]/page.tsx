@@ -52,7 +52,7 @@ export default async function VerifyPage({
         </span>
       </p>
 
-      <form action={`/api/verify/${encodeURIComponent(token)}`} method="POST">
+      <form action={`/api/verify/coworker/${encodeURIComponent(token)}`} method="POST">
         <button
           type="submit"
           className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700"

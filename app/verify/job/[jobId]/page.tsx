@@ -1,13 +1,12 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import Link from "next/link";
 
-export default function VerifyPage() {
+export default function VerifyJobPage() {
   const params = useParams();
-  const router = useRouter();
   const jobId = params?.jobId as string | undefined;
 
   const [loading, setLoading] = useState(false);

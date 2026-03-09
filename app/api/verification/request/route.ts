@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
     process.env.NEXT_PUBLIC_APP_URL ?? process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : "https://app.workvouch.com";
-  const verificationLink = `${baseUrl}/verify/${responseToken}`;
+  const verificationLink = `${baseUrl}/verify/coworker/${responseToken}`;
 
   if (
     (deliveryMethod === "sms" || deliveryMethod === "email_and_sms") &&

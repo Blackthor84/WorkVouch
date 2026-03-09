@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
 
   let sent = 0;
   for (const row of list) {
-    const link = `${baseUrl}/verify/${row.response_token}`;
+    const link = `${baseUrl}/verify/coworker/${row.response_token}`;
     const result = await sendVerificationSms(
       row.phone_number,
       link,

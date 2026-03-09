@@ -19,7 +19,7 @@ CREATE INDEX IF NOT EXISTS idx_verification_invites_token ON public.verification
 CREATE INDEX IF NOT EXISTS idx_verification_invites_candidate ON public.verification_invites(candidate_id);
 CREATE INDEX IF NOT EXISTS idx_verification_invites_status ON public.verification_invites(status);
 
-COMMENT ON TABLE public.verification_invites IS 'Coworker verification invites; token used in /verify/[token] link.';
+COMMENT ON TABLE public.verification_invites IS 'Coworker verification invites; token used in /verify/coworker/[token] link.';
 
 ALTER TABLE public.verification_invites ENABLE ROW LEVEL SECURITY;
 
