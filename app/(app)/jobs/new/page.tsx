@@ -25,6 +25,8 @@ export default function AddJobPage() {
   const [companyName, setCompanyName] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [department, setDepartment] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
+  const [city, setCity] = useState("");
   const [country, setCountry] = useState("US");
   const [state, setState] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -155,13 +157,37 @@ export default function AddJobPage() {
           </div>
         </section>
 
-        {/* Location — country + state only per privacy rule */}
+        {/* Location — only State and Country are stored (privacy); street/city are optional for your reference only */}
         <section className="space-y-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             Location
           </h2>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Street address (optional, not stored)
+            </label>
+            <input
+              type="text"
+              value={streetAddress}
+              onChange={(e) => setStreetAddress(e.target.value)}
+              placeholder="Street Address"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              City (optional, not stored)
+            </label>
+            <input
+              type="text"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="City"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+            />
+          </div>
           <p className="text-xs text-gray-500">
-            Locations are approximate (country/state only) to protect privacy.
+            Only state and country are stored to protect privacy.
           </p>
           <div className="grid grid-cols-2 gap-4">
             <div>

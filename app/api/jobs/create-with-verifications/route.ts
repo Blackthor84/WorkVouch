@@ -1,52 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getUser } from "@/lib/auth/getUser";
-import { admin } from "@/lib/supabase-admin";
+import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { randomBytes } from "crypto";
-import { z } from "zod";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const employmentTypes = ["full_time", "part_time", "contract", "internship", "temporary", "freelance"] as const;
+export async function POST(req: Request) {
+  const supabase = await createClient();
 
-const schema = z.object({
-  company_name: z.string().min(1, "Company name is required"),
-  job_title: z.string().min(1, "Job title is required"),
-  start_date: z.string().min(1, "Start date is required"),
-  end_date: z.string().nullable().optional(),
-  is_current: z.boolean().optional().default(false),
-  employment_type: z.enum(employmentTypes).default("full_time"),
-  location: z.string().nullable().optional(), // "State, Country" per privacy rule
-  supervisor_name: z.string().nullable().optional(),
-  coworker_emails: z.array(z.string().email()).default([]),
-});
+  const body = await req.json().catch(() => ({}));
+  const {
+    company_name,
+    job_title,
+    state,
+    start_date,
+    end_date,
+    coworkers = [],
+  } = body;
 
-export async function POST(req: NextRequest) {
-  const user = await getUser();
+  const { data: authData } = await supabase.auth.getUser();
+  const user = authData?.user;
+
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
-  const parse = schema.safeParse(body);
-  if (!parse.success) {
+  if (!company_name?.trim() || !job_title?.trim() || !start_date) {
     return NextResponse.json(
-      { error: parse.error.flatten().fieldErrors ? Object.values(parse.error.flatten().fieldErrors).flat().join(" ") : "Validation failed" },
+      { error: "company_name, job_title, and start_date are required" },
       { status: 400 }
     );
   }
 
-  const data = parse.data;
-  const end_date = data.is_current ? null : (data.end_date || null);
-  const supabase = await createClient();
-  const adminAny = admin as any;
+  const supabaseAny = supabase as any;
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -55,37 +41,38 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
   const requesterProfileId = (profile as { id: string } | null)?.id ?? user.id;
 
-  const { data: job, error: jobError } = await adminAny
+  const locationStr = state?.trim() ? String(state).trim() : null;
+
+  const { data: job, error } = await supabaseAny
     .from("jobs")
     .insert({
       user_id: user.id,
-      company_name: data.company_name.trim(),
-      job_title: data.job_title.trim(),
-      employment_type: data.employment_type,
-      start_date: data.start_date,
-      end_date,
-      is_current: !!data.is_current,
-      location: data.location?.trim() || null,
-      supervisor_name: data.supervisor_name?.trim() || null,
+      company_name: String(company_name).trim(),
+      job_title: String(job_title).trim(),
+      start_date: String(start_date),
+      end_date: end_date ? String(end_date) : null,
+      is_current: !end_date,
+      employment_type: "full_time",
+      location: locationStr,
       verification_status: "unverified",
       is_private: false,
     })
-    .select("id")
+    .select()
     .single();
 
-  if (jobError || !job) {
-    console.error("Job insert error:", jobError);
-    return NextResponse.json({ error: jobError?.message ?? "Failed to create job" }, { status: 500 });
+  if (error) {
+    console.error("Job insert error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const jobId = (job as { id: string }).id;
-  const normalizedEmails = [...new Set(data.coworker_emails.map((e) => e.trim().toLowerCase()).filter(Boolean))];
-  const created: string[] = [];
+  const emails = Array.isArray(coworkers)
+    ? [...new Set(coworkers.map((e: string) => String(e).trim().toLowerCase()).filter(Boolean))]
+    : [];
 
-  for (const email of normalizedEmails) {
+  for (const email of emails) {
     const responseToken = randomBytes(32).toString("base64url");
-    const { error: vrError } = await adminAny.from("verification_requests").insert({
-      job_id: jobId,
+    await supabaseAny.from("verification_requests").insert({
+      job_id: job.id,
       requester_profile_id: requesterProfileId,
       target_email: email,
       status: "pending",
@@ -93,12 +80,11 @@ export async function POST(req: NextRequest) {
       relationship_type: "coworker",
       delivery_method: "email",
     });
-    if (!vrError) created.push(email);
   }
 
   return NextResponse.json({
-    job_id: jobId,
-    verification_requests_sent: created.length,
-    coworker_emails: created,
+    success: true,
+    job_id: job.id,
+    verification_requests_sent: emails.length,
   });
 }

@@ -16,6 +16,27 @@ import { evaluateTrustAutomationRules } from "@/lib/trust/automation";
 import { mapToTrustRelationshipType } from "@/lib/verification/relationshipTypes";
 
 export const runtime = "nodejs";
+
+/** When a job reaches >= 2 confirmations: log trust_event. Confidence score is computed by DB view from jobs + verification_requests. */
+async function applyJobVerifiedConfidenceScore(
+  adminAny: any,
+  userId: string,
+  jobId: string,
+  acceptedCount: number
+) {
+  const verifiedJobPoints = 20;
+  const perConfirmationPoints = 10;
+  const bonus3Plus = acceptedCount >= 3 ? 10 : 0;
+  const delta = verifiedJobPoints + acceptedCount * perConfirmationPoints + bonus3Plus;
+
+  await adminAny.from("trust_events").insert({
+    profile_id: userId,
+    event_type: "job_verified",
+    event_source: "coworker_confirmations",
+    payload: { job_id: jobId, confirmations: acceptedCount, score_delta: delta },
+    created_at: new Date().toISOString(),
+  });
+}
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
@@ -47,16 +68,18 @@ export async function POST(req: NextRequest) {
     requester_profile_id: string;
     target_email: string;
     target_profile_id: string | null;
-    employment_record_id: string;
+    employment_record_id: string | null;
+    job_id: string | null;
     relationship_type: string;
     status: string;
   };
 
+  const selectCols = "id, requester_profile_id, target_email, target_profile_id, employment_record_id, job_id, relationship_type, status";
   let requestRow: RequestRow | null = null;
 
   if (body.request_id) {
     const { data, error } = await admin.from("verification_requests")
-      .select("id, requester_profile_id, target_email, target_profile_id, employment_record_id, relationship_type, status")
+      .select(selectCols)
       .eq("id", body.request_id)
       .eq("status", "pending")
       .maybeSingle();
@@ -66,7 +89,7 @@ export async function POST(req: NextRequest) {
     requestRow = data as unknown as RequestRow;
   } else if (body.response_token) {
     const { data, error } = await admin.from("verification_requests")
-      .select("id, requester_profile_id, target_email, target_profile_id, employment_record_id, relationship_type, status")
+      .select(selectCols)
       .eq("response_token", body.response_token)
       .eq("status", "pending")
       .maybeSingle();
@@ -111,8 +134,9 @@ export async function POST(req: NextRequest) {
     const requesterId = requestRow.requester_profile_id;
     const targetId = currentProfileId;
     const relType = mapToTrustRelationshipType(requestRow.relationship_type);
+    const adminAny = admin as any;
 
-    // 1) Create trust_relationships (manager/coworker confirmation → verification_source mutual_confirmation)
+    // 1) Create trust_relationships
     const verificationLevel = "verified";
     await admin.from("trust_relationships").upsert(
       [
@@ -128,45 +152,47 @@ export async function POST(req: NextRequest) {
       { onConflict: "source_profile_id,target_profile_id,relationship_type" }
     );
 
-    // 2) Log trust_events for the profile that gets the verification (employment record owner = requester)
-    const { data: empRecord } = await admin.from("employment_records")
-      .select("company_name, job_title")
-      .eq("id", requestRow.employment_record_id)
-      .maybeSingle();
-    const meta = empRecord
-      ? { company_name: (empRecord as { company_name?: string }).company_name, job_title: (empRecord as { job_title?: string }).job_title, source: "verification_request" }
-      : { source: "verification_request" };
-    await admin.from("trust_events").insert({
+    // 2) Resolve meta from job or employment_record
+    let meta: Record<string, unknown> = { source: "verification_request" };
+    if (requestRow.job_id) {
+      const { data: jobRow } = await admin.from("jobs")
+        .select("user_id, company_name, job_title")
+        .eq("id", requestRow.job_id)
+        .maybeSingle();
+      if (jobRow) {
+        const j = jobRow as { company_name?: string; job_title?: string; user_id?: string };
+        meta = { company_name: j.company_name, job_title: j.job_title, job_id: requestRow.job_id, source: "verification_request" };
+      }
+    } else if (requestRow.employment_record_id) {
+      const { data: empRecord } = await admin.from("employment_records")
+        .select("company_name, job_title")
+        .eq("id", requestRow.employment_record_id)
+        .maybeSingle();
+      if (empRecord) {
+        meta = { company_name: (empRecord as { company_name?: string }).company_name, job_title: (empRecord as { job_title?: string }).job_title, source: "verification_request" };
+      }
+    }
+
+    await adminAny.from("trust_events").insert({
       profile_id: requesterId,
       event_type: "verification",
       event_source: "verification_request_accepted",
-      impact_score: 10,
       payload: meta,
-      impact: "positive",
-      metadata: meta,
       created_at: new Date().toISOString(),
     });
-    // Section 4: trust_event for verification_confirmed (growth/analytics)
-    await admin.from("trust_events").insert({
+    await adminAny.from("trust_events").insert({
       profile_id: requesterId,
       event_type: "verification_confirmed",
       event_source: "verification_request_accepted",
-      impact_score: 15,
       payload: { ...meta, target_profile_id: targetId, relationship_type: requestRow.relationship_type },
-      impact: "positive",
-      metadata: meta,
       created_at: new Date().toISOString(),
     });
-    // Coworker discovery: when coworker confirms, log coworker_verification_confirmed
     if (requestRow.relationship_type === "coworker") {
-      await admin.from("trust_events").insert({
+      await adminAny.from("trust_events").insert({
         profile_id: requesterId,
         event_type: "coworker_verification_confirmed",
         event_source: "verification_request_accepted",
-        impact_score: 10,
         payload: { ...meta, target_profile_id: targetId },
-        impact: "positive",
-        metadata: meta,
         created_at: new Date().toISOString(),
       });
     }
@@ -176,10 +202,34 @@ export async function POST(req: NextRequest) {
       console.error("[verification/respond] Trust automation:", e);
     }
 
-    // 3) Update employment_records.verification_status to verified
-    await admin.from("employment_records")
-      .update({ verification_status: "verified", updated_at: new Date().toISOString() })
-      .eq("id", requestRow.employment_record_id);
+    // 3a) Job-based flow: count accepted requests; if >= 2 set job verified and update confidence score
+    if (requestRow.job_id) {
+      const { data: acceptedList } = await admin.from("verification_requests")
+        .select("id")
+        .eq("job_id", requestRow.job_id)
+        .eq("status", "accepted");
+      const acceptedCount = (acceptedList ?? []).length;
+      if (acceptedCount >= 2) {
+        const { data: jobRow } = await admin.from("jobs")
+          .select("user_id")
+          .eq("id", requestRow.job_id)
+          .single();
+        const jobUserId = (jobRow as { user_id?: string } | null)?.user_id;
+        await admin.from("jobs")
+          .update({ verification_status: "verified", updated_at: new Date().toISOString() })
+          .eq("id", requestRow.job_id);
+        if (jobUserId) {
+          await applyJobVerifiedConfidenceScore(adminAny, jobUserId, requestRow.job_id, acceptedCount);
+        }
+      }
+    }
+
+    // 3b) Employment-record flow: update employment_records.verification_status
+    if (requestRow.employment_record_id) {
+      await admin.from("employment_records")
+        .update({ verification_status: "verified", updated_at: new Date().toISOString() })
+        .eq("id", requestRow.employment_record_id);
+    }
   }
 
   return NextResponse.json({
