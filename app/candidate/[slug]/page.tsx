@@ -86,7 +86,7 @@ export default async function CandidatePage({
       admin.from("job_verifications").select("job_id").then((r) => r.data ?? []),
     ]);
 
-    const jobs = (jobsRes.data ?? []) as JobRow[];
+    const jobs = safeData<JobRow>(jobsRes.data);
     const jobIds = new Set(jobs.map((j) => j.id));
     const verifications = (verificationsRes as { job_id: string }[]).filter((v) =>
       jobIds.has(v.job_id)
