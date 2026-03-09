@@ -183,7 +183,7 @@ export default async function CandidatePage({
               </Button>
             )}
             {(!user || isEmployerUser) && (
-              <Button asChild variant={!user ? "outline" : "default"}>
+              <Button asChild variant={!user ? "outline" : "primary"}>
                 <Link href="/pricing">View plans</Link>
               </Button>
             )}
