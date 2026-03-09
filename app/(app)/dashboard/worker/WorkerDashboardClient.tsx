@@ -30,8 +30,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
  */
 export default function WorkerDashboard({
   initialConfidenceScore = 0,
+  publicSlug = null,
 }: {
   initialConfidenceScore?: number;
+  publicSlug?: string | null;
 }) {
   const searchParams = useSearchParams();
   const [requestModalOpen, setRequestModalOpen] = useState(false);
@@ -75,7 +77,7 @@ export default function WorkerDashboard({
         <ConfidenceScore score={initialConfidenceScore} />
 
         {/* Share WorkVouch profile link with employers */}
-        <ShareProfileCard publicSlug={publicSlug ?? null} />
+        <ShareProfileCard publicSlug={publicSlug} />
 
         {/* Job History / Trust Score / Recent Verifications */}
         {/* Verified Work History */}
