@@ -1,73 +1,54 @@
-'use server'
+"use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { requireAuth } from '@/lib/auth'
-import { revalidatePath } from 'next/cache'
-import { ProfileVisibility } from '@/types/database'
+import { revalidatePath } from "next/cache";
+
+export type ProfileUpdateInput = {
+  full_name: string;
+  headline: string;
+  location: string;
+  bio: string;
+};
 
 /**
- * Update user profile
+ * Update the current user's profile (full_name, industry/headline, city/state, professional_summary/bio).
  */
-export async function updateProfile(data: {
-  full_name?: string
-  city?: string
-  state?: string
-  professional_summary?: string
-  visibility?: ProfileVisibility
-}) {
-  const user = await requireAuth()
-  const supabase = await createClient()
-  const supabaseAny = supabase as any
+export async function updateProfile(input: ProfileUpdateInput): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
 
-  const { data: profile, error } = await supabaseAny
-    .from('profiles')
-    .update(data)
-    .eq('id', user.id)
-    .select()
-    .single()
+  const full_name = (input.full_name ?? "").trim() || null;
+  const headline = (input.headline ?? "").trim() || null;
+  const bio = (input.bio ?? "").trim() || null;
 
-  if (error) {
-    throw new Error(`Failed to update profile: ${error.message}`)
+  // Parse location into city, state (e.g. "Manchester, NH" -> city: Manchester, state: NH)
+  let city: string | null = null;
+  let state: string | null = null;
+  const loc = (input.location ?? "").trim();
+  if (loc) {
+    const parts = loc.split(",").map((p) => p.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      city = parts[0] ?? null;
+      state = parts.slice(1).join(", ") ?? null;
+    } else {
+      city = parts[0] ?? null;
+    }
   }
 
-  revalidatePath('/dashboard')
-  return profile
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      full_name,
+      industry: headline,
+      city,
+      state,
+      professional_summary: bio,
+    })
+    .eq("id", user.id);
+
+  if (error) return { error: error.message };
+  revalidatePath("/profile");
+  revalidatePath("/profile/edit");
+  return {};
 }
-
-/**
- * Upload profile photo
- * Note: This is a placeholder - implement actual file upload using Supabase Storage
- */
-export async function uploadProfilePhoto(file: File) {
-  const user = await requireAuth()
-  const supabase = await createClient()
-
-  // TODO: Implement file upload to Supabase Storage
-  // For now, return a placeholder URL
-  // In production, upload to: profiles/{user_id}/photo.{ext}
-  
-  const fileExt = file.name.split('.').pop()
-  const fileName = `${user.id}/photo.${fileExt}`
-  
-  // This would be the actual upload:
-  // const { data, error } = await supabase.storage
-  //   .from('profile-photos')
-  //   .upload(fileName, file, { upsert: true })
-  
-  // For now, return a placeholder
-  const photoUrl = `/api/placeholder/${fileName}`
-  
-  const supabaseAny = supabase as any
-  const { error } = await supabaseAny
-    .from('profiles')
-    .update({ profile_photo_url: photoUrl })
-    .eq('id', user.id)
-
-  if (error) {
-    throw new Error(`Failed to update profile photo: ${error.message}`)
-  }
-
-  revalidatePath('/dashboard')
-  return { url: photoUrl }
-}
-

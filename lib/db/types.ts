@@ -8,6 +8,8 @@ export type ProfileRow = {
   industry: string | null;
   professional_summary: string | null;
   public_slug?: string | null;
+  city?: string | null;
+  state?: string | null;
 };
 
 export type JobRow = {

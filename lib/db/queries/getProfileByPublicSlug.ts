@@ -12,7 +12,7 @@ export async function getProfileByPublicSlug(
 ): Promise<ProfileRow | null> {
   const { data, error } = await adminAny
     .from("profiles")
-    .select("id, full_name, industry, professional_summary")
+    .select("id, full_name, industry, professional_summary, city, state")
     .eq("public_slug", slug)
     .maybeSingle();
 

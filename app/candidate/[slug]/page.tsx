@@ -24,8 +24,11 @@ export default async function CandidatePage({
 
   const { profile, confidenceScore: previewScore, jobCount: numJobs } = preview;
   const fullName = profile.full_name ?? "Candidate";
+  const headline = profile.industry ?? (profile as { role?: string | null }).role ?? null;
   const industry = profile.industry;
   const summary = profile.professional_summary;
+  const locationParts = [(profile as { city?: string | null }).city, (profile as { state?: string | null }).state].filter(Boolean);
+  const location = locationParts.length > 0 ? locationParts.join(", ") : null;
 
   const user = await getCurrentUser();
   const isEmployerUser = user ? await isEmployer() : false;
@@ -62,6 +65,14 @@ export default async function CandidatePage({
             {summary && (
               <p className="mt-4 text-gray-600 dark:text-gray-400 max-w-2xl">{summary}</p>
             )}
+            <div className="mt-3 flex flex-wrap gap-3 text-sm">
+              <Link href={`/candidate/${slug}/verifications`} className="text-blue-600 hover:underline dark:text-blue-400">
+                Verification details
+              </Link>
+              <Link href={`/candidate/${slug}/confidence`} className="text-blue-600 hover:underline dark:text-blue-400">
+                Confidence breakdown
+              </Link>
+            </div>
           </header>
 
           <section>
@@ -120,8 +131,11 @@ export default async function CandidatePage({
       <div className="max-w-3xl mx-auto px-4 py-8 md:px-6">
         <header className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-6 mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{fullName}</h1>
-          {industry && (
-            <p className="text-gray-500 dark:text-gray-400 mt-1">{industry}</p>
+          {(headline ?? industry) && (
+            <p className="text-gray-500 dark:text-gray-400 mt-1">{headline ?? industry}</p>
+          )}
+          {location && (
+            <p className="text-gray-500 dark:text-gray-400 mt-1">{location}</p>
           )}
           {previewScore !== null && (
             <p className="mt-2 text-gray-700 dark:text-gray-300">
@@ -129,6 +143,14 @@ export default async function CandidatePage({
               <span className="font-semibold">{previewScore}</span>
             </p>
           )}
+          <div className="mt-3 flex flex-wrap gap-3 text-sm">
+            <Link href={`/candidate/${slug}/verifications`} className="text-blue-600 hover:underline dark:text-blue-400">
+              Verification details
+            </Link>
+            <Link href={`/candidate/${slug}/confidence`} className="text-blue-600 hover:underline dark:text-blue-400">
+              Confidence breakdown
+            </Link>
+          </div>
         </header>
 
         <section className="mb-8">
