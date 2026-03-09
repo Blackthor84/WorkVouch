@@ -56,6 +56,14 @@ export default async function ProfilePage() {
   const location = locationParts.length > 0 ? locationParts.join(", ") : null;
   const email = profile?.email ?? user.email ?? "";
   const bio = profile?.professional_summary ?? null;
+  const publicSlug = profile?.public_slug ?? null;
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://workvouch.com");
+  const publicProfileUrl = publicSlug ? `${baseUrl}/candidate/${publicSlug}` : null;
+  const linkedInShareUrl = publicProfileUrl
+    ? `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(publicProfileUrl)}`
+    : null;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -144,13 +152,23 @@ export default async function ProfilePage() {
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 flex flex-wrap items-center gap-3">
         <Link
           href="/profile/edit"
           className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition"
         >
           Edit Profile
         </Link>
+        {linkedInShareUrl && (
+          <a
+            href={linkedInShareUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+          >
+            Share on LinkedIn
+          </a>
+        )}
       </div>
     </div>
   );

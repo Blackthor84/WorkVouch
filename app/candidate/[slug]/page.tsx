@@ -1,10 +1,47 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getCurrentUser } from "@/lib/auth";
 import { isEmployer } from "@/lib/auth";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { getCandidateProfile, getCandidatePreview } from "@/lib/services/profiles";
 import { Button } from "@/components/ui/button";
+
+const BASE_URL =
+  process.env.NEXT_PUBLIC_APP_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://workvouch.com");
+
+/**
+ * Open Graph metadata for LinkedIn and other social sharing.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const preview = await getCandidatePreview(slug);
+  if (!preview) {
+    return { title: "Candidate | WorkVouch" };
+  }
+  const fullName = preview.profile.full_name ?? "Candidate";
+  const headline = preview.profile.industry ?? (preview.profile as { role?: string | null }).role ?? null;
+  const title = `${fullName} — Verified Work History | WorkVouch`;
+  const description = headline
+    ? `Verified work history and coworker validations. ${headline}`
+    : "Verified work history and coworker validations on WorkVouch.";
+  const url = `${BASE_URL}/candidate/${slug}`;
+  return {
+    title,
+    description,
+    openGraph: {
+      title: `${fullName} — WorkVouch Profile`,
+      description: "Verified work history and coworker validations.",
+      url,
+      type: "profile",
+    },
+  };
+}
 
 /**
  * Candidate profile: public preview (blurred) or full employer view.
