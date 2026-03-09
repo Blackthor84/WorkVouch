@@ -42,13 +42,14 @@ export async function POST(req: Request) {
   const requesterProfileId = (profile as { id: string } | null)?.id ?? user.id;
 
   const locationStr = state?.trim() ? String(state).trim() : null;
+  const safeTitle = (String(job_title ?? "").trim()) || "Unknown Job";
 
   const { data: job, error } = await supabaseAny
     .from("jobs")
     .insert({
       user_id: user.id,
       company_name: String(company_name).trim(),
-      title: String(job_title).trim(),
+      title: safeTitle,
       start_date: String(start_date),
       end_date: end_date ? String(end_date) : null,
       is_current: !end_date,

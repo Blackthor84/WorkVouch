@@ -61,11 +61,12 @@ export function JobFormClient({ industry }: JobFormClientProps) {
         : [];
 
       // Insert job
+      const safeTitle = (jobTitle ?? "").toString().trim() || "Unknown Job";
       const { error: jobError } = await (supabase as any).from("jobs").insert([
         {
           user_id: user.id,
           company_name: employer,
-          title: jobTitle,
+          title: safeTitle,
           start_date: startDate,
           end_date: currentJob ? null : endDate || null,
           is_current: currentJob,

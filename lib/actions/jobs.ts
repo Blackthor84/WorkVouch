@@ -25,12 +25,13 @@ export async function createJob(input: CreateJobInput) {
   const supabase = await createClient()
   const supabaseAny = supabase as any
 
+  const safeTitle = input.job_title?.trim() || "Unknown Job"
   const { job_title: _jt, ...rest } = input
   const { data: job, error } = await supabaseAny
     .from('jobs')
     .insert([{
       ...rest,
-      title: input.job_title,
+      title: safeTitle,
       user_id: user.id,
     }])
     .select()
@@ -76,7 +77,7 @@ export async function updateJob(jobId: string, input: Partial<CreateJobInput>) {
   }
 
   const { job_title: _jt, ...rest } = input
-  const updatePayload = _jt !== undefined ? { ...rest, title: _jt } : rest
+  const updatePayload = _jt !== undefined ? { ...rest, title: _jt?.trim() || "Unknown Job" } : rest
   const { data: job, error } = await supabaseAny
     .from('jobs')
     .update(updatePayload)

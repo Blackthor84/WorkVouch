@@ -33,14 +33,14 @@ export async function POST(req: NextRequest) {
 
     const supabaseAny = admin as any;
 
-    const title = data.jobTitle;
+    const safeTitle = (data.jobTitle ?? "").trim() || "Unknown Job";
     const start_date = data.startDate;
     const end_date = data.endDate || null;
 
     const { data: jobHistory, error: jobError } = await supabaseAny
       .from("jobs")
       .insert({
-        title: title,
+        title: safeTitle,
         start_date,
         end_date,
         user_id: user.id,

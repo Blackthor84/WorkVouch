@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       const jobsToInsert = jobs.map((job: any) => ({
         user_id: user.id,
         company_name: job.company || "",
-        title: job.title || "",
+        title: (job.title ?? "").toString().trim() || "Unknown Job",
         employment_type: "full_time" as const, // Default, can be updated later
         start_date: job.startDate || new Date().toISOString().split("T")[0],
         end_date:
