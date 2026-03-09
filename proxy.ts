@@ -105,7 +105,30 @@ export async function proxy(req: NextRequest) {
           },
         },
       });
-      await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      // Route protection: redirect unauthenticated users from protected routes
+      const protectedRoutes = [
+        "/dashboard",
+        "/my-jobs",
+        "/verifications",
+        "/profile",
+        "/settings",
+      ];
+      const isProtected = protectedRoutes.some((route) =>
+        path.startsWith(route)
+      );
+      if (isProtected && !user) {
+        return NextResponse.redirect(new URL("/login", req.url));
+      }
+      if (
+        (path === "/login" || path === "/signup") &&
+        user
+      ) {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
     } catch {
       // Supabase session refresh must not block impersonation
     }
@@ -136,7 +159,12 @@ export async function proxy(req: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/my-jobs/:path*",
+    "/verifications/:path*",
     "/profile/:path*",
+    "/settings/:path*",
+    "/login",
+    "/signup",
     "/api/:path*",
     "/admin/:path*",
     "/api/admin/:path*",
