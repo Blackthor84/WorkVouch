@@ -10,16 +10,30 @@ export default async function WorkerDashboardPage() {
   if (!user) return null;
 
   let confidenceScore = 0;
+  let publicSlug: string | null = null;
   try {
-    const { data } = await (admin as any)
-      .from("user_confidence_scores")
-      .select("confidence_score")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    confidenceScore = Number((data as { confidence_score?: number } | null)?.confidence_score ?? 0);
+    const [scoreRes, profileRes] = await Promise.all([
+      (admin as any)
+        .from("user_confidence_scores")
+        .select("confidence_score")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      (admin as any)
+        .from("profiles")
+        .select("public_slug")
+        .eq("id", user.id)
+        .maybeSingle(),
+    ]);
+    confidenceScore = Number((scoreRes.data as { confidence_score?: number } | null)?.confidence_score ?? 0);
+    publicSlug = (profileRes.data as { public_slug?: string | null } | null)?.public_slug ?? null;
   } catch {
     // view may not exist or query failed
   }
 
-  return <WorkerDashboard initialConfidenceScore={confidenceScore} />;
+  return (
+    <WorkerDashboard
+      initialConfidenceScore={confidenceScore}
+      publicSlug={publicSlug}
+    />
+  );
 }

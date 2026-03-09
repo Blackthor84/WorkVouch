@@ -18,6 +18,7 @@ import ConfidenceScore from "@/components/ConfidenceScore";
 import { Button } from "@/components/ui/button";
 import { PaperAirplaneIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import { InviteCoworkerForm } from "@/components/dashboard/InviteCoworkerForm";
+import { ShareProfileCard } from "@/components/dashboard/ShareProfileCard";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 /**
@@ -72,6 +73,9 @@ export default function WorkerDashboard({
 
         {/* Confidence Score — score, next level, tips (fetched in page, passed as prop) */}
         <ConfidenceScore score={initialConfidenceScore} />
+
+        {/* Share WorkVouch profile link with employers */}
+        <ShareProfileCard publicSlug={publicSlug ?? null} />
 
         {/* Job History / Trust Score / Recent Verifications */}
         {/* Verified Work History */}

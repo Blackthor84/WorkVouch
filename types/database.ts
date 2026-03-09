@@ -186,6 +186,7 @@ export interface Database {
           state: string | null
           profile_photo_url: string | null
           professional_summary: string | null
+          public_slug: string | null
           visibility: ProfileVisibility
           employer_visibility: string | null
           created_at: string
@@ -240,6 +241,7 @@ export interface Database {
           state?: string | null
           profile_photo_url?: string | null
           professional_summary?: string | null
+          public_slug?: string | null
           visibility?: ProfileVisibility
           employer_visibility?: string | null
           created_at?: string

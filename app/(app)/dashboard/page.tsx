@@ -3,8 +3,8 @@ import { getUser } from "@/lib/auth/getUser";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { ConfidenceScore } from "@/components/confidence-score";
-import { VerifiedJobsList } from "@/components/verified-jobs-list";
-import { VerificationRequests } from "@/components/verification-requests";
+import { VerifiedJobs } from "@/components/verified-jobs";
+import { PendingVerifications } from "@/components/pending-verifications";
 import { PlusIcon, DocumentArrowUpIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
 
 export const revalidate = 0;
@@ -14,13 +14,11 @@ export default async function UserDashboardPage() {
   const user = await getUser();
   if (!user) return null;
   const profile = await getCurrentUserProfile();
-  const safeProfile = profile
-    ? { ...profile, full_name: profile.full_name ?? "", email: profile.email ?? "" }
-    : null;
-  const profileId = safeProfile?.id ?? user.id;
+  const profileId = profile?.id ?? user.id;
 
   return (
     <main className="flex-1 flex flex-col max-w-5xl mx-auto w-full">
+      {/* Trust Overview header */}
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
           Trust Overview
@@ -30,7 +28,7 @@ export default async function UserDashboardPage() {
         </p>
       </div>
 
-      {/* Top action buttons */}
+      {/* Action buttons */}
       <div className="flex flex-wrap gap-3 mb-8">
         <Link
           href="/jobs/new"
@@ -55,14 +53,18 @@ export default async function UserDashboardPage() {
         </Link>
       </div>
 
-      {/* Main content grid */}
+      {/* Confidence Score */}
+      <div className="mb-8">
+        <ConfidenceScore userId={user.id} />
+      </div>
+
+      {/* Verified Work History + Pending Verifications */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <ConfidenceScore userId={user.id} />
-          <VerifiedJobsList userId={user.id} />
+        <div className="lg:col-span-2">
+          <VerifiedJobs userId={user.id} />
         </div>
         <div>
-          <VerificationRequests profileId={profileId} />
+          <PendingVerifications profileId={profileId} />
         </div>
       </div>
     </main>

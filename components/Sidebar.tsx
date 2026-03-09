@@ -21,7 +21,7 @@ const employeeNav = [
   { href: "/dashboard", label: "Dashboard", icon: HomeIcon },
   { href: "/my-jobs", label: "Verified Work History", icon: BriefcaseIcon },
   { href: "/upload-resume", label: "Resume", icon: DocumentTextIcon },
-  { href: "/coworker-matches", label: "Coworker Verifications", icon: UserGroupIcon },
+  { href: "/coworker-matches", label: "Request Verification", icon: UserGroupIcon },
   { href: "/dashboard/worker", label: "Network", icon: CircleStackIcon },
   { href: "/dashboard/settings", label: "Settings", icon: Cog6ToothIcon },
 ];
@@ -36,8 +36,7 @@ const employerNav = [
 ];
 
 /**
- * Professional scrollable sidebar — Stripe/Notion/Linear style.
- * Left = Navigation. Use "Verified Work History" (not "My Jobs") to reinforce trust product.
+ * SaaS-style sidebar for Trust Overview and app navigation.
  */
 export default function Sidebar({ role }: { role: Role }) {
   const pathname = usePathname();

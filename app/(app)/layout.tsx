@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import Sidebar from "@/components/Sidebar";
+import Sidebar from "@/components/sidebar";
 
 /**
  * Single auth + role guard for all routes under (app).
