@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,14 +12,18 @@ export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 export default async function MyJobsPage() {
-  const user = await getCurrentUser();
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
 
   const supabaseAny = supabase as any;
   const { data: jobs, error } = await supabaseAny
     .from("jobs")
     .select("*")
-    .eq("user_id", user!.id)
+    .eq("user_id", user.id)
     .order("start_date", { ascending: false });
 
   // Normalize jobs: convert string | null to string
