@@ -1,0 +1,124 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Squares2X2Icon,
+  InboxStackIcon,
+  BellAlertIcon,
+  UserCircleIcon,
+  Cog6ToothIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import {
+  Squares2X2Icon as Squares2X2IconSolid,
+  InboxStackIcon as InboxStackIconSolid,
+  BellAlertIcon as BellAlertIconSolid,
+} from "@heroicons/react/24/solid";
+import { cn } from "@/lib/utils";
+
+const mainNav = [
+  { href: "/coworker-matches", label: "Dashboard", Icon: Squares2X2Icon, IconSolid: Squares2X2IconSolid },
+  { href: "/requests", label: "Incoming Requests", Icon: InboxStackIcon, IconSolid: InboxStackIconSolid },
+  { href: "/notifications", label: "Notifications", Icon: BellAlertIcon, IconSolid: BellAlertIconSolid },
+];
+
+const bottomNav = [
+  { href: "/profile", label: "Profile", Icon: UserCircleIcon },
+  { href: "/settings", label: "Settings", Icon: Cog6ToothIcon },
+];
+
+export function PeerCVSidebar({
+  mobileOpen,
+  onCloseMobile,
+}: {
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
+} = {}) {
+  const pathname = usePathname();
+
+  const navContent = (
+    <nav className="flex flex-1 flex-col gap-1 p-3">
+      {onCloseMobile && (
+        <div className="flex justify-end p-2 md:hidden">
+          <button
+            type="button"
+            onClick={onCloseMobile}
+            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+            aria-label="Close menu"
+          >
+            <XMarkIcon className="h-5 w-5" />
+          </button>
+        </div>
+      )}
+      {mainNav.map(({ href, label, Icon, IconSolid }) => {
+        const isActive = pathname === href || (href !== "/coworker-matches" && pathname.startsWith(href));
+        const Comp = isActive ? IconSolid : Icon;
+        return (
+          <Link
+            key={href}
+            href={href}
+            onClick={onCloseMobile}
+            className={cn(
+              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-200",
+              isActive
+                ? "bg-slate-900 text-white"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+            )}
+          >
+            <Comp className="h-5 w-5 shrink-0" strokeWidth={isActive ? 2 : 1.5} />
+            {label}
+          </Link>
+        );
+      })}
+      <div className="my-2 border-t border-slate-200/80" />
+      {bottomNav.map(({ href, label, Icon }) => {
+        const isActive = pathname === href;
+        return (
+          <Link
+            key={href}
+            href={href}
+            onClick={onCloseMobile}
+            className={cn(
+              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-200",
+              isActive ? "bg-slate-100 text-slate-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+            )}
+          >
+            <Icon className="h-5 w-5 shrink-0" strokeWidth={1.5} />
+            {label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+
+  return (
+    <>
+      {/* Desktop: always visible */}
+      <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200/80 bg-white">
+        {navContent}
+      </aside>
+      {/* Mobile: overlay drawer */}
+      {onCloseMobile && (
+        <>
+          <div
+            className={cn(
+              "fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-sm transition-opacity md:hidden",
+              mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
+            )}
+            onClick={onCloseMobile}
+            aria-hidden
+          />
+          <aside
+            className={cn(
+              "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200/80 bg-white shadow-xl transition-transform duration-200 ease-out md:hidden",
+              mobileOpen ? "translate-x-0" : "-translate-x-full"
+            )}
+          >
+            {navContent}
+          </aside>
+        </>
+      )}
+    </>
+  );
+}

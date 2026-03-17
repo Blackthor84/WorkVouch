@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { ConfidenceScore } from "@/components/confidence-score";
 import { VerifiedJobs } from "@/components/verified-jobs";
 import { PendingVerifications } from "@/components/pending-verifications";
+import { BoostTrustScoreCard } from "@/components/peercv/BoostTrustScoreCard";
 import { PlusIcon, DocumentArrowUpIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
 
 export const revalidate = 0;
@@ -51,6 +52,11 @@ export default async function UserDashboardPage() {
           <EnvelopeIcon className="h-5 w-5" />
           Request Verification
         </Link>
+      </div>
+
+      {/* Boost Trust Score — invite coworkers */}
+      <div className="mb-8">
+        <BoostTrustScoreCard />
       </div>
 
       {/* Confidence Score */}

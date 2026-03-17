@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import Sidebar from "@/components/sidebar";
+import { getUnreadNotificationCount } from "@/lib/actions/notifications";
+import { PeerCVLayoutClient } from "@/components/peercv/PeerCVLayoutClient";
 
 /**
  * Single auth + role guard for all routes under (app).
@@ -32,7 +33,7 @@ export default async function AppLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, full_name, profile_photo_url")
     .eq("id", user.id)
     .single();
 
@@ -40,14 +41,17 @@ export default async function AppLayout({
     redirect("/choose-role");
   }
 
-  const role = normalizeRole((profile as { role?: string | null })?.role ?? null);
+  const unreadCount = await getUnreadNotificationCount();
+  const p = profile as { role?: string; full_name?: string | null; profile_photo_url?: string | null };
+  const userInitial = p?.full_name?.trim().charAt(0)?.toUpperCase() ?? user.email?.charAt(0)?.toUpperCase() ?? "?";
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-[#0D1117]">
-      <Sidebar role={role} />
-      <main className="flex-1 p-6 md:p-8 overflow-y-auto min-w-0">
-        {children}
-      </main>
-    </div>
+    <PeerCVLayoutClient
+      unreadNotificationCount={unreadCount}
+      userInitial={userInitial}
+      profilePhotoUrl={p?.profile_photo_url ?? null}
+    >
+      {children}
+    </PeerCVLayoutClient>
   );
 }

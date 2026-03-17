@@ -1,28 +1,45 @@
 import { getUserNotifications } from "@/lib/actions/notifications";
-import { Card } from "@/components/ui/card";
-import { NotificationsList } from "@/components/notifications-list";
+import { NotificationsPanel } from "./NotificationsPanel";
+import { Suspense } from "react";
+
+export const dynamic = "force-dynamic";
 
 export default async function NotificationsPage() {
-  let notifications: any[] = [];
-  try {
-    notifications = await getUserNotifications();
-  } catch (error: any) {
-    // If notifications table doesn't exist, return empty array
-    console.warn("Notifications table not found:", error.message);
-    notifications = [];
-  }
+  const notifications = await getUserNotifications(50);
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
-          Notifications
-        </h1>
-        <p className="mt-1 text-sm text-grey-medium dark:text-gray-400">
-          Stay updated on your connections and references
-        </p>
-      </div>
-      <NotificationsList notifications={notifications} />
-    </main>
+    <div className="p-4 sm:p-6 md:p-8 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
+        Notifications
+      </h1>
+      <p className="mt-1 text-sm text-slate-500">
+        Matches, reference requests, and other updates.
+      </p>
+      <Suspense fallback={<NotificationsSkeleton />}>
+        <NotificationsPanel initialNotifications={notifications} />
+      </Suspense>
+    </div>
+  );
+}
+
+function NotificationsSkeleton() {
+  return (
+    <ul className="mt-6 space-y-3">
+      {[1, 2, 3, 4].map((i) => (
+        <li
+          key={i}
+          className="rounded-xl border border-slate-200/80 bg-white p-5 animate-pulse"
+        >
+          <div className="flex gap-4">
+            <div className="h-10 w-10 shrink-0 rounded-full bg-slate-200" />
+            <div className="space-y-2 flex-1">
+              <div className="h-4 w-3/4 rounded bg-slate-200" />
+              <div className="h-3 w-full rounded bg-slate-100" />
+              <div className="h-3 w-24 rounded bg-slate-100" />
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }
