@@ -115,14 +115,7 @@ export function IncomingRequestsClient() {
 
   if (loading) return null;
 
-  return (
-    <>
-      {newRequestAlert && (
-        <div className="mb-4 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm font-medium text-green-800">
-          New reference request!
-        </div>
-      )}
-      {requests.length === 0 ? (
+  if (requests.length === 0) {
     return (
       <EmptyState
         icon={<InboxStackIcon className="h-7 w-7" />}
@@ -138,68 +131,76 @@ export function IncomingRequestsClient() {
         }
         className="mt-8"
       />
-      ) : (
-    <ul className="mt-6 space-y-3">
-      {requests.map((req) => {
-        const profile = profiles[req.requester_id];
-        const name = profile?.full_name ?? "Someone";
-        const initial = name.charAt(0).toUpperCase();
-        return (
-          <li
-            key={req.id}
-            className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
-          >
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                {profile?.profile_photo_url ? (
-                  <img
-                    src={profile.profile_photo_url}
-                    alt=""
-                    className="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-slate-100"
-                  />
-                ) : (
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-600">
-                    {initial}
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <p className="font-medium text-slate-900">{name} requested a reference</p>
-                  {req.message && (
-                    <p className="text-sm text-slate-500 truncate">&ldquo;{req.message}&rdquo;</p>
-                  )}
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {new Date(req.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-              {req.status === "pending" ? (
-                <div className="flex gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => updateRequest(req.id, "accepted")}
-                    disabled={updatingId === req.id}
-                    className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-50"
-                  >
-                    {updatingId === req.id ? "…" : "Accept"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => updateRequest(req.id, "rejected")}
-                    disabled={updatingId === req.id}
-                    className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 disabled:opacity-50"
-                  >
-                    Reject
-                  </button>
-                </div>
-              ) : (
-                <span className="text-sm font-medium text-slate-500 capitalize shrink-0">{req.status}</span>
-              )}
-            </div>
-          </li>
-        );
-      })}
-    </ul>
+    );
+  }
+
+  return (
+    <>
+      {newRequestAlert && (
+        <div className="mb-4 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm font-medium text-green-800">
+          New reference request!
+        </div>
       )}
+      <ul className="mt-6 space-y-3">
+        {requests.map((req) => {
+          const profile = profiles[req.requester_id];
+          const name = profile?.full_name ?? "Someone";
+          const initial = name.charAt(0).toUpperCase();
+          return (
+            <li
+              key={req.id}
+              className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  {profile?.profile_photo_url ? (
+                    <img
+                      src={profile.profile_photo_url}
+                      alt=""
+                      className="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-slate-100"
+                    />
+                  ) : (
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-600">
+                      {initial}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-medium text-slate-900">{name} requested a reference</p>
+                    {req.message && (
+                      <p className="text-sm text-slate-500 truncate">&ldquo;{req.message}&rdquo;</p>
+                    )}
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {new Date(req.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                {req.status === "pending" ? (
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => updateRequest(req.id, "accepted")}
+                      disabled={updatingId === req.id}
+                      className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-50"
+                    >
+                      {updatingId === req.id ? "…" : "Accept"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateRequest(req.id, "rejected")}
+                      disabled={updatingId === req.id}
+                      className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 disabled:opacity-50"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-sm font-medium text-slate-500 capitalize shrink-0">{req.status}</span>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </>
   );
 }
