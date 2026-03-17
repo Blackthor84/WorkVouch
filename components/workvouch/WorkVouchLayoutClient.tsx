@@ -6,12 +6,14 @@ import { WorkVouchNavbar } from "./WorkVouchNavbar";
 
 export function WorkVouchLayoutClient({
   unreadNotificationCount,
+  pendingReferenceRequestCount = 0,
   userInitial,
   userEmail,
   profilePhotoUrl,
   children,
 }: {
   unreadNotificationCount: number;
+  pendingReferenceRequestCount?: number;
   userInitial: string;
   userEmail: string | null;
   profilePhotoUrl: string | null;
@@ -22,6 +24,7 @@ export function WorkVouchLayoutClient({
   return (
     <div className="flex min-h-screen bg-slate-50">
       <WorkVouchSidebar
+        pendingReferenceRequestCount={pendingReferenceRequestCount}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
       />

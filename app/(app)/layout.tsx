@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUnreadNotificationCount } from "@/lib/actions/notifications";
+import { getPendingReferenceRequestCount } from "@/lib/actions/referenceRequests";
 import { WorkVouchLayoutClient } from "@/components/workvouch/WorkVouchLayoutClient";
 
 /**
@@ -41,7 +42,10 @@ export default async function AppLayout({
     redirect("/choose-role");
   }
 
-  const unreadCount = await getUnreadNotificationCount();
+  const [unreadCount, pendingRequestsCount] = await Promise.all([
+    getUnreadNotificationCount(),
+    getPendingReferenceRequestCount(),
+  ]);
   const p = profile as { role?: string; full_name?: string | null; profile_photo_url?: string | null };
   const userInitial = p?.full_name?.trim().charAt(0)?.toUpperCase() ?? user.email?.charAt(0)?.toUpperCase() ?? "?";
   const userEmail = user.email ?? null;
@@ -49,6 +53,7 @@ export default async function AppLayout({
   return (
     <WorkVouchLayoutClient
       unreadNotificationCount={unreadCount}
+      pendingReferenceRequestCount={pendingRequestsCount}
       userInitial={userInitial}
       userEmail={userEmail}
       profilePhotoUrl={p?.profile_photo_url ?? null}

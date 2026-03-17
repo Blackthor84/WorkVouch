@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { RequestButton } from "./RequestButton";
+import { MatchTrustBadge } from "./MatchTrustBadge";
 
 export type MatchCardData = {
   id: string;
@@ -9,6 +10,8 @@ export type MatchCardData = {
   company_name: string;
   other_job_title: string | null;
   trust_score: number | null;
+  overlap_start?: string;
+  overlap_end?: string;
   other_user: {
     id: string;
     full_name: string | null;
@@ -32,33 +35,39 @@ export function MatchCard({
   className?: string;
 }) {
   const name = match.other_user?.full_name ?? "Unknown";
-  const subtitle = [match.company_name, match.other_job_title].filter(Boolean).join(" • ");
-  const trustDisplay = match.trust_score != null ? Math.round(match.trust_score) : "—";
+  const roleAtCompany = [match.other_job_title || "Employee", match.company_name].filter(Boolean).join(" @ ");
+  const overlapRange =
+    match.overlap_start && match.overlap_end
+      ? `${match.overlap_start} → ${match.overlap_end}`
+      : null;
+  const score = match.trust_score != null ? Math.round(match.trust_score) : 0;
 
   return (
     <article
       className={cn(
-        "rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md",
+        "rounded-2xl bg-white p-5 shadow-sm border border-slate-200/80 transition hover:shadow-md",
         className
       )}
     >
-      <div className="flex justify-between items-center">
-        <div className="min-w-0">
-          <p className="font-semibold text-lg text-slate-900 truncate">{name}</p>
-          <p className="text-gray-500 text-sm truncate">{subtitle || "—"}</p>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-bold text-lg text-slate-900 truncate">{name}</p>
+          <p className="text-slate-500 text-sm truncate">{roleAtCompany || "—"}</p>
+          {overlapRange && (
+            <p className="text-xs text-slate-400 mt-0.5">{overlapRange}</p>
+          )}
+          <div className="mt-2">
+            <MatchTrustBadge score={score} />
+          </div>
         </div>
-        <span className="text-sm font-medium bg-gray-100 text-slate-700 px-3 py-1 rounded-full shrink-0 ml-3">
-          Score: {trustDisplay}
-        </span>
-      </div>
-
-      <div className="mt-4 w-full">
-        <RequestButton
-          status={requestStatus === "none" ? "default" : requestStatus}
-          loading={loading}
-          onClick={onRequestReference}
-          className="w-full !py-2.5"
-        />
+        <div className="shrink-0 w-full sm:w-auto">
+          <RequestButton
+            status={requestStatus === "none" ? "default" : requestStatus}
+            loading={loading}
+            onClick={onRequestReference}
+            className="w-full sm:w-auto !py-2.5"
+          />
+        </div>
       </div>
     </article>
   );

@@ -46,17 +46,16 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
     const typedRows = rows as Row[];
 
     const otherUserIds = new Set<string>();
-    const otherJobIds: string[] = [];
+    const allJobIds: string[] = [];
     for (const r of typedRows) {
       const other = r.user1_id === user.id ? r.user2_id : r.user1_id;
       otherUserIds.add(other);
-      const otherJobId = r.user1_id === user.id ? r.job2_id : r.job1_id;
-      otherJobIds.push(otherJobId);
+      allJobIds.push(r.job1_id, r.job2_id);
     }
 
     const [profsRes, jobsRes, trustRes] = await Promise.all([
       sb.from("profiles").select("id, full_name, email, profile_photo_url").in("id", [...otherUserIds]),
-      otherJobIds.length ? sb.from("jobs").select("id, job_title").in("id", otherJobIds) : Promise.resolve({ data: [] }),
+      allJobIds.length ? sb.from("jobs").select("id, job_title, start_date, end_date").in("id", [...new Set(allJobIds)]) : Promise.resolve({ data: [] }),
       sb.from("trust_scores").select("user_id, score").in("user_id", [...otherUserIds]),
     ]);
 
@@ -64,8 +63,13 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
     for (const p of (profsRes.data ?? []) as { id: string; full_name: string | null; email: string | null; profile_photo_url: string | null }[]) {
       profileMap[p.id] = p;
     }
+    type JobRow = { id: string; job_title: string | null; start_date: string | null; end_date: string | null };
+    const jobDataMap: Record<string, JobRow> = {};
+    for (const j of (jobsRes.data ?? []) as JobRow[]) {
+      jobDataMap[j.id] = j;
+    }
     const jobMap: Record<string, string> = {};
-    for (const j of (jobsRes.data ?? []) as { id: string; job_title: string }[]) {
+    for (const j of Object.values(jobDataMap)) {
       jobMap[j.id] = j.job_title ?? "";
     }
     const trustMap: Record<string, number> = {};
@@ -76,17 +80,37 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
     return typedRows.map((m) => {
       const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
       const isRecordOwner = m.user1_id === user.id;
+      const job1Id = m.job1_id;
+      const job2Id = m.job2_id;
       const otherJobId = m.user1_id === user.id ? m.job2_id : m.job1_id;
       const otherJobTitle = jobMap[otherJobId] ?? null;
       const trustScore = trustMap[otherId] ?? null;
       const profile = profileMap[otherId] ?? null;
+
+      let overlap_start = "";
+      let overlap_end = "";
+      const j1 = jobDataMap[job1Id];
+      const j2 = jobDataMap[job2Id];
+      if (j1?.start_date != null && j1?.end_date != null && j2?.start_date != null && j2?.end_date != null) {
+        const s1 = new Date(j1.start_date).getTime();
+        const e1 = new Date(j1.end_date).getTime();
+        const s2 = new Date(j2.start_date).getTime();
+        const e2 = new Date(j2.end_date).getTime();
+        const start = new Date(Math.max(s1, s2));
+        const end = new Date(Math.min(e1, e2));
+        if (end >= start) {
+          overlap_start = start.toISOString().slice(0, 10);
+          overlap_end = end.toISOString().slice(0, 10);
+        }
+      }
+
       return {
         id: m.id,
         employment_record_id: "",
         matched_user_id: otherId,
         match_status: "confirmed",
-        overlap_start: "",
-        overlap_end: "",
+        overlap_start,
+        overlap_end,
         company_name: m.company_name ?? "Unknown",
         other_job_title: otherJobTitle,
         trust_score: trustScore,

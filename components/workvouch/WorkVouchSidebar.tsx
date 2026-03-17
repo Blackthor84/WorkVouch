@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 
 const mainNav = [
   { href: "/coworker-matches", label: "Dashboard", Icon: Squares2X2Icon, IconSolid: Squares2X2IconSolid },
-  { href: "/requests", label: "Incoming Requests", Icon: InboxStackIcon, IconSolid: InboxStackIconSolid },
+  { href: "/requests", label: "Incoming Requests", Icon: InboxStackIcon, IconSolid: InboxStackIconSolid, badgeKey: "requests" },
   { href: "/notifications", label: "Notifications", Icon: BellAlertIcon, IconSolid: BellAlertIconSolid },
 ];
 
@@ -29,9 +29,11 @@ const bottomNav = [
 ];
 
 export function WorkVouchSidebar({
+  pendingReferenceRequestCount = 0,
   mobileOpen,
   onCloseMobile,
 }: {
+  pendingReferenceRequestCount?: number;
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
 } = {}) {
@@ -51,9 +53,10 @@ export function WorkVouchSidebar({
           </button>
         </div>
       )}
-      {mainNav.map(({ href, label, Icon, IconSolid }) => {
+      {mainNav.map(({ href, label, Icon, IconSolid, badgeKey }) => {
         const isActive = pathname === href || (href !== "/coworker-matches" && pathname.startsWith(href));
         const Comp = isActive ? IconSolid : Icon;
+        const badgeCount = badgeKey === "requests" ? pendingReferenceRequestCount : 0;
         return (
           <Link
             key={href}
@@ -68,6 +71,11 @@ export function WorkVouchSidebar({
           >
             <Comp className="h-5 w-5 shrink-0" strokeWidth={isActive ? 2 : 1.5} />
             {label}
+            {badgeCount > 0 && (
+              <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-medium text-white">
+                {badgeCount > 99 ? "99+" : badgeCount}
+              </span>
+            )}
           </Link>
         );
       })}

@@ -6,10 +6,16 @@ import { getEmploymentMatchesForUser, type EmploymentMatchRow } from "@/lib/acti
 import { MatchCard, type MatchCardData } from "@/components/workvouch/MatchCard";
 import { MatchCardSkeleton } from "@/components/workvouch/MatchCardSkeleton";
 import { EmptyState } from "@/components/workvouch/EmptyState";
+import { Leaderboard } from "@/components/workvouch/Leaderboard";
+import type { LeaderboardEntry } from "@/lib/actions/leaderboard";
 import { UserGroupIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
-export default function CoworkerMatchesClient() {
+export default function CoworkerMatchesClient({
+  initialLeaderboard = [],
+}: {
+  initialLeaderboard?: LeaderboardEntry[];
+}) {
   const [matches, setMatches] = useState<EmploymentMatchRow[]>([]);
   const [sentRequestStatus, setSentRequestStatus] = useState<Record<string, "pending" | "accepted">>({});
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
@@ -112,13 +118,15 @@ export default function CoworkerMatchesClient() {
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
-        Dashboard
-      </h1>
-      <p className="mt-1 text-sm text-slate-500">
-        Coworkers you overlapped with. Request a reference to grow your trust score.
-      </p>
+    <div className="p-4 sm:p-6 md:p-8 max-w-4xl mx-auto">
+      <div className="flex flex-col lg:flex-row lg:items-start gap-8">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
+            Dashboard
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Coworkers you overlapped with. Request a reference to grow your trust score.
+          </p>
 
       {loading ? (
         <ul className="mt-8 space-y-4">
@@ -154,6 +162,13 @@ export default function CoworkerMatchesClient() {
           ))}
         </ul>
       )}
+        </div>
+        {initialLeaderboard.length > 0 && (
+          <aside className="lg:w-72 shrink-0">
+            <Leaderboard users={initialLeaderboard} />
+          </aside>
+        )}
+      </div>
     </div>
   );
 }

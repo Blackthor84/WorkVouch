@@ -22,6 +22,7 @@ export function IncomingRequestsClient() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [newRequestAlert, setNewRequestAlert] = useState(false);
   const channelRef = useRef<ReturnType<typeof supabaseBrowser.channel> | null>(null);
 
   useEffect(() => {
@@ -71,6 +72,8 @@ export function IncomingRequestsClient() {
           const oldRow = payload.old;
           if (payload.eventType === "INSERT" && row && row.receiver_id === userId) {
             setRequests((prev) => [row, ...prev]);
+            setNewRequestAlert(true);
+            setTimeout(() => setNewRequestAlert(false), 5000);
             supabaseBrowser
               .from("profiles")
               .select("id, full_name, profile_photo_url")
@@ -112,7 +115,14 @@ export function IncomingRequestsClient() {
 
   if (loading) return null;
 
-  if (requests.length === 0) {
+  return (
+    <>
+      {newRequestAlert && (
+        <div className="mb-4 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm font-medium text-green-800">
+          New reference request!
+        </div>
+      )}
+      {requests.length === 0 ? (
     return (
       <EmptyState
         icon={<InboxStackIcon className="h-7 w-7" />}
@@ -128,10 +138,7 @@ export function IncomingRequestsClient() {
         }
         className="mt-8"
       />
-    );
-  }
-
-  return (
+      ) : (
     <ul className="mt-6 space-y-3">
       {requests.map((req) => {
         const profile = profiles[req.requester_id];
@@ -192,5 +199,7 @@ export function IncomingRequestsClient() {
         );
       })}
     </ul>
+      )}
+    </>
   );
 }
