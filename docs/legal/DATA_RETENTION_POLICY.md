@@ -1,10 +1,10 @@
-# PeerCV Data Retention Policy
+# WorkVouch Data Retention Policy
 
 **Last Updated: January 2025**
 
 ## 1. Overview
 
-This policy outlines how long PeerCV retains different types of data and the processes for data deletion and account purging.
+This policy outlines how long WorkVouch retains different types of data and the processes for data deletion and account purging.
 
 ## 2. Data Types and Retention Periods
 
@@ -46,7 +46,7 @@ This policy outlines how long PeerCV retains different types of data and the pro
 ### 2.7 Payment and Subscription Data
 - **Stripe Customer ID**: Retained while account is active, retained for 7 years for tax/accounting compliance
 - **Subscription Records**: Retained for 7 years for tax/accounting compliance
-- **Payment Transaction Data**: Retained for 7 years for tax/accounting compliance (stored by Stripe, not PeerCV)
+- **Payment Transaction Data**: Retained for 7 years for tax/accounting compliance (stored by Stripe, not WorkVouch)
 
 ### 2.8 Authentication Data
 - **Email Address**: Retained while account is active, deleted within 90 days of account deletion
@@ -102,7 +102,7 @@ This policy outlines how long PeerCV retains different types of data and the pro
 
 ### 4.3 Third-Party Services
 - Data stored with third-party services (Stripe, email providers) is subject to their retention policies
-- PeerCV will request deletion from third parties when possible
+- WorkVouch will request deletion from third parties when possible
 - Some third-party data may be retained per their policies
 
 ## 5. Legal and Security Exceptions
@@ -177,8 +177,8 @@ This policy outlines how long PeerCV retains different types of data and the pro
 ## 10. Contact
 
 For questions about data retention or deletion:
-- **Email**: privacy@peercv.com
-- **Support**: support@peercv.com
+- **Email**: privacy@workvouch.com
+- **Support**: support@workvouch.com
 
 ---
 

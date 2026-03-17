@@ -1,17 +1,17 @@
-# PeerCV Onboarding Flow
+# WorkVouch Onboarding Flow
 
 **Complete Step-by-Step User Journey**
 
 ## Overview
 
-The PeerCV onboarding process guides new users through account creation, profile setup, job history entry, coworker matching, and Trust Score building. The flow is designed to be intuitive, mobile-first, and industry-specific.
+The WorkVouch onboarding process guides new users through account creation, profile setup, job history entry, coworker matching, and Trust Score building. The flow is designed to be intuitive, mobile-first, and industry-specific.
 
 ---
 
 ## Step 1: Welcome Screen
 
 ### Screen Elements
-- **PeerCV Logo**: Centered, animated fade-in
+- **WorkVouch Logo**: Centered, animated fade-in
 - **Headline**: "Your Work. Verified by the People Who Worked With You."
 - **Subheading**: "Build your verified career profile with peer references"
 - **CTA Button**: "Get Started Free" (primary blue button)
@@ -144,7 +144,7 @@ The PeerCV onboarding process guides new users through account creation, profile
 
 ### Screen Elements
 - **Headline**: "Invite Coworkers to Verify Your Work"
-- **Subheading**: "You can also invite coworkers by email if they're not on PeerCV yet"
+- **Subheading**: "You can also invite coworkers by email if they're not on WorkVouch yet"
 - **Manual Invite Form**:
   - Email Address input
   - "Send Invite" button
@@ -229,7 +229,7 @@ The PeerCV onboarding process guides new users through account creation, profile
 ## Step 10: Prompt to Upgrade to Pro
 
 ### Screen Elements
-- **Headline**: "Unlock More Features with PeerCV Pro"
+- **Headline**: "Unlock More Features with WorkVouch Pro"
 - **Feature Highlights**:
   - 10 coworker requests per job (vs 3 on Starter)
   - AI résumé rewriting
@@ -253,7 +253,7 @@ The PeerCV onboarding process guides new users through account creation, profile
 ## Step 11: Enter Main Dashboard
 
 ### Screen Elements
-- **Welcome Message**: "Welcome to PeerCV, [Name]!"
+- **Welcome Message**: "Welcome to WorkVouch, [Name]!"
 - **Quick Stats**:
   - Trust Score
   - Verified Jobs Count

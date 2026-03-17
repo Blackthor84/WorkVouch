@@ -2,7 +2,7 @@
 
 ## Logo
 
-Place your PeerCV logo image file here as `logo.png`.
+Place your WorkVouch logo image file here as `logo.png`.
 
 The logo should be:
 - PNG format (or SVG)

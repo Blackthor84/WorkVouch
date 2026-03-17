@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { getEmploymentMatchesForUser, type EmploymentMatchRow } from "@/lib/actions/employmentMatches";
-import { MatchCard, type MatchCardData } from "@/components/peercv/MatchCard";
-import { MatchCardSkeleton } from "@/components/peercv/MatchCardSkeleton";
-import { EmptyState } from "@/components/peercv/EmptyState";
+import { MatchCard, type MatchCardData } from "@/components/workvouch/MatchCard";
+import { MatchCardSkeleton } from "@/components/workvouch/MatchCardSkeleton";
+import { EmptyState } from "@/components/workvouch/EmptyState";
 import { UserGroupIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 

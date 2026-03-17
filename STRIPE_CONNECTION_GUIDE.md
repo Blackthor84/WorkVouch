@@ -75,7 +75,7 @@ Your app needs products in Stripe that match your pricing tiers. Here's what to 
 
 1. **Go to Products** → **Add product**
 
-2. **Create "WorkVouch Pro"** (or "PeerCV Pro" if you haven't rebranded):
+2. **Create "WorkVouch Pro"** (or "WorkVouch Pro" if needed):
    - Name: `WorkVouch Pro`
    - Description: `AI-enhanced résumé tools and extended coworker requests`
    - Pricing:

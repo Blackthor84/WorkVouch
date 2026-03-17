@@ -1,6 +1,6 @@
 // Supabase Edge Function: send email when a new row is inserted into notifications.
 // Trigger: Database Webhook on notifications INSERT → POST to this function.
-// Requires: RESEND_API_KEY, RESEND_FROM, PEERCV_APP_URL, NOTIFICATION_WEBHOOK_SECRET (and SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY to resolve recipient email).
+// Requires: RESEND_API_KEY, RESEND_FROM, WORKVOUCH_APP_URL, NOTIFICATION_WEBHOOK_SECRET (and SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY to resolve recipient email).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -57,16 +57,16 @@ function buildHtml(record: NotificationRecord, viewUrl: string): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${typeLabel} &#8211; PeerCV</title>
+  <title>${typeLabel} &#8211; WorkVouch</title>
 </head>
 <body style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#f8fafc;padding:24px;">
   <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;">
     <div style="padding:32px 24px;">
       <p style="margin:0 0 8px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;">${typeLabel}</p>
       <p style="margin:0 0 24px;font-size:16px;line-height:1.5;color:#0f172a;">${friendlyMessage}</p>
-      <a href="${viewUrl}" style="display:inline-block;padding:12px 24px;background:#0f172a;color:#fff;text-decoration:none;font-weight:600;font-size:14px;border-radius:12px;">View in PeerCV</a>
+      <a href="${viewUrl}" style="display:inline-block;padding:12px 24px;background:#0f172a;color:#fff;text-decoration:none;font-weight:600;font-size:14px;border-radius:12px;">View in WorkVouch</a>
     </div>
-    <p style="margin:0;padding:16px 24px;font-size:12px;color:#94a3b8;border-top:1px solid #f1f5f9;">PeerCV – Coworker network & references</p>
+    <p style="margin:0;padding:16px 24px;font-size:12px;color:#94a3b8;border-top:1px solid #f1f5f9;">WorkVouch – Coworker network & references</p>
   </div>
 </body>
 </html>
@@ -114,7 +114,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const record = payload.record as NotificationRecord;
   const resendKey = Deno.env.get("RESEND_API_KEY");
   const resendFrom = Deno.env.get("RESEND_FROM");
-  const appUrl = (Deno.env.get("PEERCV_APP_URL") || "https://app.peercv.com").replace(/\/$/, "");
+  const appUrl = (Deno.env.get("WORKVOUCH_APP_URL") || "https://app.workvouch.com").replace(/\/$/, "");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -146,7 +146,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   const viewUrl = `${appUrl}/notifications`;
-  const subject = `${getTypeLabel(record.type)} – PeerCV`;
+  const subject = `${getTypeLabel(record.type)} – WorkVouch`;
   const html = buildHtml(record, viewUrl);
 
   const res = await fetch(RESEND_API, {

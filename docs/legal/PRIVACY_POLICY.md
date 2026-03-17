@@ -1,10 +1,10 @@
-# PeerCV Privacy Policy
+# WorkVouch Privacy Policy
 
 **Last Updated: January 2025**
 
 ## 1. Introduction
 
-PeerCV ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.
+WorkVouch ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service.
 
 ## 2. Information We Collect
 
@@ -104,11 +104,11 @@ PeerCV ("we," "our," or "us") is committed to protecting your privacy. This Priv
 ### 6.2 CCPA Rights (California Users)
 - **Right to Know**: Request information about data collection and use
 - **Right to Delete**: Request deletion of your personal information
-- **Right to Opt-Out**: Opt out of the sale of personal information (PeerCV does not sell personal information)
+- **Right to Opt-Out**: Opt out of the sale of personal information (WorkVouch does not sell personal information)
 - **Right to Non-Discrimination**: Exercise your rights without discrimination
 
 ### 6.3 How to Exercise Your Rights
-- Contact us at privacy@peercv.com
+- Contact us at privacy@workvouch.com
 - Include your account email and specific request
 - We will respond within 30 days (or as required by law)
 - We may require identity verification for security
@@ -173,7 +173,7 @@ PeerCV ("we," "our," or "us") is committed to protecting your privacy. This Priv
 
 ## 11. Children's Privacy
 
-- PeerCV is not intended for users under 18 years of age
+- WorkVouch is not intended for users under 18 years of age
 - We do not knowingly collect information from children
 - If we discover that we have collected information from a child, we will delete it immediately
 - Parents or guardians who believe we have collected information from a child should contact us
@@ -182,11 +182,11 @@ PeerCV ("we," "our," or "us") is committed to protecting your privacy. This Priv
 
 - Your data may be transferred to and stored in countries other than your own
 - We ensure appropriate safeguards are in place for international transfers
-- By using PeerCV, you consent to the transfer of your data as described in this policy
+- By using WorkVouch, you consent to the transfer of your data as described in this policy
 
 ## 13. Third-Party Links
 
-- PeerCV may contain links to third-party websites or services
+- WorkVouch may contain links to third-party websites or services
 - We are not responsible for the privacy practices of third parties
 - We encourage you to read the privacy policies of third-party services
 
@@ -200,10 +200,10 @@ PeerCV ("we," "our," or "us") is committed to protecting your privacy. This Priv
 ## 15. Contact Us
 
 For privacy-related questions or requests:
-- **Email**: privacy@peercv.com
-- **Support**: support@peercv.com
+- **Email**: privacy@workvouch.com
+- **Support**: support@workvouch.com
 - **Address**: [Your Business Address]
 
 ---
 
-**By using PeerCV, you acknowledge that you have read and understood this Privacy Policy.**
+**By using WorkVouch, you acknowledge that you have read and understood this Privacy Policy.**

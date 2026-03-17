@@ -1,4 +1,4 @@
-# PeerCV In-App Notifications
+# WorkVouch In-App Notifications
 
 **Complete In-App Notification System**
 

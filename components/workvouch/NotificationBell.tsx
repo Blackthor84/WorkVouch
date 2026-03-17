@@ -60,7 +60,6 @@ export function NotificationBell({
     };
   }, []);
 
-  // Sync with server-provided initial value when it changes (e.g. after nav)
   useEffect(() => {
     setCount((prev) => (initialCount >= 0 ? initialCount : prev));
   }, [initialCount]);

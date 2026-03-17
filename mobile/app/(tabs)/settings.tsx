@@ -112,7 +112,7 @@ export default function SettingsScreen() {
             About
           </Text>
           <Text className="text-grey-medium dark:text-gray-400 mb-2">
-            PeerCV v3.0.0
+            WorkVouch v3.0.0
           </Text>
           <Text className="text-grey-medium dark:text-gray-400">
             Your verified work history platform

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUnreadNotificationCount } from "@/lib/actions/notifications";
-import { PeerCVLayoutClient } from "@/components/peercv/PeerCVLayoutClient";
+import { WorkVouchLayoutClient } from "@/components/workvouch/WorkVouchLayoutClient";
 
 /**
  * Single auth + role guard for all routes under (app).
@@ -44,14 +44,16 @@ export default async function AppLayout({
   const unreadCount = await getUnreadNotificationCount();
   const p = profile as { role?: string; full_name?: string | null; profile_photo_url?: string | null };
   const userInitial = p?.full_name?.trim().charAt(0)?.toUpperCase() ?? user.email?.charAt(0)?.toUpperCase() ?? "?";
+  const userEmail = user.email ?? null;
 
   return (
-    <PeerCVLayoutClient
+    <WorkVouchLayoutClient
       unreadNotificationCount={unreadCount}
       userInitial={userInitial}
+      userEmail={userEmail}
       profilePhotoUrl={p?.profile_photo_url ?? null}
     >
       {children}
-    </PeerCVLayoutClient>
+    </WorkVouchLayoutClient>
   );
 }

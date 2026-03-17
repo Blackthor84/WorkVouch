@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
 import { IncomingRequestsClient } from "./IncomingRequestsClient";
-import { RequestCardSkeleton } from "@/components/peercv/RequestCardSkeleton";
+import { RequestCardSkeleton } from "@/components/workvouch/RequestCardSkeleton";
 
 export default function RequestsPage() {
   return (

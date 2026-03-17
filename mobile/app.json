@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "PeerCV",
-    "slug": "peercv-mobile",
+    "name": "WorkVouch",
+    "slug": "workvouch-mobile",
     "version": "3.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,14 +16,14 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.peercv.app"
+      "bundleIdentifier": "com.workvouch.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0A84FF"
       },
-      "package": "com.peercv.app"
+      "package": "com.workvouch.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -38,6 +38,6 @@
         }
       ]
     ],
-    "scheme": "peercv"
+    "scheme": "workvouch"
   }
 }

@@ -1,10 +1,10 @@
-# PeerCV Reference Accuracy Statement
+# WorkVouch Reference Accuracy Statement
 
 **Last Updated: January 2025**
 
 ## 1. Overview
 
-PeerCV facilitates peer references between coworkers to verify work history and provide insights into work quality. This statement explains how references work, accuracy expectations, dispute resolution, and how references affect Trust Scores.
+WorkVouch facilitates peer references between coworkers to verify work history and provide insights into work quality. This statement explains how references work, accuracy expectations, dispute resolution, and how references affect Trust Scores.
 
 ## 2. What Are Peer References?
 
@@ -24,7 +24,7 @@ PeerCV facilitates peer references between coworkers to verify work history and 
 
 ### 3.1 Reference Request Process
 1. You add a job to your profile
-2. PeerCV matches you with potential coworkers based on company and dates
+2. WorkVouch matches you with potential coworkers based on company and dates
 3. You send coworker verification requests
 4. Coworkers confirm they worked with you
 5. You request references from verified coworkers
@@ -38,12 +38,12 @@ PeerCV facilitates peer references between coworkers to verify work history and 
 
 ## 4. Accuracy Expectations
 
-### 4.1 What PeerCV Verifies
+### 4.1 What WorkVouch Verifies
 - **Employment Verification**: We verify that coworkers worked at the same company during overlapping dates
 - **Coworker Identity**: We verify that reference authors are real users with verified accounts
 - **Reference Authenticity**: We verify that references are written by verified coworkers
 
-### 4.2 What PeerCV Does NOT Verify
+### 4.2 What WorkVouch Does NOT Verify
 - **Reference Content**: We do not verify the accuracy of reference content
 - **Reference Opinions**: We do not verify that reference opinions are fair or accurate
 - **Job Performance**: We do not verify claims about job performance or work quality
@@ -59,16 +59,16 @@ PeerCV facilitates peer references between coworkers to verify work history and 
 
 ### 5.1 Disputing References
 - You may dispute references you believe are false, defamatory, or inaccurate
-- Disputes must be submitted through PeerCV support
+- Disputes must be submitted through WorkVouch support
 - Disputes will be reviewed within 30 business days
-- PeerCV will investigate disputes and take appropriate action
+- WorkVouch will investigate disputes and take appropriate action
 
 ### 5.2 Dispute Criteria
 - **False Information**: References containing factually incorrect information
 - **Defamation**: References containing defamatory or libelous statements
 - **Non-Coworker**: References written by someone who did not work with you
 - **Harassment**: References containing harassing or abusive content
-- **Violation of Terms**: References that violate PeerCV's Terms of Service
+- **Violation of Terms**: References that violate WorkVouch's Terms of Service
 
 ### 5.3 Dispute Outcomes
 - **Reference Removal**: False or defamatory references may be removed
@@ -78,7 +78,7 @@ PeerCV facilitates peer references between coworkers to verify work history and 
 
 ### 5.4 Appeal Process
 - You may appeal dispute decisions within 30 days
-- Appeals will be reviewed by a different PeerCV team member
+- Appeals will be reviewed by a different WorkVouch team member
 - Appeal decisions are final
 
 ## 6. How References Affect Trust Scores
@@ -172,9 +172,9 @@ PeerCV facilitates peer references between coworkers to verify work history and 
 ## 11. Contact
 
 For questions about references or to dispute a reference:
-- **Email**: support@peercv.com
+- **Email**: support@workvouch.com
 - **Support**: Include reference details and reason for dispute
 
 ---
 
-**By using PeerCV, you acknowledge that you have read and understood this Reference Accuracy Statement.**
+**By using WorkVouch, you acknowledge that you have read and understood this Reference Accuracy Statement.**

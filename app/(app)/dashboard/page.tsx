@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { ConfidenceScore } from "@/components/confidence-score";
 import { VerifiedJobs } from "@/components/verified-jobs";
 import { PendingVerifications } from "@/components/pending-verifications";
-import { BoostTrustScoreCard } from "@/components/peercv/BoostTrustScoreCard";
+import { BoostTrustScoreCard } from "@/components/workvouch/BoostTrustScoreCard";
 import { PlusIcon, DocumentArrowUpIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
 
 export const revalidate = 0;

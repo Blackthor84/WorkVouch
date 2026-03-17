@@ -4,12 +4,12 @@
 
 ## Important Legal Notice for Employers
 
-PeerCV provides verification and reference services to help employers evaluate candidates. However, employers must understand and comply with the following legal requirements and limitations.
+WorkVouch provides verification and reference services to help employers evaluate candidates. However, employers must understand and comply with the following legal requirements and limitations.
 
 ## 1. Trust Score Limitations
 
 ### 1.1 Not for FCRA Decisions
-- **PeerCV Trust Scores are NOT consumer reports under the Fair Credit Reporting Act (FCRA)**
+- **WorkVouch Trust Scores are NOT consumer reports under the Fair Credit Reporting Act (FCRA)**
 - Trust Scores should NOT be used as the sole basis for adverse employment decisions
 - Trust Scores are peer-verified indicators, not credit or background checks
 - Using Trust Scores for FCRA-covered decisions may violate federal law
@@ -55,14 +55,14 @@ PeerCV provides verification and reference services to help employers evaluate c
   - State-specific background check requirements
 
 ### 3.2 Legal Consultation
-- PeerCV is not a law firm and does not provide legal advice
+- WorkVouch is not a law firm and does not provide legal advice
 - Employers should consult with legal counsel to ensure compliance
 - Employers are solely responsible for compliance with applicable laws
 
 ### 3.3 Prohibited Uses
-- Do not use PeerCV data to violate any applicable laws
-- Do not use PeerCV data for discriminatory purposes
-- Do not use PeerCV data in violation of employment contracts or agreements
+- Do not use WorkVouch data to violate any applicable laws
+- Do not use WorkVouch data for discriminatory purposes
+- Do not use WorkVouch data in violation of employment contracts or agreements
 
 ## 4. User Privacy and Consent
 
@@ -85,19 +85,19 @@ PeerCV provides verification and reference services to help employers evaluate c
 ## 5. Accuracy and Verification
 
 ### 5.1 Verification Status
-- PeerCV verifies employment through coworker matching
+- WorkVouch verifies employment through coworker matching
 - Verification confirms that coworkers worked at the same company during overlapping dates
 - Verification does not guarantee the accuracy of job titles, responsibilities, or performance
 
 ### 5.2 Reference Accuracy
 - Peer references reflect the opinions of individual coworkers
-- PeerCV does not verify the accuracy of reference content
+- WorkVouch does not verify the accuracy of reference content
 - Employers should consider references as one data point among many
 
 ### 5.3 Dispute Resolution
 - Candidates may dispute references or Trust Scores
 - Employers should consider disputes when evaluating candidates
-- PeerCV will investigate disputes and update information as appropriate
+- WorkVouch will investigate disputes and update information as appropriate
 
 ## 6. Subscription and Usage Terms
 
@@ -120,11 +120,11 @@ PeerCV provides verification and reference services to help employers evaluate c
 
 ### 7.1 Employer Responsibility
 - Employers are solely responsible for their hiring decisions
-- Employers must indemnify PeerCV against claims arising from their use of the Service
-- PeerCV is not liable for hiring decisions made based on Trust Scores or references
+- Employers must indemnify WorkVouch against claims arising from their use of the Service
+- WorkVouch is not liable for hiring decisions made based on Trust Scores or references
 
 ### 7.2 No Warranties
-- PeerCV provides the Service "as is" without warranties
+- WorkVouch provides the Service "as is" without warranties
 - We do not guarantee the accuracy, completeness, or reliability of any information
 - Employers use the Service at their own risk
 
@@ -147,21 +147,21 @@ PeerCV provides verification and reference services to help employers evaluate c
 
 ### 9.1 Legal Questions
 - For legal questions, consult with your legal counsel
-- PeerCV does not provide legal advice
+- WorkVouch does not provide legal advice
 
 ### 9.2 Technical Support
-- For technical support, contact support@peercv.com
-- For billing questions, contact billing@peercv.com
+- For technical support, contact support@workvouch.com
+- For billing questions, contact billing@workvouch.com
 
 ## 10. Acknowledgment
 
-By using PeerCV as an employer, you acknowledge that:
+By using WorkVouch as an employer, you acknowledge that:
 - You have read and understood this disclaimer
 - You will comply with all applicable laws and regulations
 - You will not use Trust Scores or references in violation of this disclaimer
 - You are solely responsible for your hiring decisions
-- You will indemnify PeerCV against claims arising from your use of the Service
+- You will indemnify WorkVouch against claims arising from your use of the Service
 
 ---
 
-**Employers must read and acknowledge this disclaimer before using PeerCV for hiring purposes.**
+**Employers must read and acknowledge this disclaimer before using WorkVouch for hiring purposes.**

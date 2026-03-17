@@ -14,7 +14,7 @@ import {
   BellIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { EmptyState } from "@/components/peercv/EmptyState";
+import { EmptyState } from "@/components/workvouch/EmptyState";
 
 interface Notification {
   id: string;

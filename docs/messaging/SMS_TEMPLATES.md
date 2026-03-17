@@ -1,4 +1,4 @@
-# PeerCV SMS Templates
+# WorkVouch SMS Templates
 
 **SMS Notification Library**
 
@@ -6,7 +6,7 @@
 
 **Template**:
 ```
-PeerCV: [Name] listed you as a coworker at [Company]. Confirm here: [Link]
+WorkVouch: [Name] listed you as a coworker at [Company]. Confirm here: [Link]
 ```
 
 **Character Count**: ~80 (with link)
@@ -19,7 +19,7 @@ PeerCV: [Name] listed you as a coworker at [Company]. Confirm here: [Link]
 
 **Template**:
 ```
-PeerCV: Your Trust Score updated to [Score]/100. [+/-X points] View: [Link]
+WorkVouch: Your Trust Score updated to [Score]/100. [+/-X points] View: [Link]
 ```
 
 **Character Count**: ~70 (with link)
@@ -32,7 +32,7 @@ PeerCV: Your Trust Score updated to [Score]/100. [+/-X points] View: [Link]
 
 **Template**:
 ```
-PeerCV: [Name] wrote you a reference! "[Preview]" View: [Link]
+WorkVouch: [Name] wrote you a reference! "[Preview]" View: [Link]
 ```
 
 **Character Count**: ~75 (with preview and link)
@@ -45,7 +45,7 @@ PeerCV: [Name] wrote you a reference! "[Preview]" View: [Link]
 
 **Template**:
 ```
-PeerCV: [Company] viewed your profile. Your Trust Score: [Score]/100. [Link]
+WorkVouch: [Company] viewed your profile. Your Trust Score: [Score]/100. [Link]
 ```
 
 **Character Count**: ~75 (with link)
@@ -58,7 +58,7 @@ PeerCV: [Company] viewed your profile. Your Trust Score: [Score]/100. [Link]
 
 **Template**:
 ```
-PeerCV: [X] coworker verification requests pending. Respond: [Link]
+WorkVouch: [X] coworker verification requests pending. Respond: [Link]
 ```
 
 **Character Count**: ~70 (with link)
@@ -71,7 +71,7 @@ PeerCV: [X] coworker verification requests pending. Respond: [Link]
 
 **Template**:
 ```
-PeerCV: [Name] requested a reference from you. Write it: [Link]
+WorkVouch: [Name] requested a reference from you. Write it: [Link]
 ```
 
 **Character Count**: ~65 (with link)
@@ -84,7 +84,7 @@ PeerCV: [Name] requested a reference from you. Write it: [Link]
 
 **Template**:
 ```
-PeerCV: Security alert - New login from [Device/Location]. Not you? Secure: [Link]
+WorkVouch: Security alert - New login from [Device/Location]. Not you? Secure: [Link]
 ```
 
 **Character Count**: ~85 (with link)
@@ -97,7 +97,7 @@ PeerCV: Security alert - New login from [Device/Location]. Not you? Secure: [Lin
 
 **Template**:
 ```
-PeerCV: Your [Tier] subscription renews on [Date]. Manage: [Link]
+WorkVouch: Your [Tier] subscription renews on [Date]. Manage: [Link]
 ```
 
 **Character Count**: ~65 (with link)

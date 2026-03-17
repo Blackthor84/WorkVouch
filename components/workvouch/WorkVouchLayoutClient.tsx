@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { PeerCVSidebar } from "./PeerCVSidebar";
-import { PeerCVNavbar } from "./PeerCVNavbar";
+import { WorkVouchSidebar } from "./WorkVouchSidebar";
+import { WorkVouchNavbar } from "./WorkVouchNavbar";
 
-export function PeerCVLayoutClient({
+export function WorkVouchLayoutClient({
   unreadNotificationCount,
   userInitial,
+  userEmail,
   profilePhotoUrl,
   children,
 }: {
   unreadNotificationCount: number;
   userInitial: string;
+  userEmail: string | null;
   profilePhotoUrl: string | null;
   children: React.ReactNode;
 }) {
@@ -19,14 +21,15 @@ export function PeerCVLayoutClient({
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <PeerCVSidebar
+      <WorkVouchSidebar
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
       />
       <div className="flex flex-1 flex-col min-w-0">
-        <PeerCVNavbar
+        <WorkVouchNavbar
           unreadNotificationCount={unreadNotificationCount}
           userInitial={userInitial}
+          userEmail={userEmail}
           profilePhotoUrl={profilePhotoUrl}
           onMenuClick={() => setMobileOpen(true)}
         />

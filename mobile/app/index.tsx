@@ -49,9 +49,9 @@ export default function SplashScreen() {
       className="flex-1 bg-primary items-center justify-center"
     >
       <View className="items-center">
-        {/* PeerCV Logo */}
+        {/* WorkVouch Logo */}
         <View className="bg-white rounded-3xl p-8 mb-8 shadow-lg">
-          <Text className="text-4xl font-bold text-primary">PeerCV</Text>
+          <Text className="text-4xl font-bold text-primary">WorkVouch</Text>
         </View>
         {loading && (
           <ActivityIndicator size="large" color="#FFFFFF" />

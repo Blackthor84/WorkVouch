@@ -20,7 +20,7 @@ It looks like you might've worked at the same place as me.
 Can you confirm?
 
 It takes 30 seconds:
-👉 [Join PeerCV]
+👉 [Join WorkVouch]
 
 This helps both of us boost our trust score and unlock better opportunities.
 
@@ -28,5 +28,5 @@ Appreciate it 🙌
 
 ---
 
-- **CTA button/link:** “Join PeerCV” → `{PEERCV_APP_URL}` (e.g. https://app.peercv.com or your app URL).
+- **CTA button/link:** “Join WorkVouch” → `{WORKVOUCH_APP_URL}` (e.g. https://app.workvouch.com or your app URL).
 - Sent by: Edge Function `send-referral-email` when a row is inserted into `referrals` (Database Webhook).

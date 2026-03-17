@@ -1,19 +1,19 @@
-# PeerCV Email Templates
+# WorkVouch Email Templates
 
 **Complete Email Communication Library**
 
 ## 1. Welcome Email
 
-**Subject**: Welcome to PeerCV - Start Building Your Verified Career Profile
+**Subject**: Welcome to WorkVouch - Start Building Your Verified Career Profile
 
-**From**: PeerCV <welcome@peercv.com>
+**From**: WorkVouch <welcome@workvouch.com>
 
 **Body**:
 
 ```
 Hi [Name],
 
-Welcome to PeerCV! We're excited to help you build your verified career profile with peer references.
+Welcome to WorkVouch! We're excited to help you build your verified career profile with peer references.
 
 Your account is ready. Here's what you can do next:
 
@@ -27,10 +27,10 @@ Get started: [Get Started Button]
 Need help? Check out our guide: [Help Center Link]
 
 Best regards,
-The PeerCV Team
+The WorkVouch Team
 
 ---
-You're receiving this because you created a PeerCV account.
+You're receiving this because you created a WorkVouch account.
 [Unsubscribe] | [Privacy Policy]
 ```
 
@@ -38,16 +38,16 @@ You're receiving this because you created a PeerCV account.
 
 ## 2. Email Verification
 
-**Subject**: Verify Your PeerCV Email Address
+**Subject**: Verify Your WorkVouch Email Address
 
-**From**: PeerCV <verify@peercv.com>
+**From**: WorkVouch <verify@workvouch.com>
 
 **Body**:
 
 ```
 Hi [Name],
 
-Please verify your email address to complete your PeerCV account setup.
+Please verify your email address to complete your WorkVouch account setup.
 
 Click the button below to verify:
 [Verify Email Button]
@@ -57,10 +57,10 @@ Or copy and paste this link into your browser:
 
 This link will expire in 24 hours.
 
-If you didn't create a PeerCV account, you can safely ignore this email.
+If you didn't create a WorkVouch account, you can safely ignore this email.
 
 Best regards,
-The PeerCV Team
+The WorkVouch Team
 
 ---
 [Privacy Policy]
@@ -70,9 +70,9 @@ The PeerCV Team
 
 ## 3. Coworker Confirmation Request
 
-**Subject**: [Name] listed you as a coworker on PeerCV
+**Subject**: [Name] listed you as a coworker on WorkVouch
 
-**From**: PeerCV <notifications@peercv.com>
+**From**: WorkVouch <notifications@workvouch.com>
 
 **Body**:
 
@@ -96,7 +96,7 @@ You can also add a note about your working relationship.
 This helps [Your Name] build their Trust Score and verified career profile.
 
 Best regards,
-The PeerCV Team
+The WorkVouch Team
 
 ---
 [Privacy Policy] | [Unsubscribe]
@@ -106,16 +106,16 @@ The PeerCV Team
 
 ## 4. Reference Received
 
-**Subject**: You received a new peer reference on PeerCV
+**Subject**: You received a new peer reference on WorkVouch
 
-**From**: PeerCV <notifications@peercv.com>
+**From**: WorkVouch <notifications@workvouch.com>
 
 **Body**:
 
 ```
 Hi [Name],
 
-Great news! [Coworker Name] wrote you a reference on PeerCV.
+Great news! [Coworker Name] wrote you a reference on WorkVouch.
 
 "[Reference Preview - First 100 characters]..."
 
@@ -126,7 +126,7 @@ This reference has been added to your profile and may affect your Trust Score.
 Thank [Coworker Name] for their reference: [Thank You Button]
 
 Best regards,
-The PeerCV Team
+The WorkVouch Team
 
 ---
 [Privacy Policy] | [Unsubscribe]
@@ -136,9 +136,9 @@ The PeerCV Team
 
 ## 5. Trust Score Updated
 
-**Subject**: Your PeerCV Trust Score has been updated
+**Subject**: Your WorkVouch Trust Score has been updated
 
-**From**: PeerCV <notifications@peercv.com>
+**From**: WorkVouch <notifications@workvouch.com>
 
 **Body**:
 
@@ -163,7 +163,7 @@ Keep building your Trust Score:
 • Complete your profile
 
 Best regards,
-The PeerCV Team
+The WorkVouch Team
 
 ---
 [Privacy Policy] | [Unsubscribe]
@@ -173,16 +173,16 @@ The PeerCV Team
 
 ## 6. Employer Viewing Request
 
-**Subject**: An employer viewed your PeerCV profile
+**Subject**: An employer viewed your WorkVouch profile
 
-**From**: PeerCV <notifications@peercv.com>
+**From**: WorkVouch <notifications@workvouch.com>
 
 **Body**:
 
 ```
 Hi [Name],
 
-[Company Name] viewed your PeerCV profile today.
+[Company Name] viewed your WorkVouch profile today.
 
 This means they're interested in your verified work history and peer references.
 
@@ -196,7 +196,7 @@ Your profile shows:
 Tip: Keep your profile updated and request more references to stand out to employers.
 
 Best regards,
-The PeerCV Team
+The WorkVouch Team
 
 ---
 [Privacy Policy] | [Unsubscribe]
@@ -206,16 +206,16 @@ The PeerCV Team
 
 ## 7. Password Reset
 
-**Subject**: Reset Your PeerCV Password
+**Subject**: Reset Your WorkVouch Password
 
-**From**: PeerCV <security@peercv.com>
+**From**: WorkVouch <security@workvouch.com>
 
 **Body**:
 
 ```
 Hi [Name],
 
-We received a request to reset your PeerCV password.
+We received a request to reset your WorkVouch password.
 
 Click the button below to create a new password:
 [Reset Password Button]
@@ -230,7 +230,7 @@ If you didn't request a password reset, you can safely ignore this email. Your p
 For security, never share your password reset link with anyone.
 
 Best regards,
-The PeerCV Team
+The WorkVouch Team
 
 ---
 [Privacy Policy] | [Security Help]
@@ -240,18 +240,18 @@ The PeerCV Team
 
 ## 8. Employer Verification Invitation
 
-**Subject**: Join PeerCV as an Employer - Verify Your Company
+**Subject**: Join WorkVouch as an Employer - Verify Your Company
 
-**From**: PeerCV <employers@peercv.com>
+**From**: WorkVouch <employers@workvouch.com>
 
 **Body**:
 
 ```
 Hi [Employer Name],
 
-You've been invited to join PeerCV as an employer for [Company Name].
+You've been invited to join WorkVouch as an employer for [Company Name].
 
-PeerCV helps you:
+WorkVouch helps you:
 ✅ Verify candidate work history instantly
 ✅ Access peer-verified references
 ✅ Find qualified candidates faster
@@ -268,7 +268,7 @@ What you'll get:
 Questions? Contact us: [Support Email]
 
 Best regards,
-The PeerCV Team
+The WorkVouch Team
 
 ---
 [Privacy Policy] | [Employer Guide]
@@ -280,7 +280,7 @@ The PeerCV Team
 
 **Subject**: Update on Your Reference Dispute
 
-**From**: PeerCV <support@peercv.com>
+**From**: WorkVouch <support@workvouch.com>
 
 **Body**:
 
@@ -300,7 +300,7 @@ If you have questions about this decision, please reply to this email.
 [View Your Profile Button]
 
 Best regards,
-The PeerCV Support Team
+The WorkVouch Support Team
 
 ---
 [Privacy Policy] | [Contact Support]
@@ -310,16 +310,16 @@ The PeerCV Support Team
 
 ## 10. Subscription Confirmation
 
-**Subject**: Welcome to PeerCV [Tier Name]!
+**Subject**: Welcome to WorkVouch [Tier Name]!
 
-**From**: PeerCV <billing@peercv.com>
+**From**: WorkVouch <billing@workvouch.com>
 
 **Body**:
 
 ```
 Hi [Name],
 
-Thank you for upgrading to PeerCV [Tier Name]!
+Thank you for upgrading to WorkVouch [Tier Name]!
 
 Your subscription is now active. Here's what you unlocked:
 
@@ -340,7 +340,7 @@ Billing Details:
 Need help? Check out our guide: [Help Center]
 
 Best regards,
-The PeerCV Team
+The WorkVouch Team
 
 ---
 [Privacy Policy] | [Billing Help]
@@ -350,16 +350,16 @@ The PeerCV Team
 
 ## 11. Subscription Cancelled
 
-**Subject**: Your PeerCV Subscription Has Been Cancelled
+**Subject**: Your WorkVouch Subscription Has Been Cancelled
 
-**From**: PeerCV <billing@peercv.com>
+**From**: WorkVouch <billing@workvouch.com>
 
 **Body**:
 
 ```
 Hi [Name],
 
-Your PeerCV [Tier Name] subscription has been cancelled.
+Your WorkVouch [Tier Name] subscription has been cancelled.
 
 You'll continue to have access to [Tier Name] features until [End Date].
 
@@ -372,7 +372,7 @@ We're sorry to see you go! If you change your mind, you can resubscribe anytime.
 We'd love your feedback: [Feedback Link]
 
 Best regards,
-The PeerCV Team
+The WorkVouch Team
 
 ---
 [Privacy Policy] | [Contact Support]
@@ -382,16 +382,16 @@ The PeerCV Team
 
 ## 12. Account Deletion Confirmation
 
-**Subject**: Your PeerCV Account Has Been Deleted
+**Subject**: Your WorkVouch Account Has Been Deleted
 
-**From**: PeerCV <support@peercv.com>
+**From**: WorkVouch <support@workvouch.com>
 
 **Body**:
 
 ```
 Hi [Name],
 
-Your PeerCV account has been successfully deleted.
+Your WorkVouch account has been successfully deleted.
 
 What happens next:
 • Your profile and job history will be removed within 30 days
@@ -404,7 +404,7 @@ If you change your mind, you can recover your account within 30 days by contacti
 We're sorry to see you go. If you have feedback, we'd love to hear it: [Feedback Link]
 
 Best regards,
-The PeerCV Team
+The WorkVouch Team
 
 ---
 [Privacy Policy] | [Contact Support]
@@ -415,7 +415,7 @@ The PeerCV Team
 ## Email Design Guidelines
 
 ### Branding
-- Use PeerCV logo in header
+- Use WorkVouch logo in header
 - Blue (#0A84FF) primary color
 - Grey (#1F2937) text color
 - Clean, professional design

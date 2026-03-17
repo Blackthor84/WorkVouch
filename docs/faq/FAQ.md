@@ -1,42 +1,42 @@
-# PeerCV Frequently Asked Questions (FAQ)
+# WorkVouch Frequently Asked Questions (FAQ)
 
 **Comprehensive FAQ Section**
 
-## How PeerCV Works
+## How WorkVouch Works
 
-### Q: What is PeerCV?
-**A**: PeerCV is a peer-verified career platform that helps you build a trusted work history profile using references from coworkers who actually worked with you. Employers can verify your experience instantly through our Trust Score system.
+### Q: What is WorkVouch?
+**A**: WorkVouch is a peer-verified career platform that helps you build a trusted work history profile using references from coworkers who actually worked with you. Employers can verify your experience instantly through our Trust Score system.
 
 ### Q: How does peer verification work?
-**A**: When you add a job to your profile, PeerCV matches you with coworkers who also worked at the same company during overlapping dates. These coworkers can verify your employment and write references about your work. This creates a verified, trustworthy career profile.
+**A**: When you add a job to your profile, WorkVouch matches you with coworkers who also worked at the same company during overlapping dates. These coworkers can verify your employment and write references about your work. This creates a verified, trustworthy career profile.
 
-### Q: What makes PeerCV different from LinkedIn?
-**A**: Unlike LinkedIn, PeerCV requires actual coworker verification. You can't just list any job—coworkers must confirm you worked together. This creates a more trustworthy, verified career profile that employers can rely on.
+### Q: What makes WorkVouch different from LinkedIn?
+**A**: Unlike LinkedIn, WorkVouch requires actual coworker verification. You can't just list any job—coworkers must confirm you worked together. This creates a more trustworthy, verified career profile that employers can rely on.
 
 ---
 
 ## Coworker Matching
 
 ### Q: How are coworkers matched?
-**A**: PeerCV uses an automated matching system that finds people who:
+**A**: WorkVouch uses an automated matching system that finds people who:
 1. Worked at the same company as you
 2. Had overlapping employment dates
-3. Are registered on PeerCV
+3. Are registered on WorkVouch
 
 When you add a job, we search for potential matches and suggest them to you.
 
-### Q: What if I can't find my coworkers on PeerCV?
-**A**: You can invite coworkers by email. They'll receive an invitation to join PeerCV and verify your work. Once they join and verify, they can write references for you.
+### Q: What if I can't find my coworkers on WorkVouch?
+**A**: You can invite coworkers by email. They'll receive an invitation to join WorkVouch and verify your work. Once they join and verify, they can write references for you.
 
 ### Q: Can I request verification from someone who didn't work with me?
-**A**: No. PeerCV only allows verification requests between people who worked at the same company during overlapping dates. False verification requests may result in account suspension.
+**A**: No. WorkVouch only allows verification requests between people who worked at the same company during overlapping dates. False verification requests may result in account suspension.
 
 ### Q: What if a coworker denies my verification request?
 **A**: If a coworker denies your verification, that job won't be verified. You can:
 - Review the job details to ensure they're accurate
 - Contact the coworker directly (if you have their contact info)
 - Remove the job if it's incorrect
-- Contact PeerCV support if you believe the denial was in error
+- Contact WorkVouch support if you believe the denial was in error
 
 ---
 
@@ -92,7 +92,7 @@ Scores are recalculated nightly to reflect new verifications and references.
 
 ### Q: Who can write me a reference?
 **A**: Only verified coworkers can write references. A coworker must:
-1. Be matched with you through PeerCV
+1. Be matched with you through WorkVouch
 2. Confirm they worked with you
 3. Have a verified account
 
@@ -101,12 +101,12 @@ Scores are recalculated nightly to reflect new verifications and references.
 - False or inaccurate
 - Defamatory or libelous
 - Written by non-coworkers
-- Violating PeerCV's Terms of Service
+- Violating WorkVouch's Terms of Service
 
-Submit a dispute through PeerCV support, and we'll review it within 30 business days.
+Submit a dispute through WorkVouch support, and we'll review it within 30 business days.
 
 ### Q: What if someone writes a false reference about me?
-**A**: Dispute it immediately through PeerCV support. We'll investigate and remove false or defamatory references. False reference authors may face account suspension or termination.
+**A**: Dispute it immediately through WorkVouch support. We'll investigate and remove false or defamatory references. False reference authors may face account suspension or termination.
 
 ### Q: Can I see who wrote me a reference?
 **A**: Yes. References show the author's name and profile (unless they've deleted their account, in which case it's anonymized).
@@ -122,7 +122,7 @@ Submit a dispute through PeerCV support, and we'll review it within 30 business 
 ## Data and Privacy
 
 ### Q: Is my data safe?
-**A**: Yes. PeerCV uses industry-standard security measures:
+**A**: Yes. WorkVouch uses industry-standard security measures:
 - Encryption in transit (HTTPS/TLS)
 - Encryption at rest for sensitive data
 - Secure password hashing
@@ -180,8 +180,8 @@ They cannot see:
 
 ## Industries
 
-### Q: What industries does PeerCV support?
-**A**: PeerCV currently focuses on:
+### Q: What industries does WorkVouch support?
+**A**: WorkVouch currently focuses on:
 - **Law Enforcement**: Police, sheriff's departments, federal agencies
 - **Security**: Private security, corporate security, event security
 - **Hospitality**: Hotels, restaurants, event venues
@@ -190,14 +190,14 @@ They cannot see:
 We're expanding to more industries. Contact us if you'd like to see your industry added.
 
 ### Q: Why these industries?
-**A**: These industries often rely on references and verification for hiring, making PeerCV especially valuable. We're working to expand to more industries based on user demand.
+**A**: These industries often rely on references and verification for hiring, making WorkVouch especially valuable. We're working to expand to more industries based on user demand.
 
 ---
 
 ## Subscriptions and Billing
 
 ### Q: How do subscriptions work?
-**A**: PeerCV offers three tiers:
+**A**: WorkVouch offers three tiers:
 - **Starter (Free)**: Basic features, 3 references per job
 - **Pro ($8.99/month)**: 10 references per job, AI résumé tools, ATS optimization
 - **Elite ($19.99/month)**: Unlimited references, verified badge, AI Career Coach
@@ -238,14 +238,14 @@ We're expanding to more industries. Contact us if you'd like to see your industr
 
 ### Q: My coworker matches aren't showing up. Why?
 **A**: Coworker matches require:
-- Both of you to be on PeerCV
+- Both of you to be on WorkVouch
 - Same company name (exact match or very similar)
 - Overlapping employment dates
 
 If matches aren't showing:
 1. Verify the company name is spelled correctly
 2. Check that employment dates overlap
-3. Ask your coworker to join PeerCV if they haven't
+3. Ask your coworker to join WorkVouch if they haven't
 4. Contact support for help
 
 ### Q: My Trust Score isn't updating. Why?
@@ -274,7 +274,7 @@ If matches aren't showing:
 **A**: Go to Settings > Security > Change Password. Enter your current password and new password.
 
 ### Q: Can I have multiple accounts?
-**A**: No. Each person should have only one PeerCV account. Multiple accounts may result in account suspension.
+**A**: No. Each person should have only one WorkVouch account. Multiple accounts may result in account suspension.
 
 ### Q: What if I forget my password?
 **A**: Click "Forgot Password" on the login page. Enter your email, and we'll send you a password reset link.
@@ -285,7 +285,7 @@ If matches aren't showing:
 
 ### Q: How do I contact support?
 **A**: 
-- **Email**: support@peercv.com
+- **Email**: support@workvouch.com
 - **In-App**: Settings > Help & Support > Contact Us
 - **Response Time**: We aim to respond within 24-48 hours
 
@@ -297,4 +297,4 @@ If matches aren't showing:
 
 ---
 
-**Have a question not answered here? Contact us at support@peercv.com**
+**Have a question not answered here? Contact us at support@workvouch.com**

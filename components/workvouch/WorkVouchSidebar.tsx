@@ -28,7 +28,7 @@ const bottomNav = [
   { href: "/settings", label: "Settings", Icon: Cog6ToothIcon },
 ];
 
-export function PeerCVSidebar({
+export function WorkVouchSidebar({
   mobileOpen,
   onCloseMobile,
 }: {
@@ -94,11 +94,9 @@ export function PeerCVSidebar({
 
   return (
     <>
-      {/* Desktop: always visible */}
       <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200/80 bg-white">
         {navContent}
       </aside>
-      {/* Mobile: overlay drawer */}
       {onCloseMobile && (
         <>
           <div

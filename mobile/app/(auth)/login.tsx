@@ -55,7 +55,7 @@ export default function LoginScreen() {
       <View className="flex-1 px-6 pt-20">
         <Animated.View entering={FadeInDown.delay(200)} className="mb-8">
           <Text className="text-4xl font-bold text-grey-dark mb-2">Welcome Back</Text>
-          <Text className="text-lg text-grey-medium">Sign in to your PeerCV account</Text>
+          <Text className="text-lg text-grey-medium">Sign in to your WorkVouch account</Text>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(400)} className="space-y-4">

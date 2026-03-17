@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { supabaseBrowser } from "@/lib/supabase/browser";
-import { EmptyState } from "@/components/peercv/EmptyState";
+import { EmptyState } from "@/components/workvouch/EmptyState";
 import { InboxStackIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 

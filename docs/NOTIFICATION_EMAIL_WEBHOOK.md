@@ -13,8 +13,8 @@ supabase functions deploy send-notification-email
 In **Supabase Dashboard** → **Project Settings** → **Edge Functions** → **Secrets** (or `supabase secrets set ...`):
 
 - `RESEND_API_KEY` – Resend API key
-- `RESEND_FROM` – e.g. `PeerCV <notifications@yourdomain.com>` (verified domain in Resend)
-- `PEERCV_APP_URL` – e.g. `https://yourapp.com`
+- `RESEND_FROM` – e.g. `WorkVouch <notifications@yourdomain.com>` (verified domain in Resend)
+- `WORKVOUCH_APP_URL` – e.g. `https://yourapp.com`
 - `NOTIFICATION_WEBHOOK_SECRET` – random string; you’ll use this in the webhook header
 
 ## 3. Create the Database Webhook
@@ -37,7 +37,7 @@ Save the webhook. New notification rows will trigger the function and send the e
 
 - Friendly message from the notification `message`/`title`
 - Type label (e.g. “Reference request”, “Reference accepted”)
-- CTA button: **View in PeerCV** → `{PEERCV_APP_URL}/notifications`
+- CTA button: **View in WorkVouch** → `{WORKVOUCH_APP_URL}/notifications`
 
 ## Troubleshooting
 

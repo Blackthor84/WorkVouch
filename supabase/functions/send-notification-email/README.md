@@ -19,24 +19,24 @@ Set in **Supabase Dashboard** → **Project Settings** → **Edge Functions** �
 
 ```bash
 supabase secrets set RESEND_API_KEY=re_xxxx
-supabase secrets set RESEND_FROM="PeerCV <notifications@yourdomain.com>"
-supabase secrets set PEERCV_APP_URL=https://yourapp.com
+supabase secrets set RESEND_FROM="WorkVouch <notifications@yourdomain.com>"
+supabase secrets set WORKVOUCH_APP_URL=https://yourapp.com
 supabase secrets set NOTIFICATION_WEBHOOK_SECRET=<random-secret>
 ```
 
 | Secret | Required | Description |
 |--------|----------|-------------|
 | `RESEND_API_KEY` | Yes | Resend API key ([resend.com](https://resend.com)) |
-| `RESEND_FROM` | Yes | Sender (e.g. `PeerCV <notifications@yourdomain.com>`); must be a verified domain in Resend |
-| `PEERCV_APP_URL` | No | Base URL of the app (default `https://app.peercv.com`). Used for the "View in PeerCV" link. |
+| `RESEND_FROM` | Yes | Sender (e.g. `WorkVouch <notifications@yourdomain.com>`); must be a verified domain in Resend |
+| `WORKVOUCH_APP_URL` | No | Base URL of the app (default `https://app.workvouch.com`). Used for the "View in WorkVouch" link. |
 | `NOTIFICATION_WEBHOOK_SECRET` | Recommended | Shared secret; webhook must send `Authorization: Bearer <secret>`. If unset, no auth is required. |
 
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided automatically by Supabase at runtime.
 
 ## Email content
 
-- **Subject**: `{Type label} – PeerCV` (e.g. "Reference request – PeerCV").
-- **Body**: Friendly message from `record.message` (or `record.title`), plus a **View in PeerCV** button linking to `{PEERCV_APP_URL}/notifications`.
+- **Subject**: `{Type label} – WorkVouch` (e.g. "Reference request – WorkVouch").
+- **Body**: Friendly message from `record.message` (or `record.title`), plus a **View in WorkVouch** button linking to `{WORKVOUCH_APP_URL}/notifications`.
 - **Type labels**: `reference_request` → "Reference request", `reference_approved` → "Reference accepted", `coworker_match` → "New coworker match", `employer_purchase` → "Employer activity".
 
 ## Deploy

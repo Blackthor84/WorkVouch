@@ -1,4 +1,4 @@
-# PeerCV Setup Guide
+# WorkVouch Setup Guide
 
 ## Prerequisites
 

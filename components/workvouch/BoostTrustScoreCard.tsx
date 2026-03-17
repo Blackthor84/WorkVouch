@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-const JOIN_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.peercv.com";
+const JOIN_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.workvouch.com";
 
 export function BoostTrustScoreCard({ className }: { className?: string }) {
   const [email, setEmail] = useState("");
@@ -99,5 +99,5 @@ This helps both of us boost our trust score and unlock better opportunities.
 
 Appreciate it 🙌`,
   ctaUrl: JOIN_URL,
-  ctaLabel: "Join PeerCV",
+  ctaLabel: "Join WorkVouch",
 } as const;

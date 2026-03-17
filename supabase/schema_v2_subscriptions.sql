@@ -1,5 +1,5 @@
 -- ============================================================================
--- PEERCV VERSION 2 - SUBSCRIPTION MANAGEMENT
+-- WorkVouch VERSION 2 - SUBSCRIPTION MANAGEMENT
 -- ============================================================================
 -- This file adds subscription tracking for user and employer tiers
 -- ============================================================================

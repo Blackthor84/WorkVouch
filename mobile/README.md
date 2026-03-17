@@ -1,4 +1,4 @@
-# PeerCV Mobile v3.0
+# WorkVouch Mobile v3.0
 
 Mobile-first application built with Expo + React Native.
 

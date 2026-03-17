@@ -1,4 +1,4 @@
-# PeerCV
+# WorkVouch
 
 A trust-based professional profile platform where users enter job history, are matched with coworkers from overlapping employment, exchange peer references, and build a reputation that employers can view.
 

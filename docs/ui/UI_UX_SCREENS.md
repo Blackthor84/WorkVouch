@@ -1,4 +1,4 @@
-# PeerCV UI/UX Screens Documentation
+# WorkVouch UI/UX Screens Documentation
 
 **Complete Screen Inventory and Specifications**
 
@@ -9,7 +9,7 @@
 **Route**: `/auth/signup`
 
 **Elements**:
-- PeerCV logo
+- WorkVouch logo
 - "Create Your Account" headline
 - Form fields: Name, Email, Password, Confirm Password
 - Industry selector dropdown
@@ -69,7 +69,7 @@
 
 **Elements**:
 - "Request Coworker Verification" headline
-- Search/autocomplete for existing PeerCV users
+- Search/autocomplete for existing WorkVouch users
 - Manual invite form (email input)
 - List of pending verification requests
 - "Send Request" button
@@ -243,7 +243,7 @@
 **Route**: `/employer/login`
 
 **Elements**:
-- PeerCV logo
+- WorkVouch logo
 - "Employer Login" headline
 - Form fields: Email, Password
 - "Sign In" button (primary)
@@ -503,4 +503,4 @@
 
 ---
 
-**All screens are mobile-responsive, dark mode compatible, and follow the PeerCV design system.**
+**All screens are mobile-responsive, dark mode compatible, and follow the WorkVouch design system.**

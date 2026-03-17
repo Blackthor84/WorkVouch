@@ -1,4 +1,4 @@
-# PeerCV Landing Page Copy
+# WorkVouch Landing Page Copy
 
 **Complete Landing Page Content**
 
@@ -8,7 +8,7 @@
 **"Your Work. Verified by the People Who Worked With You."**
 
 ### Subheading
-**"PeerCV helps you prove your experience using real coworker references — fast, simple, and trusted. Perfect for law enforcement, security, hospitality, and retail professionals."**
+**"WorkVouch helps you prove your experience using real coworker references — fast, simple, and trusted. Perfect for law enforcement, security, hospitality, and retail professionals."**
 
 ### Primary CTA
 **"Get Started Free"** (Button: Primary blue, large, prominent)
@@ -78,20 +78,20 @@
 
 ### Security
 **Headline**: "Trusted by Security Professionals"
-**Description**: "Security companies trust PeerCV to verify candidate experience. Build your verified security career profile with licenses, clearances, and peer references."
+**Description**: "Security companies trust WorkVouch to verify candidate experience. Build your verified security career profile with licenses, clearances, and peer references."
 **CTA**: "Start Your Security Profile"
 
 ---
 
 ### Hospitality
 **Headline**: "Perfect for Hospitality Workers"
-**Description**: "Hotels and restaurants use PeerCV to verify experience. Showcase your front desk, housekeeping, and guest service skills with peer-verified references."
+**Description**: "Hotels and restaurants use WorkVouch to verify experience. Showcase your front desk, housekeeping, and guest service skills with peer-verified references."
 **CTA**: "Build Your Hospitality Profile"
 
 ---
 
 ### Retail
-**Headline**: "Retail Professionals Trust PeerCV"
+**Headline**: "Retail Professionals Trust WorkVouch"
 **Description**: "Retailers verify candidate experience instantly. Show your POS experience, cash handling, and customer service skills with verified references from coworkers."
 **CTA**: "Create Your Retail Profile"
 
@@ -100,13 +100,13 @@
 ## Benefits Section
 
 ### Benefit 1: Stand Out to Employers
-**"Employers trust verified profiles. Your PeerCV profile shows you're serious about your career and have the references to back it up."**
+**"Employers trust verified profiles. Your WorkVouch profile shows you're serious about your career and have the references to back it up."**
 
 ### Benefit 2: Build Your Reputation
 **"Your Trust Score grows as you add verified jobs and receive references. Build a reputation that follows you throughout your career."**
 
 ### Benefit 3: Save Time
-**"No more waiting weeks for background checks. Employers can verify your experience in seconds through your PeerCV profile."**
+**"No more waiting weeks for background checks. Employers can verify your experience in seconds through your WorkVouch profile."**
 
 ### Benefit 4: Control Your Narrative
 **"You control your career profile. Add jobs, request references, and build your Trust Score on your terms."**
@@ -116,12 +116,12 @@
 ## Social Proof Section
 
 ### Testimonial 1
-**Quote**: "PeerCV helped me land my dream job. The employer could verify my experience instantly, and my Trust Score showed I was trustworthy."
+**Quote**: "WorkVouch helped me land my dream job. The employer could verify my experience instantly, and my Trust Score showed I was trustworthy."
 **Author**: "Sarah M., Law Enforcement Professional"
 **Location**: "Los Angeles, CA"
 
 ### Testimonial 2
-**Quote**: "As an employer, PeerCV saves us weeks of verification time. We can see verified work history and peer references in seconds."
+**Quote**: "As an employer, WorkVouch saves us weeks of verification time. We can see verified work history and peer references in seconds."
 **Author**: "John D., Hiring Manager"
 **Company**: "Security Solutions Inc."
 
@@ -137,7 +137,7 @@
 ### Stats
 - **"10,000+ Verified Profiles"**
 - **"50,000+ Peer References"**
-- **"500+ Employers Using PeerCV"**
+- **"500+ Employers Using WorkVouch"**
 - **"4.8/5 Average Trust Score"**
 
 ### Security Badges
@@ -178,7 +178,7 @@
 **"Ready to Build Your Verified Career Profile?"**
 
 ### Subheading
-**"Join thousands of professionals who trust PeerCV to verify their work history."**
+**"Join thousands of professionals who trust WorkVouch to verify their work history."**
 
 ### Primary CTA
 **"Get Started Free"** (Button: Large, prominent)
@@ -225,16 +225,16 @@
 ## Meta Tags
 
 ### Title Tag
-**"PeerCV - Your Work. Verified by Coworkers. Trust Score Career Platform."**
+**"WorkVouch - Your Work. Verified by Coworkers. Trust Score Career Platform."**
 
 ### Meta Description
 **"Build your verified career profile with peer references. Get a Trust Score that employers trust. Perfect for law enforcement, security, hospitality, and retail professionals. Start free."**
 
 ### Open Graph Tags
-- **og:title**: "PeerCV - Verified Career Profiles with Trust Scores"
+- **og:title**: "WorkVouch - Verified Career Profiles with Trust Scores"
 - **og:description**: "Build your verified career profile with peer references. Get a Trust Score that employers trust."
-- **og:image**: PeerCV logo or hero image
-- **og:url**: https://peercv.com
+- **og:image**: WorkVouch logo or hero image
+- **og:url**: https://workvouch.com
 
 ---
 
@@ -244,7 +244,7 @@
 - "Get Started Free"
 - "Create Your Profile"
 - "Build Your Trust Score"
-- "Join PeerCV"
+- "Join WorkVouch"
 
 ### Secondary CTAs
 - "See How It Works"
@@ -260,4 +260,4 @@
 
 ---
 
-**All copy is optimized for conversion, mobile-responsive, and aligned with PeerCV's brand voice: professional, trustworthy, and helpful.**
+**All copy is optimized for conversion, mobile-responsive, and aligned with WorkVouch's brand voice: professional, trustworthy, and helpful.**

@@ -1,4 +1,4 @@
-# PeerCV Competitor Analysis
+# WorkVouch Competitor Analysis
 
 **Comprehensive Competitive Landscape Analysis**
 
@@ -22,7 +22,7 @@
 - Fake profiles and inflated credentials common
 - Not industry-specific
 
-**PeerCV Advantage**:
+**WorkVouch Advantage**:
 - **Peer verification required** - Can't fake jobs
 - **Trust Score system** - Quantified trustworthiness
 - **Industry-specific** - Tailored for law enforcement, security, hospitality, retail
@@ -49,7 +49,7 @@
 - Employers can't verify work history easily
 - Generic platform, not industry-specific
 
-**PeerCV Advantage**:
+**WorkVouch Advantage**:
 - **Verification-first** - Built for verification, not just resumes
 - **Peer-verified work history** - Employers can trust it
 - **Trust Score** - Shows verification completeness
@@ -76,7 +76,7 @@
 - **No peer references** - Only official records
 - **No Trust Score** - Binary pass/fail
 
-**PeerCV Advantage**:
+**WorkVouch Advantage**:
 - **Affordable** - Free for job seekers, $7.99-199/month for employers
 - **Instant** - Employers verify in seconds
 - **Job seeker-friendly** - Build your profile proactively
@@ -102,7 +102,7 @@
 - **No peer references** - Only official records
 - **Complex** - Requires employer setup
 
-**PeerCV Advantage**:
+**WorkVouch Advantage**:
 - **Affordable** - Much lower cost
 - **Instant** - Real-time verification
 - **Job seeker-friendly** - Proactive profile building
@@ -128,7 +128,7 @@
 - **No employer tools** - Job seeker only
 - **Generic** - Not industry-specific
 
-**PeerCV Advantage**:
+**WorkVouch Advantage**:
 - **Verification system** - Built-in verification
 - **Peer references** - Real coworker verification
 - **Trust Score** - Trust metrics
@@ -154,7 +154,7 @@
 - **No Trust Score** - Binary verification only
 - **Slow** - Requires employer participation
 
-**PeerCV Advantage**:
+**WorkVouch Advantage**:
 - **Affordable** - Much lower cost
 - **Job seeker-friendly** - Build your profile proactively
 - **Peer references** - Real coworker insights
@@ -163,7 +163,7 @@
 
 ---
 
-## PeerCV Competitive Advantages
+## WorkVouch Competitive Advantages
 
 ### 1. Peer Verification System
 - **Unique**: Only platform requiring actual coworker verification
@@ -208,7 +208,7 @@
 ## Market Positioning
 
 ### Positioning Statement
-**"PeerCV is the only peer-verified career platform that lets job seekers build trusted profiles with coworker verification and Trust Scores, giving employers instant, affordable verification that's more trustworthy than traditional background checks."**
+**"WorkVouch is the only peer-verified career platform that lets job seekers build trusted profiles with coworker verification and Trust Scores, giving employers instant, affordable verification that's more trustworthy than traditional background checks."**
 
 ### Target Audience
 - **Job Seekers**: Law enforcement, security, hospitality, retail professionals
@@ -278,7 +278,7 @@
 
 ## Conclusion
 
-PeerCV is uniquely positioned in the market with:
+WorkVouch is uniquely positioned in the market with:
 - **Peer verification** (no competitor has this)
 - **Trust Score system** (unique trust metric)
 - **Industry-specific focus** (focused niche)

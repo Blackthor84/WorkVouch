@@ -1,10 +1,10 @@
-# PeerCV App Store & Social Media Copy
+# WorkVouch App Store & Social Media Copy
 
 **Complete App Store Listings and Social Media Content**
 
 ## App Store Description (Short)
 
-**Title**: PeerCV - Verified Career Profiles
+**Title**: WorkVouch - Verified Career Profiles
 
 **Short Description** (80 characters max):
 ```
@@ -15,14 +15,14 @@ Build verified career profiles with peer references and Trust Scores.
 
 ## App Store Description (Full)
 
-**Title**: PeerCV - Your Work. Verified by Coworkers.
+**Title**: WorkVouch - Your Work. Verified by Coworkers.
 
 **Description**:
 
 ```
 Build your verified career profile with peer references and Trust Scores.
 
-PeerCV is the only career platform that requires actual coworker verification. No fake references. No inflated credentials. Just real verification from people who worked with you.
+WorkVouch is the only career platform that requires actual coworker verification. No fake references. No inflated credentials. Just real verification from people who worked with you.
 
 KEY FEATURES:
 
@@ -36,7 +36,7 @@ Get a 0-100 Trust Score that shows how verified and trustworthy your career prof
 Tailored for law enforcement, security, hospitality, and retail professionals. Industry-specific fields, certifications, and verification processes.
 
 ✅ Instant Employer Verification
-Employers can verify your work history in seconds through your PeerCV profile. No more waiting weeks for background checks.
+Employers can verify your work history in seconds through your WorkVouch profile. No more waiting weeks for background checks.
 
 ✅ Secure & Private
 Your data is encrypted and secure. You control who sees what. Your privacy is our priority.
@@ -47,7 +47,7 @@ Manage your profile, request references, and check your Trust Score from anywher
 HOW IT WORKS:
 
 1. Add your jobs (company, title, dates)
-2. PeerCV matches you with coworkers who worked at the same company
+2. WorkVouch matches you with coworkers who worked at the same company
 3. Coworkers verify your employment and write references
 4. Your Trust Score grows as you add verified jobs and references
 5. Employers can verify your experience instantly
@@ -74,17 +74,17 @@ DOWNLOAD NOW:
 
 Start building your verified career profile today. Free to get started, upgrade when you're ready.
 
-Questions? Contact us: support@peercv.com
+Questions? Contact us: support@workvouch.com
 
-Privacy Policy: https://peercv.com/privacy
-Terms of Service: https://peercv.com/terms
+Privacy Policy: https://workvouch.com/privacy
+Terms of Service: https://workvouch.com/terms
 ```
 
 ---
 
 ## Google Play Store Description
 
-**Title**: PeerCV - Verified Career Profiles with Trust Scores
+**Title**: WorkVouch - Verified Career Profiles with Trust Scores
 
 **Short Description** (80 characters):
 ```
@@ -104,7 +104,7 @@ Building the world's first peer-verified career network. Your work reputation, v
 
 ### LinkedIn Bio
 ```
-PeerCV - Your Work. Verified by Coworkers.
+WorkVouch - Your Work. Verified by Coworkers.
 
 We're building the world's first peer-verified career platform. Job seekers build trusted profiles with coworker verification and Trust Scores. Employers verify candidate work history instantly and affordably.
 
@@ -124,7 +124,7 @@ Perfect for law enforcement, security, hospitality, and retail professionals.
 
 ### Facebook Page Description
 ```
-PeerCV helps job seekers build verified career profiles with peer references and Trust Scores. Employers can verify candidate work history instantly and affordably.
+WorkVouch helps job seekers build verified career profiles with peer references and Trust Scores. Employers can verify candidate work history instantly and affordably.
 
 Perfect for law enforcement, security, hospitality, and retail professionals.
 
@@ -137,7 +137,7 @@ Your work. Verified by the people who worked with you.
 
 ### Launch Announcement
 ```
-🚀 We're excited to announce PeerCV!
+🚀 We're excited to announce WorkVouch!
 
 The only career platform that requires actual coworker verification. Build your verified career profile with peer references and Trust Scores.
 
@@ -168,7 +168,7 @@ Build a reputation that follows you throughout your career.
 
 ### Industry Focus
 ```
-PeerCV is built for:
+WorkVouch is built for:
 
 👮 Law Enforcement
 🔒 Security
@@ -177,7 +177,7 @@ PeerCV is built for:
 
 Industry-specific fields, certifications, and verification processes designed for your field.
 
-Join thousands of professionals who trust PeerCV.
+Join thousands of professionals who trust WorkVouch.
 
 #CareerVerification #IndustrySpecific
 ```
@@ -203,7 +203,7 @@ Start verifying candidates today: [Link]
 
 - [Name], [Title]
 
-Build your verified career profile with PeerCV. Get started free: [Link]
+Build your verified career profile with WorkVouch. Get started free: [Link]
 
 #SuccessStory #CareerVerification
 ```
@@ -255,7 +255,7 @@ Build your verified career profile with PeerCV. Get started free: [Link]
 ## Hashtags
 
 ### Primary Hashtags
-- #PeerCV
+- #WorkVouch
 - #CareerVerification
 - #TrustScore
 - #PeerReferences
@@ -284,13 +284,13 @@ Build your verified career profile with PeerCV. Get started free: [Link]
 
 ### FOR IMMEDIATE RELEASE
 
-**PeerCV Launches Peer-Verified Career Platform with Trust Scores**
+**WorkVouch Launches Peer-Verified Career Platform with Trust Scores**
 
-[City, Date] - PeerCV, the first peer-verified career platform, today announced the launch of its platform that allows job seekers to build verified career profiles with coworker verification and Trust Scores.
+[City, Date] - WorkVouch, the first peer-verified career platform, today announced the launch of its platform that allows job seekers to build verified career profiles with coworker verification and Trust Scores.
 
-Unlike traditional career platforms, PeerCV requires actual coworker verification for every job listed. Job seekers add their work history, and PeerCV matches them with coworkers who worked at the same company during overlapping dates. These coworkers verify employment and write references, building a Trust Score (0-100) that reflects verification completeness.
+Unlike traditional career platforms, WorkVouch requires actual coworker verification for every job listed. Job seekers add their work history, and WorkVouch matches them with coworkers who worked at the same company during overlapping dates. These coworkers verify employment and write references, building a Trust Score (0-100) that reflects verification completeness.
 
-"PeerCV solves a real problem in hiring: verification," said [Founder Name], CEO of PeerCV. "Employers spend weeks and hundreds of dollars verifying candidate work history. PeerCV lets job seekers build verified profiles proactively, and employers can verify in seconds for a fraction of the cost."
+"WorkVouch solves a real problem in hiring: verification," said [Founder Name], CEO of WorkVouch. "Employers spend weeks and hundreds of dollars verifying candidate work history. WorkVouch lets job seekers build verified profiles proactively, and employers can verify in seconds for a fraction of the cost."
 
 Key features include:
 - Peer-verified work history
@@ -299,9 +299,9 @@ Key features include:
 - Instant employer verification
 - Secure, encrypted data storage
 
-PeerCV is available now on [App Store/Web]. Basic features are free, with Pro ($8.99/month) and Elite ($19.99/month) tiers available. Employer subscriptions start at $7.99 per lookup or $49/month for unlimited access.
+WorkVouch is available now on [App Store/Web]. Basic features are free, with Pro ($8.99/month) and Elite ($19.99/month) tiers available. Employer subscriptions start at $7.99 per lookup or $49/month for unlimited access.
 
-For more information, visit peercv.com or contact press@peercv.com.
+For more information, visit workvouch.com or contact press@workvouch.com.
 
 ---
 
@@ -310,12 +310,12 @@ For more information, visit peercv.com or contact press@peercv.com.
 ```
 [Your Name]
 [Title]
-PeerCV
+WorkVouch
 
 Your Work. Verified by Coworkers.
 
-Website: peercv.com
-Email: [your-email]@peercv.com
+Website: workvouch.com
+Email: [your-email]@workvouch.com
 ```
 
 ---

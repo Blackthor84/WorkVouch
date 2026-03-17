@@ -1,7 +1,7 @@
 -- ============================================================================
--- PEERCV DATABASE SCHEMA
+-- WorkVouch DATABASE SCHEMA
 -- ============================================================================
--- This schema defines the complete database structure for PeerCV.
+-- This schema defines the complete database structure for WorkVouch.
 -- Designed for future extensibility and fraud detection.
 -- ============================================================================
 

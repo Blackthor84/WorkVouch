@@ -61,7 +61,7 @@ export default function RegisterScreen() {
       <ScrollView className="flex-1 px-6 pt-20">
         <Animated.View entering={FadeInDown.delay(200)} className="mb-8">
           <Text className="text-4xl font-bold text-grey-dark mb-2">Create Account</Text>
-          <Text className="text-lg text-grey-medium">Join PeerCV and build your verified profile</Text>
+          <Text className="text-lg text-grey-medium">Join WorkVouch and build your verified profile</Text>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(400)} className="space-y-4">

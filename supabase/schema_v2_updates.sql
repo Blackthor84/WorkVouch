@@ -1,5 +1,5 @@
 -- ============================================================================
--- PEERCV VERSION 2 - DATABASE SCHEMA UPDATES
+-- WorkVouch VERSION 2 - DATABASE SCHEMA UPDATES
 -- ============================================================================
 -- This file contains all new tables and functions for Version 2 features:
 -- - Notifications system

@@ -37,7 +37,7 @@ npm install
 2. **Create New Project**
    - Click "New Project"
    - Choose organization
-   - Enter project name (e.g., "peercv")
+   - Enter project name (e.g., "workvouch")
    - Enter database password (save this!)
    - Choose region closest to you
    - Click "Create new project"

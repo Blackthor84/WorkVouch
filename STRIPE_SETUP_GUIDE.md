@@ -1,4 +1,4 @@
-# Stripe Setup Guide for PeerCV
+# Stripe Setup Guide for WorkVouch
 
 Complete step-by-step guide to set up Stripe payments in your PeerCV application.
 

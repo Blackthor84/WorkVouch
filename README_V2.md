@@ -1,4 +1,4 @@
-# PeerCV Version 2 - Complete Setup Guide
+# WorkVouch Version 2 - Complete Setup Guide
 
 ## 🚀 What's New in Version 2
 

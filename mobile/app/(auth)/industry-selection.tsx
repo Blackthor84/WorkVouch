@@ -49,7 +49,7 @@ export default function IndustrySelectionScreen() {
       <Animated.View entering={FadeInDown.delay(200)} className="mb-8">
         <Text className="text-4xl font-bold text-grey-dark mb-2">Select Your Industry</Text>
         <Text className="text-lg text-grey-medium">
-          Help us customize your PeerCV experience
+          Help us customize your WorkVouch experience
         </Text>
       </Animated.View>
 

@@ -105,7 +105,7 @@ export async function signOut() {
  */
 export async function resetPassword(email: string) {
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: 'peercv://reset-password',
+    redirectTo: 'workvouch://reset-password',
   })
   return { data, error }
 }

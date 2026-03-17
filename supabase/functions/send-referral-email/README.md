@@ -13,8 +13,8 @@ Sends the viral referral email when a new row is inserted into `public.referrals
 ## Secrets
 
 - `RESEND_API_KEY` – Resend API key
-- `RESEND_FROM` – Sender (e.g. `PeerCV <notifications@yourdomain.com>`)
-- `PEERCV_APP_URL` – Base URL for the “Join PeerCV” link (default `https://app.peercv.com`)
+- `RESEND_FROM` – Sender (e.g. `WorkVouch <notifications@yourdomain.com>`)
+- `WORKVOUCH_APP_URL` – Base URL for the “Join WorkVouch” link (default `https://app.workvouch.com`)
 - `REFERRAL_WEBHOOK_SECRET` – Shared secret for webhook auth
 
 ## Deploy
