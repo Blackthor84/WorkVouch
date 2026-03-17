@@ -38,9 +38,8 @@ export default async function AppLayout({
     .eq("id", user.id)
     .single();
 
-  if (!profile?.role) {
-    redirect("/choose-role");
-  }
+  // TEMP DISABLED FOR DEBUG
+  // if (!profile?.role) redirect('/choose-role');
 
   const [unreadCount, pendingRequestsCount] = await Promise.all([
     getUnreadNotificationCount(),

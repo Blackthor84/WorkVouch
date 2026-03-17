@@ -9,19 +9,6 @@ import { auditLog, getAuditMetaFromRequest } from "@/lib/auditLogger";
 
 export const runtime = "nodejs";
 
-/** Local type for admin users list. Do not import Supabase-generated types here. */
-type ProfileRow = {
-  user_id: string;
-  email: string | null;
-  full_name: string | null;
-  created_at: string;
-  role?: string | null;
-  status?: string | null;
-  isSandbox?: boolean | null;
-};
-
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
 /**
  * GET /api/admin/users — list all users (admin/superadmin only).
  * Hardened: try/catch, typed error, structured 500, audit log.
@@ -42,82 +29,40 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
 
-    const url = new URL(request.url);
-    const searchEmail = url.searchParams.get("email")?.trim() || "";
-    const searchName = url.searchParams.get("name")?.trim() || "";
-    const searchOrg = url.searchParams.get("org")?.trim() || "";
+    // DEBUG: no filters — fetch all profiles (table is "profiles", not "users")
+    const { data: users, error } = await admin.from("profiles").select("*");
 
-    let query = admin.from("profiles")
-      .select("user_id, email, full_name, created_at, role, status, isSandbox")
-      .order("created_at", { ascending: false });
-
-    if (searchEmail) {
-      query = query.ilike("email", `%${searchEmail}%`);
-    }
-    if (searchName) {
-      query = query.ilike("full_name", `%${searchName}%`);
-    }
-
-    let profileIdsFilter: string[] | null = null;
-    if (searchOrg) {
-      const { data: orgs } = await admin.from("organizations")
-        .select("id")
-        .ilike("name", `%${searchOrg}%`);
-      const orgIds = (orgs ?? []).map((o: { id: string }) => o.id);
-      if (orgIds.length === 0) {
-        profileIdsFilter = [];
-      } else {
-        const { data: members } = await admin.from("tenant_memberships")
-          .select("user_id")
-          .in("organization_id", orgIds);
-        profileIdsFilter = [...new Set((members ?? []).map((m: { user_id: string }) => m.user_id))];
-      }
-    }
-    if (profileIdsFilter && profileIdsFilter.length === 0) {
-      return NextResponse.json([]);
-    }
-    if (profileIdsFilter && profileIdsFilter.length > 0) {
-      query = query.in("user_id", profileIdsFilter);
-    }
-
-    const { data, error } = await query.returns<ProfileRow[]>();
+    console.log("USERS DATA:", users);
+    console.log("USERS ERROR:", error);
 
     if (error) {
       console.error("[admin/users] profiles error:", error);
+      return NextResponse.json({ error: "Error loading users" }, { status: 500 });
+    }
+
+    if (!users) {
       return NextResponse.json([], { status: 200 });
     }
 
-    const rows = data ?? [];
-    const users = rows.map((p) => {
-      const rawUserId = p.user_id?.trim() ?? "";
-      const profile_user_id = UUID_REGEX.test(rawUserId) ? rawUserId : "";
-      return {
-        id: p.user_id,
-        userId: p.user_id,
-        user_id: profile_user_id,
-        profile_user_id,
-        email: p.email ?? "",
-        fullName: p.full_name ?? "",
-        createdAt: p.created_at,
-        role: p.role ?? "user",
-        status: p.status ?? "active",
-        isSandbox: p.isSandbox ?? false,
-      };
-    });
+    const mapped = users.map((row: Record<string, unknown>) => ({
+      id: row.id ?? row.user_id ?? "",
+      email: row.email ?? "",
+      role: row.role ?? "no role",
+    }));
 
     const { ipAddress, userAgent } = getAuditMetaFromRequest(request);
     await auditLog({
       actorUserId: user.id,
       actorRole: actorRole === "superadmin" ? "superadmin" : "admin",
       action: "admin_list_users",
-      metadata: { count: users.length },
+      metadata: { count: mapped.length },
       ipAddress,
       userAgent,
     }).catch((err: unknown) => {
       console.error("[ADMIN_API_ERROR] auditLog", err instanceof Error ? err.message : err);
     });
 
-    return NextResponse.json(users);
+    return NextResponse.json(mapped);
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error("[ADMIN_API_ERROR] GET /api/admin/users", error.message);
