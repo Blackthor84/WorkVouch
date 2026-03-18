@@ -100,12 +100,14 @@ export default function CoworkerMatchesClient({
   const requestReference = async (match: EmploymentMatchRow) => {
     if (!currentUser?.id) return;
     setRequestingId(match.id);
+    const companyName = match.company_name || "the same company";
+    const message = `We worked together at ${companyName} — would you vouch for me?`;
     const { error } = await supabaseBrowser.from("reference_requests").insert([
       {
         requester_id: currentUser.id,
         receiver_id: match.matched_user_id,
         coworker_match_id: match.id,
-        message: "Hey, can you vouch for me?",
+        message,
       },
     ]);
     if (error) {

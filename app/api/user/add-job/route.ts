@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
     const start_date = data.startDate;
     const end_date = data.endDate || null;
 
+    // user_id is always the authenticated user — never from request body
     const { data: jobHistory, error: jobError } = await supabaseAny
       .from("jobs")
       .insert({

@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     const errors: string[] = [];
 
-    // Save jobs
+    // Save jobs — user_id always from authenticated user
     if (jobs && Array.isArray(jobs) && jobs.length > 0) {
       const jobsToInsert = jobs.map((job: any) => ({
         user_id: user.id,

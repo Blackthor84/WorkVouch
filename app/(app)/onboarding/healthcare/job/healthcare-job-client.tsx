@@ -52,7 +52,7 @@ export function HealthcareJobClient() {
             .filter((c) => c.length > 0)
         : [];
 
-      // Insert job
+      // Insert job — user_id is always the logged-in user (no form input for profile_id/user_id)
       const safeTitle = (jobTitle ?? "").toString().trim() || "Unknown Job";
       const { error: jobError } = await supabase.from("jobs").insert([
         {

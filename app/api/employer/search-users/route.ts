@@ -113,6 +113,7 @@ export async function GET(request: NextRequest) {
       )
       .ilike("full_name", `%${sanitizedQuery}%`)
       .eq("restricted_from_employer_search", false)
+      .order("trust_score", { ascending: false })
       .limit(MAX_RESULTS);
 
     if (viewError) {

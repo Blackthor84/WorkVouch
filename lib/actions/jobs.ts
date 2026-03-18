@@ -18,7 +18,8 @@ export interface CreateJobInput {
 }
 
 /**
- * Create a new job entry
+ * Create a new job entry.
+ * user_id (profile_id) is always set from the authenticated user — never from input.
  */
 export async function createJob(input: CreateJobInput) {
   const user = await requireAuth()
@@ -27,10 +28,12 @@ export async function createJob(input: CreateJobInput) {
 
   const safeTitle = input.job_title?.trim() || "Unknown Job"
   const { job_title: _jt, ...rest } = input
+  // Strip any client-supplied user_id/profile_id so insert always uses auth user
+  const { user_id: _uid, profile_id: _pid, ...safeInput } = rest as CreateJobInput & { user_id?: string; profile_id?: string }
   const { data: job, error } = await supabaseAny
     .from('jobs')
     .insert([{
-      ...rest,
+      ...safeInput,
       title: safeTitle,
       user_id: user.id,
     }])
