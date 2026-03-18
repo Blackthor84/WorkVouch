@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { RequestButton } from "./RequestButton";
 import { MatchTrustBadge } from "./MatchTrustBadge";
+import { MatchStrengthBadge } from "./MatchStrengthBadge";
 
 export type MatchCardData = {
   id: string;
@@ -10,6 +11,7 @@ export type MatchCardData = {
   company_name: string;
   other_job_title: string | null;
   trust_score: number | null;
+  match_confidence?: number | null;
   overlap_start?: string;
   overlap_end?: string;
   other_user: {
@@ -54,9 +56,10 @@ export function MatchCard({
           <p className="font-bold text-lg text-slate-900 truncate">{name}</p>
           <p className="text-slate-500 text-sm truncate">{roleAtCompany || "—"}</p>
           {overlapRange && (
-            <p className="text-xs text-slate-400 mt-0.5">{overlapRange}</p>
+            <p className="text-xs text-slate-400 mt-0.5">Worked together: {overlapRange}</p>
           )}
-          <div className="mt-2">
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <MatchStrengthBadge confidence={match.match_confidence} />
             <MatchTrustBadge score={score} />
           </div>
         </div>

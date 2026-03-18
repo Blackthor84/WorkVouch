@@ -11,6 +11,8 @@ export type EmploymentMatchRow = {
   overlap_start: string;
   overlap_end: string;
   company_name: string;
+  /** 0–1 from coworker_matches.match_confidence; used for Weak/Medium/Strong badge */
+  match_confidence?: number | null;
   /** Other user's job title at this company (for "Company • Role" display) */
   other_job_title: string | null;
   /** Other user's trust score 0–100 from trust_scores table */
@@ -37,12 +39,12 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
 
     const { data: rows, error } = await sb
       .from("coworker_matches")
-      .select("id, user1_id, user2_id, job1_id, job2_id, company_name, created_at")
+      .select("id, user1_id, user2_id, job1_id, job2_id, company_name, match_confidence, created_at")
       .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
 
     if (error || !rows?.length) return [];
 
-    type Row = { id: string; user1_id: string; user2_id: string; job1_id: string; job2_id: string; company_name: string; created_at: string };
+    type Row = { id: string; user1_id: string; user2_id: string; job1_id: string; job2_id: string; company_name: string; match_confidence?: number | null; created_at: string };
     const typedRows = rows as Row[];
 
     const otherUserIds = new Set<string>();
@@ -112,6 +114,7 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
         overlap_start,
         overlap_end,
         company_name: m.company_name ?? "Unknown",
+        match_confidence: m.match_confidence ?? null,
         other_job_title: otherJobTitle,
         trust_score: trustScore,
         other_user: profile
