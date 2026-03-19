@@ -25,13 +25,13 @@ export async function GET(request: Request) {
 
     const supabase = createServerClient<Database>(url, anonKey, {
       cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
+        getAll: () => cookieStore.getAll(),
+        setAll: (cookiesToSet) => {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {}
         },
       },
     });
