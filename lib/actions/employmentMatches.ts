@@ -7,6 +7,8 @@ export type EmploymentMatchRow = {
   id: string;
   employment_record_id: string;
   matched_user_id: string;
+  /** Same as matched_user_id; use for "the other person" in UI (bidirectional). */
+  otherUserId: string;
   match_status: string;
   /** coworker_matches.status: 'pending' | 'confirmed' */
   status?: string | null;
@@ -29,7 +31,8 @@ export type EmploymentMatchRow = {
 }
 
 /**
- * Fetch coworker matches for the current user from coworker_matches (user1 or user2).
+ * Fetch coworker matches where the current user is involved (user1_id OR user2_id).
+ * Bidirectional: returns matches where you are user1 and matches where you are user2.
  * Uses authenticated server client with cookie getAll/setAll so the session is recognized.
  */
 export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[]> {
@@ -145,6 +148,7 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
         id: m.id,
         employment_record_id: "",
         matched_user_id: otherId,
+        otherUserId: otherId,
         match_status: (m.status ?? "pending") as string,
         status: m.status ?? "pending",
         overlap_start,
