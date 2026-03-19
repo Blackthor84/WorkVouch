@@ -21,6 +21,7 @@ export type EmploymentMatchRow = {
     full_name: string | null;
     email: string | null;
     profile_photo_url: string | null;
+    headline: string | null;
   } | null;
   is_record_owner: boolean;
 }
@@ -79,8 +80,6 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
       .select("*")
       .or(`user_1.eq.${user.id},user_2.eq.${user.id}`);
 
-    console.log("MATCHES FINAL:", data);
-
     if (error) {
       console.warn("[getEmploymentMatchesForUser] query error", error.message);
       return [];
@@ -89,15 +88,31 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
     if (!data?.length) return [];
 
     const typedRows = data as CoworkerMatchRow[];
-
     const normalizedMatches = typedRows.map((match) => ({
       ...match,
       otherUserId: match.user_1 === user.id ? match.user_2 : match.user_1,
     }));
 
+    const otherIds = [...new Set(normalizedMatches.map((m) => m.otherUserId))];
+    let profileMap: Record<string, { full_name: string | null; profile_photo_url: string | null; headline: string | null }> = {};
+    if (otherIds.length > 0) {
+      const { data: profiles } = await sb
+        .from("profiles")
+        .select("id, full_name, profile_photo_url, headline")
+        .in("id", otherIds);
+      (profiles ?? []).forEach((p: { id: string; full_name: string | null; profile_photo_url: string | null; headline?: string | null }) => {
+        profileMap[p.id] = {
+          full_name: p.full_name ?? null,
+          profile_photo_url: p.profile_photo_url ?? null,
+          headline: p.headline ?? null,
+        };
+      });
+    }
+
     return normalizedMatches.map((m) => {
       const otherId = m.otherUserId;
       const isRecordOwner = m.user_1 === user.id;
+      const profile = profileMap[otherId];
 
       return {
         id: m.id,
@@ -112,7 +127,9 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
         match_confidence: m.match_confidence ?? null,
         other_job_title: null,
         trust_score: null,
-        other_user: null,
+        other_user: profile
+          ? { id: otherId, full_name: profile.full_name, email: null, profile_photo_url: profile.profile_photo_url, headline: profile.headline }
+          : null,
         is_record_owner: isRecordOwner,
       };
     });

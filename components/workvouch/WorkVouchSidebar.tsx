@@ -56,17 +56,16 @@ export function WorkVouchSidebar({
 
   const navContent = (
     <>
-      <div className="flex h-14 shrink-0 items-center border-b border-slate-200/80 px-4">
-        <Link href={logoHref} className="flex items-center gap-2" onClick={onCloseMobile}>
+      <div className="flex h-14 shrink-0 items-center border-b border-slate-200/80 dark:border-slate-700 px-4">
+        <Link href={logoHref} className="flex items-center gap-2" onClick={onCloseMobile} aria-label="WorkVouch">
           <Image
             src="/images/workvouch-logo.png.png"
-            alt="WorkVouch"
+            alt=""
             width={120}
             height={40}
             className="h-8 w-auto"
             style={{ objectFit: "contain" }}
           />
-          <span className="font-semibold text-slate-900 hidden sm:inline">WorkVouch</span>
         </Link>
       </div>
       <nav className="flex flex-1 flex-col gap-1 p-3 overflow-y-auto">

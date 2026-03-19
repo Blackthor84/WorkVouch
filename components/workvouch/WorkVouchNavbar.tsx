@@ -67,13 +67,13 @@ export function WorkVouchNavbar({
     "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100";
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-200/80 bg-white/95 px-4 backdrop-blur sm:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between bg-blue-600 px-4 shadow-sm sm:px-6">
       <div className="flex items-center gap-3">
         {onMenuClick && (
           <button
             type="button"
             onClick={onMenuClick}
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 md:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-white/90 hover:bg-white/10 md:hidden transition-colors"
             aria-label="Open menu"
           >
             <Bars3Icon className="h-5 w-5" />
@@ -81,7 +81,7 @@ export function WorkVouchNavbar({
         )}
         <Link
           href="/coworker-matches"
-          className="flex items-center gap-2 text-lg font-semibold text-slate-900 transition-opacity hover:opacity-90"
+          className="text-lg font-semibold text-white transition-opacity hover:opacity-90"
           title="WorkVouch"
         >
           <span className="tracking-tight">WorkVouch</span>
@@ -91,11 +91,11 @@ export function WorkVouchNavbar({
       <div className="flex items-center gap-2">
         <Link
           href="/coworker-matches"
-          className="flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors"
+          className="flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-2 text-sm font-semibold text-white hover:bg-white/25 transition-colors"
           title="Trust Score"
         >
           <span className="tabular-nums">{Math.min(100, Math.max(0, trustScore))}</span>
-          <span className="text-slate-400 font-medium text-xs">Trust</span>
+          <span className="text-white/80 font-medium text-xs">Trust</span>
         </Link>
         <NotificationBell unreadCount={unreadNotificationCount} />
 
@@ -103,7 +103,7 @@ export function WorkVouchNavbar({
           <button
             type="button"
             onClick={() => setDropdownOpen((o) => !o)}
-            className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-sm font-medium text-slate-600 ring-1 ring-transparent transition-all hover:bg-slate-200 hover:ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+            className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-white/15 text-sm font-medium text-white ring-1 ring-white/20 transition-all hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-blue-600"
             aria-label="Profile menu"
             aria-expanded={dropdownOpen}
           >

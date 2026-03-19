@@ -9,8 +9,7 @@ export default async function UploadResumePage() {
             Upload Resume
           </h1>
           <p className="text-grey-medium dark:text-gray-400">
-            Upload your resume (PDF or DOCX) to auto-fill your WorkVouch
-            profile.
+            Upload your resume (PDF, DOC, or DOCX, max 5MB) to store it on your profile. Employers can request access to view it.
           </p>
         </div>
 

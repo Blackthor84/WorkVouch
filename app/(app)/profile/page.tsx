@@ -9,6 +9,7 @@ import { getJobsWithVerifiedCoworkers } from "@/lib/actions/getJobsWithVerifiedC
 import { admin } from "@/lib/supabase-admin";
 import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
 import { JobVerificationSection } from "@/components/profile/JobVerificationSection";
+import { ProfileResumeActions } from "@/components/profile/ProfileResumeActions";
 
 /**
  * Profile page. Authentication is enforced by (app)/layout.tsx — redirect if no user.
@@ -29,11 +30,12 @@ export default async function ProfilePage() {
     role?: string | null;
     professional_summary?: string | null;
     public_slug?: string | null;
+    resume_url?: string | null;
   } | null = null;
   try {
     const { data: profileRow } = await supabase
       .from("profiles")
-      .select("full_name, email, state, role, professional_summary, public_slug")
+      .select("full_name, email, state, role, professional_summary, public_slug, resume_url")
       .eq("id", user.id)
       .maybeSingle();
     profile = profileRow as typeof profile;
@@ -173,6 +175,11 @@ export default async function ProfilePage() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Resume: View / Download / Replace */}
+      <div className="mt-8">
+        <ProfileResumeActions hasResume={!!profile?.resume_url} />
       </div>
 
       {/* Work history + verified coworkers per job */}
