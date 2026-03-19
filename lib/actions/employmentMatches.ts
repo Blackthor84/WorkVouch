@@ -1,7 +1,7 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
-import { requireAuth } from "@/lib/auth";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export type EmploymentMatchRow = {
   id: string;
@@ -30,13 +30,38 @@ export type EmploymentMatchRow = {
 
 /**
  * Fetch coworker matches for the current user from coworker_matches (user1 or user2).
- * Returns matches with company name and other user profile for "You worked with X at Y" UI.
- * employment_matches does not exist; uses coworker_matches only.
+ * Uses authenticated server client with cookie getAll/setAll so the session is recognized.
  */
 export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[]> {
+  const cookieStore = await cookies();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: (cookiesToSet) => {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {}
+        },
+      },
+    }
+  );
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (!user || userError) {
+    throw new Error("Unauthorized");
+  }
+
   try {
-    const user = await requireAuth();
-    const supabase = await createClient();
     const sb = supabase as any;
 
     const { data: rows, error } = await sb
@@ -140,7 +165,8 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
       };
     });
   } catch (e) {
-    console.warn("Optional employmentMatches query failed", e);
+    if ((e as Error).message === "Unauthorized") throw e;
+    console.warn("Employment matches query failed", e);
     return [];
   }
 }
