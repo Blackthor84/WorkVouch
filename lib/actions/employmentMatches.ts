@@ -64,9 +64,13 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
     throw new Error("Unauthorized");
   }
 
+  // DEBUG: log current user id (server-side; check terminal)
+  console.log("[getEmploymentMatchesForUser] user.id", user.id);
+
   try {
     const sb = supabase as any;
 
+    // Query: show matches where current user is involved (user1_id OR user2_id)
     const { data: rows, error } = await sb
       .from("coworker_matches")
       .select(`
@@ -84,7 +88,16 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
       `)
       .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
 
-    if (error || !rows?.length) return [];
+    // DEBUG: log raw response (server-side)
+    console.log("[getEmploymentMatchesForUser] raw rows count", rows?.length ?? 0);
+    if (error) console.log("[getEmploymentMatchesForUser] error", error.message, error);
+    if (rows?.length) console.log("[getEmploymentMatchesForUser] first row ids", { id: rows[0]?.id, user1_id: (rows[0] as any)?.user1_id, user2_id: (rows[0] as any)?.user2_id });
+
+    if (error || !rows?.length) {
+      // If matches exist in Supabase but array is empty, check RLS on coworker_matches:
+      // policy should allow SELECT WHERE auth.uid() = user1_id OR auth.uid() = user2_id
+      return [];
+    }
 
     type ProfileRow = { id: string; full_name: string | null; email: string | null; profile_photo_url: string | null };
     type Row = {

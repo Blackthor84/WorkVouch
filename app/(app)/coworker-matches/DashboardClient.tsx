@@ -55,7 +55,9 @@ export default function DashboardClient({
 
   useEffect(() => {
     supabaseBrowser.auth.getUser().then(({ data: { user } }) => {
-      setUserId(user?.id ?? null);
+      const uid = user?.id ?? null;
+      console.log("[DashboardClient] current user id", uid);
+      setUserId(uid);
     });
   }, []);
 
@@ -63,9 +65,16 @@ export default function DashboardClient({
     Promise.all([
       getTrustOverview().then(setTrustOverview),
       getEmploymentMatchesForUser().then((data) => {
-        setMatches([...data].sort((a, b) => (b.match_confidence ?? 0) - (a.match_confidence ?? 0)));
+        console.log("[DashboardClient] matches received", data?.length ?? 0, "raw:", data);
+        const sorted = [...(data ?? [])].sort((a, b) => (b.match_confidence ?? 0) - (a.match_confidence ?? 0));
+        setMatches(sorted);
       }),
-    ]).then(() => setLoading(false));
+    ])
+      .then(() => setLoading(false))
+      .catch((err) => {
+        console.error("[DashboardClient] matches/trust fetch failed", err);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -199,7 +208,14 @@ export default function DashboardClient({
               ))}
             </ul>
           ) : matches.length === 0 ? (
-            <EmptyState
+            <>
+              {/* DEBUG: raw matches data - remove after confirming data flow */}
+              <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50/50 p-4">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-800">Debug: Coworker matches</p>
+                <p className="mb-2 text-sm text-amber-900">userId: {userId ?? "(null)"} · count: {matches.length}</p>
+                <pre className="max-h-64 overflow-auto rounded bg-white p-3 text-xs text-slate-700">{JSON.stringify(matches, null, 2)}</pre>
+              </div>
+              <EmptyState
               icon={<UserGroupIcon className="h-7 w-7" />}
               title="No coworkers found yet"
               description="Add your job to find coworkers"
@@ -210,8 +226,15 @@ export default function DashboardClient({
               }
               className="rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm"
             />
+            </>
           ) : (
             <>
+              {/* DEBUG: raw matches data - remove after confirming data flow */}
+              <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50/50 p-4">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-800">Debug: Coworker matches (raw)</p>
+                <p className="mb-2 text-sm text-emerald-900">userId: {userId ?? "(null)"} · count: {matches.length}</p>
+                <pre className="max-h-64 overflow-auto rounded bg-white p-3 text-xs text-slate-700">{JSON.stringify(matches, null, 2)}</pre>
+              </div>
               <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {matches.map((match) => (
                   <MatchCard
