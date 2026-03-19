@@ -1,26 +1,34 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Squares2X2Icon,
+  UserGroupIcon,
   InboxStackIcon,
-  BellAlertIcon,
   UserCircleIcon,
   Cog6ToothIcon,
   XMarkIcon,
+  CreditCardIcon,
 } from "@heroicons/react/24/outline";
 import {
   Squares2X2Icon as Squares2X2IconSolid,
+  UserGroupIcon as UserGroupIconSolid,
   InboxStackIcon as InboxStackIconSolid,
-  BellAlertIcon as BellAlertIconSolid,
 } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 
-const mainNav = [
+const employeeMainNav = [
   { href: "/coworker-matches", label: "Dashboard", Icon: Squares2X2Icon, IconSolid: Squares2X2IconSolid },
-  { href: "/requests", label: "Incoming Requests", Icon: InboxStackIcon, IconSolid: InboxStackIconSolid, badgeKey: "requests" },
-  { href: "/notifications", label: "Notifications", Icon: BellAlertIcon, IconSolid: BellAlertIconSolid },
+  { href: "/coworker-matches", label: "Matches", Icon: UserGroupIcon, IconSolid: UserGroupIconSolid },
+  { href: "/requests", label: "References", Icon: InboxStackIcon, IconSolid: InboxStackIconSolid, badgeKey: "requests" },
+];
+
+const employerMainNav = [
+  { href: "/dashboard/employer", label: "Dashboard", Icon: Squares2X2Icon, IconSolid: Squares2X2IconSolid },
+  { href: "/dashboard/employer", label: "Candidates", Icon: UserGroupIcon, IconSolid: UserGroupIconSolid },
+  { href: "/dashboard/employer#billing", label: "Billing", Icon: CreditCardIcon, IconSolid: CreditCardIcon },
 ];
 
 const bottomNav = [
@@ -29,18 +37,36 @@ const bottomNav = [
 ];
 
 export function WorkVouchSidebar({
+  role = null,
   pendingReferenceRequestCount = 0,
   mobileOpen,
   onCloseMobile,
 }: {
+  role?: "employee" | "employer" | "admin" | null;
   pendingReferenceRequestCount?: number;
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
 } = {}) {
   const pathname = usePathname();
+  const mainNav = role === "employer" ? employerMainNav : employeeMainNav;
+  const logoHref = role === "employer" ? "/dashboard/employer" : "/coworker-matches";
 
   const navContent = (
-    <nav className="flex flex-1 flex-col gap-1 p-3">
+    <>
+      <div className="flex h-14 shrink-0 items-center border-b border-slate-200/80 px-4">
+        <Link href={logoHref} className="flex items-center gap-2" onClick={onCloseMobile}>
+          <Image
+            src="/images/workvouch-logo.png.png"
+            alt="WorkVouch"
+            width={120}
+            height={40}
+            className="h-8 w-auto"
+            style={{ objectFit: "contain" }}
+          />
+          <span className="font-semibold text-slate-900 hidden sm:inline">WorkVouch</span>
+        </Link>
+      </div>
+      <nav className="flex flex-1 flex-col gap-1 p-3 overflow-y-auto">
       {onCloseMobile && (
         <div className="flex justify-end p-2 md:hidden">
           <button
@@ -54,7 +80,7 @@ export function WorkVouchSidebar({
         </div>
       )}
       {mainNav.map(({ href, label, Icon, IconSolid, badgeKey }) => {
-        const isActive = pathname === href || (href !== "/coworker-matches" && pathname.startsWith(href));
+        const isActive = pathname === href || (href !== "/coworker-matches" && href !== "#" && pathname.startsWith(href));
         const Comp = isActive ? IconSolid : Icon;
         const badgeCount = badgeKey === "requests" ? pendingReferenceRequestCount : 0;
         return (
@@ -97,7 +123,8 @@ export function WorkVouchSidebar({
           </Link>
         );
       })}
-    </nav>
+      </nav>
+    </>
   );
 
   return (

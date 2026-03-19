@@ -15,12 +15,14 @@ import { supabaseBrowser } from "@/lib/supabase/browser";
 
 export function WorkVouchNavbar({
   unreadNotificationCount = 0,
+  trustScore = 0,
   userInitial,
   userEmail,
   profilePhotoUrl,
   onMenuClick,
 }: {
   unreadNotificationCount?: number;
+  trustScore?: number;
   userInitial?: string;
   userEmail?: string | null;
   profilePhotoUrl?: string | null;
@@ -87,6 +89,14 @@ export function WorkVouchNavbar({
       </div>
 
       <div className="flex items-center gap-2">
+        <Link
+          href="/coworker-matches"
+          className="flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors"
+          title="Trust Score"
+        >
+          <span className="tabular-nums">{Math.min(100, Math.max(0, trustScore))}</span>
+          <span className="text-slate-400 font-medium text-xs">Trust</span>
+        </Link>
         <NotificationBell unreadCount={unreadNotificationCount} />
 
         <div className="relative" ref={dropdownRef}>

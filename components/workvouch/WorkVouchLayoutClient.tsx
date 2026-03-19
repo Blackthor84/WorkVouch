@@ -3,10 +3,14 @@
 import { useState } from "react";
 import { WorkVouchSidebar } from "./WorkVouchSidebar";
 import { WorkVouchNavbar } from "./WorkVouchNavbar";
+import { UpgradeModal } from "./UpgradeModal";
 
 export function WorkVouchLayoutClient({
   unreadNotificationCount,
   pendingReferenceRequestCount = 0,
+  trustScore = 0,
+  role = null,
+  isPremium = false,
   userInitial,
   userEmail,
   profilePhotoUrl,
@@ -14,6 +18,9 @@ export function WorkVouchLayoutClient({
 }: {
   unreadNotificationCount: number;
   pendingReferenceRequestCount?: number;
+  trustScore?: number;
+  role?: "employee" | "employer" | "admin" | null;
+  isPremium?: boolean;
   userInitial: string;
   userEmail: string | null;
   profilePhotoUrl: string | null;
@@ -24,6 +31,7 @@ export function WorkVouchLayoutClient({
   return (
     <div className="flex min-h-screen bg-slate-50">
       <WorkVouchSidebar
+        role={role}
         pendingReferenceRequestCount={pendingReferenceRequestCount}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
@@ -31,6 +39,7 @@ export function WorkVouchLayoutClient({
       <div className="flex flex-1 flex-col min-w-0">
         <WorkVouchNavbar
           unreadNotificationCount={unreadNotificationCount}
+          trustScore={trustScore}
           userInitial={userInitial}
           userEmail={userEmail}
           profilePhotoUrl={profilePhotoUrl}
@@ -40,6 +49,7 @@ export function WorkVouchLayoutClient({
           {children}
         </main>
       </div>
+      <UpgradeModal />
     </div>
   );
 }

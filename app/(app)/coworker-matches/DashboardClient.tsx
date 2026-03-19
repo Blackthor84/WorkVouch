@@ -8,8 +8,10 @@ import { getTrustOverview, type TrustOverview } from "@/lib/actions/trustOvervie
 import { TrustScoreHeroCard } from "@/components/workvouch/TrustScoreHeroCard";
 import { MatchCard, type MatchCardData } from "@/components/workvouch/MatchCard";
 import { MatchCardSkeleton } from "@/components/workvouch/MatchCardSkeleton";
+import { MatchProfileModal } from "@/components/workvouch/MatchProfileModal";
 import { EmptyState } from "@/components/workvouch/EmptyState";
 import { BoostTrustScoreCard } from "@/components/workvouch/BoostTrustScoreCard";
+import { confirmCoworkerMatch } from "@/lib/actions/confirmMatch";
 import { UserGroupIcon, InboxStackIcon, ArrowUpTrayIcon, DocumentPlusIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +39,8 @@ export default function DashboardClient({
   const [loading, setLoading] = useState(true);
   const [requestingId, setRequestingId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [profileModalMatch, setProfileModalMatch] = useState<MatchCardData | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const channelRef = useRef<ReturnType<typeof supabaseBrowser.channel> | null>(null);
 
@@ -116,6 +120,17 @@ export default function DashboardClient({
     setRequestingId(null);
   };
 
+  const handleConfirmCoworker = async (matchId: string) => {
+    setConfirmingId(matchId);
+    const { ok } = await confirmCoworkerMatch(matchId);
+    if (ok) {
+      setMatches((prev) =>
+        prev.map((m) => (m.id === matchId ? { ...m, status: "confirmed" } : m))
+      );
+    }
+    setConfirmingId(null);
+  };
+
   const updateRequest = async (id: string, status: "accepted" | "rejected") => {
     setUpdatingId(id);
     await supabaseBrowser.from("reference_requests").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
@@ -165,9 +180,9 @@ export default function DashboardClient({
           <TrustScoreHeroCard data={trustOverview} />
         </section>
 
-        {/* Section 3: Coworker Matches */}
+        {/* Section 3: Your Coworkers (Matches) */}
         <section className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-slate-900">Coworker Matches</h2>
+          <h2 className="mb-4 text-xl font-semibold text-slate-900">Your Coworkers</h2>
           {loading ? (
             <ul className="space-y-4">
               {[1, 2, 3].map((i) => (
@@ -178,26 +193,37 @@ export default function DashboardClient({
             <EmptyState
               icon={<UserGroupIcon className="h-7 w-7" />}
               title="No coworkers found yet"
-              description="Add more job details to unlock matches"
+              description="Add your job to find coworkers"
               action={
                 <Link href="/jobs/new" className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800">
-                  Add a job
+                  Add your job to find coworkers
                 </Link>
               }
               className="rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm"
             />
           ) : (
-            <ul className="space-y-4">
-              {matches.map((match) => (
-                <MatchCard
-                  key={match.id}
-                  match={match as MatchCardData}
-                  requestStatus={sentRequestStatus[match.id] === "accepted" ? "accepted" : sentRequestStatus[match.id] === "pending" ? "pending" : "none"}
-                  loading={requestingId === match.id}
-                  onRequestReference={() => requestReference(match)}
+            <>
+              <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {matches.map((match) => (
+                  <MatchCard
+                    key={match.id}
+                    match={match as MatchCardData}
+                    requestStatus={sentRequestStatus[match.id] === "accepted" ? "accepted" : sentRequestStatus[match.id] === "pending" ? "pending" : "none"}
+                    loading={requestingId === match.id}
+                    onRequestReference={() => requestReference(match)}
+                    onConfirmCoworker={() => handleConfirmCoworker(match.id)}
+                    confirming={confirmingId === match.id}
+                    onViewProfile={() => setProfileModalMatch(match as MatchCardData)}
+                  />
+                ))}
+              </ul>
+              {profileModalMatch && (
+                <MatchProfileModal
+                  match={profileModalMatch}
+                  onClose={() => setProfileModalMatch(null)}
                 />
-              ))}
-            </ul>
+              )}
+            </>
           )}
         </section>
 

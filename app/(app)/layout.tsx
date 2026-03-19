@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUnreadNotificationCount } from "@/lib/actions/notifications";
 import { getPendingReferenceRequestCount } from "@/lib/actions/referenceRequests";
+import { getTrustOverview } from "@/lib/actions/trustOverview";
 import { WorkVouchLayoutClient } from "@/components/workvouch/WorkVouchLayoutClient";
 
 /**
@@ -34,18 +35,19 @@ export default async function AppLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, full_name, profile_photo_url")
-    .eq("id", user.id)
-    .single();
+  .select("role, full_name, profile_photo_url, is_premium")
+  .eq("id", user.id)
+  .single();
 
   // TEMP DISABLED FOR DEBUG
   // if (!profile?.role) redirect('/choose-role');
 
-  const [unreadCount, pendingRequestsCount] = await Promise.all([
+  const [unreadCount, pendingRequestsCount, trustOverview] = await Promise.all([
     getUnreadNotificationCount(),
     getPendingReferenceRequestCount(),
+    getTrustOverview(),
   ]);
-  const p = profile as { role?: string; full_name?: string | null; profile_photo_url?: string | null };
+  const p = profile as { role?: string; full_name?: string | null; profile_photo_url?: string | null; is_premium?: boolean };
   const userInitial = p?.full_name?.trim().charAt(0)?.toUpperCase() ?? user.email?.charAt(0)?.toUpperCase() ?? "?";
   const userEmail = user.email ?? null;
 
@@ -53,6 +55,9 @@ export default async function AppLayout({
     <WorkVouchLayoutClient
       unreadNotificationCount={unreadCount}
       pendingReferenceRequestCount={pendingRequestsCount}
+      trustScore={trustOverview.trustScore}
+      role={normalizeRole(p?.role)}
+      isPremium={p?.is_premium ?? false}
       userInitial={userInitial}
       userEmail={userEmail}
       profilePhotoUrl={p?.profile_photo_url ?? null}

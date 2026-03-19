@@ -8,6 +8,8 @@ export type EmploymentMatchRow = {
   employment_record_id: string;
   matched_user_id: string;
   match_status: string;
+  /** coworker_matches.status: 'pending' | 'confirmed' */
+  status?: string | null;
   overlap_start: string;
   overlap_end: string;
   company_name: string;
@@ -39,32 +41,40 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
 
     const { data: rows, error } = await sb
       .from("coworker_matches")
-      .select("id, user1_id, user2_id, job1_id, job2_id, company_name, match_confidence, created_at")
+      .select(`
+        id,
+        user1_id,
+        user2_id,
+        job1_id,
+        job2_id,
+        company_name,
+        match_confidence,
+        status,
+        created_at,
+        user1:profiles!coworker_matches_user1_id_fkey(id, full_name, email, profile_photo_url),
+        user2:profiles!coworker_matches_user2_id_fkey(id, full_name, email, profile_photo_url)
+      `)
       .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
 
     if (error || !rows?.length) return [];
 
-    type Row = { id: string; user1_id: string; user2_id: string; job1_id: string; job2_id: string; company_name: string; match_confidence?: number | null; created_at: string };
+    type ProfileRow = { id: string; full_name: string | null; email: string | null; profile_photo_url: string | null };
+    type Row = {
+      id: string; user1_id: string; user2_id: string; job1_id: string; job2_id: string; company_name: string;
+      match_confidence?: number | null; status?: string | null; created_at: string;
+      user1: ProfileRow | null; user2: ProfileRow | null;
+    };
     const typedRows = rows as Row[];
 
-    const otherUserIds = new Set<string>();
     const allJobIds: string[] = [];
     for (const r of typedRows) {
-      const other = r.user1_id === user.id ? r.user2_id : r.user1_id;
-      otherUserIds.add(other);
       allJobIds.push(r.job1_id, r.job2_id);
     }
 
-    const [profsRes, jobsRes, trustRes] = await Promise.all([
-      sb.from("profiles").select("id, full_name, email, profile_photo_url").in("id", [...otherUserIds]),
+    const [jobsRes, trustRes] = await Promise.all([
       allJobIds.length ? sb.from("jobs").select("id, job_title, start_date, end_date").in("id", [...new Set(allJobIds)]) : Promise.resolve({ data: [] }),
-      sb.from("trust_scores").select("user_id, score").in("user_id", [...otherUserIds]),
+      sb.from("trust_scores").select("user_id, score").in("user_id", [...new Set(typedRows.flatMap((r) => [r.user1_id, r.user2_id]))]),
     ]);
-
-    const profileMap: Record<string, { id: string; full_name: string | null; email: string | null; profile_photo_url: string | null }> = {};
-    for (const p of (profsRes.data ?? []) as { id: string; full_name: string | null; email: string | null; profile_photo_url: string | null }[]) {
-      profileMap[p.id] = p;
-    }
     type JobRow = { id: string; job_title: string | null; start_date: string | null; end_date: string | null };
     const jobDataMap: Record<string, JobRow> = {};
     for (const j of (jobsRes.data ?? []) as JobRow[]) {
@@ -87,7 +97,7 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
       const otherJobId = m.user1_id === user.id ? m.job2_id : m.job1_id;
       const otherJobTitle = jobMap[otherJobId] ?? null;
       const trustScore = trustMap[otherId] ?? null;
-      const profile = profileMap[otherId] ?? null;
+      const profile = (m.user1_id === user.id ? m.user2 : m.user1) ?? null;
 
       let overlap_start = "";
       let overlap_end = "";
@@ -110,7 +120,8 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
         id: m.id,
         employment_record_id: "",
         matched_user_id: otherId,
-        match_status: "confirmed",
+        match_status: (m.status ?? "pending") as string,
+        status: m.status ?? "pending",
         overlap_start,
         overlap_end,
         company_name: m.company_name ?? "Unknown",

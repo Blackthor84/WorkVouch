@@ -25,21 +25,26 @@ export async function POST(request: NextRequest) {
 
     const errors: string[] = [];
 
-    // Save jobs — user_id always from authenticated user
+    // Save jobs — user_id always from authenticated user; company required and normalized
     if (jobs && Array.isArray(jobs) && jobs.length > 0) {
-      const jobsToInsert = jobs.map((job: any) => ({
-        user_id: user.id,
-        company_name: job.company || "",
-        title: (job.title ?? "").toString().trim() || "Unknown Job",
-        employment_type: "full_time" as const, // Default, can be updated later
-        start_date: job.startDate || new Date().toISOString().split("T")[0],
-        end_date:
-          job.endDate ||
-          (job.isCurrent ? null : new Date().toISOString().split("T")[0]),
-        is_current: job.isCurrent || false,
-        location: job.location || null,
-        responsibilities: job.responsibilities || null,
-      }));
+      const jobsToInsert = jobs
+        .filter((job: any) => {
+          const company = (job.company ?? "").toString().trim().toLowerCase();
+          return company.length > 0;
+        })
+        .map((job: any) => ({
+          user_id: user.id,
+          company_name: (job.company ?? "").toString().trim().toLowerCase(),
+          title: (job.title ?? "").toString().trim() || "Unknown Job",
+          employment_type: "full_time" as const,
+          start_date: job.startDate || new Date().toISOString().split("T")[0],
+          end_date:
+            job.endDate ||
+            (job.isCurrent ? null : new Date().toISOString().split("T")[0]),
+          is_current: job.isCurrent || false,
+          location: job.location || null,
+          responsibilities: job.responsibilities || null,
+        }));
 
       const { error: jobsError } = await admin
         .from("jobs")
