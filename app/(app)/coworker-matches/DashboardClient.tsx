@@ -25,12 +25,21 @@ type RefRequest = {
   created_at: string;
 };
 
+const defaultTrustOverview: TrustOverview = {
+  trustScore: 0,
+  verifiedReferences: 0,
+  coworkerMatches: 0,
+  completedJobs: 0,
+};
+
 export default function DashboardClient({
   initialTrustOverview,
 }: {
-  initialTrustOverview: TrustOverview;
+  initialTrustOverview: TrustOverview | null;
 }) {
-  const [trustOverview, setTrustOverview] = useState<TrustOverview>(initialTrustOverview);
+  const [trustOverview, setTrustOverview] = useState<TrustOverview>(
+    initialTrustOverview ?? defaultTrustOverview
+  );
   const [matches, setMatches] = useState<EmploymentMatchRow[]>([]);
   const [sentRequestStatus, setSentRequestStatus] = useState<Record<string, "pending" | "accepted" | "rejected">>({});
   const [incoming, setIncoming] = useState<RefRequest[]>([]);

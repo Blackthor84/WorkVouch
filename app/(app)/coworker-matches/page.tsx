@@ -5,7 +5,14 @@ import { getTrustOverview } from "@/lib/actions/trustOverview";
 import DashboardClient from "./DashboardClient";
 
 export default async function Page() {
-  const initialTrustOverview = await getTrustOverview();
+  let initialTrustOverview = null;
+
+  try {
+    initialTrustOverview = await getTrustOverview();
+  } catch (error) {
+    console.log("Trust overview failed, continuing without it");
+  }
+
   return (
     <Suspense fallback={<DashboardSkeleton />}>
       <DashboardClient initialTrustOverview={initialTrustOverview} />
