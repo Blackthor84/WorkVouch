@@ -25,11 +25,11 @@ export type EmploymentMatchRow = {
   is_record_owner: boolean;
 }
 
-/** Raw row from coworker_matches (no joins). */
+/** Raw row from coworker_matches (no joins). DB columns: user_id, coworker_id. */
 type CoworkerMatchRow = {
   id: string;
-  user1_id: string;
-  user2_id: string;
+  user_id: string;
+  coworker_id: string;
   job1_id: string;
   job2_id: string;
   company_name: string | null;
@@ -39,7 +39,7 @@ type CoworkerMatchRow = {
 };
 
 /**
- * Fetch coworker matches where the current user is involved (user1_id OR user2_id).
+ * Fetch coworker matches where the current user is involved (user_id OR coworker_id).
  * No joins to profiles until FKs are in place; uses raw coworker_matches only.
  */
 export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[]> {
@@ -74,13 +74,12 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
   try {
     const sb = supabase as any;
 
-    // No joins to profiles — table has user1_id/user2_id (not user_id/coworker_id).
     const { data, error } = await sb
       .from("coworker_matches")
       .select("*")
-      .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+      .or(`user_id.eq.${user.id},coworker_id.eq.${user.id}`);
 
-    console.log("MATCHES FIXED:", data);
+    console.log("MATCHES FINAL:", data);
 
     if (error) {
       console.warn("[getEmploymentMatchesForUser] query error", error.message);
@@ -94,8 +93,8 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
     const typedRows = rows as CoworkerMatchRow[]; // raw data, no joins
 
     return typedRows.map((m) => {
-      const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
-      const isRecordOwner = m.user1_id === user.id;
+      const otherId = m.user_id === user.id ? m.coworker_id : m.user_id;
+      const isRecordOwner = m.user_id === user.id;
 
       return {
         id: m.id,

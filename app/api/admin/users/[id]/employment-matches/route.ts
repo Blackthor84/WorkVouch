@@ -24,13 +24,13 @@ export async function GET(
   try {
     const { data: rows } = await admin
       .from("coworker_matches")
-      .select("id, user1_id, user2_id, company_name")
-      .or(`user1_id.eq.${userId},user2_id.eq.${userId}`);
+      .select("id, user_id, coworker_id, company_name")
+      .or(`user_id.eq.${userId},coworker_id.eq.${userId}`);
 
-    const all = (rows ?? []) as { id: string; user1_id: string; user2_id: string; company_name: string }[];
+    const all = (rows ?? []) as { id: string; user_id: string; coworker_id: string; company_name: string }[];
     enriched = all.map((m) => {
-      const otherId = m.user1_id === userId ? m.user2_id : m.user1_id;
-      const record_owner_id = m.user1_id === userId ? m.user1_id : m.user2_id;
+      const otherId = m.user_id === userId ? m.coworker_id : m.user_id;
+      const record_owner_id = m.user_id === userId ? m.user_id : m.coworker_id;
       return {
         id: m.id,
         employment_record_id: "",

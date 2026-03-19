@@ -59,10 +59,10 @@ export default function CoworkerMatchesClient({
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "coworker_matches" },
-        (payload: { new?: { user1_id: string; user2_id: string } }) => {
+        (payload: { new?: { user_id: string; coworker_id: string } }) => {
           const row = payload.new;
           if (!row) return;
-          const isForCurrentUser = row.user1_id === currentUser.id || row.user2_id === currentUser.id;
+          const isForCurrentUser = row.user_id === currentUser.id || row.coworker_id === currentUser.id;
           if (isForCurrentUser) getEmploymentMatchesForUser().then(setMatches);
         }
       )

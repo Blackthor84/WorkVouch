@@ -218,9 +218,8 @@ export async function getCandidateProfileData(candidateId: string): Promise<Cand
     .select(`
       *,
       coworker_matches!jobs_coworker_matches_job_id_fkey(
-        user1_id,
-        user2_id,
-        matched_at
+        user_id,
+        coworker_id
       )
     `)
     .eq('user_id', candidateId)
