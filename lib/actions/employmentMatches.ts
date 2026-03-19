@@ -74,20 +74,24 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
   try {
     const sb = supabase as any;
 
-    // No joins: select only from coworker_matches. Table has user1_id/user2_id.
-    const { data: rows, error } = await sb
+    // No joins to profiles — table has user1_id/user2_id (not user_id/coworker_id).
+    const { data, error } = await sb
       .from("coworker_matches")
       .select("*")
       .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+
+    console.log("MATCHES FIXED:", data);
 
     if (error) {
       console.warn("[getEmploymentMatchesForUser] query error", error.message);
       return [];
     }
 
-    if (!rows?.length) return [];
+    if (!data?.length) return [];
 
-    const typedRows = rows as CoworkerMatchRow[];
+    const rows = data;
+
+    const typedRows = rows as CoworkerMatchRow[]; // raw data, no joins
 
     return typedRows.map((m) => {
       const otherId = m.user1_id === user.id ? m.user2_id : m.user1_id;
