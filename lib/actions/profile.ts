@@ -23,7 +23,7 @@ export async function updateProfile(input: ProfileUpdateInput): Promise<{ error?
   const headline = (input.headline ?? "").trim() || null;
   const bio = (input.bio ?? "").trim() || null;
 
-  // Generate public slug for /candidate/[slug] (e.g. "Jane Doe" -> "jane-doe")
+  // Generate public slug for /candidate/[id] shareable URLs (e.g. "Jane Doe" -> "jane-doe"; route accepts id or slug)
   const rawSlug = full_name
     .toLowerCase()
     .replace(/\s+/g, "-")

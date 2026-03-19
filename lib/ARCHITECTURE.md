@@ -55,12 +55,12 @@ export async function getCandidateProfile(slug: string): Promise<CandidateProfil
 **Example:**
 
 ```ts
-// app/candidate/[slug]/page.tsx
-import { getCandidateProfile, getCandidatePreview } from "@/lib/services/profiles";
+// app/(app)/candidate/[id]/page.tsx — param is id (UUID) or public_slug
+import { getCandidateProfile, resolveCandidateId } from "@/lib/actions/employer/getCandidateProfile";
 
-const preview = await getCandidatePreview(slug);
-if (!preview) notFound();
-const candidate = await getCandidateProfile(slug);
+const candidateId = await resolveCandidateId(params.id);
+if (!candidateId) notFound();
+const candidate = await getCandidateProfile(candidateId);
 ```
 
 ## Folder layout

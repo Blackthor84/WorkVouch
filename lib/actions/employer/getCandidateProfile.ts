@@ -3,6 +3,20 @@
 import { admin } from "@/lib/supabase-admin";
 import { requireAuth } from "@/lib/auth";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Resolve candidate route param to profile id. Accepts either UUID or public_slug.
+ */
+export async function resolveCandidateId(param: string): Promise<string | null> {
+  if (!param?.trim()) return null;
+  const p = param.trim();
+  if (UUID_REGEX.test(p)) return p;
+  const sb = admin as any;
+  const { data: row } = await sb.from("profiles").select("id").eq("public_slug", p).maybeSingle();
+  return (row as { id: string } | null)?.id ?? null;
+}
+
 export type CandidateProfileData = {
   id: string;
   full_name: string | null;
