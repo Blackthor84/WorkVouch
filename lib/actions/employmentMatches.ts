@@ -25,11 +25,11 @@ export type EmploymentMatchRow = {
   is_record_owner: boolean;
 }
 
-/** Raw row from coworker_matches (no joins). DB columns: user_id, coworker_id. */
+/** Raw row from coworker_matches (no joins). DB columns: user_1, user_2. */
 type CoworkerMatchRow = {
   id: string;
-  user_id: string;
-  coworker_id: string;
+  user_1: string;
+  user_2: string;
   job1_id: string;
   job2_id: string;
   company_name: string | null;
@@ -39,7 +39,7 @@ type CoworkerMatchRow = {
 };
 
 /**
- * Fetch coworker matches where the current user is involved (user_id OR coworker_id).
+ * Fetch coworker matches where the current user is involved (user_1 OR user_2).
  * No joins to profiles until FKs are in place; uses raw coworker_matches only.
  */
 export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[]> {
@@ -77,7 +77,7 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
     const { data, error } = await sb
       .from("coworker_matches")
       .select("*")
-      .or(`user_id.eq.${user.id},coworker_id.eq.${user.id}`);
+      .or(`user_1.eq.${user.id},user_2.eq.${user.id}`);
 
     console.log("MATCHES FINAL:", data);
 
@@ -88,13 +88,16 @@ export async function getEmploymentMatchesForUser(): Promise<EmploymentMatchRow[
 
     if (!data?.length) return [];
 
-    const rows = data;
+    const typedRows = data as CoworkerMatchRow[];
 
-    const typedRows = rows as CoworkerMatchRow[]; // raw data, no joins
+    const normalizedMatches = typedRows.map((match) => ({
+      ...match,
+      otherUserId: match.user_1 === user.id ? match.user_2 : match.user_1,
+    }));
 
-    return typedRows.map((m) => {
-      const otherId = m.user_id === user.id ? m.coworker_id : m.user_id;
-      const isRecordOwner = m.user_id === user.id;
+    return normalizedMatches.map((m) => {
+      const otherId = m.otherUserId;
+      const isRecordOwner = m.user_1 === user.id;
 
       return {
         id: m.id,

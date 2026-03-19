@@ -33,15 +33,15 @@ export async function submitReview(
 
     const { data: match, error: matchErr } = await sb
       .from("coworker_matches")
-      .select("id, user_id, coworker_id")
+      .select("id, user_1, user_2")
       .eq("id", employment_match_id)
       .single();
 
     if (matchErr || !match) {
       return { ok: false, error: "Match not found", status: 404 };
     }
-    const m = match as { user_id: string; coworker_id: string };
-    const reviewedUserId = m.user_id === reviewer_id ? m.coworker_id : m.user_id;
+    const m = match as { user_1: string; user_2: string };
+    const reviewedUserId = m.user_1 === reviewer_id ? m.user_2 : m.user_1;
     if (reviewedUserId === reviewer_id) {
       return { ok: false, error: "Cannot reference yourself", status: 400 };
     }

@@ -54,16 +54,16 @@ export async function POST(req: NextRequest) {
     try {
       const { data: d1 } = await admin.from("coworker_matches")
         .select("id")
-        .eq("user_id", reviewerUserId)
-        .eq("coworker_id", reviewedUserId)
+        .eq("user_1", reviewerUserId)
+        .eq("user_2", reviewedUserId)
         .maybeSingle();
       if ((d1 as { id?: string } | null)?.id) {
         matchId = (d1 as { id: string }).id;
       } else {
         const { data: d2 } = await admin.from("coworker_matches")
           .select("id")
-          .eq("user_id", reviewedUserId)
-          .eq("coworker_id", reviewerUserId)
+          .eq("user_1", reviewedUserId)
+          .eq("user_2", reviewerUserId)
           .maybeSingle();
         if ((d2 as { id?: string } | null)?.id) matchId = (d2 as { id: string }).id;
       }

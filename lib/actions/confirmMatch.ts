@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/auth";
 
 /**
  * Set coworker_matches.status to 'confirmed' for the given match id.
- * Caller must be user_id or coworker_id on the match.
+ * Caller must be user_1 or user_2 on the match.
  */
 export async function confirmCoworkerMatch(matchId: string): Promise<{ ok: boolean; error?: string }> {
   try {
@@ -14,7 +14,7 @@ export async function confirmCoworkerMatch(matchId: string): Promise<{ ok: boole
 
     const { data: row, error: fetchError } = await (supabase as any)
       .from("coworker_matches")
-      .select("id, user_id, coworker_id")
+      .select("id, user_1, user_2")
       .eq("id", matchId)
       .single();
 
@@ -22,7 +22,7 @@ export async function confirmCoworkerMatch(matchId: string): Promise<{ ok: boole
       return { ok: false, error: "Match not found" };
     }
 
-    if (row.user_id !== user.id && row.coworker_id !== user.id) {
+    if (row.user_1 !== user.id && row.user_2 !== user.id) {
       return { ok: false, error: "Not authorized to confirm this match" };
     }
 
