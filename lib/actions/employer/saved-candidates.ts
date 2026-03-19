@@ -39,7 +39,7 @@ export async function saveCandidate(candidateId: string, notes?: string) {
     throw new Error(`Failed to save candidate: ${error.message}`)
   }
 
-  revalidatePath('/employer/dashboard')
+  revalidatePath('/employer')
   return data
 }
 
@@ -61,7 +61,7 @@ export async function unsaveCandidate(candidateId: string) {
     throw new Error(`Failed to unsave candidate: ${error.message}`)
   }
 
-  revalidatePath('/employer/dashboard')
+  revalidatePath('/employer')
 }
 
 /**
@@ -80,7 +80,6 @@ export async function getSavedCandidates() {
         id,
         full_name,
         email,
-        city,
         state,
         industry,
         profile_photo_url,

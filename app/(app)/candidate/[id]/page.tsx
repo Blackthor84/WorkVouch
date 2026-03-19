@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCandidateProfile, resolveCandidateId } from "@/lib/actions/employer/getCandidateProfile";
+import { canViewCandidateProfile } from "@/lib/actions/employer/employerDashboardStats";
 import { CandidateProfileView } from "./CandidateProfileView";
 
 export const dynamic = "force-dynamic";
@@ -28,11 +29,18 @@ export default async function CandidatePage({ params }: Props) {
   const candidate = await getCandidateProfile(candidateId);
   if (!candidate) notFound();
 
+  const viewLimit = await canViewCandidateProfile();
+  const locked = role === "employer" && !isPremium && !viewLimit.allowed;
+
   return (
     <CandidateProfileView
       candidate={candidate}
+      candidateId={candidateId}
       viewerIsEmployer={role === "employer"}
       viewerIsPremium={isPremium}
+      locked={locked}
+      viewsToday={viewLimit.viewsToday}
+      viewLimit={viewLimit.limit}
     />
   );
 }

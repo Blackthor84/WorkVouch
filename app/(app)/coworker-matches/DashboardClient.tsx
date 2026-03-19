@@ -5,11 +5,14 @@ import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { getEmploymentMatchesForUser, type EmploymentMatchRow } from "@/lib/actions/employmentMatches";
 import { getTrustOverview, type TrustOverview } from "@/lib/actions/trustOverview";
+import { requestReference as requestReferenceAction, submitReference } from "@/lib/actions/referenceFeedback";
 import { TrustScoreHeroCard } from "@/components/workvouch/TrustScoreHeroCard";
-import { MatchCard, type MatchCardData } from "@/components/workvouch/MatchCard";
+import { MatchCard } from "@/components/matches/MatchCard";
+import { RequestReferenceModal } from "@/components/matches/RequestReferenceModal";
+import { ReferenceFormModal } from "@/components/matches/ReferenceFormModal";
 import { MatchCardSkeleton } from "@/components/workvouch/MatchCardSkeleton";
 import { MatchProfileModal } from "@/components/workvouch/MatchProfileModal";
-import { EmptyState } from "@/components/workvouch/EmptyState";
+import type { MatchCardData } from "@/components/workvouch/MatchCard";
 import { BoostTrustScoreCard } from "@/components/workvouch/BoostTrustScoreCard";
 import { confirmCoworkerMatch } from "@/lib/actions/confirmMatch";
 import { UserGroupIcon, InboxStackIcon, ArrowUpTrayIcon, DocumentPlusIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
@@ -50,14 +53,16 @@ export default function DashboardClient({
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [profileModalMatch, setProfileModalMatch] = useState<MatchCardData | null>(null);
+  const [requestModalMatch, setRequestModalMatch] = useState<EmploymentMatchRow | null>(null);
+  const [leaveReferenceRequest, setLeaveReferenceRequest] = useState<{ requestId: string; requesterName: string } | null>(null);
+  const [submittedReferenceRequestIds, setSubmittedReferenceRequestIds] = useState<Set<string>>(new Set());
+  const [toast, setToast] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const channelRef = useRef<ReturnType<typeof supabaseBrowser.channel> | null>(null);
 
   useEffect(() => {
     supabaseBrowser.auth.getUser().then(({ data: { user } }) => {
-      const uid = user?.id ?? null;
-      console.log("[DashboardClient] current user id", uid);
-      setUserId(uid);
+      setUserId(user?.id ?? null);
     });
   }, []);
 
@@ -65,16 +70,12 @@ export default function DashboardClient({
     Promise.all([
       getTrustOverview().then(setTrustOverview),
       getEmploymentMatchesForUser().then((data) => {
-        console.log("[DashboardClient] matches received", data?.length ?? 0, "raw:", data);
         const sorted = [...(data ?? [])].sort((a, b) => (b.match_confidence ?? 0) - (a.match_confidence ?? 0));
         setMatches(sorted);
       }),
     ])
       .then(() => setLoading(false))
-      .catch((err) => {
-        console.error("[DashboardClient] matches/trust fetch failed", err);
-        setLoading(false);
-      });
+      .catch(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -98,12 +99,16 @@ export default function DashboardClient({
       const [
         { data: inc },
         { data: out },
+        { data: feedback },
       ] = await Promise.all([
         supabaseBrowser.from("reference_requests").select("*").eq("receiver_id", userId).order("created_at", { ascending: false }),
         supabaseBrowser.from("reference_requests").select("*").eq("requester_id", userId).order("created_at", { ascending: false }),
+        supabaseBrowser.from("reference_feedback").select("request_id").eq("author_id", userId),
       ]);
       setIncoming((inc ?? []) as RefRequest[]);
       setOutgoing((out ?? []) as RefRequest[]);
+      const submitted = new Set((feedback ?? []).map((f: { request_id: string }) => f.request_id));
+      setSubmittedReferenceRequestIds(submitted);
       const incomingIds = [...new Set((inc ?? []).map((r: RefRequest) => r.requester_id))];
       const outgoingIds = [...new Set((out ?? []).map((r: RefRequest) => r.receiver_id))];
       const allIds = [...new Set([...incomingIds, ...outgoingIds])].filter(Boolean);
@@ -129,13 +134,42 @@ export default function DashboardClient({
     return () => { if (channelRef.current) supabaseBrowser.removeChannel(channelRef.current); };
   }, [userId]);
 
-  const requestReference = async (match: EmploymentMatchRow) => {
-    if (!userId) return;
-    setRequestingId(match.id);
-    const message = `We worked together at ${match.company_name || "the same company"} — would you vouch for me?`;
-    const { error } = await supabaseBrowser.from("reference_requests").insert([{ requester_id: userId, receiver_id: match.matched_user_id, coworker_match_id: match.id, message }]);
-    if (!error) setSentRequestStatus((prev) => ({ ...prev, [match.id]: "pending" }));
+  const openRequestModal = (match: EmploymentMatchRow) => setRequestModalMatch(match);
+
+  const submitRequestReference = async (message: string) => {
+    if (!requestModalMatch || !userId) return;
+    setRequestingId(requestModalMatch.id);
+    const { error } = await requestReferenceAction(requestModalMatch.id, requestModalMatch.matched_user_id, message || undefined);
     setRequestingId(null);
+    setRequestModalMatch(null);
+    if (!error) {
+      setSentRequestStatus((prev) => ({ ...prev, [requestModalMatch.id]: "pending" }));
+      setToast("Request sent");
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const openLeaveReference = (requestId: string) => {
+    const match = matches.find((m) => {
+      const req = outgoing.find((r) => r.coworker_match_id === m.id && r.status === "accepted");
+      return req?.id === requestId;
+    });
+    setLeaveReferenceRequest({
+      requestId,
+      requesterName: match?.other_user?.full_name?.trim() ?? "This person",
+    });
+  };
+
+  const submitLeaveReference = async (rating: number, feedback: string) => {
+    if (!leaveReferenceRequest) return;
+    const requestId = leaveReferenceRequest.requestId;
+    const { error } = await submitReference(requestId, rating, feedback || undefined);
+    setLeaveReferenceRequest(null);
+    if (!error) {
+      setSubmittedReferenceRequestIds((prev) => new Set(prev).add(requestId));
+      setToast("Reference submitted");
+      setTimeout(() => setToast(null), 3000);
+    }
   };
 
   const handleConfirmCoworker = async (matchId: string) => {
@@ -208,47 +242,63 @@ export default function DashboardClient({
               ))}
             </ul>
           ) : matches.length === 0 ? (
-            <>
-              {/* DEBUG: raw matches data - remove after confirming data flow */}
-              <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50/50 p-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-800">Debug: Coworker matches</p>
-                <p className="mb-2 text-sm text-amber-900">userId: {userId ?? "(null)"} · count: {matches.length}</p>
-                <pre className="max-h-64 overflow-auto rounded bg-white p-3 text-xs text-slate-700">{JSON.stringify(matches, null, 2)}</pre>
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200/80 bg-white px-8 py-16 text-center shadow-sm">
+              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+                <UserGroupIcon className="h-8 w-8 text-slate-500" />
               </div>
-              <EmptyState
-              icon={<UserGroupIcon className="h-7 w-7" />}
-              title="No coworkers found yet"
-              description="Add your job to find coworkers"
-              action={
-                <Link href="/jobs/new" className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800">
-                  Add your job to find coworkers
-                </Link>
-              }
-              className="rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm"
-            />
-            </>
+              <h3 className="text-lg font-semibold text-slate-900">No coworkers found yet</h3>
+              <p className="mt-2 max-w-sm text-sm text-slate-500">
+                Add your job to start building your trusted network
+              </p>
+              <Link
+                href="/jobs/new"
+                className="mt-6 inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-slate-800"
+              >
+                Add Job
+              </Link>
+            </div>
           ) : (
             <>
-              {/* DEBUG: raw matches data - remove after confirming data flow */}
-              <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50/50 p-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-800">Debug: Coworker matches (raw)</p>
-                <p className="mb-2 text-sm text-emerald-900">userId: {userId ?? "(null)"} · count: {matches.length}</p>
-                <pre className="max-h-64 overflow-auto rounded bg-white p-3 text-xs text-slate-700">{JSON.stringify(matches, null, 2)}</pre>
-              </div>
-              <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {matches.map((match) => (
                   <MatchCard
                     key={match.id}
-                    match={match as MatchCardData}
-                    requestStatus={sentRequestStatus[match.id] === "accepted" ? "accepted" : sentRequestStatus[match.id] === "pending" ? "pending" : "none"}
+                    match={match}
+                    requestStatus={(outgoing.find((r) => r.coworker_match_id === match.id)?.status as "pending" | "accepted" | "rejected") ?? sentRequestStatus[match.id] ?? "none"}
+                    acceptedRequestId={(() => {
+                      const req = outgoing.find((r) => r.coworker_match_id === match.id && r.status === "accepted");
+                      return req && !submittedReferenceRequestIds.has(req.id) ? req.id : null;
+                    })()}
                     loading={requestingId === match.id}
-                    onRequestReference={() => requestReference(match)}
+                    onRequestReference={() => openRequestModal(match)}
+                    onLeaveReference={openLeaveReference}
                     onConfirmCoworker={() => handleConfirmCoworker(match.id)}
                     confirming={confirmingId === match.id}
                     onViewProfile={() => setProfileModalMatch(match as MatchCardData)}
                   />
                 ))}
-              </ul>
+              </div>
+              {toast && (
+                <div className="fixed bottom-4 right-4 z-[60] rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-lg animate-in fade-in duration-200">
+                  {toast}
+                </div>
+              )}
+              {requestModalMatch && (
+                <RequestReferenceModal
+                  coworkerName={requestModalMatch.other_user?.full_name?.trim() ?? "Coworker"}
+                  companyName={requestModalMatch.company_name ?? "Same company"}
+                  onClose={() => setRequestModalMatch(null)}
+                  onSubmit={submitRequestReference}
+                  loading={requestingId === requestModalMatch.id}
+                />
+              )}
+              {leaveReferenceRequest && (
+                <ReferenceFormModal
+                  requesterName={leaveReferenceRequest.requesterName}
+                  onClose={() => setLeaveReferenceRequest(null)}
+                  onSubmit={submitLeaveReference}
+                />
+              )}
               {profileModalMatch && (
                 <MatchProfileModal
                   match={profileModalMatch}

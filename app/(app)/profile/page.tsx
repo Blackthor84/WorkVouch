@@ -3,7 +3,9 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getConfidenceScoreByUserId } from "@/lib/db/queries/getConfidenceScoreByUserId";
 import { getVerifiedJobCountByUserId } from "@/lib/db/queries/getVerifiedJobCountByUserId";
+import { getTrustForProfile, getUserReferences } from "@/lib/actions/referenceFeedback";
 import { admin } from "@/lib/supabase-admin";
+import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
 
 /**
  * Profile page. Authentication is enforced by (app)/layout.tsx — redirect if no user.
@@ -19,7 +21,7 @@ export default async function ProfilePage() {
 
   const { data: profileRow } = await supabase
     .from("profiles")
-    .select("full_name, email, city, state, industry, role, professional_summary, public_slug")
+    .select("full_name, email, state, industry, role, professional_summary, public_slug")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -34,9 +36,11 @@ export default async function ProfilePage() {
     public_slug?: string | null;
   } | null;
 
-  const [confidenceScore, verifiedJobCount] = await Promise.all([
+  const [confidenceScore, verifiedJobCount, trustForProfile, references] = await Promise.all([
     getConfidenceScoreByUserId(user.id),
     getVerifiedJobCountByUserId(user.id),
+    getTrustForProfile(user.id),
+    getUserReferences(user.id),
   ]);
 
   let verifiedCoworkerCount = 0;
@@ -150,6 +154,66 @@ export default async function ProfilePage() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Trust score + references */}
+      <div className="mt-8 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Trust & References
+        </h2>
+        <div className="flex flex-wrap items-baseline gap-6 mb-6">
+          <div>
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Trust Score</p>
+            <p className="text-4xl font-bold text-gray-900 dark:text-white mt-0.5">
+              {trustForProfile.score > 0 ? (trustForProfile.score / 20).toFixed(1) : "—"}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">out of 5 (from references)</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total References</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-0.5">
+              {trustForProfile.totalReferences}
+            </p>
+          </div>
+        </div>
+        {references.length > 0 ? (
+          <ul className="space-y-4">
+            {references.map((ref) => (
+              <li
+                key={ref.id}
+                className="rounded-lg border border-gray-200 dark:border-gray-600 p-4 bg-gray-50/50 dark:bg-gray-800/30"
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="flex items-center gap-1 text-amber-600 dark:text-amber-500 font-medium">
+                    {Array.from({ length: ref.rating }, (_, i) => (
+                      <StarSolid key={i} className="h-5 w-5" />
+                    ))}
+                  </span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {ref.author_name ?? "A coworker"}
+                  </span>
+                  {ref.company_name && (
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      @ {ref.company_name}
+                    </span>
+                  )}
+                </div>
+                {ref.feedback && (
+                  <p className="mt-2 text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap">
+                    {ref.feedback}
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {new Date(ref.created_at).toLocaleDateString()}
+                </p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            No references yet. Request references from your coworker matches to build your trust score.
+          </p>
+        )}
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">

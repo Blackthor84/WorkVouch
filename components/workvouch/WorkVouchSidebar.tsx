@@ -11,11 +11,13 @@ import {
   Cog6ToothIcon,
   XMarkIcon,
   CreditCardIcon,
+  BookmarkIcon,
 } from "@heroicons/react/24/outline";
 import {
   Squares2X2Icon as Squares2X2IconSolid,
   UserGroupIcon as UserGroupIconSolid,
   InboxStackIcon as InboxStackIconSolid,
+  BookmarkIcon as BookmarkIconSolid,
 } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 
@@ -26,9 +28,10 @@ const employeeMainNav = [
 ];
 
 const employerMainNav = [
-  { href: "/dashboard/employer", label: "Dashboard", Icon: Squares2X2Icon, IconSolid: Squares2X2IconSolid },
-  { href: "/dashboard/employer", label: "Candidates", Icon: UserGroupIcon, IconSolid: UserGroupIconSolid },
-  { href: "/dashboard/employer#billing", label: "Billing", Icon: CreditCardIcon, IconSolid: CreditCardIcon },
+  { href: "/employer", label: "Dashboard", Icon: Squares2X2Icon, IconSolid: Squares2X2IconSolid },
+  { href: "/employer", label: "Candidates", Icon: UserGroupIcon, IconSolid: UserGroupIconSolid },
+  { href: "/employer#saved", label: "Saved", Icon: BookmarkIcon, IconSolid: BookmarkIconSolid },
+  { href: "/employer#billing", label: "Billing", Icon: CreditCardIcon, IconSolid: CreditCardIcon },
 ];
 
 const bottomNav = [
@@ -49,7 +52,7 @@ export function WorkVouchSidebar({
 } = {}) {
   const pathname = usePathname();
   const mainNav = role === "employer" ? employerMainNav : employeeMainNav;
-  const logoHref = role === "employer" ? "/dashboard/employer" : "/coworker-matches";
+  const logoHref = role === "employer" ? "/employer" : "/coworker-matches";
 
   const navContent = (
     <>

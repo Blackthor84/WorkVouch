@@ -1,20 +1,20 @@
 export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
-import { IncomingRequestsClient } from "./IncomingRequestsClient";
+import { RequestsPageClient } from "./RequestsPageClient";
 import { RequestCardSkeleton } from "@/components/workvouch/RequestCardSkeleton";
 
 export default function RequestsPage() {
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-3xl mx-auto">
       <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
-        Incoming Requests
+        Reference Requests
       </h1>
       <p className="mt-1 text-sm text-slate-500">
-        Reference requests from your network. Accept or reject below.
+        Incoming requests you can accept or decline. Outgoing requests show status.
       </p>
       <Suspense fallback={<RequestListSkeleton />}>
-        <IncomingRequestsClient />
+        <RequestsPageClient />
       </Suspense>
     </div>
   );

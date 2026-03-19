@@ -30,7 +30,7 @@ export function ChooseRoleForm() {
         setLoading(null);
         return;
       }
-      router.replace("/dashboard");
+      router.replace(role === "employer" ? "/employer" : "/dashboard");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
       setLoading(null);
@@ -69,7 +69,7 @@ export function ChooseRoleForm() {
           disabled={loading !== null}
         >
           <BuildingOffice2Icon className="h-10 w-10 text-emerald-600" />
-          <span className="font-semibold">I&apos;m an Employer</span>
+          <span className="font-semibold">I am hiring</span>
           <span className="text-xs text-muted-foreground font-normal">
             Search candidates, verify work history, hire with confidence
           </span>

@@ -4,59 +4,61 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export type ProfileUpdateInput = {
-  full_name: string;
-  headline: string;
-  location: string;
-  bio: string;
+  full_name?: string;
+  headline?: string;
+  location?: string;
+  bio?: string;
 };
 
 /**
- * Update the current user's profile (full_name, industry/headline, city/state, professional_summary/bio).
+ * Partial profile update. All fields optional; only provided fields are updated.
+ * Uses upsert-friendly update (only set fields that are passed).
+ * Location: only state is stored (no city per privacy rules).
  */
 export async function updateProfile(input: ProfileUpdateInput): Promise<{ error?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
-  const full_name = (input.full_name ?? "").trim();
-  if (!full_name) return { error: "Full name is required" };
-  const headline = (input.headline ?? "").trim() || null;
-  const bio = (input.bio ?? "").trim() || null;
+  const updates: Record<string, unknown> = {};
 
-  // Generate public slug for /candidate/[id] shareable URLs (e.g. "Jane Doe" -> "jane-doe"; route accepts id or slug)
-  const rawSlug = full_name
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-  const public_slug = rawSlug || `user-${user.id.slice(0, 8)}`;
+  if (input.full_name !== undefined) {
+    const full_name = (input.full_name ?? "").trim();
+    updates.full_name = full_name || null;
+    const rawSlug = full_name
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+    updates.public_slug = rawSlug || `user-${user.id.slice(0, 8)}`;
+  }
 
-  // Parse location into city, state (e.g. "Manchester, NH" -> city: Manchester, state: NH)
-  let city: string | null = null;
-  let state: string | null = null;
-  const loc = (input.location ?? "").trim();
-  if (loc) {
-    const parts = loc.split(",").map((p) => p.trim()).filter(Boolean);
-    if (parts.length >= 2) {
-      city = parts[0] ?? null;
-      state = parts.slice(1).join(", ") ?? null;
+  if (input.headline !== undefined) {
+    updates.industry = (input.headline ?? "").trim() || null;
+  }
+
+  if (input.location !== undefined) {
+    const loc = (input.location ?? "").trim();
+    if (loc) {
+      const parts = loc.split(",").map((p) => p.trim()).filter(Boolean);
+      updates.state = parts.length >= 1 ? (parts[parts.length - 1] ?? null) : null;
     } else {
-      city = parts[0] ?? null;
+      updates.state = null;
     }
   }
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      full_name,
-      industry: headline,
-      city,
-      state,
-      professional_summary: bio,
-      public_slug,
-    })
-    .eq("id", user.id);
+  if (input.bio !== undefined) {
+    updates.professional_summary = (input.bio ?? "").trim() || null;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    revalidatePath("/profile");
+    revalidatePath("/profile/edit");
+    return {};
+  }
+
+  const { error } = await supabase.from("profiles").update(updates).eq("id", user.id);
 
   if (error) return { error: error.message };
   revalidatePath("/profile");

@@ -24,7 +24,8 @@ export interface UserProfile {
   email: string | null;
   role: string | null;
   industry: string | null;
-  city: string | null;
+  /** Optional: may be omitted if profiles table has no city column */
+  city?: string | null;
   state: string | null;
   profile_photo_url: string | null;
   professional_summary: string | null;
@@ -122,7 +123,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   const { data: profile, error } = await supabaseAny
     .from("profiles")
     .select(
-      "id, full_name, email, role, industry, city, state, profile_photo_url, professional_summary, visibility, created_at, updated_at"
+      "id, full_name, email, role, industry, state, profile_photo_url, professional_summary, visibility, created_at, updated_at"
     )
     .eq("id", effectiveUserId)
     .single();

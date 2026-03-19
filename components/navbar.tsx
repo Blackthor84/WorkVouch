@@ -43,11 +43,6 @@ export default function Navbar() {
                 priority
                 style={{ objectFit: "contain", width: "auto", height: "40px" }}
               />
-              {!isAuthenticated && (
-                <span className="font-semibold text-white/90 hover:text-white transition hidden sm:inline">
-                  WorkVouch
-                </span>
-              )}
             </Link>
             {!isAuthenticated && (
               <div className="hidden md:flex items-center gap-5 flex-shrink-0">
