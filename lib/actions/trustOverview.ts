@@ -1,7 +1,7 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
-import { requireAuth } from "@/lib/auth";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export type TrustOverview = {
   trustScore: number;
@@ -12,11 +12,37 @@ export type TrustOverview = {
 
 /**
  * Fetch trust overview for the current user: score (0–100), reference count, match count, job count.
+ * Uses authenticated server client with cookie getAll/setAll so the session is recognized.
  */
 export async function getTrustOverview(): Promise<TrustOverview> {
+  const cookieStore = await cookies();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: (cookiesToSet) => {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {}
+        },
+      },
+    }
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
   try {
-    const user = await requireAuth();
-    const supabase = await createClient();
     const sb = supabase as any;
 
     const [scoreRes, matchesRes, jobsRes] = await Promise.all([
@@ -36,6 +62,7 @@ export async function getTrustOverview(): Promise<TrustOverview> {
       completedJobs: jobCount,
     };
   } catch (e) {
+    if ((e as Error).message === "Unauthorized") throw e;
     console.warn("Trust overview fetch failed", e);
     return { trustScore: 0, verifiedReferences: 0, coworkerMatches: 0, completedJobs: 0 };
   }
