@@ -6,10 +6,12 @@ import { supabaseBrowser } from "@/lib/supabase/browser";
 import { getEmploymentMatchesForUser, type EmploymentMatchRow } from "@/lib/actions/employmentMatches";
 import { getTrustOverview, type TrustOverview } from "@/lib/actions/trustOverview";
 import { requestReference as requestReferenceAction, submitReference } from "@/lib/actions/referenceFeedback";
+import { submitCoworkerReference, getReviewedMatchIds } from "@/lib/actions/coworkerReferences";
 import { TrustScoreHeroCard } from "@/components/workvouch/TrustScoreHeroCard";
 import { MatchCard } from "@/components/matches/MatchCard";
 import { RequestReferenceModal } from "@/components/matches/RequestReferenceModal";
 import { ReferenceFormModal } from "@/components/matches/ReferenceFormModal";
+import { CoworkerReviewModal } from "@/components/matches/CoworkerReviewModal";
 import { MatchCardSkeleton } from "@/components/workvouch/MatchCardSkeleton";
 import { MatchProfileModal } from "@/components/workvouch/MatchProfileModal";
 import type { MatchCardData } from "@/components/workvouch/MatchCard";
@@ -56,6 +58,9 @@ export default function DashboardClient({
   const [requestModalMatch, setRequestModalMatch] = useState<EmploymentMatchRow | null>(null);
   const [leaveReferenceRequest, setLeaveReferenceRequest] = useState<{ requestId: string; requesterName: string } | null>(null);
   const [submittedReferenceRequestIds, setSubmittedReferenceRequestIds] = useState<Set<string>>(new Set());
+  const [reviewedMatchIds, setReviewedMatchIds] = useState<Set<string>>(new Set());
+  const [leaveReviewMatch, setLeaveReviewMatch] = useState<EmploymentMatchRow | null>(null);
+  const [submittingReview, setSubmittingReview] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const channelRef = useRef<ReturnType<typeof supabaseBrowser.channel> | null>(null);
@@ -183,6 +188,26 @@ export default function DashboardClient({
     setConfirmingId(null);
   };
 
+  const handleSubmitCoworkerReview = async (data: { rating: number; reliability: number; teamwork: number; comment: string }) => {
+    if (!leaveReviewMatch) return;
+    setSubmittingReview(true);
+    const { error } = await submitCoworkerReference({
+      matchId: leaveReviewMatch.id,
+      reviewedId: leaveReviewMatch.otherUserId,
+      rating: data.rating,
+      reliability: data.reliability,
+      teamwork: data.teamwork,
+      comment: data.comment || null,
+    });
+    setSubmittingReview(false);
+    setLeaveReviewMatch(null);
+    if (!error) {
+      setReviewedMatchIds((prev) => new Set(prev).add(leaveReviewMatch.id));
+      setToast("Review submitted");
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
   const updateRequest = async (id: string, status: "accepted" | "rejected") => {
     setUpdatingId(id);
     await supabaseBrowser.from("reference_requests").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
@@ -297,6 +322,14 @@ export default function DashboardClient({
                   requesterName={leaveReferenceRequest.requesterName}
                   onClose={() => setLeaveReferenceRequest(null)}
                   onSubmit={submitLeaveReference}
+                />
+              )}
+              {leaveReviewMatch && (
+                <CoworkerReviewModal
+                  coworkerName={leaveReviewMatch.other_user?.full_name?.trim() ?? "Coworker"}
+                  onClose={() => setLeaveReviewMatch(null)}
+                  onSubmit={handleSubmitCoworkerReview}
+                  loading={submittingReview}
                 />
               )}
               {profileModalMatch && (

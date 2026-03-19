@@ -17,7 +17,7 @@ type SavedRow = {
   id: string;
   candidate_id: string;
   saved_at: string;
-  profiles?: { id: string; full_name: string | null; industry?: string | null; profile_photo_url?: string | null; trust_scores?: { score: number }[] } | null;
+  profiles?: { id: string; full_name: string | null; profile_photo_url?: string | null; trust_scores?: { score: number }[] } | null;
 };
 
 export function EmployerDashboardClient({

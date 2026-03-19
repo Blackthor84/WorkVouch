@@ -23,9 +23,6 @@ export interface UserProfile {
   full_name: string | null;
   email: string | null;
   role: string | null;
-  industry: string | null;
-  /** Optional: may be omitted if profiles table has no city column */
-  city?: string | null;
   state: string | null;
   profile_photo_url: string | null;
   professional_summary: string | null;
@@ -96,40 +93,63 @@ export async function getProfile(userId: string): Promise<{
   role: string | null;
   onboarding_completed: boolean;
 }> {
-  const supabase = await createClient();
-  const supabaseAny = supabase as any;
-  const { data, error } = await supabaseAny
-    .from("profiles")
-    .select("role, onboarding_completed")
-    .eq("id", userId)
-    .single();
-  if (error) throw error;
-  return {
-    role: (data?.role as string | null) ?? null,
-    onboarding_completed: (data?.onboarding_completed as boolean) ?? false,
-  };
+  try {
+    const supabase = await createClient();
+    const supabaseAny = supabase as any;
+    const { data, error } = await supabaseAny
+      .from("profiles")
+      .select("role, onboarding_completed")
+      .eq("id", userId)
+      .single();
+    if (error) return { role: null, onboarding_completed: false };
+    const row = data as Record<string, unknown> | null;
+    return {
+      role: (row?.role != null ? String(row.role) : null) as string | null,
+      onboarding_completed: Boolean(row?.onboarding_completed),
+    };
+  } catch {
+    return { role: null, onboarding_completed: false };
+  }
 }
 
 /**
  * Get current user profile from Supabase.
  * Uses effective user id when impersonating (acting_user), so profile matches who we're acting as.
+ * Only selects columns that exist; ignores schema mismatch.
  */
 export async function getCurrentUserProfile(): Promise<UserProfile | null> {
-  const { getEffectiveUserId } = await import("@/lib/server/effectiveUserId");
-  const effectiveUserId = await getEffectiveUserId();
-  if (!effectiveUserId) return null;
-  const supabase = await createClient();
-  const supabaseAny = supabase as any;
-  const { data: profile, error } = await supabaseAny
-    .from("profiles")
-    .select(
-      "id, full_name, email, role, industry, state, profile_photo_url, professional_summary, visibility, created_at, updated_at"
-    )
-    .eq("id", effectiveUserId)
-    .single();
-  if (error || !profile) return null;
-  const authUser = await getUser();
-  return applyScenario(profile as UserProfile, (authUser as any)?.user_metadata?.impersonation) as UserProfile;
+  try {
+    const { getEffectiveUserId } = await import("@/lib/server/effectiveUserId");
+    const effectiveUserId = await getEffectiveUserId();
+    if (!effectiveUserId) return null;
+    const supabase = await createClient();
+    const supabaseAny = supabase as any;
+    const { data: profile, error } = await supabaseAny
+      .from("profiles")
+      .select(
+        "id, full_name, email, role, state, profile_photo_url, professional_summary, visibility, created_at, updated_at"
+      )
+      .eq("id", effectiveUserId)
+      .single();
+    if (error || !profile) return null;
+    const row = profile as Record<string, unknown>;
+    const safe: UserProfile = {
+      id: String(row.id ?? effectiveUserId),
+      full_name: row.full_name != null ? String(row.full_name) : null,
+      email: row.email != null ? String(row.email) : null,
+      role: row.role != null ? String(row.role) : null,
+      state: row.state != null ? String(row.state) : null,
+      profile_photo_url: row.profile_photo_url != null ? String(row.profile_photo_url) : null,
+      professional_summary: row.professional_summary != null ? String(row.professional_summary) : null,
+      visibility: (row.visibility === "private" ? "private" : "public") as "public" | "private",
+      created_at: row.created_at != null ? String(row.created_at) : "",
+      updated_at: row.updated_at != null ? String(row.updated_at) : "",
+    };
+    const authUser = await getUser();
+    return applyScenario(safe, (authUser as any)?.user_metadata?.impersonation) as UserProfile;
+  } catch {
+    return null;
+  }
 }
 
 /** Roles come only from profiles.role. */

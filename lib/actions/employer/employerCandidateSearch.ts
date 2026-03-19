@@ -39,7 +39,7 @@ export async function searchCandidatesForEmployer(params: {
 
   let profileQuery = sb
     .from("profiles")
-    .select("id, full_name, industry, state")
+    .select("id, full_name, state")
     .neq("id", user.id);
 
   profileQuery = profileQuery.or("role.eq.employee,role.is.null");
@@ -89,7 +89,7 @@ export async function searchCandidatesForEmployer(params: {
 
   const results: EmployerCandidateRow[] = [];
 
-  for (const p of profiles as { id: string; full_name: string | null; industry?: string | null }[]) {
+  for (const p of profiles as { id: string; full_name: string | null }[]) {
     const score = trustMap[p.id] ?? 0;
     const reference_count = refCountByUser[p.id] ?? 0;
     if (params.minTrust != null && score < params.minTrust) continue;
@@ -110,7 +110,7 @@ export async function searchCandidatesForEmployer(params: {
     results.push({
       id: p.id,
       full_name: p.full_name,
-      headline: p.industry ?? null,
+      headline: null,
       trust_score: Math.round(score),
       reference_count,
       jobs: userJobs,

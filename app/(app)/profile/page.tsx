@@ -4,8 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getConfidenceScoreByUserId } from "@/lib/db/queries/getConfidenceScoreByUserId";
 import { getVerifiedJobCountByUserId } from "@/lib/db/queries/getVerifiedJobCountByUserId";
 import { getTrustForProfile, getUserReferences } from "@/lib/actions/referenceFeedback";
+import { getCoworkerReferencesForProfile } from "@/lib/actions/coworkerReferences";
+import { getJobsWithVerifiedCoworkers } from "@/lib/actions/getJobsWithVerifiedCoworkers";
 import { admin } from "@/lib/supabase-admin";
 import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
+import { JobVerificationSection } from "@/components/profile/JobVerificationSection";
 
 /**
  * Profile page. Authentication is enforced by (app)/layout.tsx — redirect if no user.
@@ -19,29 +22,46 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const { data: profileRow } = await supabase
-    .from("profiles")
-    .select("full_name, email, state, industry, role, professional_summary, public_slug")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  const profile = profileRow as {
+  let profile: {
     full_name?: string | null;
     email?: string | null;
-    city?: string | null;
     state?: string | null;
-    industry?: string | null;
     role?: string | null;
     professional_summary?: string | null;
     public_slug?: string | null;
-  } | null;
+  } | null = null;
+  try {
+    const { data: profileRow } = await supabase
+      .from("profiles")
+      .select("full_name, email, state, role, professional_summary, public_slug")
+      .eq("id", user.id)
+      .maybeSingle();
+    profile = profileRow as typeof profile;
+  } catch {
+    // ignore missing columns / schema mismatch
+  }
 
-  const [confidenceScore, verifiedJobCount, trustForProfile, references] = await Promise.all([
-    getConfidenceScoreByUserId(user.id),
-    getVerifiedJobCountByUserId(user.id),
-    getTrustForProfile(user.id),
-    getUserReferences(user.id),
-  ]);
+  const [confidenceScore, verifiedJobCount, trustForProfile, references, coworkerRefs, jobsWithCoworkers] =
+    await Promise.all([
+      getConfidenceScoreByUserId(user.id),
+      getVerifiedJobCountByUserId(user.id),
+      getTrustForProfile(user.id),
+      getUserReferences(user.id),
+      getCoworkerReferencesForProfile(user.id),
+      getJobsWithVerifiedCoworkers(user.id),
+    ]);
+
+  type ReviewItem = { id: string; rating: number; text: string | null; authorName: string | null; created_at: string };
+  const recentReviews: ReviewItem[] = [
+    ...references.map((r) => ({ id: r.id, rating: r.rating, text: r.feedback, authorName: r.author_name, created_at: r.created_at })),
+    ...coworkerRefs.map((r) => ({
+      id: r.id,
+      rating: Math.round((r.rating + r.reliability + r.teamwork) / 3),
+      text: r.comment,
+      authorName: r.reviewer_name,
+      created_at: r.created_at,
+    })),
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   let verifiedCoworkerCount = 0;
   try {
@@ -55,9 +75,8 @@ export default async function ProfilePage() {
   }
 
   const fullName = profile?.full_name ?? "User";
-  const headline = profile?.industry ?? profile?.role ?? null;
-  const locationParts = [profile?.city, profile?.state].filter(Boolean);
-  const location = locationParts.length > 0 ? locationParts.join(", ") : null;
+  const headline = profile?.role ?? null;
+  const location = profile?.state ?? null;
   const email = profile?.email ?? user.email ?? "";
   const bio = profile?.professional_summary ?? null;
   const publicSlug = profile?.public_slug ?? null;
@@ -156,62 +175,58 @@ export default async function ProfilePage() {
         </div>
       </div>
 
-      {/* Trust score + references */}
+      {/* Work history + verified coworkers per job */}
+      <div className="mt-8">
+        <JobVerificationSection jobsWithCoworkers={jobsWithCoworkers} />
+      </div>
+
+      {/* Trust Score (BIG) + Recent Reviews */}
       <div className="mt-8 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Trust & References
         </h2>
-        <div className="flex flex-wrap items-baseline gap-6 mb-6">
+        <div className="flex flex-wrap items-baseline gap-8 mb-8">
           <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Trust Score</p>
-            <p className="text-4xl font-bold text-gray-900 dark:text-white mt-0.5">
+            <p className="text-5xl sm:text-6xl font-bold text-gray-900 dark:text-white mt-0.5 tabular-nums">
               {trustForProfile.score > 0 ? (trustForProfile.score / 20).toFixed(1) : "—"}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">out of 5 (from references)</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">out of 5 (from reviews)</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total References</p>
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Reviews</p>
             <p className="text-3xl font-bold text-gray-900 dark:text-white mt-0.5">
               {trustForProfile.totalReferences}
             </p>
           </div>
         </div>
-        {references.length > 0 ? (
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">Recent Reviews</h3>
+        {recentReviews.length > 0 ? (
           <ul className="space-y-4">
-            {references.map((ref) => (
+            {recentReviews.map((ref) => (
               <li
                 key={ref.id}
                 className="rounded-lg border border-gray-200 dark:border-gray-600 p-4 bg-gray-50/50 dark:bg-gray-800/30"
               >
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="flex items-center gap-1 text-amber-600 dark:text-amber-500 font-medium">
-                    {Array.from({ length: ref.rating }, (_, i) => (
-                      <StarSolid key={i} className="h-5 w-5" />
-                    ))}
-                  </span>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {ref.author_name ?? "A coworker"}
-                  </span>
-                  {ref.company_name && (
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      @ {ref.company_name}
-                    </span>
-                  )}
+                <div className="flex items-center gap-0.5 text-amber-600 dark:text-amber-500 font-medium">
+                  {Array.from({ length: Math.min(5, Math.max(1, ref.rating)) }, (_, i) => (
+                    <StarSolid key={i} className="h-5 w-5" />
+                  ))}
                 </div>
-                {ref.feedback && (
+                {ref.text && (
                   <p className="mt-2 text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap">
-                    {ref.feedback}
+                    &ldquo;{ref.text}&rdquo;
                   </p>
                 )}
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {new Date(ref.created_at).toLocaleDateString()}
+                  — {ref.authorName ?? "A coworker"} · {new Date(ref.created_at).toLocaleDateString()}
                 </p>
               </li>
             ))}
           </ul>
         ) : (
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            No references yet. Request references from your coworker matches to build your trust score.
+            No reviews yet. Ask your verified coworkers to leave a review from the Coworker Matches page.
           </p>
         )}
       </div>

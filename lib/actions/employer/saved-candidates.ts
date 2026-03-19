@@ -81,7 +81,6 @@ export async function getSavedCandidates() {
         full_name,
         email,
         state,
-        industry,
         profile_photo_url,
         trust_scores(score)
       )

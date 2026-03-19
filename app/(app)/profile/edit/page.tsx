@@ -13,19 +13,17 @@ export default async function ProfileEditPage() {
     redirect("/login");
   }
 
-  const { data: profileRow } = await supabase
-    .from("profiles")
-    .select("full_name, state, industry, professional_summary")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  const profile = profileRow as {
-    full_name?: string | null;
-    city?: string | null;
-    state?: string | null;
-    industry?: string | null;
-    professional_summary?: string | null;
-  } | null;
+  let profile: { full_name?: string | null; state?: string | null; professional_summary?: string | null; headline?: string | null } | null = null;
+  try {
+    const { data: profileRow } = await supabase
+      .from("profiles")
+      .select("full_name, state, professional_summary, headline")
+      .eq("id", user.id)
+      .maybeSingle();
+    profile = profileRow as typeof profile;
+  } catch {
+    // ignore missing columns / schema mismatch
+  }
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -35,8 +33,8 @@ export default async function ProfileEditPage() {
       <ProfileEditForm
         defaultValues={{
           full_name: profile?.full_name ?? "",
-          headline: profile?.industry ?? "",
-          location: [profile?.city ?? "", profile?.state ?? ""].filter(Boolean).join(", "),
+          headline: profile?.headline ?? "",
+          location: profile?.state ?? "",
           bio: profile?.professional_summary ?? "",
         }}
       />

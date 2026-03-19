@@ -26,6 +26,8 @@ export function MatchCard({
   loading = false,
   onRequestReference,
   onLeaveReference,
+  onLeaveReview,
+  hasLeftReview = false,
   onViewProfile,
   confirming = false,
   onConfirmCoworker,
@@ -37,6 +39,9 @@ export function MatchCard({
   loading?: boolean;
   onRequestReference?: () => void;
   onLeaveReference?: (requestId: string) => void;
+  /** Direct review per match (coworker_references). Shown when status is accepted/confirmed and no review yet. */
+  onLeaveReview?: () => void;
+  hasLeftReview?: boolean;
   onViewProfile?: () => void;
   confirming?: boolean;
   onConfirmCoworker?: () => void;
@@ -169,9 +174,23 @@ export function MatchCard({
               Leave Reference
             </button>
           )}
-          {requestStatus === "accepted" && (!acceptedRequestId || !onLeaveReference) && (
+          {requestStatus === "accepted" && (!acceptedRequestId || !onLeaveReference) && !hasLeftReview && (
             <span className="inline-flex items-center rounded-xl border border-slate-200 bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-800">
               Reference submitted
+            </span>
+          )}
+          {(status === "accepted" || status === "confirmed") && onLeaveReview && !hasLeftReview && (
+            <button
+              type="button"
+              onClick={onLeaveReview}
+              className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+            >
+              👉 Leave Review
+            </button>
+          )}
+          {(status === "accepted" || status === "confirmed") && hasLeftReview && (
+            <span className="inline-flex items-center rounded-xl border border-slate-200 bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-800">
+              Review submitted
             </span>
           )}
           {requestStatus === "rejected" && (

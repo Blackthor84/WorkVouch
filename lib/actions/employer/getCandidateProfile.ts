@@ -41,14 +41,16 @@ export type CandidateProfileData = {
 
 /**
  * Get a single candidate's profile for employer view. Read-only.
+ * Returns null on any error (e.g. missing columns) to avoid schema mismatch crashes.
  */
 export async function getCandidateProfile(candidateId: string): Promise<CandidateProfileData | null> {
-  await requireAuth();
-  const sb = admin as any;
+  try {
+    await requireAuth();
+    const sb = admin as any;
 
-  const { data: profile, error: profileError } = await sb
+    const { data: profile, error: profileError } = await sb
     .from("profiles")
-    .select("id, full_name, industry, professional_summary")
+    .select("id, full_name, professional_summary")
     .eq("id", candidateId)
     .single();
 
@@ -114,11 +116,14 @@ export async function getCandidateProfile(candidateId: string): Promise<Candidat
   return {
     id: profile.id,
     full_name: profile.full_name,
-    headline: (profile as { industry?: string | null }).industry ?? null,
+    headline: (profile as { professional_summary?: string | null }).professional_summary?.split("\n")[0]?.trim() ?? null,
     bio: (profile as { professional_summary?: string | null }).professional_summary ?? null,
     trust_score: score,
     reference_count: refCount,
     jobs,
     references,
   };
+  } catch {
+    return null;
+  }
 }

@@ -34,6 +34,25 @@ export function ProfileEditForm({ defaultValues }: Props) {
   const values = { full_name, headline, location, bio };
   const completedPercent = progress(values);
 
+  /** Save a single field on blur (partial update; does not overwrite others). */
+  async function saveField(
+    field: "full_name" | "headline" | "location" | "bio",
+    value: string
+  ) {
+    setError(null);
+    setSaving(true);
+    const payload = { [field]: value } as Parameters<typeof updateProfile>[0];
+    const result = await updateProfile(payload);
+    setSaving(false);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    setSaved(true);
+    router.refresh();
+    setTimeout(() => setSaved(false), 3000);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -52,15 +71,20 @@ export function ProfileEditForm({ defaultValues }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 px-4 py-3">
+      <div className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 px-4 py-3">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Profile {completedPercent}% complete
         </span>
-        <div className="h-2 w-32 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-          <div
-            className="h-full bg-blue-600 dark:bg-blue-500 transition-all duration-300"
-            style={{ width: `${completedPercent}%` }}
-          />
+        <div className="flex items-center gap-2">
+          {saved && (
+            <span className="text-xs font-medium text-green-600 dark:text-green-400">Saved</span>
+          )}
+          <div className="h-2 w-32 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+            <div
+              className="h-full bg-blue-600 dark:bg-blue-500 transition-all duration-300"
+              style={{ width: `${completedPercent}%` }}
+            />
+          </div>
         </div>
       </div>
 
@@ -100,6 +124,7 @@ export function ProfileEditForm({ defaultValues }: Props) {
           type="text"
           value={headline}
           onChange={(e) => setHeadline(e.target.value)}
+          onBlur={() => saveField("headline", headline)}
           className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2"
           placeholder="e.g. Director of Safety & Security"
         />
@@ -128,6 +153,7 @@ export function ProfileEditForm({ defaultValues }: Props) {
           id="bio"
           value={bio}
           onChange={(e) => setBio(e.target.value)}
+          onBlur={() => saveField("bio", bio)}
           rows={4}
           className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2"
           placeholder="Short professional summary..."
