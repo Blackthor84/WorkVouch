@@ -2,9 +2,11 @@ import { notFound } from "next/navigation";
 import { redirect } from "next/navigation";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { admin } from "@/lib/supabase-admin";
 import { Button } from "@/components/ui/button";
 import { UserDetailActions } from "@/components/admin/user-detail-actions";
 import { UserForensicsTabs } from "@/components/admin/user-forensics-tabs";
+import { AdminTrustControlCard } from "@/components/admin/AdminTrustControlCard";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +60,14 @@ export default async function AdminUserPage({
   const riskLevel = row.risk_level ?? "low";
   const isSuperAdmin = admin.isSuperAdmin;
 
+  const { data: trustRow } = await admin
+    .from("trust_scores")
+    .select("score, calculated_at")
+    .eq("user_id", id)
+    .maybeSingle();
+  const trustScore = trustRow?.score != null ? Number(trustRow.score) : null;
+  const trustCalculatedAt = (trustRow?.calculated_at as string | null) ?? null;
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 flex items-center gap-4">
@@ -93,6 +103,13 @@ export default async function AdminUserPage({
               </dl>
               <UserDetailActions userId={id} currentStatus={status} currentRole={row.role ?? ""} isSuperAdmin={isSuperAdmin} fullName={row.full_name ?? ""} email={row.email ?? ""} industry={row.industry ?? ""} />
             </div>
+            {isSuperAdmin && (
+              <AdminTrustControlCard
+                userId={id}
+                initialScore={trustScore}
+                calculatedAt={trustCalculatedAt}
+              />
+            )}
           </>
         }
       />

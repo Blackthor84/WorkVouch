@@ -1,13 +1,23 @@
 import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { getCandidateProfileForEmployer } from "@/lib/actions/employer/candidate-search";
 import { getPublicProfile } from "@/lib/actions/employer";
-import { EMPLOYER_DISCLAIMER_NOT_ACCEPTED } from "@/lib/employer/requireEmployerLegalAcceptance";
+import {
+  requireEmployerLegalAcceptance,
+  EMPLOYER_DISCLAIMER_NOT_ACCEPTED,
+} from "@/lib/employer/requireEmployerLegalAcceptance";
 import { EmployerHeader } from "@/components/employer/employer-header";
 import { EmployerSidebar } from "@/components/employer/employer-sidebar";
 import { CandidateProfileViewer } from "@/components/employer/candidate-profile-viewer";
 import { PublicProfileView } from "@/components/public-profile-view";
 import { EmployerLegalDisclaimerGate } from "@/components/employer/EmployerLegalDisclaimerGate";
+import { EmployerProfilePaywall } from "@/components/employer/EmployerProfilePaywall";
+import {
+  canViewCandidateProfile,
+  recordCandidateProfileView,
+  isEmployerHiringPremium,
+} from "@/lib/actions/employer/employerDashboardStats";
 
 export default async function EmployerCandidateProfilePage(props: {
   params: Promise<{ id: string }>;
@@ -25,6 +35,46 @@ export default async function EmployerCandidateProfilePage(props: {
     redirect("/dashboard");
   }
 
+  const access = await canViewCandidateProfile(id);
+  const supabase = await createClient();
+  const { data: employerProfileRow } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  const employerRole = (employerProfileRow as { role?: string } | null)?.role ?? null;
+  const legalFirst = await requireEmployerLegalAcceptance(user.id, employerRole);
+  if (!legalFirst.allowed) {
+    return (
+      <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
+        <EmployerSidebar />
+        <div className="flex-1 flex flex-col">
+          <EmployerHeader />
+          <main className="flex-1 p-6 flex items-center justify-center">
+            <EmployerLegalDisclaimerGate redirectPath={`/employer/profile/${id}`} />
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (!access.allowed) {
+    return (
+      <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
+        <EmployerSidebar />
+        <div className="flex-1 flex flex-col">
+          <EmployerHeader />
+          <main className="flex-1 p-6">
+            <EmployerProfilePaywall viewsToday={access.viewsToday} limit={access.limit} />
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  await recordCandidateProfileView(id);
+  const hiringDataUnlocked = await isEmployerHiringPremium();
+
   let candidateData;
   try {
     candidateData = await getCandidateProfileForEmployer(id);
@@ -36,7 +86,10 @@ export default async function EmployerCandidateProfilePage(props: {
           <EmployerHeader />
           <main className="flex-1 p-6">
             <div className="max-w-7xl mx-auto">
-              <CandidateProfileViewer candidateData={candidateData} />
+              <CandidateProfileViewer
+                candidateData={candidateData}
+                hiringDataUnlocked={hiringDataUnlocked}
+              />
             </div>
           </main>
         </div>

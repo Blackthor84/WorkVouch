@@ -10,13 +10,12 @@ import { auditLog, getAuditMetaFromRequest } from "@/lib/auditLogger";
 export const runtime = "nodejs";
 
 /**
- * GET /api/admin/users — list all users (super_admin only).
- * Role is read from profiles via admin client. Accepts super_admin (DB) and legacy superadmin.
+ * GET /api/admin/users — list users (super_admin only).
+ * Query: ?q= search email / full_name
  */
 export async function GET(request: Request) {
   try {
     const user = await getUser();
-    console.log("ADMIN CHECK USER:", user);
 
     if (!user?.id) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
@@ -27,8 +26,6 @@ export async function GET(request: Request) {
       .select("role")
       .eq("id", user.id)
       .maybeSingle();
-
-    console.log("ADMIN PROFILE:", profile, profileError?.message ?? "");
 
     if (profileError) {
       console.warn("[admin/users] profile fetch:", profileError.message);
@@ -49,30 +46,59 @@ export async function GET(request: Request) {
       );
     }
 
-    const { data: users, error } = await admin.from("profiles").select("*");
+    const url = new URL(request.url);
+    const q = url.searchParams.get("q")?.trim() ?? "";
 
-    console.log("USERS DATA:", users?.length ?? 0, "rows");
+    let query = admin
+      .from("profiles")
+      .select("id, full_name, email, role, created_at")
+      .order("created_at", { ascending: false })
+      .limit(500);
+
+    if (q) {
+      const safe = q.replace(/%/g, "\\%").replace(/_/g, "\\_");
+      query = query.or(`email.ilike.%${safe}%,full_name.ilike.%${safe}%`);
+    }
+
+    const { data: users, error } = await query;
+
     if (error) {
-      console.log("admin users error", error);
+      console.warn("admin users error", error.message);
       return NextResponse.json([], { status: 200 });
     }
 
-    if (!users) {
+    if (!users?.length) {
       return NextResponse.json([], { status: 200 });
     }
 
-    const mapped = users.map((row: Record<string, unknown>) => ({
-      id: row.id ?? row.user_id ?? "",
+    const ids = users.map((u) => u.id).filter(Boolean);
+    const { data: trustRows } = await admin
+      .from("trust_scores")
+      .select("user_id, score")
+      .in("user_id", ids);
+
+    const trustMap = new Map<string, number>();
+    for (const t of trustRows ?? []) {
+      if (t.user_id != null && t.score != null) {
+        trustMap.set(t.user_id, Number(t.score));
+      }
+    }
+
+    const mapped = users.map((row) => ({
+      id: row.id,
       email: row.email ?? "",
-      role: row.role ?? "no role",
+      full_name: row.full_name ?? "",
+      role: row.role ?? "user",
+      trust_score: trustMap.get(row.id) ?? null,
+      created_at: row.created_at ?? null,
     }));
 
     const { ipAddress, userAgent } = getAuditMetaFromRequest(request);
     await auditLog({
       actorUserId: user.id,
-      actorRole: isSuperAdmin ? "superadmin" : "admin",
+      actorRole: "superadmin",
       action: "admin_list_users",
-      metadata: { count: mapped.length },
+      metadata: { count: mapped.length, search: q || null },
       ipAddress,
       userAgent,
     }).catch((err: unknown) => {
@@ -81,14 +107,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(mapped);
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("[ADMIN_API_ERROR] GET /api/admin/users", error.message);
-    } else {
-      console.error("[ADMIN_API_UNKNOWN_ERROR] GET /api/admin/users");
-    }
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
+    console.warn("[ADMIN_API_ERROR] GET /api/admin/users", error);
+    return NextResponse.json([], { status: 200 });
   }
 }

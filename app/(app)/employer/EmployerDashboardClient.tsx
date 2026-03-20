@@ -9,9 +9,8 @@ import {
 import { getSavedCandidates } from "@/lib/actions/employer/saved-candidates";
 import { getRecentProfileViews, type RecentView } from "@/lib/actions/employer/employerDashboardStats";
 import { CandidateCard } from "@/components/employer/CandidateCard";
-import { MagnifyingGlassIcon, UserGroupIcon, BookmarkIcon, ClockIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon, BookmarkIcon, ClockIcon } from "@heroicons/react/24/outline";
 import type { EmployerDashboardStats } from "@/lib/actions/employer/employerDashboardStats";
-import { cn } from "@/lib/utils";
 
 type SavedRow = {
   id: string;
@@ -29,8 +28,7 @@ export function EmployerDashboardClient({
   const [search, setSearch] = useState("");
   const [company, setCompany] = useState("");
   const [jobTitle, setJobTitle] = useState("");
-  const [location, setLocation] = useState("");
-  const [minTrust, setMinTrust] = useState<number | "">("");
+  const [minTrust, setMinTrust] = useState(0);
   const [candidates, setCandidates] = useState<EmployerCandidateRow[]>([]);
   const [saved, setSaved] = useState<SavedRow[]>([]);
   const [recent, setRecent] = useState<RecentView[]>([]);
@@ -48,7 +46,7 @@ export function EmployerDashboardClient({
     })
       .then(setCandidates)
       .finally(() => setLoadingSearch(false));
-  }, [search, company, jobTitle, location, minTrust]);
+  }, [search, company, jobTitle, minTrust]);
 
   useEffect(() => {
     setLoadingSaved(true);
@@ -64,29 +62,53 @@ export function EmployerDashboardClient({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-        Employer Dashboard
+      <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+        Hiring command center
       </h1>
-      <p className="mt-1 text-sm text-slate-500">
-        Trust-based hiring. Real references, not resumes.
+      <p className="mt-2 text-slate-600">
+        Search candidates, evaluate trust instantly, save shortlists, and upgrade when you&apos;re ready to go unlimited.
       </p>
+
+      {!stats.isHiringPremium && (
+        <div className="mt-6 rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="font-semibold text-slate-900">Free plan</p>
+            <p className="text-sm text-slate-600 mt-1">
+              {stats.profileViewsRemaining} profile unlock{stats.profileViewsRemaining === 1 ? "" : "s"} left today · Trust
+              &amp; reviews show upgrade prompts until you subscribe.
+            </p>
+          </div>
+          <Link
+            href="/employer/upgrade"
+            className="inline-flex rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700"
+          >
+            Unlock full access
+          </Link>
+        </div>
+      )}
 
       {/* Top stats */}
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
-          <p className="text-sm font-medium text-slate-500">Candidates viewed today</p>
-          <p className="mt-1 text-3xl font-bold text-slate-900">{stats.candidatesViewedToday}</p>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-md transition-shadow hover:shadow-lg">
+          <p className="text-sm font-medium text-slate-500">Candidates viewed (today)</p>
+          <p className="mt-1 text-3xl font-bold text-slate-900 tabular-nums">{stats.candidatesViewedToday}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
-          <p className="text-sm font-medium text-slate-500">Avg. trust score viewed</p>
-          <p className="mt-1 text-3xl font-bold text-slate-900">
-            {stats.avgTrustScoreViewed > 0 ? (stats.avgTrustScoreViewed / 20).toFixed(1) : "—"}
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-md transition-shadow hover:shadow-lg">
+          <p className="text-sm font-medium text-slate-500">Avg trust score viewed</p>
+          <p className="mt-1 text-3xl font-bold text-slate-900 tabular-nums flex items-baseline gap-1">
+            {stats.avgTrustScoreViewed > 0 ? (
+              <>
+                <span className="text-amber-500">★</span> {stats.avgTrustScoreViewed}
+              </>
+            ) : (
+              "—"
+            )}
           </p>
-          <p className="text-xs text-slate-400">out of 5</p>
+          <p className="text-xs text-slate-400 mt-0.5">0–100 scale across profiles you opened today</p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-md transition-shadow hover:shadow-lg">
           <p className="text-sm font-medium text-slate-500">Saved candidates</p>
-          <p className="mt-1 text-3xl font-bold text-slate-900">{stats.savedCandidatesCount}</p>
+          <p className="mt-1 text-3xl font-bold text-slate-900 tabular-nums">{stats.savedCandidatesCount}</p>
         </div>
       </div>
 
@@ -118,23 +140,17 @@ export function EmployerDashboardClient({
             onChange={(e) => setJobTitle(e.target.value)}
             className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 min-w-[140px]"
           />
-          <input
-            type="text"
-            placeholder="Location (state)"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 min-w-[120px]"
-          />
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-500">Min trust</label>
+          <div className="flex flex-col gap-1 min-w-[200px]">
+            <label className="text-sm font-medium text-slate-600">Min trust (0–100)</label>
             <input
-              type="number"
+              type="range"
               min={0}
               max={100}
               value={minTrust}
-              onChange={(e) => setMinTrust(e.target.value === "" ? "" : Number(e.target.value))}
-              className="w-20 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-blue-600 focus:outline-none"
+              onChange={(e) => setMinTrust(Number(e.target.value))}
+              className="w-full accent-blue-600"
             />
+            <span className="text-xs text-slate-500 tabular-nums">{minTrust}</span>
           </div>
         </div>
         {loadingSearch ? (
@@ -153,6 +169,7 @@ export function EmployerDashboardClient({
               <CandidateCard
                 key={c.id}
                 candidate={c}
+                blurTrust={!stats.isHiringPremium}
                 isSaved={saved.some((s) => s.candidate_id === c.id)}
                 onSavedChange={() => {
                   getSavedCandidates()
@@ -185,7 +202,7 @@ export function EmployerDashboardClient({
             {saved.map((row) => {
               const profile = row.profiles ?? (row as any).profiles;
               const name = (profile?.full_name ?? "Candidate") as string;
-              const score = Array.isArray(profile?.trust_scores) && profile.trust_scores[0]
+                    const score = Array.isArray(profile?.trust_scores) && profile.trust_scores[0]
                 ? (profile.trust_scores[0] as { score: number }).score
                 : null;
               return (
@@ -196,11 +213,11 @@ export function EmployerDashboardClient({
                   <div>
                     <p className="font-medium text-slate-900">{name}</p>
                     {score != null && (
-                      <p className="text-sm text-slate-500">Trust score: {(Number(score) / 20).toFixed(1)} / 5</p>
+                      <p className="text-sm text-slate-500">Trust score: {Math.round(Number(score))} / 100</p>
                     )}
                   </div>
                   <Link
-                    href={`/candidate/${row.candidate_id}`}
+                    href={`/employer/profile/${row.candidate_id}`}
                     className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
                   >
                     View Profile
@@ -232,7 +249,7 @@ export function EmployerDashboardClient({
                     {new Date(v.viewed_at).toLocaleDateString()}
                   </span>
                   <Link
-                    href={`/candidate/${v.candidate_id}`}
+                    href={`/employer/profile/${v.candidate_id}`}
                     className="text-sm font-medium text-blue-600 hover:text-blue-700"
                   >
                     View

@@ -189,6 +189,8 @@ export type CandidateProfilePayload = {
     [k: string]: unknown
   }>
   trust_score: number
+  /** Matches trust_scores.reference_count (all review sources in rank formula). */
+  trust_reference_count: number
   verified_employment_coverage_pct: number
   verified_employment_count: number
   total_employment_count: number
@@ -238,7 +240,7 @@ export async function getCandidateProfileData(candidateId: string): Promise<Cand
 
   const { data: trustScore } = await supabaseAny
     .from('trust_scores')
-    .select('score')
+    .select('score, reference_count')
     .eq('user_id', candidateId)
     .order('calculated_at', { ascending: false })
     .limit(1)
@@ -293,6 +295,7 @@ export async function getCandidateProfileData(candidateId: string): Promise<Cand
     jobs: safeJobs,
     references: referencesWithBadges,
     trust_score: Number((trustScore as { score?: number } | null)?.score) || 0,
+    trust_reference_count: Number((trustScore as { reference_count?: number } | null)?.reference_count) || 0,
     verified_employment_coverage_pct,
     verified_employment_count,
     total_employment_count,

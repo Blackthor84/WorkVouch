@@ -7,8 +7,10 @@ export type EmployerCandidateRow = {
   id: string;
   full_name: string | null;
   headline: string | null;
+  profile_photo_url: string | null;
   trust_score: number;
   reference_count: number;
+  verified_coworker_count: number;
   jobs: Array<{ company_name: string; job_title: string | null; start_date: string; end_date: string | null }>;
 };
 
@@ -39,10 +41,10 @@ export async function searchCandidatesForEmployer(params: {
 
   let profileQuery = sb
     .from("profiles")
-    .select("id, full_name, state")
+    .select("id, full_name, state, headline, profile_photo_url, restricted_from_employer_search")
     .neq("id", user.id);
 
-  profileQuery = profileQuery.or("role.eq.employee,role.is.null");
+  profileQuery = profileQuery.or("role.eq.candidate,role.eq.employee,role.eq.user,role.is.null");
   if (params.search?.trim()) {
     profileQuery = profileQuery.ilike("full_name", `%${params.search.trim()}%`);
   }
@@ -54,10 +56,19 @@ export async function searchCandidatesForEmployer(params: {
 
   if (profileError || !profiles?.length) return [];
 
-  const ids = (profiles as { id: string }[]).map((p) => p.id);
+  const rawProfiles = (profiles as {
+    id: string;
+    full_name: string | null;
+    headline?: string | null;
+    profile_photo_url?: string | null;
+    restricted_from_employer_search?: boolean | null;
+  }[])?.filter((p) => p.restricted_from_employer_search !== true) ?? [];
 
-  const [trustRes, jobsRes, refCountRes] = await Promise.all([
-    sb.from("trust_scores").select("user_id, score").in("user_id", ids),
+  const ids = rawProfiles.map((p) => p.id);
+  if (!ids.length) return [];
+
+  const [trustRes, jobsRes, refCountRes, empPeerRes, cowPeerRes] = await Promise.all([
+    sb.from("trust_scores").select("user_id, score, reference_count").in("user_id", ids),
     sb
       .from("jobs")
       .select("user_id, company_name, job_title, title, start_date, end_date")
@@ -65,15 +76,32 @@ export async function searchCandidatesForEmployer(params: {
       .eq("is_private", false)
       .order("start_date", { ascending: false }),
     sb.from("reference_feedback").select("target_user_id").in("target_user_id", ids),
+    sb.from("employment_references").select("reviewed_user_id").in("reviewed_user_id", ids),
+    sb.from("coworker_references").select("reviewed_id").in("reviewed_id", ids),
   ]);
 
-  const trustMap: Record<string, number> = {};
-  for (const row of (trustRes.data ?? []) as { user_id: string; score: number }[]) {
-    trustMap[row.user_id] = Number(row.score ?? 0);
+  const trustMap: Record<string, { score: number; reference_count: number }> = {};
+  for (const row of (trustRes.data ?? []) as { user_id: string; score: number; reference_count?: number }[]) {
+    trustMap[row.user_id] = {
+      score: Number(row.score ?? 0),
+      reference_count: Number(row.reference_count ?? 0),
+    };
   }
+  /** Fallback when no trust_scores row yet — matches rank-v1 review union. */
   const refCountByUser: Record<string, number> = {};
   for (const row of (refCountRes.data ?? []) as { target_user_id: string }[]) {
     refCountByUser[row.target_user_id] = (refCountByUser[row.target_user_id] ?? 0) + 1;
+  }
+
+  const verifiedCoworkerByUser: Record<string, number> = {};
+  for (const row of (empPeerRes.data ?? []) as { reviewed_user_id: string }[]) {
+    refCountByUser[row.reviewed_user_id] = (refCountByUser[row.reviewed_user_id] ?? 0) + 1;
+    verifiedCoworkerByUser[row.reviewed_user_id] =
+      (verifiedCoworkerByUser[row.reviewed_user_id] ?? 0) + 1;
+  }
+  for (const row of (cowPeerRes.data ?? []) as { reviewed_id: string }[]) {
+    refCountByUser[row.reviewed_id] = (refCountByUser[row.reviewed_id] ?? 0) + 1;
+    verifiedCoworkerByUser[row.reviewed_id] = (verifiedCoworkerByUser[row.reviewed_id] ?? 0) + 1;
   }
 
   const jobsByUser: Record<string, Array<{ company_name: string; job_title: string | null; start_date: string; end_date: string | null }>> = {};
@@ -89,9 +117,10 @@ export async function searchCandidatesForEmployer(params: {
 
   const results: EmployerCandidateRow[] = [];
 
-  for (const p of profiles as { id: string; full_name: string | null }[]) {
-    const score = trustMap[p.id] ?? 0;
-    const reference_count = refCountByUser[p.id] ?? 0;
+  for (const p of rawProfiles) {
+    const t = trustMap[p.id];
+    const score = t?.score ?? 0;
+    const reference_count = t?.reference_count ?? refCountByUser[p.id] ?? 0;
     if (params.minTrust != null && score < params.minTrust) continue;
     if (params.maxTrust != null && score > params.maxTrust) continue;
 
@@ -110,9 +139,11 @@ export async function searchCandidatesForEmployer(params: {
     results.push({
       id: p.id,
       full_name: p.full_name,
-      headline: null,
+      headline: p.headline ?? null,
+      profile_photo_url: p.profile_photo_url ?? null,
       trust_score: Math.round(score),
       reference_count,
+      verified_coworker_count: verifiedCoworkerByUser[p.id] ?? 0,
       jobs: userJobs,
     });
   }

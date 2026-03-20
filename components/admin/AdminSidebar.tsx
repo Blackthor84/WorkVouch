@@ -32,7 +32,15 @@ export interface AdminSidebarProps {
   showBoard: boolean;
 }
 
-/** Simulation is under Lab Environment only (no top-level "Sandbox" nav). */
+const controlCenterNav = [
+  { href: "/admin", label: "Dashboard" },
+  { href: "/admin/users", label: "Users" },
+  { href: "/admin/trust", label: "Trust" },
+  { href: "/admin/reviews", label: "Reviews" },
+  { href: "/admin/matches", label: "Matches" },
+];
+
+/** Simulation is under System Controls (playground). */
 const nav = {
   TrustOverview: [{ href: "/admin", label: "Trust Overview" }],
   Users: [
@@ -45,14 +53,14 @@ const nav = {
     { href: "/admin/employer-usage", label: "Employer Usage" },
   ],
   IntegrityReview: [
-    { href: "/admin/reviews", label: "Integrity Review" },
+    { href: "/admin/reviews", label: "Reviews" },
     { href: "/admin/flagged-content", label: "Flagged Content" },
     { href: "/admin/trust-scores", label: "Trust Bands" },
     { href: "/admin/scoring-explained", label: "Scoring Explained" },
   ],
   LabEnvironment: [
-    { href: "/admin/playground", label: "Lab Environment" },
-    { href: "/admin/playground/monitor", label: "Activity Monitor" },
+    { href: "/admin/playground", label: "System Controls" },
+    { href: "/admin/playground/monitor", label: "Activity monitor" },
   ],
   Analytics: [
     { href: "/admin/analytics/overview", label: "Overview" },
@@ -150,9 +158,10 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
             pathname === "/admin" ? LINK_ACTIVE : "text-[#334155] hover:bg-slate-50"
           }`}
         >
-          Trust Overview
+          Home
         </Link>
         <nav className="flex-1 overflow-y-auto mt-4 space-y-6 px-2">
+          {isSuperAdmin && section("Control Center", controlCenterNav)}
           {isSuperAdmin && !showFullPowerNav && (
             <div>
               <div className={`px-3 py-1.5 ${SECTION_TITLE}`}>Enterprise</div>
@@ -176,13 +185,18 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
             <>
               {section("Trust Overview", sandboxNav.TrustOverview)}
               {section("Members", sandboxNav.Users)}
-              {section("Lab Environment", sandboxNav.LabEnvironment)}
+              {section("System Controls", sandboxNav.LabEnvironment)}
               {section("Audit Logs", sandboxNav.AuditLogs)}
             </>
           ) : (
             <>
               {section("Trust Overview", productionOnlyNav.TrustOverview)}
-              {section("Members", productionOnlyNav.Users)}
+              {section(
+                "Members",
+                isSuperAdmin
+                  ? productionOnlyNav.Users
+                  : [{ href: "/admin/signups", label: "Signups" }]
+              )}
               {section("Employers", productionOnlyNav.Employers)}
               {section("Integrity Review", productionOnlyNav.IntegrityReview)}
               {section("Analytics", productionOnlyNav.Analytics)}
@@ -193,7 +207,7 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
               {showBoard && section("Board", productionOnlyNav.Board)}
               {section("System Integrity", productionOnlyNav.SystemIntegrity)}
               {section("Access Controls", productionOnlyNav.AccessControls)}
-              {isSuperAdmin && section("Lab Environment", sandboxNav.LabEnvironment)}
+              {isSuperAdmin && section("System Controls", sandboxNav.LabEnvironment)}
               {isSuperAdmin && section("System Settings", productionOnlyNav.SystemSettings)}
             </>
           )}

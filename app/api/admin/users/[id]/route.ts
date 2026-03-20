@@ -46,7 +46,26 @@ export async function GET(
       .maybeSingle();
     const profileStrength = (snapshot as { profile_strength?: number } | null)?.profile_strength ?? null;
 
-    const baseData = { ...(profile as unknown as Record<string, unknown>), roles, profile_strength: profileStrength };
+    const { data: trustRow } = await admin
+      .from("trust_scores")
+      .select("score, reference_count, calculated_at, version")
+      .eq("user_id", id)
+      .maybeSingle();
+    const trust = trustRow
+      ? {
+          score: trustRow.score != null ? Number(trustRow.score) : null,
+          reference_count: trustRow.reference_count ?? null,
+          calculated_at: trustRow.calculated_at ?? null,
+          version: trustRow.version ?? null,
+        }
+      : null;
+
+    const baseData = {
+      ...(profile as unknown as Record<string, unknown>),
+      roles,
+      profile_strength: profileStrength,
+      trust,
+    };
     const adminContext = await getAdminContext(req);
     return NextResponse.json(applyScenario(baseData, adminContext.impersonation));
   } catch (e) {

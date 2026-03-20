@@ -25,7 +25,15 @@ export default async function EmployerPage() {
 
   return (
     <EmployerDashboardClient
-      initialStats={stats ?? { candidatesViewedToday: 0, avgTrustScoreViewed: 0, savedCandidatesCount: 0 }}
+      initialStats={
+        stats ?? {
+          candidatesViewedToday: 0,
+          avgTrustScoreViewed: 0,
+          savedCandidatesCount: 0,
+          isHiringPremium: false,
+          profileViewsRemaining: 5,
+        }
+      }
     />
   );
 }

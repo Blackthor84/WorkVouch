@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { TrustScoreBadge } from "@/components/employer/TrustScoreBadge";
+import { TrustRankInlineBadge } from "@/components/trust/TrustRankInlineBadge";
 import { recordCandidateProfileView } from "@/lib/actions/employer/employerDashboardStats";
 import type { CandidateProfileData } from "@/lib/actions/employer/getCandidateProfile";
 import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
@@ -26,7 +27,10 @@ export function CandidateProfileView({
   viewLimit?: number;
 }) {
   const name = candidate.full_name ?? "Candidate";
-  const refCount = candidate.reference_count ?? candidate.references?.length ?? 0;
+  const refCount =
+    candidate.reference_count ??
+    candidate.references?.length ??
+    0;
 
   useEffect(() => {
     if (viewerIsEmployer && !locked && candidateId) {
@@ -51,12 +55,22 @@ export function CandidateProfileView({
         )}
 
         <header className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">{name}</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold text-slate-900">{name}</h1>
+            {!locked && (
+              <TrustRankInlineBadge score={candidate.trust_score} reviewCount={refCount} />
+            )}
+          </div>
           {candidate.headline && (
             <p className="mt-1 text-slate-600 font-medium">{candidate.headline}</p>
           )}
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <TrustScoreBadge score={candidate.trust_score} size="lg" blur={locked} />
+            <TrustScoreBadge
+              score={candidate.trust_score}
+              referenceCount={refCount}
+              size="lg"
+              blur={locked}
+            />
             {refCount > 0 && !locked && (
               <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-800">
                 Verified by {refCount} coworker{refCount !== 1 ? "s" : ""}

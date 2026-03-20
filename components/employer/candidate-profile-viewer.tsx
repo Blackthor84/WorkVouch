@@ -38,11 +38,13 @@ import { ReferenceConsistencyPanel } from "@/components/employer/ReferenceConsis
 import { TrustTimelinePanel } from "@/components/employer/TrustTimelinePanel";
 import TrustScoreBreakdown from "@/components/trust/TrustScoreBreakdown";
 import TrustScoreGauge from "@/components/trust/TrustScoreGauge";
+import { TrustRankInlineBadge } from "@/components/trust/TrustRankInlineBadge";
 import VerifiedWorkTimeline from "@/components/trust/VerifiedWorkTimeline";
 import { CandidateComparisonPanel } from "@/components/employer/CandidateComparisonPanel";
 import { EmployerNotesPanel } from "@/components/employer/EmployerNotesPanel";
 import { TeamSharingPanel } from "@/components/employer/TeamSharingPanel";
 import VerticalBadges from "@/components/VerticalBadges";
+import { HiringDataUnlockGate } from "@/components/employer/HiringDataUnlockGate";
 
 type CandidateData = {
   profile?: {
@@ -59,6 +61,8 @@ type CandidateData = {
   jobs?: Array<Record<string, unknown>>;
   references?: Array<Record<string, unknown>>;
   trust_score?: number;
+  /** Reviews counted in trust rank (trust_scores.reference_count). */
+  trust_reference_count?: number;
   verified_employment_coverage_pct?: number;
   verified_employment_count?: number;
   total_employment_count?: number;
@@ -69,11 +73,13 @@ interface CandidateProfileViewerProps {
   candidateData: CandidateData;
   /** When true, employee is viewing their own profile as employers see it; hide employer actions and show banner. */
   isEmployeeSelfView?: boolean;
+  hiringDataUnlocked?: boolean;
 }
 
 export function CandidateProfileViewer({
   candidateData,
   isEmployeeSelfView = false,
+  hiringDataUnlocked = true,
 }: CandidateProfileViewerProps) {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -128,8 +134,19 @@ export function CandidateProfileViewer({
     }
   };
 
-  const { profile, jobs, references, trust_score, verified_employment_coverage_pct, verified_employment_count, total_employment_count, industry_fields } =
-    candidateData;
+  const {
+    profile,
+    jobs,
+    references,
+    trust_score,
+    trust_reference_count,
+    verified_employment_coverage_pct,
+    verified_employment_count,
+    total_employment_count,
+    industry_fields,
+  } = candidateData;
+
+  const trustReviewsUnlocked = isEmployeeSelfView || hiringDataUnlocked;
 
   // Normalize profile: convert string | null to string
   const safeProfile = profile
@@ -143,6 +160,7 @@ export function CandidateProfileViewer({
         industry: profile.industry,
         vertical: profile.vertical,
         role: profile.role,
+        headline: (profile as { headline?: string | null }).headline ?? null,
       }
     : null;
 
@@ -183,14 +201,32 @@ export function CandidateProfileViewer({
             </div>
           )}
           <div>
-            <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
-              {safeProfile.full_name}
-            </h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
+                {safeProfile.full_name}
+              </h1>
+              <TrustRankInlineBadge
+                score={Math.round(trust_score ?? 0)}
+                reviewCount={trust_reference_count ?? 0}
+                className="mt-0.5"
+              />
+            </div>
+            {safeProfile.headline ? (
+              <p className="text-base text-slate-600 dark:text-slate-300 mt-1 max-w-2xl">
+                {safeProfile.headline}
+              </p>
+            ) : null}
             <p className="text-grey-medium dark:text-gray-400">
               {safeProfile.city && safeProfile.state
                 ? `${safeProfile.city}, ${safeProfile.state}`
                 : "Location not specified"}
             </p>
+            {(verified_employment_count ?? 0) > 0 && (
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800">
+                <CheckBadgeIcon className="h-4 w-4" aria-hidden />
+                Verified worker
+              </div>
+            )}
             {safeProfile.industry && (
               <p className="text-sm text-grey-medium dark:text-gray-400 capitalize">
                 {safeProfile.industry.replace("_", " ")}
@@ -227,26 +263,57 @@ export function CandidateProfileViewer({
       </div>
 
       {/* Section 7 — Verified By / Total Confirmations */}
-      <CandidateVerificationSummary candidateId={safeProfile.id} />
+      {trustReviewsUnlocked ? (
+        <CandidateVerificationSummary candidateId={safeProfile.id} />
+      ) : (
+        <HiringDataUnlockGate>
+          <CandidateVerificationSummary candidateId={safeProfile.id} />
+        </HiringDataUnlockGate>
+      )}
 
       {/* Trust Score Gauge + Breakdown (near Verification Summary / Trust) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <TrustScoreGauge score={trust_score ?? 0} />
-        <TrustScoreBreakdown profileId={safeProfile.id} />
-      </div>
+      {trustReviewsUnlocked ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:bg-[#111827] dark:border-slate-700">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Trust score</p>
+            <TrustScoreGauge
+              score={trust_score ?? 0}
+              referenceCount={trust_reference_count ?? 0}
+            />
+          </div>
+          <TrustScoreBreakdown profileId={safeProfile.id} />
+        </div>
+      ) : (
+        <HiringDataUnlockGate>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:bg-[#111827] dark:border-slate-700 text-center">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Trust score</p>
+              <p className="mt-2 text-6xl font-bold text-blue-600 tabular-nums">{Math.round(trust_score ?? 0)}</p>
+              <p className="text-sm text-slate-500 mt-1">0–100 scale</p>
+            </div>
+            <TrustScoreBreakdown profileId={safeProfile.id} />
+          </div>
+        </HiringDataUnlockGate>
+      )}
 
       {/* Verified Work Timeline: jobs + manager/coworker verifications and trust impact */}
-      <VerifiedWorkTimeline profileId={safeProfile.id} />
+      {!trustReviewsUnlocked ? (
+        <HiringDataUnlockGate>
+          <VerifiedWorkTimeline profileId={safeProfile.id} />
+        </HiringDataUnlockGate>
+      ) : (
+        <VerifiedWorkTimeline profileId={safeProfile.id} />
+      )}
 
-      {/* WorkVouch Insights (employer-only, feature-flagged) */}
+      {/* WorkVouch Insights + employer intelligence — premium hiring */}
+      {!isEmployeeSelfView && trustReviewsUnlocked && (
+        <>
       <WorkVouchInsightsSection candidateId={safeProfile.id} />
 
-      {/* Employer-only risk overlay (Career Health + Rehire, Velocity, Risk Flag, Network, Fraud confidence) */}
       <EmployerRiskOverlay candidateId={safeProfile.id} />
 
       {/* Employer Dashboard: decision panels (3 rows). When employee self-view, show single HiringConfidenceCard + score. */}
-      {!isEmployeeSelfView ? (
-        <div className="space-y-6">
+      <div className="space-y-6">
           {/* Trust signals: Outlook, Benchmark, Hiring Confidence, Risk */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <TrustForecastCard profileId={safeProfile.id} />
@@ -296,7 +363,20 @@ export function CandidateProfileViewer({
             <TeamSharingPanel candidateId={safeProfile.id} />
           </div>
         </div>
-      ) : (
+        </>
+      )}
+
+      {!isEmployeeSelfView && !trustReviewsUnlocked && (
+        <HiringDataUnlockGate>
+          <div className="min-h-[160px] rounded-xl border border-slate-200 bg-white p-8 text-center dark:bg-[#111827] dark:border-slate-700">
+            <p className="text-slate-600 dark:text-slate-300 font-medium">
+              Hiring intelligence, benchmarks, and deep trust analytics unlock with a paid plan.
+            </p>
+          </div>
+        </HiringDataUnlockGate>
+      )}
+
+      {isEmployeeSelfView ? (
         <>
           <HiringConfidenceCard candidateId={safeProfile.id} />
           <Card className="p-6">
@@ -335,7 +415,7 @@ export function CandidateProfileViewer({
             </div>
           </Card>
         </>
-      )}
+      ) : null}
 
       {/* Message Form */}
       {showMessageForm && (
@@ -363,7 +443,13 @@ export function CandidateProfileViewer({
       <WorkHistoryViewer jobs={safeJobs} />
 
       {/* Peer References */}
-      <ReferenceViewer references={(references ?? []) as unknown as ComponentProps<typeof ReferenceViewer>["references"]} />
+      {trustReviewsUnlocked ? (
+        <ReferenceViewer references={(references ?? []) as unknown as ComponentProps<typeof ReferenceViewer>["references"]} />
+      ) : (
+        <HiringDataUnlockGate>
+          <ReferenceViewer references={(references ?? []) as unknown as ComponentProps<typeof ReferenceViewer>["references"]} />
+        </HiringDataUnlockGate>
+      )}
 
       {!isEmployeeSelfView && (
         /* Optional hiring outcome feedback (dismissible; stored for aggregate use only) */

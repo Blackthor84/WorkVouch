@@ -5,6 +5,7 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { admin } from "@/lib/supabase-admin";
 
 export type SuperAdminAuth = { userId: string };
 
