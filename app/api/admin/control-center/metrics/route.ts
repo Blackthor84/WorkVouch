@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 
-import { requireSuperAdminApi "@/lib/admin/requireSuperAdminApi";
+import { requireSuperAdminApi } from "@/lib/admin/requireSuperAdminApi";
 import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
