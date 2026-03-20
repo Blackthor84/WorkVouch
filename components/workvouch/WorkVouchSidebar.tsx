@@ -22,7 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const employeeMainNav = [
-  { href: "/coworker-matches", label: "Dashboard", Icon: Squares2X2Icon, IconSolid: Squares2X2IconSolid },
+  { href: "/dashboard", label: "Dashboard", Icon: Squares2X2Icon, IconSolid: Squares2X2IconSolid },
   { href: "/coworker-matches", label: "Matches", Icon: UserGroupIcon, IconSolid: UserGroupIconSolid },
   { href: "/requests", label: "References", Icon: InboxStackIcon, IconSolid: InboxStackIconSolid, badgeKey: "requests" },
 ];
@@ -52,7 +52,7 @@ export function WorkVouchSidebar({
 } = {}) {
   const pathname = usePathname();
   const mainNav = role === "employer" ? employerMainNav : employeeMainNav;
-  const logoHref = role === "employer" ? "/employer" : "/coworker-matches";
+  const logoHref = role === "employer" ? "/employer" : "/dashboard";
 
   const navContent = (
     <>

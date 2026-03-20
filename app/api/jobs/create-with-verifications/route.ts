@@ -13,9 +13,13 @@ export async function POST(req: Request) {
     company_name,
     job_title,
     state,
+    location,
     start_date,
     end_date,
+    is_current,
+    employment_type,
     coworkers = [],
+    coworker_emails,
   } = body;
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -40,8 +44,17 @@ export async function POST(req: Request) {
     .maybeSingle();
   const requesterProfileId = (profile as { id: string } | null)?.id ?? user.id;
 
-  const locationStr = state?.trim() ? String(state).trim() : null;
+  const locationStr =
+    typeof location === "string" && location.trim()
+      ? location.trim()
+      : state?.trim()
+        ? String(state).trim()
+        : null;
   const safeTitle = (String(job_title ?? "").trim()) || "Unknown Job";
+  const end = end_date ? String(end_date) : null;
+  const current = typeof is_current === "boolean" ? is_current : !end;
+  const empType =
+    typeof employment_type === "string" && employment_type.trim() ? String(employment_type).trim() : "full_time";
 
   const { data: job, error } = await supabaseAny
     .from("jobs")
@@ -50,9 +63,9 @@ export async function POST(req: Request) {
       company_name: String(company_name).trim(),
       title: safeTitle,
       start_date: String(start_date),
-      end_date: end_date ? String(end_date) : null,
-      is_current: !end_date,
-      employment_type: "full_time",
+      end_date: current ? null : end,
+      is_current: current,
+      employment_type: empType,
       location: locationStr,
       verification_status: "unverified",
       is_private: false,
@@ -65,8 +78,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const emails = Array.isArray(coworkers)
-    ? [...new Set(coworkers.map((e: string) => String(e).trim().toLowerCase()).filter(Boolean))]
+  const rawList = Array.isArray(coworker_emails) ? coworker_emails : coworkers;
+  const emails = Array.isArray(rawList)
+    ? [...new Set(rawList.map((e: string) => String(e).trim().toLowerCase()).filter(Boolean))]
     : [];
 
   for (const email of emails) {

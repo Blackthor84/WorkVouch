@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { getEmploymentMatchesForUser, type EmploymentMatchRow } from "@/lib/actions/employmentMatches";
 import { getTrustOverview, type TrustOverview } from "@/lib/actions/trustOverview";
@@ -42,6 +43,8 @@ export default function DashboardClient({
 }: {
   initialTrustOverview: TrustOverview | null;
 }) {
+  const searchParams = useSearchParams();
+  const fromOnboarding = searchParams.get("from") === "onboarding";
   const [trustOverview, setTrustOverview] = useState<TrustOverview>(
     initialTrustOverview ?? defaultTrustOverview
   );
@@ -229,6 +232,26 @@ export default function DashboardClient({
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+        {fromOnboarding && (
+          <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800 dark:bg-blue-950/40">
+            <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">Guided setup — find coworkers</p>
+            <p className="text-xs text-blue-800/90 dark:text-blue-200/90 mt-1">
+              Confirm matches at the same employer. When you have at least one match, continue to step 3.
+            </p>
+            <Link
+              href={
+                trustOverview.coworkerMatches >= 1
+                  ? "/onboarding?celebrate=matches"
+                  : "/onboarding"
+              }
+              className="mt-2 inline-flex text-sm font-bold text-blue-700 hover:text-blue-800 dark:text-blue-300"
+            >
+              {trustOverview.coworkerMatches >= 1
+                ? "Continue setup — Nice, you're building your profile →"
+                : "Back to setup checklist →"}
+            </Link>
+          </div>
+        )}
         {/* Header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>

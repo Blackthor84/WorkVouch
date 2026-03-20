@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { persistInviteTokenForSignup } from "@/components/invites/CoworkerInvitePanel";
 
 let signupAlreadyAttempted = false;
 
@@ -21,9 +22,14 @@ export default function SignupClient() {
   const [loading, setLoading] = useState(false);
 
   const sourceVerification = searchParams.get("source") === "verification";
+  const coworkerInviteToken = searchParams.get("invite")?.trim() ?? "";
   const prefilledEmail = searchParams.get("email")?.trim() ?? "";
   const prefilledCompany = searchParams.get("company")?.trim() ?? "";
   const didPrefill = useRef(false);
+
+  useEffect(() => {
+    if (coworkerInviteToken) persistInviteTokenForSignup(coworkerInviteToken);
+  }, [coworkerInviteToken]);
 
   useEffect(() => {
     if (didPrefill.current) return;
@@ -70,6 +76,7 @@ export default function SignupClient() {
 
       const role = "employee"; // role chosen later at select-role; pass default for metadata
       const username = cleanEmail.split("@")[0] || undefined;
+      const inviteTok = searchParams.get("invite")?.trim() ?? "";
 
       const { data, error } = await supabaseBrowser.auth.signUp({
         email: cleanEmail,
@@ -79,6 +86,7 @@ export default function SignupClient() {
             full_name: fullName.trim() || undefined,
             role,
             username,
+            ...(inviteTok ? { coworker_invite_token: inviteTok } : {}),
           },
           emailRedirectTo:
             typeof window !== "undefined"
@@ -137,6 +145,12 @@ export default function SignupClient() {
         <h1 className="text-3xl font-bold mb-2 text-center text-gray-900 dark:text-white">
           Create account
         </h1>
+        {coworkerInviteToken && (
+          <p className="text-sm text-center mb-4 px-2 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-100 border border-emerald-200 dark:border-emerald-800">
+            You&apos;re joining through a coworker invite — you&apos;ll be linked when you finish signup so you can
+            match on shared employers and grow trust together.
+          </p>
+        )}
         {sourceVerification && (
           <p className="text-sm text-center mb-4 px-2 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
             You were invited to join WorkVouch after verifying a coworker.

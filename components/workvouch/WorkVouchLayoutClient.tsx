@@ -4,6 +4,7 @@ import { useState } from "react";
 import { WorkVouchSidebar } from "./WorkVouchSidebar";
 import { WorkVouchNavbar } from "./WorkVouchNavbar";
 import { UpgradeModal } from "./UpgradeModal";
+import { ClaimCoworkerInviteBootstrap } from "@/components/invites/ClaimCoworkerInviteBootstrap";
 
 export function WorkVouchLayoutClient({
   unreadNotificationCount,
@@ -46,6 +47,7 @@ export function WorkVouchLayoutClient({
           onMenuClick={() => setMobileOpen(true)}
         />
         <main className="flex-1 overflow-y-auto min-h-0">
+          <ClaimCoworkerInviteBootstrap />
           {children}
         </main>
       </div>

@@ -47,7 +47,7 @@ export async function getTrustOverview(): Promise<TrustOverview> {
 
     const [scoreRes, matchesRes, jobsRes] = await Promise.all([
       sb.from("trust_scores").select("score, reference_count, job_count").eq("user_id", user.id).maybeSingle(),
-      sb.from("coworker_matches").select("id", { count: "exact", head: true }).or(`user_1.eq.${user.id},user_2.eq.${user.id}`),
+      sb.from("coworker_matches").select("id", { count: "exact", head: true }).or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`),
       sb.from("jobs").select("id", { count: "exact", head: true }).eq("user_id", user.id),
     ]);
 

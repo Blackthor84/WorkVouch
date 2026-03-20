@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 const EMPLOYMENT_TYPES = [
@@ -17,8 +17,10 @@ const US_STATES = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC",
 ];
 
-export default function AddJobPage() {
+function AddJobPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromOnboarding = searchParams.get("from") === "onboarding";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -95,7 +97,12 @@ export default function AddJobPage() {
         return;
       }
 
-      router.push(`/jobs/new/success?job_id=${encodeURIComponent(data.job_id ?? "")}&sent=${data.verification_requests_sent ?? 0}`);
+      const q = new URLSearchParams();
+      if (data.job_id) q.set("job_id", String(data.job_id));
+      q.set("sent", String(data.verification_requests_sent ?? 0));
+      if (companyName.trim()) q.set("company", companyName.trim());
+      if (fromOnboarding) q.set("returnTo", "onboarding");
+      router.push(`/jobs/new/success?${q.toString()}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setLoading(false);
@@ -364,7 +371,7 @@ export default function AddJobPage() {
             {loading ? "Saving…" : "Save job"}
           </button>
           <Link
-            href="/dashboard"
+            href={fromOnboarding ? "/onboarding" : "/dashboard"}
             className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
           >
             Cancel
@@ -372,5 +379,13 @@ export default function AddJobPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function AddJobPage() {
+  return (
+    <Suspense fallback={<div className="max-w-2xl p-8 text-slate-600">Loading…</div>}>
+      <AddJobPageInner />
+    </Suspense>
   );
 }

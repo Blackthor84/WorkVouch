@@ -1,12 +1,19 @@
-import { getCurrentUserProfile } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth/getUser";
-import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import { ConfidenceScore } from "@/components/confidence-score";
-import { VerifiedJobs } from "@/components/verified-jobs";
-import { PendingVerifications } from "@/components/pending-verifications";
-import { BoostTrustScoreCard } from "@/components/workvouch/BoostTrustScoreCard";
-import { PlusIcon, DocumentArrowUpIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
+import { createClient } from "@/lib/supabase/server";
+import { getDashboardHomeData } from "@/lib/actions/dashboard/getDashboardHome";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions";
+import { DashboardOnboardingCard } from "@/components/dashboard/DashboardOnboardingCard";
+import { StatCard } from "@/components/dashboard/StatCard";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+import { MatchPreview } from "@/components/dashboard/MatchPreview";
+import { DashboardProfileStrength } from "@/components/dashboard/DashboardProfileStrength";
+import { CoworkerGrowthBanner } from "@/components/dashboard/CoworkerGrowthBanner";
+import { OnboardingIncompleteBanner } from "@/components/dashboard/OnboardingIncompleteBanner";
+import { isGuidedProfileComplete } from "@/lib/onboarding/guidedOnboarding";
+import { UserGroupIcon, ChatBubbleLeftRightIcon, BriefcaseIcon } from "@heroicons/react/24/outline";
+import { StarIcon } from "@heroicons/react/24/solid";
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
@@ -14,65 +21,91 @@ export const dynamic = "force-dynamic";
 export default async function UserDashboardPage() {
   const user = await getUser();
   if (!user) return null;
-  const profile = await getCurrentUserProfile();
-  const profileId = profile?.id ?? user.id;
+
+  const supabase = await createClient();
+  const { data: profileRow } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const role = ((profileRow as { role?: string } | null)?.role ?? "").toLowerCase();
+  if (role === "employer") {
+    redirect("/employer");
+  }
+
+  const data = await getDashboardHomeData();
+  if (!data) return null;
+
+  const hasReputationSignal = data.trustScore > 0 || data.referenceCount > 0;
+  const guidedStats = {
+    jobsCount: data.jobsCount,
+    matchesCount: data.matchesCount,
+    referenceCount: data.referenceCount,
+  };
+  const showOnboardingBanner = !isGuidedProfileComplete(guidedStats);
 
   return (
-    <main className="flex-1 flex flex-col max-w-5xl mx-auto w-full">
-      {/* Trust Overview header */}
-      <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-          Trust Overview
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          WorkVouch is a trust score for your work history. Add jobs and get coworkers to verify.
-        </p>
-      </div>
+    <div className="flex-1 w-full bg-slate-50/80 dark:bg-slate-950 pb-12">
+      <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <DashboardHeader
+          firstName={data.firstName}
+          trustScore={data.trustScore}
+          hasReputationSignal={hasReputationSignal}
+          verifiedByCoworkers={data.verifiedByCoworkers}
+          isNewUser={data.isNewUser}
+        />
 
-      {/* Action buttons */}
-      <div className="flex flex-wrap gap-3 mb-8">
-        <Link
-          href="/jobs/new"
-          className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-        >
-          <PlusIcon className="h-5 w-5" />
-          Add Verified Job
-        </Link>
-        <Link
-          href="/upload-resume"
-          className="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-        >
-          <DocumentArrowUpIcon className="h-5 w-5" />
-          Upload Resume
-        </Link>
-        <Link
-          href="/coworker-matches"
-          className="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-        >
-          <EnvelopeIcon className="h-5 w-5" />
-          Request Verification
-        </Link>
-      </div>
+        <OnboardingIncompleteBanner show={showOnboardingBanner} />
 
-      {/* Boost Trust Score — invite coworkers */}
-      <div className="mb-8">
-        <BoostTrustScoreCard />
-      </div>
+        {data.isNewUser && <DashboardOnboardingCard />}
 
-      {/* Confidence Score */}
-      <div className="mb-8">
-        <ConfidenceScore userId={user.id} />
-      </div>
+        <CoworkerGrowthBanner matchesCount={data.matchesCount} />
 
-      {/* Verified Work History + Pending Verifications */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <VerifiedJobs userId={user.id} />
-        </div>
-        <div>
-          <PendingVerifications profileId={profileId} />
-        </div>
+        <DashboardQuickActions />
+
+        <section aria-label="Stats overview">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-3">
+            Overview
+          </h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard
+              label="Matches"
+              value={data.matchesCount}
+              accent="blue"
+              icon={<UserGroupIcon className="h-6 w-6" />}
+            />
+            <StatCard
+              label="Reviews"
+              value={data.referenceCount}
+              accent="emerald"
+              icon={<ChatBubbleLeftRightIcon className="h-6 w-6" />}
+            />
+            <StatCard
+              label="Jobs"
+              value={data.jobsCount}
+              accent="slate"
+              icon={<BriefcaseIcon className="h-6 w-6" />}
+            />
+            <StatCard
+              label="Trust score"
+              value={
+                <span className="inline-flex items-center gap-1.5">
+                  <StarIcon className="h-7 w-7 text-amber-500 shrink-0" aria-hidden />
+                  {hasReputationSignal ? data.trustScore : "—"}
+                </span>
+              }
+              accent="amber"
+            />
+          </div>
+        </section>
+
+        <section aria-label="Recent activity and matches" className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Recent activity</h2>
+            <ActivityFeed items={data.activities} />
+          </div>
+          <div className="space-y-8">
+            <MatchPreview matches={data.matchesPreview} />
+            <DashboardProfileStrength percent={data.profileStrengthPct} />
+          </div>
+        </section>
       </div>
-    </main>
+    </div>
   );
 }
