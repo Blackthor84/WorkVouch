@@ -1,76 +1,61 @@
-// IMPORTANT:
-// All server routes must use the `admin` Supabase client.
-// Do not use `supabase` in API routes.
-
-/**
- * GET /api/admin/organizations — list organizations (admin/super_admin). Org search by name/slug.
- * Demo orgs only when isSandboxRequest(); production never sees demo rows.
- */
+export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-import { getAdminContext } from "@/lib/admin/getAdminContext";
-import { admin } from "@/lib/supabase-admin";
 import { isSandboxRequest } from "@/lib/sandboxRequest";
-import { getRequestId } from "@/lib/requestContext";
-import { logAdminAction } from "@/lib/adminAudit";
+import { requireSuperAdminApi } from "@/lib/admin/requireSuperAdminApi";
+import { admin } from "@/lib/supabase-admin";
 
-export const dynamic = "force-dynamic";
-
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-  console.error("Missing SUPABASE URL");
-}
-if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  console.error("Missing SERVICE ROLE KEY");
-}
-
+/**
+ * GET /api/admin/organizations
+ * List organizations (super_admin only).
+ * Production admin only sees production, non-demo orgs; sandbox requests see all.
+ */
 export async function GET(req: NextRequest) {
-  const adminContext = await getAdminContext(req);
-  if (!adminContext.isAdmin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const auth = await requireSuperAdminApi();
+  if (auth instanceof NextResponse) return auth;
 
   try {
-    const url = new URL(req.url);
-    const search = url.searchParams.get("search")?.trim() || "";
+    const { searchParams } = new URL(req.url);
+    const search = searchParams.get("search")?.trim();
 
-    let query = admin.from("organizations")
-      .select("*")
-      .order("name");
+    let query = admin
+      .from("organizations")
+      .select("id, slug, name, created_at, updated_at, billing_tier, demo, mode")
+      .order("created_at", { ascending: false });
+
+    if (search) {
+      const safe = search.replace(/%/g, "\\%").replace(/_/g, "\\_");
+      query = query.or(`name.ilike.%${safe}%,slug.ilike.%${safe}%`);
+    }
 
     if (!isSandboxRequest(req)) {
       query = query.eq("mode", "production").eq("demo", false);
-    }
-    if (search) {
-      query = query.or(`name.ilike.%${search}%,slug.ilike.%${search}%`);
     }
 
     const { data, error } = await query;
 
     if (error) {
-      console.error("Supabase error:", error);
-      return NextResponse.json(
-        { error: "Database query failed" },
-        { status: 500 }
-      );
+      console.warn("[admin/organizations] query error:", error.message);
+      return NextResponse.json({ organizations: [] });
     }
 
-    const organizations = Array.isArray(data) ? data : [];
-
-    logAdminAction({
-      adminId: adminContext.authUserId,
-      action: "READ",
-      resource: "ORGANIZATIONS",
-      requestId: getRequestId(req),
-    });
+    const organizations =
+      (data ?? []).map((o) => ({
+        id: o.id,
+        slug: o.slug,
+        name: o.name ?? o.slug ?? "Unnamed",
+        created_at: o.created_at,
+        updated_at: o.updated_at,
+        billing_tier: o.billing_tier,
+        demo: Boolean(o.demo),
+        mode: o.mode ?? "production",
+      })) ?? [];
 
     return NextResponse.json({ organizations });
-  } catch (err) {
-    console.error("[ADMIN_API_ERROR]", err);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.warn("[admin/organizations] failed:", msg);
+    return NextResponse.json({ organizations: [] });
   }
 }

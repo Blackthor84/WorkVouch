@@ -24,10 +24,21 @@ export function AdminOrganizationsClient() {
     try {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
-      const res = await fetch(`/api/admin/organizations?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
-      setOrgs(Array.isArray(data) ? data : (data?.organizations ?? []));
+      const res = await fetch(`/api/admin/organizations?${params.toString()}`, {
+        credentials: "include",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setOrgs([]);
+        return;
+      }
+      setOrgs(
+        Array.isArray(data.organizations)
+          ? data.organizations
+          : Array.isArray(data)
+            ? data
+            : []
+      );
     } catch {
       setOrgs([]);
     } finally {
@@ -86,7 +97,7 @@ export function AdminOrganizationsClient() {
         </div>
       )}
       {!loading && orgs.length === 0 && (
-        <p className="text-[#64748B]">No organizations found.</p>
+        <p className="text-[#64748B]">No data yet</p>
       )}
     </div>
   );

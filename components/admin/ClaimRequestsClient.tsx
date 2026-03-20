@@ -99,7 +99,7 @@ export function ClaimRequestsClient() {
             {items.length === 0 ? (
               <tr>
                 <td colSpan={5} className="p-6 text-center text-grey-medium dark:text-gray-400">
-                  No claim requests
+                  No data yet
                 </td>
               </tr>
             ) : (

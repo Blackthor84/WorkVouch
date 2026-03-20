@@ -6,7 +6,8 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminUsers() {
   const admin = await getAdminContext();
-  if (!admin.isAdmin) redirect("/login");
+  if (!admin.isAuthenticated) redirect("/login");
+  if (!admin.isSuperAdmin) redirect("/admin");
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

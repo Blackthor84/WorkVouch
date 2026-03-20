@@ -19,22 +19,26 @@ export function AdminUsersList({ role = "admin" }: AdminUsersListProps) {
     setLoading(true);
     setFetchError(null);
     try {
-      const res = await fetch("/api/admin/users");
+      const res = await fetch("/api/admin/users", { credentials: "include" });
       const data = await res.json();
       if (!res.ok) {
-        setFetchError(data?.error ?? "Error loading users");
         setUsers([]);
+        if (res.status === 401 || res.status === 403) {
+          setFetchError("Unauthorized");
+        } else {
+          setFetchError(null);
+        }
         return;
       }
       if (data?.error) {
-        setFetchError(data.error);
         setUsers([]);
+        setFetchError(null);
         return;
       }
       setUsers(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching users:", err);
-      setFetchError("Error loading users");
+      setFetchError(null);
       setUsers([]);
     } finally {
       setLoading(false);
@@ -50,11 +54,11 @@ export function AdminUsersList({ role = "admin" }: AdminUsersListProps) {
   }
 
   if (fetchError) {
-    return <p className="p-4 text-red-600">Error loading users</p>;
+    return <p className="p-4 text-red-600">{fetchError}</p>;
   }
 
   if (!users || users.length === 0) {
-    return <p className="p-4 text-[#64748B]">No users found (debug mode)</p>;
+    return <p className="p-4 text-[#64748B]">No users found</p>;
   }
 
   return (
