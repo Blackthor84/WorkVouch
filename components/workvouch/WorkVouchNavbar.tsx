@@ -12,6 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { NotificationBell } from "./NotificationBell";
 import { supabaseBrowser } from "@/lib/supabase/browser";
+import { SmartGuide } from "@/components/guidance/SmartGuide";
 
 export function WorkVouchNavbar({
   unreadNotificationCount = 0,
@@ -98,6 +99,7 @@ export function WorkVouchNavbar({
           <span className="text-white/80 font-medium text-xs">Trust</span>
         </Link>
         <NotificationBell unreadCount={unreadNotificationCount} />
+        <SmartGuide variant="light" />
 
         <div className="relative" ref={dropdownRef}>
           <button

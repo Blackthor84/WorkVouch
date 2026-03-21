@@ -8,9 +8,9 @@ export function OnboardingIncompleteBanner({ show }: { show: boolean }) {
     <div className="rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-4 shadow-sm dark:from-blue-950/40 dark:to-indigo-950/30 dark:border-blue-800/60">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <p className="text-sm font-bold text-blue-950 dark:text-blue-100">Finish your profile to unlock trust score</p>
+          <p className="text-sm font-bold text-blue-950 dark:text-blue-100">Keep building your trust profile</p>
           <p className="text-xs text-blue-900/80 dark:text-blue-200/90 mt-1">
-            Add a job, match coworkers, and get a review — then your trust score reflects real reputation.
+            Your score is live — add a job, confirm matches, and get a coworker verification so it reflects real reputation.
           </p>
         </div>
         <Link

@@ -268,7 +268,7 @@ export function computeROI(
     value: badHireCost,
     assumption: `${badHireCount} × $${assumptions.salary.toLocaleString()} × ${assumptions.badHireMultiplier}`,
     confidence,
-    triggerDescription: inputs.forceHireOrOverrideUsage > 0 ? "Force hire / override usage" : inputs.trustCollapseEvents > 0 ? "Trust collapse events" : "Material risk from trust/compliance/fragility/debt",
+    triggerDescription: inputs.forceHireOrOverrideUsage > 0 ? "Override decision usage" : inputs.trustCollapseEvents > 0 ? "High risk outcome events" : "Material risk from trust/compliance/fragility/debt",
   });
 
   const turnoverEmployees = Math.min(inputs.populationSize, Math.max(0, Math.floor(inputs.populationSize * (inputs.trustCollapseEvents > 0 ? 0.2 : 0.05))));
@@ -278,7 +278,7 @@ export function computeROI(
     value: turnoverCost,
     assumption: `${turnoverEmployees} × $${assumptions.salary.toLocaleString()} × ${assumptions.turnoverMultiplier}`,
     confidence,
-    triggerDescription: inputs.trustCollapseEvents > 0 ? "Trust collapse events (elevated turnover rate)" : "Population size and base turnover rate",
+    triggerDescription: inputs.trustCollapseEvents > 0 ? "High risk outcomes (elevated turnover rate)" : "Population size and base turnover rate",
   });
 
   const complianceCost = scaledComplianceP * assumptions.averageCompliancePenalty;

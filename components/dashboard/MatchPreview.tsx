@@ -17,7 +17,9 @@ export function MatchPreview({ matches, viewAllHref = "/coworker-matches" }: { m
     return (
       <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:bg-slate-900 dark:border-slate-700">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Matches</h2>
-        <p className="text-sm text-slate-500 mt-2">No coworker matches yet. Add overlapping jobs to get matched.</p>
+        <p className="text-sm text-slate-500 mt-2">
+          No matches yet — add your job history (with accurate dates) to start finding coworkers you overlapped with.
+        </p>
         <Link
           href={viewAllHref}
           className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700"

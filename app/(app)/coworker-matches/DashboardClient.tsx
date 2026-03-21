@@ -290,9 +290,9 @@ export default function DashboardClient({
               <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
                 <UserGroupIcon className="h-8 w-8 text-slate-500 dark:text-slate-400" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Build your network</h3>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">No matches yet</h3>
               <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
-                Add jobs to find coworkers
+                Add your job history with accurate dates — we use real employment overlap to suggest coworkers you may know.
               </p>
               <Link
                 href="/my-jobs"
@@ -304,13 +304,16 @@ export default function DashboardClient({
           ) : (
             <>
               <div className="mb-6 flex items-center gap-2">
-                {trustOverview.trustScore != null && trustOverview.trustScore > 0 ? (
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    ⭐ Trust Score: <strong>{Math.min(100, Math.max(0, trustOverview.trustScore))}</strong>
-                  </p>
-                ) : (
-                  <p className="text-sm text-slate-500 dark:text-slate-400">No trust score yet</p>
-                )}
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  ⭐ Trust Score:{" "}
+                  <strong>{Math.min(100, Math.max(0, trustOverview.trustScore ?? 0))}</strong>
+                  {!(trustOverview.trustScore != null && trustOverview.trustScore > 0) && (
+                    <span className="font-normal text-slate-500 dark:text-slate-400">
+                      {" "}
+                      — add verifications to grow it
+                    </span>
+                  )}
+                </p>
               </div>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {matches.map((match, index) => (

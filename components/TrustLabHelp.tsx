@@ -33,10 +33,10 @@ export function TrustLabHelp({ open, onClose }: { open: boolean; onClose: () => 
         ✕
       </button>
 
-      <h2>Trust Simulation Lab — Quick Guide</h2>
+      <h2>Trust &amp; hiring insights — quick guide</h2>
 
       <p style={{ opacity: 0.85 }}>
-        Everything in this lab is simulated. Real employee records are never modified.
+        Everything here is modeled for insights. Real employee records are never modified.
       </p>
 
       <hr />
@@ -67,7 +67,7 @@ export function TrustLabHelp({ open, onClose }: { open: boolean; onClose: () => 
 
       <h3>One-Sentence Summary</h3>
       <blockquote style={{ opacity: 0.85 }}>
-        &ldquo;Trust Simulation Lab lets us test hiring and verification decisions before making them.&rdquo;
+        &ldquo;Hiring insights let us test verification and risk before we commit to a decision.&rdquo;
       </blockquote>
     </div>
   );

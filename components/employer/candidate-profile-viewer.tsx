@@ -45,6 +45,10 @@ import { EmployerNotesPanel } from "@/components/employer/EmployerNotesPanel";
 import { TeamSharingPanel } from "@/components/employer/TeamSharingPanel";
 import VerticalBadges from "@/components/VerticalBadges";
 import { HiringDataUnlockGate } from "@/components/employer/HiringDataUnlockGate";
+import { SmartInsight } from "@/components/guidance/SmartInsight";
+import { SuggestedActions } from "@/components/guidance/SuggestedActions";
+import { TrustScoreHint, ConfidenceHint, RiskHint } from "@/components/guidance/TrustMetricHints";
+import { HiringGuidanceCoachmarks } from "@/components/guidance/HiringGuidanceCoachmarks";
 
 type CandidateData = {
   profile?: {
@@ -86,11 +90,26 @@ export function CandidateProfileViewer({
   const [showMessageForm, setShowMessageForm] = useState(false);
   const [messageBody, setMessageBody] = useState("");
   const [trustDetailsExpanded, setTrustDetailsExpanded] = useState(false);
+  const [employerConfidenceLabel, setEmployerConfidenceLabel] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isEmployeeSelfView) checkSavedStatus();
     else setLoading(false);
   }, [isEmployeeSelfView]);
+
+  useEffect(() => {
+    if (isEmployeeSelfView || !candidateData.profile?.id) return;
+    let cancelled = false;
+    fetch(`/api/employer/confidence/${candidateData.profile.id}`, { credentials: "include" })
+      .then((r) => r.json().catch(() => ({})))
+      .then((d) => {
+        if (!cancelled && d?.confidenceLevel) setEmployerConfidenceLabel(String(d.confidenceLevel));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isEmployeeSelfView, candidateData.profile?.id]);
 
   const checkSavedStatus = async () => {
     if (!candidateData.profile?.id) return;
@@ -179,6 +198,7 @@ export function CandidateProfileViewer({
 
   return (
     <div className="space-y-6">
+      <HiringGuidanceCoachmarks enabled={!isEmployeeSelfView} />
       {isEmployeeSelfView && (
         <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20 px-4 py-3 text-sm text-blue-800 dark:text-blue-200" role="status">
           This is exactly what employers see when viewing your profile.
@@ -241,7 +261,7 @@ export function CandidateProfileViewer({
             />
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2" id={!isEmployeeSelfView ? "wv-guide-actions" : undefined}>
           <Button variant="secondary" onClick={handleSave} disabled={loading}>
             {saved ? (
               <>
@@ -274,8 +294,12 @@ export function CandidateProfileViewer({
       {/* Trust Score Gauge + Breakdown (near Verification Summary / Trust) */}
       {trustReviewsUnlocked ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:bg-[#111827] dark:border-slate-700">
+          <div
+            id="wv-guide-trust"
+            className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:bg-[#111827] dark:border-slate-700"
+          >
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Trust score</p>
+            <TrustScoreHint />
             <TrustScoreGauge
               score={trust_score ?? 0}
               referenceCount={trust_reference_count ?? 0}
@@ -288,6 +312,7 @@ export function CandidateProfileViewer({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:bg-[#111827] dark:border-slate-700 text-center">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Trust score</p>
+              <TrustScoreHint className="text-center" />
               <p className="mt-2 text-6xl font-bold text-blue-600 tabular-nums">{Math.round(trust_score ?? 0)}</p>
               <p className="text-sm text-slate-500 mt-1">0–100 scale</p>
             </div>
@@ -305,6 +330,25 @@ export function CandidateProfileViewer({
         <VerifiedWorkTimeline profileId={safeProfile.id} />
       )}
 
+      {!isEmployeeSelfView && trustReviewsUnlocked && (
+        <div
+          id="wv-guide-insights"
+          className="rounded-2xl border border-indigo-100 bg-indigo-50/50 dark:bg-indigo-950/20 dark:border-indigo-900 p-4 space-y-3"
+        >
+          <SmartInsight
+            trustScore={Math.round(trust_score ?? 0)}
+            confidence={employerConfidenceLabel}
+            referenceCount={trust_reference_count ?? 0}
+          />
+          <SuggestedActions
+            trustScore={Math.round(trust_score ?? 0)}
+            confidence={employerConfidenceLabel}
+            referenceCount={trust_reference_count ?? 0}
+            candidateId={safeProfile.id}
+          />
+        </div>
+      )}
+
       {/* WorkVouch Insights + employer intelligence — premium hiring */}
       {!isEmployeeSelfView && trustReviewsUnlocked && (
         <>
@@ -318,8 +362,14 @@ export function CandidateProfileViewer({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <TrustForecastCard profileId={safeProfile.id} />
             <IndustryBenchmarkCard profileId={safeProfile.id} />
-            <HiringConfidenceCard candidateId={safeProfile.id} />
-            <RiskAlertPanel candidateId={safeProfile.id} />
+            <div id="wv-guide-confidence">
+              <ConfidenceHint className="mb-2" />
+              <HiringConfidenceCard candidateId={safeProfile.id} />
+            </div>
+            <div id="wv-guide-risk">
+              <RiskHint className="mb-2" />
+              <RiskAlertPanel candidateId={safeProfile.id} />
+            </div>
           </div>
           {/* Top row: Verification, Depth, Timeline, Trust Policy Match */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

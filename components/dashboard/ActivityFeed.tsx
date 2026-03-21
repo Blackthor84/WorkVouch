@@ -31,8 +31,10 @@ export function ActivityFeed({ items }: { items: DashboardActivityItem[] }) {
   if (items.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center dark:border-slate-700 dark:bg-slate-900/30">
-        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">No recent activity yet</p>
-        <p className="text-xs text-slate-500 mt-1">Add a job and find coworkers to see matches and reviews here.</p>
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">No activity yet — your first insight appears here soon</p>
+        <p className="text-xs text-slate-500 mt-1">
+          Add a job, check coworker matches, and request a verification — matches and reviews show up as your network grows.
+        </p>
       </div>
     );
   }

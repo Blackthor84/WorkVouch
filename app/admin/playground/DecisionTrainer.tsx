@@ -30,7 +30,7 @@ export function DecisionTrainer({ sim, execute: executeProp }: Props) {
       rationale: rationale || "Force hire (no correct answer — decision under uncertainty)",
     };
     (executeProp ? executeProp(action) : executeAction(sim, action));
-    setOutcome("Force hire applied. Replay later with new information to compare.");
+    setOutcome("Override decision (approve) applied. Replay later with new information to compare.");
   }, [sim, executeProp, rationale]);
 
   const forceReject = useCallback(() => {
@@ -43,7 +43,7 @@ export function DecisionTrainer({ sim, execute: executeProp }: Props) {
       rationale: rationale || "Force reject (decision under uncertainty)",
     };
     (executeProp ? executeProp(action) : executeAction(sim, action));
-    setOutcome("Force reject applied. Reasonable decisions can still fail — rewind/fork to compare.");
+    setOutcome("Reject candidate applied. Reasonable decisions can still fail — rewind or branch scenarios to compare.");
   }, [sim, executeProp, rationale]);
 
   return (
@@ -101,14 +101,14 @@ export function DecisionTrainer({ sim, execute: executeProp }: Props) {
           onClick={forceHire}
           className="rounded border border-green-600 bg-green-50 px-3 py-2 text-sm text-green-800 hover:bg-green-100"
         >
-          Force hire
+          Override decision (approve)
         </button>
         <button
           type="button"
           onClick={forceReject}
           className="rounded border border-red-600 bg-red-50 px-3 py-2 text-sm text-red-800 hover:bg-red-100"
         >
-          Force reject
+          Reject candidate
         </button>
       </div>
 

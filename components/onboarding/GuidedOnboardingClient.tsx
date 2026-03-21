@@ -13,6 +13,7 @@ import {
   UserGroupIcon,
   ChatBubbleLeftRightIcon,
   SparklesIcon,
+  MapIcon,
 } from "@heroicons/react/24/outline";
 import { cn } from "@/lib/utils";
 
@@ -25,12 +26,39 @@ const celebrateCopy: Record<string, string> = {
   progress: CELEBRATION_DEFAULT,
 };
 
+const ROADMAP_STEPS = [
+  {
+    n: 1,
+    title: "Work history",
+    hint: "Add your work history to start building your trust profile.",
+  },
+  {
+    n: 2,
+    title: "Verification",
+    hint: "Get verified by coworkers or supervisors you actually worked with.",
+  },
+  {
+    n: 3,
+    title: "Trust & insights",
+    hint: "Review your trust score and activity on the dashboard.",
+  },
+  {
+    n: 4,
+    title: "Matches",
+    hint: "Start connecting with coworker matches from overlapping jobs.",
+  },
+] as const;
+
 export function GuidedOnboardingClient({
   stats,
   firstName,
+  profileBasicsComplete,
+  verifiedByCoworkers,
 }: {
   stats: GuidedOnboardingStats;
   firstName: string;
+  profileBasicsComplete: boolean;
+  verifiedByCoworkers: number;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -96,8 +124,7 @@ export function GuidedOnboardingClient({
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
+    <div className="max-w-2xl mx-auto px-4 pb-8 sm:pb-12 pt-2 sm:pt-4">
         <header className="mb-8">
           <p className="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-2">
             Step {stepNum} of 3
@@ -125,6 +152,31 @@ export function GuidedOnboardingClient({
             <p className="font-semibold text-lg leading-snug">{celebration}</p>
           </div>
         )}
+
+        <div
+          className="mb-8 rounded-2xl border border-indigo-200/80 bg-indigo-50/90 px-4 py-4 dark:border-indigo-900/60 dark:bg-indigo-950/30"
+          role="note"
+        >
+          <div className="flex items-center gap-2 text-indigo-900 dark:text-indigo-100">
+            <MapIcon className="h-5 w-5 shrink-0" aria-hidden />
+            <p className="text-sm font-bold">Your roadmap (big picture)</p>
+          </div>
+          <ol className="mt-3 space-y-2 text-sm text-indigo-950/90 dark:text-indigo-100/90 list-decimal list-inside">
+            {ROADMAP_STEPS.map((s) => (
+              <li key={s.n}>
+                <span className="font-semibold">{s.title}:</span> {s.hint}
+              </li>
+            ))}
+          </ol>
+          <p className="mt-3 text-xs text-indigo-900/75 dark:text-indigo-200/80">
+            Below are your next actions — only one is active at a time. Profile basics:{" "}
+            {profileBasicsComplete ? "looking good" : "add name + a short bio when you can"} · Verifications so far:{" "}
+            {verifiedByCoworkers > 0 || stats.referenceCount > 0
+              ? `${Math.max(verifiedByCoworkers, stats.referenceCount)} source(s)`
+              : "none yet (that's OK)"}
+            .
+          </p>
+        </div>
 
         <ul className="space-y-6">
           {steps.map((s) => {
@@ -213,7 +265,6 @@ export function GuidedOnboardingClient({
             </Link>
           </div>
         </div>
-      </div>
     </div>
   );
 }

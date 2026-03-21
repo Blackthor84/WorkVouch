@@ -1,8 +1,7 @@
 "use client";
 
 /**
- * Phases 2–12: GOD_MODE HUD, Reality Actions, Adversarial, Chaos Presets,
- * Counterfactual, Autopsy, Decision Trainer, Lenses, Reality Web, Break the Multiverse.
+ * Advanced scenarios lab (UI): signal controls, risk presets, counterfactuals, lenses.
  */
 
 import { useMultiverseLab } from "@/lib/simulation/multiverse/useMultiverseLab";
@@ -14,11 +13,11 @@ type Props = {
 };
 
 const PRESET_LABELS: Record<PresetName, string> = {
-  glassdoor_attack: "Glassdoor Attack",
-  zombie_startup: "Zombie Startup",
-  perfect_fraud: "Perfect Fraud",
-  mass_layoff_shock: "Mass Layoff Shock",
-  ai_reference_flood: "AI Reference Flood",
+  glassdoor_attack: "Negative reputation wave",
+  zombie_startup: "Thin verification baseline",
+  perfect_fraud: "Coordinated false signals",
+  mass_layoff_shock: "Workforce shock scenario",
+  ai_reference_flood: "Synthetic reference volume",
 };
 
 const LENS_LABELS: Record<PerspectiveLens, string> = {
@@ -38,7 +37,7 @@ export function MultiverseLabPanel({ role }: Props) {
 
       {/* Universe switcher + Fork / Destroy / Reset */}
       <section className="rounded-lg border border-slate-200 bg-white p-4">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">Multiverse</h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-2">Scenarios</h2>
         <div className="flex flex-wrap gap-2 items-center">
           <select
             value={lab.activeId ?? ""}
@@ -76,12 +75,12 @@ export function MultiverseLabPanel({ role }: Props) {
       <section className="rounded-lg border border-amber-300 bg-amber-50/80 p-4">
         <h2 className="text-lg font-semibold text-amber-900 mb-2">Reality actions</h2>
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={lab.doTrustCollapse} className="rounded border border-amber-600 bg-amber-100 px-3 py-2 text-sm text-amber-900 hover:bg-amber-200">Trust collapse</button>
-          <button type="button" onClick={() => lab.doFakeConsensus(3)} className="rounded border border-amber-600 bg-amber-100 px-3 py-2 text-sm text-amber-900 hover:bg-amber-200">Fake consensus (3)</button>
+          <button type="button" onClick={lab.doTrustCollapse} className="rounded border border-amber-600 bg-amber-100 px-3 py-2 text-sm text-amber-900 hover:bg-amber-200">High risk outcome</button>
+          <button type="button" onClick={() => lab.doFakeConsensus(3)} className="rounded border border-amber-600 bg-amber-100 px-3 py-2 text-sm text-amber-900 hover:bg-amber-200">Synthetic consensus (3)</button>
           <button type="button" onClick={() => lab.doSupervisorOverride(2.5)} className="rounded border border-amber-600 bg-amber-100 px-3 py-2 text-sm text-amber-900 hover:bg-amber-200">Supervisor override</button>
           <button type="button" onClick={() => lab.doTimeTravel(Math.max(0, (lab.active?.timeline.length ?? 1) - 2))} className="rounded border border-amber-600 bg-amber-100 px-3 py-2 text-sm text-amber-900 hover:bg-amber-200">Rewind</button>
-          <button type="button" onClick={() => lab.setDecisionOverride("force_hire")} className="rounded border border-green-600 bg-green-100 px-3 py-2 text-sm text-green-900 hover:bg-green-200">Force hire</button>
-          <button type="button" onClick={() => lab.setDecisionOverride("force_reject")} className="rounded border border-red-600 bg-red-100 px-3 py-2 text-sm text-red-900 hover:bg-red-200">Force reject</button>
+          <button type="button" onClick={() => lab.setDecisionOverride("force_hire")} className="rounded border border-green-600 bg-green-100 px-3 py-2 text-sm text-green-900 hover:bg-green-200">Override decision (approve)</button>
+          <button type="button" onClick={() => lab.setDecisionOverride("force_reject")} className="rounded border border-red-600 bg-red-100 px-3 py-2 text-sm text-red-900 hover:bg-red-200">Reject candidate</button>
         </div>
       </section>
 
@@ -121,7 +120,7 @@ export function MultiverseLabPanel({ role }: Props) {
 
       {/* Phase 7: Chaos presets */}
       <section className="rounded-lg border border-slate-200 bg-white p-4">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">Chaos presets</h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-2">Risk factor presets</h2>
         <div className="flex flex-wrap gap-2">
           {(Object.keys(PRESET_LABELS) as PresetName[]).map((name) => (
             <button
@@ -144,7 +143,7 @@ export function MultiverseLabPanel({ role }: Props) {
         <h2 className="text-lg font-semibold text-slate-900 mb-2">Decision trainer</h2>
         <p className="text-sm text-slate-600 mb-2">No correct answers — only consequences. Use Rewind above to replay.</p>
         <div className="rounded bg-slate-50 p-3 text-sm text-slate-700">
-          Dilemma: Candidate has mixed signals. Force hire or force reject? Current override: {lab.decisionOverride ?? "none"}.
+          Dilemma: Candidate has mixed signals. Override to approve, or reject? Current override: {lab.decisionOverride ?? "none"}.
         </div>
       </section>
 
@@ -192,9 +191,9 @@ export function MultiverseLabPanel({ role }: Props) {
         )}
       </section>
 
-      {/* Phase 12: Break the multiverse */}
+      {/* Phase 12: extreme scenario */}
       <section className="rounded-lg border border-red-200 bg-red-50/50 p-4">
-        <h2 className="text-lg font-semibold text-red-900 mb-2">Break the multiverse</h2>
+        <h2 className="text-lg font-semibold text-red-900 mb-2">Extreme scenario stress</h2>
         <button
           type="button"
           onClick={() => {
@@ -203,7 +202,7 @@ export function MultiverseLabPanel({ role }: Props) {
           }}
           className="rounded border-2 border-red-600 bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200"
         >
-          BREAK THE MULTIVERSE
+          Run extreme scenario
         </button>
       </section>
     </div>

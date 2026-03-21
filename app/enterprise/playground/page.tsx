@@ -91,7 +91,7 @@ export default function EnterprisePlayground() {
 
   return (
     <div className="max-w-6xl mx-auto px-8 py-10 space-y-8">
-      <h1 className="text-3xl font-bold">Enterprise Playground</h1>
+      <h1 className="text-3xl font-bold text-slate-900">Enterprise hiring insights</h1>
 
       <div className="flex flex-wrap gap-4 items-end border p-4 rounded">
         <div>
@@ -178,7 +178,7 @@ export default function EnterprisePlayground() {
             onClick={exportJSON}
             className="bg-green-600 text-white px-4 py-2 rounded"
           >
-            Export Scenario JSON
+            Export scenario (download)
           </button>
         )}
       </div>

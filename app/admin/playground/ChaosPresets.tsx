@@ -12,9 +12,9 @@ type Props = {
 };
 
 const PRESETS: { name: string; action: SimulationAction; message: string }[] = [
-  { name: "Glassdoor Attack", action: { type: "chaos_glassdoor", count: 5 }, message: "Glassdoor Attack: 5 negative peer signals injected." },
-  { name: "Zombie Startup", action: { type: "chaos_zombie" }, message: "Zombie Startup: threshold collapsed, single weak signal." },
-  { name: "Perfect Fraud", action: { type: "chaos_fraud" }, message: "Perfect Fraud: backdated strong supervisor + 2 peer signals." },
+  { name: "Negative reputation wave", action: { type: "chaos_glassdoor", count: 5 }, message: "Negative reputation wave: 5 negative peer signals injected." },
+  { name: "Thin verification baseline", action: { type: "chaos_zombie" }, message: "Thin verification baseline: threshold collapsed, single weak signal." },
+  { name: "Coordinated false signals", action: { type: "chaos_fraud" }, message: "Coordinated false signals: backdated strong supervisor + 2 peer signals." },
 ];
 
 export function ChaosPresets({ sim, onOutcome, execute: executeProp }: Props) {
@@ -28,7 +28,7 @@ export function ChaosPresets({ sim, onOutcome, execute: executeProp }: Props) {
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-4">
-      <h2 className="text-lg font-semibold text-slate-900 mb-2">Chaos presets</h2>
+      <h2 className="text-lg font-semibold text-slate-900 mb-2">Risk factor presets</h2>
       <p className="text-sm text-slate-600 mb-3">One-click scenario scripts. Outcomes are local and reversible.</p>
       <div className="flex flex-wrap gap-2">
         {PRESETS.map(({ name, action, message }) => (

@@ -19,7 +19,7 @@ export function LabGuide() {
             <li>The <strong>Outcome Panel</strong> (right) stays visible and updates live.</li>
             <li>Use <strong>Advanced Tools</strong> (Compare, Stress Test, ROI, Decision Trainer) for scenarios—they operate on your current simulated profile.</li>
             <li><strong>Human Factors (Modeled)</strong> are derived from observable signals only (engagement, timing, network). Each factor shows what signals contributed and how it affected outcomes. All effects are traceable and auditable; no personality or moral judgment.</li>
-            <li>All data is <strong>SIMULATED</strong>; no real employee records are modified.</li>
+            <li>All data is <strong>modeled for hiring insights</strong>; no real employee records are modified.</li>
           </ul>
         </section>
 
@@ -29,7 +29,7 @@ export function LabGuide() {
             <li><strong>Trust:</strong> Supervisor verifications (count and strength), peer/coworker reviews, certifications, network strength. More recent, positive signals raise trust.</li>
             <li><strong>Confidence:</strong> Volume and recency of signals. More reviews and newer data increase confidence in the score.</li>
             <li><strong>Fragility:</strong> Gaps, low tenure, few verifications, or negative peer sentiment can increase fragility.</li>
-            <li><strong>Trust debt:</strong> Builds when decisions or overrides conflict with the model; stress tests and force-hire scenarios can increase it.</li>
+            <li><strong>Trust debt:</strong> Builds when decisions or overrides conflict with the model; stress tests and override scenarios can increase it.</li>
           </ul>
         </section>
 
@@ -49,9 +49,9 @@ export function LabGuide() {
           <h3 className="font-semibold text-slate-900 mb-1">What advanced tools do</h3>
           <ul className="list-disc list-inside space-y-0.5 text-xs">
             <li><strong>Compare:</strong> Side-by-side scenario or multiverse comparison; load saved scenarios and compare to current.</li>
-            <li><strong>Stress Test:</strong> Chaos presets and God Mode–style actions to see how outcomes change under distortion.</li>
+            <li><strong>Stress Test:</strong> Risk factor presets and advanced signal controls to see how outcomes change under stress.</li>
             <li><strong>ROI:</strong> Estimated financial exposure and optional counterfactual (with vs without WorkVouch); industry-based assumptions.</li>
-            <li><strong>Decision Trainer:</strong> Force hire or reject and see impact on trust, debt, and compliance (multiverse/god mode).</li>
+            <li><strong>Decision Trainer:</strong> Override approve or reject and see impact on trust, debt, and compliance (advanced scenarios).</li>
           </ul>
         </section>
 

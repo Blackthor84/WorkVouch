@@ -11,6 +11,9 @@ import { MatchPreview } from "@/components/dashboard/MatchPreview";
 import { DashboardProfileStrength } from "@/components/dashboard/DashboardProfileStrength";
 import { CoworkerGrowthBanner } from "@/components/dashboard/CoworkerGrowthBanner";
 import { OnboardingIncompleteBanner } from "@/components/dashboard/OnboardingIncompleteBanner";
+import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
+import { DashboardTrustSeenMark } from "@/components/dashboard/DashboardTrustSeenMark";
+import { SmartOnboardingNudges } from "@/components/dashboard/SmartOnboardingNudges";
 import { isGuidedProfileComplete } from "@/lib/onboarding/guidedOnboarding";
 import { UserGroupIcon, ChatBubbleLeftRightIcon, BriefcaseIcon } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/24/solid";
@@ -42,16 +45,35 @@ export default async function UserDashboardPage() {
 
   return (
     <div className="flex-1 w-full bg-slate-50/80 dark:bg-slate-950 pb-12">
+      <DashboardTrustSeenMark />
       <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <DashboardHeader
           firstName={data.firstName}
           trustScore={data.trustScore}
-          hasReputationSignal={hasReputationSignal}
           verifiedByCoworkers={data.verifiedByCoworkers}
           isNewUser={data.isNewUser}
         />
 
         <OnboardingIncompleteBanner show={showOnboardingBanner} />
+
+        {showOnboardingBanner && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <OnboardingChecklist
+              jobsCount={data.jobsCount}
+              matchesCount={data.matchesCount}
+              referenceCount={data.referenceCount}
+              profileBasicsComplete={data.profileBasicsComplete}
+              verifiedByCoworkers={data.verifiedByCoworkers}
+            />
+            <SmartOnboardingNudges
+              jobsCount={data.jobsCount}
+              referenceCount={data.referenceCount}
+              verifiedByCoworkers={data.verifiedByCoworkers}
+              matchesCount={data.matchesCount}
+              profileStrengthPct={data.profileStrengthPct}
+            />
+          </div>
+        )}
 
         {data.isNewUser && <DashboardOnboardingCard />}
 
@@ -87,7 +109,7 @@ export default async function UserDashboardPage() {
               value={
                 <span className="inline-flex items-center gap-1.5">
                   <StarIcon className="h-7 w-7 text-amber-500 shrink-0" aria-hidden />
-                  {hasReputationSignal ? data.trustScore : "—"}
+                  {data.trustScore}
                 </span>
               }
               accent="amber"

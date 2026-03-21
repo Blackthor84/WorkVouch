@@ -29,6 +29,8 @@ export type DashboardHomeData = {
   matchesCount: number;
   jobsCount: number;
   profileStrengthPct: number;
+  /** Name + short bio — for onboarding checklist (partial OK elsewhere). */
+  profileBasicsComplete: boolean;
   matchesPreview: DashboardMatchPreview[];
   activities: DashboardActivityItem[];
   isNewUser: boolean;
@@ -85,6 +87,7 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
       matchesPreviewRes,
       coworkerRefsRes,
       activityRes,
+      recentReviewsRes,
     ] = await Promise.all([
       sb.from("profiles").select("full_name, professional_summary").eq("id", uid).maybeSingle(),
       sb.from("trust_scores").select("score, reference_count").eq("user_id", uid).maybeSingle(),
@@ -98,6 +101,12 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
         .limit(3),
       sb.from("coworker_references").select("reviewer_id").eq("reviewed_id", uid),
       sb.from("activity_log").select("id, action, target, metadata, created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(12),
+      sb
+        .from("coworker_references")
+        .select("id, created_at, reviewer_id")
+        .eq("reviewed_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(8),
     ]);
 
     const profile = profileRes.data as { full_name?: string | null; professional_summary?: string | null } | null;
@@ -149,7 +158,10 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
     });
 
     // Profile strength: jobs, bio, references (weighted)
-    const bioOk = (profile?.professional_summary?.trim().length ?? 0) >= 40;
+    const bioLen = profile?.professional_summary?.trim().length ?? 0;
+    const bioOk = bioLen >= 40;
+    const nameOk = (profile?.full_name?.trim().length ?? 0) >= 2;
+    const profileBasicsComplete = nameOk && bioLen >= 20;
     let strengthPts = 0;
     if (jobsCount > 0) strengthPts += 34;
     if (bioOk) strengthPts += 33;
@@ -230,6 +242,7 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
       matchesCount,
       jobsCount,
       profileStrengthPct,
+      profileBasicsComplete,
       matchesPreview,
       activities,
       isNewUser,
@@ -246,6 +259,7 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
       matchesCount: 0,
       jobsCount: 0,
       profileStrengthPct: 0,
+      profileBasicsComplete: false,
       matchesPreview: [],
       activities: [],
       isNewUser: true,

@@ -8,7 +8,9 @@ export function DashboardProfileStrength({ percent }: { percent: number }) {
     <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:bg-slate-900 dark:border-slate-700">
       <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Profile strength</h2>
       <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-        Based on jobs, bio, and references — keep going to stand out.
+        {pct < 60
+          ? "Your profile is still taking shape — finish jobs, bio, and a verification to unlock fuller trust insights."
+          : "Based on jobs, bio, and references — keep going to stand out."}
       </p>
       <div className="mt-4">
         <div className="flex justify-between text-sm font-medium text-slate-700 dark:text-slate-200">

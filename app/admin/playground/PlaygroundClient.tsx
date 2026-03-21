@@ -388,7 +388,7 @@ export default function PlaygroundClient() {
         {(multiverseMode || godMode) ? (
           <DecisionTrainer sim={sim} execute={executeWithAudit} />
         ) : (
-          <p className="text-sm text-slate-600">Enable multiverse or god mode for Decision Trainer.</p>
+          <p className="text-sm text-slate-600">Enable scenarios or administrator override for Decision Trainer.</p>
         )}
       </div>
     ),
@@ -644,7 +644,7 @@ export default function PlaygroundClient() {
             hasDistortion={godModeUsed}
           />
         ) : (
-          <p className="text-sm text-slate-600">Enable multiverse to see the graph.</p>
+          <p className="text-sm text-slate-600">Enable scenarios to see the graph.</p>
         )}
       </div>
     ),
@@ -817,7 +817,7 @@ export default function PlaygroundClient() {
                 )}
               </>
             ) : (
-              <p className="text-sm text-slate-600">Enable multiverse for stress test controls.</p>
+              <p className="text-sm text-slate-600">Enable scenarios for stress test controls.</p>
             )}
           </div>
         )}
@@ -847,7 +847,7 @@ export default function PlaygroundClient() {
             {(multiverseMode || godMode) ? (
               <DecisionTrainer sim={sim} execute={executeWithAudit} />
             ) : (
-              <p className="text-sm text-slate-600">Enable multiverse or god mode for Decision Trainer.</p>
+              <p className="text-sm text-slate-600">Enable scenarios or administrator override for Decision Trainer.</p>
             )}
           </div>
         )}

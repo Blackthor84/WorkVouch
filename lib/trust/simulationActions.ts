@@ -32,15 +32,15 @@ export type SimulationAction =
 export type SimulationActionType = SimulationAction["type"];
 
 export const ACTION_LABELS: Record<SimulationActionType, string> = {
-  trust_collapse: "Trust collapse",
-  fake_consensus: "Fake consensus",
+  trust_collapse: "High risk outcome",
+  fake_consensus: "Synthetic consensus",
   inject_signal: "Inject signal",
   mutate_signal: "Mutate signal",
   backdate_signal: "Backdate signal",
   delete_last_signal: "Delete signal",
-  chaos_glassdoor: "Glassdoor attack",
-  chaos_zombie: "Zombie startup",
-  chaos_fraud: "Perfect fraud",
+  chaos_glassdoor: "Negative reputation wave",
+  chaos_zombie: "Thin verification baseline",
+  chaos_fraud: "Coordinated false signals",
   add_review: "Add review",
   remove_review: "Remove review",
   set_threshold: "Set threshold",

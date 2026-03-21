@@ -64,7 +64,7 @@ export default function AdminDashboard() {
           variant={godMode ? "danger" : "secondary"}
           size="sm"
         >
-          {godMode ? "Disable God Mode" : "Enable God Mode"}
+          {godMode ? "Disable administrator override" : "Enable administrator override"}
         </Button>
       </div>
 

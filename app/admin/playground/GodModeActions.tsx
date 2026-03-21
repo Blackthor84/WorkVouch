@@ -24,8 +24,8 @@ export function GodModeActions({ sim, onAction, execute: executeProp }: Props) {
 
   return (
     <div className="rounded-lg border border-amber-300 bg-amber-50/80 p-4">
-      <h3 className="text-sm font-semibold text-amber-900 mb-2">God Mode Actions</h3>
-      <p className="text-xs text-amber-800 mb-3">Inject, mutate, backdate, or delete signals. Trust collapse and fake consensus.</p>
+      <h3 className="text-sm font-semibold text-amber-900 mb-2">Advanced signal controls</h3>
+      <p className="text-xs text-amber-800 mb-3">Model signal changes for training. Includes high-risk outcomes and synthetic consensus (local, reversible).</p>
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
@@ -67,7 +67,7 @@ export function GodModeActions({ sim, onAction, execute: executeProp }: Props) {
           onClick={() => run({ type: "fake_consensus", count: 3 })}
           className="rounded border border-amber-600 bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-200"
         >
-          Fake Consensus
+          Synthetic consensus
         </button>
       </div>
     </div>

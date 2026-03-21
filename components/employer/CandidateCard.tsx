@@ -8,6 +8,9 @@ import { saveCandidate, unsaveCandidate } from "@/lib/actions/employer/saved-can
 import { BookmarkIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolid, BookmarkIcon as BookmarkSolid } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
+import { SmartInsight } from "@/components/guidance/SmartInsight";
+import { SuggestedActions } from "@/components/guidance/SuggestedActions";
+import { TrustScoreHint } from "@/components/guidance/TrustMetricHints";
 
 export type CandidateCardData = {
   id: string;
@@ -92,7 +95,7 @@ export function CandidateCard({
             </p>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-col items-end gap-1 max-w-[200px]">
             <span className="text-xs text-slate-500 flex items-center gap-1">
               <StarSolid className="h-3.5 w-3.5 text-amber-500" />
               Trust score
@@ -103,8 +106,26 @@ export function CandidateCard({
               size="lg"
               blur={blurTrust}
             />
+            {!blurTrust && <TrustScoreHint className="text-right" />}
           </div>
         </div>
+        {!blurTrust && (
+          <div className="space-y-3 pt-1 border-t border-slate-100">
+            <SmartInsight
+              trustScore={candidate.trust_score}
+              referenceCount={refCount}
+              verifiedCoworkerCount={coworkerVerified}
+              compact
+            />
+            <SuggestedActions
+              trustScore={candidate.trust_score}
+              referenceCount={refCount}
+              verifiedCoworkerCount={coworkerVerified}
+              candidateId={candidate.id}
+              compact
+            />
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
           {coworkerVerified > 0 && (
             <span className="inline-flex items-center gap-1 text-emerald-700 font-medium">

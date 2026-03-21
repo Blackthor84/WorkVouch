@@ -119,7 +119,7 @@ export default async function AdminLayout({
     <AdminClientLayout user={layoutUser}>
       {godModeEnabled && (
         <div className="bg-red-600 text-white text-center py-2 font-bold">
-          ⚠️ GOD MODE ENABLED — LIVE DATA ACCESS
+          ⚠️ Administrator override — live data access
         </div>
       )}
       <LabAwareAdminChrome

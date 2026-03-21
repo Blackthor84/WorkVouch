@@ -50,7 +50,7 @@ export function MultiverseGraph({
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-4">
-      <h2 className="text-lg font-semibold text-slate-900 mb-2">Multiverse — Signal influence & divergence</h2>
+      <h2 className="text-lg font-semibold text-slate-900 mb-2">Scenarios — signal influence & divergence</h2>
       <div className="flex gap-4 items-start flex-wrap">
         <div className="relative">
           <svg

@@ -5,7 +5,7 @@ import { useState } from "react";
 type GodModeToggleProps = { initialEnabled: boolean };
 
 /**
- * Toggle God Mode on/off. Only visible to Superadmin. Opt-in only.
+ * Toggle administrator override (godmode API). Superadmin only.
  */
 export function GodModeToggle({ initialEnabled }: GodModeToggleProps) {
   const [enabled, setEnabled] = useState(initialEnabled);
@@ -39,7 +39,7 @@ export function GodModeToggle({ initialEnabled }: GodModeToggleProps) {
         disabled={loading}
         className="px-3 py-1.5 rounded bg-amber-200 hover:bg-amber-300 text-amber-900 font-medium text-sm disabled:opacity-50"
       >
-        {loading ? "…" : enabled ? "Disable God Mode" : "Enable God Mode"}
+        {loading ? "…" : enabled ? "Disable override" : "Enable override"}
       </button>
     </div>
   );

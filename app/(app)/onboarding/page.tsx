@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getDashboardHomeData } from "@/lib/actions/dashboard/getDashboardHome";
 import { isGuidedProfileComplete } from "@/lib/onboarding/guidedOnboarding";
 import { GuidedOnboardingClient } from "@/components/onboarding/GuidedOnboardingClient";
+import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -48,9 +49,23 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <GuidedOnboardingClient
-      stats={stats}
-      firstName={data.firstName}
-    />
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 pb-12">
+      <div className="max-w-2xl mx-auto px-4 pt-6 sm:pt-8">
+        <OnboardingChecklist
+          jobsCount={data.jobsCount}
+          matchesCount={data.matchesCount}
+          referenceCount={data.referenceCount}
+          profileBasicsComplete={data.profileBasicsComplete}
+          verifiedByCoworkers={data.verifiedByCoworkers}
+          variant="compact"
+        />
+      </div>
+      <GuidedOnboardingClient
+        stats={stats}
+        firstName={data.firstName}
+        profileBasicsComplete={data.profileBasicsComplete}
+        verifiedByCoworkers={data.verifiedByCoworkers}
+      />
+    </div>
   );
 }
