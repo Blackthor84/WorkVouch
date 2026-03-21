@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, getCurrentUserRole, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
+import { resolveEmployerDataAccess } from "@/lib/employer/employerPlanServer";
 import { getHiringConfidence } from "@/lib/employer/hiringConfidence";
 
 export const runtime = "nodejs";
@@ -45,17 +46,37 @@ export async function GET(
     );
     if (disclaimerResponse) return disclaimerResponse;
 
+    const access = await resolveEmployerDataAccess(user.id);
+    if (!access.ok) {
+      return NextResponse.json({ error: access.error }, { status: access.status });
+    }
+
+    const { candidateId } = await params;
+    if (!candidateId) {
+      return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
+    }
+
+    if (access.mode === "free_preview") {
+      return NextResponse.json({
+        entitlements: {
+          tier: access.plan,
+          limitedPreview: true,
+          upgradeUrl: "/enterprise/upgrade",
+        },
+        locked: true,
+        message: "Unlock full trust breakdown with Pro",
+        confidenceLevel: null,
+        positives: [] as string[],
+        cautions: [] as string[],
+      });
+    }
+
     const subCheck = await requireActiveSubscription(user.id);
     if (!subCheck.allowed) {
       return NextResponse.json(
         { error: subCheck.error ?? "Active subscription required." },
         { status: 403 }
       );
-    }
-
-    const { candidateId } = await params;
-    if (!candidateId) {
-      return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
 
     const payload = await getHiringConfidence(candidateId);

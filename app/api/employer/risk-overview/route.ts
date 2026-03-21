@@ -10,6 +10,7 @@ import { getCurrentUser, hasRole } from "@/lib/auth";
 import { getUser } from "@/lib/auth/getUser";
 import { checkFeatureAccess } from "@/lib/feature-flags";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
+import { resolveEmployerDataAccess } from "@/lib/employer/employerPlanServer";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,25 @@ export async function GET() {
 
     const hasEmployer = await hasRole("employer");
     if (!hasEmployer) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+    const access = await resolveEmployerDataAccess(user.id);
+    if (!access.ok) {
+      return NextResponse.json({ error: access.error }, { status: access.status });
+    }
+    if (access.mode === "free_preview") {
+      return NextResponse.json({
+        entitlements: {
+          tier: access.plan,
+          limitedPreview: true,
+          upgradeUrl: "/enterprise/upgrade",
+        },
+        workforceRiskAverage: null,
+        workforceHighRiskCount: 0,
+        workforceRiskConfidence: null,
+        workforceLastCalculated: null,
+        riskSnapshotSample: null,
+      });
+    }
 
     const riskSnapshotEnabled = await checkFeatureAccess("risk_snapshot", { userId: user.id });
     const workforceDashboardEnabled = await checkFeatureAccess("workforce_dashboard", { userId: user.id });

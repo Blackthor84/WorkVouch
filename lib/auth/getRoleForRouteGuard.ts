@@ -1,15 +1,15 @@
 /**
- * Get current user's role from profiles.role (with app_metadata fallback) for route guards.
- * Use with redirect('/unauthorized') when role doesn't match the route.
+ * Get current user's role from profiles.role for route guards.
  */
 
 import { getUser } from "@/lib/auth/getUser";
 import { createClient } from "@/lib/supabase/server";
+import { resolveUserRole } from "@/lib/auth/resolveUserRole";
 
-export type RouteGuardRole = "employee" | "employer" | "admin";
+export type RouteGuardRole = "employee" | "employer" | "admin" | "pending";
 
 /**
- * Returns normalized role: 'employee' | 'employer' | 'admin' (admin includes superadmin), or null if not authenticated.
+ * Returns normalized role, or null if not authenticated.
  */
 export async function getRoleForRouteGuard(): Promise<RouteGuardRole | null> {
   const user = await getUser();
@@ -17,15 +17,13 @@ export async function getRoleForRouteGuard(): Promise<RouteGuardRole | null> {
 
   const supabase = await createClient();
 
-  const { data } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  const { data } = await supabase.from("profiles").select("role").eq("id", user.id).single();
 
-  const raw = (data?.role ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "").toString().trim().toLowerCase();
-  if (raw === "employer") return "employer";
-  if (raw === "employee") return "employee";
-  if (raw === "admin" || raw === "superadmin") return "admin";
-  return null;
+  const resolved = resolveUserRole({ role: data?.role });
+
+  if (resolved === "pending") return "pending";
+  if (resolved === "super_admin") return "admin";
+  if (resolved === "employer") return "employer";
+  if (resolved === "employee") return "employee";
+  return "pending";
 }

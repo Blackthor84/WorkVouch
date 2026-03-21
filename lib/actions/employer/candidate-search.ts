@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from '@/lib/auth'
+import { resolveEmployerDataAccess } from "@/lib/employer/employerPlanServer";
 import {
   requireEmployerLegalAcceptance,
   EMPLOYER_DISCLAIMER_NOT_ACCEPTED,
@@ -197,6 +198,28 @@ export type CandidateProfilePayload = {
   industry_fields: unknown[]
 }
 
+export type CandidateProfileForEmployerResult = CandidateProfilePayload & {
+  hiringDataUnlocked: boolean
+}
+
+function redactCandidateProfileForFreePreview(full: CandidateProfilePayload): CandidateProfilePayload {
+  const p = full.profile
+  const safeProfile = p ? { ...p, email: "" } : null
+  const jobs = Array.isArray(full.jobs) ? full.jobs.slice(0, 1) : []
+  return {
+    ...full,
+    profile: safeProfile,
+    jobs,
+    references: [],
+    trust_score: 0,
+    trust_reference_count: 0,
+    verified_employment_coverage_pct: 0,
+    verified_employment_count: 0,
+    total_employment_count: Math.min(full.total_employment_count, 1),
+    industry_fields: [],
+  }
+}
+
 /**
  * Fetch candidate profile data (exact same shape as employer view). No auth.
  * Used by getCandidateProfileForEmployer and getMyProfileAsEmployerSeesIt.
@@ -305,8 +328,11 @@ export async function getCandidateProfileData(candidateId: string): Promise<Cand
 
 /**
  * Get full candidate profile for employer view (employer-only).
+ * Free plan: limited fields + hiringDataUnlocked false (UI gates premium sections).
  */
-export async function getCandidateProfileForEmployer(candidateId: string): Promise<CandidateProfilePayload> {
+export async function getCandidateProfileForEmployer(
+  candidateId: string
+): Promise<CandidateProfileForEmployerResult> {
   const user = await requireAuth()
   const supabase = await createClient()
   const supabaseAny = supabase as any
@@ -327,7 +353,20 @@ export async function getCandidateProfileForEmployer(candidateId: string): Promi
     throw new Error(legalCheck.reasonCode)
   }
 
-  return getCandidateProfileData(candidateId)
+  const access = await resolveEmployerDataAccess(user.id)
+  if (!access.ok) {
+    throw new Error(access.error)
+  }
+
+  const full = await getCandidateProfileData(candidateId)
+  if (access.mode === 'free_preview') {
+    return {
+      ...redactCandidateProfileForFreePreview(full),
+      hiringDataUnlocked: false,
+    }
+  }
+
+  return { ...full, hiringDataUnlocked: true }
 }
 
 /**

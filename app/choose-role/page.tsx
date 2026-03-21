@@ -1,28 +1,33 @@
-"use client";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { resolveUserRole } from "@/lib/auth/resolveUserRole";
+import { ChooseRoleForm } from "./ChooseRoleForm";
 
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+export const dynamic = "force-dynamic";
 
-export default function ChooseRole() {
-  const router = useRouter();
+export default async function ChooseRolePage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
+  }
 
-  async function setRole(role: "employee" | "employer") {
-    const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
 
-    if (!user) return;
+  const resolved = resolveUserRole({ role: (profile as { role?: string | null } | null)?.role });
 
-    await supabase
-      .from("profiles")
-      .update({ role })
-      .eq("id", user.id);
-
-    router.replace("/dashboard");
+  if (resolved === "super_admin") {
+    redirect("/admin");
+  }
+  if (resolved !== "pending") {
+    redirect(resolved === "employer" ? "/enterprise" : "/dashboard");
   }
 
   return (
-    <div className="flex gap-6">
-      <button onClick={() => setRole("employee")}>I&apos;m an Employee</button>
-      <button onClick={() => setRole("employer")}>I&apos;m an Employer</button>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+      <ChooseRoleForm />
     </div>
   );
 }

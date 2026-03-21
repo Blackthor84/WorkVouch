@@ -10,7 +10,6 @@ export function WorkVouchLayoutClient({
   unreadNotificationCount,
   pendingReferenceRequestCount = 0,
   trustScore = 0,
-  role = null,
   isPremium = false,
   userInitial,
   userEmail,
@@ -20,7 +19,6 @@ export function WorkVouchLayoutClient({
   unreadNotificationCount: number;
   pendingReferenceRequestCount?: number;
   trustScore?: number;
-  role?: "employee" | "employer" | "admin" | null;
   isPremium?: boolean;
   userInitial: string;
   userEmail: string | null;
@@ -32,7 +30,6 @@ export function WorkVouchLayoutClient({
   return (
     <div className="flex min-h-screen bg-slate-50">
       <WorkVouchSidebar
-        role={role}
         pendingReferenceRequestCount={pendingReferenceRequestCount}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}

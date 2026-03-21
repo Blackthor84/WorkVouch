@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
+import { getCurrentUser } from "@/lib/auth";
+import { rejectFreeEmployerPlan } from "@/lib/employer/planGateEmployerApi";
 import { requireWorkforceRiskEmployer } from "@/lib/employer-workforce-risk-auth";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +15,11 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   try {
+    const user = await getCurrentUser();
+    if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const planBlock = await rejectFreeEmployerPlan(user.id);
+    if (planBlock) return planBlock;
+
     const ctx = await requireWorkforceRiskEmployer();
     if (!ctx) return NextResponse.json({ error: "Unauthorized or feature not enabled" }, { status: 403 });
     const { supabase, auth } = ctx;

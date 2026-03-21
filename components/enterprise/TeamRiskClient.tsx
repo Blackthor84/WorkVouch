@@ -14,6 +14,7 @@ export function TeamRiskClient() {
     workforceHighRiskCount: number;
     workforceRiskConfidence: number | null;
   } | null>(null);
+  const [limitedPreview, setLimitedPreview] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -112,6 +113,25 @@ export function TeamRiskClient() {
           hiring risk with verified data.
         </p>
       </header>
+
+      {limitedPreview && (
+        <div className="rounded-xl border border-indigo-200 bg-indigo-50/80 px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p className="font-semibold text-slate-900">Team risk &amp; workforce analytics</p>
+            <p className="text-sm text-slate-600 mt-1">
+              <span aria-hidden>🔒 </span>
+              Advanced team risk dashboards and workforce benchmarks are included with Enterprise. You can still
+              explore your saved roster preview above—upgrade for full workforce insights.
+            </p>
+          </div>
+          <Link
+            href="/enterprise/upgrade"
+            className="inline-flex shrink-0 justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
+          >
+            Upgrade Plan
+          </Link>
+        </div>
+      )}
 
       {error && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 text-amber-900 px-4 py-3 text-sm">

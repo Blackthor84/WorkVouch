@@ -8,6 +8,7 @@ import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/require
 import { enforceLimit } from "@/lib/enforceLimit";
 import { incrementUsage } from "@/lib/usage";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
+import { resolveEmployerDataAccess } from "@/lib/employer/employerPlanServer";
 import { checkOrgLimits, incrementOrgUnlockCount } from "@/lib/enterprise/enforceOrgLimits";
 import { planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
 import { getOrgHealthScore } from "@/lib/scoring/orgHealthScore";
@@ -21,6 +22,7 @@ import {
 import { getTrustTrajectoryBatch } from "@/lib/trust/trustTrajectory";
 
 const MAX_RESULTS = 50;
+const FREE_SEARCH_PREVIEW_CAP = 8;
 
 export async function GET(request: NextRequest) {
   try {
@@ -72,14 +74,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (subCheck.organizationId) {
+    const orgIdForLimits = limitedPreview ? null : employerAccount.organization_id ?? null;
+    if (orgIdForLimits) {
       const month = new Date().toISOString().slice(0, 7);
-      const orgCheck = await checkOrgLimits(
-        { organizationId: subCheck.organizationId, month },
-        "unlock"
-      );
+      const orgCheck = await checkOrgLimits({ organizationId: orgIdForLimits, month }, "unlock");
       if (!orgCheck.allowed) {
-        const health = await getOrgHealthScore(subCheck.organizationId);
+        const health = await getOrgHealthScore(orgIdForLimits);
         return planLimit403Response(
           orgCheck,
           "run_check",
@@ -129,8 +129,8 @@ export async function GET(request: NextRequest) {
     }
 
     await incrementUsage(employerAccount.id, "search", 1);
-    if (subCheck.organizationId) {
-      incrementOrgUnlockCount(subCheck.organizationId).catch(() => {});
+    if (orgIdForLimits) {
+      incrementOrgUnlockCount(orgIdForLimits).catch(() => {});
     }
 
     const userIds = (candidates as { user_id: string }[]).map((c) => c.user_id);
@@ -172,6 +172,30 @@ export async function GET(request: NextRequest) {
       const audit = auditScoresMap.get(c.user_id);
       const band: AuditBand = audit?.band ?? "unverified";
       const trajectory = trajectoryMap.get(c.user_id);
+      if (limitedPreview) {
+        return {
+          id: c.user_id,
+          name: c.full_name,
+          industry: null,
+          city: c.city ?? null,
+          state: c.state ?? null,
+          verifiedEmploymentCount: 0,
+          totalEmploymentCount: 0,
+          verifiedEmploymentCoveragePct: 0,
+          trustScore: null as number | null,
+          referenceCount: 0,
+          aggregateRating: 0,
+          rehireEligibleCount: 0,
+          skills: [] as string[],
+          auditScore: null as number | null,
+          auditBand: "unverified" as AuditBand,
+          auditLabel: "Preview",
+          auditExplanation: "See full candidate insights with a paid plan.",
+          trustTrajectory: "stable" as const,
+          trustTrajectoryLabel: "—",
+          trustTrajectoryTooltipFactors: [] as string[],
+        };
+      }
       return {
         id: c.user_id,
         name: c.full_name,
@@ -199,6 +223,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       users,
       employerIndustryType: null,
+      ...(limitedPreview
+        ? {
+            entitlements: {
+              tier: access.plan,
+              limitedPreview: true,
+              upgradeUrl: "/enterprise/upgrade",
+              previewCap: FREE_SEARCH_PREVIEW_CAP,
+            },
+          }
+        : {}),
     });
   } catch (error) {
     console.error("Search users error:", error);

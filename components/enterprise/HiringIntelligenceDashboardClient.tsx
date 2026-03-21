@@ -73,6 +73,10 @@ export function HiringIntelligenceDashboardClient() {
   const [riskFilter, setRiskFilter] = useState<Set<RiskLevel>>(() => new Set(["low", "medium", "high"]));
   const [industryFilter, setIndustryFilter] = useState<string>("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [limitedPreview, setLimitedPreview] = useState(false);
+  const [upgradeUrl, setUpgradeUrl] = useState("/enterprise/upgrade");
+  const [previewCap, setPreviewCap] = useState<number | null>(null);
+  const [hasMoreCandidates, setHasMoreCandidates] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -191,6 +195,29 @@ export function HiringIntelligenceDashboardClient() {
 
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 text-red-800 px-4 py-3 text-sm">{error}</div>
+      )}
+
+      {limitedPreview && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p className="font-semibold text-slate-900">
+              <span aria-hidden>🔒 </span>
+              Upgrade to unlock full insights
+            </p>
+            <p className="text-sm text-slate-600 mt-1">
+              You&apos;re on a free preview
+              {previewCap != null ? ` (showing up to ${previewCap} saved candidates)` : ""}.
+              {hasMoreCandidates ? " More candidates are hidden until you upgrade." : ""} See full trust scores,
+              verification counts, and analytics with a paid plan.
+            </p>
+          </div>
+          <a
+            href={upgradeUrl}
+            className="inline-flex shrink-0 justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
+          >
+            Upgrade Plan
+          </a>
+        </div>
       )}
 
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">

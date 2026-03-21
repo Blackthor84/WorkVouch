@@ -16,6 +16,11 @@ function hasRiskScore(r: { risk_score: number | null }): r is { risk_score: numb
  */
 export async function GET() {
   try {
+    const user = await getCurrentUser();
+    if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const planBlock = await rejectFreeEmployerPlan(user.id);
+    if (planBlock) return planBlock;
+
     const ctx = await requireWorkforceRiskEmployer();
     if (!ctx) return NextResponse.json({ error: "Unauthorized or feature not enabled" }, { status: 403 });
     const { supabase, auth } = ctx;

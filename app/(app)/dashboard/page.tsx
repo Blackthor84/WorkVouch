@@ -29,7 +29,7 @@ export default async function UserDashboardPage() {
   const { data: profileRow } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
   const role = ((profileRow as { role?: string } | null)?.role ?? "").toLowerCase();
   if (role === "employer") {
-    redirect("/employer");
+    redirect("/enterprise");
   }
 
   const data = await getDashboardHomeData();

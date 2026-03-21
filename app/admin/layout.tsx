@@ -3,6 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getUserFromSession } from "@/lib/auth/getUserFromSession";
+import { resolveUserRole } from "@/lib/auth/resolveUserRole";
 import AdminClientLayout from "./AdminClientLayout";
 import { LabAwareAdminChrome } from "./LabAwareAdminChrome";
 import { isGodMode } from "@/lib/auth/isGodMode";
@@ -45,12 +46,25 @@ export default async function AdminLayout({
     }
     redirect("/login");
   }
-  console.log("ROUTE CHECK", { path: "/admin", role: admin.profileRole });
-
   if (!admin.isAuthenticated) {
     redirect("/login");
   }
-  if (!["admin", "super_admin"].includes(admin.profileRole)) {
+  if (!["admin", "super_admin", "superadmin"].includes(String(admin.profileRole ?? "").toLowerCase())) {
+    const supabaseForRole = await createClient();
+    const {
+      data: { user: authUser },
+    } = await supabaseForRole.auth.getUser();
+    const { data: prof } = await supabaseForRole
+      .from("profiles")
+      .select("role")
+      .eq("id", authUser?.id ?? "")
+      .maybeSingle();
+    const resolved = resolveUserRole({
+      role: (prof as { role?: string | null } | null)?.role,
+    });
+    if (resolved === "employer") {
+      redirect("/enterprise");
+    }
     redirect("/dashboard");
   }
   const sessionLike = { user: { role: admin.isSuperAdmin ? "SUPERADMIN" : admin.isAdmin ? "ADMIN" : "USER" }, godMode: admin.godMode };

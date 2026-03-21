@@ -88,7 +88,7 @@ export default async function EmployerCandidateProfilePage(props: {
             <div className="max-w-7xl mx-auto">
               <CandidateProfileViewer
                 candidateData={candidateData}
-                hiringDataUnlocked={hiringDataUnlocked}
+                hiringDataUnlocked={candidateData.hiringDataUnlocked && hiringDataUnlocked}
               />
             </div>
           </main>

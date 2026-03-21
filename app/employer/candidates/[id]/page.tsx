@@ -51,7 +51,10 @@ export default async function CandidateProfilePage(props: {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
-      <CandidateProfileViewer candidateData={candidateData} />
+      <CandidateProfileViewer
+        candidateData={candidateData}
+        hiringDataUnlocked={candidateData.hiringDataUnlocked}
+      />
     </main>
   );
 }

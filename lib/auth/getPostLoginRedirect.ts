@@ -1,34 +1,33 @@
 import { isImpersonating } from "@/lib/auth/isImpersonating";
+import { resolveUserRole } from "@/lib/auth/resolveUserRole";
 
 /**
- * Post-login redirect — single source of truth from profiles.role.
- * employee → /dashboard/employee
- * employer → /dashboard/employer
- * admin (or superadmin) → /admin (unless impersonating → /dashboard)
- * default → /onboarding
+ * Post-login redirect — exclusive role destinations (profiles.role only).
+ * pending → /choose-role
+ * super_admin → /admin (unless impersonating → /dashboard)
+ * employer → /enterprise
+ * employee → /dashboard
  */
 export type PostLoginUser = {
-  role?: string;
+  role?: string | null;
   profile_complete?: boolean;
 };
 
-function normalizeRole(role?: string): string {
-  return String(role ?? "").trim().toLowerCase();
-}
-
 export async function getPostLoginRedirect(user: PostLoginUser): Promise<string> {
-  const role = normalizeRole(user.role);
+  const resolved = resolveUserRole({ role: user.role });
 
-  if (role === "admin" || role === "superadmin") {
+  if (resolved === "pending") {
+    return "/choose-role";
+  }
+  if (resolved === "super_admin") {
     if (await isImpersonating()) return "/dashboard";
     return "/admin";
   }
-  switch (role) {
-    case "employer":
-      return "/dashboard/employer";
-    case "employee":
-      return "/dashboard/employee";
-    default:
-      return "/onboarding";
+  if (resolved === "employer") {
+    return "/enterprise";
   }
+  if (resolved === "employee") {
+    return "/dashboard";
+  }
+  return "/choose-role";
 }

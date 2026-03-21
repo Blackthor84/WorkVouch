@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import {
   Squares2X2Icon,
+  UserGroupIcon,
+  InboxStackIcon,
   UserCircleIcon,
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
@@ -81,17 +83,37 @@ export function WorkVouchNavbar({
           </button>
         )}
         <Link
-          href="/coworker-matches"
+          href="/dashboard"
           className="text-lg font-semibold text-white transition-opacity hover:opacity-90"
           title="WorkVouch"
         >
           <span className="tracking-tight">WorkVouch</span>
         </Link>
+        <nav className="hidden md:flex items-center gap-1 ml-2" aria-label="Main">
+          <Link
+            href="/dashboard"
+            className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white/90 hover:bg-white/15"
+          >
+            Dashboard
+          </Link>
+          <Link
+            href="/coworker-matches"
+            className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white/90 hover:bg-white/15"
+          >
+            Matches
+          </Link>
+          <Link
+            href="/requests"
+            className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white/90 hover:bg-white/15"
+          >
+            Requests
+          </Link>
+        </nav>
       </div>
 
       <div className="flex items-center gap-2">
         <Link
-          href="/coworker-matches"
+          href="/dashboard"
           className="flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-2 text-sm font-semibold text-white hover:bg-white/25 transition-colors"
           title="Trust Score"
         >
@@ -130,12 +152,28 @@ export function WorkVouchNavbar({
               )}
               <div className="py-1">
                 <Link
-                  href="/coworker-matches"
+                  href="/dashboard"
                   className={linkClass}
                   onClick={() => setDropdownOpen(false)}
                 >
                   <Squares2X2Icon className="h-5 w-5 shrink-0 text-slate-400" />
                   Dashboard
+                </Link>
+                <Link
+                  href="/coworker-matches"
+                  className={linkClass}
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <UserGroupIcon className="h-5 w-5 shrink-0 text-slate-400" />
+                  Matches
+                </Link>
+                <Link
+                  href="/requests"
+                  className={linkClass}
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <InboxStackIcon className="h-5 w-5 shrink-0 text-slate-400" />
+                  Requests
                 </Link>
                 <Link
                   href="/profile"

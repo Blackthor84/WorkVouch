@@ -10,6 +10,7 @@ export default async function DashboardEmployeeLayout({
 }) {
   const role = await getRoleForRouteGuard();
   if (role === null) redirect("/login");
+  if (role === "pending") redirect("/choose-role");
   if (role !== "employee") redirect("/unauthorized");
   return <>{children}</>;
 }

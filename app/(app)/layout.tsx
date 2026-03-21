@@ -4,22 +4,13 @@ import { getUnreadNotificationCount } from "@/lib/actions/notifications";
 import { getPendingReferenceRequestCount } from "@/lib/actions/referenceRequests";
 import { getTrustOverview } from "@/lib/actions/trustOverview";
 import { WorkVouchLayoutClient } from "@/components/workvouch/WorkVouchLayoutClient";
+import { getEffectiveSession } from "@/lib/auth/actingUser";
+import { resolveUserRole } from "@/lib/auth/resolveUserRole";
 
 /**
- * Single auth + role guard for all routes under (app).
- * 1. Not authenticated → redirect /login
- * 2. No profile role → redirect /choose-role
- * No other file under (app) should perform these redirects.
+ * Employee app shell only (super_admin → /admin, employer → /enterprise).
+ * When impersonating, admin follows the impersonated user's experience (employee UI).
  */
-function normalizeRole(role: string | null | undefined): "employee" | "employer" | "admin" | null {
-  if (!role) return null;
-  const r = role.trim().toLowerCase();
-  if (r === "employer") return "employer";
-  if (r === "employee" || r === "user" || r === "worker") return "employee";
-  if (r === "admin" || r === "superadmin") return "admin";
-  return null;
-}
-
 export default async function AppLayout({
   children,
 }: {
@@ -27,27 +18,50 @@ export default async function AppLayout({
 }) {
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     redirect("/login");
   }
 
+  const session = await getEffectiveSession();
+  const effectiveUserId = session?.effectiveUserId ?? user.id;
+  const isImpersonatingSession = session?.isImpersonating ?? false;
+
   const { data: profile } = await supabase
     .from("profiles")
-  .select("role, full_name, profile_photo_url, is_premium")
-  .eq("id", user.id)
-  .single();
+    .select("role, full_name, profile_photo_url, is_premium")
+    .eq("id", effectiveUserId)
+    .maybeSingle();
 
-  // TEMP DISABLED FOR DEBUG
-  // if (!profile?.role) redirect('/choose-role');
+  if (!isImpersonatingSession) {
+    const resolved = resolveUserRole({
+      role: (profile as { role?: string | null } | null)?.role,
+    });
+    if (resolved === "pending") {
+      redirect("/choose-role");
+    }
+    if (resolved === "super_admin") {
+      redirect("/admin");
+    }
+    if (resolved === "employer") {
+      redirect("/enterprise");
+    }
+  }
 
   const [unreadCount, pendingRequestsCount, trustOverview] = await Promise.all([
     getUnreadNotificationCount(),
     getPendingReferenceRequestCount(),
     getTrustOverview(),
   ]);
-  const p = profile as { role?: string; full_name?: string | null; profile_photo_url?: string | null; is_premium?: boolean };
+  const p = profile as {
+    role?: string;
+    full_name?: string | null;
+    profile_photo_url?: string | null;
+    is_premium?: boolean;
+  };
   const userInitial = p?.full_name?.trim().charAt(0)?.toUpperCase() ?? user.email?.charAt(0)?.toUpperCase() ?? "?";
   const userEmail = user.email ?? null;
 
@@ -56,7 +70,6 @@ export default async function AppLayout({
       unreadNotificationCount={unreadCount}
       pendingReferenceRequestCount={pendingRequestsCount}
       trustScore={trustOverview.trustScore}
-      role={normalizeRole(p?.role)}
       isPremium={p?.is_premium ?? false}
       userInitial={userInitial}
       userEmail={userEmail}

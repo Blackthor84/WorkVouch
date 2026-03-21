@@ -51,6 +51,10 @@ export default function EnterpriseSimulateClient({ candidateId, initial }: Props
   const [confidenceLabel, setConfidenceLabel] = useState<string>("—");
   const [keyInsights, setKeyInsights] = useState<string[]>([]);
   const [bootstrapped, setBootstrapped] = useState(false);
+  const [simBlocked, setSimBlocked] = useState(false);
+  const [simBlockMessage, setSimBlockMessage] = useState<string | null>(null);
+  const [entitlementsLoading, setEntitlementsLoading] = useState(true);
+  const bootstrapStarted = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +63,11 @@ export default function EnterpriseSimulateClient({ candidateId, initial }: Props
         const res = await fetch(`/api/employer/confidence/${candidateId}`, { credentials: "include" });
         const data = await res.json().catch(() => ({}));
         if (cancelled) return;
+        if (res.ok && data?.locked) {
+          setConfidenceLabel("—");
+          setKeyInsights([typeof data?.message === "string" ? data.message : "Upgrade for full hiring confidence detail."]);
+          return;
+        }
         if (res.ok && data?.confidenceLevel) {
           setConfidenceLabel(String(data.confidenceLevel));
           const lines: string[] = [];
@@ -83,29 +92,86 @@ export default function EnterpriseSimulateClient({ candidateId, initial }: Props
 
   useEffect(() => {
     if (bootstrapped) return;
-    const industry = mapIndustryKey(initial.industryLabel);
-    const targetTrust = Math.min(100, Math.max(0, Math.round(initial.trustScore ?? 62)));
-    const payload: TrustScenarioPayload = {
-      scenarioId: "enterprise-baseline",
-      title: "Baseline hiring insight",
-      summary: "Aligned to current profile signals",
-      before: { trustScore: 50, profileStrength: 50 },
-      after: { trustScore: targetTrust, profileStrength: 65 },
-      events: [
-        {
-          type: "verification",
-          message: "Baseline verification mix applied",
-          impact: 0,
-        },
-      ],
+    let cancelled = false;
+
+    (async () => {
+      setEntitlementsLoading(true);
+      try {
+        const entRes = await fetch("/api/employer/entitlements", { credentials: "include" });
+        const ent = await entRes.json().catch(() => ({}));
+        if (cancelled) return;
+
+        if (!entRes.ok) {
+          setSimBlocked(true);
+          setSimBlockMessage(typeof ent?.error === "string" ? ent.error : "Could not verify your plan.");
+          setEntitlementsLoading(false);
+          return;
+        }
+
+        const limited = Boolean(ent?.limitedPreview);
+        const remaining = typeof ent?.simulationRemaining === "number" ? ent.simulationRemaining : null;
+
+        if (limited && remaining === 0) {
+          setSimBlocked(true);
+          setSimBlockMessage("You've reached your free limit — upgrade to continue running full hiring simulations.");
+          setEntitlementsLoading(false);
+          return;
+        }
+
+        const consumeRes = await fetch("/api/employer/simulation/consume", {
+          method: "POST",
+          credentials: "include",
+        });
+        const consumeJson = await consumeRes.json().catch(() => ({}));
+        if (cancelled) return;
+
+        if (!consumeRes.ok) {
+          setSimBlocked(true);
+          setSimBlockMessage(
+            typeof consumeJson?.error === "string"
+              ? consumeJson.error
+              : "Simulation limit reached. Upgrade to continue."
+          );
+          setEntitlementsLoading(false);
+          return;
+        }
+
+        const industry = mapIndustryKey(initial.industryLabel);
+        const targetTrust = Math.min(100, Math.max(0, Math.round(initial.trustScore ?? 62)));
+        const payload: TrustScenarioPayload = {
+          scenarioId: "enterprise-baseline",
+          title: "Baseline hiring insight",
+          summary: "Aligned to current profile signals",
+          before: { trustScore: 50, profileStrength: 50 },
+          after: { trustScore: targetTrust, profileStrength: 65 },
+          events: [
+            {
+              type: "verification",
+              message: "Baseline verification mix applied",
+              impact: 0,
+            },
+          ],
+        };
+        engineAction({ type: "setActorMode", actor: "employer" });
+        engineAction({ type: "setEmployerMode", mode: "enterprise" });
+        engineAction({ type: "setIndustry", industry });
+        engineAction({ type: "setView", view: "employer" });
+        engineAction({ type: "runScenario", payload });
+        setBootstrapped(true);
+      } catch {
+        if (!cancelled) {
+          setSimBlocked(true);
+          setSimBlockMessage("Could not start hiring simulation.");
+        }
+      } finally {
+        if (!cancelled) setEntitlementsLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
     };
-    engineAction({ type: "setActorMode", actor: "employer" });
-    engineAction({ type: "setEmployerMode", mode: "enterprise" });
-    engineAction({ type: "setIndustry", industry });
-    engineAction({ type: "setView", view: "employer" });
-    engineAction({ type: "runScenario", payload });
-    setBootstrapped(true);
-  }, [bootstrapped, engineAction, initial.industryLabel, initial.trustScore]);
+  }, [bootstrapped, engineAction, initial.industryLabel, initial.trustScore, candidateId]);
 
   const engineResult = getEngineResult();
 
@@ -171,6 +237,40 @@ export default function EnterpriseSimulateClient({ candidateId, initial }: Props
     }
     return [...new Set(base)].slice(0, 5);
   }, [keyInsights, derived.reviewerCredibility, derived.consistencyScore, state.events]);
+
+  if (entitlementsLoading && !bootstrapped && !simBlocked) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-16 text-center text-slate-500 text-sm">
+        Preparing hiring insights…
+      </div>
+    );
+  }
+
+  if (simBlocked) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+        <Link
+          href="/enterprise/dashboard"
+          className="text-sm text-indigo-600 font-medium hover:underline inline-block"
+        >
+          ← Hiring Intelligence Dashboard
+        </Link>
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/90 p-8 text-center max-w-lg mx-auto">
+          <p className="text-lg font-semibold text-slate-900">
+            <span aria-hidden>🔒 </span>
+            Upgrade to unlock full simulations
+          </p>
+          <p className="mt-2 text-sm text-slate-600">{simBlockMessage}</p>
+          <Link
+            href="/enterprise/upgrade"
+            className="mt-6 inline-flex rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-indigo-700"
+          >
+            Upgrade Plan
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">

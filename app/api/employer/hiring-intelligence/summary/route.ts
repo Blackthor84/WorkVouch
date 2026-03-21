@@ -1,13 +1,14 @@
 /**
  * GET /api/employer/hiring-intelligence/summary
  * Aggregated hiring board data for the enterprise dashboard (employer-only).
+ * Free plan: limited preview (no exact trust scores, capped candidates); paid: full data + subscription check.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser, getCurrentUserRole, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
-import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
+import { resolveEmployerDataAccess } from "@/lib/employer/employerPlanServer";
 import type {
   HiringIntelligenceCandidate,
   PipelineStage,
@@ -16,6 +17,8 @@ import type {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const FREE_PREVIEW_CAP = 5;
 
 function riskFromTrustAndVerifications(
   trust: number | null,
@@ -45,6 +48,27 @@ function assignPipeline(args: {
   return "reviewing";
 }
 
+function redactFreeCandidates(pool: HiringIntelligenceCandidate[]): {
+  candidates: HiringIntelligenceCandidate[];
+  hasMore: boolean;
+} {
+  const slice = pool.slice(0, FREE_PREVIEW_CAP);
+  const hasMore = pool.length > FREE_PREVIEW_CAP;
+  const candidates = slice.map((c) => {
+    const hint = c.roleHint?.trim();
+    return {
+      ...c,
+      trustScore: null,
+      verificationCount: 0,
+      industry: null,
+      roleHint:
+        hint && hint.length > 40 ? `${hint.slice(0, 40)}…` : hint ?? null,
+      riskLevel: c.riskLevel,
+    };
+  });
+  return { candidates, hasMore };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -59,13 +83,17 @@ export async function GET(request: NextRequest) {
     );
     if (disclaimerResponse) return disclaimerResponse;
 
-    const subCheck = await requireActiveSubscription(user.id);
-    if (!subCheck.allowed) {
-      return NextResponse.json(
-        { error: subCheck.error ?? "Active subscription required." },
-        { status: 403 }
-      );
+    const access = await resolveEmployerDataAccess(user.id);
+    if (!access.ok) {
+      return NextResponse.json({ error: access.error }, { status: access.status });
     }
+
+    const limitedPreview = access.mode === "free_preview";
+    const entitlements = {
+      tier: access.plan,
+      limitedPreview,
+      upgradeUrl: "/enterprise/upgrade",
+    };
 
     const rangeParam = request.nextUrl.searchParams.get("range");
     const rangeDays =
@@ -109,6 +137,7 @@ export async function GET(request: NextRequest) {
 
     if (candidateIds.length === 0) {
       return NextResponse.json({
+        entitlements,
         companyName,
         rangeDays,
         candidates: [] as HiringIntelligenceCandidate[],
@@ -189,6 +218,25 @@ export async function GET(request: NextRequest) {
     const inWindow = candidates.filter((c) => c.savedAt >= since);
     const pool = inWindow.length > 0 ? inWindow : candidates;
 
+    if (limitedPreview) {
+      const { candidates: redacted, hasMore } = redactFreeCandidates(pool);
+      return NextResponse.json({
+        entitlements,
+        companyName,
+        rangeDays,
+        candidates: redacted,
+        previewCap: FREE_PREVIEW_CAP,
+        hasMoreCandidates: hasMore,
+        metrics: {
+          totalCandidates: redacted.length,
+          avgTrustScore: 0,
+          highRiskPct: 0,
+          verifiedPct: 0,
+        },
+        distribution: { highTrust: 0, mediumTrust: 0, lowTrust: 0 },
+      });
+    }
+
     const withTrust = pool.filter((c) => c.trustScore != null);
     const avgTrustScore =
       withTrust.length > 0
@@ -213,9 +261,10 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json({
+      entitlements,
       companyName,
       rangeDays,
-      candidates,
+      candidates: pool,
       metrics: {
         totalCandidates: pool.length,
         avgTrustScore,

@@ -50,12 +50,11 @@ export async function GET(request: Request) {
       .single();
 
     if (error || !data) {
-      const role = (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "";
-      const path = await getPostLoginRedirect({ role });
+      const path = await getPostLoginRedirect({ role: "" });
       return NextResponse.redirect(`${origin}${path}`);
     }
 
-    const role = (data.role ?? (user as { app_metadata?: { role?: string } }).app_metadata?.role ?? "") as string;
+    const role = (data as { role?: string | null }).role ?? "";
     const path = await getPostLoginRedirect({ role });
     return NextResponse.redirect(`${origin}${path}`);
   } catch {
