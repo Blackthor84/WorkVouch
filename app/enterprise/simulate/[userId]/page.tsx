@@ -1,69 +1,107 @@
-import nextDynamic from "next/dynamic";
-import { redirect } from "next/navigation";
-import { getCurrentUser, isEmployer } from "@/lib/auth";
-import { admin } from "@/lib/supabase-admin";
+"use client";
 
-const EnterpriseSimulateClient = nextDynamic(() => import("@/components/enterprise/EnterpriseSimulateClient"), {
-  ssr: false,
-  loading: () => (
-    <div className="max-w-7xl mx-auto px-4 py-16 text-center text-slate-500 text-sm">Loading hiring insights…</div>
-  ),
-});
+import dynamic from "next/dynamic";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export const dynamic = "force-dynamic";
+const EnterpriseSimulateClient = dynamic(
+  () => import("@/components/enterprise/EnterpriseSimulateClient"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="max-w-7xl mx-auto px-4 py-16 text-center text-slate-500 text-sm">
+        Loading hiring insights…
+      </div>
+    ),
+  }
+);
 
-export default async function EnterpriseSimulatePage(props: { params: Promise<{ userId: string }> }) {
-  const user = await getCurrentUser();
-  if (!user || !(await isEmployer())) {
-    redirect("/login");
+type SummaryCandidate = {
+  candidateId: string;
+  fullName: string;
+  industry: string | null;
+  roleHint: string | null;
+  trustScore: number | null;
+  verificationCount: number;
+};
+
+export default function Page() {
+  const params = useParams();
+  const router = useRouter();
+  const userId = typeof params?.userId === "string" ? params.userId : undefined;
+
+  const [ready, setReady] = useState<{
+    candidateId: string;
+    initial: {
+      fullName: string;
+      industryLabel: string | null;
+      roleHint: string | null;
+      trustScore: number | null;
+      referenceCount: number | null;
+      jobCount: number | null;
+    };
+  } | null>(null);
+
+  useEffect(() => {
+    if (!userId) {
+      router.replace("/enterprise/dashboard");
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/employer/hiring-intelligence/summary?range=90", {
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          if (res.status === 403) {
+            router.replace("/login");
+            return;
+          }
+          router.replace("/enterprise/dashboard");
+          return;
+        }
+
+        const data = (await res.json()) as { candidates?: SummaryCandidate[] };
+        const cand = (data.candidates ?? []).find((c) => c.candidateId === userId);
+
+        if (cancelled) return;
+        if (!cand) {
+          router.replace("/enterprise/dashboard");
+          return;
+        }
+
+        setReady({
+          candidateId: userId,
+          initial: {
+            fullName: cand.fullName,
+            industryLabel: cand.industry ?? null,
+            roleHint: cand.roleHint,
+            trustScore: cand.trustScore,
+            referenceCount: cand.verificationCount,
+            jobCount: null,
+          },
+        });
+      } catch {
+        if (!cancelled) router.replace("/enterprise/dashboard");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, router]);
+
+  if (!userId || !ready) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-16 text-center text-slate-500 text-sm">
+        Loading hiring insights…
+      </div>
+    );
   }
 
-  const { userId } = await props.params;
-  if (!userId) redirect("/enterprise/dashboard");
-
-  const { data: saved } = await admin
-    .from("saved_candidates")
-    .select("id")
-    .eq("employer_id", user.id)
-    .eq("candidate_id", userId)
-    .maybeSingle();
-
-  if (!saved) {
-    redirect("/enterprise/dashboard");
-  }
-
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("full_name, industry, professional_summary")
-    .eq("id", userId)
-    .single();
-
-  const { data: ts } = await admin
-    .from("trust_scores")
-    .select("score, reference_count, job_count")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  const prof = profile as {
-    full_name?: string | null;
-    industry?: string | null;
-    professional_summary?: string | null;
-  } | null;
-
-  const summary = prof?.professional_summary?.trim() ?? null;
-  const roleHint = summary && summary.length > 120 ? `${summary.slice(0, 117)}…` : summary;
-
-  return (
-    <EnterpriseSimulateClient
-      candidateId={userId}
-      initial={{
-        fullName: prof?.full_name?.trim() || "Candidate",
-        industryLabel: prof?.industry ?? null,
-        roleHint,
-        trustScore: ts?.score != null ? Number(ts.score) : null,
-        referenceCount: ts?.reference_count != null ? Number(ts.reference_count) : null,
-        jobCount: ts?.job_count != null ? Number(ts.job_count) : null,
-      }}
-    />
-  );
+  return <EnterpriseSimulateClient candidateId={ready.candidateId} initial={ready.initial} />;
 }
