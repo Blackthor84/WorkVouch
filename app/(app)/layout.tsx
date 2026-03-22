@@ -6,6 +6,7 @@ import { getTrustOverview } from "@/lib/actions/trustOverview";
 import { WorkVouchLayoutClient } from "@/components/workvouch/WorkVouchLayoutClient";
 import { getEffectiveSession } from "@/lib/auth/actingUser";
 import { resolveUserRole } from "@/lib/auth/resolveUserRole";
+import { needsWorkerVouchOnboarding } from "@/lib/onboarding/needsVouchOnboarding";
 
 /**
  * Employee app shell only (super_admin → /admin, employer → /enterprise).
@@ -65,6 +66,9 @@ export default async function AppLayout({
   const userInitial = p?.full_name?.trim().charAt(0)?.toUpperCase() ?? user.email?.charAt(0)?.toUpperCase() ?? "?";
   const userEmail = user.email ?? null;
 
+  const needsVouchOnboarding =
+    !isImpersonatingSession && (await needsWorkerVouchOnboarding(effectiveUserId));
+
   return (
     <WorkVouchLayoutClient
       unreadNotificationCount={unreadCount}
@@ -74,6 +78,7 @@ export default async function AppLayout({
       userInitial={userInitial}
       userEmail={userEmail}
       profilePhotoUrl={p?.profile_photo_url ?? null}
+      needsVouchOnboarding={needsVouchOnboarding}
     >
       {children}
     </WorkVouchLayoutClient>

@@ -5,8 +5,10 @@ import { getUser } from "@/lib/auth/getUser";
 import { createClient } from "@/lib/supabase/server";
 import { getDashboardHomeData } from "@/lib/actions/dashboard/getDashboardHome";
 import { isGuidedProfileComplete } from "@/lib/onboarding/guidedOnboarding";
+import { needsWorkerVouchOnboarding } from "@/lib/onboarding/needsVouchOnboarding";
 import { GuidedOnboardingClient } from "@/components/onboarding/GuidedOnboardingClient";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
+import { VouchOnboardingWizard } from "@/components/onboarding/VouchOnboardingWizard";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -36,6 +38,11 @@ export default async function OnboardingPage() {
   const data = await getDashboardHomeData();
   if (!data) {
     redirect("/login");
+  }
+
+  const needsVouch = await needsWorkerVouchOnboarding(user.id);
+  if (needsVouch) {
+    return <VouchOnboardingWizard firstName={data.firstName} />;
   }
 
   const stats = {

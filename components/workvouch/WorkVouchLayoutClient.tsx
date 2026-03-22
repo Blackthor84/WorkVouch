@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { WorkVouchSidebar } from "./WorkVouchSidebar";
 import { WorkVouchNavbar } from "./WorkVouchNavbar";
 import { UpgradeModal } from "./UpgradeModal";
 import { ClaimCoworkerInviteBootstrap } from "@/components/invites/ClaimCoworkerInviteBootstrap";
+import { VouchOnboardingRouteGate } from "@/components/onboarding/VouchOnboardingRouteGate";
 
 export function WorkVouchLayoutClient({
   unreadNotificationCount,
@@ -14,6 +16,7 @@ export function WorkVouchLayoutClient({
   userInitial,
   userEmail,
   profilePhotoUrl,
+  needsVouchOnboarding = false,
   children,
 }: {
   unreadNotificationCount: number;
@@ -23,11 +26,29 @@ export function WorkVouchLayoutClient({
   userInitial: string;
   userEmail: string | null;
   profilePhotoUrl: string | null;
+  /** When true, employee must stay in /onboarding until the vouch loop is marked complete. */
+  needsVouchOnboarding?: boolean;
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+  const onboardingMinimal =
+    needsVouchOnboarding && (pathname === "/onboarding" || pathname?.startsWith("/onboarding/"));
+
+  if (onboardingMinimal) {
+    return (
+      <VouchOnboardingRouteGate needsOnboarding={needsVouchOnboarding}>
+        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+          <ClaimCoworkerInviteBootstrap />
+          {children}
+        </div>
+        <UpgradeModal />
+      </VouchOnboardingRouteGate>
+    );
+  }
 
   return (
+    <VouchOnboardingRouteGate needsOnboarding={needsVouchOnboarding}>
     <div className="flex min-h-screen bg-slate-50">
       <WorkVouchSidebar
         pendingReferenceRequestCount={pendingReferenceRequestCount}
@@ -50,5 +71,6 @@ export function WorkVouchLayoutClient({
       </div>
       <UpgradeModal />
     </div>
+    </VouchOnboardingRouteGate>
   );
 }
