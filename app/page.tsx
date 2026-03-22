@@ -21,9 +21,9 @@ export default function Home() {
           <img
             src="/images/workvouch-logo.png"
             alt="WorkVouch"
-            className="mx-auto mb-4 w-36"
-            width={144}
-            height={144}
+            className="h-12 mx-auto mb-4 object-contain"
+            width={180}
+            height={48}
           />
 
           <h1 className="mb-4 text-3xl font-bold">Get verified by people you actually worked with</h1>
