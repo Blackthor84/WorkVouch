@@ -1,20 +1,20 @@
 # WorkVouch Logo (canonical paths)
 
-## Primary (homepage + most UI)
-
-**File name:** `workvouch-logo.png`  
-**Location:** `public/images/workvouch-logo.png`  
-**URL:** `http://localhost:3000/images/workvouch-logo.png`
-
-Must live under **`public`** (not `app/`). Name must match **exactly** (case-sensitive on Linux).
-
-## Nuclear / fallback path
+## Homepage (app/page.tsx)
 
 **File name:** `logo.png`  
 **Location:** `public/logo.png`  
 **URL:** `http://localhost:3000/logo.png`
 
-Use this if you want zero folder nesting while debugging path issues.
+Put your real WorkVouch logo here (rename to **`logo.png`**). Must live under **`public`** (not `app/`).
+
+## Optional / other screens
+
+**File name:** `workvouch-logo.png`  
+**Location:** `public/images/workvouch-logo.png`  
+**URL:** `http://localhost:3000/images/workvouch-logo.png`
+
+Use if other components still reference this path; otherwise prefer `public/logo.png` for simplicity.
 
 ## Placeholder in repo
 

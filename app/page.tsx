@@ -19,11 +19,9 @@ export default function Home() {
       <main className="flex flex-1 items-center justify-center px-6">
         <div className="w-full max-w-lg rounded-2xl bg-white p-10 text-center shadow-lg">
           <img
-            src="/images/workvouch-logo.png"
+            src="/logo.png"
             alt="WorkVouch"
             className="h-12 mx-auto mb-4 object-contain"
-            width={180}
-            height={48}
           />
 
           <h1 className="mb-4 text-3xl font-bold">Get verified by people you actually worked with</h1>
