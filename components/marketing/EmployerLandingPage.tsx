@@ -71,8 +71,6 @@ export function EmployerLandingPage() {
           <EmployerAccessForm />
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

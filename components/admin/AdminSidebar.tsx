@@ -88,6 +88,9 @@ const enterpriseNav = [
   { label: "Billing", href: "/admin/enterprise/billing" },
 ];
 
+/** Product / journey previews — all admins (read-only UI). */
+const productToolsNav = [{ href: "/admin/flows", label: "Flow Viewer" }];
+
 /** Sandbox-only nav: Trust Overview, Members, Lab Environment (simulation), Audit Logs. */
 const sandboxNav = {
   TrustOverview: nav.TrustOverview,
@@ -185,12 +188,14 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
             <>
               {section("Trust Overview", sandboxNav.TrustOverview)}
               {section("Members", sandboxNav.Users)}
+              {section("Product tools", productToolsNav)}
               {section("System Controls", sandboxNav.LabEnvironment)}
               {section("Audit Logs", sandboxNav.AuditLogs)}
             </>
           ) : (
             <>
               {section("Trust Overview", productionOnlyNav.TrustOverview)}
+              {section("Product tools", productToolsNav)}
               {section(
                 "Members",
                 isSuperAdmin
