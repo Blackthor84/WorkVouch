@@ -1,37 +1,30 @@
-# WorkVouch Logo
+# WorkVouch Logo (canonical paths)
 
-## Required File
+## Primary (homepage + most UI)
 
-**File Name:** `workvouch.png`  
-**Location:** `public/images/workvouch.png`  
-**Format:** PNG (recommended) or SVG  
-**Recommended Size:** 200x50px (or proportional)
+**File name:** `workvouch-logo.png`  
+**Location:** `public/images/workvouch-logo.png`  
+**URL:** `http://localhost:3000/images/workvouch-logo.png`
 
-## Usage
+Must live under **`public`** (not `app/`). Name must match **exactly** (case-sensitive on Linux).
 
-All components reference the logo using:
+## Nuclear / fallback path
 
-```tsx
-<Image
-  src="/images/workvouch.png"
-  alt="WorkVouch Logo"
-  width={200}
-  height={50}
-  priority
-/>
-```
+**File name:** `logo.png`  
+**Location:** `public/logo.png`  
+**URL:** `http://localhost:3000/logo.png`
 
-## Adding Your Logo
+Use this if you want zero folder nesting while debugging path issues.
 
-1. Save your WorkVouch logo as `workvouch.png`
-2. Place it in the `public/images/` directory
-3. The logo will automatically appear across all pages
+## Placeholder in repo
 
-## Components Using Logo
+A **minimal valid PNG** may be committed so the URL returns **200** in dev/CI. **Replace it** with your real logo (recommended ~200×50px or proportional).
 
-- `components/navbar.tsx`
-- `components/homepage-navbar.tsx`
-- `components/simple-navbar.tsx`
-- `components/logo.tsx`
+## Quick test
 
-All references have been updated to use `/images/workvouch.png`.
+1. Open `/images/workvouch-logo.png` in the browser → should show an image (not 404).
+2. If 404: wrong folder, wrong filename, or file not saved.
+
+## Legacy note
+
+Some older references used `workvouch.png` or `workvouch-logo.png.png` — consolidate on **`workvouch-logo.png`** when updating components.
