@@ -17,6 +17,7 @@ export function EmployerSidebar() {
 
   const navItems = [
     { href: "/employer/dashboard", label: "Verification Summary", icon: HomeIcon },
+    { href: "/employer/verified-workers", label: "Verified workers", icon: UserGroupIcon },
     { href: "/employer/compare", label: "Decision Comparison", icon: MagnifyingGlassIcon },
     { href: "/employer/claim", label: "Claim company", icon: BuildingOfficeIcon },
     {

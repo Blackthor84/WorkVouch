@@ -12,6 +12,7 @@ import {
   stripe,
   logMissingStripePriceIds,
   getCheckoutBaseUrl,
+  isPriceIdWhitelisted,
 } from "@/lib/stripe/config";
 import {
   type EmployerPlanId,
@@ -148,6 +149,7 @@ export async function POST(req: NextRequest) {
         employerId: employerAccountTyped.id,
         userId: user.id,
         planId: planId as string,
+        billingInterval,
       },
     });
 

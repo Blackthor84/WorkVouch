@@ -238,6 +238,24 @@ export function EmployerDashboardClient({
         )}
         {isFreePlan && <UpgradeBanner />}
 
+        {/* Verified workers — monetization funnel */}
+        <Card className="border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-900/40">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-100">
+                Verified workers directory
+              </h2>
+              <p className="mt-1 text-sm text-grey-medium dark:text-gray-400">
+                Most employers only see a small portion of verified workers. Browse coworker-backed profiles and
+                upgrade to unlock full access.
+              </p>
+            </div>
+            <Button asChild className="shrink-0 bg-gray-900 text-white hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
+              <Link href="/employer/verified-workers">Open verified workers</Link>
+            </Button>
+          </div>
+        </Card>
+
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
