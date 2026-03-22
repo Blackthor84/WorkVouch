@@ -17,25 +17,19 @@ export default function Home() {
     <div className="flex min-h-screen flex-col bg-gray-50">
       {/* MAIN — Navbar from root layout */}
       <main className="flex flex-1 items-center justify-center px-6">
-        <div className="w-full max-w-lg rounded-2xl bg-white p-10 text-center shadow-lg">
-          <img
-            src="/logo.png"
-            alt="WorkVouch"
-            className="h-12 mx-auto mb-4 object-contain"
-          />
-
+        <div className="bg-white p-10 rounded-2xl shadow-lg w-full max-w-lg text-center">
           <h1 className="mb-4 text-3xl font-bold">Get verified by people you actually worked with</h1>
 
           <p className="mb-6 text-gray-600">
             Stop relying on resumes. If you&apos;ve worked with solid people, prove it in seconds.
           </p>
 
-          <Link
+          <a
             href="/onboarding"
-            className="block rounded-xl bg-blue-600 px-6 py-3 text-lg font-semibold text-white hover:bg-blue-700"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-lg font-semibold block"
           >
             Get Your First Vouch
-          </Link>
+          </a>
 
           <p className="mt-3 text-xs text-gray-400">Takes less than 60 seconds</p>
 
