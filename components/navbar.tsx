@@ -28,11 +28,6 @@ export default function Navbar() {
   const pathname = usePathname();
   const isActive = (path: string) => pathname === path || (path !== "/coworker-matches" && pathname?.startsWith(path));
 
-  /** Homepage (logged out): zero nav chrome — full-bleed conversion landing handles brand + login link. */
-  if (pathname === "/" && !isAuthenticated) {
-    return null;
-  }
-
   return (
     <header className="sticky top-0 z-50">
       <nav className="bg-blue-700 text-white shadow-lg h-14 flex items-center px-4 md:px-8">
