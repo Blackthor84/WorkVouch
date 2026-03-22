@@ -28,6 +28,11 @@ export default function Navbar() {
   const pathname = usePathname();
   const isActive = (path: string) => pathname === path || (path !== "/coworker-matches" && pathname?.startsWith(path));
 
+  /** Homepage (logged out): zero nav chrome — full-bleed conversion landing handles brand + login link. */
+  if (pathname === "/" && !isAuthenticated) {
+    return null;
+  }
+
   return (
     <header className="sticky top-0 z-50">
       <nav className="bg-blue-700 text-white shadow-lg h-14 flex items-center px-4 md:px-8">
@@ -125,8 +130,20 @@ export default function Navbar() {
               <div className="pt-3 mt-3 border-t border-white/20 space-y-2">
                 {!isLoading && (
                   <>
-                    <Link href="/login" className="block text-center text-white/90 hover:text-white border border-white/60 py-2.5 rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>Login</Link>
-                    <Link href="/signup" className="block text-center bg-white text-blue-600 py-2.5 rounded-lg font-medium" onClick={() => setMobileMenuOpen(false)}>Sign Up</Link>
+                    <Link
+                      href="/login"
+                      className="block text-center text-white/90 hover:text-white border border-white/60 py-2.5 rounded-lg font-medium"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/signup"
+                      className="block text-center bg-white text-blue-600 py-2.5 rounded-lg text-sm font-bold sm:text-base"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Get Your First Vouch
+                    </Link>
                   </>
                 )}
               </div>

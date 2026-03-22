@@ -1,61 +1,14 @@
-import ActiveAds from "@/components/ActiveAds";
-import BuiltForHighTrustProfessions from "@/components/marketing/BuiltForHighTrustProfessions";
-import HeroInteractive, { type HeroIndustry } from "@/components/public/HeroInteractive";
-import TheProblemSection from "@/components/public/TheProblemSection";
-import HowWorkVouchWorks from "@/components/public/HowWorkVouchWorks";
-import RealExampleSection from "@/components/public/RealExampleSection";
-import WhyWorkVouch from "@/components/public/WhyWorkVouch";
-import ForEmployersSection from "@/components/public/ForEmployersSection";
-import ForEmployeesSection from "@/components/public/ForEmployeesSection";
-import EnterpriseSection from "@/components/public/EnterpriseSection";
-import TestimonialsSection from "@/components/public/TestimonialsSection";
-import FinalCTA from "@/components/public/FinalCTA";
-import TrustedBySection from "@/components/public/TrustedBySection";
-import HowWePreventFraud from "@/components/public/HowWePreventFraud";
-import ComplianceSecuritySection from "@/components/public/ComplianceSecuritySection";
+import type { Metadata } from "next";
+import GetVouchedHomePage from "@/components/marketing/GetVouchedHomePage";
 
-const VALID_INDUSTRIES: readonly HeroIndustry[] = [
-  "healthcare",
-  "tech",
-  "finance",
-  "logistics",
-];
+export const dynamic = "force-dynamic";
 
-function parseIndustry(value: unknown): HeroIndustry | undefined {
-  if (typeof value !== "string") return undefined;
-  return VALID_INDUSTRIES.includes(value as HeroIndustry)
-    ? (value as HeroIndustry)
-    : undefined;
-}
+export const metadata: Metadata = {
+  title: "Get verified by coworkers | WorkVouch",
+  description:
+    "Stop relying on resumes. Prove you're legit with real coworker confirmation. Add your job, invite coworkers, get verified.",
+};
 
-interface HomeProps {
-  params?: Promise<Record<string, string | string[]>>;
-  searchParams?: Promise<{ industry?: string }>;
-}
-
-export default async function Home(props: HomeProps) {
-  const resolved = await (props.searchParams ?? Promise.resolve({} as { industry?: string }));
-  const industry = parseIndustry(resolved.industry);
-
-  return (
-    <div className="min-h-screen bg-[#F8FAFC] overflow-x-hidden">
-      <HeroInteractive industry={industry} />
-      <TheProblemSection />
-      <HowWorkVouchWorks />
-      <RealExampleSection />
-      <BuiltForHighTrustProfessions />
-      <TrustedBySection />
-      <WhyWorkVouch />
-      <ForEmployersSection />
-      <ForEmployeesSection />
-      <HowWePreventFraud />
-      <ComplianceSecuritySection />
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <ActiveAds />
-      </div>
-      <EnterpriseSection />
-      <TestimonialsSection />
-      <FinalCTA />
-    </div>
-  );
+export default function Home() {
+  return <GetVouchedHomePage />;
 }
