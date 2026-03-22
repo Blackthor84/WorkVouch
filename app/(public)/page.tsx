@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 
@@ -11,46 +10,64 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-6">
-      {/* LOGO — add public/images/workvouch-logo.png (or use /images/workvouch.png) */}
-      <img
-        src="/images/workvouch-logo.png"
-        alt="WorkVouch"
-        className="mb-6 w-40"
-        width={160}
-        height={160}
-      />
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      {/* HEADER */}
+      <header className="flex w-full items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-2">
+          {/* Use /images/workvouch-logo.png — or /images/workvouch-logo.png.png if that’s what’s in public/ */}
+          <img
+            src="/images/workvouch-logo.png"
+            alt="WorkVouch"
+            className="h-8 w-8 object-contain"
+            width={32}
+            height={32}
+          />
+          <span className="text-lg font-bold">WorkVouch</span>
+        </div>
 
-      {/* CARD (same vibe as login) */}
-      <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-lg">
-        <h1 className="mb-4 text-2xl font-bold">Get verified by people you actually worked with</h1>
-
-        <p className="mb-6 text-gray-600">
-          Stop relying on resumes. If you&apos;ve worked with solid people, prove it in seconds.
-        </p>
-
-        <Link
-          href="/onboarding"
-          className="block rounded-xl bg-blue-600 px-6 py-3 text-lg font-semibold text-white hover:bg-blue-700"
-        >
-          Get Your First Vouch
-        </Link>
-
-        {/* MICRO TRUST */}
-        <p className="mt-3 text-xs text-gray-400">Takes less than 60 seconds</p>
-
-        <p className="mt-1 text-xs text-gray-400">
-          Don&apos;t fall behind — people are already getting verified
-        </p>
-
-        {/* EMPLOYER LINK (SUBTLE) */}
-        <p className="mt-4 text-xs text-gray-500">
-          Hiring?{" "}
-          <Link href="/employers" className="underline">
-            View verified workers
+        <div className="flex gap-4 text-sm">
+          <Link href="/login" className="text-gray-600 hover:text-black">
+            Login
           </Link>
-        </p>
-      </div>
+          <Link
+            href="/signup"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          >
+            Sign Up
+          </Link>
+        </div>
+      </header>
+
+      {/* MAIN */}
+      <main className="flex flex-1 items-center justify-center px-6">
+        <div className="w-full max-w-lg rounded-2xl bg-white p-10 text-center shadow-lg">
+          <h1 className="mb-4 text-3xl font-bold">Get verified by people you actually worked with</h1>
+
+          <p className="mb-6 text-gray-600">
+            Stop relying on resumes. If you&apos;ve worked with solid people, prove it in seconds.
+          </p>
+
+          <Link
+            href="/onboarding"
+            className="block rounded-xl bg-blue-600 px-6 py-3 text-lg font-semibold text-white hover:bg-blue-700"
+          >
+            Get Your First Vouch
+          </Link>
+
+          <p className="mt-3 text-xs text-gray-400">Takes less than 60 seconds</p>
+
+          <p className="mt-1 text-xs text-gray-400">
+            Don&apos;t fall behind — people are already getting verified
+          </p>
+
+          <p className="mt-4 text-sm text-gray-500">
+            Hiring?{" "}
+            <Link href="/employers" className="font-medium underline">
+              View verified workers
+            </Link>
+          </p>
+        </div>
+      </main>
 
       <Footer />
     </div>
