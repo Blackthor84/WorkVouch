@@ -109,8 +109,6 @@ export default function GetVouchedHomePage({ showMinimalNav = true }: Props) {
           </Link>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Footer from "@/components/Footer";
 import GetVouchedHomePage from "@/components/marketing/GetVouchedHomePage";
 import { getUser } from "@/lib/auth/getUser";
 
@@ -12,5 +13,10 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const user = await getUser();
-  return <GetVouchedHomePage showMinimalNav={!user} />;
+  return (
+    <>
+      <GetVouchedHomePage showMinimalNav={!user} />
+      <Footer />
+    </>
+  );
 }
