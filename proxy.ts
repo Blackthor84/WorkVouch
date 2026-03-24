@@ -55,7 +55,7 @@ export async function proxy(req: NextRequest) {
           const { data: profile } = await supabase
             .from("profiles")
             .select("role")
-            .eq("user_id", user.id)
+            .eq("id", user.id)
             .maybeSingle();
           const role = (profile as { role?: string } | null)?.role;
           allowSimulationHeaders = role === "admin" || role === "superadmin";
@@ -162,20 +162,27 @@ export async function proxy(req: NextRequest) {
         }
 
         const skipPendingEnforce =
-          path.startsWith("/choose-role") ||
           path.startsWith("/auth/") ||
           path.startsWith("/_next/") ||
           path === "/favicon.ico" ||
           path === "/robots.txt" ||
           path === "/sitemap.xml";
 
-        if (resolved === "pending" && !skipPendingEnforce) {
-          const out = NextResponse.redirect(new URL("/choose-role", req.url));
-          copyCookies(res, out);
-          return out;
+        // Only treat as no-role when profile resolves to pending (empty/null → pending via resolveUserRole)
+        const hasRole = resolved !== "pending";
+
+        if (!hasRole && !skipPendingEnforce) {
+          if (path !== "/choose-role" && !path.startsWith("/choose-role/")) {
+            const out = NextResponse.redirect(new URL("/choose-role", req.url));
+            copyCookies(res, out);
+            return out;
+          }
         }
 
-        if (resolved !== "pending" && (path === "/choose-role" || path.startsWith("/choose-role/"))) {
+        if (
+          hasRole &&
+          (path === "/choose-role" || path.startsWith("/choose-role/"))
+        ) {
           const dest = getHomePathForResolvedRole(resolved);
           if (path !== dest && !path.startsWith(`${dest}/`)) {
             const out = NextResponse.redirect(new URL(dest, req.url));
