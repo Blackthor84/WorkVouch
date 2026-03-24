@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Squares2X2Icon,
@@ -42,23 +41,10 @@ export function WorkVouchSidebar({
   onCloseMobile?: () => void;
 } = {}) {
   const pathname = usePathname();
-  const logoHref = "/dashboard";
 
   const navContent = (
     <>
-      <div className="flex h-14 shrink-0 items-center border-b border-blue-200/80 px-4">
-        <Link href={logoHref} className="flex items-center gap-2" onClick={onCloseMobile} aria-label="WorkVouch">
-          <Image
-            src="/images/workvouch-logo.png.png"
-            alt=""
-            width={120}
-            height={40}
-            className="h-8 w-auto"
-            style={{ objectFit: "contain" }}
-          />
-        </Link>
-      </div>
-      <nav className="flex flex-1 flex-col gap-1 p-3 overflow-y-auto">
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3 pt-4">
         {onCloseMobile && (
           <div className="flex justify-end p-2 md:hidden">
             <button

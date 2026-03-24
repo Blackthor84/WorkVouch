@@ -2,19 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Bars3Icon } from "@heroicons/react/24/outline";
-import {
-  Squares2X2Icon,
-  UserGroupIcon,
-  InboxStackIcon,
-  UserCircleIcon,
-  Cog6ToothIcon,
-  ArrowRightOnRectangleIcon,
-} from "@heroicons/react/24/outline";
+import { Bars3Icon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 import { NotificationBell } from "./NotificationBell";
 import { supabaseBrowser } from "@/lib/supabase/browser";
-import { SmartGuide } from "@/components/guidance/SmartGuide";
 
 export function WorkVouchNavbar({
   unreadNotificationCount = 0,
@@ -66,9 +58,6 @@ export function WorkVouchNavbar({
     router.refresh();
   };
 
-  const linkClass =
-    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100";
-
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between bg-blue-600 px-4 shadow-sm sm:px-6">
       <div className="flex items-center gap-3">
@@ -84,31 +73,18 @@ export function WorkVouchNavbar({
         )}
         <Link
           href="/dashboard"
-          className="text-lg font-semibold text-white transition-opacity hover:opacity-90"
-          title="WorkVouch"
+          className="flex items-center transition-opacity hover:opacity-90"
+          aria-label="WorkVouch home"
         >
-          <span className="tracking-tight">WorkVouch</span>
+          <Image
+            src="/images/workvouch-logo.png.png"
+            alt=""
+            width={140}
+            height={36}
+            className="h-8 w-auto max-h-8 object-contain brightness-0 invert opacity-95"
+            priority
+          />
         </Link>
-        <nav className="hidden md:flex items-center gap-1 ml-2" aria-label="Main">
-          <Link
-            href="/dashboard"
-            className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white/90 hover:bg-white/15"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/coworker-matches"
-            className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white/90 hover:bg-white/15"
-          >
-            Matches
-          </Link>
-          <Link
-            href="/requests"
-            className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white/90 hover:bg-white/15"
-          >
-            Requests
-          </Link>
-        </nav>
       </div>
 
       <div className="flex items-center gap-2">
@@ -124,7 +100,6 @@ export function WorkVouchNavbar({
           unreadCount={unreadNotificationCount}
           variant="header"
         />
-        <SmartGuide variant="light" />
 
         <div className="relative" ref={dropdownRef}>
           <button
@@ -153,49 +128,7 @@ export function WorkVouchNavbar({
                   </p>
                 </div>
               )}
-              <div className="py-1">
-                <Link
-                  href="/dashboard"
-                  className={linkClass}
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  <Squares2X2Icon className="h-5 w-5 shrink-0 text-slate-400" />
-                  Dashboard
-                </Link>
-                <Link
-                  href="/coworker-matches"
-                  className={linkClass}
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  <UserGroupIcon className="h-5 w-5 shrink-0 text-slate-400" />
-                  Matches
-                </Link>
-                <Link
-                  href="/requests"
-                  className={linkClass}
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  <InboxStackIcon className="h-5 w-5 shrink-0 text-slate-400" />
-                  Requests
-                </Link>
-                <Link
-                  href="/profile"
-                  className={linkClass}
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  <UserCircleIcon className="h-5 w-5 shrink-0 text-slate-400" />
-                  Profile
-                </Link>
-                <Link
-                  href="/settings"
-                  className={linkClass}
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  <Cog6ToothIcon className="h-5 w-5 shrink-0 text-slate-400" />
-                  Settings
-                </Link>
-              </div>
-              <div className="border-t border-slate-100 pt-1">
+              <div className="p-1">
                 <button
                   type="button"
                   onClick={handleLogout}
