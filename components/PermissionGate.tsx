@@ -9,7 +9,8 @@ type Props = {
 };
 
 export function PermissionGate({ perm, children }: Props) {
-  const { role } = useAuth();
+  const { role, loading } = useAuth();
+  if (loading) return null;
   if (!role) return null;
   if (role === "admin" || role === "superadmin") return <>{children}</>;
   if (!hasPermission(role as Role, perm)) return null;
