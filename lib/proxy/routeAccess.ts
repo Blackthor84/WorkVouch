@@ -1,6 +1,9 @@
 import type { ResolvedAppRole } from "@/lib/auth/roleTypes";
 import { getHomePathForResolvedRole } from "@/lib/auth/roleRouting";
 
+/** Profile row missing or unreadable — do not treat as `pending` (avoids /choose-role loops). */
+export type RoleForAccess = ResolvedAppRole | "unknown";
+
 /** Paths that require a Supabase session (profiles.role enforced separately). */
 const AUTH_PREFIXES = [
   "/choose-role",
@@ -88,7 +91,7 @@ function isEmployerPortalPath(pathname: string): boolean {
 export function getRoleAccessRedirect(
   pathname: string,
   hasUser: boolean,
-  resolved: ResolvedAppRole
+  resolved: RoleForAccess
 ): string | null {
   if (!hasUser) {
     if (pathRequiresAuth(pathname)) return "/login";
@@ -96,6 +99,7 @@ export function getRoleAccessRedirect(
   }
 
   if (pathname === "/login" || pathname === "/signup") {
+    if (resolved === "unknown") return "/dashboard";
     return getHomePathForResolvedRole(resolved);
   }
 
@@ -110,6 +114,7 @@ export function getRoleAccessRedirect(
   }
 
   if (pathname === "/choose-role" || pathname.startsWith("/choose-role/")) {
+    if (resolved === "unknown") return null;
     const home = getHomePathForResolvedRole(resolved);
     if (pathname === home || pathname.startsWith(`${home}/`)) return null;
     return home;
@@ -119,7 +124,7 @@ export function getRoleAccessRedirect(
     if (isEmployeeAppPath(pathname)) return "/enterprise";
   }
 
-  if (resolved === "employee") {
+  if (resolved === "employee" || resolved === "unknown") {
     if (pathname.startsWith("/enterprise")) return "/dashboard";
     if (isEmployerPortalPath(pathname) && pathname !== "/employer") {
       return "/dashboard";

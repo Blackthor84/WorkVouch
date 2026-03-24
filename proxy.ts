@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/types/supabase";
 import { NextResponse, type NextRequest } from "next/server";
 import { resolveUserRole } from "@/lib/auth/resolveUserRole";
-import { getRoleAccessRedirect } from "@/lib/proxy/routeAccess";
+import { getRoleAccessRedirect, type RoleForAccess } from "@/lib/proxy/routeAccess";
 import {
   IMPERSONATION_SIMULATION_COOKIE,
   IMPERSONATION_HEADERS,
@@ -118,21 +118,24 @@ export async function proxy(req: NextRequest) {
         data: { user },
       } = await supabase.auth.getUser();
 
-      let profileRole: string | null | undefined;
+      let resolved: RoleForAccess = "pending";
       if (user) {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("role")
           .eq("id", user.id)
           .maybeSingle();
-        profileRole = (profile as { role?: string | null } | null)?.role ?? undefined;
+
+        if (profileError || profile === null) {
+          resolved = "unknown";
+        } else {
+          resolved = resolveUserRole(profile as { role?: string | null });
+        }
       }
-      const resolved = resolveUserRole({ role: profileRole });
 
       const isApi = path.startsWith("/api/");
       if (!isApi) {
-        console.log("PATH:", path);
-        console.log("USER ROLE:", profileRole ?? resolved);
+        console.log("ROLE CHECK:", { path, resolved });
       }
 
       if (!isApi) {
