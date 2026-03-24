@@ -114,20 +114,23 @@ export function WorkVouchNavbar({
       <div className="flex items-center gap-2">
         <Link
           href="/dashboard"
-          className="flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-2 text-sm font-semibold text-white hover:bg-white/25 transition-colors"
+          className="flex items-center gap-1.5 rounded-lg bg-blue-500/20 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500/30"
           title="Trust Score"
         >
           <span className="tabular-nums">{Math.min(100, Math.max(0, trustScore))}</span>
           <span className="text-white/80 font-medium text-xs">Trust</span>
         </Link>
-        <NotificationBell unreadCount={unreadNotificationCount} />
+        <NotificationBell
+          unreadCount={unreadNotificationCount}
+          variant="header"
+        />
         <SmartGuide variant="light" />
 
         <div className="relative" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setDropdownOpen((o) => !o)}
-            className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-white/15 text-sm font-medium text-white ring-1 ring-white/20 transition-all hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-blue-600"
+            className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-blue-500/20 text-sm font-medium text-white ring-1 ring-white/20 transition-all hover:bg-blue-500/30 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-blue-600"
             aria-label="Profile menu"
             aria-expanded={dropdownOpen}
           >

@@ -70,8 +70,8 @@ export function TrustScoreExplainedSection() {
 
   if (loading) {
     return (
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold text-[#0F172A] dark:text-gray-200 mb-2">
+      <Card>
+        <h2 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
           Your Trust Score Explained
         </h2>
         <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
@@ -86,11 +86,11 @@ export function TrustScoreExplainedSection() {
 
   if (error || !data) {
     return (
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold text-[#0F172A] dark:text-gray-200 mb-2">
+      <Card>
+        <h2 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
           Your Trust Score Explained
         </h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
           {error ?? "Unable to load."}
         </p>
       </Card>
@@ -100,23 +100,23 @@ export function TrustScoreExplainedSection() {
   const history = data.scoreHistory ?? [];
 
   return (
-    <Card className="p-6">
-      <h2 className="text-xl font-semibold text-[#0F172A] dark:text-gray-200 mb-4">
+    <Card>
+      <h2 className="mb-4 text-lg font-medium text-gray-900 dark:text-gray-100">
         Your Trust Score Explained
       </h2>
 
       <div className="space-y-4">
         <div>
-          <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+          <h3 className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
             Current trust band
           </h3>
-          <p className="text-grey-dark dark:text-gray-200 font-semibold">
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
             {data.trustBandLabel}
           </p>
         </div>
 
         <div>
-          <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+          <h3 className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
             Trust trajectory
           </h3>
           <TrustTrajectoryBadge
@@ -127,29 +127,29 @@ export function TrustScoreExplainedSection() {
         </div>
 
         <div>
-          <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+          <h3 className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
             Explanation
           </h3>
-          <p className="text-sm text-grey-dark dark:text-gray-200">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             {data.explanation}
           </p>
         </div>
 
         {history.length > 0 && (
           <div>
-            <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
+            <h3 className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
               Recent trust-affecting events
             </h3>
-            <ul className="space-y-2 border-l-2 border-slate-200 dark:border-slate-700 pl-4">
+            <ul className="space-y-2 border-l-2 border-gray-200 pl-4 dark:border-gray-700">
               {history.map((item, i) => (
-                <li key={i} className="text-sm">
-                  <span className="text-grey-dark dark:text-gray-200">
+                <li key={i} className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-gray-900 dark:text-gray-100">
                     {item.event}
                   </span>
-                  <span className="text-slate-500 dark:text-slate-400 mx-2">
+                  <span className="mx-2 text-xs text-gray-500 dark:text-gray-400">
                     · impact {formatImpact(item.impact)}
                   </span>
-                  <span className="text-slate-500 dark:text-slate-400">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {formatDate(item.date)}
                   </span>
                 </li>

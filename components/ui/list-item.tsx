@@ -17,10 +17,10 @@ export function ListItem({
   active,
 }: ListItemProps) {
   const baseClasses =
-    "flex items-center gap-3 px-4 py-3 rounded-xl transition-colors cursor-pointer";
+    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer";
   const activeClasses = active
-    ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold"
-    : "text-grey-dark dark:text-gray-200 hover:bg-grey-background dark:hover:bg-[#1A1F2B]";
+    ? "bg-blue-600 text-white"
+    : "text-blue-800 hover:bg-blue-100";
 
   const content = (
     <div

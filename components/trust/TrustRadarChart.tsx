@@ -75,7 +75,7 @@ export function TrustRadarChart({ profileId: propProfileId }: TrustRadarChartPro
 
   if (loading) {
     return (
-      <Card className="p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+      <Card>
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Trust Radar</h2>
         <div className="h-[280px] flex items-center justify-center">
           <div className="h-12 w-12 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
@@ -86,7 +86,7 @@ export function TrustRadarChart({ profileId: propProfileId }: TrustRadarChartPro
 
   if (error || !data) {
     return (
-      <Card className="p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+      <Card>
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Trust Radar</h2>
         <p className="text-sm text-slate-500 dark:text-slate-400">{error ?? "No data."}</p>
       </Card>
@@ -96,7 +96,7 @@ export function TrustRadarChart({ profileId: propProfileId }: TrustRadarChartPro
   const chartData = toChartData(data);
 
   return (
-    <Card className="p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+    <Card>
       <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Trust Radar</h2>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
         Six dimensions from verification, references, network, disputes, consistency, and recency.

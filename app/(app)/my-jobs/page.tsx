@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { JobList } from "@/components/workvouch/job-list";
 import { AddJobButton } from "@/components/workvouch/add-job-button";
 import { BriefcaseIcon } from "@heroicons/react/24/outline";
@@ -58,10 +57,21 @@ export default async function MyJobsPage() {
         ) : (
           <Card className="p-12 text-center">
             <BriefcaseIcon className="h-12 w-12 text-grey-medium dark:text-gray-400 mx-auto mb-4" />
-            <p className="text-grey-medium dark:text-gray-400 mb-4">
-              You haven't added any jobs yet.
+            <p className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-2">
+              Add your work history to unlock coworker matches
             </p>
-            <AddJobButton />
+            <p className="text-grey-medium dark:text-gray-400 mb-6 text-sm max-w-md mx-auto">
+              Roles with accurate dates power overlap matching—then you can request your first vouch.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <AddJobButton />
+              <Link
+                href="/coworker-matches"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+              >
+                See coworker matches
+              </Link>
+            </div>
           </Card>
         )}
     </main>

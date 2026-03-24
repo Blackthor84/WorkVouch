@@ -42,7 +42,7 @@ export function EmployerBilling() {
 
   if (loading) {
     return (
-      <Card className="p-12 text-center">
+      <Card className="text-center">
         <p className="text-grey-medium dark:text-gray-400">
           Loading subscription...
         </p>
@@ -141,7 +141,7 @@ export function EmployerBilling() {
       </Card>
 
       {!isPro && (
-        <Card className="p-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+        <Card>
           <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-2">
             Upgrade to Employer Pro
           </h3>

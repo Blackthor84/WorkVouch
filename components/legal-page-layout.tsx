@@ -44,7 +44,7 @@ export function LegalPageLayout({
         </div>
 
         <div className="prose prose-lg dark:prose-invert max-w-none">
-          <div className="bg-white dark:bg-[#1A1F2B] rounded-2xl shadow-md p-8 space-y-6 text-grey-medium dark:text-gray-400">
+          <div className="space-y-6 rounded-xl border border-gray-100 bg-white p-6 text-grey-medium shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
             {children}
           </div>
         </div>

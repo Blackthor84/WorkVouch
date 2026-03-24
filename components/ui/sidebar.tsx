@@ -49,15 +49,15 @@ export function Sidebar({ role }: SidebarProps) {
   }
 
   return (
-    <div className="flex h-screen w-64 flex-col bg-white border-r border-[#E2E8F0] shadow-sm">
-      <div className="flex h-16 items-center border-b border-[#E2E8F0] px-6">
+    <div className="flex h-screen w-64 flex-col border-r border-blue-200/80 bg-blue-50 shadow-sm">
+      <div className="flex h-16 items-center border-b border-blue-200/80 px-5">
         <Link href="/" className="flex items-center">
-          <span className="text-2xl font-bold text-[#0F172A]">
+          <span className="text-2xl font-bold text-blue-900">
             WorkVouch
           </span>
         </Link>
       </div>
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex flex-1 flex-col gap-0.5 px-3 py-4">
         {navigation.map((item) => {
           const isActive =
             pathname === item.href || pathname?.startsWith(item.href + "/");
@@ -66,10 +66,10 @@ export function Sidebar({ role }: SidebarProps) {
               key={item.name}
               href={item.href}
               className={cn(
-                "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
+                "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-200",
                 isActive
-                  ? "bg-[#2563EB] text-white shadow-md"
-                  : "text-[#334155] font-medium hover:bg-blue-50 hover:text-[#2563EB]",
+                  ? "bg-blue-600 text-white shadow-sm shadow-blue-600/20"
+                  : "text-blue-800 hover:bg-blue-100",
               )}
             >
               <item.icon
@@ -77,8 +77,8 @@ export function Sidebar({ role }: SidebarProps) {
                   "h-5 w-5 transition-transform duration-200",
                   isActive
                     ? "text-white"
-                    : "text-[#64748B] group-hover:text-[#2563EB]",
-                  "group-hover:scale-110",
+                    : "text-blue-600 group-hover:text-blue-700",
+                  "group-hover:scale-[1.02]",
                 )}
               />
               {item.name}

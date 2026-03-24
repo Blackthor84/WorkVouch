@@ -27,7 +27,8 @@ export function SmartOnboardingNudges({
       key: "job",
       body: (
         <>
-          <strong className="font-semibold text-slate-800 dark:text-slate-100">Add your first job</strong> to unlock
+          <strong className="font-medium text-gray-900 dark:text-gray-100">Add your first job</strong>{" "}
+          <span className="text-gray-600 dark:text-gray-400">to unlock</span>
           coworker matches — we match on real employment overlap.
         </>
       ),
@@ -39,8 +40,8 @@ export function SmartOnboardingNudges({
       key: "verify",
       body: (
         <>
-          <strong className="font-semibold text-slate-800 dark:text-slate-100">Request a coworker verification</strong>{" "}
-          to increase trust — matches can leave a quick review.
+          <strong className="font-medium text-gray-900 dark:text-gray-100">Request a coworker verification</strong> to
+          increase trust — matches can leave a quick review.
         </>
       ),
     });
@@ -51,8 +52,8 @@ export function SmartOnboardingNudges({
       key: "matches",
       body: (
         <>
-          <strong className="font-semibold text-slate-800 dark:text-slate-100">No matches yet?</strong> Accurate dates
-          on your jobs help us find overlapping coworkers.
+          <strong className="font-semibold text-slate-800 dark:text-slate-100">Add a coworker to get your first vouch</strong>
+          — accurate dates on your jobs help us find overlapping coworkers to request from.
         </>
       ),
     });
@@ -63,8 +64,8 @@ export function SmartOnboardingNudges({
       key: "confidence",
       body: (
         <>
-          <strong className="font-semibold text-slate-800 dark:text-slate-100">Boost confidence:</strong> add a short bio
-          and recent activity so your profile feels complete.
+          <strong className="font-medium text-gray-900 dark:text-gray-100">Boost confidence:</strong> add a short bio and
+          recent activity so your profile feels complete.
         </>
       ),
     });
@@ -73,22 +74,24 @@ export function SmartOnboardingNudges({
   if (nudges.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-950/30">
+    <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="flex flex-col gap-4">
       <div className="flex gap-3">
-        <LightBulbIcon className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" aria-hidden />
-        <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+        <LightBulbIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden />
+        <ul className="flex flex-col gap-3 text-sm text-slate-700 dark:text-slate-300">
           {nudges.map((n) => (
             <li key={n.key}>{n.body}</li>
           ))}
         </ul>
       </div>
-      <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold">
+      <div className="flex flex-wrap gap-3 text-xs font-medium">
         {jobsCount < 1 && (
           <Link href="/jobs/new" className="text-blue-600 hover:underline dark:text-blue-400">
             Add job →
           </Link>
         )}
-        {(referenceCount < 1 || verifiedByCoworkers < 1) && jobsCount >= 1 && (
+        {jobsCount >= 1 &&
+          (matchesCount < 1 || referenceCount < 1 || verifiedByCoworkers < 1) && (
           <Link href="/coworker-matches" className="text-blue-600 hover:underline dark:text-blue-400">
             Coworker matches →
           </Link>
@@ -98,6 +101,7 @@ export function SmartOnboardingNudges({
             Edit profile →
           </Link>
         )}
+      </div>
       </div>
     </div>
   );

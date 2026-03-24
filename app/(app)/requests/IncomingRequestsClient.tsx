@@ -119,14 +119,14 @@ export function IncomingRequestsClient() {
     return (
       <EmptyState
         icon={<InboxStackIcon className="h-7 w-7" />}
-        title="No incoming requests"
-        description="When someone asks you for a reference, it will show up here."
+        title="You're all caught up — no vouch requests yet"
+        description="When someone asks you to vouch for them, you'll see it here. Stay active on matches so your network can find you."
         action={
           <Link
             href="/coworker-matches"
-            className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800"
+            className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
           >
-            View matches
+            Open coworker matches
           </Link>
         }
         className="mt-8"

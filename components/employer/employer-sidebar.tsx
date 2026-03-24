@@ -50,13 +50,13 @@ export function EmployerSidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-white border-r border-[#E2E8F0] min-h-screen p-4">
-      <div className="mb-6">
-        <h2 className="text-lg font-bold text-grey-dark dark:text-gray-200">
+    <aside className="w-64 min-h-screen border-r border-blue-200/80 bg-blue-50 p-4">
+      <div className="mb-5">
+        <h2 className="text-lg font-semibold tracking-tight text-blue-900">
           Employer Panel
         </h2>
       </div>
-      <nav className="space-y-1">
+      <nav className="flex flex-col gap-0.5">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =

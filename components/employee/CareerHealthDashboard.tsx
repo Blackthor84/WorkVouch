@@ -102,7 +102,7 @@ export function CareerHealthDashboard() {
 
   if (loading) {
     return (
-      <div className="rounded-[20px] border border-slate-200 bg-[#F8FAFC] p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/50">
+      <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <h2 className="text-lg font-semibold text-[#1E293B] dark:text-slate-200">Career Health Overview</h2>
         <div className="mt-3 h-3 w-2/3 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
         <div className="mt-5 space-y-4">
@@ -125,7 +125,7 @@ export function CareerHealthDashboard() {
   const isZero = careerHealth === 0;
 
   return (
-    <div className="rounded-[20px] border border-slate-200 bg-[#F8FAFC] p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/50">
+    <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
       <h2 className="text-lg font-semibold text-[#1E293B] dark:text-slate-200">Career Health Overview</h2>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         {isZero

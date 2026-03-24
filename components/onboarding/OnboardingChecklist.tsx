@@ -55,7 +55,7 @@ export function OnboardingChecklist({
 
   if (variant === "compact") {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white/80 px-4 py-3 dark:border-slate-700 dark:bg-slate-900/60">
+      <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
           Setup {pct}% complete ·{" "}
           <Link href="/dashboard" className="text-blue-600 hover:underline dark:text-blue-400">
@@ -69,24 +69,25 @@ export function OnboardingChecklist({
   return (
     <section
       aria-label="Onboarding checklist"
-      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900/80"
+      className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900"
     >
-      <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
-        <div>
-          <h2 className="text-base font-bold text-slate-900 dark:text-white">Your first wins</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+      <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-white">Your first wins</h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             Skippable — finish when you&apos;re ready. Tap any step to continue.
           </p>
         </div>
-        <p className="text-sm font-bold tabular-nums text-blue-600 dark:text-blue-400">{pct}% complete</p>
+        <p className="text-xs font-medium tabular-nums text-blue-600 dark:text-blue-400">{pct}% complete</p>
       </div>
-      <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden mb-4">
+      <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
           className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>
-      <ul className="space-y-2">
+      <ul className="flex flex-col gap-3">
         {items.map((item) => (
           <li key={item.id}>
             <Link
@@ -107,6 +108,7 @@ export function OnboardingChecklist({
           </li>
         ))}
       </ul>
+      </div>
     </section>
   );
 }

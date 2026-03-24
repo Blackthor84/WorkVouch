@@ -33,9 +33,9 @@ export function MyResumesCard() {
   }, []);
 
   return (
-    <Card className="p-6">
+    <Card>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-[#0F172A]">My Resumes</h3>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">My Resumes</h3>
         <div className="flex gap-2">
           <Button asChild size="sm" variant="secondary">
             <Link href="/dashboard/import-resume">
@@ -54,9 +54,22 @@ export function MyResumesCard() {
       {loading ? (
         <p className="text-sm text-[#64748B]">Loading...</p>
       ) : resumes.length === 0 ? (
-        <p className="text-sm text-[#64748B] py-2">
-          No resumes yet. Upload or import a resume to build your profile.
-        </p>
+        <div className="py-2 space-y-3">
+          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            Import a resume to speed up your profile
+          </p>
+          <p className="text-sm text-[#64748B]">
+            We’ll help pull roles into your history so you can match coworkers and request vouches faster.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild size="sm">
+              <Link href="/upload-resume">Upload resume</Link>
+            </Button>
+            <Button asChild size="sm" variant="secondary">
+              <Link href="/dashboard/import-resume">Import</Link>
+            </Button>
+          </div>
+        </div>
       ) : (
         <ul className="space-y-2">
           {resumes.map((r) => (

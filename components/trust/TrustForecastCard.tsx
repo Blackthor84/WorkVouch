@@ -90,7 +90,7 @@ export function TrustForecastCard({ profileId: propProfileId }: TrustForecastCar
 
   if (loading) {
     return (
-      <Card className="p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+      <Card>
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
           Trust Outlook
         </h2>
@@ -102,7 +102,7 @@ export function TrustForecastCard({ profileId: propProfileId }: TrustForecastCar
 
   if (error) {
     return (
-      <Card className="p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+      <Card>
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
           Trust Outlook
         </h2>
@@ -113,7 +113,7 @@ export function TrustForecastCard({ profileId: propProfileId }: TrustForecastCar
 
   if (!data) {
     return (
-      <Card className="p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+      <Card>
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
           Trust Outlook
         </h2>
@@ -126,7 +126,7 @@ export function TrustForecastCard({ profileId: propProfileId }: TrustForecastCar
   const Icon = config.icon;
 
   return (
-    <Card className="p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+    <Card>
       <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">
         Trust Outlook
       </h2>

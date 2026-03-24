@@ -38,7 +38,7 @@ export function WorkVouchLayoutClient({
   if (onboardingMinimal) {
     return (
       <VouchOnboardingRouteGate needsOnboarding={needsVouchOnboarding}>
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900">
           <ClaimCoworkerInviteBootstrap />
           {children}
         </div>
@@ -49,7 +49,7 @@ export function WorkVouchLayoutClient({
 
   return (
     <VouchOnboardingRouteGate needsOnboarding={needsVouchOnboarding}>
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
       <WorkVouchSidebar
         pendingReferenceRequestCount={pendingReferenceRequestCount}
         mobileOpen={mobileOpen}

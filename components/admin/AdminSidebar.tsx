@@ -4,11 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getCanUseDangerousAdmin } from "@/lib/admin/adminPowerGate";
 
-const SIDEBAR_BG = "bg-white";
-const BORDER = "border-[#E2E8F0]";
-const LINK_ACTIVE = "bg-slate-100 text-[#0F172A] border-l-2 border-[#2563EB]";
-const LINK_INACTIVE = "text-[#334155] hover:bg-slate-50 hover:text-[#0F172A] border-l-2 border-transparent";
-const SECTION_TITLE = "text-[#64748B] text-xs font-semibold uppercase tracking-wider";
+const SIDEBAR_BG = "bg-blue-50";
+const BORDER = "border-blue-200/80";
+const LINK_ACTIVE = "bg-blue-600 text-white font-medium";
+const LINK_INACTIVE = "text-blue-800 hover:bg-blue-100";
+const SECTION_TITLE = "text-blue-600 text-xs font-semibold uppercase tracking-wider";
 
 function isActive(pathname: string, href: string): boolean {
   if (pathname === href) return true;
@@ -157,8 +157,8 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
       <div className="sticky top-0 flex flex-col h-screen py-4">
         <Link
           href="/admin"
-          className={`px-4 py-2 mx-2 rounded-lg font-semibold border-l-2 border-transparent ${
-            pathname === "/admin" ? LINK_ACTIVE : "text-[#334155] hover:bg-slate-50"
+          className={`px-3 py-2 mx-2 rounded-lg text-sm font-semibold ${
+            pathname === "/admin" ? LINK_ACTIVE : LINK_INACTIVE
           }`}
         >
           Home

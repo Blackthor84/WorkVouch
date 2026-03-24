@@ -266,9 +266,9 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
           {jobs.length === 0 ? (
             <div className="text-center py-8">
               <BriefcaseIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-900 font-bold">No jobs added yet.</p>
-              <p className="text-sm text-gray-900 mt-2 font-semibold">
-                Add your first job to get started.
+              <p className="text-gray-900 font-bold">Add a job to unlock coworker matches</p>
+              <p className="text-sm text-gray-600 mt-2 max-w-md mx-auto">
+                Use the form above with accurate dates—we’ll surface overlapping coworkers so you can request vouches.
               </p>
             </div>
           ) : (

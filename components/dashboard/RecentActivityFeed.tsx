@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 
 export type ActivityRow = {
@@ -106,7 +107,28 @@ export function RecentActivityFeed({ userId }: RecentActivityFeedProps) {
           </div>
         ))
       ) : (
-        <p className="text-sm text-[#64748B] py-4 text-center">No activity yet</p>
+        <div className="py-4 text-center space-y-3">
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+            Start building your timeline
+          </p>
+          <p className="text-sm text-[#64748B] max-w-sm mx-auto">
+            Add jobs and vouch activity—each step shows up here as you go.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <Link
+              href="/jobs/new"
+              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+            >
+              Add a job
+            </Link>
+            <Link
+              href="/coworker-matches"
+              className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:hover:bg-slate-800"
+            >
+              Coworker matches
+            </Link>
+          </div>
+        </div>
       )}
     </div>
   );

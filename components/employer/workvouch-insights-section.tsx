@@ -72,7 +72,7 @@ export function WorkVouchInsightsSection({ candidateId }: { candidateId: string 
   if (!anyEnabled) return null;
   if (loading) {
     return (
-      <Card className="p-6 border-slate-200 dark:border-slate-700">
+      <Card>
         <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2">
           WorkVouch Insights
         </h2>
@@ -94,7 +94,7 @@ export function WorkVouchInsightsSection({ candidateId }: { candidateId: string 
       </h2>
 
       {showUpsell && (
-        <Card className="p-6 bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700">
+        <Card>
           <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">
             Unlock Advanced WorkVouch Insights
           </h3>
@@ -108,7 +108,7 @@ export function WorkVouchInsightsSection({ candidateId }: { candidateId: string 
       )}
 
       {refEnabled && (
-        <Card className="p-6 border-slate-200 dark:border-slate-700">
+        <Card>
           <div className="flex items-start gap-2 mb-3">
             <h3 className="font-semibold text-slate-800 dark:text-slate-200">
               Reference Alignment Score
@@ -159,7 +159,7 @@ export function WorkVouchInsightsSection({ candidateId }: { candidateId: string 
       )}
 
       {stabEnabled && (
-        <Card className="p-6 border-slate-200 dark:border-slate-700">
+        <Card>
           <div className="flex items-start gap-2 mb-3">
             <h3 className="font-semibold text-slate-800 dark:text-slate-200">
               Workforce Stability
@@ -196,7 +196,7 @@ export function WorkVouchInsightsSection({ candidateId }: { candidateId: string 
       )}
 
       {envEnabled && (
-        <Card className="p-6 border-slate-200 dark:border-slate-700">
+        <Card>
           <div className="flex items-start gap-2 mb-3">
             <h3 className="font-semibold text-slate-800 dark:text-slate-200">
               Environment Fit Insights

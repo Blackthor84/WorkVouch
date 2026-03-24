@@ -55,10 +55,10 @@ export default async function SimpleDashboardPage() {
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">
+          <h1 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
             Dashboard
           </h1>
-          <p className="text-grey-medium dark:text-gray-400">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Quick access to all your WorkVouch features
           </p>
         </div>
@@ -81,10 +81,10 @@ export default async function SimpleDashboardPage() {
                   >
                     <Icon className="h-6 w-6" />
                   </div>
-                  <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <h3 className="mb-1 text-lg font-medium text-gray-900 transition-colors group-hover:text-blue-600 dark:text-gray-100 dark:group-hover:text-blue-400">
                     {item.title}
                   </h3>
-                  <p className="text-sm text-grey-medium dark:text-gray-400 text-left">
+                  <p className="text-left text-sm text-gray-600 dark:text-gray-400">
                     {item.description}
                   </p>
                 </Button>

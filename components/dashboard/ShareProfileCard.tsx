@@ -23,18 +23,18 @@ export function ShareProfileCard({ publicSlug }: { publicSlug: string | null }) 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2">
           <ShareIcon className="h-5 w-5" />
           Share My WorkVouch Profile
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="flex flex-col gap-3">
         {link ? (
           <>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Share this link with employers during job applications. They can view your verified work history and coworker confirmations with a WorkVouch subscription.
             </p>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-3">
               <code className="flex-1 min-w-0 text-sm bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-md truncate">
                 {link}
               </code>

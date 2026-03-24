@@ -298,7 +298,7 @@ export function ControlPanel(props: ControlPanelProps) {
               <Button
                 onClick={onGenerateEmployer}
                 disabled={loading || !currentSandboxId || genEmployerLoading}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white"
+                className="w-full"
               >
                 {genEmployerLoading ? "…" : "Generate employer"}
               </Button>
@@ -352,7 +352,7 @@ export function ControlPanel(props: ControlPanelProps) {
               <Button
                 onClick={onGenerateEmployee}
                 disabled={loading || !currentSandboxId || genEmployeeLoading}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white"
+                className="w-full"
               >
                 {genEmployeeLoading ? "…" : "Generate employee"}
               </Button>
@@ -646,7 +646,7 @@ export function ControlPanel(props: ControlPanelProps) {
                 <Input type="number" value={adsSpend} onChange={(e) => setAdsSpend(parseFloat(e.target.value) || 0)} className={`mt-1 w-24 ${inputClass}`} />
               </div>
             </div>
-            <Button onClick={onAddAds} disabled={loading || !currentSandboxId || adsLoading} className="w-full bg-blue-600 hover:bg-blue-500 text-white">
+            <Button onClick={onAddAds} disabled={loading || !currentSandboxId || adsLoading} className="w-full">
               {adsLoading ? "…" : "Add ad campaign"}
             </Button>
           </div>
@@ -676,7 +676,7 @@ export function ControlPanel(props: ControlPanelProps) {
                 className="mt-2 w-full accent-blue-500"
               />
             </div>
-            <Button onClick={onUpdateRevenue} disabled={loading || !currentSandboxId || revenueLoading} className="w-full bg-blue-600 hover:bg-blue-500 text-white">
+            <Button onClick={onUpdateRevenue} disabled={loading || !currentSandboxId || revenueLoading} className="w-full">
               {revenueLoading ? "…" : "Update revenue"}
             </Button>
           </div>

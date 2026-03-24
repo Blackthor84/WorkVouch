@@ -23,7 +23,7 @@ export function ProfileVisibilityCard() {
 
   if (loading) {
     return (
-      <Card className="rounded-[20px] border border-slate-200 bg-[#F8FAFC] p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/50">
+      <Card>
         <h2 className="text-lg font-semibold text-[#1E293B] dark:text-slate-200">Profile Visibility</h2>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Loading…</p>
       </Card>
@@ -32,7 +32,7 @@ export function ProfileVisibilityCard() {
 
   if (!stats) {
     return (
-      <Card className="rounded-[20px] border border-slate-200 bg-[#F8FAFC] p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/50">
+      <Card>
         <h2 className="text-lg font-semibold text-[#1E293B] dark:text-slate-200">Profile Visibility</h2>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Unable to load visibility stats.</p>
       </Card>
@@ -40,7 +40,7 @@ export function ProfileVisibilityCard() {
   }
 
   return (
-    <Card className="rounded-[20px] border border-slate-200 bg-[#F8FAFC] p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/50">
+    <Card>
       <h2 className="text-lg font-semibold text-[#1E293B] dark:text-slate-200">Profile Visibility</h2>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         How often employers have seen your profile in directory search results. No individual employer names are shown.

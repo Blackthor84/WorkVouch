@@ -22,8 +22,8 @@ export default async function VerticalDashboardPage({ params }: Props) {
   if (!config || config.length === 0) {
     return (
       <div className="space-y-6 p-6 text-white">
-        <h1 className="text-2xl font-bold">{industry || "Vertical"} Intelligence</h1>
-        <p>No vertical dashboard available for this industry.</p>
+        <h1 className="text-2xl font-semibold">{industry || "Vertical"} Intelligence</h1>
+        <p className="text-sm text-slate-400">No vertical dashboard available for this industry.</p>
         <Link href="/dashboard" className="text-indigo-400 hover:underline">
           Back to Dashboard
         </Link>
@@ -38,8 +38,8 @@ export default async function VerticalDashboardPage({ params }: Props) {
           ← Dashboard
         </Link>
       </div>
-      <h1 className="text-2xl font-bold">{industry} Intelligence Dashboard</h1>
-      <p className="text-slate-400">
+      <h1 className="text-2xl font-semibold">{industry} Intelligence Dashboard</h1>
+      <p className="text-sm text-slate-400">
         Vertical metrics layered on top of your core score. Your universal score is unchanged.
       </p>
 

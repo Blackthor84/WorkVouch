@@ -75,7 +75,7 @@ export function DirectoryClient() {
                 <li key={item.id}>
                   <Link
                     href={item.url}
-                    className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700"
+                    className="flex items-center gap-4 rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
                   >
                     {item.profile_photo_url ? (
                       <img src={item.profile_photo_url} alt="" className="h-14 w-14 rounded-full object-cover" />
@@ -146,7 +146,7 @@ export function DirectoryClient() {
       </div>
 
       {/* CTA for employers */}
-      <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mt-8 rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
           Need to filter by employer, industry, or location?
         </p>
@@ -166,7 +166,7 @@ export function DirectoryClient() {
       {/* Gated modal: when public tries advanced (we don't expose those inputs; modal can be shown if we add a "More filters" link) */}
       {gatedOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setGatedOpen(false)}>
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-md rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Advanced search</h3>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
               Advanced workforce search is available to verified employer accounts.

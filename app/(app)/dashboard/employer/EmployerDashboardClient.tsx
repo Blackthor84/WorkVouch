@@ -27,9 +27,9 @@ export function EmployerDashboardClient() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-semibold text-slate-900 mb-6">Find Verified Candidates</h1>
+      <h1 className="mb-8 text-2xl font-semibold text-gray-900 dark:text-gray-100">Find Verified Candidates</h1>
 
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
           <input
@@ -71,17 +71,17 @@ export function EmployerDashboardClient() {
       </div>
 
       {loading ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-40 animate-pulse rounded-2xl bg-slate-200" />
+            <div key={i} className="h-40 animate-pulse rounded-xl bg-slate-200" />
           ))}
         </div>
       ) : candidates.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-12 text-center">
-          <p className="text-slate-600">No candidates match your filters.</p>
+        <div className="rounded-xl border border-dashed border-gray-100 bg-white p-6 text-center shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <p className="text-sm text-gray-600 dark:text-gray-400">No candidates match your filters.</p>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {candidates.map((c) => (
             <CandidateCard key={c.id} candidate={c} />
           ))}

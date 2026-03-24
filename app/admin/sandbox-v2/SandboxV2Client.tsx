@@ -1178,7 +1178,7 @@ export function SandboxV2Client() {
                 { key: "investor_pitch", label: "Investor Pitch Mode" },
                 { key: "ad_explosion", label: "Ad Explosion Mode" },
               ].map(({ key, label }) => (
-                <Button key={key} variant={demoMode === key ? "primary" : "secondary"} size="sm" onClick={() => setDemoModePreset(demoMode === key ? null : key)} disabled={!currentSandboxId || demoModeLoading} className={demoMode === key ? "bg-[#2563EB] hover:bg-[#1D4ED8]" : ""}>
+                <Button key={key} variant={demoMode === key ? "primary" : "secondary"} size="sm" onClick={() => setDemoModePreset(demoMode === key ? null : key)} disabled={!currentSandboxId || demoModeLoading}>
                   {label}
                 </Button>
               ))}
@@ -1211,7 +1211,7 @@ export function SandboxV2Client() {
               <p className="mt-1 text-sm text-[#0F172A]">Simulate plan gating, feature access (sandbox-only).</p>
               <div className="mt-3 flex gap-2">
                 {(["Admin", "Employer", "Employee"] as const).map((mode) => (
-                  <Button key={mode} variant={viewAs === mode ? "primary" : "secondary"} onClick={() => setViewAs(mode)} className={viewAs === mode ? "bg-[#2563EB] hover:bg-[#1D4ED8]" : ""}>View as {mode}</Button>
+                  <Button key={mode} variant={viewAs === mode ? "primary" : "secondary"} onClick={() => setViewAs(mode)}>View as {mode}</Button>
                 ))}
               </div>
               <p className="mt-2 text-sm text-[#0F172A]">Current: {viewAs}</p>

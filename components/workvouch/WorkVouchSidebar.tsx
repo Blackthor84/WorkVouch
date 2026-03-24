@@ -46,7 +46,7 @@ export function WorkVouchSidebar({
 
   const navContent = (
     <>
-      <div className="flex h-14 shrink-0 items-center border-b border-slate-200/80 dark:border-slate-700 px-4">
+      <div className="flex h-14 shrink-0 items-center border-b border-blue-200/80 px-4">
         <Link href={logoHref} className="flex items-center gap-2" onClick={onCloseMobile} aria-label="WorkVouch">
           <Image
             src="/images/workvouch-logo.png.png"
@@ -64,7 +64,7 @@ export function WorkVouchSidebar({
             <button
               type="button"
               onClick={onCloseMobile}
-              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+              className="rounded-lg p-2 text-blue-600 hover:bg-blue-100"
               aria-label="Close menu"
             >
               <XMarkIcon className="h-5 w-5" />
@@ -83,8 +83,8 @@ export function WorkVouchSidebar({
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-200",
                 isActive
-                  ? "bg-slate-900 text-white"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  ? "bg-blue-600 text-white"
+                  : "text-blue-800 hover:bg-blue-100"
               )}
             >
               <Comp className="h-5 w-5 shrink-0" strokeWidth={isActive ? 2 : 1.5} />
@@ -97,7 +97,7 @@ export function WorkVouchSidebar({
             </Link>
           );
         })}
-        <div className="my-2 border-t border-slate-200/80" />
+        <div className="my-2 border-t border-blue-200/80" />
         {bottomNav.map(({ href, label, Icon }) => {
           const isActive = pathname === href;
           return (
@@ -121,14 +121,14 @@ export function WorkVouchSidebar({
 
   return (
     <>
-      <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200/80 bg-white">
+      <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-blue-200/80 bg-blue-50">
         {navContent}
       </aside>
       {onCloseMobile && (
         <>
           <div
             className={cn(
-              "fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-sm transition-opacity md:hidden",
+              "fixed inset-0 z-40 bg-blue-950/15 backdrop-blur-sm transition-opacity md:hidden",
               mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
             )}
             onClick={onCloseMobile}
@@ -136,7 +136,7 @@ export function WorkVouchSidebar({
           />
           <aside
             className={cn(
-              "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200/80 bg-white shadow-xl transition-transform duration-200 ease-out md:hidden",
+              "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-blue-200/80 bg-blue-50 shadow-xl transition-transform duration-200 ease-out md:hidden",
               mobileOpen ? "translate-x-0" : "-translate-x-full"
             )}
           >

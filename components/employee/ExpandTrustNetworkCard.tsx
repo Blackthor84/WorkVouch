@@ -20,7 +20,7 @@ interface ExpandTrustNetworkCardProps {
 
 export function ExpandTrustNetworkCard({ onRequestVerification }: ExpandTrustNetworkCardProps) {
   return (
-    <Card className="p-6 rounded-xl shadow-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <Card>
       <h3 className="text-lg font-semibold text-[#0F172A] dark:text-gray-100 mb-2">
         Expand Your Trust Network
       </h3>

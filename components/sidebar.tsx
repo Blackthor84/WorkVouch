@@ -4,25 +4,25 @@ type Role = "employee" | "employer" | "admin" | null;
 
 export default function Sidebar({ role }: { role?: Role } = {}) {
   return (
-    <div className="w-64 min-h-screen border-r bg-white dark:bg-gray-900 dark:border-gray-800 p-6">
-      <h2 className="text-xl font-bold mb-8 text-gray-900 dark:text-white">
+    <div className="w-64 min-h-screen border-r border-blue-200/80 bg-blue-50 p-6">
+      <h2 className="mb-8 text-xl font-bold text-blue-900">
         WorkVouch
       </h2>
 
-      <nav className="flex flex-col gap-4">
-        <Link href="/dashboard" className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+      <nav className="flex flex-col gap-1">
+        <Link href="/dashboard" className="rounded-lg px-3 py-2 text-sm font-medium text-blue-800 hover:bg-blue-100">
           Dashboard
         </Link>
-        <Link href="/jobs" className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+        <Link href="/jobs" className="rounded-lg px-3 py-2 text-sm font-medium text-blue-800 hover:bg-blue-100">
           Verified Jobs
         </Link>
-        <Link href="/verifications" className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+        <Link href="/verifications" className="rounded-lg px-3 py-2 text-sm font-medium text-blue-800 hover:bg-blue-100">
           Verifications
         </Link>
-        <Link href="/profile" className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+        <Link href="/profile" className="rounded-lg px-3 py-2 text-sm font-medium text-blue-800 hover:bg-blue-100">
           Profile
         </Link>
-        <Link href="/settings" className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+        <Link href="/settings" className="rounded-lg px-3 py-2 text-sm font-medium text-blue-800 hover:bg-blue-100">
           Settings
         </Link>
       </nav>

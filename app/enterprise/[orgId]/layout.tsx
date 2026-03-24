@@ -38,23 +38,13 @@ export default async function EnterpriseOrgLayout({
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0D1117]">
       <SandboxBanner />
       <div className="flex">
-        <aside className="w-56 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 min-h-screen py-4 px-3">
-          <Link href={`/enterprise/${orgId}`} className="block font-semibold text-gray-900 dark:text-white mb-4 px-2">
+        <aside className="w-56 min-h-screen border-r border-blue-200/80 bg-blue-50 py-4 px-3">
+          <Link href={`/enterprise/${orgId}`} className="mb-4 block px-2 font-semibold text-blue-900">
             {org.name}
           </Link>
-          <nav className="space-y-0.5">
-            {SIDEBAR.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href === "overview" ? `/enterprise/${orgId}/overview` : `/enterprise/${orgId}/${href}`}
-                className="block py-2 px-3 rounded-md text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
-          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <Link href="/enterprise" className="block py-2 px-3 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+          <EnterpriseOrgSidebarNav orgId={orgId} />
+          <div className="mt-6 border-t border-blue-200/80 pt-4">
+            <Link href="/enterprise" className="block rounded-lg px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 hover:text-blue-900">
               ← All Organizations
             </Link>
           </div>

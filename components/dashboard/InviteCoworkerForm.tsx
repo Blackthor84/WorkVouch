@@ -68,13 +68,13 @@ export function InviteCoworkerForm({ candidateId: propCandidateId, onClose }: In
   }
 
   return (
-    <Card className="p-6 rounded-xl shadow-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-      <h3 className="text-lg font-semibold text-slate-900 dark:text-gray-100 mb-4">
+    <Card>
+      <h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-gray-100">
         Invite Coworker
       </h3>
       {inviteLink ? (
         <div className="space-y-3">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Verification request created. Share or send this link.
           </p>
           <div className="flex items-center gap-2">

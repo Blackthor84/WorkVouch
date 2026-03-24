@@ -32,9 +32,28 @@ export async function VerifiedJobsList({ userId }: { userId: string }) {
       </CardHeader>
       <CardContent>
         {list.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            No verified jobs yet. Add a job and ask coworkers to confirm.
-          </p>
+          <div className="space-y-3">
+            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              Get your first verified role on the board
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Add a job, then request vouches from coworker matches—verified work shows up here.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/my-jobs"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                Manage jobs
+              </Link>
+              <Link
+                href="/coworker-matches"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-600 px-3 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                Find coworkers
+              </Link>
+            </div>
+          </div>
         ) : (
           <ul className="space-y-2">
             {list.map((job) => (

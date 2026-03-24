@@ -21,19 +21,17 @@ export default function DashboardActions({
 }: DashboardActionsProps) {
   if (variant === "employer") {
     return (
-      <div className="flex flex-wrap items-center gap-4 mb-8" role="toolbar" aria-label="Dashboard actions">
-        <Button asChild className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md">
-          <Link href="/dashboard/employer/search" className="inline-flex items-center gap-2">
-            Search Candidates
-          </Link>
+      <div className="flex flex-wrap items-center gap-4" role="toolbar" aria-label="Dashboard actions">
+        <Button asChild className="inline-flex items-center gap-2">
+          <Link href="/dashboard/employer/search">Search Candidates</Link>
         </Button>
-        <Button asChild variant="outline" className="inline-flex items-center gap-2 border px-4 py-2 rounded-md">
+        <Button asChild variant="secondary" className="inline-flex items-center gap-2">
           <Link href="/employer/listed-employees">View Verified Resumes</Link>
         </Button>
-        <Button asChild variant="outline" className="inline-flex items-center gap-2 border px-4 py-2 rounded-md">
+        <Button asChild variant="secondary" className="inline-flex items-center gap-2">
           <Link href="/employer/job-posts">Post Job</Link>
         </Button>
-        <Button asChild variant="outline" className="inline-flex items-center gap-2 border px-4 py-2 rounded-md">
+        <Button asChild variant="secondary" className="inline-flex items-center gap-2">
           <Link href="/employer/listed-employees">Invite References</Link>
         </Button>
       </div>
@@ -41,22 +39,22 @@ export default function DashboardActions({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-4 mb-8" role="toolbar" aria-label="Dashboard actions">
-      <Button asChild className="bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center gap-2 px-4 py-2 rounded-md">
+    <div className="flex flex-wrap items-center gap-4" role="toolbar" aria-label="Dashboard actions">
+      <Button asChild className="inline-flex items-center gap-2">
         <Link href="/profile">
           <PlusIcon className="h-5 w-5" />
           + Add Verified Job
         </Link>
       </Button>
-      <Button asChild variant="outline" className="inline-flex items-center gap-2 border px-4 py-2 rounded-md">
+      <Button asChild variant="secondary" className="inline-flex items-center gap-2">
         <Link href="/upload-resume">
           <DocumentArrowUpIcon className="h-5 w-5" />
           Upload Resume
         </Link>
       </Button>
       <Button
-        variant="outline"
-        className="inline-flex items-center gap-2 border px-4 py-2 rounded-md"
+        variant="secondary"
+        className="inline-flex items-center gap-2"
         onClick={onRequestVerification}
       >
         <UserPlusIcon className="h-5 w-5" />

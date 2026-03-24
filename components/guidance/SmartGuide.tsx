@@ -68,7 +68,7 @@ export function SmartGuide({
         className={cn(
           "inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors",
           variant === "light"
-            ? "text-white/90 hover:bg-white/15 ring-1 ring-white/25"
+            ? "bg-blue-500/20 text-white ring-1 ring-white/20 hover:bg-blue-500/30"
             : "text-slate-600 hover:bg-slate-100 ring-1 ring-slate-200",
           className
         )}

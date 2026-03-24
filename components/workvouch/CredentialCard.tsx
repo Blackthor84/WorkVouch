@@ -100,7 +100,7 @@ export function CredentialCard() {
         : "No credential";
 
   return (
-    <Card className="p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+    <Card>
       <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">
         WorkVouch Credential
       </h3>

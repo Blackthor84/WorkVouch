@@ -11,6 +11,7 @@ import { CoworkerGrowthBanner } from "@/components/dashboard/CoworkerGrowthBanne
 import { OnboardingIncompleteBanner } from "@/components/dashboard/OnboardingIncompleteBanner";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 import { DashboardTrustSeenMark } from "@/components/dashboard/DashboardTrustSeenMark";
+import { InviteSentFeedback } from "@/components/dashboard/InviteSentFeedback";
 import { SmartOnboardingNudges } from "@/components/dashboard/SmartOnboardingNudges";
 import { isGuidedProfileComplete } from "@/lib/onboarding/guidedOnboarding";
 import { UserGroupIcon, ChatBubbleLeftRightIcon, BriefcaseIcon } from "@heroicons/react/24/outline";
@@ -35,20 +36,26 @@ export default async function UserDashboardPage() {
   const showOnboardingBanner = !isGuidedProfileComplete(guidedStats);
 
   return (
-    <div className="flex-1 w-full bg-slate-50/80 dark:bg-slate-950 pb-12">
+    <div className="flex-1 w-full bg-gray-50 pb-8 dark:bg-gray-950">
       <DashboardTrustSeenMark />
-      <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <DashboardHeader
-          firstName={data.firstName}
-          trustScore={data.trustScore}
-          verifiedByCoworkers={data.verifiedByCoworkers}
-          isNewUser={data.isNewUser}
-        />
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
+        <div>
+          <DashboardHeader
+            firstName={data.firstName}
+            trustScore={data.trustScore}
+            verifiedByCoworkers={data.verifiedByCoworkers}
+            isNewUser={data.isNewUser}
+          />
+          <InviteSentFeedback show={false} />
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            People in your area are already getting verified
+          </div>
+        </div>
 
         <OnboardingIncompleteBanner show={showOnboardingBanner} />
 
         {showOnboardingBanner && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <OnboardingChecklist
               jobsCount={data.jobsCount}
               matchesCount={data.matchesCount}
@@ -72,27 +79,24 @@ export default async function UserDashboardPage() {
 
         <DashboardQuickActions />
 
-        <section aria-label="Stats overview">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-3">
+        <section aria-label="Stats overview" className="flex flex-col gap-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             Overview
           </h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <StatCard
               label="Matches"
               value={data.matchesCount}
-              accent="blue"
               icon={<UserGroupIcon className="h-6 w-6" />}
             />
             <StatCard
               label="Reviews"
               value={data.referenceCount}
-              accent="emerald"
               icon={<ChatBubbleLeftRightIcon className="h-6 w-6" />}
             />
             <StatCard
               label="Jobs"
               value={data.jobsCount}
-              accent="slate"
               icon={<BriefcaseIcon className="h-6 w-6" />}
             />
             <StatCard
@@ -103,17 +107,16 @@ export default async function UserDashboardPage() {
                   {data.trustScore}
                 </span>
               }
-              accent="amber"
             />
           </div>
         </section>
 
-        <section aria-label="Recent activity and matches" className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Recent activity</h2>
+        <section aria-label="Recent activity and matches" className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <div className="flex flex-col gap-4">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white">Recent activity</h2>
             <ActivityFeed items={data.activities} />
           </div>
-          <div className="space-y-8">
+          <div className="flex flex-col gap-8">
             <MatchPreview matches={data.matchesPreview} />
             <DashboardProfileStrength percent={data.profileStrengthPct} />
           </div>

@@ -290,16 +290,26 @@ export default function DashboardClient({
               <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
                 <UserGroupIcon className="h-8 w-8 text-slate-500 dark:text-slate-400" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">No matches yet</h3>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                Add a coworker to get your first vouch
+              </h3>
               <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
-                Add your job history with accurate dates — we use real employment overlap to suggest coworkers you may know.
+                Add jobs with accurate dates—we use real overlap to suggest people you worked with, then you can request a vouch.
               </p>
-              <Link
-                href="/my-jobs"
-                className="mt-6 inline-flex items-center justify-center rounded-xl bg-slate-900 dark:bg-white px-5 py-2.5 text-sm font-medium text-white dark:text-slate-900 shadow-md transition-all hover:scale-[1.02] hover:shadow-lg"
-              >
-                👉 Add Job
-              </Link>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <Link
+                  href="/jobs/new"
+                  className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
+                >
+                  Add a job
+                </Link>
+                <Link
+                  href="/my-jobs"
+                  className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-md transition-all hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                >
+                  Review my jobs
+                </Link>
+              </div>
             </div>
           ) : (
             <>

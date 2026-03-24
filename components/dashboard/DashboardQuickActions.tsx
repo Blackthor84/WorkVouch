@@ -28,20 +28,20 @@ const actions = [
 export function DashboardQuickActions() {
   return (
     <section aria-label="Quick actions">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-3">
+      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
         Quick actions
       </h2>
-      <div className="grid sm:grid-cols-3 gap-4">
+      <div className="grid gap-4 sm:grid-cols-3">
         {actions.map(({ href, title, description, Icon, className }) => (
           <Link
             key={href}
             href={href}
-            className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br p-6 text-white shadow-md ring-2 transition-all hover:shadow-lg hover:-translate-y-0.5 ${className}`}
+            className={`group relative flex flex-col gap-3 overflow-hidden rounded-xl bg-gradient-to-br p-6 text-white shadow-sm ring-2 transition-all hover:-translate-y-0.5 hover:shadow-md ${className}`}
           >
-            <Icon className="h-8 w-8 opacity-90 mb-3" aria-hidden />
-            <p className="text-lg font-bold">{title}</p>
-            <p className="text-sm text-white/85 mt-1">{description}</p>
-            <span className="mt-4 inline-flex items-center text-sm font-semibold text-white/95">
+            <Icon className="h-8 w-8 opacity-90" aria-hidden />
+            <p className="text-lg font-medium">{title}</p>
+            <p className="text-sm text-white/90">{description}</p>
+            <span className="mt-auto inline-flex items-center pt-1 text-xs font-medium text-white/90">
                 Go
                 <span className="ml-1 group-hover:translate-x-0.5 transition-transform" aria-hidden>
                   →

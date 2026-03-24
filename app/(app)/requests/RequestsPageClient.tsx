@@ -112,15 +112,23 @@ export function RequestsPageClient() {
     return (
       <EmptyState
         icon={<InboxStackIcon className="h-7 w-7" />}
-        title="No reference requests"
-        description="When you request references from coworkers or receive requests, they will show here."
+        title="Request your first vouch—or answer one"
+        description="Send vouch requests from coworker matches, or accept incoming asks. Everything you send and receive lands here."
         action={
-          <Link
-            href="/coworker-matches"
-            className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800"
-          >
-            View matches
-          </Link>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link
+              href="/coworker-matches"
+              className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+            >
+              Find coworkers
+            </Link>
+            <Link
+              href="/jobs/new"
+              className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              Add a job
+            </Link>
+          </div>
         }
         className="mt-8"
       />

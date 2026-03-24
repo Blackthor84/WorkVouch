@@ -31,7 +31,7 @@ export function EmployerDirectoryClient() {
 
   return (
     <>
-      <form onSubmit={handleSearch} className="mt-6 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+      <form onSubmit={handleSearch} className="mt-6 rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Name</label>
@@ -193,7 +193,7 @@ export function EmployerDirectoryClient() {
           )}
         </div>
       ) : data && !data.error ? (
-        <p className="mt-6 rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+        <p className="mt-6 rounded-xl border border-gray-100 bg-white p-6 text-center text-sm text-gray-600 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
           No results. Try adjusting filters.
         </p>
       ) : null}

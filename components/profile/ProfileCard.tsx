@@ -12,7 +12,7 @@ export function ProfileCard({ children, className, hover = false }: ProfileCardP
   return (
     <div
       className={cn(
-        "rounded-[20px] border border-slate-200 bg-[#F8FAFC] p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/50",
+        "rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900",
         hover && "transition-shadow duration-200 hover:shadow-md",
         className
       )}

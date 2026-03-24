@@ -151,7 +151,7 @@ export function ImportResumeClient() {
 
   if (step === "success") {
     return (
-      <Card className="p-6">
+      <Card>
         <div className="flex flex-col items-center gap-4 text-center">
           <CheckCircleIcon className="h-12 w-12 text-green-500" />
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
@@ -173,11 +173,11 @@ export function ImportResumeClient() {
 
   if (step === "upload") {
     return (
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+      <Card>
+        <h2 className="mb-4 text-lg font-medium text-gray-900 dark:text-gray-100">
           Step 1: Upload resume
         </h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+        <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
           PDF or DOCX, max 5MB. We’ll extract employment history for you to review.
         </p>
         <input
@@ -219,11 +219,11 @@ export function ImportResumeClient() {
   }
 
   return (
-    <Card className="p-6">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+    <Card>
+      <h2 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
         Step 2: Review and edit
       </h2>
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+      <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
         Edit any field, then confirm to save. Records are only added when you click Confirm.
       </p>
       {error && (

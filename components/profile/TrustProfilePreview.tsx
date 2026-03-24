@@ -53,7 +53,7 @@ export function TrustProfilePreview({
   return (
     <div
       className={cn(
-        "mx-auto max-w-md rounded-[20px] border border-slate-200 bg-[#F8FAFC] p-6 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/50",
+        "mx-auto max-w-md rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900",
         className
       )}
     >

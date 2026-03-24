@@ -79,8 +79,16 @@ export function NotificationsPanel({
     return (
       <EmptyState
         icon={<BellIcon className="h-7 w-7" />}
-        title="No notifications yet"
-        description="You'll see matches, reference requests, and other updates here."
+        title="Nothing new—yet"
+        description="Matches, vouch requests, and confirmations will show up here as you build your network."
+        action={
+          <Link
+            href="/coworker-matches"
+            className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+          >
+            Go to coworker matches
+          </Link>
+        }
         className="mt-8"
       />
     );

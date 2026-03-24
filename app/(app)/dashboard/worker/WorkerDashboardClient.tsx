@@ -52,7 +52,7 @@ export default function WorkerDashboard({
   }, [searchParams]);
 
   return (
-    <div className="trust-command-center min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="trust-command-center min-h-screen bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
       <style>{`
         .trust-command-center [data-card] {
           border-radius: 0.75rem;
@@ -60,12 +60,12 @@ export default function WorkerDashboard({
         }
       `}</style>
 
-      <div className="max-w-6xl mx-auto space-y-6">
-        <header>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8">
+        <header className="flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
             Dashboard
           </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Employment Trust Score — verification and trust for your resume.
           </p>
         </header>
@@ -74,7 +74,7 @@ export default function WorkerDashboard({
         <DashboardActions onRequestVerification={() => setRequestModalOpen(true)} />
 
         {/* Confidence Score — score, next level, tips (fetched in page, passed as prop) */}
-        <ConfidenceScore score={initialConfidenceScore} />
+        <ConfidenceScore score={initialConfidenceScore} featured />
 
         {/* Share WorkVouch profile link with employers */}
         <ShareProfileCard publicSlug={publicSlug} />
@@ -84,16 +84,16 @@ export default function WorkerDashboard({
         <section aria-label="Verified Work History">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">Verified Work History</CardTitle>
+              <CardTitle>Verified Work History</CardTitle>
               <Button asChild variant="ghost" size="sm">
                 <Link href="/my-jobs">View all</Link>
               </Button>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <CardContent className="flex flex-col gap-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Jobs verified by coworkers increase your Confidence Score.
               </p>
-              <Button asChild className="inline-flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700">
+              <Button asChild className="inline-flex items-center gap-2">
                 <Link href="/profile">+ Add Verified Job</Link>
               </Button>
             </CardContent>
@@ -101,9 +101,9 @@ export default function WorkerDashboard({
         </section>
 
         {/* Recent Verification Requests */}
-        <section aria-label="Verification Requests">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <section aria-label="Verification Requests" className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
               Verification Requests
             </h2>
             <Button
@@ -119,17 +119,15 @@ export default function WorkerDashboard({
         </section>
 
         {/* BOTTOM: Coworker Activity + Trust data */}
-        <section aria-label="Coworker Activity">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+        <section aria-label="Coworker Activity" className="flex flex-col gap-4">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
             Coworker Activity
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <TrustNetworkPanel />
             <IndustryBenchmarkCard />
           </div>
-          <div className="mt-6">
-            <TrustTimeline />
-          </div>
+          <TrustTimeline />
         </section>
 
         {/* Trust radar + expand network */}
@@ -138,8 +136,8 @@ export default function WorkerDashboard({
             <TrustRadarChart />
           </div>
         </section>
-        <section aria-label="Expand trust network">
-          <div className="flex flex-wrap gap-3 mb-4">
+        <section aria-label="Expand trust network" className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-3">
             <Button
               variant="secondary"
               onClick={() => setInviteFormOpen(true)}
@@ -149,16 +147,12 @@ export default function WorkerDashboard({
               Invite Coworker
             </Button>
           </div>
-          {inviteFormOpen && (
-            <div className="mb-6">
-              <InviteCoworkerForm onClose={() => setInviteFormOpen(false)} />
-            </div>
-          )}
+          {inviteFormOpen && <InviteCoworkerForm onClose={() => setInviteFormOpen(false)} />}
           <ExpandTrustNetworkCard onRequestVerification={() => setRequestModalOpen(true)} />
         </section>
 
         {/* Trust summary cards */}
-        <section aria-label="Trust summary" className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <section aria-label="Trust summary" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <TrustScoreCardClient />
           <TrustForecastCard />
           <VerificationCoverageCard />

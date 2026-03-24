@@ -4,17 +4,22 @@ import { cn } from "@/lib/utils";
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   hover?: boolean;
+  /** Primary focal card on a page: stronger elevation + subtle ring. */
+  featured?: boolean;
 }
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, children, hover = false, ...props }, ref) => {
+  ({ className, children, hover = false, featured = false, ...props }, ref) => {
     return (
       <div
         ref={ref}
         data-card
         className={cn(
-          "bg-white rounded-2xl shadow-md p-6 border border-[#E2E8F0] dark:bg-gray-800 dark:border-gray-700",
-          hover && "hover:shadow-lg transition-shadow duration-300",
+          "rounded-xl border border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-gray-900",
+          featured
+            ? "shadow-lg ring-1 ring-black/5 dark:ring-white/10"
+            : "shadow-sm",
+          hover && "transition-shadow duration-200 hover:shadow-md",
           className,
         )}
         {...props}
@@ -45,7 +50,7 @@ export function CardTitle({ children, className }: CardTitleProps) {
   return (
     <h3
       className={cn(
-        "text-xl font-bold text-grey-dark dark:text-gray-200",
+        "text-lg font-medium text-gray-900 dark:text-gray-100",
         className,
       )}
     >
@@ -61,7 +66,7 @@ interface CardContentProps {
 
 export function CardContent({ children, className }: CardContentProps) {
   return (
-    <div className={cn("text-[#334155]", className)}>
+    <div className={cn("text-sm text-gray-600 dark:text-gray-400", className)}>
       {children}
     </div>
   );

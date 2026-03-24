@@ -56,7 +56,7 @@ export function ClaimEmployerClient() {
 
   if (loading) {
     return (
-      <Card className="p-6">
+      <Card>
         <p className="text-grey-medium dark:text-gray-400">Loading companies…</p>
       </Card>
     );
@@ -64,14 +64,14 @@ export function ClaimEmployerClient() {
 
   if (companies.length === 0) {
     return (
-      <Card className="p-6">
+      <Card>
         <p className="text-grey-medium dark:text-gray-400">No unclaimed companies available to claim right now.</p>
       </Card>
     );
   }
 
   return (
-    <Card className="p-6">
+    <Card>
       <label className="block text-sm font-medium text-grey-dark dark:text-gray-200 mb-2">Company</label>
       <select
         value={selectedId}

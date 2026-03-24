@@ -30,7 +30,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50">
-      <nav className="bg-blue-700 text-white shadow-lg h-14 flex items-center px-4 md:px-8">
+      <nav className="h-14 flex items-center px-4 md:px-8 bg-blue-600/95 text-white backdrop-blur-md border-b border-blue-500/30 shadow-[0_1px_3px_-1px_rgba(37,99,235,0.12)]">
         <div className="flex flex-1 items-center justify-between gap-4 max-w-7xl mx-auto min-w-0">
           <div className="flex items-center gap-4 md:gap-6 flex-shrink-0 min-w-0">
             <Link href={isAuthenticated ? "/coworker-matches" : "/"} className="flex items-center gap-2 flex-shrink-0">
@@ -62,13 +62,13 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/login"
-                    className="text-white/90 hover:text-white border border-white/60 px-4 py-2 rounded-lg font-medium transition whitespace-nowrap hover:bg-white/10"
+                    className="text-white/90 hover:text-white border border-white/40 px-4 py-2 rounded-lg font-medium transition whitespace-nowrap hover:bg-white/[0.08]"
                   >
                     Login
                   </Link>
                   <Link
                     href="/signup"
-                    className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-white/90 transition whitespace-nowrap"
+                    className="bg-white/95 text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-white transition whitespace-nowrap shadow-sm"
                   >
                     Sign Up
                   </Link>
@@ -115,19 +115,19 @@ export default function Navbar() {
       </nav>
       {/* Mobile Menu — context-aware: marketing when logged out, app nav when logged in */}
       {mobileMenuOpen && (
-        <div className="md:hidden absolute top-14 left-0 right-0 bg-blue-700 border-t border-blue-600 py-4 px-4 z-50 space-y-1">
+        <div className="md:hidden absolute top-14 left-0 right-0 bg-blue-600/95 backdrop-blur-md border-t border-blue-500/30 py-4 px-4 z-50 space-y-1">
           {!isAuthenticated ? (
             <>
               <Link href="/" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Home</Link>
               <Link href="/about" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>About</Link>
               <Link href="/pricing" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
               <Link href="/contact" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
-              <div className="pt-3 mt-3 border-t border-white/20 space-y-2">
+              <div className="pt-3 mt-3 border-t border-white/15 space-y-2">
                 {!isLoading && (
                   <>
                     <Link
                       href="/login"
-                      className="block text-center text-white/90 hover:text-white border border-white/60 py-2.5 rounded-lg font-medium"
+                      className="block text-center text-white/90 hover:text-white border border-white/40 py-2.5 rounded-lg font-medium"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Login

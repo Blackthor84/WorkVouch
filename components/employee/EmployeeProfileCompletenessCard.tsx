@@ -37,7 +37,7 @@ export function EmployeeProfileCompletenessCard() {
 
   if (loading) {
     return (
-      <Card className="p-6 rounded-[20px] border border-slate-200 dark:border-slate-700">
+      <Card>
         <h3 className="text-lg font-semibold text-[#1E293B] dark:text-slate-200 mb-3">
           Profile completeness
         </h3>
@@ -48,7 +48,7 @@ export function EmployeeProfileCompletenessCard() {
 
   if (!data) {
     return (
-      <Card className="p-6 rounded-[20px] border border-slate-200 dark:border-slate-700">
+      <Card>
         <h3 className="text-lg font-semibold text-[#1E293B] dark:text-slate-200 mb-3">
           Profile completeness
         </h3>
@@ -92,7 +92,7 @@ export function EmployeeProfileCompletenessCard() {
   ];
 
   return (
-    <Card className="p-6 rounded-[20px] border border-slate-200 dark:border-slate-700">
+    <Card>
       <h3 className="text-lg font-semibold text-[#1E293B] dark:text-slate-200 mb-4">
         Profile completeness
       </h3>

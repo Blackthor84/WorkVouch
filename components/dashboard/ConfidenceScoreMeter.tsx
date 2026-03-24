@@ -41,7 +41,7 @@ export function ConfidenceScoreMeter() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Confidence Score</CardTitle>
+          <CardTitle>Confidence Score</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
@@ -59,11 +59,11 @@ export function ConfidenceScoreMeter() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Confidence Score</CardTitle>
+        <CardTitle>Confidence Score</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <span className="text-2xl font-semibold tabular-nums text-gray-900 dark:text-gray-100">
             {Math.round(score)}%
           </span>
           <div className="w-full max-w-[180px] h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">

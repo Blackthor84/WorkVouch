@@ -9,9 +9,12 @@ import { cn } from "@/lib/utils";
 export function NotificationBell({
   unreadCount: initialCount = 0,
   className,
+  variant = "default",
 }: {
   unreadCount?: number;
   className?: string;
+  /** Matches WorkVouch blue header pills (Trust / Guide / Avatar). */
+  variant?: "default" | "header";
 }) {
   const [count, setCount] = useState(initialCount);
   const channelRef = useRef<ReturnType<typeof supabaseBrowser.channel> | null>(null);
@@ -68,14 +71,24 @@ export function NotificationBell({
     <Link
       href="/notifications"
       className={cn(
-        "relative flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2",
+        "relative flex h-10 w-10 items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
+        variant === "header"
+          ? "rounded-lg bg-blue-500/20 text-white hover:bg-blue-500/30 hover:text-white focus:ring-white/40 focus:ring-offset-blue-600"
+          : "rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus:ring-slate-300 focus:ring-offset-2",
         className
       )}
       aria-label={count > 0 ? `${count} unread notifications` : "Notifications"}
     >
       <BellIcon className="h-5 w-5" strokeWidth={1.8} />
       {count > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-slate-900 px-1.5 text-xs font-medium text-white">
+        <span
+          className={cn(
+            "absolute -right-0.5 -top-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-semibold",
+            variant === "header"
+              ? "bg-white text-blue-700"
+              : "bg-slate-900 text-white"
+          )}
+        >
           {count > 99 ? "99+" : count}
         </span>
       )}

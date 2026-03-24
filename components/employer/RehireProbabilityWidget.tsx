@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 
 export function RehireProbabilityWidget() {
   return (
-    <Card className="p-6 border-slate-200 dark:border-slate-700">
+    <Card>
       <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">
         Rehire Probability
       </h3>

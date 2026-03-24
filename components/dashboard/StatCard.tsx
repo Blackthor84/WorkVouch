@@ -5,38 +5,26 @@ export function StatCard({
   label,
   value,
   icon,
-  accent = "slate",
   className,
 }: {
   label: string;
   value: ReactNode;
   icon?: ReactNode;
-  accent?: "slate" | "blue" | "emerald" | "amber";
   className?: string;
 }) {
-  const ring =
-    accent === "blue"
-      ? "ring-blue-100 dark:ring-blue-900/40"
-      : accent === "emerald"
-        ? "ring-emerald-100 dark:ring-emerald-900/40"
-        : accent === "amber"
-          ? "ring-amber-100 dark:ring-amber-900/40"
-          : "ring-slate-100 dark:ring-slate-700";
-
   return (
     <div
       className={cn(
-        "rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:bg-slate-900 dark:border-slate-700 ring-1",
-        ring,
+        "rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900",
         className
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
-          <div className="mt-2 text-2xl font-bold tabular-nums text-slate-900 dark:text-white">{value}</div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 flex-col gap-2">
+          <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+          <div className="text-2xl font-semibold tabular-nums text-gray-900 dark:text-white">{value}</div>
         </div>
-        {icon ? <div className="shrink-0 text-slate-400 dark:text-slate-500">{icon}</div> : null}
+        {icon ? <div className="shrink-0 text-gray-400 dark:text-gray-500">{icon}</div> : null}
       </div>
     </div>
   );

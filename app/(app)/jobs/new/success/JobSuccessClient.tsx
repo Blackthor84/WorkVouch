@@ -27,9 +27,13 @@ function SuccessBody({ sent, returnTo }: { sent: number; returnTo: "onboarding" 
       <div className="flex flex-wrap justify-center gap-3">
         <Link
           href={returnTo === "onboarding" ? "/onboarding?celebrate=job" : "/dashboard"}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700"
+          className={
+            returnTo === "onboarding"
+              ? "inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-md transition hover:scale-[1.02] hover:bg-blue-700"
+              : "bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700"
+          }
         >
-          {returnTo === "onboarding" ? "Continue setup" : "Back to dashboard"}
+          {returnTo === "onboarding" ? "Finish your first vouch →" : "Back to dashboard"}
         </Link>
         <Link
           href="/my-jobs"
