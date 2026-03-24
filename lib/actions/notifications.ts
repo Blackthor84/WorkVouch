@@ -1,14 +1,20 @@
 'use server'
 
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, requireAuth } from '@/lib/auth'
+import { getUser } from "@/lib/auth/getUser";
 import { revalidatePath } from 'next/cache'
+
+async function requireNotificationSessionUser() {
+  const user = await getUser();
+  if (!user?.id) throw new Error("Unauthorized");
+  return user;
+}
 
 /**
  * Get user's notifications
  */
 export async function getUserNotifications(limit: number = 50) {
-  const user = await requireAuth()
+  const user = await requireNotificationSessionUser();
   const supabase = await createClient()
   const supabaseAny = supabase as any
 
@@ -79,7 +85,7 @@ export async function markNotificationRead(notificationId: string) {
  * Mark all notifications as read
  */
 export async function markAllNotificationsRead() {
-  const user = await requireAuth()
+  const user = await requireNotificationSessionUser();
   const supabase = await createClient()
   const supabaseAny = supabase as any
 
@@ -97,6 +103,7 @@ export async function markAllNotificationsRead() {
   }
 
   revalidatePath('/dashboard')
+  revalidatePath('/notifications')
 }
 
 /**
@@ -105,7 +112,7 @@ export async function markAllNotificationsRead() {
  */
 export async function getUnreadNotificationCount(): Promise<number> {
   try {
-    const user = await getCurrentUser()
+    const user = await getUser();
     if (!user?.id) return 0
 
     const supabase = await createClient()

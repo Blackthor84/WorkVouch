@@ -1,4 +1,5 @@
 import { getUser } from "@/lib/auth/getUser";
+import { getAuthedUser } from "@/lib/auth/getAuthedUser";
 import { createClient } from "./supabase/server";
 import { getSupabaseServer } from "./supabase/admin";
 import { getEffectiveUserIdWithAuth } from "./server/effectiveUserId";
@@ -58,7 +59,16 @@ export async function getEffectiveUser(): Promise<EffectiveUser | null> {
         deleted_at: undefined,
       };
     }
-    return null;
+    // Signed-in user but no profile row / RLS miss — still allow session-scoped actions (e.g. notifications).
+    const authed = await getAuthedUser();
+    return {
+      id: effectiveUserId,
+      email: authed?.user?.email ?? null,
+      full_name: null,
+      role: null,
+      isImpersonating: false,
+      deleted_at: undefined,
+    };
   }
   const row = profile as { id?: string; user_id?: string; email?: string | null; full_name?: string | null; role?: string | null; deleted_at?: unknown };
   return {
