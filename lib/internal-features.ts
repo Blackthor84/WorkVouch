@@ -70,12 +70,13 @@ function isFeatureEnabledForEnvWithOverride(featureKey: InternalFeatureKey): boo
  * Use role from AuthContext; isFounder from admin layout (email match to FOUNDER_EMAIL).
  */
 export interface FeatureAccessContext {
-  role: string | null;
+  role: string | null | undefined;
   isFounder?: boolean;
 }
 
 /** True if the user is allowed to see internal features (superadmin or founder). */
 export function isInternalRole(context: FeatureAccessContext): boolean {
+  if (context.role === undefined) return false;
   const r = (context.role ?? "").toLowerCase();
   if (r === "superadmin") return true;
   if (r === "founder") return true;

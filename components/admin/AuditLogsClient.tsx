@@ -22,7 +22,7 @@ type LogRow = {
 };
 
 export function AuditLogsClient() {
-  const { role } = useAuth();
+  const { role, loading: authLoading } = useAuth();
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminId, setAdminId] = useState("");
@@ -46,13 +46,13 @@ export function AuditLogsClient() {
   }, [role, adminId, action, isSandbox]);
 
   useEffect(() => {
-    if (!shouldCallAdminApi(role)) {
+    if (authLoading || role === undefined || !shouldCallAdminApi(role)) {
       setLogs([]);
       setLoading(false);
       return;
     }
     fetchLogs();
-  }, [fetchLogs, role]);
+  }, [fetchLogs, role, authLoading]);
 
   const detailLog = detailId ? logs.find((l) => l.id === detailId) : null;
 

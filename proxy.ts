@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/types/supabase";
 import { NextResponse, type NextRequest } from "next/server";
 import { resolveUserRole } from "@/lib/auth/resolveUserRole";
-import { getHomePathForResolvedRole } from "@/lib/auth/roleRouting";
+import { getRoleAccessRedirect } from "@/lib/proxy/routeAccess";
 import {
   IMPERSONATION_SIMULATION_COOKIE,
   IMPERSONATION_HEADERS,
@@ -135,67 +135,10 @@ export async function proxy(req: NextRequest) {
         console.log("USER ROLE:", profileRole ?? resolved);
       }
 
-      // Route protection: redirect unauthenticated users from protected routes
-      const protectedRoutes = [
-        "/choose-role",
-        "/dashboard",
-        "/my-jobs",
-        "/verifications",
-        "/profile",
-        "/settings",
-      ];
-      const isProtected = protectedRoutes.some((route) =>
-        path.startsWith(route)
-      );
-      if (isProtected && !user) {
-        const out = NextResponse.redirect(new URL("/login", req.url));
-        copyCookies(res, out);
-        return out;
-      }
-
-      if (!isApi && user) {
-        if (path === "/login" || path === "/signup") {
-          const dest = getHomePathForResolvedRole(resolved);
-          const out = NextResponse.redirect(new URL(dest, req.url));
-          copyCookies(res, out);
-          return out;
-        }
-
-        const skipPendingEnforce =
-          path.startsWith("/auth/") ||
-          path.startsWith("/_next/") ||
-          path === "/favicon.ico" ||
-          path === "/robots.txt" ||
-          path === "/sitemap.xml";
-
-        const hasRole =
-          profileRole &&
-          profileRole !== "pending" &&
-          profileRole !== "null";
-
-        if (!hasRole && !skipPendingEnforce) {
-          if (
-            path !== "/choose-role" &&
-            !path.startsWith("/choose-role/") &&
-            !path.startsWith("/dashboard")
-          ) {
-            const out = NextResponse.redirect(new URL("/choose-role", req.url));
-            copyCookies(res, out);
-            return out;
-          }
-        }
-
-        if (
-          hasRole &&
-          (path === "/choose-role" || path.startsWith("/choose-role/"))
-        ) {
-          const dest = getHomePathForResolvedRole(resolved);
-
-          if (path === dest || path.startsWith(`${dest}/`)) {
-            return res;
-          }
-
-          const out = NextResponse.redirect(new URL(dest, req.url));
+      if (!isApi) {
+        const accessRedirect = getRoleAccessRedirect(path, !!user, resolved);
+        if (accessRedirect) {
+          const out = NextResponse.redirect(new URL(accessRedirect, req.url));
           copyCookies(res, out);
           return out;
         }

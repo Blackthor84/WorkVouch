@@ -71,9 +71,23 @@ import { EmployeeProfileEditor } from "./EmployeeProfileEditor";
 import { OutcomePanel } from "./OutcomePanel";
 import { ROIPanel } from "./ROIPanel";
 import { LabGuide } from "./LabGuide";
+import { usePendingChooseRoleRedirect } from "@/lib/hooks/usePendingChooseRoleRedirect";
+import { isClientRoleLoading } from "@/lib/auth/clientRoleLoading";
+
 export default function PlaygroundClient() {
-  const { role, isFounder } = useAuth();
-  const featureAccessContext = { role, isFounder: isFounder ?? false };
+  const { role, isFounder, loading } = useAuth();
+  usePendingChooseRoleRedirect(role, loading);
+
+  if (isClientRoleLoading(loading, role)) {
+    return (
+      <div className="min-h-[40vh] flex items-center justify-center text-slate-500 text-sm">Loading…</div>
+    );
+  }
+  if (role === "pending") {
+    return null;
+  }
+
+  const featureAccessContext = { role: role ?? null, isFounder: isFounder ?? false };
   const showROI = canAccessFeature(FEATURE_ROI_CALCULATOR, featureAccessContext);
   const showCounterfactual = canAccessFeature(FEATURE_COUNTERFACTUAL_COMPARISON, featureAccessContext);
   const showPopulation = canAccessFeature(FEATURE_POPULATION_SIM, featureAccessContext);

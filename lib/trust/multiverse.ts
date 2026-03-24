@@ -38,7 +38,8 @@ export function getSnapshotAt(universe: Universe, index: number): Snapshot {
 }
 
 /** Only true when caller passes superadmin (e.g. from useAuth().role). No env/global — gate at runtime. */
-export function isMultiverseMode(role: string | null): boolean {
+export function isMultiverseMode(role: string | null | undefined): boolean {
+  if (role === undefined) return false;
   return role === "superadmin";
 }
 

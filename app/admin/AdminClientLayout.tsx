@@ -38,7 +38,7 @@ export default function AdminClientLayout({
 
   return (
     <AuthContextProvider
-      role={user?.role ?? "admin"}
+      role={user?.role}
       loading={!user}
       isFounder={user?.isFounder ?? false}
     >

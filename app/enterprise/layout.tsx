@@ -1,53 +1,12 @@
-import { connection } from "next/server";
-import { headers } from "next/headers";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { SmartGuide } from "@/components/guidance/SmartGuide";
-import { getEffectiveSession } from "@/lib/auth/actingUser";
-import { resolveUserRole } from "@/lib/auth/resolveUserRole";
+
 export const dynamic = "force-dynamic";
 
 /**
- * Employer / enterprise shell only. No employee or admin UI.
+ * Enterprise shell. Access control is enforced in proxy.ts only.
  */
-export default async function EnterpriseLayout({ children }: { children: React.ReactNode }) {
-  await connection();
-  const pathname = (await headers()).get("x-workvouch-pathname") ?? "";
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    redirect("/login");
-  }
-
-  const session = await getEffectiveSession();
-  const effectiveUserId = session?.effectiveUserId ?? user.id;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", effectiveUserId)
-    .maybeSingle();
-
-  if (!session?.isImpersonating) {
-    const rawRole = (profile as { role?: string | null } | null)?.role;
-    const resolved = resolveUserRole({
-      role: rawRole,
-    });
-    console.log("USER ROLE:", rawRole ?? resolved);
-
-    if (resolved === "pending") {
-      redirect("/choose-role");
-    } else if (resolved === "super_admin" && !pathname.startsWith("/admin")) {
-      redirect("/admin");
-    } else if (resolved === "employee" && !pathname.startsWith("/dashboard")) {
-      redirect("/dashboard");
-    }
-  }
-
+export default function EnterpriseLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0D1117]">
       <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">

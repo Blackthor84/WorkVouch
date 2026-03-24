@@ -28,6 +28,9 @@ export function useUserRole(): UseUserRoleResult {
     let cancelled = false;
 
     const loadRole = async () => {
+      setLoading(true);
+      setRole(undefined);
+
       const {
         data: { user },
       } = await supabase.auth.getUser();

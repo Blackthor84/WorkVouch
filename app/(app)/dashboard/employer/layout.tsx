@@ -1,16 +1,6 @@
-import { redirect } from "next/navigation";
-import { getRoleForRouteGuard } from "@/lib/auth/getRoleForRouteGuard";
-
 export const dynamic = "force-dynamic";
 
-export default async function DashboardEmployerLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const role = await getRoleForRouteGuard();
-  if (role === null) redirect("/login");
-  if (role === "pending") redirect("/choose-role");
-  if (role !== "employer") redirect("/unauthorized");
+/** Role checks for this segment are enforced in proxy.ts only. */
+export default function DashboardEmployerLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

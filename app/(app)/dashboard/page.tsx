@@ -1,6 +1,4 @@
-import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth/getUser";
-import { createClient } from "@/lib/supabase/server";
 import { getDashboardHomeData } from "@/lib/actions/dashboard/getDashboardHome";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions";
@@ -24,13 +22,6 @@ export const dynamic = "force-dynamic";
 export default async function UserDashboardPage() {
   const user = await getUser();
   if (!user) return null;
-
-  const supabase = await createClient();
-  const { data: profileRow } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  const role = ((profileRow as { role?: string } | null)?.role ?? "").toLowerCase();
-  if (role === "employer") {
-    redirect("/enterprise");
-  }
 
   const data = await getDashboardHomeData();
   if (!data) return null;

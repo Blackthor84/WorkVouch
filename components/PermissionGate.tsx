@@ -2,6 +2,7 @@
 
 import { hasPermission, type Role } from "@/lib/auth/roles";
 import { useAuth } from "@/components/AuthContext";
+import { usePendingChooseRoleRedirect } from "@/lib/hooks/usePendingChooseRoleRedirect";
 
 type Props = {
   perm: string;
@@ -10,8 +11,11 @@ type Props = {
 
 export function PermissionGate({ perm, children }: Props) {
   const { role, loading } = useAuth();
-  if (loading) return null;
-  if (!role) return null;
+  usePendingChooseRoleRedirect(role, loading);
+
+  if (loading || role === undefined) return null;
+  if (role === "pending") return null;
+  if (role === null) return null;
   if (role === "admin" || role === "superadmin") return <>{children}</>;
   if (!hasPermission(role as Role, perm)) return null;
   return <>{children}</>;
