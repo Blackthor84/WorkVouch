@@ -168,11 +168,17 @@ export async function proxy(req: NextRequest) {
           path === "/robots.txt" ||
           path === "/sitemap.xml";
 
-        // Only treat as no-role when profile resolves to pending (empty/null → pending via resolveUserRole)
-        const hasRole = resolved !== "pending";
+        const hasRole =
+          profileRole &&
+          profileRole !== "pending" &&
+          profileRole !== "null";
 
         if (!hasRole && !skipPendingEnforce) {
-          if (path !== "/choose-role" && !path.startsWith("/choose-role/")) {
+          if (
+            path !== "/choose-role" &&
+            !path.startsWith("/choose-role/") &&
+            !path.startsWith("/dashboard")
+          ) {
             const out = NextResponse.redirect(new URL("/choose-role", req.url));
             copyCookies(res, out);
             return out;
@@ -184,11 +190,14 @@ export async function proxy(req: NextRequest) {
           (path === "/choose-role" || path.startsWith("/choose-role/"))
         ) {
           const dest = getHomePathForResolvedRole(resolved);
-          if (path !== dest && !path.startsWith(`${dest}/`)) {
-            const out = NextResponse.redirect(new URL(dest, req.url));
-            copyCookies(res, out);
-            return out;
+
+          if (path === dest || path.startsWith(`${dest}/`)) {
+            return res;
           }
+
+          const out = NextResponse.redirect(new URL(dest, req.url));
+          copyCookies(res, out);
+          return out;
         }
       }
     } catch {
