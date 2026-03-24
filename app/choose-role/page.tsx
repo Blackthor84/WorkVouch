@@ -1,11 +1,17 @@
+import { connection } from "next/server";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { resolveUserRole } from "@/lib/auth/resolveUserRole";
+import { getHomePathForResolvedRole } from "@/lib/auth/roleRouting";
 import { ChooseRoleForm } from "./ChooseRoleForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function ChooseRolePage() {
+  await connection();
+  const pathname = (await headers()).get("x-workvouch-pathname") ?? "";
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -16,13 +22,15 @@ export default async function ChooseRolePage() {
 
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
 
-  const resolved = resolveUserRole({ role: (profile as { role?: string | null } | null)?.role });
+  const rawRole = (profile as { role?: string | null } | null)?.role;
+  const resolved = resolveUserRole({ role: rawRole });
+  console.log("USER ROLE:", rawRole ?? resolved);
 
-  if (resolved === "super_admin") {
-    redirect("/admin");
-  }
   if (resolved !== "pending") {
-    redirect(resolved === "employer" ? "/enterprise" : "/dashboard");
+    const dest = getHomePathForResolvedRole(resolved);
+    if (pathname !== dest && !pathname.startsWith(`${dest}/`)) {
+      redirect(dest);
+    }
   }
 
   return (

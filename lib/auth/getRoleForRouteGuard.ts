@@ -17,7 +17,7 @@ export async function getRoleForRouteGuard(): Promise<RouteGuardRole | null> {
 
   const supabase = await createClient();
 
-  const { data } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  const { data } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
 
   const resolved = resolveUserRole({ role: data?.role });
 

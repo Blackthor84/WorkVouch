@@ -1,11 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/types/supabase";
 import { NextResponse, type NextRequest } from "next/server";
+import { resolveUserRole } from "@/lib/auth/resolveUserRole";
+import { getHomePathForResolvedRole } from "@/lib/auth/roleRouting";
 import {
   IMPERSONATION_SIMULATION_COOKIE,
   IMPERSONATION_HEADERS,
   parseSimulationContextFromCookie,
 } from "@/lib/impersonation-simulation/context";
+
+function copyCookies(from: NextResponse, to: NextResponse) {
+  for (const c of from.cookies.getAll()) {
+    to.cookies.set(c.name, c.value, c);
+  }
+}
 
 const ANALYTICS_SESSION_COOKIE = "wv_sid";
 const ANALYTICS_SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
@@ -21,6 +29,7 @@ export async function proxy(req: NextRequest) {
   const impersonation = req.cookies.get(IMPERSONATION_COOKIE)?.value;
 
   const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-workvouch-pathname", req.nextUrl.pathname);
   const simulationRaw = req.cookies.get(IMPERSONATION_SIMULATION_COOKIE)?.value;
   const simulationContext = parseSimulationContextFromCookie(simulationRaw);
   let allowSimulationHeaders = false;
@@ -109,8 +118,26 @@ export async function proxy(req: NextRequest) {
         data: { user },
       } = await supabase.auth.getUser();
 
+      let profileRole: string | null | undefined;
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+        profileRole = (profile as { role?: string | null } | null)?.role ?? undefined;
+      }
+      const resolved = resolveUserRole({ role: profileRole });
+
+      const isApi = path.startsWith("/api/");
+      if (!isApi) {
+        console.log("PATH:", path);
+        console.log("USER ROLE:", profileRole ?? resolved);
+      }
+
       // Route protection: redirect unauthenticated users from protected routes
       const protectedRoutes = [
+        "/choose-role",
         "/dashboard",
         "/my-jobs",
         "/verifications",
@@ -121,13 +148,41 @@ export async function proxy(req: NextRequest) {
         path.startsWith(route)
       );
       if (isProtected && !user) {
-        return NextResponse.redirect(new URL("/login", req.url));
+        const out = NextResponse.redirect(new URL("/login", req.url));
+        copyCookies(res, out);
+        return out;
       }
-      if (
-        (path === "/login" || path === "/signup") &&
-        user
-      ) {
-        return NextResponse.redirect(new URL("/dashboard", req.url));
+
+      if (!isApi && user) {
+        if (path === "/login" || path === "/signup") {
+          const dest = getHomePathForResolvedRole(resolved);
+          const out = NextResponse.redirect(new URL(dest, req.url));
+          copyCookies(res, out);
+          return out;
+        }
+
+        const skipPendingEnforce =
+          path.startsWith("/choose-role") ||
+          path.startsWith("/auth/") ||
+          path.startsWith("/_next/") ||
+          path === "/favicon.ico" ||
+          path === "/robots.txt" ||
+          path === "/sitemap.xml";
+
+        if (resolved === "pending" && !skipPendingEnforce) {
+          const out = NextResponse.redirect(new URL("/choose-role", req.url));
+          copyCookies(res, out);
+          return out;
+        }
+
+        if (resolved !== "pending" && (path === "/choose-role" || path.startsWith("/choose-role/"))) {
+          const dest = getHomePathForResolvedRole(resolved);
+          if (path !== dest && !path.startsWith(`${dest}/`)) {
+            const out = NextResponse.redirect(new URL(dest, req.url));
+            copyCookies(res, out);
+            return out;
+          }
+        }
       }
     } catch {
       // Supabase session refresh must not block impersonation

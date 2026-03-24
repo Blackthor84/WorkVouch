@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUnreadNotificationCount } from "@/lib/actions/notifications";
@@ -8,6 +10,8 @@ import { getEffectiveSession } from "@/lib/auth/actingUser";
 import { resolveUserRole } from "@/lib/auth/resolveUserRole";
 import { needsWorkerVouchOnboarding } from "@/lib/onboarding/needsVouchOnboarding";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Employee app shell only (super_admin → /admin, employer → /enterprise).
  * When impersonating, admin follows the impersonated user's experience (employee UI).
@@ -17,6 +21,9 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  await connection();
+  const pathname = (await headers()).get("x-workvouch-pathname") ?? "";
+
   const supabase = await createClient();
 
   const {
@@ -38,16 +45,17 @@ export default async function AppLayout({
     .maybeSingle();
 
   if (!isImpersonatingSession) {
+    const rawRole = (profile as { role?: string | null } | null)?.role;
     const resolved = resolveUserRole({
-      role: (profile as { role?: string | null } | null)?.role,
+      role: rawRole,
     });
+    console.log("USER ROLE:", rawRole ?? resolved);
+
     if (resolved === "pending") {
       redirect("/choose-role");
-    }
-    if (resolved === "super_admin") {
+    } else if (resolved === "super_admin" && !pathname.startsWith("/admin")) {
       redirect("/admin");
-    }
-    if (resolved === "employer") {
+    } else if (resolved === "employer" && !pathname.startsWith("/enterprise")) {
       redirect("/enterprise");
     }
   }

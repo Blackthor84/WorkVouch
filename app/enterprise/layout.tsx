@@ -1,16 +1,20 @@
+import { connection } from "next/server";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SmartGuide } from "@/components/guidance/SmartGuide";
 import { getEffectiveSession } from "@/lib/auth/actingUser";
 import { resolveUserRole } from "@/lib/auth/resolveUserRole";
-
 export const dynamic = "force-dynamic";
 
 /**
  * Employer / enterprise shell only. No employee or admin UI.
  */
 export default async function EnterpriseLayout({ children }: { children: React.ReactNode }) {
+  await connection();
+  const pathname = (await headers()).get("x-workvouch-pathname") ?? "";
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -29,16 +33,17 @@ export default async function EnterpriseLayout({ children }: { children: React.R
     .maybeSingle();
 
   if (!session?.isImpersonating) {
+    const rawRole = (profile as { role?: string | null } | null)?.role;
     const resolved = resolveUserRole({
-      role: (profile as { role?: string | null } | null)?.role,
+      role: rawRole,
     });
+    console.log("USER ROLE:", rawRole ?? resolved);
+
     if (resolved === "pending") {
       redirect("/choose-role");
-    }
-    if (resolved === "super_admin") {
+    } else if (resolved === "super_admin" && !pathname.startsWith("/admin")) {
       redirect("/admin");
-    }
-    if (resolved === "employee") {
+    } else if (resolved === "employee" && !pathname.startsWith("/dashboard")) {
       redirect("/dashboard");
     }
   }

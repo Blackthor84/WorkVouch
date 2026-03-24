@@ -1,12 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BriefcaseIcon, BuildingOffice2Icon } from "@heroicons/react/24/outline";
 
 export function ChooseRoleForm() {
-  const router = useRouter();
   const [loading, setLoading] = useState<"employee" | "employer" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,8 +24,10 @@ export function ChooseRoleForm() {
         setLoading(null);
         return;
       }
-      router.replace(role === "employer" ? "/enterprise" : "/dashboard");
-      router.refresh();
+      const savedRole = typeof (data as { role?: string }).role === "string" ? (data as { role: string }).role : role;
+      console.log("USER ROLE:", savedRole);
+      const nextPath = role === "employer" ? "/enterprise" : "/dashboard";
+      window.location.assign(nextPath);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
       setLoading(null);
