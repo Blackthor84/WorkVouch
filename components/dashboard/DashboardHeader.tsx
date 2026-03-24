@@ -12,7 +12,7 @@ function tierFromScore(verifiedByCoworkers: number, trustScore: number): Verific
 }
 
 export function DashboardHeader({
-  firstName,
+  firstName: _firstName,
   trustScore,
   verifiedByCoworkers,
   isNewUser,
@@ -37,9 +37,12 @@ export function DashboardHeader({
       <div className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,white,transparent_45%)]" />
       <div className="relative flex flex-col gap-4">
         <p className="text-xs font-medium uppercase tracking-wide text-white/80">Your command center</p>
-        <h1 className="text-2xl font-semibold tracking-tight text-white">
-          Welcome back, {firstName}
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-white">Welcome back</h1>
+        {tier === "unverified" && (
+          <div className="text-white/70 text-sm mt-1">
+            One confirmation separates you from being verified
+          </div>
+        )}
 
         <p className="max-w-xl text-sm text-white/90">
           {isNewUser
@@ -55,9 +58,11 @@ export function DashboardHeader({
             <div className="text-sm text-white/80 mt-2">
               Verified users get more trust and better opportunities
             </div>
-            <div className="mt-3 text-sm text-white">
-              Status:{" "}
-              <span className="font-semibold text-yellow-300">Unverified</span>
+            <div className="mt-3 text-sm flex items-center gap-2">
+              <span className="text-white/70">Status:</span>
+              <span className="px-2 py-0.5 rounded-full bg-yellow-300/20 text-yellow-200 font-semibold text-xs">
+                Unverified
+              </span>
             </div>
           </div>
         ) : (
@@ -76,19 +81,23 @@ export function DashboardHeader({
                 </span>
               )}
             </div>
-            <div className="mt-3 text-sm text-white">
-              Status:{" "}
+            <div className="mt-3 text-sm flex items-center gap-2">
+              <span className="text-white/70">Status:</span>
               {tier === "trusted" ? (
-                <span className="font-semibold text-blue-300">Trusted</span>
+                <span className="px-2 py-0.5 rounded-full bg-blue-300/20 text-blue-200 font-semibold text-xs">
+                  Trusted
+                </span>
               ) : (
-                <span className="font-semibold text-emerald-300">Verified</span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-300/20 text-emerald-200 font-semibold text-xs">
+                  Verified
+                </span>
               )}
             </div>
           </>
         )}
         <Link
           href="/coworker-matches"
-          className="inline-flex w-fit items-center justify-center rounded-lg bg-white px-4 py-2 text-sm font-medium text-blue-600 shadow-sm transition-colors hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+          className="mt-5 inline-flex w-fit items-center justify-center rounded-lg bg-white px-5 py-2 text-sm font-semibold text-blue-600 shadow-md transition hover:scale-[1.02] hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
         >
           + Add Coworker
         </Link>
@@ -103,7 +112,11 @@ export function DashboardHeader({
               aria-valuemax={100}
             />
           </div>
-          <p className="text-xs text-white/80">0–100 scale · updates as your reputation grows</p>
+          <p className="text-xs text-white/80">
+            {tier === "unverified"
+              ? "Complete 1 coworker verification to unlock Verified status"
+              : "0–100 scale · updates as your reputation grows"}
+          </p>
         </div>
       </div>
     </section>
