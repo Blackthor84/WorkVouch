@@ -40,6 +40,7 @@ export default async function ProfilePage() {
     professional_summary?: string | null;
     public_slug?: string | null;
     resume_url?: string | null;
+    resume_uploaded_at?: string | null;
   };
 
   const { data: profileRow, error: profileError } = await supabase
@@ -221,7 +222,10 @@ export default async function ProfilePage() {
 
       {/* Resume: View / Download / Replace */}
       <div className="mt-8">
-        <ProfileResumeActions hasResume={!!profile?.resume_url} />
+        <ProfileResumeActions
+          hasResume={!!profile?.resume_url}
+          resumeUploadedAt={profile?.resume_uploaded_at ?? null}
+        />
       </div>
 
       {/* Work history + verified coworkers per job */}

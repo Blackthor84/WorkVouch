@@ -6,31 +6,52 @@ import { DocumentArrowDownIcon, DocumentTextIcon, ArrowPathIcon, DocumentPlusIco
 
 type Props = {
   hasResume: boolean;
+  /** ISO timestamp from profiles.resume_uploaded_at */
+  resumeUploadedAt?: string | null;
 };
 
-export function ProfileResumeActions({ hasResume }: Props) {
+function formatUploadedAt(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+export function ProfileResumeActions({ hasResume, resumeUploadedAt }: Props) {
   const [loading, setLoading] = useState<"view" | "download" | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchSignedUrl = async () => {
     const res = await fetch("/api/resume/me");
     const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data?.url) throw new Error("Failed to get resume link");
+    if (!res.ok || !data?.url) {
+      const msg =
+        typeof data?.error === "string" && data.error
+          ? data.error
+          : "Could not open your resume. Try again in a moment.";
+      throw new Error(msg);
+    }
     return data.url as string;
   };
 
   const handleView = async () => {
+    setActionError(null);
     setLoading("view");
     try {
       const url = await fetchSignedUrl();
       window.open(url, "_blank", "noopener,noreferrer");
-    } catch {
-      // silent or toast
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setLoading(null);
     }
   };
 
   const handleDownload = async () => {
+    setActionError(null);
     setLoading("download");
     try {
       const url = await fetchSignedUrl();
@@ -42,8 +63,8 @@ export function ProfileResumeActions({ hasResume }: Props) {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    } catch {
-      // silent or toast
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setLoading(null);
     }
@@ -67,6 +88,8 @@ export function ProfileResumeActions({ hasResume }: Props) {
     );
   }
 
+  const uploadedLabel = formatUploadedAt(resumeUploadedAt);
+
   return (
     <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-6">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
@@ -74,7 +97,22 @@ export function ProfileResumeActions({ hasResume }: Props) {
       </h2>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
         Your uploaded resume is stored securely and can be shared with employers when they request access.
+        {uploadedLabel ? (
+          <>
+            {" "}
+            <span className="text-gray-600 dark:text-gray-300">Last updated {uploadedLabel}.</span>
+          </>
+        ) : null}{" "}
+        Use View or Download to open a time-limited secure link to your file.
       </p>
+      {actionError ? (
+        <div
+          className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-800 dark:text-red-300"
+          role="alert"
+        >
+          {actionError}
+        </div>
+      ) : null}
       <div className="flex flex-wrap gap-3">
         <button
           type="button"
@@ -96,6 +134,7 @@ export function ProfileResumeActions({ hasResume }: Props) {
         </button>
         <Link
           href="/upload-resume"
+          onClick={() => setActionError(null)}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
         >
           <ArrowPathIcon className="h-4 w-4" />

@@ -74,8 +74,9 @@ export function UploadResumeForm() {
       setTimeout(() => {
         setSuccess(false);
         setUploadProgress(0);
+        router.push("/profile");
         router.refresh();
-      }, 3000);
+      }, 1200);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed, try again");
       setUploadProgress(0);
