@@ -29,6 +29,7 @@ export default async function ProfilePage() {
   await ensureProfileRowForUser(user);
 
   type ProfileRow = {
+    id: string;
     full_name?: string | null;
     email?: string | null;
     state?: string | null;
@@ -43,17 +44,27 @@ export default async function ProfilePage() {
   const { data: profileRow, error: profileError } = await supabase
     .from("profiles")
     .select(
-      "full_name, email, state, location, headline, role, professional_summary, public_slug, resume_url"
+      "id, full_name, email, state, location, headline, role, professional_summary, public_slug, resume_url"
     )
     .eq("id", user.id)
     .single();
 
-  const profile = (profileRow ?? null) as ProfileRow | null;
+  const row = profileRow as ProfileRow | null;
+  const profileIdMatches = !!row?.id && row.id === user.id;
+  const profile =
+    !profileError && profileIdMatches ? row : null;
+
   if (profileError) {
     console.warn("[profile] profiles lookup:", profileError.message, profileError);
+  } else if (row && !profileIdMatches) {
+    console.error("[profile] profiles.id !== auth user.id", {
+      profilesId: row.id,
+      userId: user.id,
+    });
   }
   console.info("[profile page]", {
     userId: user.id,
+    profilesId: row?.id ?? null,
     full_name: profile?.full_name ?? null,
     error: profileError?.message ?? null,
   });
@@ -126,7 +137,7 @@ export default async function ProfilePage() {
             Full Name
           </h2>
           <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
-            {profile?.full_name != null ? profile.full_name : "User"}
+            {profile && profile.full_name != null ? profile.full_name : "User"}
           </p>
         </div>
 

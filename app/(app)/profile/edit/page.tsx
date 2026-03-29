@@ -18,6 +18,7 @@ export default async function ProfileEditPage() {
   await ensureProfileRowForUser(user);
 
   type ProfileRow = {
+    id: string;
     full_name?: string | null;
     state?: string | null;
     location?: string | null;
@@ -27,15 +28,22 @@ export default async function ProfileEditPage() {
 
   const { data: profileRow, error: profileError } = await supabase
     .from("profiles")
-    .select("full_name, state, location, professional_summary, headline")
+    .select("id, full_name, state, location, professional_summary, headline")
     .eq("id", user.id)
     .single();
 
+  const row = profileRow as ProfileRow | null;
+  const profileIdMatches = !!row?.id && row.id === user.id;
+  const profile = !profileError && profileIdMatches ? row : null;
+
   if (profileError) {
     console.warn("[profile/edit] profiles lookup:", profileError.message);
+  } else if (row && !profileIdMatches) {
+    console.error("[profile/edit] profiles.id !== auth user.id", {
+      profilesId: row.id,
+      userId: user.id,
+    });
   }
-
-  const profile = (profileRow ?? null) as ProfileRow | null;
 
   return (
     <div className="max-w-2xl mx-auto">
