@@ -10,7 +10,8 @@ import { admin } from "@/lib/supabase-admin";
 import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
 import { JobVerificationSection } from "@/components/profile/JobVerificationSection";
 import { ProfileResumeActions } from "@/components/profile/ProfileResumeActions";
-import { getEffectiveSession } from "@/lib/auth/actingUser";
+import { ProfileFetchDebug } from "@/components/profile/ProfileFetchDebug";
+import { ensureProfileRowForUser } from "@/lib/profile/ensureUserProfile";
 
 /**
  * Profile page. Authentication is enforced by (app)/layout.tsx — redirect if no user.
@@ -25,8 +26,7 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  const session = await getEffectiveSession();
-  const profileUserId = session?.effectiveUserId ?? user.id;
+  await ensureProfileRowForUser(user);
 
   type ProfileRow = {
     full_name?: string | null;
@@ -40,29 +40,32 @@ export default async function ProfilePage() {
     resume_url?: string | null;
   };
 
-  let profile: ProfileRow | null = null;
   const { data: profileRow, error: profileError } = await supabase
     .from("profiles")
     .select(
       "full_name, email, state, location, headline, role, professional_summary, public_slug, resume_url"
     )
-    .eq("id", profileUserId)
-    .maybeSingle();
+    .eq("id", user.id)
+    .single();
 
+  const profile = (profileRow ?? null) as ProfileRow | null;
   if (profileError) {
-    console.warn("[profile] profiles lookup:", profileError.message);
-  } else {
-    profile = profileRow as ProfileRow | null;
+    console.warn("[profile] profiles lookup:", profileError.message, profileError);
   }
+  console.info("[profile page]", {
+    userId: user.id,
+    full_name: profile?.full_name ?? null,
+    error: profileError?.message ?? null,
+  });
 
   const [confidenceScore, verifiedJobCount, trustForProfile, references, coworkerRefs, jobsWithCoworkers] =
     await Promise.all([
-      getConfidenceScoreByUserId(profileUserId),
-      getVerifiedJobCountByUserId(profileUserId),
-      getTrustForProfile(profileUserId),
-      getUserReferences(profileUserId),
-      getCoworkerReferencesForProfile(profileUserId),
-      getJobsWithVerifiedCoworkers(profileUserId),
+      getConfidenceScoreByUserId(user.id),
+      getVerifiedJobCountByUserId(user.id),
+      getTrustForProfile(user.id),
+      getUserReferences(user.id),
+      getCoworkerReferencesForProfile(user.id),
+      getJobsWithVerifiedCoworkers(user.id),
     ]);
 
   type ReviewItem = { id: string; rating: number; text: string | null; authorName: string | null; created_at: string };
@@ -82,13 +85,22 @@ export default async function ProfilePage() {
     const { count } = await (admin as any)
       .from("user_references")
       .select("id", { count: "exact", head: true })
-      .eq("to_user_id", profileUserId);
+      .eq("to_user_id", user.id);
     verifiedCoworkerCount = count ?? 0;
   } catch {
     // ignore
   }
 
-  const displayFullName = profile?.full_name != null ? profile.full_name : "User";
+  const debugProfilePayload: Record<string, unknown> | null = profile
+    ? {
+        full_name: profile.full_name,
+        email: profile.email,
+        headline: profile.headline,
+        location: profile.location,
+        state: profile.state,
+      }
+    : null;
+
   const headline = profile?.headline?.trim() || null;
   const location = profile?.location?.trim() || profile?.state?.trim() || null;
   const email = profile?.email ?? user.email ?? "";
@@ -114,9 +126,15 @@ export default async function ProfilePage() {
             Full Name
           </h2>
           <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
-            {displayFullName}
+            {profile?.full_name != null ? profile.full_name : "User"}
           </p>
         </div>
+
+        <ProfileFetchDebug
+          userId={user.id}
+          profile={debugProfilePayload}
+          queryError={profileError?.message ?? null}
+        />
 
         {headline && (
           <div>

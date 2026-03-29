@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getEffectiveSession } from "@/lib/auth/actingUser";
+import { ensureProfileRowForUser } from "@/lib/profile/ensureUserProfile";
 import { ProfileEditForm } from "./ProfileEditForm";
 
 /**
  * Edit profile page. Auth enforced by (app)/layout.
- * Loads `profiles` for the effective user (matches app shell).
+ * Loads `profiles` for `user.id` (creates stub row if missing).
  */
 export default async function ProfileEditPage() {
   const supabase = await createClient();
@@ -15,8 +15,7 @@ export default async function ProfileEditPage() {
     redirect("/login");
   }
 
-  const session = await getEffectiveSession();
-  const profileUserId = session?.effectiveUserId ?? user.id;
+  await ensureProfileRowForUser(user);
 
   type ProfileRow = {
     full_name?: string | null;
@@ -26,18 +25,17 @@ export default async function ProfileEditPage() {
     headline?: string | null;
   };
 
-  let profile: ProfileRow | null = null;
   const { data: profileRow, error: profileError } = await supabase
     .from("profiles")
     .select("full_name, state, location, professional_summary, headline")
-    .eq("id", profileUserId)
-    .maybeSingle();
+    .eq("id", user.id)
+    .single();
 
   if (profileError) {
     console.warn("[profile/edit] profiles lookup:", profileError.message);
-  } else {
-    profile = profileRow as ProfileRow | null;
   }
+
+  const profile = (profileRow ?? null) as ProfileRow | null;
 
   return (
     <div className="max-w-2xl mx-auto">
