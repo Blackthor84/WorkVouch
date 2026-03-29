@@ -68,6 +68,11 @@ export async function submitCoworkerReference(
     return { error: insertErr.message };
   }
 
+  const { calculateTrustScore } = await import("@/lib/trustScore");
+  await calculateTrustScore(reviewedId).catch((e) => {
+    console.warn("[calculateTrustScore]", e);
+  });
+
   revalidatePath("/profile");
   revalidatePath("/coworker-matches");
   return {};

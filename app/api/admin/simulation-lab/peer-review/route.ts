@@ -14,6 +14,7 @@ export const runtime = "nodejs";
 import { admin } from "@/lib/supabase-admin";
 import { requireSimulationLabAdmin, validateSessionForWrite } from "@/lib/simulation-lab";
 import { calculateUserIntelligence } from "@/lib/intelligence/calculateUserIntelligence";
+import { calculateTrustScore } from "@/lib/trustScore";
 
 export const dynamic = "force-dynamic";
 
@@ -90,6 +91,9 @@ export async function POST(req: NextRequest) {
     if (refErr) return NextResponse.json({ error: refErr.message }, { status: 500 });
 
     await calculateUserIntelligence(reviewedUserId, simulationContext);
+    await calculateTrustScore(reviewedUserId).catch((e) =>
+      console.warn("[calculateTrustScore] simulation peer-review", e)
+    );
 
     return NextResponse.json({ ok: true, matchId, message: "Peer review added; intelligence recalculated." });
   } catch (e: unknown) {

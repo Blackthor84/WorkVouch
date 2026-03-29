@@ -49,10 +49,10 @@ export async function getCandidateProfile(candidateId: string): Promise<Candidat
     const sb = admin as any;
 
     const { data: profile, error: profileError } = await sb
-    .from("profiles")
-    .select("id, full_name, professional_summary")
-    .eq("id", candidateId)
-    .single();
+      .from("profiles")
+      .select("id, full_name, headline, professional_summary")
+      .eq("id", candidateId)
+      .single();
 
   if (profileError || !profile) return null;
 
@@ -113,11 +113,22 @@ export async function getCandidateProfile(candidateId: string): Promise<Candidat
 
   const refCount = references.length > 0 ? references.length : reference_count;
 
+  const prof = profile as {
+    id: string;
+    full_name: string | null;
+    headline?: string | null;
+    professional_summary?: string | null;
+  };
+  const headline =
+    prof.headline?.trim() ||
+    prof.professional_summary?.split("\n")[0]?.trim() ||
+    null;
+
   return {
-    id: profile.id,
-    full_name: profile.full_name,
-    headline: (profile as { professional_summary?: string | null }).professional_summary?.split("\n")[0]?.trim() ?? null,
-    bio: (profile as { professional_summary?: string | null }).professional_summary ?? null,
+    id: prof.id,
+    full_name: prof.full_name,
+    headline,
+    bio: prof.professional_summary ?? null,
     trust_score: score,
     reference_count: refCount,
     jobs,

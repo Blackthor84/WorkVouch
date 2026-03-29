@@ -10,10 +10,12 @@ import { admin } from "@/lib/supabase-admin";
 import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
 import { JobVerificationSection } from "@/components/profile/JobVerificationSection";
 import { ProfileResumeActions } from "@/components/profile/ProfileResumeActions";
+import { getEffectiveSession } from "@/lib/auth/actingUser";
 
 /**
  * Profile page. Authentication is enforced by (app)/layout.tsx — redirect if no user.
  * Displays professional profile; no internal identifiers (e.g. User ID).
+ * Name always comes from `profiles.full_name` (never auth display name).
  */
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -23,34 +25,44 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  let profile: {
+  const session = await getEffectiveSession();
+  const profileUserId = session?.effectiveUserId ?? user.id;
+
+  type ProfileRow = {
     full_name?: string | null;
     email?: string | null;
     state?: string | null;
+    location?: string | null;
+    headline?: string | null;
     role?: string | null;
     professional_summary?: string | null;
     public_slug?: string | null;
     resume_url?: string | null;
-  } | null = null;
-  try {
-    const { data: profileRow } = await supabase
-      .from("profiles")
-      .select("full_name, email, state, role, professional_summary, public_slug, resume_url")
-      .eq("id", user.id)
-      .maybeSingle();
-    profile = profileRow as typeof profile;
-  } catch {
-    // ignore missing columns / schema mismatch
+  };
+
+  let profile: ProfileRow | null = null;
+  const { data: profileRow, error: profileError } = await supabase
+    .from("profiles")
+    .select(
+      "full_name, email, state, location, headline, role, professional_summary, public_slug, resume_url"
+    )
+    .eq("id", profileUserId)
+    .maybeSingle();
+
+  if (profileError) {
+    console.warn("[profile] profiles lookup:", profileError.message);
+  } else {
+    profile = profileRow as ProfileRow | null;
   }
 
   const [confidenceScore, verifiedJobCount, trustForProfile, references, coworkerRefs, jobsWithCoworkers] =
     await Promise.all([
-      getConfidenceScoreByUserId(user.id),
-      getVerifiedJobCountByUserId(user.id),
-      getTrustForProfile(user.id),
-      getUserReferences(user.id),
-      getCoworkerReferencesForProfile(user.id),
-      getJobsWithVerifiedCoworkers(user.id),
+      getConfidenceScoreByUserId(profileUserId),
+      getVerifiedJobCountByUserId(profileUserId),
+      getTrustForProfile(profileUserId),
+      getUserReferences(profileUserId),
+      getCoworkerReferencesForProfile(profileUserId),
+      getJobsWithVerifiedCoworkers(profileUserId),
     ]);
 
   type ReviewItem = { id: string; rating: number; text: string | null; authorName: string | null; created_at: string };
@@ -70,15 +82,15 @@ export default async function ProfilePage() {
     const { count } = await (admin as any)
       .from("user_references")
       .select("id", { count: "exact", head: true })
-      .eq("to_user_id", user.id);
+      .eq("to_user_id", profileUserId);
     verifiedCoworkerCount = count ?? 0;
   } catch {
     // ignore
   }
 
-  const fullName = profile?.full_name ?? "User";
-  const headline = profile?.role ?? null;
-  const location = profile?.state ?? null;
+  const displayFullName = profile?.full_name != null ? profile.full_name : "User";
+  const headline = profile?.headline?.trim() || null;
+  const location = profile?.location?.trim() || profile?.state?.trim() || null;
   const email = profile?.email ?? user.email ?? "";
   const bio = profile?.professional_summary ?? null;
   const publicSlug = profile?.public_slug ?? null;
@@ -102,7 +114,7 @@ export default async function ProfilePage() {
             Full Name
           </h2>
           <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
-            {fullName}
+            {displayFullName}
           </p>
         </div>
 

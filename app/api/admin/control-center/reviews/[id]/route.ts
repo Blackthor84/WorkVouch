@@ -7,6 +7,7 @@ import { admin } from "@/lib/supabase-admin";
 import { calculateUserIntelligence } from "@/lib/intelligence/calculateUserIntelligence";
 import { getAuditRequestMeta } from "@/lib/admin/getAuditRequestMeta";
 import { insertAdminAuditLog } from "@/lib/admin/audit";
+import { calculateTrustScore } from "@/lib/trustScore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,6 +58,9 @@ export async function DELETE(
         return NextResponse.json({ ok: false }, { status: 200 });
       }
       await calculateUserIntelligence(reviewedId);
+      await calculateTrustScore(reviewedId).catch((e) =>
+        console.warn("[calculateTrustScore] admin review delete", e)
+      );
       await insertAdminAuditLog({
         adminId: auth.userId,
         targetUserId: reviewedId,
@@ -88,6 +92,9 @@ export async function DELETE(
       await admin.rpc("recalculate_trust_from_coworker_references", {
         p_user_id: reviewedId,
       }).catch(() => {});
+      await calculateTrustScore(reviewedId).catch((e) =>
+        console.warn("[calculateTrustScore] admin coworker review delete", e)
+      );
       await insertAdminAuditLog({
         adminId: auth.userId,
         targetUserId: reviewedId,

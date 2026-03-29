@@ -184,11 +184,14 @@ export interface Database {
           email: string
           city: string | null
           state: string | null
+          location: string | null
+          headline: string | null
           profile_photo_url: string | null
           professional_summary: string | null
           public_slug: string | null
           visibility: ProfileVisibility
           employer_visibility: string | null
+          trust_score: number | null
           created_at: string
           updated_at: string
           guard_credential_score: number | null
@@ -212,10 +215,14 @@ export interface Database {
           email: string
           city?: string | null
           state?: string | null
+          location?: string | null
+          headline?: string | null
           profile_photo_url?: string | null
           professional_summary?: string | null
+          public_slug?: string | null
           visibility?: ProfileVisibility
           employer_visibility?: string | null
+          trust_score?: number | null
           created_at?: string
           updated_at?: string
           guard_credential_score?: number | null
@@ -239,11 +246,14 @@ export interface Database {
           email?: string
           city?: string | null
           state?: string | null
+          location?: string | null
+          headline?: string | null
           profile_photo_url?: string | null
           professional_summary?: string | null
           public_slug?: string | null
           visibility?: ProfileVisibility
           employer_visibility?: string | null
+          trust_score?: number | null
           created_at?: string
           updated_at?: string
           guard_credential_score?: number | null

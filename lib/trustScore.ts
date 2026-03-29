@@ -326,3 +326,7 @@ export async function recalculateTrustScore(
 
   return { score };
 }
+
+/** Gamified 0–100 score (`profiles.trust_score` + `trust_scores`); see `lib/trust/gamifiedProfileTrustScore.ts`. */
+export { calculateGamifiedTrustScore as calculateTrustScore } from "./trust/gamifiedProfileTrustScore";
+export type { GamifiedTrustBreakdown } from "./trust/gamifiedProfileTrustScore";

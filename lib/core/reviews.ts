@@ -4,7 +4,7 @@
  */
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { recalculateTrustScore } from "@/lib/trustScore";
+import { calculateTrustScore } from "@/lib/trustScore";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type SubmitReviewInput = {
@@ -33,15 +33,25 @@ export async function submitReview(
 
     const { data: match, error: matchErr } = await sb
       .from("coworker_matches")
-      .select("id, user_1, user_2")
+      .select("id, user_1, user_2, user1_id, user2_id")
       .eq("id", employment_match_id)
       .single();
 
     if (matchErr || !match) {
       return { ok: false, error: "Match not found", status: 404 };
     }
-    const m = match as { user_1: string; user_2: string };
-    const reviewedUserId = m.user_1 === reviewer_id ? m.user_2 : m.user_1;
+    const m = match as {
+      user_1?: string;
+      user_2?: string;
+      user1_id?: string;
+      user2_id?: string;
+    };
+    const u1 = m.user_1 ?? m.user1_id;
+    const u2 = m.user_2 ?? m.user2_id;
+    if (!u1 || !u2) {
+      return { ok: false, error: "Match not found", status: 404 };
+    }
+    const reviewedUserId = u1 === reviewer_id ? u2 : u1;
     if (reviewedUserId === reviewer_id) {
       return { ok: false, error: "Cannot reference yourself", status: 400 };
     }
@@ -102,10 +112,9 @@ export async function submitReview(
       });
     }
 
-    await recalculateTrustScore(reviewedUserId, {
-      triggeredBy: reviewer_id,
-      reason: "peer_review_added",
-    });
+    await calculateTrustScore(reviewedUserId).catch((e) =>
+      console.warn("[calculateTrustScore]", e)
+    );
 
     return { ok: true, referenceId: (ref as { id: string }).id, reviewedUserId };
   } catch (e) {

@@ -5,9 +5,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { updateProfile } from "@/lib/actions/profile";
 
-const FIELDS = ["full_name", "headline", "location", "bio"] as const;
+const FIELDS = ["full_name", "headline", "location", "professional_summary"] as const;
 
-function progress(values: { full_name: string; headline: string; location: string; bio: string }): number {
+function progress(values: {
+  full_name: string;
+  headline: string;
+  location: string;
+  professional_summary: string;
+}): number {
   const filled = FIELDS.filter((f) => (values[f] ?? "").trim().length > 0).length;
   return Math.round((filled / FIELDS.length) * 100);
 }
@@ -17,7 +22,7 @@ type Props = {
     full_name: string;
     headline: string;
     location: string;
-    bio: string;
+    professional_summary: string;
   };
 };
 
@@ -29,14 +34,14 @@ export function ProfileEditForm({ defaultValues }: Props) {
   const [full_name, setFullName] = useState(defaultValues.full_name);
   const [headline, setHeadline] = useState(defaultValues.headline);
   const [location, setLocation] = useState(defaultValues.location);
-  const [bio, setBio] = useState(defaultValues.bio);
+  const [professional_summary, setProfessionalSummary] = useState(defaultValues.professional_summary);
 
-  const values = { full_name, headline, location, bio };
+  const values = { full_name, headline, location, professional_summary };
   const completedPercent = progress(values);
 
   /** Save a single field on blur (partial update; does not overwrite others). */
   async function saveField(
-    field: "full_name" | "headline" | "location" | "bio",
+    field: "full_name" | "headline" | "location" | "professional_summary",
     value: string
   ) {
     setError(null);
@@ -58,7 +63,7 @@ export function ProfileEditForm({ defaultValues }: Props) {
     setError(null);
     setSaved(false);
     setSaving(true);
-    const result = await updateProfile({ full_name, headline, location, bio });
+    const result = await updateProfile({ full_name, headline, location, professional_summary });
     setSaving(false);
     if (result.error) {
       setError(result.error);
@@ -108,6 +113,7 @@ export function ProfileEditForm({ defaultValues }: Props) {
           type="text"
           value={full_name}
           onChange={(e) => setFullName(e.target.value)}
+          onBlur={() => saveField("full_name", full_name)}
           className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2"
           placeholder="e.g. Jane Doe"
         />
@@ -138,6 +144,7 @@ export function ProfileEditForm({ defaultValues }: Props) {
           type="text"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
+          onBlur={() => saveField("location", location)}
           className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2"
           placeholder="e.g. California or CA"
         />
@@ -146,14 +153,14 @@ export function ProfileEditForm({ defaultValues }: Props) {
         </p>
       </div>
       <div>
-        <label htmlFor="bio" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Bio <span className="text-gray-400 font-normal">(optional)</span>
+        <label htmlFor="professional_summary" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Professional summary <span className="text-gray-400 font-normal">(optional)</span>
         </label>
         <textarea
-          id="bio"
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          onBlur={() => saveField("bio", bio)}
+          id="professional_summary"
+          value={professional_summary}
+          onChange={(e) => setProfessionalSummary(e.target.value)}
+          onBlur={() => saveField("professional_summary", professional_summary)}
           rows={4}
           className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2"
           placeholder="Short professional summary..."

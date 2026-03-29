@@ -7,7 +7,9 @@ export type ProfileUpdateInput = {
   full_name?: string;
   headline?: string;
   location?: string;
-  bio?: string;
+  /** Matches `profiles.professional_summary`. */
+  professional_summary?: string;
+  /** Written to `profiles.profile_photo_url`. */
   avatar_url?: string;
 };
 
@@ -40,10 +42,11 @@ export async function updateProfile(input: ProfileUpdateInput): Promise<{ error?
     }
     if (input.location !== undefined) {
       const loc = (input.location ?? "").trim();
+      updates.location = loc || null;
       updates.state = loc ? loc.split(",").map((p) => p.trim()).filter(Boolean).pop() ?? null : null;
     }
-    if (input.bio !== undefined) {
-      updates.professional_summary = (input.bio ?? "").trim() || null;
+    if (input.professional_summary !== undefined) {
+      updates.professional_summary = (input.professional_summary ?? "").trim() || null;
     }
     if (input.avatar_url !== undefined) {
       updates.profile_photo_url = (input.avatar_url ?? "").trim() || null;
@@ -58,6 +61,16 @@ export async function updateProfile(input: ProfileUpdateInput): Promise<{ error?
     const { error } = await supabase.from("profiles").update(updates).eq("id", user.id);
 
     if (error) return { error: error.message };
+
+    if (
+      updates.full_name !== undefined ||
+      updates.professional_summary !== undefined ||
+      updates.location !== undefined
+    ) {
+      const { calculateTrustScore } = await import("@/lib/trustScore");
+      await calculateTrustScore(user.id).catch(() => {});
+    }
+
     revalidatePath("/profile");
     revalidatePath("/profile/edit");
     return {};

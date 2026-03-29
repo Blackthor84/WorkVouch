@@ -4,7 +4,7 @@
  */
 
 import { getSupabaseServer } from "@/lib/supabase/admin";
-import { recalculateTrustScore } from "@/lib/trustScore";
+import { calculateTrustScore } from "@/lib/trustScore";
 
 export type AuditEntity =
   | "trust_score"
@@ -50,7 +50,9 @@ export async function onDisputeResolvedAffectsTrust(params: {
     disputeType === "fraud_flag" ||
     disputeType === "trust_score";
   if (affectsScore) {
-    await recalculateTrustScore(userId, { reason: "dispute_resolved" });
+    await calculateTrustScore(userId).catch((e) =>
+      console.warn("[calculateTrustScore] dispute", e)
+    );
   }
 }
 

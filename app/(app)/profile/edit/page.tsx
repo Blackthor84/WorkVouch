@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getEffectiveSession } from "@/lib/auth/actingUser";
 import { ProfileEditForm } from "./ProfileEditForm";
 
 /**
  * Edit profile page. Auth enforced by (app)/layout.
+ * Loads `profiles` for the effective user (matches app shell).
  */
 export default async function ProfileEditPage() {
   const supabase = await createClient();
@@ -13,16 +15,28 @@ export default async function ProfileEditPage() {
     redirect("/login");
   }
 
-  let profile: { full_name?: string | null; state?: string | null; professional_summary?: string | null; headline?: string | null } | null = null;
-  try {
-    const { data: profileRow } = await supabase
-      .from("profiles")
-      .select("full_name, state, professional_summary, headline")
-      .eq("id", user.id)
-      .maybeSingle();
-    profile = profileRow as typeof profile;
-  } catch {
-    // ignore missing columns / schema mismatch
+  const session = await getEffectiveSession();
+  const profileUserId = session?.effectiveUserId ?? user.id;
+
+  type ProfileRow = {
+    full_name?: string | null;
+    state?: string | null;
+    location?: string | null;
+    professional_summary?: string | null;
+    headline?: string | null;
+  };
+
+  let profile: ProfileRow | null = null;
+  const { data: profileRow, error: profileError } = await supabase
+    .from("profiles")
+    .select("full_name, state, location, professional_summary, headline")
+    .eq("id", profileUserId)
+    .maybeSingle();
+
+  if (profileError) {
+    console.warn("[profile/edit] profiles lookup:", profileError.message);
+  } else {
+    profile = profileRow as ProfileRow | null;
   }
 
   return (
@@ -34,8 +48,8 @@ export default async function ProfileEditPage() {
         defaultValues={{
           full_name: profile?.full_name ?? "",
           headline: profile?.headline ?? "",
-          location: profile?.state ?? "",
-          bio: profile?.professional_summary ?? "",
+          location: (profile?.location ?? profile?.state ?? "").trim(),
+          professional_summary: profile?.professional_summary ?? "",
         }}
       />
     </div>

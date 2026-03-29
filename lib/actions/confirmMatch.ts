@@ -14,7 +14,7 @@ export async function confirmCoworkerMatch(matchId: string): Promise<{ ok: boole
 
     const { data: row, error: fetchError } = await (supabase as any)
       .from("coworker_matches")
-      .select("id, user_1, user_2")
+      .select("id, user_1, user_2, user1_id, user2_id")
       .eq("id", matchId)
       .single();
 
@@ -22,7 +22,9 @@ export async function confirmCoworkerMatch(matchId: string): Promise<{ ok: boole
       return { ok: false, error: "Match not found" };
     }
 
-    if (row.user_1 !== user.id && row.user_2 !== user.id) {
+    const u1 = row.user_1 ?? row.user1_id;
+    const u2 = row.user_2 ?? row.user2_id;
+    if (u1 !== user.id && u2 !== user.id) {
       return { ok: false, error: "Not authorized to confirm this match" };
     }
 
@@ -34,6 +36,10 @@ export async function confirmCoworkerMatch(matchId: string): Promise<{ ok: boole
     if (updateError) {
       return { ok: false, error: updateError.message };
     }
+
+    const { calculateTrustScore } = await import("@/lib/trustScore");
+    if (u1) await calculateTrustScore(u1 as string).catch((e) => console.warn("[calculateTrustScore]", e));
+    if (u2) await calculateTrustScore(u2 as string).catch((e) => console.warn("[calculateTrustScore]", e));
 
     return { ok: true };
   } catch (e) {
@@ -53,7 +59,7 @@ export async function denyCoworkerMatch(matchId: string): Promise<{ ok: boolean;
 
     const { data: row, error: fetchError } = await (supabase as any)
       .from("coworker_matches")
-      .select("id, user_1, user_2")
+      .select("id, user_1, user_2, user1_id, user2_id")
       .eq("id", matchId)
       .single();
 
@@ -61,7 +67,9 @@ export async function denyCoworkerMatch(matchId: string): Promise<{ ok: boolean;
       return { ok: false, error: "Match not found" };
     }
 
-    if (row.user_1 !== user.id && row.user_2 !== user.id) {
+    const du1 = row.user_1 ?? row.user1_id;
+    const du2 = row.user_2 ?? row.user2_id;
+    if (du1 !== user.id && du2 !== user.id) {
       return { ok: false, error: "Not authorized to deny this match" };
     }
 

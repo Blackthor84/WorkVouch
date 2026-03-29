@@ -14,7 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 import { admin } from "@/lib/supabase-admin";
-import { recalculateTrustScore } from "@/lib/trustScore";
+import { calculateTrustScore } from "@/lib/trustScore";
 import { logIntel, LOG_TAGS } from "@/lib/core/intelligence";
 
 export const dynamic = "force-dynamic";
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     for (const userId of ids) {
       try {
-        await recalculateTrustScore(userId, { reason: "cron_recalc" });
+        await calculateTrustScore(userId);
         success += 1;
       } catch (e) {
         fail += 1;

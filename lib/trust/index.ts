@@ -14,6 +14,7 @@ export type {
 } from "./types";
 
 export { calculateTrustScore } from "./calculateTrustScore";
+export { calculateGamifiedTrustScore, type GamifiedTrustBreakdown } from "./gamifiedProfileTrustScore";
 export { buildTrustTimeline } from "./buildTrustTimeline";
 export { explainTrustScore } from "./explainTrustScore";
 export { generateTrustReport } from "./generateTrustReport";

@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getEffectiveUser } from "@/lib/auth";
 import { admin } from "@/lib/supabase-admin";
 import { evaluateTrustAutomationRules } from "@/lib/trust/automation";
+import { calculateTrustScore } from "@/lib/trustScore";
 import { mapToTrustRelationshipType } from "@/lib/verification/relationshipTypes";
 
 export const runtime = "nodejs";
@@ -220,6 +221,9 @@ export async function POST(req: NextRequest) {
           .eq("id", requestRow.job_id);
         if (jobUserId) {
           await applyJobVerifiedConfidenceScore(adminAny, jobUserId, requestRow.job_id, acceptedCount);
+          await calculateTrustScore(jobUserId).catch((e) =>
+            console.warn("[calculateTrustScore] job verified", e)
+          );
         }
       }
     }

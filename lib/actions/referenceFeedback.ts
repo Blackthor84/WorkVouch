@@ -107,6 +107,12 @@ export async function submitReference(
   });
 
   if (insertErr) return { error: insertErr.message };
+
+  const { calculateTrustScore } = await import("@/lib/trustScore");
+  await calculateTrustScore(req.requester_id).catch((e) => {
+    console.warn("[calculateTrustScore]", e);
+  });
+
   revalidatePath("/profile");
   revalidatePath("/requests");
   revalidatePath("/coworker-matches");

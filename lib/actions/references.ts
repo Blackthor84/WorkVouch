@@ -94,6 +94,11 @@ export async function createReference(input: CreateReferenceInput) {
 
   await calculateAndStoreRisk(input.to_user_id).catch((error) => { console.error("[SYSTEM_FAIL]", error); })
 
+  const { calculateTrustScore } = await import("@/lib/trustScore");
+  await calculateTrustScore(input.to_user_id).catch((e) => {
+    console.warn("[calculateTrustScore]", e);
+  });
+
   revalidatePath('/dashboard')
   return reference
 }
