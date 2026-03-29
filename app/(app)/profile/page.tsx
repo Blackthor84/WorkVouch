@@ -11,6 +11,7 @@ import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
 import { JobVerificationSection } from "@/components/profile/JobVerificationSection";
 import { ProfileResumeActions } from "@/components/profile/ProfileResumeActions";
 import { ProfileFetchDebug } from "@/components/profile/ProfileFetchDebug";
+import { ProfileDisplayName } from "@/components/profile/ProfileDisplayName";
 import { ensureProfileRowForUser } from "@/lib/profile/ensureUserProfile";
 
 /**
@@ -136,9 +137,9 @@ export default async function ProfilePage() {
           <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             Full Name
           </h2>
-          <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
-            {profile && profile.full_name != null ? profile.full_name : "User"}
-          </p>
+          <div className="mt-1">
+            <ProfileDisplayName />
+          </div>
         </div>
 
         <ProfileFetchDebug
