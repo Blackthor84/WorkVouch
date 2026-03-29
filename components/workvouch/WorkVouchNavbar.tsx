@@ -1,12 +1,28 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Bars3Icon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 import { NotificationBell } from "./NotificationBell";
 import { supabaseBrowser } from "@/lib/supabase/browser";
+import { cn } from "@/lib/utils";
+
+function titleFromPath(pathname: string | null): string {
+  if (!pathname) return "Dashboard";
+  if (pathname === "/dashboard") return "Dashboard";
+  if (pathname.startsWith("/coworker-matches")) return "Matches";
+  if (pathname.startsWith("/requests")) return "Requests";
+  if (pathname.startsWith("/notifications")) return "Notifications";
+  if (pathname.startsWith("/profile")) return "Profile";
+  if (pathname.startsWith("/settings")) return "Settings";
+  if (pathname.startsWith("/onboarding")) return "Onboarding";
+  if (pathname.startsWith("/my-jobs")) return "Job history";
+  if (pathname.startsWith("/upload-resume")) return "Resume";
+  if (pathname.startsWith("/dashboard/")) return "Dashboard";
+  if (pathname.startsWith("/jobs")) return "Jobs";
+  return "Dashboard";
+}
 
 export function WorkVouchNavbar({
   unreadNotificationCount = 0,
@@ -24,10 +40,11 @@ export function WorkVouchNavbar({
   onMenuClick?: () => void;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const pageTitle = useMemo(() => titleFromPath(pathname), [pathname]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -38,7 +55,6 @@ export function WorkVouchNavbar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // React to auth state change (e.g. logout in another tab)
   useEffect(() => {
     const {
       data: { subscription },
@@ -59,53 +75,59 @@ export function WorkVouchNavbar({
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between bg-blue-600 px-4 shadow-sm sm:px-6">
-      <div className="flex items-center gap-3">
+    <header
+      className={cn(
+        "sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-slate-200/90 bg-white/90 px-4 shadow-sm backdrop-blur-md sm:px-6",
+        "dark:border-slate-800 dark:bg-slate-950/90"
+      )}
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-3">
         {onMenuClick && (
           <button
             type="button"
             onClick={onMenuClick}
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-white/90 hover:bg-white/10 md:hidden transition-colors"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 md:hidden dark:text-slate-300 dark:hover:bg-slate-800"
             aria-label="Open menu"
           >
             <Bars3Icon className="h-5 w-5" />
           </button>
         )}
-        <Link
-          href="/dashboard"
-          className="flex items-center transition-opacity hover:opacity-90"
-          aria-label="WorkVouch home"
-        >
-          <Image
-            src="/images/workvouch-logo.png.png"
-            alt=""
-            width={140}
-            height={36}
-            className="h-8 w-auto max-h-8 object-contain brightness-0 invert opacity-95"
-            priority
-          />
-        </Link>
+        <div className="min-w-0 md:pl-1">
+          <p className="truncate text-base font-semibold tracking-tight text-slate-900 dark:text-white sm:text-lg">
+            {pageTitle}
+          </p>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <Link
           href="/dashboard"
-          className="flex items-center gap-1.5 rounded-lg bg-blue-500/20 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500/30"
-          title="Trust Score"
+          className={cn(
+            "hidden items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-800 sm:inline-flex",
+            "dark:border-blue-900/50 dark:bg-blue-950/50 dark:text-blue-100"
+          )}
+          title="Trust score"
         >
           <span className="tabular-nums">{Math.min(100, Math.max(0, trustScore))}</span>
-          <span className="text-white/80 font-medium text-xs">Trust</span>
+          <span className="text-xs font-medium text-blue-600/80 dark:text-blue-300/90">Trust</span>
         </Link>
-        <NotificationBell
-          unreadCount={unreadNotificationCount}
-          variant="header"
-        />
+        <Link
+          href="/dashboard"
+          className={cn(
+            "inline-flex h-10 min-w-[2.5rem] items-center justify-center rounded-full border border-blue-100 bg-blue-50 px-2 text-sm font-semibold text-blue-800 sm:hidden",
+            "dark:border-blue-900/50 dark:bg-blue-950/50 dark:text-blue-100"
+          )}
+          title="Trust score"
+        >
+          <span className="tabular-nums">{Math.min(100, Math.max(0, trustScore))}</span>
+        </Link>
+        <NotificationBell unreadCount={unreadNotificationCount} variant="default" />
 
         <div className="relative" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setDropdownOpen((o) => !o)}
-            className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-blue-500/20 text-sm font-medium text-white ring-1 ring-white/20 transition-all hover:bg-blue-500/30 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-blue-600"
+            className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-sm font-medium text-slate-700 ring-2 ring-white transition-all hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-950"
             aria-label="Profile menu"
             aria-expanded={dropdownOpen}
           >
@@ -118,12 +140,12 @@ export function WorkVouchNavbar({
 
           {dropdownOpen && (
             <div
-              className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-slate-200/80 bg-white py-2 shadow-lg"
+              className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-slate-200/80 bg-white py-2 shadow-lg dark:border-slate-700 dark:bg-slate-900"
               role="menu"
             >
               {userEmail && (
-                <div className="border-b border-slate-100 px-4 py-3">
-                  <p className="truncate text-sm text-slate-500" title={userEmail}>
+                <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+                  <p className="truncate text-sm text-slate-500 dark:text-slate-400" title={userEmail}>
                     {userEmail}
                   </p>
                 </div>
@@ -132,7 +154,7 @@ export function WorkVouchNavbar({
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:hover:bg-red-950/30"
                   role="menuitem"
                 >
                   <ArrowRightOnRectangleIcon className="h-5 w-5 shrink-0" />

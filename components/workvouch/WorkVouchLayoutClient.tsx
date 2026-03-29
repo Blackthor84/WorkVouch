@@ -49,7 +49,7 @@ export function WorkVouchLayoutClient({
 
   return (
     <VouchOnboardingRouteGate needsOnboarding={needsVouchOnboarding}>
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
       <WorkVouchSidebar
         pendingReferenceRequestCount={pendingReferenceRequestCount}
         mobileOpen={mobileOpen}

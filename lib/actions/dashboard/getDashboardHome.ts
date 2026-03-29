@@ -9,6 +9,7 @@ export type DashboardMatchPreview = {
   company: string;
   status: string;
   createdAt: string;
+  year?: number;
 };
 
 export type DashboardActivityItem = {
@@ -28,6 +29,12 @@ export type DashboardHomeData = {
   referenceCount: number;
   matchesCount: number;
   jobsCount: number;
+  /** Jobs with verification_status = verified */
+  verifiedJobsCount: number;
+  /** Pending reference_requests involving the user (requester or receiver) */
+  pendingRequestsCount: number;
+  /** Coworker references received since start of UTC month (growth signal) */
+  verificationsThisMonth: number;
   profileStrengthPct: number;
   /** Name + short bio — for onboarding checklist (partial OK elsewhere). */
   profileBasicsComplete: boolean;
@@ -79,6 +86,11 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
   const uid = user.id;
 
   try {
+    const monthStart = new Date();
+    monthStart.setUTCDate(1);
+    monthStart.setUTCHours(0, 0, 0, 0);
+    const monthStartIso = monthStart.toISOString();
+
     const [
       profileRes,
       trustRes,
@@ -88,6 +100,9 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
       coworkerRefsRes,
       activityRes,
       recentReviewsRes,
+      verifiedJobsRes,
+      pendingRequestsRes,
+      verificationsMonthRes,
     ] = await Promise.all([
       sb.from("profiles").select("full_name, professional_summary").eq("id", uid).maybeSingle(),
       sb.from("trust_scores").select("score, reference_count").eq("user_id", uid).maybeSingle(),
@@ -98,7 +113,7 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
         .select("id, status, company_name, user1_id, user2_id, created_at")
         .or(`user1_id.eq.${uid},user2_id.eq.${uid}`)
         .order("created_at", { ascending: false })
-        .limit(3),
+        .limit(8),
       sb.from("coworker_references").select("reviewer_id").eq("reviewed_id", uid),
       sb.from("activity_log").select("id, action, target, metadata, created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(12),
       sb
@@ -107,6 +122,21 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
         .eq("reviewed_id", uid)
         .order("created_at", { ascending: false })
         .limit(8),
+      sb
+        .from("jobs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", uid)
+        .eq("verification_status", "verified"),
+      sb
+        .from("reference_requests")
+        .select("id", { count: "exact", head: true })
+        .or(`requester_id.eq.${uid},receiver_id.eq.${uid}`)
+        .eq("status", "pending"),
+      sb
+        .from("coworker_references")
+        .select("id", { count: "exact", head: true })
+        .eq("reviewed_id", uid)
+        .gte("created_at", monthStartIso),
     ]);
 
     const profile = profileRes.data as { full_name?: string | null; professional_summary?: string | null } | null;
@@ -120,6 +150,9 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
 
     const jobsCount = Number(jobsCountRes.count ?? 0);
     const matchesCount = Number(matchesCountRes.count ?? 0);
+    const verifiedJobsCount = verifiedJobsRes.error ? 0 : Number(verifiedJobsRes.count ?? 0);
+    const pendingRequestsCount = pendingRequestsRes.error ? 0 : Number(pendingRequestsRes.count ?? 0);
+    const verificationsThisMonth = verificationsMonthRes.error ? 0 : Number(verificationsMonthRes.count ?? 0);
 
     const reviewerIds = [
       ...new Set(
@@ -148,12 +181,14 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
 
     const matchesPreview: DashboardMatchPreview[] = previewRows.map((r) => {
       const other = r.user1_id === uid ? r.user2_id : r.user1_id;
+      const created = r.created_at ? new Date(r.created_at) : new Date();
       return {
         id: r.id,
         otherUserName: nameById[other] ?? "Coworker",
         company: r.company_name?.trim() || "Company",
         status: (r.status ?? "pending").trim(),
         createdAt: r.created_at,
+        year: created.getFullYear(),
       };
     });
 
@@ -241,6 +276,9 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
       referenceCount,
       matchesCount,
       jobsCount,
+      verifiedJobsCount,
+      pendingRequestsCount,
+      verificationsThisMonth,
       profileStrengthPct,
       profileBasicsComplete,
       matchesPreview,
@@ -258,6 +296,9 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
       referenceCount: 0,
       matchesCount: 0,
       jobsCount: 0,
+      verifiedJobsCount: 0,
+      pendingRequestsCount: 0,
+      verificationsThisMonth: 0,
       profileStrengthPct: 0,
       profileBasicsComplete: false,
       matchesPreview: [],
