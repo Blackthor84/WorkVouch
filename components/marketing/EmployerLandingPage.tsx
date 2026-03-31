@@ -1,10 +1,11 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { EmployerAccessForm } from "./EmployerAccessForm";
 
 const ctaClass =
   "inline-block rounded-xl bg-black px-6 py-3 text-lg font-semibold text-white transition hover:bg-gray-900";
 
-export function EmployerLandingPage() {
+export function EmployerLandingPage({ afterHero }: { afterHero?: ReactNode } = {}) {
   return (
     <div className="min-h-screen bg-white px-6 py-12 text-center text-gray-900 antialiased">
       <div className="mx-auto max-w-3xl">
@@ -24,6 +25,8 @@ export function EmployerLandingPage() {
         <a href="#request-access" className={ctaClass}>
           Request Access
         </a>
+
+        {afterHero}
 
         {/* PROBLEM */}
         <div className="mt-12">
