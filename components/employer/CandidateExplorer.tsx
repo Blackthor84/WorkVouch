@@ -73,10 +73,10 @@ export function CandidateExplorer({
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-900/40">
-      <h3 className "text-lg font-semibold text-grey-dark dark:text-gray-200">
+      <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
         Browse candidates
       </h3>
-      <p className="text-sm text-grey-medium dark:text-gray-400 mt-1">
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
         Click a card to include it in the comparison (up to two). Open full profile
         from the link on each card.
       </p>
@@ -105,7 +105,7 @@ export function CandidateExplorer({
         </div>
       ) : candidates.length === 0 ? (
         <div className="mt-6 rounded-xl border border-dashed border-gray-200 bg-gray-50/50 p-8 text-center dark:border-gray-700 dark:bg-gray-950/30">
-          <p className="text-sm text-grey-medium dark:text-gray-400">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             No candidates match this trust filter. Lower the minimum or check back
             later.
           </p>
@@ -132,14 +132,14 @@ export function CandidateExplorer({
                     : "border-gray-200 dark:border-gray-700"
                 }`}
               >
-                <p className="font-semibold text-grey-dark dark:text-gray-100 line-clamp-1">
+                <p className="font-semibold text-gray-800 dark:text-gray-100 line-clamp-1">
                   {c.full_name ?? "Candidate"}
                 </p>
                 <p className="mt-1 text-sm text-amber-700 dark:text-amber-300 tabular-nums">
                   Trust {c.trust_score}/100
                 </p>
                 {c.headline ? (
-                  <p className="mt-2 text-sm text-grey-medium dark:text-gray-400 line-clamp-2">
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                     {c.headline}
                   </p>
                 ) : null}
@@ -163,7 +163,7 @@ export function CandidateExplorer({
                       e.stopPropagation();
                       void requestResume(c.id);
                     }}
-                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-grey-dark hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
                   >
                     {requestedCandidateIds.has(c.id)
                       ? "Request pending"
