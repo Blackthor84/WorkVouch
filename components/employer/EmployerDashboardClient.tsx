@@ -23,6 +23,7 @@ import { ListedEmployeesCard } from "@/components/employer/ListedEmployeesCard";
 import { EditCompanyInfo } from "@/components/employer/EditCompanyInfo";
 import { EmployerProfileCompletionCard } from "@/components/employer/EmployerProfileCompletionCard";
 import { CandidateViewHistoryCard } from "@/components/employer/CandidateViewHistoryCard";
+import { EmployerHiringDecisionWorkspace } from "@/components/employer/EmployerHiringDecisionWorkspace";
 import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
 import { getVerticalConfig } from "@/lib/verticals/config";
 import { runSimulation } from "@/lib/simulation/engine";
@@ -671,6 +672,8 @@ export function EmployerDashboardClient({
             </>
           )}
         </div>
+
+        <EmployerHiringDecisionWorkspace employerId={employerId ?? null} />
       </div>
     </>
   );

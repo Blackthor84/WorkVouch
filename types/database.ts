@@ -422,6 +422,30 @@ export interface Database {
         }
         Relationships: []
       }
+      resume_requests: {
+        Row: {
+          id: string
+          employer_id: string
+          candidate_id: string
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          employer_id: string
+          candidate_id: string
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          employer_id?: string
+          candidate_id?: string
+          status?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
       employee_profiles: {
         Row: {
           id: string
@@ -482,6 +506,36 @@ export interface Database {
           default_employer_account_id?: string | null
           created_at?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      hiring_calculations: {
+        Row: {
+          id: string
+          user_id: string
+          salary: number
+          training_weeks: number
+          replacement_weeks: number
+          total_cost: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          salary: number
+          training_weeks: number
+          replacement_weeks: number
+          total_cost: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          salary?: number
+          training_weeks?: number
+          replacement_weeks?: number
+          total_cost?: number
+          created_at?: string
         }
         Relationships: []
       }

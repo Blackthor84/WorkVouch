@@ -35,7 +35,12 @@ export async function searchCandidatesForEmployer(params: {
     .eq("id", user.id)
     .single();
 
-  if ((profile as { role?: string } | null)?.role !== "employer") {
+  const role = (profile as { role?: string } | null)?.role;
+  if (
+    role !== "employer" &&
+    role !== "superadmin" &&
+    role !== "admin"
+  ) {
     return [];
   }
 
