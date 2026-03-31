@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function BadHireCalculator() {
+  const router = useRouter();
   const [salary, setSalary] = useState(70000);
 
   const cost = Math.round(salary * 0.25);
@@ -36,7 +38,19 @@ export default function BadHireCalculator() {
           Based on training, lost productivity, and rehiring costs.
         </p>
 
-        <button className="bg-black text-white px-6 py-3 rounded-lg hover:opacity-90">
+        <button
+          type="button"
+          onClick={() => {
+            try {
+              localStorage.setItem("badHireCost", cost.toString());
+              localStorage.setItem("badHireCalculatorSalary", salary.toString());
+            } catch {
+              /* ignore quota / private mode */
+            }
+            router.push("/signup?source=calculator");
+          }}
+          className="bg-black text-white px-6 py-3 rounded-lg hover:opacity-90"
+        >
           Reduce hiring risk with verified coworkers
         </button>
 

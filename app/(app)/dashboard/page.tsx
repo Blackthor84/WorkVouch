@@ -10,6 +10,7 @@ import { DashboardReputationHero } from "@/components/dashboard/DashboardReputat
 import { DashboardStatsGrid } from "@/components/dashboard/DashboardStatsGrid";
 import { DashboardMatchesSection } from "@/components/dashboard/DashboardMatchesSection";
 import { DashboardBoostSection } from "@/components/dashboard/DashboardBoostSection";
+import { BadHireCostFromCalculatorBanner } from "@/components/dashboard/BadHireCostFromCalculatorBanner";
 import { isGuidedProfileComplete } from "@/lib/onboarding/guidedOnboarding";
 
 export const revalidate = 0;
@@ -33,6 +34,7 @@ export default async function UserDashboardPage() {
     <div className="flex-1 w-full bg-slate-50/80 pb-12 dark:bg-slate-950">
       <DashboardTrustSeenMark />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
+        <BadHireCostFromCalculatorBanner />
         <OnboardingIncompleteBanner show={showOnboardingBanner} />
 
         {showOnboardingBanner && (

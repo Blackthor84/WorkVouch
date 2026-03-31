@@ -38,9 +38,8 @@ export default function Home() {
           </p>
 
           <p className="mt-4 text-sm text-gray-500">
-            Hiring?{" "}
             <Link href="/employers" className="font-medium underline">
-              View verified workers
+              For Employers
             </Link>
           </p>
         </div>

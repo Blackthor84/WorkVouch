@@ -47,6 +47,12 @@ export default function Navbar() {
             {!isAuthenticated && (
               <div className="hidden md:flex items-center gap-5 flex-shrink-0">
                 <Link href="/" className={navLinkClass}>Home</Link>
+                <Link
+                  href="/employers"
+                  className={isActive("/employers") ? navLinkActiveClass : navLinkClass}
+                >
+                  For Employers
+                </Link>
                 <Link href="/about" className={navLinkClass}>About</Link>
                 <Link href="/pricing" className={navLinkClass}>Pricing</Link>
                 <Link href="/contact" className={navLinkClass}>Contact</Link>
@@ -119,6 +125,7 @@ export default function Navbar() {
           {!isAuthenticated ? (
             <>
               <Link href="/" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+              <Link href="/employers" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>For Employers</Link>
               <Link href="/about" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>About</Link>
               <Link href="/pricing" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
               <Link href="/contact" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
