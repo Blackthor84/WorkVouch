@@ -21,12 +21,32 @@ export default function BadHireCalculator() {
           See how much a hiring mistake could cost your business in seconds.
         </p>
 
-        <input
-          type="number"
-          value={salary}
-          onChange={(e) => setSalary(Number(e.target.value))}
-          className="w-full p-3 border rounded-lg mb-6 text-center text-lg"
-        />
+        <div className="mb-6 text-left">
+          <label
+            htmlFor="bad-hire-salary"
+            className="block text-sm font-medium text-gray-600 mb-2"
+          >
+            Annual Salary
+          </label>
+          <div className="relative">
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
+              $
+            </span>
+            <input
+              id="bad-hire-salary"
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              value={salary === 0 ? "" : salary.toLocaleString("en-US")}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/,/g, "");
+                const number = parseInt(raw, 10);
+                setSalary(Number.isFinite(number) && number >= 0 ? number : 0);
+              }}
+              className="w-full pl-8 pr-4 py-4 border rounded-xl text-lg font-semibold text-center"
+            />
+          </div>
+        </div>
 
         <p className="text-gray-500 text-sm">A bad hire could cost you:</p>
 
