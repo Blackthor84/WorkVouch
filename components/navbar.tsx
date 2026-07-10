@@ -28,6 +28,11 @@ export default function Navbar() {
   const pathname = usePathname();
   const isActive = (path: string) => pathname === path || (path !== "/coworker-matches" && pathname?.startsWith(path));
 
+  // Demo routes use their own shell — hide global marketing nav
+  if (pathname?.startsWith("/demo")) {
+    return null;
+  }
+
   return (
     <header className="sticky top-0 z-50">
       <nav className="h-14 flex items-center px-4 md:px-8 bg-blue-600/95 text-white backdrop-blur-md border-b border-blue-500/30 shadow-[0_1px_3px_-1px_rgba(37,99,235,0.12)]">
@@ -56,6 +61,12 @@ export default function Navbar() {
                 <Link href="/about" className={navLinkClass}>About</Link>
                 <Link href="/pricing" className={navLinkClass}>Pricing</Link>
                 <Link href="/contact" className={navLinkClass}>Contact</Link>
+                <Link
+                  href="/demo"
+                  className={isActive("/demo") ? navLinkActiveClass : navLinkClass}
+                >
+                  Live Demo
+                </Link>
               </div>
             )}
           </div>
@@ -129,6 +140,7 @@ export default function Navbar() {
               <Link href="/about" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>About</Link>
               <Link href="/pricing" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
               <Link href="/contact" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
+              <Link href="/demo" className="block py-2.5 text-white/90 hover:text-white transition font-medium" onClick={() => setMobileMenuOpen(false)}>Live Demo</Link>
               <div className="pt-3 mt-3 border-t border-white/15 space-y-2">
                 {!isLoading && (
                   <>
