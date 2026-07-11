@@ -2,9 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { WvCard, WvButton } from "@/components/wv";
 import { TrustTrajectoryBadge } from "@/components/trust/TrustTrajectoryBadge";
 
 export type CompareCandidateItem = {
@@ -81,20 +79,20 @@ export function CompareViewClient() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-b-transparent dark:border-blue-400" />
-        <p className="mt-4 text-grey-medium dark:text-gray-400">Loading comparison...</p>
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-b-transparent" />
+        <p className="mt-4 text-wv-muted">Loading comparison...</p>
       </div>
     );
   }
 
   if (error && candidates.length === 0) {
     return (
-      <Card className="p-6">
-        <p className="text-grey-dark dark:text-gray-200">{error}</p>
-        <Button asChild className="mt-4" variant="outline">
-          <Link href="/employer/search-users">Back to search</Link>
-        </Button>
-      </Card>
+      <WvCard>
+        <p className="text-wv-foreground">{error}</p>
+        <WvButton href="/employer/search-users" variant="outline" className="mt-4">
+          Back to search
+        </WvButton>
+      </WvCard>
     );
   }
 
@@ -107,26 +105,19 @@ export function CompareViewClient() {
   ];
 
   return (
-    <Card className="p-6">
-      <div className="overflow-x-auto">
+    <WvCard padding="none" className="overflow-hidden">
+      <div className="overflow-x-auto p-6">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-grey-background dark:border-[#374151]">
-              <th className="text-left py-3 px-4 font-semibold text-grey-dark dark:text-gray-200 w-48">
-                Metric
-              </th>
+            <tr className="border-b border-wv-border">
+              <th className="text-left py-3 px-4 font-semibold text-wv-foreground w-48">Metric</th>
               {candidates.map((c) => (
-                <th
-                  key={c.candidateId}
-                  className="text-left py-3 px-4 font-semibold text-grey-dark dark:text-gray-200 min-w-[180px]"
-                >
+                <th key={c.candidateId} className="text-left py-3 px-4 font-semibold text-wv-foreground min-w-[180px]">
                   <div className="flex flex-col gap-1">
                     <span>{c.name ?? "Unknown"}</span>
-                    <Button asChild variant="ghost" size="sm" className="w-fit">
-                      <Link href={`/employer/profile/${c.candidateId}`}>
-                        View profile
-                      </Link>
-                    </Button>
+                    <WvButton href={`/employer/profile/${c.candidateId}`} variant="ghost" size="sm" className="w-fit">
+                      View profile
+                    </WvButton>
                   </div>
                 </th>
               ))}
@@ -134,18 +125,13 @@ export function CompareViewClient() {
           </thead>
           <tbody>
             {rows.map(({ label, key }) => (
-              <tr
-                key={key}
-                className="border-b border-grey-background dark:border-[#374151]"
-              >
-                <td className="py-3 px-4 text-grey-medium dark:text-gray-400 font-medium">
-                  {label}
-                </td>
+              <tr key={key} className="border-b border-wv-border">
+                <td className="py-3 px-4 text-wv-muted font-medium">{label}</td>
                 {candidates.map((c) => {
                   const value = c[key];
                   if (key === "trustTrajectoryLabel") {
                     return (
-                      <td key={c.candidateId} className="py-3 px-4 text-grey-dark dark:text-gray-200">
+                      <td key={c.candidateId} className="py-3 px-4 text-wv-foreground">
                         <TrustTrajectoryBadge
                           trajectory={c.trustTrajectory ?? "stable"}
                           label={c.trustTrajectoryLabel}
@@ -158,14 +144,14 @@ export function CompareViewClient() {
                   if (key === "verifiedEmploymentCoveragePct") {
                     const pct = typeof value === "number" ? value : 0;
                     return (
-                      <td key={c.candidateId} className="py-3 px-4 text-grey-dark dark:text-gray-200">
+                      <td key={c.candidateId} className="py-3 px-4 text-wv-foreground">
                         {pct}%
                       </td>
                     );
                   }
                   if (key === "referenceCount") {
                     return (
-                      <td key={c.candidateId} className="py-3 px-4 text-grey-dark dark:text-gray-200">
+                      <td key={c.candidateId} className="py-3 px-4 text-wv-foreground">
                         {Number(value)}
                       </td>
                     );
@@ -173,7 +159,7 @@ export function CompareViewClient() {
                   if (key === "flagIndicators") {
                     const flags = value as string[];
                     return (
-                      <td key={c.candidateId} className="py-3 px-4 text-grey-dark dark:text-gray-200">
+                      <td key={c.candidateId} className="py-3 px-4 text-wv-foreground">
                         {flags.length > 0 ? (
                           <ul className="list-disc list-inside text-sm">
                             {flags.map((f, i) => (
@@ -181,13 +167,13 @@ export function CompareViewClient() {
                             ))}
                           </ul>
                         ) : (
-                          <span className="text-grey-medium dark:text-gray-400">None</span>
+                          <span className="text-wv-subtle">None</span>
                         )}
                       </td>
                     );
                   }
                   return (
-                    <td key={c.candidateId} className="py-3 px-4 text-grey-dark dark:text-gray-200 text-sm">
+                    <td key={c.candidateId} className="py-3 px-4 text-wv-foreground text-sm">
                       {String(value ?? "—")}
                     </td>
                   );
@@ -197,9 +183,11 @@ export function CompareViewClient() {
           </tbody>
         </table>
       </div>
-      <Button asChild variant="outline" className="mt-6">
-        <Link href="/employer/search-users">Back to search</Link>
-      </Button>
-    </Card>
+      <div className="px-6 pb-6">
+        <WvButton href="/employer/search-users" variant="outline">
+          Back to search
+        </WvButton>
+      </div>
+    </WvCard>
   );
 }

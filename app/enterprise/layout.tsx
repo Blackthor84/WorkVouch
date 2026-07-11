@@ -1,49 +1,18 @@
-import Link from "next/link";
-import { SmartGuide } from "@/components/guidance/SmartGuide";
-
 export const dynamic = "force-dynamic";
 
 /**
  * Enterprise shell. Access control is enforced in proxy.ts only.
+ * Org routes use EnterpriseOrgShell; marketing/dashboard pages add their own header.
  */
 export default function EnterpriseLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0D1117]">
-      <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          <Link href="/enterprise/dashboard" className="text-lg font-semibold text-gray-900 dark:text-white">
-            WorkVouch Enterprise
-          </Link>
-          <nav className="flex flex-wrap gap-3 sm:gap-4 items-center justify-end">
-            <Link
-              href="/enterprise/dashboard"
-              className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
-            >
-              Enterprise Dashboard
-            </Link>
-            <Link
-              href="/employer/candidates"
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            >
-              Candidates
-            </Link>
-            <Link
-              href="/enterprise/team-risk"
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            >
-              Risk
-            </Link>
-            <Link
-              href="/enterprise/upgrade"
-              className="text-sm font-medium text-amber-700 dark:text-amber-400 hover:underline"
-            >
-              Upgrade
-            </Link>
-            <SmartGuide />
-          </nav>
-        </div>
-      </header>
-      <main className="container mx-auto px-4 py-8">{children}</main>
+    <div className="relative min-h-screen bg-wv-bg text-wv-foreground">
+      <div className="pointer-events-none fixed inset-0" aria-hidden>
+        <div className="absolute top-0 left-1/3 h-[500px] w-[500px] rounded-full bg-indigo-600/10 blur-[100px]" />
+        <div className="absolute bottom-0 right-1/4 h-[400px] w-[600px] rounded-full bg-violet-600/10 blur-[90px]" />
+      </div>
+      <div className="relative z-10">{children}</div>
+      {/* SmartGuide available on enterprise surfaces that mount it in header via EnterprisePortalLayout */}
     </div>
   );
 }

@@ -2,13 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import { getCanUseDangerousAdmin } from "@/lib/admin/adminPowerGate";
 
-const SIDEBAR_BG = "bg-blue-50";
-const BORDER = "border-blue-200/80";
-const LINK_ACTIVE = "bg-blue-600 text-white font-medium";
-const LINK_INACTIVE = "text-blue-800 hover:bg-blue-100";
-const SECTION_TITLE = "text-blue-600 text-xs font-semibold uppercase tracking-wider";
+const SECTION_TITLE = "text-wv-subtle text-xs font-semibold uppercase tracking-wider";
 
 function isActive(pathname: string, href: string): boolean {
   if (pathname === href) return true;
@@ -20,15 +17,10 @@ export type AppEnvironment = "production" | "sandbox";
 
 export interface AdminSidebarProps {
   isSuperAdmin: boolean;
-  /** When true, show sandbox nav and amber styling. Must be true to show Playground, Abuse, Generators. */
-  isSandbox: boolean;
-  /** Environment-based. Production = metrics-only; sandbox = full power tools. */
+  isSandbox?: boolean;
   appEnvironment?: AppEnvironment;
-  /** When true (production + founder override active), show full power nav like sandbox. */
   overrideActive?: boolean;
-  /** When true, show Financials nav (finance | admin | board). */
   showFinancials: boolean;
-  /** When true, show Board nav (board | admin). */
   showBoard: boolean;
 }
 
@@ -40,7 +32,6 @@ const controlCenterNav = [
   { href: "/admin/matches", label: "Matches" },
 ];
 
-/** Simulation is under System Controls (playground). */
 const nav = {
   TrustOverview: [{ href: "/admin", label: "Trust Overview" }],
   Users: [
@@ -88,10 +79,8 @@ const enterpriseNav = [
   { label: "Billing", href: "/admin/enterprise/billing" },
 ];
 
-/** Product / journey previews — all admins (read-only UI). */
 const productToolsNav = [{ href: "/admin/flows", label: "Flow Viewer" }];
 
-/** Sandbox-only nav: Trust Overview, Members, Lab Environment (simulation), Audit Logs. */
 const sandboxNav = {
   TrustOverview: nav.TrustOverview,
   Users: nav.Users,
@@ -99,7 +88,6 @@ const sandboxNav = {
   AuditLogs: nav.AuditLogs,
 };
 
-/** Production admin: read-only nav (no Lab Environment, Abuse, Generators, mutation tools). */
 const productionOnlyNav = {
   TrustOverview: nav.TrustOverview,
   Users: nav.Users,
@@ -124,7 +112,13 @@ const productionOnlyNav = {
   SystemSettings: nav.SystemSettings,
 };
 
-export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment = "production", overrideActive = false, showFinancials = false, showBoard = false }: AdminSidebarProps) {
+export function AdminSidebar({
+  isSuperAdmin,
+  isSandbox = false,
+  overrideActive = false,
+  showFinancials = false,
+  showBoard = false,
+}: AdminSidebarProps) {
   const pathname = usePathname();
   const canUseDangerousAdmin = getCanUseDangerousAdmin(overrideActive);
   const showFullPowerNav = canUseDangerousAdmin;
@@ -137,9 +131,13 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
           <li key={item.href}>
             <Link
               href={item.href}
-              className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                isActive(pathname, item.href) ? LINK_ACTIVE : LINK_INACTIVE
-              }`}
+              aria-current={isActive(pathname ?? "", item.href) ? "page" : undefined}
+              className={cn(
+                "block rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200",
+                isActive(pathname ?? "", item.href)
+                  ? "bg-gradient-to-r from-red-500/20 to-orange-500/10 text-white ring-1 ring-red-500/30"
+                  : "text-wv-muted hover:bg-wv-surface hover:text-wv-foreground",
+              )}
             >
               {item.label}
             </Link>
@@ -151,18 +149,23 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
 
   return (
     <aside
-      className={`w-64 min-h-screen ${SIDEBAR_BG} border-r ${BORDER} flex-shrink-0`}
+      className="w-64 min-h-screen border-r border-wv-border bg-wv-surface/80 backdrop-blur-xl flex-shrink-0"
       aria-label="Admin navigation"
     >
       <div className="sticky top-0 flex flex-col h-screen py-4">
-        <Link
-          href="/admin"
-          className={`px-3 py-2 mx-2 rounded-lg text-sm font-semibold ${
-            pathname === "/admin" ? LINK_ACTIVE : LINK_INACTIVE
-          }`}
-        >
-          Home
-        </Link>
+        <div className="px-4 pb-3 border-b border-wv-border mx-2">
+          <Link href="/admin" className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-orange-600 text-xs font-bold text-white shadow-md">
+              AD
+            </span>
+            <div>
+              <p className="text-sm font-bold text-wv-foreground">Admin</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-wv-subtle">
+                {isSandbox ? "Sandbox" : "Control"}
+              </p>
+            </div>
+          </Link>
+        </div>
         <nav className="flex-1 overflow-y-auto mt-4 space-y-6 px-2">
           {isSuperAdmin && section("Control Center", controlCenterNav)}
           {isSuperAdmin && !showFullPowerNav && (
@@ -173,9 +176,12 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
                   <li key={item.href}>
                     <Link
                       href={item.href}
-                      className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                        isActive(pathname, item.href) ? LINK_ACTIVE : LINK_INACTIVE
-                      }`}
+                      className={cn(
+                        "block rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200",
+                        isActive(pathname ?? "", item.href)
+                          ? "bg-gradient-to-r from-red-500/20 to-orange-500/10 text-white ring-1 ring-red-500/30"
+                          : "text-wv-muted hover:bg-wv-surface hover:text-wv-foreground",
+                      )}
                     >
                       {item.label}
                     </Link>
@@ -200,7 +206,7 @@ export function AdminSidebar({ isSuperAdmin, isSandbox = false, appEnvironment =
                 "Members",
                 isSuperAdmin
                   ? productionOnlyNav.Users
-                  : [{ href: "/admin/signups", label: "Signups" }]
+                  : [{ href: "/admin/signups", label: "Signups" }],
               )}
               {section("Employers", productionOnlyNav.Employers)}
               {section("Integrity Review", productionOnlyNav.IntegrityReview)}

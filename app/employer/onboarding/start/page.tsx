@@ -3,14 +3,13 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { EmployerOnboardingClient } from "../EmployerOnboardingClient";
+import { WvShell } from "@/components/wv";
 
 export const dynamic = "force-dynamic";
 
 /**
  * First employer onboarding entry point.
  * Steps: Org name → Industry → Org size → Primary admin email → Confirm & create.
- * Creates: org, org_admin (tenant_memberships enterprise_owner), employer role + employer_accounts.
- * Resumable on refresh. No demo data, no sandbox logic.
  */
 export default async function EmployerOnboardingStartPage() {
   const user = await getCurrentUser();
@@ -33,10 +32,12 @@ export default async function EmployerOnboardingStartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0D1117] px-4 py-12">
-      <Suspense fallback={<div className="p-6">Loading…</div>}>
-        <EmployerOnboardingClient userEmail={user.email} />
-      </Suspense>
-    </div>
+    <WvShell>
+      <div className="mx-auto max-w-lg px-4 py-12">
+        <Suspense fallback={<div className="text-wv-muted p-6">Loading…</div>}>
+          <EmployerOnboardingClient userEmail={user.email} />
+        </Suspense>
+      </div>
+    </WvShell>
   );
 }

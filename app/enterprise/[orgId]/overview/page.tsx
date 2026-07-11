@@ -3,6 +3,8 @@ import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getEnvironmentForServer } from "@/lib/app-mode";
 import { headers, cookies } from "next/headers";
 import { EnterpriseRecommendedBanner } from "@/components/enterprise/EnterpriseRecommendedBanner";
+import { WvPageHeader, WvStatCard, WvCard } from "@/components/wv";
+import { Users, ShieldCheck, MessageSquare, TrendingUp, MapPin } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -49,32 +51,29 @@ export default async function EnterpriseOverviewPage({ params }: { params: Promi
   const locationCount = locations?.length ?? 0;
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="max-w-5xl space-y-8">
       <EnterpriseRecommendedBanner orgId={orgId} />
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Overview</h1>
+      <WvPageHeader
+        eyebrow={org.name}
+        title="Overview"
+        description="Workforce verification and peer reference activity across your organization."
+      />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Employees</p>
-          <p className="text-2xl font-semibold text-gray-900 dark:text-white">{totalEmployees ?? 0}</p>
-        </div>
-        <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Verified / With References</p>
-          <p className="text-2xl font-semibold text-gray-900 dark:text-white">{verifiedCount}</p>
-        </div>
-        <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Peer References</p>
-          <p className="text-2xl font-semibold text-gray-900 dark:text-white">{totalRefs ?? 0}</p>
-        </div>
-        <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Completion Rate</p>
-          <p className="text-2xl font-semibold text-gray-900 dark:text-white">{completionRate}%</p>
-        </div>
+        <WvStatCard label="Total Employees" value={totalEmployees ?? 0} icon={Users} accent="blue" />
+        <WvStatCard label="With References" value={verifiedCount} icon={ShieldCheck} accent="green" />
+        <WvStatCard label="Peer References" value={totalRefs ?? 0} icon={MessageSquare} accent="violet" />
+        <WvStatCard label="Completion Rate" value={completionRate} suffix="%" icon={TrendingUp} accent="amber" />
       </div>
-      <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <p className="text-sm text-gray-500 dark:text-gray-400">Cross-Location Matches</p>
-        <p className="text-xl font-semibold text-gray-900 dark:text-white">{locationCount} locations</p>
-      </div>
-      <p className="text-sm text-gray-500 dark:text-gray-400">References per month: graph placeholder (same data as production).</p>
+      <WvCard>
+        <div className="flex items-center gap-3">
+          <MapPin className="h-5 w-5 text-blue-400" aria-hidden />
+          <div>
+            <p className="text-sm text-wv-muted">Cross-Location Matches</p>
+            <p className="text-xl font-semibold text-wv-foreground">{locationCount} locations</p>
+          </div>
+        </div>
+      </WvCard>
+      <p className="text-sm text-wv-muted">References per month: graph placeholder (same data as production).</p>
     </div>
   );
 }

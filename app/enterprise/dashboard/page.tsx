@@ -1,5 +1,7 @@
 import nextDynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/server";
+import { EnterprisePortalLayout } from "@/components/enterprise/EnterprisePortalLayout";
+import { WvPageHeader } from "@/components/wv";
 
 const HiringIntelligenceDashboardClient = nextDynamic(
   () =>
@@ -8,7 +10,7 @@ const HiringIntelligenceDashboardClient = nextDynamic(
     })),
   {
     loading: () => (
-      <div className="max-w-7xl mx-auto px-4 py-16 text-center text-slate-500 text-sm">Loading dashboard…</div>
+      <div className="py-16 text-center text-wv-muted text-sm">Loading dashboard…</div>
     ),
   }
 );
@@ -22,5 +24,16 @@ export default async function EnterpriseHiringDashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  return <HiringIntelligenceDashboardClient />;
+  return (
+    <EnterprisePortalLayout>
+      <WvPageHeader
+        eyebrow="Intelligence"
+        title="Hiring Intelligence Dashboard"
+        description="Verified workforce signals, risk indicators, and decision support for enterprise teams."
+      />
+      <div className="mt-8">
+        <HiringIntelligenceDashboardClient />
+      </div>
+    </EnterprisePortalLayout>
+  );
 }

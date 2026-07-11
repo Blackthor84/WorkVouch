@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { WvInput, WvButton, WvCard } from "@/components/wv";
 
 export function CreateLocationForm({ orgId }: { orgId: string }) {
   const router = useRouter();
@@ -35,44 +36,30 @@ export function CreateLocationForm({ orgId }: { orgId: string }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Name
-        </label>
-        <input
+    <WvCard>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <WvInput
+          label="Name"
           id="name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           placeholder="e.g. Downtown Office"
         />
-      </div>
-      <div>
-        <label htmlFor="slug" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Slug (optional)
-        </label>
-        <input
+        <WvInput
+          label="Slug (optional)"
           id="slug"
           type="text"
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           placeholder="downtown-office"
         />
-      </div>
-      {error && (
-        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-      )}
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2 px-4 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50"
-      >
-        {loading ? "Creating…" : "Create location"}
-      </button>
-    </form>
+        {error && <p className="text-sm text-red-400">{error}</p>}
+        <WvButton type="submit" disabled={loading} className="w-full">
+          {loading ? "Creating…" : "Create location"}
+        </WvButton>
+      </form>
+    </WvCard>
   );
 }

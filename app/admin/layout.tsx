@@ -35,11 +35,11 @@ export default async function AdminLayout({
     } catch {
     if (isSandboxEnv) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-amber-50/50 p-6">
-          <div className="text-center text-slate-700">
-            <p className="font-semibold">Admin context unavailable</p>
+        <div className="min-h-screen flex items-center justify-center bg-wv-bg p-6">
+          <div className="text-center text-wv-muted">
+            <p className="font-semibold text-wv-foreground">Admin context unavailable</p>
             <p className="mt-2 text-sm">Sandbox degrades gracefully. No production impact.</p>
-            <Link href="/" className="mt-4 inline-block text-blue-600 hover:underline">Go home</Link>
+            <Link href="/" className="mt-4 inline-block text-blue-400 hover:text-blue-300">Go home</Link>
           </div>
         </div>
       );
@@ -110,7 +110,7 @@ export default async function AdminLayout({
     : null;
 
   const shellProps: LabAwareAdminShellConfig = {
-    containerClassName: `min-h-screen flex ${isSandboxEnv ? "bg-amber-50/50" : "bg-[#F8FAFC]"}`,
+    containerClassName: `min-h-screen flex ${isSandboxEnv ? "bg-amber-950/20" : "bg-wv-bg"} text-wv-foreground`,
     sidebarProps: {
       isSuperAdmin: admin.isSuperAdmin,
       isSandbox: isSandboxEnv,

@@ -3,6 +3,7 @@ import { requireEnterpriseOwner } from "@/lib/enterprise/requireEnterprise";
 import { getSupabaseServer } from "@/lib/supabase/admin";
 import { getEnvironmentForServer } from "@/lib/app-mode";
 import { headers, cookies } from "next/headers";
+import { WvPageHeader, WvCard } from "@/components/wv";
 
 export const dynamic = "force-dynamic";
 
@@ -24,32 +25,39 @@ export default async function EnterpriseEmployeesPage({ params }: { params: Prom
   const locMap = new Map((locs ?? []).map((l) => [l.id, l.name]));
 
   return (
-    <div className="max-w-4xl space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Employees</h1>
-      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
+    <div className="max-w-5xl space-y-6">
+      <WvPageHeader
+        eyebrow="Workforce"
+        title="Employees"
+        description="All employees across locations in your organization."
+      />
+      <WvCard padding="none" className="overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700">
-              <th className="text-left p-3">Name</th>
-              <th className="text-left p-3">Location</th>
-              <th className="text-left p-3">Status</th>
+            <tr className="border-b border-wv-border bg-wv-surface/80">
+              <th className="text-left p-3 text-wv-foreground font-semibold">Name</th>
+              <th className="text-left p-3 text-wv-foreground font-semibold">Location</th>
+              <th className="text-left p-3 text-wv-foreground font-semibold">Status</th>
             </tr>
           </thead>
           <tbody>
             {(employees ?? []).map((emp) => (
-              <tr key={emp.id} className="border-b border-gray-100 dark:border-gray-700">
+              <tr key={emp.id} className="border-b border-wv-border/50">
                 <td className="p-3">
-                  <Link href={`/enterprise/${orgId}/employees/${emp.id}`} className="font-medium text-blue-600 dark:text-blue-400 hover:underline">
+                  <Link
+                    href={`/enterprise/${orgId}/employees/${emp.id}`}
+                    className="font-medium text-blue-400 hover:text-blue-300 hover:underline"
+                  >
                     {emp.full_name}
                   </Link>
                 </td>
-                <td className="p-3">{emp.location_id ? locMap.get(emp.location_id) ?? "—" : "—"}</td>
-                <td className="p-3">{emp.invite_status}</td>
+                <td className="p-3 text-wv-muted">{emp.location_id ? (locMap.get(emp.location_id) ?? "—") : "—"}</td>
+                <td className="p-3 text-wv-muted">{emp.invite_status}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+      </WvCard>
     </div>
   );
 }

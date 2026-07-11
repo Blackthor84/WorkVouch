@@ -1,4 +1,5 @@
 import { requireEnterpriseOwner } from "@/lib/enterprise/requireEnterprise";
+import { WvPageHeader } from "@/components/wv";
 
 export const dynamic = "force-dynamic";
 
@@ -6,8 +7,11 @@ export default async function ResumeImportsPage({ params }: { params: Promise<{ 
   await requireEnterpriseOwner((await params).orgId);
   return (
     <div className="max-w-4xl space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Resume Imports</h1>
-      <p className="text-sm text-gray-500 dark:text-gray-400">CSV upload, resume upload (PDF/DOCX), bulk invite. Pipeline: extract → parse → store → overlap detection.</p>
+      <WvPageHeader
+        eyebrow="Imports"
+        title="Resume Imports"
+        description="CSV upload, resume upload (PDF/DOCX), bulk invite. Pipeline: extract → parse → store → overlap detection."
+      />
     </div>
   );
 }

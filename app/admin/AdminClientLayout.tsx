@@ -1,6 +1,5 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import { AuthContextProvider } from "@/components/AuthContext"
 import { useSupabaseSession } from "@/lib/hooks/useSupabaseSession"
 
@@ -17,13 +16,11 @@ export default function AdminClientLayout({
   user: LayoutUser
   children: React.ReactNode
 }) {
-  const router = useRouter()
   const { status } = useSupabaseSession()
 
-  // Wait for client session to finish loading before redirecting
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center text-slate-600">
+      <div className="min-h-screen flex items-center justify-center bg-wv-bg text-wv-muted">
         Loading admin…
       </div>
     )

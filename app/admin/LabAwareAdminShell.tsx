@@ -26,7 +26,7 @@ export function LabAwareAdminShell({ sidebarProps, containerClassName, children 
   return (
     <div className={containerClassName}>
       {!inLab && <AdminSidebar {...sidebarProps} />}
-      <main className="flex-1 min-h-screen overflow-auto text-[#0F172A]">
+      <main className="flex-1 min-h-screen overflow-auto text-wv-foreground bg-wv-bg/50">
         {children}
       </main>
     </div>

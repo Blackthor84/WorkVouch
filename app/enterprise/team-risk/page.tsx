@@ -5,7 +5,7 @@ const TeamRiskClient = nextDynamic(
   () => import("@/components/enterprise/TeamRiskClient").then((m) => ({ default: m.TeamRiskClient })),
   {
     loading: () => (
-      <div className="max-w-7xl mx-auto px-4 py-16 text-center text-slate-500 text-sm">Loading team view…</div>
+      <div className="max-w-7xl mx-auto px-4 py-16 text-center text-wv-muted text-sm">Loading team view…</div>
     ),
   }
 );
