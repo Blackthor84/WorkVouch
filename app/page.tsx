@@ -28,7 +28,7 @@ export default function Home() {
               — and carry that trust wherever you go.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <WvButton href="/onboarding" size="lg" className="w-full sm:w-auto px-10">
+              <WvButton href="/signup" size="lg" className="w-full sm:w-auto px-10">
                 Get Your First Vouch
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </WvButton>
@@ -44,7 +44,7 @@ export default function Home() {
               <Users className="h-6 w-6 text-blue-400 mb-3" aria-hidden />
               <p className="font-semibold text-wv-foreground">For workers</p>
               <p className="mt-1 text-sm text-wv-muted">Build a portable trust score verified by real coworkers.</p>
-              <Link href="/signup/employee" className="mt-3 inline-flex text-sm font-medium text-blue-400 hover:text-blue-300">
+              <Link href="/signup" className="mt-3 inline-flex text-sm font-medium text-blue-400 hover:text-blue-300">
                 Start free →
               </Link>
             </WvCard>

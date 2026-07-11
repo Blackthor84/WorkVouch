@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getAppMode } from "@/lib/app-mode";
 import { saveEmployer } from "@/lib/data/adapter";
 import { INDUSTRIES } from "@/lib/constants/industries";
 import { WvShell, WvCard, WvButton, WvInput } from "@/components/wv";
@@ -11,6 +10,10 @@ import { WvShell, WvCard, WvButton, WvInput } from "@/components/wv";
 const selectClass =
   "w-full rounded-xl border border-wv-border bg-wv-surface px-4 py-3 text-sm text-wv-foreground transition-colors focus:border-wv-brand-blue/50 focus:outline-none focus:ring-2 focus:ring-wv-brand-blue/30";
 
+/**
+ * Admin sandbox lab only — reached via /signup/employer?sandbox=true&sandboxId=… from Playground.
+ * Production signup is /signup (server redirect when sandbox params are absent).
+ */
 export default function SignupEmployerClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -22,22 +25,19 @@ export default function SignupEmployerClient() {
   const [sandboxId, setSandboxId] = useState<string | null>(null);
 
   useEffect(() => {
-    const sandbox = searchParams.get("sandbox") === "true";
     const id = searchParams.get("sandboxId")?.trim() ?? null;
-    if (sandbox && id) setSandboxId(id);
+    if (id) setSandboxId(id);
     const ind = searchParams.get("industry")?.trim();
     if (ind) setIndustry(ind);
     const tier = searchParams.get("plan_tier")?.trim();
     if (tier) setPlanTier(tier);
   }, [searchParams]);
 
-  const isSandbox = getAppMode() === "sandbox" && !!sandboxId;
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!isSandbox || !sandboxId) {
-      setError("Sandbox mode requires a sandbox session. Start from the sandbox page.");
+    if (!sandboxId) {
+      setError("Sandbox session required. Start from the admin playground.");
       return;
     }
     if (!industry.trim()) {
@@ -48,7 +48,7 @@ export default function SignupEmployerClient() {
     try {
       const result = await saveEmployer(
         { sandboxId, industry: industry.trim(), plan_tier: planTier, company_name: companyName.trim() || undefined },
-        "sandbox"
+        "sandbox",
       );
       if (!result.success) {
         setError(result.error ?? "Signup failed.");
@@ -62,10 +62,6 @@ export default function SignupEmployerClient() {
     }
   }
 
-  if (!isSandbox) {
-    return null;
-  }
-
   return (
     <WvShell>
       <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
@@ -77,11 +73,12 @@ export default function SignupEmployerClient() {
         </Link>
 
         <WvCard glow className="w-full max-w-md">
-          <h1 className="text-2xl font-bold text-center text-wv-foreground">
-            Employer signup (sandbox)
-          </h1>
+          <p className="mb-4 text-center text-xs font-semibold uppercase tracking-wider text-amber-400/90">
+            Admin sandbox lab
+          </p>
+          <h1 className="text-2xl font-bold text-center text-wv-foreground">Employer signup (sandbox)</h1>
           <p className="text-wv-muted text-sm text-center mt-2 mb-6">
-            Same flow as production, data stored in sandbox. No Stripe, no real auth.
+            Internal testing only. Data stored in sandbox — no Stripe, no real auth.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -98,7 +95,9 @@ export default function SignupEmployerClient() {
               >
                 <option value="">Select</option>
                 {INDUSTRIES.map((ind) => (
-                  <option key={ind} value={ind}>{ind}</option>
+                  <option key={ind} value={ind}>
+                    {ind}
+                  </option>
                 ))}
               </select>
             </div>
