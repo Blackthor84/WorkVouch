@@ -9,18 +9,15 @@ import {
 import { EMPLOYER_DISCLAIMER_NOT_ACCEPTED } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { EmployerLegalDisclaimerModal } from "@/components/employer/EmployerLegalDisclaimerModal";
 import { INDUSTRIES } from "@/lib/constants/industries";
+import { Search, Bookmark, BookmarkX, Star } from "lucide-react";
 import {
   saveCandidate,
   isCandidateSaved,
 } from "@/lib/actions/employer/saved-candidates";
-import { Card } from "../ui/card";
-import { Button } from "../ui/button";
-import {
-  MagnifyingGlassIcon,
-  BookmarkIcon,
-  BookmarkSlashIcon,
-} from "@heroicons/react/24/outline";
-import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
+import { WvCard, WvButton, WvInput } from "@/components/wv";
+
+const selectClass =
+  "w-full rounded-xl border border-wv-border bg-wv-surface px-4 py-2.5 text-sm text-wv-foreground transition-colors focus:border-wv-brand-blue/50 focus:outline-none focus:ring-2 focus:ring-wv-brand-blue/30";
 
 export function CandidateSearch() {
   const [loading, setLoading] = useState(false);
@@ -122,21 +119,16 @@ export function CandidateSearch() {
   return (
     <div className="space-y-6">
       {/* Search Filters */}
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
-          Search Candidates
-        </h2>
+      <WvCard glow>
+        <h2 className="text-xl font-semibold text-wv-foreground mb-4">Search Candidates</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label className="block text-sm font-semibold text-grey-dark dark:text-gray-200 mb-2">
-              Industry
-            </label>
+            <label htmlFor="search-industry" className="mb-1.5 block text-sm font-medium text-wv-muted">Industry</label>
             <select
+              id="search-industry"
               value={filters.industry}
-              onChange={(e) =>
-                setFilters({ ...filters, industry: e.target.value })
-              }
-              className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
+              onChange={(e) => setFilters({ ...filters, industry: e.target.value })}
+              className={selectClass}
             >
               <option value="">All Industries</option>
               {INDUSTRIES.map((ind) => (
@@ -146,65 +138,44 @@ export function CandidateSearch() {
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-semibold text-grey-dark dark:text-gray-200 mb-2">
-              Job Title
-            </label>
-            <input
-              type="text"
-              value={filters.job_title}
-              onChange={(e) =>
-                setFilters({ ...filters, job_title: e.target.value })
-              }
-              placeholder="e.g., Security Guard"
-              className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-grey-dark dark:text-gray-200 mb-2">
-              Location
-            </label>
-            <input
-              type="text"
-              value={filters.location}
-              onChange={(e) =>
-                setFilters({ ...filters, location: e.target.value })
-              }
-              placeholder="City or State"
-              className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-grey-dark dark:text-gray-200 mb-2">
-              Min Reputation Score
-            </label>
-            <input
-              type="number"
-              value={filters.min_trust_score}
-              onChange={(e) =>
-                setFilters({ ...filters, min_trust_score: e.target.value })
-              }
-              placeholder="0-1000"
-              min="0"
-              max="1000"
-              className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
-            />
-          </div>
+          <WvInput
+            label="Job Title"
+            type="text"
+            value={filters.job_title}
+            onChange={(e) => setFilters({ ...filters, job_title: e.target.value })}
+            placeholder="e.g., Security Guard"
+          />
+          <WvInput
+            label="Location"
+            type="text"
+            value={filters.location}
+            onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+            placeholder="City or State"
+          />
+          <WvInput
+            label="Min Reputation Score"
+            type="number"
+            value={filters.min_trust_score}
+            onChange={(e) => setFilters({ ...filters, min_trust_score: e.target.value })}
+            placeholder="0-1000"
+            min={0}
+            max={1000}
+          />
         </div>
-        <Button onClick={handleSearch} disabled={loading} className="mt-4">
-          <MagnifyingGlassIcon className="h-5 w-5 mr-2" />
+        <WvButton onClick={handleSearch} disabled={loading} className="mt-4">
+          <Search className="h-4 w-4" aria-hidden />
           {loading ? "Searching..." : "Search Candidates"}
-        </Button>
-      </Card>
+        </WvButton>
+      </WvCard>
 
       {/* Search Results */}
       {results.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200">
+          <h3 className="text-lg font-semibold text-wv-foreground">
             {results.length} candidate{results.length !== 1 ? "s" : ""} found
           </h3>
           {results.map((candidate) => (
-            <Card key={candidate.id} className="p-6">
+            <WvCard key={candidate.id} hover>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-4 mb-3">
@@ -215,27 +186,25 @@ export function CandidateSearch() {
                         className="h-16 w-16 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                        <span className="text-blue-600 dark:text-blue-400 font-semibold text-lg">
+                      <div className="h-16 w-16 rounded-full bg-blue-500/20 flex items-center justify-center ring-1 ring-wv-border">
+                        <span className="text-blue-300 font-semibold text-lg">
                           {candidate.full_name.charAt(0)}
                         </span>
                       </div>
                     )}
                     <div>
-                      <h4 className="text-xl font-semibold text-grey-dark dark:text-gray-200">
+                      <h4 className="text-xl font-semibold text-wv-foreground">
                         {candidate.full_name}
                       </h4>
-                      <p className="text-sm text-grey-medium dark:text-gray-400">
+                      <p className="text-sm text-wv-muted">
                         {candidate.city && candidate.state
                           ? `${candidate.city}, ${candidate.state}`
                           : "Location not specified"}
                       </p>
                       {candidate.trust_score !== null && (
                         <div className="flex items-center gap-1 mt-1">
-                          <span className="text-sm font-semibold text-grey-dark dark:text-gray-200">
-                            Reputation Score:
-                          </span>
-                          <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                          <span className="text-sm font-semibold text-wv-foreground">Reputation Score:</span>
+                          <span className="text-sm font-bold text-blue-400">
                             {candidate.trust_score}
                           </span>
                         </div>
@@ -245,14 +214,12 @@ export function CandidateSearch() {
 
                   {candidate.jobs.length > 0 && (
                     <div className="mb-3">
-                      <p className="text-sm font-semibold text-grey-dark dark:text-gray-200 mb-1">
-                        Recent Jobs:
-                      </p>
+                      <p className="text-sm font-semibold text-wv-foreground mb-1">Recent Jobs:</p>
                       <div className="space-y-1">
                         {candidate.jobs.slice(0, 3).map((job, idx) => (
                           <p
                             key={idx}
-                            className="text-sm text-grey-medium dark:text-gray-400"
+                            className="text-sm text-wv-muted"
                           >
                             {job.job_title} at {job.company_name}
                           </p>
@@ -263,23 +230,18 @@ export function CandidateSearch() {
 
                   {candidate.references.length > 0 && (
                     <div className="mb-3">
-                      <p className="text-sm font-semibold text-grey-dark dark:text-gray-200 mb-1">
-                        Reference Snippet:
-                      </p>
+                      <p className="text-sm font-semibold text-wv-foreground mb-1">Reference Snippet:</p>
                       <div className="flex items-center gap-1 mb-1">
                         {[...Array(5)].map((_, i) => (
-                          <StarIconSolid
+                          <Star
                             key={i}
-                            className={`h-4 w-4 ${
-                              i < Math.round(candidate.references[0].rating)
-                                ? "text-yellow-400"
-                                : "text-gray-300 dark:text-gray-600"
-                            }`}
+                            className={`h-4 w-4 ${i < Math.round(candidate.references[0].rating) ? "fill-amber-400 text-amber-400" : "text-wv-border"}`}
+                            aria-hidden
                           />
                         ))}
                       </div>
                       {candidate.references[0].written_feedback && (
-                        <p className="text-sm text-grey-medium dark:text-gray-400 italic">
+                        <p className="text-sm text-wv-muted italic">
                           "
                           {candidate.references[0].written_feedback.substring(
                             0,
@@ -296,42 +258,37 @@ export function CandidateSearch() {
                 </div>
 
                 <div className="flex flex-col gap-2 ml-4">
-                  <Button
-                    variant="secondary"
-                    href={`/employer/candidates/${candidate.id}`}
-                  >
+                  <WvButton variant="secondary" href={`/employer/candidates/${candidate.id}`}>
                     View Full Profile
-                  </Button>
-                  <Button
+                  </WvButton>
+                  <WvButton
                     variant="ghost"
                     onClick={() => handleSaveCandidate(candidate.id)}
                     disabled={savedCandidates.has(candidate.id)}
                   >
                     {savedCandidates.has(candidate.id) ? (
                       <>
-                        <BookmarkSlashIcon className="h-5 w-5 mr-2" />
+                        <BookmarkX className="h-4 w-4" aria-hidden />
                         Saved
                       </>
                     ) : (
                       <>
-                        <BookmarkIcon className="h-5 w-5 mr-2" />
+                        <Bookmark className="h-4 w-4" aria-hidden />
                         Save Candidate
                       </>
                     )}
-                  </Button>
+                  </WvButton>
                 </div>
               </div>
-            </Card>
+            </WvCard>
           ))}
         </div>
       )}
 
       {results.length === 0 && !loading && (
-        <Card className="p-12 text-center">
-          <p className="text-grey-medium dark:text-gray-400">
-            No candidates found. Try adjusting your search filters.
-          </p>
-        </Card>
+        <WvCard className="text-center py-12">
+          <p className="text-wv-muted">No candidates found. Try adjusting your search filters.</p>
+        </WvCard>
       )}
 
       <EmployerLegalDisclaimerModal

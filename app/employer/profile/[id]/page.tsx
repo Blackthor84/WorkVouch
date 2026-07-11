@@ -7,8 +7,7 @@ import {
   requireEmployerLegalAcceptance,
   EMPLOYER_DISCLAIMER_NOT_ACCEPTED,
 } from "@/lib/employer/requireEmployerLegalAcceptance";
-import { EmployerHeader } from "@/components/employer/employer-header";
-import { EmployerSidebar } from "@/components/employer/employer-sidebar";
+import { EmployerPortalLayout } from "@/components/employer/EmployerPortalLayout";
 import { CandidateProfileViewer } from "@/components/employer/candidate-profile-viewer";
 import { PublicProfileView } from "@/components/public-profile-view";
 import { EmployerLegalDisclaimerGate } from "@/components/employer/EmployerLegalDisclaimerGate";
@@ -46,29 +45,19 @@ export default async function EmployerCandidateProfilePage(props: {
   const legalFirst = await requireEmployerLegalAcceptance(user.id, employerRole);
   if (!legalFirst.allowed) {
     return (
-      <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
-        <EmployerSidebar />
-        <div className="flex-1 flex flex-col">
-          <EmployerHeader />
-          <main className="flex-1 p-6 flex items-center justify-center">
-            <EmployerLegalDisclaimerGate redirectPath={`/employer/profile/${id}`} />
-          </main>
+      <EmployerPortalLayout>
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <EmployerLegalDisclaimerGate redirectPath={`/employer/profile/${id}`} />
         </div>
-      </div>
+      </EmployerPortalLayout>
     );
   }
 
   if (!access.allowed) {
     return (
-      <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
-        <EmployerSidebar />
-        <div className="flex-1 flex flex-col">
-          <EmployerHeader />
-          <main className="flex-1 p-6">
-            <EmployerProfilePaywall viewsToday={access.viewsToday} limit={access.limit} />
-          </main>
-        </div>
-      </div>
+      <EmployerPortalLayout>
+        <EmployerProfilePaywall viewsToday={access.viewsToday} limit={access.limit} />
+      </EmployerPortalLayout>
     );
   }
 
@@ -80,36 +69,22 @@ export default async function EmployerCandidateProfilePage(props: {
     candidateData = await getCandidateProfileForEmployer(id);
 
     return (
-      <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
-        <EmployerSidebar />
-        <div className="flex-1 flex flex-col">
-          <EmployerHeader />
-          <main className="flex-1 p-6">
-            <div className="max-w-7xl mx-auto">
-              <CandidateProfileViewer
-                candidateData={candidateData}
-                hiringDataUnlocked={candidateData.hiringDataUnlocked && hiringDataUnlocked}
-              />
-            </div>
-          </main>
-        </div>
-      </div>
+      <EmployerPortalLayout>
+        <CandidateProfileViewer
+          candidateData={candidateData}
+          hiringDataUnlocked={candidateData.hiringDataUnlocked && hiringDataUnlocked}
+        />
+      </EmployerPortalLayout>
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "";
     if (message === EMPLOYER_DISCLAIMER_NOT_ACCEPTED) {
       return (
-        <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
-          <EmployerSidebar />
-          <div className="flex-1 flex flex-col">
-            <EmployerHeader />
-            <main className="flex-1 p-6 flex items-center justify-center">
-              <EmployerLegalDisclaimerGate
-                redirectPath={`/employer/profile/${id}`}
-              />
-            </main>
+        <EmployerPortalLayout>
+          <div className="flex min-h-[50vh] items-center justify-center">
+            <EmployerLegalDisclaimerGate redirectPath={`/employer/profile/${id}`} />
           </div>
-        </div>
+        </EmployerPortalLayout>
       );
     }
     // Fallback to public profile view
@@ -117,36 +92,18 @@ export default async function EmployerCandidateProfilePage(props: {
       const profileData = await getPublicProfile(id);
 
       return (
-        <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
-          <EmployerSidebar />
-          <div className="flex-1 flex flex-col">
-            <EmployerHeader />
-            <main className="flex-1 p-6">
-              <div className="max-w-7xl mx-auto">
-                <PublicProfileView profileData={profileData} />
-              </div>
-            </main>
-          </div>
-        </div>
+        <EmployerPortalLayout>
+          <PublicProfileView profileData={profileData} />
+        </EmployerPortalLayout>
       );
     } catch (fallbackError: unknown) {
       return (
-        <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
-          <EmployerSidebar />
-          <div className="flex-1 flex flex-col">
-            <EmployerHeader />
-            <main className="flex-1 p-6">
-              <div className="max-w-7xl mx-auto text-center">
-                <h1 className="text-2xl font-bold text-grey-dark dark:text-gray-200 mb-2">
-                  Profile Not Found
-                </h1>
-                <p className="text-grey-medium dark:text-gray-400">
-                  This profile could not be loaded.
-                </p>
-              </div>
-            </main>
+        <EmployerPortalLayout>
+          <div className="text-center py-16">
+            <h1 className="text-2xl font-bold text-wv-foreground mb-2">Profile Not Found</h1>
+            <p className="text-wv-muted">This profile could not be loaded.</p>
           </div>
-        </div>
+        </EmployerPortalLayout>
       );
     }
   }

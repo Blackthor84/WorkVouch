@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { persistInviteTokenForSignup } from "@/components/invites/CoworkerInvitePanel";
+import { WvShell, WvCard, WvButton, WvInput, WvBadge } from "@/components/wv";
 
 let signupAlreadyAttempted = false;
 
@@ -74,7 +74,7 @@ export default function SignupClient() {
       setLoading(true);
       setError("");
 
-      const role = "employee"; // role chosen later at select-role; pass default for metadata
+      const role = "employee";
       const username = cleanEmail.split("@")[0] || undefined;
       const inviteTok = searchParams.get("invite")?.trim() ?? "";
 
@@ -101,7 +101,6 @@ export default function SignupClient() {
         return;
       }
 
-      // Email confirmation OFF: user from signUp; mark claim-profile if from verification, then go to onboarding
       if (data.user) {
         if (sourceVerification) {
           try {
@@ -114,7 +113,6 @@ export default function SignupClient() {
         return;
       }
 
-      // Email confirmation ON: no session yet, ask user to check email
       router.push("/check-email");
     } catch (err) {
       console.error("Signup error:", err);
@@ -126,98 +124,93 @@ export default function SignupClient() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 px-4 overflow-x-hidden">
-      <Link href="/" className="mb-6">
-        <Image
-          src="/images/workvouch-logo.png.png"
-          alt="WorkVouch"
-          width={180}
-          height={48}
-          className="h-10 w-auto object-contain"
-          priority
-          style={{ objectFit: "contain" }}
-        />
-      </Link>
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200 dark:border-gray-700">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[#64748B] mb-2 text-center">
-          Step 1 of 3
-        </p>
-        <h1 className="text-3xl font-bold mb-2 text-center text-gray-900 dark:text-white">
-          Create account
-        </h1>
-        {coworkerInviteToken && (
-          <p className="text-sm text-center mb-4 px-2 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-100 border border-emerald-200 dark:border-emerald-800">
-            You&apos;re joining through a coworker invite — you&apos;ll be linked when you finish signup so you can
-            match on shared employers and grow trust together.
-          </p>
-        )}
-        {sourceVerification && (
-          <p className="text-sm text-center mb-4 px-2 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
-            You were invited to join WorkVouch after verifying a coworker.
-          </p>
-        )}
-        <p className="text-gray-600 dark:text-gray-400 text-sm text-center mb-6">
-          Full name, email, and password. Next you&apos;ll choose your role and complete setup.
-        </p>
-        <form onSubmit={(e) => { e.preventDefault(); handleSignup(); }} className="space-y-4">
-          <input
-            type="text"
-            placeholder="Full Name (required)"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-            autoComplete="name"
-          />
-          <input
-            type="email"
-            placeholder="Email (required)"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-            autoComplete="email"
-          />
+    <WvShell>
+      <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
+        <Link href="/" className="mb-8 flex items-center gap-2.5 rounded-lg" aria-label="WorkVouch home">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 text-sm font-bold text-white shadow-lg">
+            WV
+          </span>
+          <span className="text-lg font-bold text-wv-foreground">WorkVouch</span>
+        </Link>
+
+        <WvCard glow className="w-full max-w-md">
+          <WvBadge variant="brand" className="mx-auto mb-3 block w-fit">
+            Step 1 of 3
+          </WvBadge>
+          <h1 className="text-2xl font-bold text-center text-wv-foreground">Create account</h1>
+
+          {coworkerInviteToken && (
+            <p className="text-sm text-center mt-4 px-3 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+              You&apos;re joining through a coworker invite — you&apos;ll be linked when you finish signup so you can
+              match on shared employers and grow trust together.
+            </p>
+          )}
           {sourceVerification && (
-            <input
+            <p className="text-sm text-center mt-4 px-3 py-2.5 rounded-xl bg-blue-500/10 text-blue-300 border border-blue-500/30">
+              You were invited to join WorkVouch after verifying a coworker.
+            </p>
+          )}
+          <p className="text-wv-muted text-sm text-center mt-4 mb-6">
+            Full name, email, and password. Next you&apos;ll choose your role and complete setup.
+          </p>
+
+          <form onSubmit={(e) => { e.preventDefault(); handleSignup(); }} className="space-y-4">
+            <WvInput
+              label="Full name"
               type="text"
-              placeholder="Company (optional)"
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              autoComplete="organization"
+              placeholder="Full name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+              autoComplete="name"
             />
-          )}
-          <input
-            type="password"
-            placeholder="Password (min 8 characters)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            required
-            minLength={8}
-            autoComplete="new-password"
-          />
-          {error && (
-            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm border border-red-200 dark:border-red-800">
-              {error}
-            </div>
-          )}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? "Creating account…" : "Continue"}
-          </button>
-        </form>
-        <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
-          Already have an account?{" "}
-          <Link href="/login" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-            Log in
-          </Link>
-        </p>
+            <WvInput
+              label="Email"
+              type="email"
+              placeholder="you@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+            />
+            {sourceVerification && (
+              <WvInput
+                label="Company (optional)"
+                type="text"
+                placeholder="Company name"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                autoComplete="organization"
+              />
+            )}
+            <WvInput
+              label="Password"
+              type="password"
+              placeholder="Min 8 characters"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
+              autoComplete="new-password"
+            />
+            {error && (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                {error}
+              </div>
+            )}
+            <WvButton type="submit" disabled={loading} className="w-full" size="lg">
+              {loading ? "Creating account…" : "Continue"}
+            </WvButton>
+          </form>
+
+          <p className="text-center mt-6 text-sm text-wv-muted">
+            Already have an account?{" "}
+            <Link href="/login" className="text-blue-400 hover:text-blue-300 font-medium">
+              Log in
+            </Link>
+          </p>
+        </WvCard>
       </div>
-    </div>
+    </WvShell>
   );
 }

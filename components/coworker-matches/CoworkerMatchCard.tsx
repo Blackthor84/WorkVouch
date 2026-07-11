@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { Avatar } from "./Avatar";
 import { StatusBadge } from "./StatusBadge";
+import { WvCard, WvButton, WvBadge } from "@/components/wv";
 import type { EmploymentMatchRow } from "@/lib/actions/employmentMatches";
 
 type Props = {
@@ -42,12 +43,7 @@ export function CoworkerMatchCard({
   const status = (match.status ?? match.match_status ?? "pending") as string;
   const confidence = match.match_confidence ?? 0;
   const strengthLabel = confidence >= 0.7 ? "Strong" : confidence >= 0.4 ? "Medium" : "Weak";
-  const strengthClass =
-    strengthLabel === "Strong"
-      ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
-      : strengthLabel === "Medium"
-        ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
-        : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300";
+  const strengthVariant = strengthLabel === "Strong" ? "success" : strengthLabel === "Medium" ? "warning" : "default";
 
   const trustScore =
     match.trust_score != null
@@ -55,158 +51,87 @@ export function CoworkerMatchCard({
       : null;
 
   return (
-    <article
-      className={cn(
-        "rounded-xl border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-900/50 p-6 shadow-md",
-        "transition-all duration-200 hover:shadow-lg hover:scale-[1.01]",
-        "animate-in fade-in duration-300",
-        className
-      )}
-    >
+    <WvCard hover className={cn("animate-in fade-in duration-300", className)}>
       <div className="flex flex-col gap-4">
-        {/* Top: Avatar + Name + Headline */}
         <div className="flex gap-4">
-          <Avatar
-            src={match.other_user?.profile_photo_url}
-            name={name}
-            size="lg"
-          />
+          <Avatar src={match.other_user?.profile_photo_url} name={name} size="lg" />
           <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-slate-900 dark:text-white truncate">
-              {name}
-            </h3>
+            <h3 className="font-semibold text-wv-foreground truncate">{name}</h3>
             {headline && (
-              <p className="text-sm text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                {headline}
-              </p>
+              <p className="text-sm text-wv-muted truncate mt-0.5">{headline}</p>
             )}
           </div>
         </div>
 
-        {/* Company */}
-        <p className="text-sm text-slate-600 dark:text-slate-300">
-          <span className="font-medium text-slate-700 dark:text-slate-200">Company:</span>{" "}
-          {company}
+        <p className="text-sm text-wv-muted">
+          <span className="font-medium text-wv-foreground">Company:</span> {company}
         </p>
 
-        {/* Badges: Match Status + Match Strength */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            Match Status:
-          </span>
+          <span className="text-xs font-medium text-wv-subtle">Match Status:</span>
           <StatusBadge status={status} />
-          <span className="text-slate-300 dark:text-slate-600">|</span>
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            Match Strength:
-          </span>
-          <span
-            className={cn(
-              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-              strengthClass
-            )}
-          >
-            {strengthLabel}
-          </span>
+          <span className="text-wv-border">|</span>
+          <span className="text-xs font-medium text-wv-subtle">Match Strength:</span>
+          <WvBadge variant={strengthVariant}>{strengthLabel}</WvBadge>
         </div>
 
-        {/* Trust preview */}
         <div className="text-sm">
           {trustScore != null ? (
-            <span className="text-slate-600 dark:text-slate-300">
-              ⭐ Trust Score: <strong>{trustScore}</strong>
+            <span className="text-wv-muted">
+              Trust Score: <strong className="text-wv-foreground">{trustScore}</strong>
             </span>
           ) : (
-            <span className="text-slate-500 dark:text-slate-400">
-              No trust score yet
-            </span>
+            <span className="text-wv-subtle">No trust score yet</span>
           )}
         </div>
 
-        {/* Actions */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-          <button
-            type="button"
-            onClick={onViewProfile}
-            className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700"
-          >
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-wv-border">
+          <WvButton type="button" variant="outline" size="sm" onClick={onViewProfile}>
             View Profile
-          </button>
+          </WvButton>
 
           {status === "pending" && onConfirm && onDeny && (
             <>
-              <button
-                type="button"
-                onClick={onConfirm}
-                disabled={confirming}
-                className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
-              >
+              <WvButton type="button" size="sm" onClick={onConfirm} disabled={confirming}>
                 {confirming ? "Accepting…" : "Accept"}
-              </button>
-              <button
-                type="button"
-                onClick={onDeny}
-                disabled={confirming}
-                className="inline-flex items-center justify-center rounded-lg border border-red-200 dark:border-red-800 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 transition-colors hover:bg-red-50 dark:hover:bg-red-900/30 disabled:opacity-50"
-              >
+              </WvButton>
+              <WvButton type="button" variant="danger" size="sm" onClick={onDeny} disabled={confirming}>
                 Deny
-              </button>
+              </WvButton>
             </>
           )}
 
           {(status === "accepted" || status === "confirmed") && (
             <>
               {requestStatus === "none" && onRequestReference && (
-                <button
-                  type="button"
-                  onClick={onRequestReference}
-                  disabled={loading}
-                  className="inline-flex items-center justify-center rounded-lg bg-slate-900 dark:bg-slate-100 px-4 py-2 text-sm font-medium text-white dark:text-slate-900 transition-colors hover:bg-slate-800 dark:hover:bg-slate-200 disabled:opacity-50"
-                >
+                <WvButton type="button" size="sm" onClick={onRequestReference} disabled={loading}>
                   {loading ? "Sending…" : "Request Reference"}
-                </button>
+                </WvButton>
               )}
               {requestStatus === "pending" && (
-                <span className="inline-flex items-center rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 px-4 py-2 text-sm font-medium text-amber-800 dark:text-amber-200">
-                  Request sent
-                </span>
+                <WvBadge variant="warning">Request sent</WvBadge>
               )}
               {requestStatus === "accepted" && acceptedRequestId && onLeaveReference && (
-                <button
-                  type="button"
-                  onClick={() => onLeaveReference(acceptedRequestId)}
-                  className="inline-flex items-center justify-center rounded-lg bg-slate-900 dark:bg-slate-100 px-4 py-2 text-sm font-medium text-white dark:text-slate-900 transition-colors hover:bg-slate-800 dark:hover:bg-slate-200"
-                >
+                <WvButton type="button" size="sm" onClick={() => onLeaveReference(acceptedRequestId)}>
                   Leave Review
-                </button>
+                </WvButton>
               )}
               {requestStatus === "accepted" && !acceptedRequestId && !hasLeftReview && (
-                <span className="inline-flex items-center rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2 text-sm font-medium text-emerald-800 dark:text-emerald-200">
-                  Reference submitted
-                </span>
+                <WvBadge variant="success">Reference submitted</WvBadge>
               )}
               {onLeaveReview && !hasLeftReview && (
-                <button
-                  type="button"
-                  onClick={onLeaveReview}
-                  className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
-                >
+                <WvButton type="button" variant="secondary" size="sm" onClick={onLeaveReview}>
                   Leave Review
-                </button>
+                </WvButton>
               )}
-              {hasLeftReview && (
-                <span className="inline-flex items-center rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2 text-sm font-medium text-emerald-800 dark:text-emerald-200">
-                  Review submitted
-                </span>
-              )}
+              {hasLeftReview && <WvBadge variant="success">Review submitted</WvBadge>}
               {requestStatus === "rejected" && (
-                <span className="inline-flex items-center rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-500 dark:text-slate-400">
-                  Request declined
-                </span>
+                <WvBadge variant="default">Request declined</WvBadge>
               )}
             </>
           )}
         </div>
       </div>
-    </article>
+    </WvCard>
   );
 }

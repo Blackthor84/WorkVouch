@@ -4,20 +4,31 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
 import { useUser } from "@/components/AuthProvider";
 import { ProfileDropdown } from "@/components/workvouch/ProfileDropdown";
 import { supabaseBrowser } from "@/lib/supabase/browser";
+import { cn } from "@/lib/utils";
+import { WvButton } from "@/components/wv";
 
-const navLinkClass = "text-white/90 hover:text-white transition whitespace-nowrap";
-const navLinkActiveClass = "text-white font-medium";
+const navLinkClass =
+  "text-white/70 hover:text-white transition-colors whitespace-nowrap text-sm font-medium";
+const navLinkActiveClass = "text-white font-semibold";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const { user, loading } = useUser();
+  const pathname = usePathname();
 
   const isLoading = loading;
   const isAuthenticated = user !== null;
+  const isActive = (path: string) =>
+    pathname === path || (path !== "/coworker-matches" && pathname?.startsWith(path));
+
+  if (pathname?.startsWith("/demo")) {
+    return null;
+  }
 
   const handleLogout = async () => {
     await supabaseBrowser.auth.signOut();
@@ -25,155 +36,128 @@ export default function Navbar() {
     router.refresh();
   };
 
-  const pathname = usePathname();
-  const isActive = (path: string) => pathname === path || (path !== "/coworker-matches" && pathname?.startsWith(path));
-
-  // Demo routes use their own shell — hide global marketing nav
-  if (pathname?.startsWith("/demo")) {
-    return null;
-  }
-
   return (
-    <header className="sticky top-0 z-50">
-      <nav className="h-14 flex items-center px-4 md:px-8 bg-blue-600/95 text-white backdrop-blur-md border-b border-blue-500/30 shadow-[0_1px_3px_-1px_rgba(37,99,235,0.12)]">
-        <div className="flex flex-1 items-center justify-between gap-4 max-w-7xl mx-auto min-w-0">
-          <div className="flex items-center gap-4 md:gap-6 flex-shrink-0 min-w-0">
-            <Link href={isAuthenticated ? "/coworker-matches" : "/"} className="flex items-center gap-2 flex-shrink-0">
-              <Image
-                src="/images/workvouch-logo.png.png"
-                alt="WorkVouch"
-                width={300}
-                height={100}
-                className="h-10 w-auto flex-shrink-0 max-w-[120px]"
-                priority
-                style={{ objectFit: "contain", width: "auto", height: "40px" }}
-              />
-            </Link>
-            {!isAuthenticated && (
-              <div className="hidden md:flex items-center gap-5 flex-shrink-0">
-                <Link href="/" className={navLinkClass}>Home</Link>
-                <Link
-                  href="/employers"
-                  className={isActive("/employers") ? navLinkActiveClass : navLinkClass}
-                >
-                  For Employers
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-wv-bg/85 backdrop-blur-xl">
+      <nav
+        className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4 md:px-8"
+        aria-label="Main navigation"
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-4 md:gap-8">
+          <Link
+            href={isAuthenticated ? "/coworker-matches" : "/"}
+            className="flex shrink-0 items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wv-brand-blue/50"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 text-xs font-bold text-white shadow-lg shadow-blue-500/20 md:hidden">
+              WV
+            </span>
+            <Image
+              src="/images/workvouch-logo.png.png"
+              alt="WorkVouch"
+              width={300}
+              height={100}
+              className="hidden h-9 w-auto max-w-[120px] object-contain md:block"
+              priority
+              style={{ objectFit: "contain", height: "36px", width: "auto" }}
+            />
+          </Link>
+          {!isAuthenticated && (
+            <div className="hidden items-center gap-6 md:flex">
+              <Link href="/" className={navLinkClass}>Home</Link>
+              <Link href="/employers" className={isActive("/employers") ? navLinkActiveClass : navLinkClass}>
+                For Employers
+              </Link>
+              <Link href="/about" className={navLinkClass}>About</Link>
+              <Link href="/pricing" className={navLinkClass}>Pricing</Link>
+              <Link href="/contact" className={navLinkClass}>Contact</Link>
+              <Link href="/demo" className={isActive("/demo") ? navLinkActiveClass : navLinkClass}>
+                Live Demo
+              </Link>
+            </div>
+          )}
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2 md:gap-3">
+          <div className="hidden items-center gap-3 md:flex">
+            {isLoading && <span className="text-sm text-white/50">Loading…</span>}
+            {!isLoading && !isAuthenticated && (
+              <>
+                <WvButton href="/login" variant="ghost" size="sm">Login</WvButton>
+                <WvButton href="/signup" size="sm">Sign Up</WvButton>
+              </>
+            )}
+            {!isLoading && isAuthenticated && (
+              <>
+                <Link href="/coworker-matches" className={isActive("/coworker-matches") ? navLinkActiveClass : navLinkClass}>
+                  Dashboard
                 </Link>
-                <Link href="/about" className={navLinkClass}>About</Link>
-                <Link href="/pricing" className={navLinkClass}>Pricing</Link>
-                <Link href="/contact" className={navLinkClass}>Contact</Link>
-                <Link
-                  href="/demo"
-                  className={isActive("/demo") ? navLinkActiveClass : navLinkClass}
-                >
-                  Live Demo
+                <Link href="/requests" className={isActive("/requests") ? navLinkActiveClass : navLinkClass}>
+                  Requests
                 </Link>
-              </div>
+                <Link href="/notifications" className={isActive("/notifications") ? navLinkActiveClass : navLinkClass}>
+                  Notifications
+                </Link>
+                <button type="button" onClick={handleLogout} className={cn(navLinkClass, "font-medium")}>
+                  Logout
+                </button>
+                <ProfileDropdown />
+              </>
             )}
           </div>
-          <div className="flex items-center gap-2 md:gap-4 flex-shrink-0">
-            <div className="hidden md:flex items-center gap-4">
-              {isLoading && (
-                <span className="text-white/90 text-sm">Loading...</span>
-              )}
-              {!isLoading && !isAuthenticated && (
-                <>
-                  <Link
-                    href="/login"
-                    className="text-white/90 hover:text-white border border-white/40 px-4 py-2 rounded-lg font-medium transition whitespace-nowrap hover:bg-white/[0.08]"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/signup"
-                    className="bg-white/95 text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-white transition whitespace-nowrap shadow-sm"
-                  >
-                    Sign Up
-                  </Link>
-                </>
-              )}
-              {!isLoading && isAuthenticated && (
-                <>
-                  <Link href="/coworker-matches" className={isActive("/coworker-matches") ? navLinkActiveClass : navLinkClass}>
-                    Dashboard
-                  </Link>
-                  <Link href="/requests" className={isActive("/requests") ? navLinkActiveClass : navLinkClass}>
-                    Requests
-                  </Link>
-                  <Link href="/notifications" className={isActive("/notifications") ? navLinkActiveClass : navLinkClass}>
-                    Notifications
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="text-white/90 hover:text-white transition whitespace-nowrap font-medium"
-                  >
-                    Logout
-                  </button>
-                  <ProfileDropdown />
-                </>
-              )}
-            </div>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 -m-2 text-white/90 hover:text-white transition rounded-lg"
-              aria-label="Toggle menu"
-              aria-expanded={mobileMenuOpen}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {mobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
-          </div>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="rounded-lg p-2 text-white/70 transition hover:bg-white/5 hover:text-white md:hidden"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </nav>
-      {/* Mobile Menu — context-aware: marketing when logged out, app nav when logged in */}
+
       {mobileMenuOpen && (
-        <div className="md:hidden absolute top-14 left-0 right-0 bg-blue-600/95 backdrop-blur-md border-t border-blue-500/30 py-4 px-4 z-50 space-y-1">
+        <div className="border-t border-white/10 bg-wv-bg/95 px-4 py-4 backdrop-blur-xl md:hidden">
           {!isAuthenticated ? (
-            <>
-              <Link href="/" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Home</Link>
-              <Link href="/employers" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>For Employers</Link>
-              <Link href="/about" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>About</Link>
-              <Link href="/pricing" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
-              <Link href="/contact" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
-              <Link href="/demo" className="block py-2.5 text-white/90 hover:text-white transition font-medium" onClick={() => setMobileMenuOpen(false)}>Live Demo</Link>
-              <div className="pt-3 mt-3 border-t border-white/15 space-y-2">
-                {!isLoading && (
-                  <>
-                    <Link
-                      href="/login"
-                      className="block text-center text-white/90 hover:text-white border border-white/40 py-2.5 rounded-lg font-medium"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Login
-                    </Link>
-                    <Link
-                      href="/signup"
-                      className="block text-center bg-white text-blue-600 py-2.5 rounded-lg text-sm font-bold sm:text-base"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Get Your First Vouch
-                    </Link>
-                  </>
-                )}
+            <div className="space-y-1">
+              {[
+                { href: "/", label: "Home" },
+                { href: "/employers", label: "For Employers" },
+                { href: "/about", label: "About" },
+                { href: "/pricing", label: "Pricing" },
+                { href: "/contact", label: "Contact" },
+                { href: "/demo", label: "Live Demo" },
+              ].map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="block rounded-lg px-3 py-2.5 text-sm text-white/70 hover:bg-white/5 hover:text-white"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {label}
+                </Link>
+              ))}
+              <div className="mt-4 flex flex-col gap-2 border-t border-white/10 pt-4">
+                <WvButton href="/login" variant="outline" className="w-full">Login</WvButton>
+                <WvButton href="/signup" className="w-full">Get Your First Vouch</WvButton>
               </div>
-            </>
+            </div>
           ) : (
-            <>
-              <Link href="/coworker-matches" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
-              <Link href="/requests" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Requests</Link>
-              <Link href="/notifications" className="block py-2.5 text-white/90 hover:text-white transition" onClick={() => setMobileMenuOpen(false)}>Notifications</Link>
-              <button type="button" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="block w-full text-left py-2.5 text-white/90 hover:text-white font-medium">
+            <div className="space-y-1">
+              {[
+                { href: "/coworker-matches", label: "Dashboard" },
+                { href: "/requests", label: "Requests" },
+                { href: "/notifications", label: "Notifications" },
+              ].map(({ href, label }) => (
+                <Link key={href} href={href} className="block rounded-lg px-3 py-2.5 text-sm text-white/70 hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>
+                  {label}
+                </Link>
+              ))}
+              <button type="button" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium text-white/70 hover:bg-white/5">
                 Logout
               </button>
               <div className="pt-2" onClick={() => setMobileMenuOpen(false)}>
                 <ProfileDropdown />
               </div>
-            </>
+            </div>
           )}
         </div>
       )}

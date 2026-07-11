@@ -1,0 +1,50 @@
+---
+description: WorkVouch unified design system — Live Demo is the canonical UI language
+globs: **/*.{tsx,ts,css}
+alwaysApply: true
+---
+
+# WorkVouch Design System
+
+The **Live Demo** (`/demo`, `components/demo-center/`) defines the official WorkVouch visual language. Production must match it.
+
+## Canonical components
+
+Use `@/components/wv` for all new UI:
+
+- `WvShell` / `WvContainer` — page canvas + max-width
+- `WvCard` — glass cards
+- `WvButton` — CTAs
+- `WvPageHeader` — page titles
+- `WvTrustScore` — trust score visualization
+- `WvBadge`, `WvInput`, `WvStatCard`
+- Motion: `pageTransition`, `staggerItem` from `@/components/wv`
+
+Legacy `components/ui/button` and `components/ui/card` are aligned to dark glass — prefer `Wv*` for new code.
+
+## Visual rules
+
+- **Dark-first**: background `#0a0a0f`, glass surfaces `bg-wv-surface`, borders `border-wv-border`
+- **Brand color sparingly**: blue/green for CTAs, trust scores, links, charts — not full-page fills
+- **Typography**: large headlines, `text-wv-muted` body, generous spacing
+- **Icons**: Lucide only (`lucide-react`)
+- **Motion**: Framer Motion — subtle fades, never distracting
+- **No bright white pages** unless required for print/PDF
+
+## Layout
+
+- Marketing/auth: `WvShell` + global `Navbar`
+- Employee app: `WorkVouchLayoutClient` (dark sidebar + navbar)
+- Demo: `DemoShell` (hides global navbar)
+- Every page: `WvContainer` or `max-w-6xl mx-auto px-4 sm:px-6`
+
+## Before shipping any screen
+
+Ask: *Would this look at home inside `/demo`?* If not, redesign using `Wv*` components.
+
+## Do not
+
+- Duplicate card/button styles inline
+- Use light-gray marketing pages (`bg-gray-50`, white cards) on user-facing routes
+- Mix Heroicons and Lucide on the same screen (Lucide preferred)
+- Remove functionality when restyling

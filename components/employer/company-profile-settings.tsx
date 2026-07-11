@@ -1,57 +1,46 @@
 "use client";
 
 import Link from "next/link";
-import { Card } from "../ui/card";
+import { WvCard } from "@/components/wv";
 
 export function CompanyProfileSettings() {
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200">
-          Company Profile Settings
-        </h2>
-        <p className="text-sm text-grey-medium dark:text-gray-400 mt-1">
-          Manage your company information and preferences
-        </p>
-      </div>
-
-      <Card className="p-6">
-        <p className="text-grey-medium dark:text-gray-400">
+      <WvCard>
+        <p className="text-wv-muted">
           Company profile settings coming soon. This will allow you to customize
           your company information, logo, and preferences.
         </p>
-      </Card>
+      </WvCard>
 
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
-          Legal & Account
-        </h2>
-        <p className="text-sm text-grey-medium dark:text-gray-400 mb-4">
+      <WvCard>
+        <h2 className="text-lg font-semibold text-wv-foreground mb-4">Legal & Account</h2>
+        <p className="text-sm text-wv-muted mb-4">
           Privacy, terms, contact support, and account deletion (required for app stores).
         </p>
         <ul className="space-y-2 text-sm">
           <li>
-            <Link href="/legal/privacy" className="text-primary hover:underline">
+            <Link href="/legal/privacy" className="text-blue-400 hover:text-blue-300 hover:underline">
               Privacy Policy
             </Link>
           </li>
           <li>
-            <Link href="/legal/terms" className="text-primary hover:underline">
+            <Link href="/legal/terms" className="text-blue-400 hover:text-blue-300 hover:underline">
               Terms of Service
             </Link>
           </li>
           <li>
-            <Link href="/contact" className="text-primary hover:underline">
+            <Link href="/contact" className="text-blue-400 hover:text-blue-300 hover:underline">
               Contact Support
             </Link>
           </li>
           <li>
-            <Link href="/settings" className="text-primary hover:underline">
+            <Link href="/settings" className="text-blue-400 hover:text-blue-300 hover:underline">
               Account settings & delete account
             </Link>
           </li>
         </ul>
-      </Card>
+      </WvCard>
     </div>
   );
 }

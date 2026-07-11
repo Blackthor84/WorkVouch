@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { WvCard, WvButton, WvBadge, WvPageHeader } from "@/components/wv";
 import UpgradeModal from "@/components/UpgradeModal";
 import EmployerAnalytics from "./EmployerAnalytics";
 import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
@@ -218,10 +219,10 @@ export function EmployerDashboardClient({
 
       <div className="max-w-7xl mx-auto space-y-6">
         {showWelcome && !welcomeDismissed && (
-          <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4 flex items-center justify-between gap-4">
-            <p className="font-semibold text-green-800 dark:text-green-200">Account created successfully. You're all set.</p>
+          <WvCard glow className="border-emerald-500/30 bg-emerald-500/10 flex items-center justify-between gap-4">
+            <p className="font-semibold text-emerald-300">Account created successfully. You&apos;re all set.</p>
             <div className="flex items-center gap-2">
-              <Button
+              <WvButton
                 size="sm"
                 variant="secondary"
                 onClick={() => {
@@ -230,58 +231,37 @@ export function EmployerDashboardClient({
                 }}
               >
                 Dismiss
-              </Button>
-              <Button size="sm" asChild>
-                <Link href="/employer/profile">Complete company profile</Link>
-              </Button>
+              </WvButton>
+              <WvButton href="/employer/profile" size="sm">
+                Complete company profile
+              </WvButton>
             </div>
-          </div>
+          </WvCard>
         )}
         {isFreePlan && <UpgradeBanner />}
 
-        {/* Verified workers — monetization funnel */}
-        <Card className="border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-900/40">
+        <WvCard glow>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-100">
-                Verified workers directory
-              </h2>
-              <p className="mt-1 text-sm text-grey-medium dark:text-gray-400">
+              <h2 className="text-lg font-semibold text-wv-foreground">Verified workers directory</h2>
+              <p className="mt-1 text-sm text-wv-muted">
                 Most employers only see a small portion of verified workers. Browse coworker-backed profiles and
                 upgrade to unlock full access.
               </p>
             </div>
-            <Button asChild className="shrink-0 bg-gray-900 text-white hover:bg-black dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
-              <Link href="/employer/verified-workers">Open verified workers</Link>
-            </Button>
+            <WvButton href="/employer/verified-workers" className="shrink-0">
+              Open verified workers
+            </WvButton>
           </div>
-        </Card>
+        </WvCard>
 
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
-            Dashboard
-          </h1>
-          <p className="text-grey-medium dark:text-gray-400 mt-1">
-            Welcome back. Manage candidates, verifications, and your subscription.
-          </p>
-          <div className="mt-2 flex items-center gap-3 flex-wrap">
-            <EditCompanyInfo />
-            {planTier && (
-              <>
-                <span className="text-sm font-medium text-grey-medium dark:text-gray-400">
-                  Current Plan:
-                </span>
-                <Badge
-                variant="primary"
-                className={
-                  planTier === "custom"
-                    ? "bg-amber-500 text-white border-amber-600 dark:bg-amber-600 dark:border-amber-700"
-                    : planTier === "pro"
-                    ? "bg-purple-600 text-white border-purple-700 dark:bg-purple-700 dark:border-purple-800"
-                    : "bg-gray-500 text-white border-gray-600 dark:bg-gray-600 dark:border-gray-700"
-                }
-              >
+        <WvPageHeader
+          eyebrow="Overview"
+          title="Dashboard"
+          description="Welcome back. Manage candidates, verifications, and your subscription."
+          action={
+            planTier ? (
+              <WvBadge variant={planTier === "pro" ? "brand" : planTier === "custom" ? "warning" : "default"}>
                 {planTier === "free" || !planTier
                   ? "FREE"
                   : planTier === "custom"
@@ -289,10 +269,12 @@ export function EmployerDashboardClient({
                   : planTier === "pro"
                   ? "PRO"
                   : "STARTER"}
-                </Badge>
-              </>
-            )}
-          </div>
+              </WvBadge>
+            ) : undefined
+          }
+        />
+        <div className="mb-2">
+          <EditCompanyInfo />
         </div>
 
         {/* Plan & Usage */}

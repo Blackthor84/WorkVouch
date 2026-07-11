@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, isEmployer } from "@/lib/auth";
-import { EmployerHeader } from "@/components/employer/employer-header";
+import { EmployerPortalLayout } from "@/components/employer/EmployerPortalLayout";
 import { UserSearchForm } from "@/components/employer/user-search-form";
+import { WvPageHeader } from "@/components/wv";
 
 export default async function SearchUsersPage() {
   const user = await getCurrentUser();
 
   if (!user) {
-    console.log("REDIRECT TRIGGERED IN: app/employer/search-users/page.tsx");
     redirect("/login");
   }
 
@@ -17,21 +17,15 @@ export default async function SearchUsersPage() {
   }
 
   return (
-    <>
-      <EmployerHeader />
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200 mb-2">
-            Search Users
-          </h1>
-          <p className="text-grey-medium dark:text-gray-400">
-            Search for users by name to view their profiles, skills, and work
-            history
-          </p>
-        </div>
-
+    <EmployerPortalLayout>
+      <WvPageHeader
+        eyebrow="Search"
+        title="Search Users"
+        description="Search for users by name to view their profiles, skills, and work history"
+      />
+      <div className="mt-8">
         <UserSearchForm />
-      </main>
-    </>
+      </div>
+    </EmployerPortalLayout>
   );
 }

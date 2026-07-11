@@ -15,11 +15,9 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
         ref={ref}
         data-card
         className={cn(
-          "rounded-xl border border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-gray-900",
-          featured
-            ? "shadow-lg ring-1 ring-black/5 dark:ring-white/10"
-            : "shadow-sm",
-          hover && "transition-shadow duration-200 hover:shadow-md",
+          "rounded-2xl border border-wv-border bg-wv-surface backdrop-blur-xl p-6 text-wv-foreground shadow-xl shadow-black/10",
+          featured && "ring-1 ring-white/10 shadow-lg",
+          hover && "transition-all duration-200 hover:border-wv-border-hover hover:bg-wv-surface-hover hover:shadow-2xl",
           className,
         )}
         {...props}
@@ -50,7 +48,7 @@ export function CardTitle({ children, className }: CardTitleProps) {
   return (
     <h3
       className={cn(
-        "text-lg font-medium text-gray-900 dark:text-gray-100",
+        "text-lg font-semibold text-wv-foreground",
         className,
       )}
     >
@@ -66,7 +64,7 @@ interface CardContentProps {
 
 export function CardContent({ children, className }: CardContentProps) {
   return (
-    <div className={cn("text-sm text-gray-600 dark:text-gray-400", className)}>
+    <div className={cn("text-sm text-wv-muted", className)}>
       {children}
     </div>
   );

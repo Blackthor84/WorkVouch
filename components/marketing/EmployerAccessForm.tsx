@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { WvButton, WvInput } from "@/components/wv";
 
 export function EmployerAccessForm() {
   const [fullName, setFullName] = useState("");
@@ -36,93 +38,69 @@ export function EmployerAccessForm() {
     }
   }
 
-  const inputClass =
-    "mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 shadow-sm outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20";
-
   if (status === "success") {
     return (
       <div
         id="request-access"
-        className="scroll-mt-24 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-8 text-center"
+        className="scroll-mt-24 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-8 text-center"
       >
-        <p className="text-lg font-semibold text-emerald-900">{message}</p>
-        <p className="mt-2 text-sm text-emerald-800/90">Our team will reach out at the email you provided.</p>
+        <p className="text-lg font-semibold text-emerald-300">{message}</p>
+        <p className="mt-2 text-sm text-emerald-400/80">Our team will reach out at the email you provided.</p>
       </div>
     );
   }
 
   return (
-    <form id="request-access" onSubmit={onSubmit} className="scroll-mt-24">
-      <div className="space-y-0">
-        <div>
-          <label htmlFor="employer-name" className="sr-only">
-            Name
-          </label>
-          <input
-            id="employer-name"
-            name="fullName"
-            type="text"
-            required
-            autoComplete="name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className={inputClass}
-            placeholder="Name"
-          />
-        </div>
-        <div>
-          <label htmlFor="employer-company" className="sr-only">
-            Company
-          </label>
-          <input
-            id="employer-company"
-            name="company"
-            type="text"
-            required
-            autoComplete="organization"
-            value={company}
-            onChange={(e) => setCompany(e.target.value)}
-            className={inputClass}
-            placeholder="Company"
-          />
-        </div>
-        <div>
-          <label htmlFor="employer-email" className="sr-only">
-            Email
-          </label>
-          <input
-            id="employer-email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={inputClass}
-            placeholder="Email"
-          />
-        </div>
-      </div>
+    <form id="request-access" onSubmit={onSubmit} className="scroll-mt-24 space-y-4" aria-labelledby="request-access-heading">
+      <WvInput
+        id="employer-name"
+        name="fullName"
+        type="text"
+        required
+        autoComplete="name"
+        value={fullName}
+        onChange={(e) => setFullName(e.target.value)}
+        placeholder="Full name"
+        label="Name"
+      />
+      <WvInput
+        id="employer-company"
+        name="company"
+        type="text"
+        required
+        autoComplete="organization"
+        value={company}
+        onChange={(e) => setCompany(e.target.value)}
+        placeholder="Company name"
+        label="Company"
+      />
+      <WvInput
+        id="employer-email"
+        name="email"
+        type="email"
+        required
+        autoComplete="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="you@company.com"
+        label="Email"
+      />
 
       {status === "error" && message ? (
-        <p className="mt-4 text-center text-sm text-red-600" role="alert">
+        <p className="text-center text-sm text-red-400" role="alert">
           {message}
         </p>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={status === "loading"}
-        className="mt-2 w-full rounded bg-black px-4 py-2 font-semibold text-white transition hover:bg-gray-900 disabled:opacity-60"
-      >
+      <WvButton type="submit" disabled={status === "loading"} className="w-full" size="lg">
         {status === "loading" ? "Sending…" : "Request Access"}
-      </button>
+      </WvButton>
 
-      <p className="mt-4 text-center text-xs text-gray-500">
+      <p className="text-center text-xs text-wv-subtle">
         We respect your inbox — no spam. See our{" "}
-        <a href="/privacy" className="underline hover:text-gray-800">
+        <Link href="/privacy" className="text-blue-400 hover:text-blue-300 underline">
           Privacy Policy
-        </a>
+        </Link>
         .
       </p>
     </form>

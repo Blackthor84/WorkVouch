@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { hasRole } from "@/lib/auth";
+import { EmployerPortalLayout } from "@/components/employer/EmployerPortalLayout";
 import { EmployerSearchForm } from "@/components/employer-search-form";
+import { WvPageHeader } from "@/components/wv";
 
 export default async function EmployerSearchPage() {
   const isEmployer = await hasRole("employer");
@@ -10,11 +12,15 @@ export default async function EmployerSearchPage() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-background dark:bg-[#0D1117] min-h-screen">
-      <h1 className="mb-6 text-3xl font-bold text-grey-dark dark:text-gray-200">
-        Search Candidates
-      </h1>
-      <EmployerSearchForm />
-    </main>
+    <EmployerPortalLayout>
+      <WvPageHeader
+        eyebrow="Search"
+        title="Search Candidates"
+        description="Find verified professionals by name, role, or location."
+      />
+      <div className="mt-8">
+        <EmployerSearchForm />
+      </div>
+    </EmployerPortalLayout>
   );
 }

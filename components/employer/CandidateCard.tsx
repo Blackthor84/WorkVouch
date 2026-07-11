@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { TrustScoreBadge } from "./TrustScoreBadge";
 import { TrustRankInlineBadge } from "@/components/trust/TrustRankInlineBadge";
 import { saveCandidate, unsaveCandidate } from "@/lib/actions/employer/saved-candidates";
-import { BookmarkIcon } from "@heroicons/react/24/outline";
-import { StarIcon as StarSolid, BookmarkIcon as BookmarkSolid } from "@heroicons/react/24/solid";
-import { cn } from "@/lib/utils";
+import { Bookmark, Star } from "lucide-react";
+import { WvCard, WvButton } from "@/components/wv";
 import { SmartInsight } from "@/components/guidance/SmartInsight";
 import { SuggestedActions } from "@/components/guidance/SuggestedActions";
 import { TrustScoreHint } from "@/components/guidance/TrustMetricHints";
@@ -62,12 +60,7 @@ export function CandidateCard({
   }
 
   return (
-    <article
-      className={cn(
-        "rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md",
-        className
-      )}
-    >
+    <WvCard hover className={className}>
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex gap-3 min-w-0 flex-1">
@@ -78,26 +71,26 @@ export function CandidateCard({
                 className="h-14 w-14 rounded-full object-cover border border-slate-200 flex-shrink-0"
               />
             ) : (
-              <div className="h-14 w-14 rounded-full bg-blue-100 text-blue-700 font-semibold flex items-center justify-center flex-shrink-0">
+              <div className="h-14 w-14 rounded-full bg-gradient-to-br from-blue-500/20 to-violet-600/20 text-blue-300 font-semibold flex items-center justify-center flex-shrink-0 ring-1 ring-wv-border">
                 {name.charAt(0).toUpperCase()}
               </div>
             )}
             <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2 min-w-0">
-              <h3 className="text-lg font-semibold text-slate-900 truncate">{name}</h3>
+              <h3 className="text-lg font-semibold text-wv-foreground truncate">{name}</h3>
               {!blurTrust && (
                 <TrustRankInlineBadge score={candidate.trust_score} reviewCount={refCount} className="shrink-0" />
               )}
             </div>
-            {headline && <p className="text-sm text-slate-600 truncate mt-0.5">{headline}</p>}
-            <p className="text-sm text-slate-500 mt-0.5">
-              <span className="font-medium text-slate-700">Company:</span> {company}
+            {headline && <p className="text-sm text-wv-muted truncate mt-0.5">{headline}</p>}
+            <p className="text-sm text-wv-muted mt-0.5">
+              <span className="font-medium text-wv-foreground">Company:</span> {company}
             </p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1 max-w-[200px]">
-            <span className="text-xs text-slate-500 flex items-center gap-1">
-              <StarSolid className="h-3.5 w-3.5 text-amber-500" />
+            <span className="text-xs text-wv-subtle flex items-center gap-1">
+              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden />
               Trust score
             </span>
             <TrustScoreBadge
@@ -110,7 +103,7 @@ export function CandidateCard({
           </div>
         </div>
         {!blurTrust && (
-          <div className="space-y-3 pt-1 border-t border-slate-100">
+          <div className="space-y-3 pt-1 border-t border-wv-border">
             <SmartInsight
               trustScore={candidate.trust_score}
               referenceCount={refCount}
@@ -126,46 +119,39 @@ export function CandidateCard({
             />
           </div>
         )}
-        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-wv-muted">
           {coworkerVerified > 0 && (
-            <span className="inline-flex items-center gap-1 text-emerald-700 font-medium">
+            <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
               <span aria-hidden>✔</span>
               Verified by {coworkerVerified} coworker{coworkerVerified !== 1 ? "s" : ""}
             </span>
           )}
           {refCount > 0 && (
-            <span className="inline-flex items-center gap-1 text-slate-500">
-              <StarSolid className="h-4 w-4 text-amber-500" />
+            <span className="inline-flex items-center gap-1 text-wv-subtle">
+              <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
               {refCount} reference{refCount !== 1 ? "s" : ""}
             </span>
           )}
         </div>
         {blurTrust && (
-          <p className="text-xs text-blue-700 font-medium">Upgrade to unlock exact trust data →</p>
+          <p className="text-xs text-blue-400 font-medium">Upgrade to unlock exact trust data →</p>
         )}
         <div className="flex flex-wrap gap-2">
-          <Link
-            href={`/employer/profile/${candidate.id}`}
-            className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-          >
+          <WvButton href={`/employer/profile/${candidate.id}`} size="sm">
             View Profile
-          </Link>
-          <button
+          </WvButton>
+          <WvButton
             type="button"
+            variant={isSaved ? "secondary" : "outline"}
+            size="sm"
             onClick={handleSaveToggle}
             disabled={saving}
-            className={cn(
-              "inline-flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50",
-              isSaved
-                ? "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
-                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-            )}
           >
-            {isSaved ? <BookmarkSolid className="h-4 w-4" /> : <BookmarkIcon className="h-4 w-4" />}
+            <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} aria-hidden />
             {saving ? "…" : isSaved ? "Saved" : "Save Candidate"}
-          </button>
+          </WvButton>
         </div>
       </div>
-    </article>
+    </WvCard>
   );
 }

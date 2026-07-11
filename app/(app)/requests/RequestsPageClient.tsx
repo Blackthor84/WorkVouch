@@ -4,9 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { respondToRequest } from "@/lib/actions/referenceFeedback";
 import { EmptyState } from "@/components/workvouch/EmptyState";
-import { InboxStackIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import { Inbox, Send } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { WvCard, WvButton, WvBadge } from "@/components/wv";
 
 type ReferenceRequestRow = {
   id: string;
@@ -17,6 +17,30 @@ type ReferenceRequestRow = {
   status: string;
   created_at: string;
 };
+
+function RequestAvatar({
+  photoUrl,
+  name,
+}: {
+  photoUrl: string | null | undefined;
+  name: string;
+}) {
+  const initial = name.charAt(0).toUpperCase();
+  if (photoUrl) {
+    return (
+      <img
+        src={photoUrl}
+        alt=""
+        className="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-wv-border"
+      />
+    );
+  }
+  return (
+    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/20 to-violet-600/20 text-sm font-semibold text-blue-300 ring-1 ring-wv-border">
+      {initial}
+    </div>
+  );
+}
 
 export function RequestsPageClient() {
   const [incoming, setIncoming] = useState<ReferenceRequestRow[]>([]);
@@ -36,10 +60,7 @@ export function RequestsPageClient() {
   }, []);
 
   const fetchAll = async (uid: string) => {
-    const [
-      { data: inc },
-      { data: out },
-    ] = await Promise.all([
+    const [{ data: inc }, { data: out }] = await Promise.all([
       supabaseBrowser.from("reference_requests").select("*").eq("receiver_id", uid).order("created_at", { ascending: false }),
       supabaseBrowser.from("reference_requests").select("*").eq("requester_id", uid).order("created_at", { ascending: false }),
     ]);
@@ -111,23 +132,13 @@ export function RequestsPageClient() {
   if (!hasIncoming && !hasOutgoing) {
     return (
       <EmptyState
-        icon={<InboxStackIcon className="h-7 w-7" />}
+        icon={<Inbox className="h-7 w-7" aria-hidden />}
         title="Request your first vouch—or answer one"
         description="Send vouch requests from coworker matches, or accept incoming asks. Everything you send and receive lands here."
         action={
           <div className="flex flex-wrap justify-center gap-3">
-            <Link
-              href="/coworker-matches"
-              className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-            >
-              Find coworkers
-            </Link>
-            <Link
-              href="/jobs/new"
-              className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-            >
-              Add a job
-            </Link>
+            <WvButton href="/coworker-matches">Find coworkers</WvButton>
+            <WvButton href="/jobs/new" variant="secondary">Add a job</WvButton>
           </div>
         }
         className="mt-8"
@@ -138,78 +149,63 @@ export function RequestsPageClient() {
   return (
     <>
       {newRequestAlert && (
-        <div className="mb-4 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm font-medium text-green-800">
+        <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-300">
           New reference request!
         </div>
       )}
 
       {hasIncoming && (
         <section className="mt-8">
-          <h2 className="text-lg font-semibold text-slate-900">Incoming Requests</h2>
+          <h2 className="text-lg font-semibold text-wv-foreground">Incoming Requests</h2>
           <ul className="mt-4 space-y-3">
             {incoming.map((req) => {
               const profile = profiles[req.requester_id];
               const name = profile?.full_name ?? "Someone";
               const company = companyByMatchId[req.coworker_match_id] ?? "Same company";
-              const initial = name.charAt(0).toUpperCase();
               return (
-                <li
-                  key={req.id}
-                  className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      {profile?.profile_photo_url ? (
-                        <img
-                          src={profile.profile_photo_url}
-                          alt=""
-                          className="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-slate-100"
-                        />
-                      ) : (
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-600">
-                          {initial}
+                <li key={req.id}>
+                  <WvCard hover>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <RequestAvatar photoUrl={profile?.profile_photo_url} name={name} />
+                        <div className="min-w-0">
+                          <p className="font-medium text-wv-foreground">{name}</p>
+                          <p className="text-sm text-wv-muted">{company}</p>
+                          {req.message && (
+                            <p className="text-sm text-wv-muted mt-1 truncate">&ldquo;{req.message}&rdquo;</p>
+                          )}
+                          <p className="text-xs text-wv-subtle mt-0.5">
+                            {new Date(req.created_at).toLocaleDateString()}
+                          </p>
                         </div>
+                      </div>
+                      {req.status === "pending" ? (
+                        <div className="flex gap-2 shrink-0">
+                          <WvButton
+                            type="button"
+                            size="sm"
+                            onClick={() => handleRespond(req.id, "accepted")}
+                            disabled={updatingId === req.id}
+                          >
+                            {updatingId === req.id ? "…" : "Accept"}
+                          </WvButton>
+                          <WvButton
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRespond(req.id, "rejected")}
+                            disabled={updatingId === req.id}
+                          >
+                            Decline
+                          </WvButton>
+                        </div>
+                      ) : (
+                        <WvBadge variant={req.status === "accepted" ? "success" : "default"}>
+                          {req.status === "accepted" ? "Accepted" : "Declined"}
+                        </WvBadge>
                       )}
-                      <div className="min-w-0">
-                        <p className="font-medium text-slate-900">{name}</p>
-                        <p className="text-sm text-slate-500">{company}</p>
-                        {req.message && (
-                          <p className="text-sm text-slate-600 mt-1 truncate">&ldquo;{req.message}&rdquo;</p>
-                        )}
-                        <p className="text-xs text-slate-400 mt-0.5">
-                          {new Date(req.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
                     </div>
-                    {req.status === "pending" ? (
-                      <div className="flex gap-2 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => handleRespond(req.id, "accepted")}
-                          disabled={updatingId === req.id}
-                          className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-50"
-                        >
-                          {updatingId === req.id ? "…" : "Accept"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleRespond(req.id, "rejected")}
-                          disabled={updatingId === req.id}
-                          className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 disabled:opacity-50"
-                        >
-                          Decline
-                        </button>
-                      </div>
-                    ) : (
-                      <span className={cn(
-                        "text-sm font-medium shrink-0 rounded-full px-3 py-1",
-                        req.status === "accepted" && "bg-emerald-100 text-emerald-800",
-                        req.status === "rejected" && "bg-slate-100 text-slate-600"
-                      )}>
-                        {req.status === "accepted" ? "Accepted" : "Declined"}
-                      </span>
-                    )}
-                  </div>
+                  </WvCard>
                 </li>
               );
             })}
@@ -219,8 +215,8 @@ export function RequestsPageClient() {
 
       {hasOutgoing && (
         <section className={hasIncoming ? "mt-10" : "mt-8"}>
-          <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-            <PaperAirplaneIcon className="h-5 w-5" />
+          <h2 className="text-lg font-semibold text-wv-foreground flex items-center gap-2">
+            <Send className="h-5 w-5 text-violet-400" aria-hidden />
             Outgoing Requests
           </h2>
           <ul className="mt-4 space-y-3">
@@ -228,51 +224,37 @@ export function RequestsPageClient() {
               const profile = profiles[req.receiver_id];
               const name = profile?.full_name ?? "Coworker";
               const company = companyByMatchId[req.coworker_match_id] ?? "Same company";
-              const initial = name.charAt(0).toUpperCase();
               return (
-                <li
-                  key={req.id}
-                  className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      {profile?.profile_photo_url ? (
-                        <img
-                          src={profile.profile_photo_url}
-                          alt=""
-                          className="h-12 w-12 shrink-0 rounded-full object-cover ring-1 ring-slate-100"
-                        />
-                      ) : (
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-600">
-                          {initial}
+                <li key={req.id}>
+                  <WvCard hover>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <RequestAvatar photoUrl={profile?.profile_photo_url} name={name} />
+                        <div className="min-w-0">
+                          <p className="font-medium text-wv-foreground">{name}</p>
+                          <p className="text-sm text-wv-muted">{company}</p>
+                          <p className="text-xs text-wv-subtle mt-0.5">
+                            {new Date(req.created_at).toLocaleDateString()}
+                          </p>
                         </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="font-medium text-slate-900">{name}</p>
-                        <p className="text-sm text-slate-500">{company}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">
-                          {new Date(req.created_at).toLocaleDateString()}
-                        </p>
                       </div>
+                      <WvBadge
+                        variant={
+                          req.status === "accepted" ? "success" : req.status === "pending" ? "warning" : "default"
+                        }
+                      >
+                        {req.status === "accepted" ? "Accepted" : req.status === "pending" ? "Pending" : "Declined"}
+                      </WvBadge>
                     </div>
-                    <span
-                      className={cn(
-                        "shrink-0 rounded-full px-3 py-1.5 text-sm font-medium",
-                        req.status === "accepted" && "bg-emerald-100 text-emerald-800",
-                        req.status === "pending" && "bg-amber-100 text-amber-800",
-                        req.status === "rejected" && "bg-slate-100 text-slate-600"
-                      )}
-                    >
-                      {req.status === "accepted" ? "Accepted" : req.status === "pending" ? "Pending" : "Declined"}
-                    </span>
-                  </div>
-                  {req.status === "accepted" && (
-                    <p className="mt-3 text-sm text-slate-500">
-                      <Link href="/coworker-matches" className="font-medium text-slate-700 hover:underline">
-                        Leave reference
-                      </Link> on your matches page.
-                    </p>
-                  )}
+                    {req.status === "accepted" && (
+                      <p className="mt-3 text-sm text-wv-muted">
+                        <Link href="/coworker-matches" className="font-medium text-blue-400 hover:text-blue-300">
+                          Leave reference
+                        </Link>{" "}
+                        on your matches page.
+                      </p>
+                    )}
+                  </WvCard>
                 </li>
               );
             })}

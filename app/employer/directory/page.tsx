@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { EmployerDirectoryClient } from "./EmployerDirectoryClient";
+import { EmployerPortalLayout } from "@/components/employer/EmployerPortalLayout";
+import { WvPageHeader } from "@/components/wv";
 
 export const dynamic = "force-dynamic";
 
@@ -11,14 +13,15 @@ export default async function EmployerDirectoryPage() {
   if (!isEmployer) redirect("/dashboard");
 
   return (
-    <div className="flex-1 p-6">
-      <h1 className="text-2xl font-bold text-grey-dark dark:text-gray-200">
-        Workforce Directory
-      </h1>
-      <p className="mt-1 text-sm text-grey-medium dark:text-gray-400">
-        Full search with filters. Plan-based limits apply.
-      </p>
-      <EmployerDirectoryClient />
-    </div>
+    <EmployerPortalLayout wide>
+      <WvPageHeader
+        eyebrow="Directory"
+        title="Workforce Directory"
+        description="Full search with filters. Plan-based limits apply."
+      />
+      <div className="mt-8">
+        <EmployerDirectoryClient />
+      </div>
+    </EmployerPortalLayout>
   );
 }

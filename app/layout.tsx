@@ -15,8 +15,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" className="dark">
+      <body className="bg-wv-bg text-wv-foreground antialiased">
         <SupabaseProvider>
           <AuthProvider>
             <LabBanner />

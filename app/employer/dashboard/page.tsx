@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { EmployerHeader } from "@/components/employer/employer-header";
-import { EmployerSidebar } from "@/components/employer/employer-sidebar";
+import { EmployerPortalLayout } from "@/components/employer/EmployerPortalLayout";
 import { EmployerDashboardClient } from "@/components/employer/EmployerDashboardClient";
 import { getUser } from "@/lib/auth/getUser";
 import { createClient } from "@/lib/supabase/server";
@@ -10,7 +9,6 @@ import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 type UserRole = "superadmin" | "admin" | "employer" | "user";
 
-// Mark as dynamic
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -71,23 +69,15 @@ export default async function EmployerDashboardPage({
     const userRole: UserRole = resolvedRole;
 
     return (
-      <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
-        <EmployerSidebar />
-        <div className="flex-1 flex flex-col">
-          <EmployerHeader />
-          <main className="flex-1 flex flex-col px-4 py-8 md:px-6 md:py-12 lg:py-16 min-w-0 overflow-x-hidden">
-            <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
-              <EmployerDashboardClient
-                userRole={userRole}
-                planTier={planTier}
-                employerId={employerId}
-                employerIndustry={employerIndustry}
-                showWelcome={showWelcome}
-              />
-            </div>
-          </main>
-        </div>
-      </div>
+      <EmployerPortalLayout>
+        <EmployerDashboardClient
+          userRole={userRole}
+          planTier={planTier}
+          employerId={employerId}
+          employerIndustry={employerIndustry}
+          showWelcome={showWelcome}
+        />
+      </EmployerPortalLayout>
     );
   }
 
@@ -106,23 +96,15 @@ export default async function EmployerDashboardPage({
   const employerIndustry = (first as { industry?: string } | null)?.industry ?? null;
 
   return (
-    <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
-      <EmployerSidebar />
-      <div className="flex-1 flex flex-col">
-        <EmployerHeader />
-        <main className="flex-1 flex flex-col px-4 py-8 md:px-6 md:py-12 lg:py-16 min-w-0 overflow-x-hidden">
-          <div className="w-full flex flex-col space-y-12 md:space-y-16 lg:space-y-20">
-            <EmployerDashboardClient
-              userRole="employer"
-              planTier={planTier}
-              employerId={employerId ?? undefined}
-              employerIndustry={employerIndustry ?? null}
-              sandboxMode={true}
-              sandboxId={sandboxId}
-            />
-          </div>
-        </main>
-      </div>
-    </div>
+    <EmployerPortalLayout>
+      <EmployerDashboardClient
+        userRole="employer"
+        planTier={planTier}
+        employerId={employerId ?? undefined}
+        employerIndustry={employerIndustry ?? null}
+        sandboxMode={true}
+        sandboxId={sandboxId}
+      />
+    </EmployerPortalLayout>
   );
 }

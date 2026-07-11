@@ -10,7 +10,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        /* Accessibility-first palette (WCAG AA) */
+        wv: {
+          bg: 'var(--wv-bg)',
+          'bg-subtle': 'var(--wv-bg-subtle)',
+          surface: 'var(--wv-surface)',
+          'surface-hover': 'var(--wv-surface-hover)',
+          border: 'var(--wv-border)',
+          'border-hover': 'var(--wv-border-hover)',
+          foreground: 'var(--wv-foreground)',
+          muted: 'var(--wv-muted)',
+          subtle: 'var(--wv-subtle)',
+          'brand-blue': 'var(--wv-brand-blue)',
+          'brand-green': 'var(--wv-brand-green)',
+          'brand-violet': 'var(--wv-brand-violet)',
+        },
+        /* Legacy palette — still available */
         page: '#F8FAFC',
         card: '#FFFFFF',
         'card-border': '#E2E8F0',

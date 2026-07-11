@@ -18,8 +18,8 @@ import { MatchProfileModal } from "@/components/workvouch/MatchProfileModal";
 import type { MatchCardData } from "@/components/workvouch/MatchCard";
 import { BoostTrustScoreCard } from "@/components/workvouch/BoostTrustScoreCard";
 import { confirmCoworkerMatch, denyCoworkerMatch } from "@/lib/actions/confirmMatch";
-import { UserGroupIcon, InboxStackIcon, DocumentPlusIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
-import { cn } from "@/lib/utils";
+import { Users, Inbox, FilePlus, CheckCircle, XCircle } from "lucide-react";
+import { WvContainer, WvPageHeader, WvButton, WvCard, WvBadge } from "@/components/wv";
 
 type RefRequest = {
   id: string;
@@ -230,12 +230,11 @@ export default function DashboardClient({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <WvContainer size="narrow" className="py-8">
         {fromOnboarding && (
-          <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-800 dark:bg-blue-950/40">
-            <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">Guided setup — find coworkers</p>
-            <p className="text-xs text-blue-800/90 dark:text-blue-200/90 mt-1">
+          <WvCard glow className="mb-6 border-blue-500/30 bg-blue-500/10">
+            <p className="text-sm font-semibold text-blue-300">Guided setup — find coworkers</p>
+            <p className="text-xs text-blue-200/80 mt-1">
               Confirm matches at the same employer. When you have at least one match, continue to step 3.
             </p>
             <Link
@@ -244,32 +243,25 @@ export default function DashboardClient({
                   ? "/onboarding?celebrate=matches"
                   : "/onboarding"
               }
-              className="mt-2 inline-flex text-sm font-bold text-blue-700 hover:text-blue-800 dark:text-blue-300"
+              className="mt-2 inline-flex text-sm font-bold text-blue-400 hover:text-blue-300"
             >
               {trustOverview.coworkerMatches >= 1
                 ? "Continue setup — Nice, you're building your profile →"
                 : "Back to setup checklist →"}
             </Link>
-          </div>
+          </WvCard>
         )}
-        {/* Header */}
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-              Coworker Matches
-            </h1>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Your verified work reputation, powered by real coworkers
-            </p>
-          </div>
-          <Link
-            href="/my-jobs"
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-white px-4 py-2.5 text-sm font-medium text-white dark:text-slate-900 shadow-sm transition-colors hover:bg-slate-800 dark:hover:bg-slate-100"
-          >
-            <DocumentPlusIcon className="h-5 w-5" />
-            Add Job
-          </Link>
-        </div>
+        <WvPageHeader
+          eyebrow="Your network"
+          title="Coworker Matches"
+          description="Your verified work reputation, powered by real coworkers"
+          action={
+            <WvButton href="/my-jobs" size="sm">
+              <FilePlus className="h-4 w-4" aria-hidden />
+              Add Job
+            </WvButton>
+          }
+        />
 
         {/* Section 2: Trust Score Hero */}
         <section className="mb-8">
@@ -278,7 +270,7 @@ export default function DashboardClient({
 
         {/* Section 3: Your Coworkers (Matches) */}
         <section className="mb-8">
-          <h2 className="mb-4 text-xl font-semibold text-slate-900">Your Coworkers</h2>
+          <h2 className="mb-4 text-xl font-semibold text-wv-foreground">Your Coworkers</h2>
           {loading ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {[1, 2, 3].map((i) => (
@@ -286,42 +278,29 @@ export default function DashboardClient({
               ))}
             </div>
           ) : matches.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/50 px-8 py-16 text-center shadow-md animate-in fade-in duration-300">
-              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
-                <UserGroupIcon className="h-8 w-8 text-slate-500 dark:text-slate-400" />
+            <WvCard glow className="flex flex-col items-center justify-center px-8 py-16 text-center animate-in fade-in duration-300">
+              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-wv-bg ring-1 ring-wv-border">
+                <Users className="h-8 w-8 text-wv-muted" aria-hidden />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+              <h3 className="text-lg font-semibold text-wv-foreground">
                 Add a coworker to get your first vouch
               </h3>
-              <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
+              <p className="mt-2 max-w-sm text-sm text-wv-muted">
                 Add jobs with accurate dates—we use real overlap to suggest people you worked with, then you can request a vouch.
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <Link
-                  href="/jobs/new"
-                  className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
-                >
-                  Add a job
-                </Link>
-                <Link
-                  href="/my-jobs"
-                  className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-md transition-all hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                >
-                  Review my jobs
-                </Link>
+                <WvButton href="/jobs/new">Add a job</WvButton>
+                <WvButton href="/my-jobs" variant="secondary">Review my jobs</WvButton>
               </div>
-            </div>
+            </WvCard>
           ) : (
             <>
               <div className="mb-6 flex items-center gap-2">
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  ⭐ Trust Score:{" "}
-                  <strong>{Math.min(100, Math.max(0, trustOverview.trustScore ?? 0))}</strong>
+                <p className="text-sm font-medium text-wv-muted">
+                  Trust Score:{" "}
+                  <strong className="text-wv-foreground">{Math.min(100, Math.max(0, trustOverview.trustScore ?? 0))}</strong>
                   {!(trustOverview.trustScore != null && trustOverview.trustScore > 0) && (
-                    <span className="font-normal text-slate-500 dark:text-slate-400">
-                      {" "}
-                      — add verifications to grow it
-                    </span>
+                    <span className="font-normal text-wv-subtle"> — add verifications to grow it</span>
                   )}
                 </p>
               </div>
@@ -353,7 +332,7 @@ export default function DashboardClient({
                 ))}
               </div>
               {toast && (
-                <div className="fixed bottom-4 right-4 z-[60] rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-lg animate-in fade-in duration-200">
+                <div className="fixed bottom-4 right-4 z-[60] rounded-xl border border-wv-border bg-wv-surface px-4 py-3 text-sm font-medium text-wv-foreground shadow-xl animate-in fade-in duration-200">
                   {toast}
                 </div>
               )}
@@ -393,77 +372,79 @@ export default function DashboardClient({
 
         {/* Reference Requests */}
         <section className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">Reference Requests</h2>
+          <h2 className="mb-4 text-lg font-semibold text-wv-foreground">Reference Requests</h2>
           <div className="grid gap-6 sm:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/50 p-5 shadow-md">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                <InboxStackIcon className="h-5 w-5" />
+            <WvCard>
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-wv-foreground">
+                <Inbox className="h-5 w-5 text-blue-400" aria-hidden />
                 Incoming
               </h3>
               {incoming.length === 0 ? (
-                <p className="mt-3 text-sm text-slate-500">No pending requests</p>
+                <p className="mt-3 text-sm text-wv-muted">No pending requests</p>
               ) : (
                 <ul className="mt-3 space-y-2">
                   {incoming.slice(0, 5).map((req) => (
-                    <li key={req.id} className="flex items-center justify-between rounded-lg border border-slate-100 py-2 px-3">
-                      <span className="truncate text-sm text-slate-700">{profiles[req.requester_id]?.full_name ?? "Someone"}</span>
+                    <li key={req.id} className="flex items-center justify-between rounded-lg border border-wv-border bg-wv-bg/50 py-2 px-3">
+                      <span className="truncate text-sm text-wv-foreground">{profiles[req.requester_id]?.full_name ?? "Someone"}</span>
                       {req.status === "pending" ? (
                         <div className="flex gap-1">
                           <button
                             type="button"
                             onClick={() => updateRequest(req.id, "accepted")}
                             disabled={updatingId === req.id}
-                            className="rounded p-1.5 text-emerald-600 hover:bg-emerald-50"
+                            className="rounded p-1.5 text-emerald-400 hover:bg-emerald-500/10"
                             title="Accept"
                           >
-                            <CheckCircleIcon className="h-5 w-5" />
+                            <CheckCircle className="h-5 w-5" aria-hidden />
                           </button>
                           <button
                             type="button"
                             onClick={() => updateRequest(req.id, "rejected")}
                             disabled={updatingId === req.id}
-                            className="rounded p-1.5 text-red-600 hover:bg-red-50"
+                            className="rounded p-1.5 text-red-400 hover:bg-red-500/10"
                             title="Reject"
                           >
-                            <XCircleIcon className="h-5 w-5" />
+                            <XCircle className="h-5 w-5" aria-hidden />
                           </button>
                         </div>
                       ) : (
-                        <span className={cn("text-xs font-medium capitalize", req.status === "accepted" ? "text-emerald-600" : "text-slate-500")}>{req.status}</span>
+                        <WvBadge variant={req.status === "accepted" ? "success" : "default"} className="capitalize">
+                          {req.status}
+                        </WvBadge>
                       )}
                     </li>
                   ))}
                 </ul>
               )}
               {incoming.length > 5 && (
-                <Link href="/requests" className="mt-2 block text-sm font-medium text-slate-600 hover:text-slate-900">View all →</Link>
+                <Link href="/requests" className="mt-2 block text-sm font-medium text-blue-400 hover:text-blue-300">View all →</Link>
               )}
-            </div>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/50 p-5 shadow-md">
-              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Outgoing</h3>
+            </WvCard>
+            <WvCard>
+              <h3 className="text-sm font-semibold text-wv-foreground">Outgoing</h3>
               {outgoing.length === 0 ? (
-                <p className="mt-3 text-sm text-slate-500">No sent requests</p>
+                <p className="mt-3 text-sm text-wv-muted">No sent requests</p>
               ) : (
                 <ul className="mt-3 space-y-2">
                   {outgoing.slice(0, 5).map((req) => (
-                    <li key={req.id} className="flex items-center justify-between rounded-lg border border-slate-100 py-2 px-3">
-                      <span className="truncate text-sm text-slate-700">{profiles[req.receiver_id]?.full_name ?? "Coworker"}</span>
-                      <span className={cn(
-                        "rounded-full px-2 py-0.5 text-xs font-medium",
-                        req.status === "accepted" && "bg-emerald-100 text-emerald-800",
-                        req.status === "pending" && "bg-amber-100 text-amber-800",
-                        req.status === "rejected" && "bg-slate-100 text-slate-600"
-                      )}>
+                    <li key={req.id} className="flex items-center justify-between rounded-lg border border-wv-border bg-wv-bg/50 py-2 px-3">
+                      <span className="truncate text-sm text-wv-foreground">{profiles[req.receiver_id]?.full_name ?? "Coworker"}</span>
+                      <WvBadge
+                        variant={
+                          req.status === "accepted" ? "success" : req.status === "pending" ? "warning" : "default"
+                        }
+                        className="capitalize"
+                      >
                         {req.status}
-                      </span>
+                      </WvBadge>
                     </li>
                   ))}
                 </ul>
               )}
               {outgoing.length > 5 && (
-                <Link href="/requests" className="mt-2 block text-sm font-medium text-slate-600 hover:text-slate-900">View all →</Link>
+                <Link href="/requests" className="mt-2 block text-sm font-medium text-blue-400 hover:text-blue-300">View all →</Link>
               )}
-            </div>
+            </WvCard>
           </div>
         </section>
 
@@ -471,7 +452,6 @@ export default function DashboardClient({
         <section>
           <BoostTrustScoreCard />
         </section>
-      </div>
-    </div>
+    </WvContainer>
   );
 }

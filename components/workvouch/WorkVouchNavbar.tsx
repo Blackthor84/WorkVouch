@@ -3,10 +3,10 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bars3Icon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
+import { Menu, LogOut } from "lucide-react";
 import { NotificationBell } from "./NotificationBell";
 import { supabaseBrowser } from "@/lib/supabase/browser";
-import { cn } from "@/lib/utils";
+import { WvTrustScore } from "@/components/wv";
 
 function titleFromPath(pathname: string | null): string {
   if (!pathname) return "Dashboard";
@@ -75,51 +75,28 @@ export function WorkVouchNavbar({
   };
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-slate-200/90 bg-white/90 px-4 shadow-sm backdrop-blur-md sm:px-6",
-        "dark:border-slate-800 dark:bg-slate-950/90"
-      )}
-    >
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-wv-border bg-wv-bg/80 px-4 backdrop-blur-xl sm:px-6">
       <div className="flex min-w-0 flex-1 items-center gap-3">
         {onMenuClick && (
           <button
             type="button"
             onClick={onMenuClick}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 md:hidden dark:text-slate-300 dark:hover:bg-slate-800"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-wv-muted hover:bg-wv-surface hover:text-white md:hidden"
             aria-label="Open menu"
           >
-            <Bars3Icon className="h-5 w-5" />
+            <Menu className="h-5 w-5" />
           </button>
         )}
         <div className="min-w-0 md:pl-1">
-          <p className="truncate text-base font-semibold tracking-tight text-slate-900 dark:text-white sm:text-lg">
+          <p className="truncate text-base font-semibold tracking-tight text-wv-foreground sm:text-lg">
             {pageTitle}
           </p>
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2">
-        <Link
-          href="/dashboard"
-          className={cn(
-            "hidden items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-800 sm:inline-flex",
-            "dark:border-blue-900/50 dark:bg-blue-950/50 dark:text-blue-100"
-          )}
-          title="Trust score"
-        >
-          <span className="tabular-nums">{Math.min(100, Math.max(0, trustScore))}</span>
-          <span className="text-xs font-medium text-blue-600/80 dark:text-blue-300/90">Trust</span>
-        </Link>
-        <Link
-          href="/dashboard"
-          className={cn(
-            "inline-flex h-10 min-w-[2.5rem] items-center justify-center rounded-full border border-blue-100 bg-blue-50 px-2 text-sm font-semibold text-blue-800 sm:hidden",
-            "dark:border-blue-900/50 dark:bg-blue-950/50 dark:text-blue-100"
-          )}
-          title="Trust score"
-        >
-          <span className="tabular-nums">{Math.min(100, Math.max(0, trustScore))}</span>
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <Link href="/dashboard" className="hidden sm:block" title="Trust score">
+          <WvTrustScore score={trustScore} size="sm" showLabel={false} animate={false} />
         </Link>
         <NotificationBell unreadCount={unreadNotificationCount} variant="default" />
 
@@ -127,7 +104,7 @@ export function WorkVouchNavbar({
           <button
             type="button"
             onClick={() => setDropdownOpen((o) => !o)}
-            className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-slate-100 text-sm font-medium text-slate-700 ring-2 ring-white transition-all hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-950"
+            className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-wv-surface text-sm font-medium text-wv-foreground ring-1 ring-wv-border transition-all hover:ring-wv-border-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wv-brand-blue/50"
             aria-label="Profile menu"
             aria-expanded={dropdownOpen}
           >
@@ -140,12 +117,12 @@ export function WorkVouchNavbar({
 
           {dropdownOpen && (
             <div
-              className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-slate-200/80 bg-white py-2 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+              className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-wv-border bg-wv-bg-subtle py-2 shadow-2xl backdrop-blur-xl"
               role="menu"
             >
               {userEmail && (
-                <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
-                  <p className="truncate text-sm text-slate-500 dark:text-slate-400" title={userEmail}>
+                <div className="border-b border-wv-border px-4 py-3">
+                  <p className="truncate text-sm text-wv-muted" title={userEmail}>
                     {userEmail}
                   </p>
                 </div>
@@ -154,10 +131,10 @@ export function WorkVouchNavbar({
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:hover:bg-red-950/30"
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-400 transition-colors hover:bg-red-500/10"
                   role="menuitem"
                 >
-                  <ArrowRightOnRectangleIcon className="h-5 w-5 shrink-0" />
+                  <LogOut className="h-5 w-5 shrink-0" aria-hidden />
                   Logout
                 </button>
               </div>

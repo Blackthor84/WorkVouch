@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { EmployerHeader } from "@/components/employer/employer-header";
-import { EmployerSidebar } from "@/components/employer/employer-sidebar";
+import { EmployerPortalLayout } from "@/components/employer/EmployerPortalLayout";
 import { VerifiedWorkersDashboardClient } from "@/components/employer/VerifiedWorkersDashboardClient";
 import { getUser } from "@/lib/auth/getUser";
 import { createClient } from "@/lib/supabase/server";
@@ -64,14 +63,8 @@ export default async function EmployerVerifiedWorkersPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background dark:bg-[#0D1117]">
-      <EmployerSidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <EmployerHeader />
-        <main className="flex-1 overflow-x-hidden px-4 py-8 md:px-6 md:py-12">
-          <VerifiedWorkersDashboardClient planTier={planTier} userRole={resolvedRole} />
-        </main>
-      </div>
-    </div>
+    <EmployerPortalLayout wide>
+      <VerifiedWorkersDashboardClient planTier={planTier} userRole={resolvedRole} />
+    </EmployerPortalLayout>
   );
 }

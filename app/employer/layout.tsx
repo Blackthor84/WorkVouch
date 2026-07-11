@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
  */
 export default function EmployerLayout({ children }: { children: React.ReactNode }) {
   return (
-    <main className="flex-1 bg-background dark:bg-[#0D1117] min-h-screen relative">
+    <div className="min-h-screen bg-wv-bg text-wv-foreground">
       <EmployerGuidanceShell />
       <OnboardingProvider>{children}</OnboardingProvider>
-    </main>
+    </div>
   );
 }

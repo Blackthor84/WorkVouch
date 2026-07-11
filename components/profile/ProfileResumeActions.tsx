@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { DocumentArrowDownIcon, DocumentTextIcon, ArrowPathIcon, DocumentPlusIcon } from "@heroicons/react/24/outline";
+import { FileText, Download, RefreshCw, FilePlus } from "lucide-react";
+import { WvCard, WvButton } from "@/components/wv";
 
 type Props = {
   hasResume: boolean;
-  /** ISO timestamp from profiles.resume_uploaded_at */
   resumeUploadedAt?: string | null;
 };
 
@@ -72,75 +72,56 @@ export function ProfileResumeActions({ hasResume, resumeUploadedAt }: Props) {
 
   if (!hasResume) {
     return (
-      <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Resume</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+      <WvCard>
+        <h2 className="text-lg font-semibold text-wv-foreground mb-3">Resume</h2>
+        <p className="text-sm text-wv-muted mb-4">
           Upload a resume so employers can request access when viewing your profile.
         </p>
-        <Link
-          href="/upload-resume"
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-        >
-          <DocumentPlusIcon className="h-4 w-4" />
+        <WvButton href="/upload-resume" size="sm">
+          <FilePlus className="h-4 w-4" aria-hidden />
           Upload Resume
-        </Link>
-      </div>
+        </WvButton>
+      </WvCard>
     );
   }
 
   const uploadedLabel = formatUploadedAt(resumeUploadedAt);
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-6">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-        Resume
-      </h2>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+    <WvCard>
+      <h2 className="text-lg font-semibold text-wv-foreground mb-3">Resume</h2>
+      <p className="text-sm text-wv-muted mb-4">
         Your uploaded resume is stored securely and can be shared with employers when they request access.
         {uploadedLabel ? (
           <>
             {" "}
-            <span className="text-gray-600 dark:text-gray-300">Last updated {uploadedLabel}.</span>
+            <span className="text-wv-foreground">Last updated {uploadedLabel}.</span>
           </>
         ) : null}{" "}
         Use View or Download to open a time-limited secure link to your file.
       </p>
       {actionError ? (
         <div
-          className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-800 dark:text-red-300"
+          className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300"
           role="alert"
         >
           {actionError}
         </div>
       ) : null}
       <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={handleView}
-          disabled={loading !== null}
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
-        >
-          <DocumentTextIcon className="h-4 w-4" />
-          {loading === "view" ? "Opening…" : "👉 View Resume"}
-        </button>
-        <button
-          type="button"
-          onClick={handleDownload}
-          disabled={loading !== null}
-          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
-        >
-          <DocumentArrowDownIcon className="h-4 w-4" />
-          {loading === "download" ? "Preparing…" : "👉 Download Resume"}
-        </button>
-        <Link
-          href="/upload-resume"
-          onClick={() => setActionError(null)}
-          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-        >
-          <ArrowPathIcon className="h-4 w-4" />
-          👉 Replace Resume
-        </Link>
+        <WvButton type="button" size="sm" onClick={handleView} disabled={loading !== null}>
+          <FileText className="h-4 w-4" aria-hidden />
+          {loading === "view" ? "Opening…" : "View Resume"}
+        </WvButton>
+        <WvButton type="button" variant="secondary" size="sm" onClick={handleDownload} disabled={loading !== null}>
+          <Download className="h-4 w-4" aria-hidden />
+          {loading === "download" ? "Preparing…" : "Download Resume"}
+        </WvButton>
+        <WvButton href="/upload-resume" variant="outline" size="sm" onClick={() => setActionError(null)}>
+          <RefreshCw className="h-4 w-4" aria-hidden />
+          Replace Resume
+        </WvButton>
       </div>
-    </div>
+    </WvCard>
   );
 }

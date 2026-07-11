@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { getUserSubscription } from "@/lib/actions/subscriptions";
-import { Card } from "../ui/card";
-import { Button } from "../ui/button";
+import { WvCard, WvButton } from "@/components/wv";
 import { openBillingPortal } from "@/lib/utils/stripe-helpers";
-import { CreditCardIcon } from "@heroicons/react/24/outline";
+import { CreditCard } from "lucide-react";
 import { usePreview } from "@/lib/preview-context";
 
 export function EmployerBilling() {
@@ -42,11 +41,9 @@ export function EmployerBilling() {
 
   if (loading) {
     return (
-      <Card className="text-center">
-        <p className="text-grey-medium dark:text-gray-400">
-          Loading subscription...
-        </p>
-      </Card>
+      <WvCard className="text-center">
+        <p className="text-wv-muted">Loading subscription...</p>
+      </WvCard>
     );
   }
 
@@ -62,95 +59,67 @@ export function EmployerBilling() {
   return (
     <div className="space-y-6">
       {simulateExpired && (
-        <div className="rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20 p-4 text-red-800 dark:text-red-200 text-sm">
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-300 text-sm">
           <strong>Demo:</strong> Simulating expired subscription. Display only — no API changes.
         </div>
       )}
       {trialUrgency && !simulateExpired && (
-        <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4 text-amber-800 dark:text-amber-200 text-sm">
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-200 text-sm">
           <strong>Trial ending soon</strong> — Your trial ends in less than 3 days. (Demo)
         </div>
       )}
-      <div>
-        <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200">
-          Billing & Subscription
-        </h2>
-        <p className="text-sm text-grey-medium dark:text-gray-400 mt-1">
-          Manage your subscription and billing information
-        </p>
-      </div>
 
-      <Card className="p-6">
-        <div className="flex items-start justify-between mb-4">
+      <WvCard glow>
+        <div className="flex items-start justify-between mb-4 gap-4 flex-wrap">
           <div>
-            <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-1">
+            <h3 className="text-lg font-semibold text-wv-foreground mb-1">
               Current Plan:{" "}
-              {subscription?.tier
-                ? subscription.tier.replace("emp_", "").toUpperCase()
-                : "None"}
+              {subscription?.tier ? subscription.tier.replace("emp_", "").toUpperCase() : "None"}
             </h3>
-            <p className="text-sm text-grey-medium dark:text-gray-400">
+            <p className="text-sm text-wv-muted">
               Status:{" "}
-              <span
-                className={`font-semibold capitalize ${
-                  isActive
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-red-600 dark:text-red-400"
-                }`}
-              >
+              <span className={`font-semibold capitalize ${isActive ? "text-emerald-400" : "text-red-400"}`}>
                 {statusLabel}
               </span>
             </p>
           </div>
-          {!isPro && <Button href="/pricing">Upgrade to Pro</Button>}
+          {!isPro && <WvButton href="/pricing">Upgrade to Pro</WvButton>}
         </div>
 
         {isPro && (
           <div className="space-y-2 text-sm mb-4">
-            <div className="flex justify-between">
-              <span className="text-grey-medium dark:text-gray-400">
-                Features:
-              </span>
-              <span className="text-grey-dark dark:text-gray-200 font-medium">
+            <div className="flex justify-between gap-4">
+              <span className="text-wv-muted">Features:</span>
+              <span className="text-wv-foreground font-medium text-right">
                 Unlimited profiles, references, messaging, job boosts
               </span>
             </div>
             {subscription?.current_period_end && (
-              <div className="flex justify-between">
-                <span className="text-grey-medium dark:text-gray-400">
-                  Next billing date:
-                </span>
-                <span className="text-grey-dark dark:text-gray-200 font-medium">
-                  {new Date(
-                    subscription.current_period_end,
-                  ).toLocaleDateString()}
+              <div className="flex justify-between gap-4">
+                <span className="text-wv-muted">Next billing date:</span>
+                <span className="text-wv-foreground font-medium">
+                  {new Date(subscription.current_period_end).toLocaleDateString()}
                 </span>
               </div>
             )}
           </div>
         )}
 
-        <Button
-          variant="secondary"
-          onClick={handleManageBilling}
-          className="w-full"
-        >
-          <CreditCardIcon className="h-5 w-5 mr-2" />
+        <WvButton variant="secondary" onClick={handleManageBilling} className="w-full">
+          <CreditCard className="h-4 w-4" aria-hidden />
           Manage Subscription
-        </Button>
-      </Card>
+        </WvButton>
+      </WvCard>
 
       {!isPro && (
-        <Card>
-          <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-2">
-            Upgrade to Employer Pro
-          </h3>
-          <p className="text-sm text-grey-medium dark:text-gray-400 mb-4">
+        <WvCard>
+          <h3 className="text-lg font-semibold text-wv-foreground mb-2">Upgrade to Employer Pro</h3>
+          <p className="text-sm text-wv-muted mb-4">
             Get unlimited access to candidate profiles, references, messaging,
             and job posting boosts for $199/month.
           </p>
-          <Button href="/pricing">View Plans</Button>
-        </Card>
+          <WvButton href="/pricing">View Plans</WvButton>
+        </WvCard>
       )}
     </div>
   );

@@ -7,18 +7,14 @@ import { getTrustForProfile, getUserReferences } from "@/lib/actions/referenceFe
 import { getCoworkerReferencesForProfile } from "@/lib/actions/coworkerReferences";
 import { getJobsWithVerifiedCoworkers } from "@/lib/actions/getJobsWithVerifiedCoworkers";
 import { admin } from "@/lib/supabase-admin";
-import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
+import { Star } from "lucide-react";
 import { JobVerificationSection } from "@/components/profile/JobVerificationSection";
 import { ProfileResumeActions } from "@/components/profile/ProfileResumeActions";
 import { ProfileFetchDebug } from "@/components/profile/ProfileFetchDebug";
 import { ProfileDisplayName } from "@/components/profile/ProfileDisplayName";
 import { ensureProfileRowForUser } from "@/lib/profile/ensureUserProfile";
+import { WvContainer, WvPageHeader, WvCard, WvButton, WvTrustScore } from "@/components/wv";
 
-/**
- * Profile page. Authentication is enforced by (app)/layout.tsx — redirect if no user.
- * Displays professional profile; no internal identifiers (e.g. User ID).
- * Name always comes from `profiles.full_name` (never auth display name).
- */
 export default async function ProfilePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -53,8 +49,7 @@ export default async function ProfilePage() {
 
   const row = profileRow as ProfileRow | null;
   const profileIdMatches = !!row?.id && row.id === user.id;
-  const profile =
-    !profileError && profileIdMatches ? row : null;
+  const profile = !profileError && profileIdMatches ? row : null;
 
   if (profileError) {
     console.warn("[profile] profiles lookup:", profileError.message, profileError);
@@ -64,12 +59,6 @@ export default async function ProfilePage() {
       userId: user.id,
     });
   }
-  console.info("[profile page]", {
-    userId: user.id,
-    profilesId: row?.id ?? null,
-    full_name: profile?.full_name ?? null,
-    error: profileError?.message ?? null,
-  });
 
   const [confidenceScore, verifiedJobCount, trustForProfile, references, coworkerRefs, jobsWithCoworkers] =
     await Promise.all([
@@ -127,17 +116,24 @@ export default async function ProfilePage() {
     ? `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(publicProfileUrl)}`
     : null;
 
-  return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        Profile
-      </h1>
+  const trustScoreDisplay = trustForProfile.score > 0 ? (trustForProfile.score / 20).toFixed(1) : null;
+  const trustScorePct = trustForProfile.score > 0 ? Math.min(100, Math.round(trustForProfile.score / 5)) : 0;
 
-      <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-6 space-y-4">
+  return (
+    <WvContainer size="narrow" className="py-8">
+      <WvPageHeader
+        eyebrow="Your profile"
+        title="Profile"
+        action={
+          <WvButton href="/profile/edit" size="sm">
+            Edit Profile
+          </WvButton>
+        }
+      />
+
+      <WvCard glow className="space-y-4">
         <div>
-          <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-            Full Name
-          </h2>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-wv-subtle">Full Name</h2>
           <div className="mt-1">
             <ProfileDisplayName />
           </div>
@@ -151,31 +147,22 @@ export default async function ProfilePage() {
 
         {headline && (
           <div>
-            <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              Headline
-            </h2>
-            <p className="mt-1 text-gray-900 dark:text-white">{headline}</p>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-wv-subtle">Headline</h2>
+            <p className="mt-1 text-wv-foreground">{headline}</p>
           </div>
         )}
 
         {location && (
           <div>
-            <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              Location
-            </h2>
-            <p className="mt-1 text-gray-900 dark:text-white">{location}</p>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-wv-subtle">Location</h2>
+            <p className="mt-1 text-wv-foreground">{location}</p>
           </div>
         )}
 
         <div>
-          <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-            Email
-          </h2>
-          <p className="mt-1 text-gray-900 dark:text-white">
-            <a
-              href={`mailto:${email}`}
-              className="text-blue-600 dark:text-blue-400 hover:underline"
-            >
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-wv-subtle">Email</h2>
+          <p className="mt-1">
+            <a href={`mailto:${email}`} className="text-blue-400 hover:text-blue-300 hover:underline">
               {email}
             </a>
           </p>
@@ -183,44 +170,29 @@ export default async function ProfilePage() {
 
         {bio && (
           <div>
-            <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              Bio
-            </h2>
-            <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-              {bio}
-            </p>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-wv-subtle">Bio</h2>
+            <p className="mt-1 text-wv-muted whitespace-pre-wrap">{bio}</p>
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-wv-border">
           <div>
-            <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              WorkVouch Confidence Score
-            </h2>
-            <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-wv-subtle">Confidence Score</h2>
+            <p className="mt-1 text-2xl font-bold text-wv-foreground tabular-nums">
               {confidenceScore ?? "—"}
             </p>
           </div>
           <div>
-            <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              Verified Jobs
-            </h2>
-            <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-              {verifiedJobCount}
-            </p>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-wv-subtle">Verified Jobs</h2>
+            <p className="mt-1 text-2xl font-bold text-wv-foreground tabular-nums">{verifiedJobCount}</p>
           </div>
           <div>
-            <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              Verified Coworkers
-            </h2>
-            <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-              {verifiedCoworkerCount}
-            </p>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-wv-subtle">Verified Coworkers</h2>
+            <p className="mt-1 text-2xl font-bold text-wv-foreground tabular-nums">{verifiedCoworkerCount}</p>
           </div>
         </div>
-      </div>
+      </WvCard>
 
-      {/* Resume: View / Download / Replace */}
       <div className="mt-8">
         <ProfileResumeActions
           hasResume={!!profile?.resume_url}
@@ -228,50 +200,42 @@ export default async function ProfilePage() {
         />
       </div>
 
-      {/* Work history + verified coworkers per job */}
       <div className="mt-8">
         <JobVerificationSection jobsWithCoworkers={jobsWithCoworkers} />
       </div>
 
-      {/* Trust Score (BIG) + Recent Reviews */}
-      <div className="mt-8 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Trust & References
-        </h2>
-        <div className="flex flex-wrap items-baseline gap-8 mb-8">
+      <WvCard glow className="mt-8">
+        <h2 className="text-lg font-semibold text-wv-foreground mb-6">Trust & References</h2>
+        <div className="flex flex-wrap items-center gap-8 mb-8">
+          <WvTrustScore score={trustScorePct} size="md" />
           <div>
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Trust Score</p>
-            <p className="text-5xl sm:text-6xl font-bold text-gray-900 dark:text-white mt-0.5 tabular-nums">
-              {trustForProfile.score > 0 ? (trustForProfile.score / 20).toFixed(1) : "—"}
+            <p className="text-sm font-medium text-wv-muted">Trust Score</p>
+            <p className="text-4xl font-bold text-wv-foreground mt-0.5 tabular-nums">
+              {trustScoreDisplay ?? "—"}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">out of 5 (from reviews)</p>
+            <p className="text-xs text-wv-subtle">out of 5 (from reviews)</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Reviews</p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-0.5">
+            <p className="text-sm font-medium text-wv-muted">Total Reviews</p>
+            <p className="text-3xl font-bold text-wv-foreground mt-0.5 tabular-nums">
               {trustForProfile.totalReferences}
             </p>
           </div>
         </div>
-        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">Recent Reviews</h3>
+        <h3 className="text-base font-semibold text-wv-foreground mb-3">Recent Reviews</h3>
         {recentReviews.length > 0 ? (
           <ul className="space-y-4">
             {recentReviews.map((ref) => (
-              <li
-                key={ref.id}
-                className="rounded-lg border border-gray-200 dark:border-gray-600 p-4 bg-gray-50/50 dark:bg-gray-800/30"
-              >
-                <div className="flex items-center gap-0.5 text-amber-600 dark:text-amber-500 font-medium">
+              <li key={ref.id} className="rounded-xl border border-wv-border bg-wv-bg/50 p-4">
+                <div className="flex items-center gap-0.5 text-amber-400 font-medium">
                   {Array.from({ length: Math.min(5, Math.max(1, ref.rating)) }, (_, i) => (
-                    <StarSolid key={i} className="h-5 w-5" />
+                    <Star key={i} className="h-5 w-5 fill-current" aria-hidden />
                   ))}
                 </div>
                 {ref.text && (
-                  <p className="mt-2 text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap">
-                    &ldquo;{ref.text}&rdquo;
-                  </p>
+                  <p className="mt-2 text-wv-muted text-sm whitespace-pre-wrap">&ldquo;{ref.text}&rdquo;</p>
                 )}
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mt-1 text-xs text-wv-subtle">
                   — {ref.authorName ?? "A coworker"} · {new Date(ref.created_at).toLocaleDateString()}
                 </p>
               </li>
@@ -279,40 +243,24 @@ export default async function ProfilePage() {
           </ul>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Land your first review with a vouch
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm font-semibold text-wv-foreground">Land your first review with a vouch</p>
+            <p className="text-sm text-wv-muted">
               After a coworker accepts your vouch request, they can leave a review from Coworker Matches.
             </p>
-            <Link
-              href="/coworker-matches"
-              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition"
-            >
+            <WvButton href="/coworker-matches" size="sm">
               Open coworker matches
-            </Link>
+            </WvButton>
           </div>
         )}
-      </div>
+      </WvCard>
 
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <Link
-          href="/profile/edit"
-          className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition"
-        >
-          Edit Profile
-        </Link>
-        {linkedInShareUrl && (
-          <a
-            href={linkedInShareUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-          >
+      {linkedInShareUrl && (
+        <div className="mt-6">
+          <WvButton href={linkedInShareUrl} variant="secondary" size="sm">
             Share on LinkedIn
-          </a>
-        )}
-      </div>
-    </div>
+          </WvButton>
+        </div>
+      )}
+    </WvContainer>
   );
 }

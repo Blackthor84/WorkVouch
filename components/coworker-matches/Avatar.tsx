@@ -33,7 +33,7 @@ export function Avatar({ src, name, size = "md", className }: Props) {
         src={src}
         alt=""
         className={cn(
-          "rounded-full object-cover bg-gray-200 shrink-0",
+          "rounded-full object-cover bg-wv-surface ring-1 ring-wv-border shrink-0",
           sizeClass,
           className
         )}
@@ -44,7 +44,7 @@ export function Avatar({ src, name, size = "md", className }: Props) {
   return (
     <div
       className={cn(
-        "rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center shrink-0 font-medium text-gray-600 dark:text-gray-300",
+        "rounded-full bg-gradient-to-br from-blue-500/20 to-violet-600/20 flex items-center justify-center shrink-0 font-semibold text-blue-300 ring-1 ring-wv-border",
         sizeClass,
         className
       )}

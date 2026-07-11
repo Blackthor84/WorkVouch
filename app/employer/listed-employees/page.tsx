@@ -3,6 +3,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { hasRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ListedEmployeesPageClient } from "./ListedEmployeesPageClient";
+import { EmployerPortalLayout } from "@/components/employer/EmployerPortalLayout";
+import { WvPageHeader } from "@/components/wv";
 
 export const dynamic = "force-dynamic";
 
@@ -17,14 +19,18 @@ export default async function ListedEmployeesPage() {
   if (!account) redirect("/employer/dashboard");
 
   return (
-    <div className="min-h-screen bg-background dark:bg-[#0D1117] p-6">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-2xl font-bold text-grey-dark dark:text-gray-200 mb-2">Employees Who Listed You</h1>
-        <p className="text-grey-medium dark:text-gray-400 mb-6 text-sm">
-          People who added your company to their employment history. View, confirm, or request verification.
-        </p>
-        <ListedEmployeesPageClient employerId={(account as { id: string }).id} planTier={(account as { plan_tier?: string }).plan_tier ?? "free"} />
+    <EmployerPortalLayout>
+      <WvPageHeader
+        eyebrow="Workforce"
+        title="Employees Who Listed You"
+        description="People who added your company to their employment history. View, confirm, or request verification."
+      />
+      <div className="mt-8 max-w-5xl">
+        <ListedEmployeesPageClient
+          employerId={(account as { id: string }).id}
+          planTier={(account as { plan_tier?: string }).plan_tier ?? "free"}
+        />
       </div>
-    </div>
+    </EmployerPortalLayout>
   );
 }

@@ -1,26 +1,14 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { WvBadge } from "@/components/wv";
 
 type Status = "pending" | "accepted" | "confirmed" | "rejected";
 
-const statusConfig: Record<Status, { label: string; className: string }> = {
-  pending: {
-    label: "Pending",
-    className: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
-  },
-  accepted: {
-    label: "Accepted",
-    className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
-  },
-  confirmed: {
-    label: "Accepted",
-    className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
-  },
-  rejected: {
-    label: "Rejected",
-    className: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
-  },
+const statusConfig: Record<Status, { label: string; variant: "warning" | "success" | "danger" | "default" }> = {
+  pending: { label: "Pending", variant: "warning" },
+  accepted: { label: "Accepted", variant: "success" },
+  confirmed: { label: "Accepted", variant: "success" },
+  rejected: { label: "Rejected", variant: "danger" },
 };
 
 type Props = {
@@ -33,14 +21,8 @@ export function StatusBadge({ status, className }: Props) {
   const config = statusConfig[normalized] ?? statusConfig.pending;
 
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-        config.className,
-        className
-      )}
-    >
+    <WvBadge variant={config.variant} className={className}>
       {config.label}
-    </span>
+    </WvBadge>
   );
 }

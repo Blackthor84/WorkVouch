@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getAppMode } from "@/lib/app-mode";
 import { saveEmployer } from "@/lib/data/adapter";
 import { INDUSTRIES } from "@/lib/constants/industries";
+import { WvShell, WvCard, WvButton, WvInput } from "@/components/wv";
+
+const selectClass =
+  "w-full rounded-xl border border-wv-border bg-wv-surface px-4 py-3 text-sm text-wv-foreground transition-colors focus:border-wv-brand-blue/50 focus:outline-none focus:ring-2 focus:ring-wv-brand-blue/30";
 
 export default function SignupEmployerClient() {
   const router = useRouter();
@@ -64,81 +67,80 @@ export default function SignupEmployerClient() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 px-4">
-      <Link href="/" className="mb-6">
-        <Image
-          src="/images/workvouch-logo.png.png"
-          alt="WorkVouch"
-          width={180}
-          height={48}
-          className="h-10 w-auto object-contain"
-          priority
-          style={{ objectFit: "contain" }}
-        />
-      </Link>
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200 dark:border-gray-700">
-        <h1 className="text-2xl font-bold mb-2 text-center text-gray-900 dark:text-white">
-          Employer signup (sandbox)
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 text-sm text-center mb-6">
-          Same flow as production, data stored in sandbox. No Stripe, no real auth.
-        </p>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Industry</label>
-            <select
-              value={industry}
-              onChange={(e) => setIndustry(e.target.value)}
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            >
-              <option value="">Select</option>
-              {INDUSTRIES.map((ind) => (
-                <option key={ind} value={ind}>{ind}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Plan tier</label>
-            <select
-              value={planTier}
-              onChange={(e) => setPlanTier(e.target.value)}
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              <option value="starter">Starter</option>
-              <option value="pro">Pro</option>
-              <option value="team">Team</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company name (optional)</label>
-            <input
+    <WvShell>
+      <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
+        <Link href="/" className="mb-8 flex items-center gap-2.5 rounded-lg" aria-label="WorkVouch home">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 text-sm font-bold text-white shadow-lg">
+            WV
+          </span>
+          <span className="text-lg font-bold text-wv-foreground">WorkVouch</span>
+        </Link>
+
+        <WvCard glow className="w-full max-w-md">
+          <h1 className="text-2xl font-bold text-center text-wv-foreground">
+            Employer signup (sandbox)
+          </h1>
+          <p className="text-wv-muted text-sm text-center mt-2 mb-6">
+            Same flow as production, data stored in sandbox. No Stripe, no real auth.
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="employer-industry" className="mb-1.5 block text-sm font-medium text-wv-muted">
+                Industry
+              </label>
+              <select
+                id="employer-industry"
+                value={industry}
+                onChange={(e) => setIndustry(e.target.value)}
+                className={selectClass}
+                required
+              >
+                <option value="">Select</option>
+                {INDUSTRIES.map((ind) => (
+                  <option key={ind} value={ind}>{ind}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="employer-plan" className="mb-1.5 block text-sm font-medium text-wv-muted">
+                Plan tier
+              </label>
+              <select
+                id="employer-plan"
+                value={planTier}
+                onChange={(e) => setPlanTier(e.target.value)}
+                className={selectClass}
+              >
+                <option value="starter">Starter</option>
+                <option value="pro">Pro</option>
+                <option value="team">Team</option>
+              </select>
+            </div>
+            <WvInput
+              label="Company name (optional)"
               type="text"
               placeholder="Company name"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
-          </div>
-          {error && (
-            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm border border-red-200 dark:border-red-800">
-              {error}
-            </div>
-          )}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? "Creating…" : "Continue to dashboard"}
-          </button>
-        </form>
-        <p className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
-          <Link href="/admin/playground" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-            ← Back to Playground
-          </Link>
-        </p>
+            {error && (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                {error}
+              </div>
+            )}
+            <WvButton type="submit" disabled={loading} className="w-full" size="lg">
+              {loading ? "Creating…" : "Continue to dashboard"}
+            </WvButton>
+          </form>
+
+          <p className="text-center mt-6 text-sm text-wv-muted">
+            <Link href="/admin/playground" className="text-blue-400 hover:text-blue-300 font-medium">
+              ← Back to Playground
+            </Link>
+          </p>
+        </WvCard>
       </div>
-    </div>
+    </WvShell>
   );
 }
