@@ -3,9 +3,9 @@ import { ArrowRightIcon } from "@heroicons/react/24/outline";
 
 export function DashboardOnboardingCard() {
   const steps = [
-    { n: 1, label: "Add job", href: "/jobs/new" },
-    { n: 2, label: "Find coworkers", href: "/coworker-matches" },
-    { n: 3, label: "Get verified", href: "/references/request" },
+    { n: 1, label: "Add job", href: "/onboarding" },
+    { n: 2, label: "Find coworkers", href: "/onboarding" },
+    { n: 3, label: "Get verified", href: "/onboarding" },
   ];
 
   return (

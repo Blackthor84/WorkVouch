@@ -2,11 +2,9 @@ import { Suspense } from "react";
 import { getUser } from "@/lib/auth/getUser";
 import { getDashboardHomeData } from "@/lib/actions/dashboard/getDashboardHome";
 import { DashboardOnboardingCard } from "@/components/dashboard/DashboardOnboardingCard";
-import { OnboardingIncompleteBanner } from "@/components/dashboard/OnboardingIncompleteBanner";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 import { DashboardTrustSeenMark } from "@/components/dashboard/DashboardTrustSeenMark";
 import { InviteSentFeedback } from "@/components/dashboard/InviteSentFeedback";
-import { SmartOnboardingNudges } from "@/components/dashboard/SmartOnboardingNudges";
 import { DashboardReputationHero } from "@/components/dashboard/DashboardReputationHero";
 import { DashboardStatsGrid } from "@/components/dashboard/DashboardStatsGrid";
 import { DashboardMatchesSection } from "@/components/dashboard/DashboardMatchesSection";
@@ -38,28 +36,18 @@ export default async function UserDashboardPage() {
       <DashboardTrustSeenMark />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
         <BadHireCostFromCalculatorBanner />
-        <OnboardingIncompleteBanner show={showOnboardingBanner} />
 
         {showOnboardingBanner && (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <OnboardingChecklist
-              jobsCount={data.jobsCount}
-              matchesCount={data.matchesCount}
-              referenceCount={data.referenceCount}
-              profileBasicsComplete={data.profileBasicsComplete}
-              verifiedByCoworkers={data.verifiedByCoworkers}
-            />
-            <SmartOnboardingNudges
-              jobsCount={data.jobsCount}
-              referenceCount={data.referenceCount}
-              verifiedByCoworkers={data.verifiedByCoworkers}
-              matchesCount={data.matchesCount}
-              profileStrengthPct={data.profileStrengthPct}
-            />
-          </div>
+          <OnboardingChecklist
+            jobsCount={data.jobsCount}
+            matchesCount={data.matchesCount}
+            referenceCount={data.referenceCount}
+            profileBasicsComplete={data.profileBasicsComplete}
+            verifiedByCoworkers={data.verifiedByCoworkers}
+          />
         )}
 
-        {data.isNewUser && <DashboardOnboardingCard />}
+        {data.isNewUser && showOnboardingBanner && <DashboardOnboardingCard />}
 
         <div className="space-y-2">
           <DashboardReputationHero

@@ -124,9 +124,27 @@ export const verticalOnboarding: Record<string, VerticalOnboardingConfig> = {
 };
 
 /** Get onboarding config for an industry. Returns null if industry has no vertical config. */
+export function normalizeIndustryKey(industry: string | null | undefined): string | null {
+  if (!industry?.trim()) return null;
+  const r = industry.trim().toLowerCase();
+  const aliases: Record<string, string> = {
+    warehousing: "Warehouse and Logistics",
+    warehouse: "Warehouse and Logistics",
+    healthcare: "Healthcare",
+    trades: "Construction",
+    construction: "Construction",
+    hospitality: "Hospitality",
+    security: "Security",
+    retail: "Retail",
+  };
+  if (aliases[r]) return aliases[r];
+  return industry.trim();
+}
+
 export function getVerticalOnboardingConfig(
   industry: string | null | undefined
 ): VerticalOnboardingConfig | null {
-  if (!industry) return null;
-  return verticalOnboarding[industry] ?? null;
+  const normalized = normalizeIndustryKey(industry);
+  if (!normalized) return null;
+  return verticalOnboarding[normalized] ?? null;
 }

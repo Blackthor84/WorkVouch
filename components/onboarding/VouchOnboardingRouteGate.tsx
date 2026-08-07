@@ -3,10 +3,10 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-const ALLOWED_PREFIXES = ["/onboarding"];
+const ALLOWED_PATHS = ["/onboarding"];
 
 /**
- * Keeps employees inside the vouch onboarding flow until server marks loop complete.
+ * Keeps employees inside the canonical onboarding wizard until the vouch loop is complete.
  */
 export function VouchOnboardingRouteGate({
   needsOnboarding,
@@ -21,13 +21,13 @@ export function VouchOnboardingRouteGate({
   useEffect(() => {
     if (!needsOnboarding) return;
     if (!pathname) return;
-    const ok = ALLOWED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+    const ok = ALLOWED_PATHS.includes(pathname);
     if (!ok) {
       router.replace("/onboarding");
     }
   }, [needsOnboarding, pathname, router]);
 
-  if (needsOnboarding && pathname && !ALLOWED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+  if (needsOnboarding && pathname && !ALLOWED_PATHS.includes(pathname)) {
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center gap-2 px-4 text-slate-500 text-sm">
         <p>Opening onboarding…</p>

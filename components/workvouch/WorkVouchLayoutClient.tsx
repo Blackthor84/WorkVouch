@@ -32,8 +32,7 @@ export function WorkVouchLayoutClient({
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
-  const onboardingMinimal =
-    needsVouchOnboarding && (pathname === "/onboarding" || pathname?.startsWith("/onboarding/"));
+  const onboardingMinimal = needsVouchOnboarding && pathname === "/onboarding";
 
   if (onboardingMinimal) {
     return (

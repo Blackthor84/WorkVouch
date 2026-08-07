@@ -55,7 +55,7 @@ export function getEliteChecklistItems(input: EliteChecklistInput): EliteCheckli
       id: "job",
       label: "Add your first job",
       done: jobDone,
-      href: "/jobs/new?from=onboarding",
+      href: "/onboarding",
     },
     {
       id: "profile",
@@ -67,7 +67,7 @@ export function getEliteChecklistItems(input: EliteChecklistInput): EliteCheckli
       id: "verification",
       label: "Get 1 coworker verification",
       done: verificationDone,
-      href: "/coworker-matches?from=onboarding",
+      href: "/onboarding",
     },
     {
       id: "trust",

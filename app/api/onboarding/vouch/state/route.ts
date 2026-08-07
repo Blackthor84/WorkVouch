@@ -3,6 +3,7 @@ import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
 import { onboardingReminderRows } from "@/lib/onboarding/workerOnboardingNudges";
 import { getStatus, type VouchStatusSlug } from "@/lib/onboarding/vouchOnboarding";
+import { isGuidedProfileComplete } from "@/lib/onboarding/guidedOnboarding";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,7 +35,9 @@ export async function GET() {
 
     const { data: profile } = await admin
       .from("profiles")
-      .select("worker_onboarding_loop_completed_at, created_at, vouch_count, vouch_tier")
+      .select(
+        "worker_onboarding_loop_completed_at, created_at, vouch_count, vouch_tier, industry, professional_summary, vertical_metadata"
+      )
       .eq("id", user.id)
       .maybeSingle();
 
@@ -44,6 +47,9 @@ export async function GET() {
       vouch_count?: number;
       vouch_tier?: number;
       vouch_status?: string | null;
+      industry?: string | null;
+      professional_summary?: string | null;
+      vertical_metadata?: Record<string, unknown> | null;
     } | null;
 
     const completed = Boolean(prof?.worker_onboarding_loop_completed_at);
@@ -86,6 +92,34 @@ export async function GET() {
       .select("id", { count: "exact", head: true })
       .eq("sender_id", user.id);
 
+    const { count: matchesCount } = await admin
+      .from("coworker_matches")
+      .select("id", { count: "exact", head: true })
+      .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+
+    const { count: jobCount } = await admin
+      .from("jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+
+    const { data: trustRow } = await admin
+      .from("trust_scores")
+      .select("reference_count")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const referenceCount = Number((trustRow as { reference_count?: number } | null)?.reference_count ?? 0);
+    const vouchCount = Number(prof?.vouch_count ?? 0);
+    const vouchStatus: VouchStatusSlug = getStatus(vouchCount);
+
+    const guidedComplete = isGuidedProfileComplete({
+      jobsCount: jobCount ?? 0,
+      matchesCount: matchesCount ?? 0,
+      referenceCount,
+    });
+    const bioLen = prof?.professional_summary?.trim().length ?? 0;
+    const profileBasicsComplete = bioLen >= 20;
+
     const invitesSentCount = invitesCount ?? 0;
     const hasJob = Boolean(job?.id);
     const contactsCount = contacts.length;
@@ -125,6 +159,14 @@ export async function GET() {
       completed,
       canComplete,
       sendStepDone,
+      industry: prof?.industry ?? null,
+      professionalSummary: prof?.professional_summary ?? "",
+      verticalMetadata: prof?.vertical_metadata ?? {},
+      profileBasicsComplete,
+      guidedComplete,
+      jobsCount: jobCount ?? 0,
+      matchesCount: matchesCount ?? 0,
+      referenceCount,
     });
   } catch (e) {
     console.error("[onboarding/vouch/state]", e);

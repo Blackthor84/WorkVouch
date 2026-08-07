@@ -96,8 +96,9 @@ export async function GET() {
     const profileComplete = Boolean(profileRow?.full_name?.trim() && profileRow?.industry?.trim());
     const hasJobs = (jobsCount ?? 0) > 0;
 
-    const showOnboarding = !profileComplete || !hasJobs;
-    const baseData = { showOnboarding, flow: "worker" as const, steps: WORKER_STEPS, completed: false };
+    /** Employee onboarding uses /onboarding wizard — no overlay for workers. */
+    const showOnboarding = false;
+    const baseData = { showOnboarding, flow: "worker" as const, steps: [], completed: hasJobs && profileComplete };
     const authUser = await getUser();
     return NextResponse.json(applyScenario(baseData, (authUser as any)?.user_metadata?.impersonation));
   } catch (e) {
