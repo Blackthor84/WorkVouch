@@ -1,7 +1,7 @@
 /**
  * Single exclusive app role for routing and UI.
- * Allowed DB values: employee | employer | super_admin | NULL (pending role choice).
- * Legacy values (admin, superadmin, user) normalize to employee (except superadmin → super_admin for migration).
+ * Canonical DB values: employee | employer | admin | NULL (pending).
+ * Legacy aliases normalize internally — never written to DB or returned from APIs.
  */
 
 import type { ResolvedAppRole } from "@/lib/auth/roleTypes";
@@ -10,6 +10,9 @@ export type { ResolvedAppRole } from "@/lib/auth/roleTypes";
 
 /** Pass only `profiles.role` — never auth metadata (avoids bypassing /choose-role). */
 type UserLike = { role?: string | null } | null;
+
+const EMPLOYEE_ALIASES = new Set(["user", "worker", "candidate", "member"]);
+const ADMIN_ALIASES = new Set(["super_admin", "superadmin"]);
 
 /**
  * Resolves one canonical role. NULL/empty role → pending (must complete /choose-role).
@@ -21,20 +24,15 @@ export function resolveUserRole(user: UserLike): ResolvedAppRole {
     return "pending";
   }
 
-  if (r === "super_admin" || r === "superadmin") {
-    return "super_admin";
+  if (r === "admin" || ADMIN_ALIASES.has(r)) {
+    return "admin";
   }
 
   if (r === "employer") {
     return "employer";
   }
 
-  if (r === "employee") {
-    return "employee";
-  }
-
-  /* Legacy / invalid → employee (strict product roles only) */
-  if (r === "admin" || r === "user" || r === "worker") {
+  if (r === "employee" || EMPLOYEE_ALIASES.has(r)) {
     return "employee";
   }
 

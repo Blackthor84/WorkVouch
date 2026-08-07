@@ -7,20 +7,19 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/auth/redirect-destination
- * Server redirect after auth using profiles.role via getPostLoginRedirect().
+ * GET /api/auth/post-login-redirect
+ * Returns canonical post-login path from profiles.role (used by LoginClient).
  */
-export async function GET(request: Request) {
-  const { origin } = new URL(request.url);
+export async function GET() {
   try {
     const user = await getUser();
     if (!user?.id) {
-      return NextResponse.redirect(`${origin}/login`);
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const emailConfirmedAt = (user as { email_confirmed_at?: string | null }).email_confirmed_at;
     if (!emailConfirmedAt) {
-      return NextResponse.redirect(`${origin}/verify-email`);
+      return NextResponse.json({ path: "/verify-email" });
     }
 
     const supabase = await createClient();
@@ -32,8 +31,9 @@ export async function GET(request: Request) {
 
     const role = error || !data ? "" : ((data as { role?: string | null }).role ?? "");
     const path = await getPostLoginRedirect({ id: user.id, role });
-    return NextResponse.redirect(`${origin}${path}`);
-  } catch {
-    return NextResponse.redirect(`${origin}/login`);
+    return NextResponse.json({ path });
+  } catch (e) {
+    console.error("[post-login-redirect]", e);
+    return NextResponse.json({ error: "Redirect resolution failed" }, { status: 500 });
   }
 }

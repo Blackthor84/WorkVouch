@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getUser } from "@/lib/auth/getUser";
 import { admin } from "@/lib/supabase-admin";
+import { getUser } from "@/lib/auth/getUser";
+import { getPostLoginRedirect } from "@/lib/auth/getPostLoginRedirect";
 import { FOUNDER_EMAIL, isFounderEmail } from "@/lib/auth/founder";
 
 export const runtime = "nodejs";
@@ -10,7 +11,7 @@ const ALLOWED = new Set(["employee", "employer"]);
 
 /**
  * POST /api/user/choose-role
- * Sets profiles.role to employee or employer only. Cannot set super_admin (founder-only).
+ * Sets profiles.role to employee or employer only. Cannot set admin (founder-only).
  */
 export async function POST(req: Request) {
   try {
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
     }
 
     const current = String((row as { role?: string | null } | null)?.role ?? "").toLowerCase();
-    if (current === "super_admin" || user.email?.toLowerCase() === FOUNDER_EMAIL) {
+    if (current === "admin" || current === "super_admin" || user.email?.toLowerCase() === FOUNDER_EMAIL) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -51,7 +52,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: upErr.message }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, role });
+    const redirect = await getPostLoginRedirect({ id: user.id, role });
+
+    return NextResponse.json({ ok: true, role, redirect });
   } catch (e) {
     console.error("[choose-role]", e);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

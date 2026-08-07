@@ -19,22 +19,29 @@ export default function LoginClient() {
     setError("");
     setLoading(true);
     try {
-      const { data: signInData, error: signInError } = await supabaseBrowser.auth.signInWithPassword({
+      const { error: signInError } = await supabaseBrowser.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
       });
       if (signInError) throw signInError;
-      const role = String(
-        (signInData?.user as { app_metadata?: { role?: string } } | undefined)?.app_metadata?.role ?? "",
-      ).trim().toLowerCase();
-      if (role === "admin" || role === "superadmin") {
-        router.push("/admin");
-        return;
+
+      const redirectRes = await fetch("/api/auth/post-login-redirect", {
+        credentials: "include",
+      });
+      if (!redirectRes.ok) {
+        throw new Error("Could not determine where to send you after login.");
       }
-      router.push("/dashboard");
+      const data = (await redirectRes.json()) as { path?: string };
+      if (typeof data.path !== "string" || !data.path.startsWith("/")) {
+        throw new Error("Could not determine where to send you after login.");
+      }
+      router.push(data.path);
+      router.refresh();
     } catch (err) {
       if (err instanceof Error && err.message.toLowerCase().includes("email not confirmed")) {
         setError("Please confirm your email before logging in.");
+      } else if (err instanceof Error) {
+        setError(err.message === "Could not determine where to send you after login." ? err.message : "Invalid email or password.");
       } else {
         setError("Invalid email or password.");
       }

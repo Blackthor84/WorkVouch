@@ -22,7 +22,7 @@ export async function getRoleForRouteGuard(): Promise<RouteGuardRole | null> {
   const resolved = resolveUserRole({ role: data?.role });
 
   if (resolved === "pending") return "pending";
-  if (resolved === "super_admin") return "admin";
+  if (resolved === "admin") return "admin";
   if (resolved === "employer") return "employer";
   if (resolved === "employee") return "employee";
   return "pending";

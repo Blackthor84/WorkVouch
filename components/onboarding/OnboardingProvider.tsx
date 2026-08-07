@@ -43,11 +43,11 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   };
 
   const steps = status?.steps ?? [];
-  // Hard admin bypass: do not show onboarding overlay for admin/superadmin (or any non-user role).
+  // Hard admin bypass: onboarding overlay only for employees (pending included via null role).
   const visible =
     showOverlay &&
     steps.length > 0 &&
-    (user == null || user.role === "user");
+    (user == null || user.role === "employee" || user.role === "pending");
 
   return (
     <>

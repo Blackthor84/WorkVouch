@@ -24,10 +24,13 @@ export function ChooseRoleForm() {
         setLoading(null);
         return;
       }
-      const savedRole = typeof (data as { role?: string }).role === "string" ? (data as { role: string }).role : role;
-      console.log("USER ROLE:", savedRole);
-      const nextPath = role === "employer" ? "/enterprise" : "/dashboard";
-      window.location.assign(nextPath);
+      const redirect = (data as { redirect?: string }).redirect;
+      if (typeof redirect !== "string" || !redirect.startsWith("/")) {
+        setError("Could not determine where to send you after role selection.");
+        setLoading(null);
+        return;
+      }
+      window.location.assign(redirect);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
       setLoading(null);

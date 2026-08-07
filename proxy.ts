@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/types/supabase";
 import { NextResponse, type NextRequest } from "next/server";
 import { resolveUserRole } from "@/lib/auth/resolveUserRole";
+import { getPostLoginRedirect } from "@/lib/auth/getPostLoginRedirect";
 import { getRoleAccessRedirect, type RoleForAccess } from "@/lib/proxy/routeAccess";
 import {
   IMPERSONATION_SIMULATION_COOKIE,
@@ -19,6 +20,12 @@ const ANALYTICS_SESSION_COOKIE = "wv_sid";
 const ANALYTICS_SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
 const IMPERSONATION_COOKIE = "impersonation_session";
+
+const POST_AUTH_ENTRY_PATHS = new Set(["/login", "/signup"]);
+
+function isChooseRolePath(pathname: string): boolean {
+  return pathname === "/choose-role" || pathname.startsWith("/choose-role/");
+}
 
 /**
  * Proxy: refresh Supabase auth session on every request (dashboard, profile, api) so cookies stay valid
@@ -119,6 +126,7 @@ export async function proxy(req: NextRequest) {
       } = await supabase.auth.getUser();
 
       let resolved: RoleForAccess = "pending";
+      let profileRole: string | null = null;
       if (user) {
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
@@ -129,6 +137,7 @@ export async function proxy(req: NextRequest) {
         if (profileError || profile === null) {
           resolved = "unknown";
         } else {
+          profileRole = (profile as { role?: string | null }).role ?? null;
           resolved = resolveUserRole(profile as { role?: string | null });
         }
       }
@@ -136,6 +145,21 @@ export async function proxy(req: NextRequest) {
       const isApi = path.startsWith("/api/");
       if (!isApi) {
         console.log("ROLE CHECK:", { path, resolved });
+      }
+
+      if (!isApi && user) {
+        const needsPostLoginRedirect =
+          POST_AUTH_ENTRY_PATHS.has(path) ||
+          (isChooseRolePath(path) && resolved !== "pending" && resolved !== "unknown");
+
+        if (needsPostLoginRedirect) {
+          const redirectPath = await getPostLoginRedirect({ id: user.id, role: profileRole });
+          if (path !== redirectPath && !path.startsWith(`${redirectPath}/`)) {
+            const out = NextResponse.redirect(new URL(redirectPath, req.url));
+            copyCookies(res, out);
+            return out;
+          }
+        }
       }
 
       if (!isApi) {

@@ -1,12 +1,79 @@
 import type { ResolvedAppRole } from "@/lib/auth/roleTypes";
 
 /**
- * Home URL for a resolved app role (profiles.role–derived).
- * Used after /choose-role and to block returning there when a role exists.
+ * Sync role-zone redirects for route guards (cross-role path blocking).
+ * Post-authentication entry routing MUST use getPostLoginRedirect() instead.
  */
-export function getHomePathForResolvedRole(resolved: ResolvedAppRole): string {
-  if (resolved === "pending") return "/choose-role";
-  if (resolved === "super_admin") return "/admin";
-  if (resolved === "employer") return "/enterprise";
-  return "/dashboard";
+export function getRoleZoneRedirect(
+  pathname: string,
+  resolved: ResolvedAppRole | "unknown"
+): string | null {
+  if (resolved === "unknown") return null;
+
+  if (pathname === "/employer") {
+    if (resolved === "employer") return "/employer/dashboard";
+    if (resolved === "employee") return "/coworker-matches";
+  }
+
+  if (resolved === "employer") {
+    if (isEmployeeAppPath(pathname)) return "/employer/dashboard";
+  }
+
+  if (resolved === "employee") {
+    if (pathname.startsWith("/enterprise")) return "/dashboard";
+    if (isEmployerPortalPath(pathname) && pathname !== "/employer") {
+      return "/dashboard";
+    }
+  }
+
+  if (resolved === "admin") {
+    if (isEmployeeAppPath(pathname) && !pathname.startsWith("/admin")) {
+      return "/admin";
+    }
+  }
+
+  if (pathname.startsWith("/dashboard/employer")) {
+    if (resolved === "employee") return "/unauthorized";
+  }
+  if (pathname.startsWith("/dashboard/employee") || pathname.startsWith("/dashboard/worker")) {
+    if (resolved === "employer") return "/unauthorized";
+  }
+
+  if (pathname.startsWith("/admin") || pathname.startsWith("/superadmin")) {
+    if (resolved !== "admin") return "/unauthorized";
+  }
+  if (pathname.startsWith("/sandbox")) {
+    if (resolved !== "admin") return "/unauthorized";
+  }
+
+  return null;
+}
+
+function isEmployeeAppPath(pathname: string): boolean {
+  const prefixes = [
+    "/dashboard",
+    "/profile",
+    "/settings",
+    "/my-jobs",
+    "/coworker-matches",
+    "/notifications",
+    "/upgrade",
+    "/onboarding",
+    "/references",
+    "/upload-resume",
+    "/candidate",
+    "/employee",
+    "/requests",
+    "/messages",
+    "/verify",
+    "/fix-profile",
+    "/subscribe",
+    "/project",
+    "/jobs",
+  ];
+  return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
+function isEmployerPortalPath(pathname: string): boolean {
+  return pathname === "/employer" || pathname.startsWith("/employer/");
 }

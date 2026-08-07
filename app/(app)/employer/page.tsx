@@ -1,29 +1,28 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getEmployerDashboardStats } from "@/lib/actions/employer/employerDashboardStats";
-import { EmployerDashboardClient } from "./EmployerDashboardClient";
+import { resolveUserRole } from "@/lib/auth/resolveUserRole";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Legacy /employer entry — redirect by role.
+ * employer → /employer/dashboard
+ * employee (and others) → /coworker-matches
+ */
 export default async function EmployerPage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (!user) redirect("/login");
 
-  const stats = await getEmployerDashboardStats();
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
 
-  return (
-    <EmployerDashboardClient
-      initialStats={
-        stats ?? {
-          candidatesViewedToday: 0,
-          avgTrustScoreViewed: 0,
-          savedCandidatesCount: 0,
-          isHiringPremium: false,
-          profileViewsRemaining: 5,
-        }
-      }
-    />
-  );
+  const resolved = resolveUserRole({ role: (prof as { role?: string | null } | null)?.role });
+  if (resolved === "employer") redirect("/employer/dashboard");
+  redirect("/coworker-matches");
 }

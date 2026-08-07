@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { getAdminContext } from "@/lib/admin/getAdminContext";
 import { getUserFromSession } from "@/lib/auth/getUserFromSession";
-import { resolveUserRole } from "@/lib/auth/resolveUserRole";
+import { getPostLoginRedirect } from "@/lib/auth/getPostLoginRedirect";
 import AdminClientLayout from "./AdminClientLayout";
 import { LabAwareAdminChrome } from "./LabAwareAdminChrome";
 import { isGodMode } from "@/lib/auth/isGodMode";
@@ -59,13 +59,11 @@ export default async function AdminLayout({
       .select("role")
       .eq("id", authUser?.id ?? "")
       .maybeSingle();
-    const resolved = resolveUserRole({
+    const path = await getPostLoginRedirect({
+      id: authUser?.id,
       role: (prof as { role?: string | null } | null)?.role,
     });
-    if (resolved === "employer") {
-      redirect("/enterprise");
-    }
-    redirect("/dashboard");
+    redirect(path);
   }
   const sessionLike = { user: { role: admin.isSuperAdmin ? "SUPERADMIN" : admin.isAdmin ? "ADMIN" : "USER" }, godMode: admin.godMode };
   const allowed =

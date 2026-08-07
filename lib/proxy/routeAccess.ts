@@ -1,5 +1,5 @@
 import type { ResolvedAppRole } from "@/lib/auth/roleTypes";
-import { getHomePathForResolvedRole } from "@/lib/auth/roleRouting";
+import { getRoleZoneRedirect } from "@/lib/auth/roleRouting";
 
 /** Profile row missing or unreadable — do not treat as `pending` (avoids /choose-role loops). */
 export type RoleForAccess = ResolvedAppRole | "unknown";
@@ -55,38 +55,10 @@ function skipPendingEnforce(pathname: string): boolean {
   );
 }
 
-function isEmployeeAppPath(pathname: string): boolean {
-  const prefixes = [
-    "/dashboard",
-    "/profile",
-    "/settings",
-    "/my-jobs",
-    "/coworker-matches",
-    "/notifications",
-    "/upgrade",
-    "/onboarding",
-    "/references",
-    "/upload-resume",
-    "/candidate",
-    "/employee",
-    "/requests",
-    "/messages",
-    "/verify",
-    "/fix-profile",
-    "/subscribe",
-    "/project",
-    "/jobs",
-  ];
-  return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-}
-
-function isEmployerPortalPath(pathname: string): boolean {
-  return pathname === "/employer" || pathname.startsWith("/employer/");
-}
-
 /**
  * Returns a pathname to redirect to, or null to continue the request.
- * Caller must not invoke for /api/* or when impersonation bypass is active.
+ * Post-auth entry redirects (/login, /signup, /choose-role with role) are handled
+ * in proxy.ts via getPostLoginRedirect().
  */
 export function getRoleAccessRedirect(
   pathname: string,
@@ -98,12 +70,11 @@ export function getRoleAccessRedirect(
     return null;
   }
 
-  if (pathname === "/login" || pathname === "/signup") {
-    if (resolved === "unknown") return "/dashboard";
-    return getHomePathForResolvedRole(resolved);
+  if (pathname === "/select-role" || pathname.startsWith("/select-role/")) {
+    return "/choose-role";
   }
 
-  if (pathname.startsWith("/onboarding") && resolved === "super_admin") {
+  if (pathname.startsWith("/onboarding") && resolved === "admin") {
     return "/admin";
   }
 
@@ -113,46 +84,5 @@ export function getRoleAccessRedirect(
     return "/choose-role";
   }
 
-  if (pathname === "/choose-role" || pathname.startsWith("/choose-role/")) {
-    if (resolved === "unknown") return null;
-    const home = getHomePathForResolvedRole(resolved);
-    if (pathname === home || pathname.startsWith(`${home}/`)) return null;
-    return home;
-  }
-
-  if (resolved === "employer") {
-    if (isEmployeeAppPath(pathname)) return "/enterprise";
-  }
-
-  if (resolved === "employee" || resolved === "unknown") {
-    if (pathname.startsWith("/enterprise")) return "/dashboard";
-    if (isEmployerPortalPath(pathname) && pathname !== "/employer") {
-      return "/dashboard";
-    }
-    if (pathname === "/employer") {
-      return "/coworker-matches";
-    }
-  }
-
-  if (resolved === "super_admin") {
-    if (isEmployeeAppPath(pathname) && !pathname.startsWith("/admin")) {
-      return "/admin";
-    }
-  }
-
-  if (pathname.startsWith("/dashboard/employer")) {
-    if (resolved === "employee") return "/unauthorized";
-  }
-  if (pathname.startsWith("/dashboard/employee") || pathname.startsWith("/dashboard/worker")) {
-    if (resolved === "employer") return "/unauthorized";
-  }
-
-  if (pathname.startsWith("/admin") || pathname.startsWith("/superadmin")) {
-    if (resolved !== "super_admin") return "/unauthorized";
-  }
-  if (pathname.startsWith("/sandbox")) {
-    if (resolved !== "super_admin") return "/unauthorized";
-  }
-
-  return null;
+  return getRoleZoneRedirect(pathname, resolved);
 }

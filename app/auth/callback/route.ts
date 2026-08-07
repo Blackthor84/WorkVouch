@@ -38,9 +38,11 @@ export async function GET(request: Request) {
 
     await supabase.auth.exchangeCodeForSession(code);
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user?.id) {
-      return NextResponse.redirect(`${origin}/dashboard`);
+      return NextResponse.redirect(`${origin}/login`);
     }
 
     const { data, error } = await supabase
@@ -49,13 +51,8 @@ export async function GET(request: Request) {
       .eq("id", user.id)
       .single();
 
-    if (error || !data) {
-      const path = await getPostLoginRedirect({ role: "" });
-      return NextResponse.redirect(`${origin}${path}`);
-    }
-
-    const role = (data as { role?: string | null }).role ?? "";
-    const path = await getPostLoginRedirect({ role });
+    const role = error || !data ? "" : ((data as { role?: string | null }).role ?? "");
+    const path = await getPostLoginRedirect({ id: user.id, role });
     return NextResponse.redirect(`${origin}${path}`);
   } catch {
     const origin = new URL(request.url).origin;

@@ -1,10 +1,5 @@
-import { Suspense } from "react";
-import SelectRoleClient from "./SelectRoleClient";
+import { redirect } from "next/navigation";
 
-export default function Page() {
-  return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-      <SelectRoleClient />
-    </Suspense>
-  );
+export default function SelectRolePage() {
+  redirect("/choose-role");
 }

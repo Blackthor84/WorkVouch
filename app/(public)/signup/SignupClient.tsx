@@ -101,6 +101,30 @@ export default function SignupClient() {
         return;
       }
 
+      if (data.session) {
+        if (sourceVerification) {
+          try {
+            await fetch("/api/verification/claim-profile", { method: "POST", credentials: "include" });
+          } catch {
+            // non-blocking
+          }
+        }
+        const redirectRes = await fetch("/api/auth/post-login-redirect", { credentials: "include" });
+        if (!redirectRes.ok) {
+          setError("Account created but we could not determine where to send you.");
+          signupAlreadyAttempted = false;
+          return;
+        }
+        const redirectData = (await redirectRes.json()) as { path?: string };
+        if (typeof redirectData.path !== "string" || !redirectData.path.startsWith("/")) {
+          setError("Account created but we could not determine where to send you.");
+          signupAlreadyAttempted = false;
+          return;
+        }
+        router.push(redirectData.path);
+        return;
+      }
+
       if (data.user) {
         if (sourceVerification) {
           try {
@@ -109,11 +133,9 @@ export default function SignupClient() {
             // non-blocking
           }
         }
-        router.push("/onboarding");
+        router.push("/check-email");
         return;
       }
-
-      router.push("/check-email");
     } catch (err) {
       console.error("Signup error:", err);
       setError(err instanceof Error ? err.message : "Signup failed");
