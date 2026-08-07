@@ -105,8 +105,8 @@ export function CommandPalette({
           window.dispatchEvent(new CustomEvent("workvouch:open-verification-request"));
         }
         // If not on worker dashboard, navigate so the page can open the modal via query or event
-        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/dashboard/worker")) {
-          router.push("/dashboard/worker?openVerification=1");
+        if (typeof window !== "undefined" && window.location.pathname !== "/dashboard") {
+          router.push("/dashboard?openVerification=1");
         }
         onOpenChange(false);
         return;

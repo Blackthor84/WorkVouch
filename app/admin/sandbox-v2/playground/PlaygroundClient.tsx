@@ -262,7 +262,7 @@ export function PlaygroundClient() {
             <p className="text-sm font-medium text-slate-700 mb-2">Worker:</p>
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" asChild><a href={`/dashboard${baseQuery}`}>Complete Profile</a></Button>
-              <Button variant="outline" size="sm" asChild><a href={`/dashboard/worker/jobs${baseQuery}`}>Claim Job</a></Button>
+              <Button variant="outline" size="sm" asChild><a href={`/jobs/new${baseQuery}`}>Claim Job</a></Button>
               <Button variant="outline" size="sm" asChild><a href={`/coworker-matches${baseQuery}`}>Match Coworker</a></Button>
               <Button variant="outline" size="sm" asChild><a href={`/dashboard${baseQuery}`}>Leave Vouch</a></Button>
               <Button variant="outline" size="sm" asChild><a href={`/dashboard${baseQuery}`}>Submit Culture Traits</a></Button>

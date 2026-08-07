@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 
-/**
- * Post-login path for role=employee. Canonical employee dashboard is /dashboard/worker.
- */
+/** Legacy employee dashboard alias — canonical route is /dashboard. */
 export default function EmployeeDashboardRedirect() {
-  redirect("/dashboard/worker");
+  redirect("/dashboard");
 }

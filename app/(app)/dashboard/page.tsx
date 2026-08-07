@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getUser } from "@/lib/auth/getUser";
 import { getDashboardHomeData } from "@/lib/actions/dashboard/getDashboardHome";
 import { DashboardOnboardingCard } from "@/components/dashboard/DashboardOnboardingCard";
@@ -10,6 +11,8 @@ import { DashboardReputationHero } from "@/components/dashboard/DashboardReputat
 import { DashboardStatsGrid } from "@/components/dashboard/DashboardStatsGrid";
 import { DashboardMatchesSection } from "@/components/dashboard/DashboardMatchesSection";
 import { DashboardBoostSection } from "@/components/dashboard/DashboardBoostSection";
+import { DashboardActivitySection } from "@/components/dashboard/DashboardActivitySection";
+import { DashboardHomeClient } from "@/components/dashboard/DashboardHomeClient";
 import { BadHireCostFromCalculatorBanner } from "@/components/dashboard/BadHireCostFromCalculatorBanner";
 import { isGuidedProfileComplete } from "@/lib/onboarding/guidedOnboarding";
 
@@ -69,6 +72,10 @@ export default async function UserDashboardPage() {
           </p>
         </div>
 
+        <Suspense fallback={null}>
+          <DashboardHomeClient publicSlug={data.publicSlug} />
+        </Suspense>
+
         <DashboardStatsGrid
           verifiedReferences={data.referenceCount}
           coworkerMatches={data.matchesCount}
@@ -77,6 +84,8 @@ export default async function UserDashboardPage() {
         />
 
         <DashboardMatchesSection matches={data.matchesPreview} />
+
+        <DashboardActivitySection activities={data.activities} />
 
         <DashboardBoostSection />
       </div>

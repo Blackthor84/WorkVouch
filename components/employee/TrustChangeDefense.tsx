@@ -79,7 +79,7 @@ export function TrustChangeDefense() {
         ))}
       </ul>
       <div className="flex flex-wrap gap-2">
-        <Link href="/dashboard/worker#trust-activity" className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
+        <Link href="/dashboard" className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
           View Trust History
         </Link>
         <Link href="/my-jobs" className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">

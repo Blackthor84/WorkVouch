@@ -1,39 +1,21 @@
+import { redirect } from "next/navigation";
+
 export const dynamic = "force-dynamic";
 
-import { getUser } from "@/lib/auth/getUser";
-import { admin } from "@/lib/supabase-admin";
-import WorkerDashboard from "./WorkerDashboardClient";
+type Props = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
-// Auth and role are enforced by (app)/layout.tsx — no redirect here.
-export default async function WorkerDashboardPage() {
-  const user = await getUser();
-  if (!user) return null;
-
-  let confidenceScore = 0;
-  let publicSlug: string | null = null;
-  try {
-    const [scoreRes, profileRes] = await Promise.all([
-      (admin as any)
-        .from("user_confidence_scores")
-        .select("confidence_score")
-        .eq("user_id", user.id)
-        .maybeSingle(),
-      (admin as any)
-        .from("profiles")
-        .select("public_slug")
-        .eq("id", user.id)
-        .maybeSingle(),
-    ]);
-    confidenceScore = Number((scoreRes.data as { confidence_score?: number } | null)?.confidence_score ?? 0);
-    publicSlug = (profileRes.data as { public_slug?: string | null } | null)?.public_slug ?? null;
-  } catch {
-    // view may not exist or query failed
+/**
+ * Legacy worker dashboard URL — canonical employee dashboard is /dashboard.
+ */
+export default async function WorkerDashboardRedirect({ searchParams }: Props) {
+  const params = await searchParams;
+  const qs = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value === "string") qs.set(key, value);
+    else if (Array.isArray(value)) value.forEach((v) => qs.append(key, v));
   }
-
-  return (
-    <WorkerDashboard
-      initialConfidenceScore={confidenceScore}
-      publicSlug={publicSlug}
-    />
-  );
+  const query = qs.toString();
+  redirect(query ? `/dashboard?${query}` : "/dashboard");
 }

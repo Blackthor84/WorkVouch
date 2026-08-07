@@ -15,7 +15,7 @@ export function DashboardNavButton() {
     <Button
       variant="ghost"
       size="sm"
-      href="/dashboard/simple"
+      href="/dashboard"
       className={`flex items-center gap-2 ${
         isDashboard
           ? "text-blue-600 dark:text-blue-400 font-semibold"

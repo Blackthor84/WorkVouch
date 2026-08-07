@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 
-/**
- * Canonical worker dashboard URL. Redirects to the app route that renders the worker dashboard.
- */
+/** Legacy worker dashboard URL — canonical employee dashboard is /dashboard. */
 export default function WorkerDashboardPage() {
-  redirect("/dashboard/worker");
+  redirect("/dashboard");
 }

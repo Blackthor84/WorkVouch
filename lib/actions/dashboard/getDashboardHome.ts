@@ -2,6 +2,7 @@
 
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { admin } from "@/lib/supabase-admin";
 
 export type DashboardMatchPreview = {
   id: string;
@@ -41,6 +42,8 @@ export type DashboardHomeData = {
   matchesPreview: DashboardMatchPreview[];
   activities: DashboardActivityItem[];
   isNewUser: boolean;
+  publicSlug: string | null;
+  confidenceScore: number;
 };
 
 function firstName(full: string | null | undefined): string {
@@ -103,6 +106,8 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
       verifiedJobsRes,
       pendingRequestsRes,
       verificationsMonthRes,
+      slugRes,
+      confidenceRes,
     ] = await Promise.all([
       sb.from("profiles").select("full_name, professional_summary").eq("id", uid).maybeSingle(),
       sb.from("trust_scores").select("score, reference_count").eq("user_id", uid).maybeSingle(),
@@ -137,6 +142,12 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
         .select("id", { count: "exact", head: true })
         .eq("reviewed_id", uid)
         .gte("created_at", monthStartIso),
+      sb.from("profiles").select("public_slug").eq("id", uid).maybeSingle(),
+      (admin as any)
+        .from("user_confidence_scores")
+        .select("confidence_score")
+        .eq("user_id", uid)
+        .maybeSingle(),
     ]);
 
     const profile = profileRes.data as { full_name?: string | null; professional_summary?: string | null } | null;
@@ -267,6 +278,12 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
 
     const isNewUser = jobsCount === 0 && matchesCount === 0 && referenceCount === 0;
 
+    const publicSlug =
+      (slugRes.data as { public_slug?: string | null } | null)?.public_slug?.trim() || null;
+    const confidenceScore = Number(
+      (confidenceRes.data as { confidence_score?: number } | null)?.confidence_score ?? 0
+    );
+
     return {
       displayName,
       firstName: fn,
@@ -284,6 +301,8 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
       matchesPreview,
       activities,
       isNewUser,
+      publicSlug,
+      confidenceScore,
     };
   } catch (e) {
     console.warn("getDashboardHomeData failed", e);
@@ -304,6 +323,8 @@ export async function getDashboardHomeData(): Promise<DashboardHomeData | null> 
       matchesPreview: [],
       activities: [],
       isNewUser: true,
+      publicSlug: null,
+      confidenceScore: 0,
     };
   }
 }

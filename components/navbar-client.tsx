@@ -77,7 +77,7 @@ function AuthenticatedNavbar({
       <Button
         variant="ghost"
         size="sm"
-        href="/dashboard/worker"
+        href="/dashboard"
         className="hover:bg-grey-background dark:hover:bg-[#1A1F2B]"
       >
         Trust History

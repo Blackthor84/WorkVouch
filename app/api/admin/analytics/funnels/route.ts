@@ -19,7 +19,7 @@ export const runtime = "nodejs";
 const FUNNEL_STEPS: { name: string; paths: string[] }[] = [
   { name: "Landing", paths: ["/", "/careers", "/pricing", "/features", "/solutions"] },
   { name: "Signup", paths: ["/signup", "/signup/employee", "/signup/employer", "/auth/signup"] },
-  { name: "Dashboard", paths: ["/dashboard", "/dashboard/worker", "/dashboard/employer"] },
+  { name: "Dashboard", paths: ["/dashboard"] },
   { name: "Profile", paths: ["/profile", "/dashboard/settings"] },
 ];
 
