@@ -8,8 +8,9 @@ import { WvShell } from "@/components/wv";
 export const dynamic = "force-dynamic";
 
 /**
- * First employer onboarding entry point.
- * Steps: Org name → Industry → Org size → Primary admin email → Confirm & create.
+ * Canonical employer onboarding entry.
+ * Steps: Welcome → Organization → Company details → Industry → Industry fields →
+ * Hiring preferences → Invite team → Plan → Review → Dashboard.
  */
 export default async function EmployerOnboardingStartPage() {
   const user = await getCurrentUser();

@@ -36,6 +36,22 @@ export const verticalOnboarding: Record<string, VerticalOnboardingConfig> = {
         options: ["Math", "Science", "English", "History", "Special Education"],
       },
     ],
+    employerFields: [
+      {
+        key: "roles_hiring",
+        label: "Roles you hire most",
+        type: "multi-select",
+        options: ["Teachers", "Administrators", "Support staff", "Substitutes"],
+        required: true,
+      },
+      {
+        key: "monthly_hires",
+        label: "Typical monthly hiring volume",
+        type: "select",
+        options: ["1-5", "6-20", "21+"],
+        required: true,
+      },
+    ],
   },
 
   Construction: {
@@ -49,6 +65,22 @@ export const verticalOnboarding: Record<string, VerticalOnboardingConfig> = {
         options: ["Yes", "No"],
       },
       { key: "years_experience", label: "Years Experience", type: "number" },
+    ],
+    employerFields: [
+      {
+        key: "roles_hiring",
+        label: "Trades you hire for",
+        type: "multi-select",
+        options: ["General labor", "Electrician", "Plumbing", "HVAC", "Carpentry"],
+        required: true,
+      },
+      {
+        key: "monthly_hires",
+        label: "Typical monthly hiring volume",
+        type: "select",
+        options: ["1-5", "6-20", "21+"],
+        required: true,
+      },
     ],
   },
 
@@ -64,6 +96,22 @@ export const verticalOnboarding: Record<string, VerticalOnboardingConfig> = {
       { key: "license_number", label: "License Number", type: "text" },
       { key: "years_experience", label: "Years Experience", type: "number" },
     ],
+    employerFields: [
+      {
+        key: "armed_guards_needed",
+        label: "Do you hire armed guards?",
+        type: "select",
+        options: ["Yes", "No", "Sometimes"],
+        required: true,
+      },
+      {
+        key: "monthly_hires",
+        label: "Typical monthly hiring volume",
+        type: "select",
+        options: ["1-5", "6-20", "21+"],
+        required: true,
+      },
+    ],
   },
 
   Healthcare: {
@@ -73,6 +121,22 @@ export const verticalOnboarding: Record<string, VerticalOnboardingConfig> = {
       { key: "years_practice", label: "Years Practicing", type: "number" },
       { key: "specialty", label: "Specialty", type: "text" },
     ],
+    employerFields: [
+      {
+        key: "roles_hiring",
+        label: "Clinical roles you hire",
+        type: "multi-select",
+        options: ["RN", "LPN", "CNA", "Allied health", "Administrative"],
+        required: true,
+      },
+      {
+        key: "monthly_hires",
+        label: "Typical monthly hiring volume",
+        type: "select",
+        options: ["1-5", "6-20", "21+"],
+        required: true,
+      },
+    ],
   },
 
   "Law Enforcement": {
@@ -80,6 +144,22 @@ export const verticalOnboarding: Record<string, VerticalOnboardingConfig> = {
     employeeFields: [
       { key: "years_service", label: "Years of Service", type: "number" },
       { key: "department_type", label: "Department Type", type: "text" },
+    ],
+    employerFields: [
+      {
+        key: "roles_hiring",
+        label: "Roles you hire",
+        type: "multi-select",
+        options: ["Officers", "Dispatch", "Administrative", "Support"],
+        required: true,
+      },
+      {
+        key: "monthly_hires",
+        label: "Typical monthly hiring volume",
+        type: "select",
+        options: ["1-5", "6-20", "21+"],
+        required: true,
+      },
     ],
   },
 
@@ -94,6 +174,22 @@ export const verticalOnboarding: Record<string, VerticalOnboardingConfig> = {
       },
       { key: "years_experience", label: "Years Experience", type: "number" },
     ],
+    employerFields: [
+      {
+        key: "roles_hiring",
+        label: "Roles you hire most",
+        type: "multi-select",
+        options: ["Sales floor", "Management", "Warehouse/backroom", "Seasonal"],
+        required: true,
+      },
+      {
+        key: "monthly_hires",
+        label: "Typical monthly hiring volume",
+        type: "select",
+        options: ["1-5", "6-20", "21+"],
+        required: true,
+      },
+    ],
   },
 
   Hospitality: {
@@ -107,6 +203,22 @@ export const verticalOnboarding: Record<string, VerticalOnboardingConfig> = {
       },
       { key: "years_experience", label: "Years Experience", type: "number" },
     ],
+    employerFields: [
+      {
+        key: "roles_hiring",
+        label: "Roles you hire most",
+        type: "multi-select",
+        options: ["Front of house", "Kitchen", "Management", "Housekeeping"],
+        required: true,
+      },
+      {
+        key: "monthly_hires",
+        label: "Typical monthly hiring volume",
+        type: "select",
+        options: ["1-5", "6-20", "21+"],
+        required: true,
+      },
+    ],
   },
 
   "Warehouse and Logistics": {
@@ -119,6 +231,22 @@ export const verticalOnboarding: Record<string, VerticalOnboardingConfig> = {
         options: ["Yes", "No"],
       },
       { key: "shift_type", label: "Shift Type", type: "text" },
+    ],
+    employerFields: [
+      {
+        key: "roles_hiring",
+        label: "Roles you hire most",
+        type: "multi-select",
+        options: ["Picker/packer", "Forklift operator", "Supervisor", "Driver"],
+        required: true,
+      },
+      {
+        key: "monthly_hires",
+        label: "Typical monthly hiring volume",
+        type: "select",
+        options: ["1-5", "6-20", "21+"],
+        required: true,
+      },
     ],
   },
 };

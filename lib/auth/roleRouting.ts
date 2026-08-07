@@ -16,6 +16,9 @@ export function getRoleZoneRedirect(
   }
 
   if (resolved === "employer") {
+    if (pathname.startsWith("/onboarding/employer")) {
+      return "/employer/onboarding/start";
+    }
     if (isEmployeeAppPath(pathname)) return "/employer/dashboard";
   }
 
@@ -29,6 +32,12 @@ export function getRoleZoneRedirect(
   if (resolved === "admin") {
     if (isEmployeeAppPath(pathname) && !pathname.startsWith("/admin")) {
       return "/admin";
+    }
+  }
+
+  if (resolved === "pending") {
+    if (pathname.startsWith("/onboarding/employer")) {
+      return "/employer/onboarding/start";
     }
   }
 

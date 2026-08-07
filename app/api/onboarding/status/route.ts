@@ -22,7 +22,7 @@ export interface OnboardingStep {
 
 const EMPLOYER_STEPS: OnboardingStep[] = [
   { id: "profile", targetId: "onboarding-company-profile", title: "Complete company profile", description: "Add your company name and details so candidates can find you." },
-  { id: "team", targetId: "onboarding-add-team", title: "Add first team member", description: "Invite a colleague to your employer account to collaborate on hiring." },
+  { id: "team", targetId: "onboarding-add-team", title: "Add first team member", description: "Invite a colleague from your dashboard to collaborate on hiring." },
   { id: "verification", targetId: "onboarding-request-verification", title: "Request verification", description: "Request a verification for a candidate to see their verified work history." },
   { id: "analytics", targetId: "onboarding-analytics", title: "View analytics dashboard", description: "See rehire probability, trust scores, and workforce insights." },
 ];

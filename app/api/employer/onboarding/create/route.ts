@@ -34,6 +34,12 @@ export async function POST(req: NextRequest) {
     const industry = typeof body.industry === "string" ? body.industry.trim() : "";
     const orgSize = typeof body.orgSize === "string" ? body.orgSize.trim() : "";
     const primaryAdminEmail = typeof body.primaryAdminEmail === "string" ? body.primaryAdminEmail.trim() : "";
+    const verticalMetadata =
+      body.verticalMetadata != null && typeof body.verticalMetadata === "object"
+        ? (body.verticalMetadata as Record<string, unknown>)
+        : null;
+    const teamInviteEmail =
+      typeof body.teamInviteEmail === "string" ? body.teamInviteEmail.trim() : "";
 
     if (!orgName || orgName.length < 2) {
       return NextResponse.json({ error: "Organization name is required (min 2 characters)" }, { status: 400 });
@@ -76,6 +82,10 @@ export async function POST(req: NextRequest) {
         number_of_locations: orgSize === "1" ? 1 : orgSize === "2-10" ? 5 : orgSize === "11-50" ? 25 : 100,
         requires_enterprise: false,
         mode: "production",
+        enterprise_features: {
+          onboarding_vertical_metadata: verticalMetadata ?? {},
+          pending_team_invite: teamInviteEmail || null,
+        },
       })
       .select("id")
       .single();
