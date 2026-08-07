@@ -134,7 +134,7 @@ export function CandidateProfileView({
 
         <div className="flex gap-3 pt-4 border-t border-slate-100">
           <Link
-            href={viewerIsEmployer ? "/employer" : "/coworker-matches"}
+            href={viewerIsEmployer ? "/employer/dashboard" : "/coworker-matches"}
             className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
           >
             Back

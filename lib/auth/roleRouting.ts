@@ -33,6 +33,7 @@ export function getRoleZoneRedirect(
   }
 
   if (pathname.startsWith("/dashboard/employer")) {
+    if (resolved === "employer") return "/employer/dashboard";
     if (resolved === "employee") return "/unauthorized";
   }
   if (pathname.startsWith("/dashboard/employee") || pathname.startsWith("/dashboard/worker")) {

@@ -90,6 +90,11 @@ describe("getRoleZoneRedirect", () => {
     expect(getRoleZoneRedirect("/dashboard", "employer")).toBe("/employer/dashboard");
   });
 
+  it("redirects legacy /dashboard/employer to canonical dashboard", () => {
+    expect(getRoleZoneRedirect("/dashboard/employer", "employer")).toBe("/employer/dashboard");
+    expect(getRoleZoneRedirect("/dashboard/employer/search", "employer")).toBe("/employer/dashboard");
+  });
+
   it("sends employees away from employer portal paths", () => {
     expect(getRoleZoneRedirect("/employer/dashboard", "employee")).toBe("/dashboard");
     expect(getRoleZoneRedirect("/enterprise/foo/overview", "employee")).toBe("/dashboard");

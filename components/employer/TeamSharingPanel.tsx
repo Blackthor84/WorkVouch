@@ -9,7 +9,7 @@ export function TeamSharingPanel({ candidateId }: { candidateId: string }) {
   const [copied, setCopied] = useState(false);
   const profileUrl =
     typeof window !== "undefined"
-      ? window.location.origin + "/dashboard/employer/candidate/" + candidateId
+      ? window.location.origin + "/employer/candidates/" + candidateId
       : "";
 
   const copyLink = async () => {

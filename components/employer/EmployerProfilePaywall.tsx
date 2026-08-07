@@ -19,7 +19,7 @@ export function EmployerProfilePaywall({
       </p>
       <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
         <Button href="/employer/upgrade">Unlock full access</Button>
-        <Button variant="secondary" href="/employer">
+        <Button variant="secondary" href="/employer/dashboard">
           Back to dashboard
         </Button>
       </div>

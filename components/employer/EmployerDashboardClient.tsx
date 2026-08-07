@@ -14,8 +14,8 @@ import { RehireProbabilityWidget } from "@/components/employer/RehireProbability
 import { WorkforceRiskIndicator } from "@/components/employer/WorkforceRiskIndicator";
 import { WorkforceRiskDashboard } from "@/components/employer/WorkforceRiskDashboard";
 import { RehireRegistrySection, type RehireEntry } from "@/components/employer/RehireRegistrySection";
-import { SecurityDashboard } from "@/components/employer/SecurityDashboard";
 import VerificationLimitWarning from "@/components/VerificationLimitWarning";
+import type { RecentView } from "@/lib/actions/employer/employerDashboardStats";
 import ExportDataButton from "@/components/ExportDataButton";
 import { UsagePanel } from "@/components/employer/UsagePanel";
 import { UpgradeBanner } from "@/components/employer/UpgradeBanner";
@@ -45,6 +45,8 @@ interface EmployerDashboardClientProps {
   sandboxId?: string | null;
   /** Show "Account created successfully" confirmation (e.g. after signup). */
   showWelcome?: boolean;
+  /** Preloaded from getEmployerDashboardData (production only). */
+  recentViews?: RecentView[];
 }
 
 export function EmployerDashboardClient({
@@ -55,6 +57,7 @@ export function EmployerDashboardClient({
   sandboxMode = false,
   sandboxId = null,
   showWelcome = false,
+  recentViews = [],
 }: EmployerDashboardClientProps) {
   const router = useRouter();
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
@@ -318,9 +321,9 @@ export function EmployerDashboardClient({
           <EmployerProfileCompletionCard />
         </div>
 
-        {/* Candidate view history (placeholder until tracking exists) */}
+        {/* Recent candidate profile views */}
         <div className="mt-6">
-          <CandidateViewHistoryCard />
+          <CandidateViewHistoryCard recentViews={sandboxMode ? undefined : recentViews} />
         </div>
 
         {/* Workforce Integrity Dashboard: hidden enterprise — admin/superadmin or enterprise_intelligence_hidden only */}

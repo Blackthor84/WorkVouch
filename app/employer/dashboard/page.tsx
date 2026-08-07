@@ -2,12 +2,9 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { EmployerPortalLayout } from "@/components/employer/EmployerPortalLayout";
 import { EmployerDashboardClient } from "@/components/employer/EmployerDashboardClient";
-import { getUser } from "@/lib/auth/getUser";
-import { createClient } from "@/lib/supabase/server";
+import { getEmployerDashboardData } from "@/lib/actions/employer/getEmployerDashboardData";
 import { getAppModeFromHeaders, getSandboxIdFromHeaders } from "@/lib/app-mode";
 import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
-
-type UserRole = "superadmin" | "admin" | "employer" | "user";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -24,58 +21,17 @@ export default async function EmployerDashboardPage({
   const showWelcome = params.welcome === "1";
 
   if (!isSandbox) {
-    const user = await getUser();
-    if (!user) {
-      redirect("/login");
-    }
-
-    const emailVerified = Boolean((user as { email_confirmed_at?: string | null }).email_confirmed_at);
-    if (!emailVerified) {
-      redirect("/verify-email");
-    }
-
-    type EmployerAccountRow = { id: string; plan_tier: string; industry_type?: string | null };
-    type ProfileRow = { role?: string | null };
-    const supabase = await createClient();
-    const { data: profileRow } = await (supabase as any)
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    const roleFromDb = (profileRow as ProfileRow | null)?.role;
-
-    const resolvedRole: UserRole =
-      roleFromDb === "superadmin" ||
-      roleFromDb === "admin" ||
-      roleFromDb === "employer" ||
-      roleFromDb === "user"
-        ? roleFromDb
-        : "user";
-
-    const isEmployer = resolvedRole === "employer";
-    const isSuperAdmin = resolvedRole === "superadmin";
-    if (!isEmployer && !isSuperAdmin) {
-      redirect("/dashboard");
-    }
-
-    const { data: employerAccount } = await (supabase as any)
-      .from("employer_accounts")
-      .select("id, plan_tier, industry_type")
-      .eq("user_id", user.id)
-      .single();
-    const planTier = (employerAccount as EmployerAccountRow | null)?.plan_tier || "free";
-    const employerId = (employerAccount as EmployerAccountRow | null)?.id;
-    const employerIndustry = (employerAccount as EmployerAccountRow | null)?.industry_type ?? null;
-    const userRole: UserRole = resolvedRole;
+    const data = await getEmployerDashboardData();
 
     return (
       <EmployerPortalLayout>
         <EmployerDashboardClient
-          userRole={userRole}
-          planTier={planTier}
-          employerId={employerId}
-          employerIndustry={employerIndustry}
+          userRole={data.userRole}
+          planTier={data.planTier}
+          employerId={data.employerId}
+          employerIndustry={data.employerIndustry}
           showWelcome={showWelcome}
+          recentViews={data.recentViews}
         />
       </EmployerPortalLayout>
     );

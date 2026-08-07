@@ -23,7 +23,7 @@ export default function DashboardActions({
     return (
       <div className="flex flex-wrap items-center gap-4" role="toolbar" aria-label="Dashboard actions">
         <Button asChild className="inline-flex items-center gap-2">
-          <Link href="/dashboard/employer/search">Search Candidates</Link>
+          <Link href="/employer/search-users">Search Candidates</Link>
         </Button>
         <Button asChild variant="secondary" className="inline-flex items-center gap-2">
           <Link href="/employer/listed-employees">View Verified Resumes</Link>

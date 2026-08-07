@@ -39,7 +39,7 @@ export async function saveCandidate(candidateId: string, notes?: string) {
     throw new Error(`Failed to save candidate: ${error.message}`)
   }
 
-  revalidatePath('/employer')
+  revalidatePath('/employer/dashboard')
   return data
 }
 
@@ -61,7 +61,7 @@ export async function unsaveCandidate(candidateId: string) {
     throw new Error(`Failed to unsave candidate: ${error.message}`)
   }
 
-  revalidatePath('/employer')
+  revalidatePath('/employer/dashboard')
 }
 
 /**

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChartBarIcon } from "@heroicons/react/24/outline";
 
 export function CandidateComparisonPanel({ candidateId }: { candidateId: string }) {
-  const href = "/dashboard/employer/comparison?candidateId=" + encodeURIComponent(candidateId);
+  const href = "/employer/compare?candidateId=" + encodeURIComponent(candidateId);
   return (
     <Card className="p-6">
       <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Candidate comparison</h2>
