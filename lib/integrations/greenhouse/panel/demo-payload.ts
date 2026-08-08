@@ -1,10 +1,6 @@
 import type { GreenhousePanelPayload } from "./types";
 import { mapLifecycleToWorkflowSteps } from "./types";
 import { buildDemoExplainability } from "./explainability";
-
-import type { GreenhousePanelPayload } from "./types";
-import { mapLifecycleToWorkflowSteps } from "./types";
-import { buildDemoExplainability } from "./explainability";
 import { hiringConfidenceEngine } from "@/lib/trust/confidence";
 
 /** Marketplace-ready demo payload for Greenhouse reviewer sandbox. */
