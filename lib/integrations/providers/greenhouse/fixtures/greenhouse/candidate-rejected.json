@@ -1,0 +1,12 @@
+{
+  "_fixture": true,
+  "_description": "Greenhouse reject_candidate webhook fixture — not production data",
+  "action": "reject_candidate",
+  "payload": {
+    "id": 67890,
+    "candidate_id": 12345,
+    "jobs": [{ "id": 111, "name": "Senior Software Engineer" }],
+    "status": "rejected",
+    "updated_at": "2026-08-09T14:00:00Z"
+  }
+}

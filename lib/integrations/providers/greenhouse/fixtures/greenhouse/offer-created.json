@@ -1,0 +1,13 @@
+{
+  "_fixture": true,
+  "_description": "Greenhouse offer_created webhook fixture — not production data",
+  "action": "offer_created",
+  "payload": {
+    "id": 999,
+    "application_id": 67890,
+    "candidate_id": 12345,
+    "status": "pending",
+    "created_at": "2026-08-07T22:00:00Z",
+    "updated_at": "2026-08-07T22:00:00Z"
+  }
+}

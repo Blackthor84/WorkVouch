@@ -1,0 +1,13 @@
+{
+  "_fixture": true,
+  "_description": "Greenhouse job_created webhook fixture — not production data",
+  "action": "job_created",
+  "payload": {
+    "id": 111,
+    "name": "Senior Software Engineer",
+    "status": "open",
+    "departments": [{ "id": 10, "name": "Engineering" }],
+    "offices": [{ "id": 20, "name": "San Francisco", "location": { "name": "San Francisco, CA" } }],
+    "opened_at": "2026-08-01T09:00:00Z"
+  }
+}
