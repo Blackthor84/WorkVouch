@@ -2,6 +2,29 @@
 
 All notable changes to the WorkVouch Connect integration platform are documented here.
 
+## Sprint 9A — Hiring Confidence Engine
+
+- Added Hiring Confidence Engine (`lib/trust/confidence/`) — presentation layer aggregating trust, verification, references, workflow
+- 0–100 confidence score with stars, levels (High/Strong/Moderate/Needs Review/Low), and informational recommendations
+- 11 explainable factors: weight, contribution, confidence, status per factor
+- Confidence timeline, earned badges, and "Why this confidence?" explanation
+- API: `GET /api/trust/confidence/[profileId]` — confidenceScore, factors, timeline, badges, explanation
+- Greenhouse panel: Hiring Confidence as hero metric; Trust Score as supporting metric
+- Does not modify Trust Engine scoring logic
+- 9 new hiring confidence tests + panel regression updates
+
+## Sprint 9 — Greenhouse Embedded Experience
+
+- Added embedded recruiter panel at `/integrations/greenhouse/panel` (iframe-ready, 360px Greenhouse-native light theme)
+- Panel components: WorkVouchPanel, TrustScoreCard, ExplainabilityCard, VerificationCard, EmploymentTimeline, ReferenceSummary, WorkflowStatus, CandidateInsights, ConnectionBanner, loading/empty/error states
+- Trust explainability with weight, contribution, and confidence per factor
+- Panel API: `GET /api/integrations/v1/panel/greenhouse/[externalCandidateId]`, `POST .../token` (JWT, 15-min)
+- GreenhousePanelService aggregates Connect lifecycle, trust, employment, references, hiring intelligence
+- Lazy-loaded heavy sections, skeleton loading, optimistic refresh
+- Accessibility: keyboard nav, ARIA labels, screen reader support
+- Demo mode for marketplace reviewers (`?demo=1`)
+- 9 new embedded panel tests
+
 ## Sprint 8B — Connect Diagnostic Bundle
 
 - Added Diagnostic Bundle system (`DiagnosticBundleService`, `BundleBuilder`, `BundleRedactor`, `BundleValidator`, `BundleExporter`)
