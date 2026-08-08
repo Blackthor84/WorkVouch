@@ -17,7 +17,7 @@ export default function Error({
   return (
     <WvContainer className="py-16">
       <WvErrorState
-        message={error.message || "An unexpected error occurred."}
+        message={error.message || "Something went wrong. Retry or contact support."}
         onRetry={() => reset()}
       />
     </WvContainer>

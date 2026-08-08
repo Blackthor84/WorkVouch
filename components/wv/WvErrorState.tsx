@@ -13,10 +13,10 @@ type WvErrorStateProps = {
 };
 
 export function WvErrorState({
-  title = "Something went wrong",
+  title = "Unable to complete",
   message,
   onRetry,
-  retryLabel = "Try again",
+  retryLabel = "Retry",
   className,
 }: WvErrorStateProps) {
   return (

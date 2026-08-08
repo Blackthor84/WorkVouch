@@ -108,7 +108,7 @@ export function VerifiedWorkersDashboardClient({ planTier, userRole }: Props) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-            Verified workers
+            Verified candidates
           </h1>
           <p className="mt-1 text-sm text-gray-600">
             Coworker-backed trust — not just resumes. Plan:{" "}

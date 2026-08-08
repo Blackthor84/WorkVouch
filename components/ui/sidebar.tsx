@@ -22,7 +22,7 @@ export function Sidebar({ role }: SidebarProps) {
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
-    { name: "Job History", href: "/profile", icon: BriefcaseIcon },
+    { name: "Work history", href: "/profile", icon: BriefcaseIcon },
     {
       name: "Connections",
       href: "/coworker-matches",

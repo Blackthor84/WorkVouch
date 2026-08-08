@@ -94,7 +94,8 @@ export function EmployerSearchClient() {
           return;
         }
         if (response.status === 403) {
-          router.push("/employer/dashboard");
+          setError(data.error || "Search is not available on your plan.");
+          setResults([]);
           return;
         }
         throw new Error(data.error || "Search failed");
@@ -112,7 +113,7 @@ export function EmployerSearchClient() {
     e?.preventDefault();
     const params = buildSearchParams(filters);
     if (!params) {
-      setError("Enter a name or at least one filter to start your search.");
+      setError("Enter a name or at least one filter.");
       return;
     }
 
@@ -131,7 +132,7 @@ export function EmployerSearchClient() {
       saveRecentSearch(label);
       setRecentSearches(loadRecentSearches());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred during search");
+      setError(err instanceof Error ? err.message : "Search failed. Try again.");
       setResults([]);
     } finally {
       setIsSearching(false);
@@ -188,13 +189,13 @@ export function EmployerSearchClient() {
     <>
       <WvCard glow className="mb-6 space-y-4">
         <p className="text-sm text-wv-muted">
-          Search verified professionals. Filter by role, company, or trust score — then open a profile to review employment and references.
+          Enter a name or filter by role, company, or trust score. Open a profile to view work history and vouches.
         </p>
         <EmployerSearchFilters filters={filters} onChange={setFilters} />
         <form onSubmit={handleSearch} className="flex flex-wrap items-center gap-3">
           <WvButton type="submit" disabled={isSearching} size="lg" ariaLabel="Search candidates">
             <Search className="h-5 w-5" aria-hidden />
-            {isSearching ? "Searching…" : "Search candidates"}
+            {isSearching ? "Searching…" : "Search"}
           </WvButton>
           {recentSearches.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 text-xs text-wv-muted">
@@ -218,7 +219,7 @@ export function EmployerSearchClient() {
         {error && <WvErrorState message={error} className="py-6" />}
         {limitedPreview && (
           <p className="text-xs text-amber-300/90">
-            Free preview — upgrade for full trust scores and filters.{" "}
+            Free preview — upgrade for full trust scores.{" "}
             <a href="/employer/upgrade" className="underline hover:text-amber-200">
               View plans
             </a>
@@ -228,8 +229,8 @@ export function EmployerSearchClient() {
 
       {!hasSearched && !error && (
         <WvEmptyState
-          title="Start your candidate search"
-          description="Enter a name, role, or company above. Results include trust scores and verified employment where available."
+          title="Search to begin"
+          description="Enter a name, role, or company. Results include trust scores and verified work history."
         />
       )}
 
@@ -237,12 +238,12 @@ export function EmployerSearchClient() {
         <div className="space-y-4">
           {isSearching ? (
             <WvCard padding="lg">
-              <WvLoadingState label="Searching verified candidates…" />
+              <WvLoadingState label="Searching…" />
             </WvCard>
           ) : results.length === 0 ? (
             <WvEmptyState
-              title="No candidates match your search"
-              description="Try broadening your query, removing filters, or searching by company name instead."
+              title="No matches"
+              description="Broaden your search or remove filters. Try searching by company name."
               action={
                 <WvButton variant="outline" size="sm" onClick={() => setFilters({})}>
                   Clear filters
@@ -253,7 +254,7 @@ export function EmployerSearchClient() {
             <>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm text-wv-muted">
-                  {results.length} {results.length === 1 ? "candidate" : "candidates"} — select up to 4 to compare side by side.
+                  {results.length} {results.length === 1 ? "result" : "results"} · Select up to 4 to compare.
                 </p>
                 {selectedIds.size >= 2 && selectedIds.size <= 4 && (
                   <WvButton onClick={goToCompare} size="sm">

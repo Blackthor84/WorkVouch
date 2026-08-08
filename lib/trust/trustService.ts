@@ -1,4 +1,5 @@
 import { getEffectiveUser } from "@/lib/auth";
+import { canViewCandidateProfile } from "@/lib/actions/employer/employerDashboardStats";
 import {
   calculateTrust,
   loadTrustTimeline,
@@ -29,7 +30,10 @@ async function canViewTrust(
   if (viewerId === profileId) return true;
   const role = (viewerRole ?? "").toLowerCase();
   if (role === "admin" || role === "superadmin" || role === "super_admin") return true;
-  if (role === "employer") return true;
+  if (role === "employer") {
+    const access = await canViewCandidateProfile(profileId);
+    return access.allowed;
+  }
   return false;
 }
 

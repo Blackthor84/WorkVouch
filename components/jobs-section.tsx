@@ -94,7 +94,7 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <BriefcaseIcon className="h-6 w-6 text-primary" />
-            Job History
+            Work history
           </CardTitle>
           <Button size="sm" onClick={() => setShowForm(!showForm)}>
             {showForm ? "Cancel" : "Add Verified Job"}
@@ -266,9 +266,9 @@ export function JobsSection({ jobs }: { jobs: Job[] }) {
           {jobs.length === 0 ? (
             <div className="text-center py-8">
               <BriefcaseIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-900 font-bold">Add a job to unlock coworker matches</p>
+              <p className="text-gray-900 font-bold">Complete your work history to find former coworkers.</p>
               <p className="text-sm text-gray-600 mt-2 max-w-md mx-auto">
-                Use the form above with accurate dates—we’ll surface overlapping coworkers so you can request vouches.
+                Add accurate employment dates so WorkVouch can identify coworkers who worked with you.
               </p>
             </div>
           ) : (

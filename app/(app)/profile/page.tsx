@@ -122,11 +122,12 @@ export default async function ProfilePage() {
   return (
     <WvContainer size="narrow" className="py-8">
       <WvPageHeader
-        eyebrow="Your profile"
-        title="Profile"
+        eyebrow="Profile"
+        title="Your profile"
+        description="Your verified work history, trust score, and vouches. Keep this current for employers."
         action={
           <WvButton href="/profile/edit" size="sm">
-            Edit Profile
+            Edit profile
           </WvButton>
         }
       />
@@ -177,17 +178,17 @@ export default async function ProfilePage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-wv-border">
           <div>
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-wv-subtle">Confidence Score</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-wv-subtle">Profile strength</h2>
             <p className="mt-1 text-2xl font-bold text-wv-foreground tabular-nums">
               {confidenceScore ?? "—"}
             </p>
           </div>
           <div>
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-wv-subtle">Verified Jobs</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-wv-subtle">Verified roles</h2>
             <p className="mt-1 text-2xl font-bold text-wv-foreground tabular-nums">{verifiedJobCount}</p>
           </div>
           <div>
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-wv-subtle">Verified Coworkers</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-wv-subtle">Verified coworkers</h2>
             <p className="mt-1 text-2xl font-bold text-wv-foreground tabular-nums">{verifiedCoworkerCount}</p>
           </div>
         </div>
@@ -205,24 +206,24 @@ export default async function ProfilePage() {
       </div>
 
       <WvCard glow className="mt-8">
-        <h2 className="text-lg font-semibold text-wv-foreground mb-6">Trust & References</h2>
+        <h2 className="text-lg font-semibold text-wv-foreground mb-6">Trust and vouches</h2>
         <div className="flex flex-wrap items-center gap-8 mb-8">
           <WvTrustScore score={trustScorePct} size="md" />
           <div>
-            <p className="text-sm font-medium text-wv-muted">Trust Score</p>
+            <p className="text-sm font-medium text-wv-muted">Trust score</p>
             <p className="text-4xl font-bold text-wv-foreground mt-0.5 tabular-nums">
               {trustScoreDisplay ?? "—"}
             </p>
-            <p className="text-xs text-wv-subtle">out of 5 (from reviews)</p>
+            <p className="text-xs text-wv-subtle">out of 5 (from vouches)</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-wv-muted">Total Reviews</p>
+            <p className="text-sm font-medium text-wv-muted">Vouches</p>
             <p className="text-3xl font-bold text-wv-foreground mt-0.5 tabular-nums">
               {trustForProfile.totalReferences}
             </p>
           </div>
         </div>
-        <h3 className="text-base font-semibold text-wv-foreground mb-3">Recent Reviews</h3>
+        <h3 className="text-base font-semibold text-wv-foreground mb-3">Recent vouches</h3>
         {recentReviews.length > 0 ? (
           <ul className="space-y-4">
             {recentReviews.map((ref) => (
@@ -243,12 +244,12 @@ export default async function ProfilePage() {
           </ul>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm font-semibold text-wv-foreground">Land your first review with a vouch</p>
+            <p className="text-sm font-semibold text-wv-foreground">No vouches yet</p>
             <p className="text-sm text-wv-muted">
-              After a coworker accepts your vouch request, they can leave a review from Coworker Matches.
+              Request a vouch from a coworker match. After they accept, they can leave a vouch.
             </p>
             <WvButton href="/coworker-matches" size="sm">
-              Open coworker matches
+              Coworker matches
             </WvButton>
           </div>
         )}

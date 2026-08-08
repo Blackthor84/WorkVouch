@@ -12,8 +12,8 @@ export default function UpgradeClient() {
     <>
       <WvPageHeader
         eyebrow="Plans"
-        title="Upgrade your plan"
-        description="Unlock verification reports, workforce intelligence, and higher search limits."
+        title="Upgrade"
+        description="Unlock verification reports, workforce analytics, and higher search limits."
       />
       {plan && (
         <WvCard className="mt-6 border-blue-500/30 bg-blue-500/10">

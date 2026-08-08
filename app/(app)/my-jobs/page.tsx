@@ -46,25 +46,25 @@ export default async function MyJobsPage() {
     <WvContainer className="py-8">
       <WvPageHeader
         eyebrow="Employment"
-        title="My Job History"
-        description="Manage your work history and verification status."
+        title="Work history"
+        description="Add roles with accurate dates to enable coworker matches and verification requests."
         action={<AddJobButton />}
       />
 
       {error ? (
-        <WvErrorState message="We couldn't load your jobs. Please refresh and try again." />
+        <WvErrorState message="Work history could not load. Refresh the page or try again." />
       ) : safeJobs.length > 0 ? (
         <JobList jobs={safeJobs} />
       ) : (
         <WvEmptyState
           icon={<Briefcase className="h-6 w-6" />}
-          title="Add your work history to unlock coworker matches"
-          description="Roles with accurate dates power overlap matching—then you can request your first vouch."
+          title="Complete your work history to find former coworkers."
+          description="Add accurate employment dates so WorkVouch can identify coworkers who worked with you."
           action={
             <div className="flex flex-wrap justify-center gap-3">
               <AddJobButton />
               <WvButton href="/coworker-matches" variant="outline" size="sm">
-                See coworker matches
+                View coworker matches
               </WvButton>
             </div>
           }

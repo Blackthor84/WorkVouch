@@ -49,6 +49,11 @@ const REFERENCE_TYPE_MAP: Record<string, string> = {
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const cache = new Map<string, { result: PolicyMatchResult; expires: number }>();
 
+/** Clear evaluation cache (for tests and policy updates). */
+export function clearTrustPolicyCache(): void {
+  cache.clear();
+}
+
 function cacheKey(candidateId: string, policyId: string): string {
   return `${candidateId}:${policyId}`;
 }

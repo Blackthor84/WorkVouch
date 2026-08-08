@@ -5,6 +5,7 @@ import { WvTrustScore } from "@/components/wv/WvTrustScore";
 import { WvBadge } from "@/components/wv/WvBadge";
 import { WvLoadingState } from "@/components/wv/WvLoadingState";
 import type { TrustExplanationLine, TrustBadge } from "@/lib/trust/trustExplanation";
+import { getTrustBandLabel } from "@/lib/trust/trustBandLabels";
 
 type Props = {
   score: number;
@@ -15,13 +16,6 @@ type Props = {
   loading?: boolean;
   compact?: boolean;
 };
-
-function bandLabelFromScore(score: number): string {
-  if (score < 40) return "Needs improvement";
-  if (score < 60) return "Fair";
-  if (score < 80) return "Good";
-  return "Excellent";
-}
 
 /** Canonical trust visualization — one card for all surfaces. */
 export function TrustCard({
@@ -41,7 +35,7 @@ export function TrustCard({
     );
   }
 
-  const label = bandLabel ?? bandLabelFromScore(score);
+  const label = bandLabel ?? getTrustBandLabel(score);
 
   return (
     <WvCard glow={!compact} padding={compact ? "md" : "lg"}>
@@ -51,7 +45,7 @@ export function TrustCard({
           <p className="text-sm font-medium text-wv-muted">Trust score</p>
           <p className="text-lg font-semibold text-wv-foreground">{label}</p>
           {trajectoryLabel && (
-            <p className="mt-1 text-xs text-wv-subtle">Trend: {trajectoryLabel}</p>
+            <p className="mt-1 text-xs text-wv-subtle">Trend · {trajectoryLabel}</p>
           )}
 
           {badges.length > 0 && (
@@ -67,7 +61,7 @@ export function TrustCard({
           {!compact && explanation.length > 0 && (
             <div className="mt-4">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-wv-subtle">
-                Why this score?
+                Score factors
               </p>
               <ul className="space-y-1.5 text-sm">
                 {explanation.map((line, i) => (

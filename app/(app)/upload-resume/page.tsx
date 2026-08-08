@@ -6,8 +6,8 @@ export default async function UploadResumePage() {
     <WvContainer size="narrow" className="py-8">
       <WvPageHeader
         eyebrow="Profile"
-        title="Upload Resume"
-        description="Upload your resume (PDF, DOC, or DOCX, max 5MB) to store it on your profile. Employers can request access to view it."
+        title="Upload resume"
+        description="Add a PDF, DOC, or DOCX (max 5 MB) to your profile. Employers can request access."
       />
       <WvCard padding="lg">
         <UploadResumeForm />

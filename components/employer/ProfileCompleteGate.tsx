@@ -13,7 +13,6 @@ interface ProfileCompleteGateProps {
 
 /**
  * Shown when an employer tries a restricted action that requires a complete company profile.
- * Explains what’s missing and how to unlock (complete profile); non-blocking, explanatory.
  */
 export function ProfileCompleteGate({ feature, className = "" }: ProfileCompleteGateProps) {
   return (
@@ -22,13 +21,13 @@ export function ProfileCompleteGate({ feature, className = "" }: ProfileComplete
         <InformationCircleIcon className="h-6 w-6 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-medium text-grey-dark dark:text-gray-200">
-            {feature} works best with a complete company profile.
+            Complete your company profile to use {feature.toLowerCase()}.
           </p>
           <p className="text-sm text-grey-medium dark:text-gray-400 mt-1">
-            Add your company name, industry, and complete verification so candidates and search results are fully available. You can do this in Settings.
+            Add company name, industry, and verification details in Settings.
           </p>
           <Button variant="secondary" size="sm" className="mt-3" asChild>
-            <Link href="/employer/settings">Complete company profile</Link>
+            <Link href="/employer/settings">Company settings</Link>
           </Button>
         </div>
       </div>

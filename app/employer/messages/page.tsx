@@ -22,7 +22,7 @@ export default async function EmployerMessagesPage() {
       <WvPageHeader
         eyebrow="Inbox"
         title="Messages"
-        description="Communicate with candidates you've contacted. Select a conversation to read and reply."
+        description="Reply to candidates you have contacted. Select a conversation to continue."
       />
       <div className="mt-8">
         <EmployerMessages />

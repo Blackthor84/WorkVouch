@@ -35,8 +35,7 @@ import { RiskAlertPanel } from "@/components/employer/RiskAlertPanel";
 import { EmploymentVerificationPanel } from "@/components/employer/EmploymentVerificationPanel";
 import { ReferenceConsistencyPanel } from "@/components/employer/ReferenceConsistencyPanel";
 import { TrustTimelinePanel } from "@/components/employer/TrustTimelinePanel";
-import TrustScoreBreakdown from "@/components/trust/TrustScoreBreakdown";
-import TrustScoreGauge from "@/components/trust/TrustScoreGauge";
+import { TrustCardEmployerView } from "@/components/trust/TrustCardEmployerView";
 import { TrustRankInlineBadge } from "@/components/trust/TrustRankInlineBadge";
 import VerifiedWorkTimeline from "@/components/trust/VerifiedWorkTimeline";
 import { CandidateComparisonPanel } from "@/components/employer/CandidateComparisonPanel";
@@ -90,6 +89,10 @@ export function CandidateProfileViewer({
   const [messageBody, setMessageBody] = useState("");
   const [trustDetailsExpanded, setTrustDetailsExpanded] = useState(false);
   const [employerConfidenceLabel, setEmployerConfidenceLabel] = useState<string | null>(null);
+  const [actionNotice, setActionNotice] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!isEmployeeSelfView) checkSavedStatus();
@@ -125,16 +128,22 @@ export function CandidateProfileViewer({
   const handleSave = async () => {
     const profileId = candidateData.profile?.id;
     if (!profileId) return;
+    setActionNotice(null);
     try {
       if (saved) {
         await unsaveCandidate(profileId);
         setSaved(false);
+        setActionNotice({ type: "success", message: "Removed from saved list." });
       } else {
         await saveCandidate(profileId);
         setSaved(true);
+        setActionNotice({ type: "success", message: "Candidate saved." });
       }
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to update saved status");
+      setActionNotice({
+        type: "error",
+        message: err instanceof Error ? err.message : "Failed to update saved status",
+      });
     }
   };
 
@@ -142,13 +151,17 @@ export function CandidateProfileViewer({
     const profileId = candidateData.profile?.id;
     if (!messageBody.trim() || !profileId) return;
 
+    setActionNotice(null);
     try {
       await sendMessage(profileId, messageBody);
       setMessageBody("");
       setShowMessageForm(false);
-      alert("Message sent!");
+      setActionNotice({ type: "success", message: "Message sent." });
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to send message");
+      setActionNotice({
+        type: "error",
+        message: err instanceof Error ? err.message : "Failed to send message",
+      });
     }
   };
 
@@ -203,9 +216,21 @@ export function CandidateProfileViewer({
   return (
     <div className="space-y-6">
       <HiringGuidanceCoachmarks enabled={!isEmployeeSelfView} />
+      {actionNotice && (
+        <p
+          role={actionNotice.type === "error" ? "alert" : "status"}
+          className={
+            actionNotice.type === "error"
+              ? "rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+              : "rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300"
+          }
+        >
+          {actionNotice.message}
+        </p>
+      )}
       {isEmployeeSelfView && (
         <WvBadge variant="brand" className="block w-fit px-3 py-2 text-sm">
-          Preview — this is what employers see on your profile
+          Preview — employer view of your profile
         </WvBadge>
       )}
       {/* Header */}
@@ -241,14 +266,12 @@ export function CandidateProfileViewer({
               </p>
             ) : null}
             <p className="text-wv-muted">
-              {safeProfile.city && safeProfile.state
-                ? `${safeProfile.city}, ${safeProfile.state}`
-                : "Location not specified"}
+              {safeProfile.state ? safeProfile.state : "Location not specified"}
             </p>
             {(verified_employment_count ?? 0) > 0 && (
               <WvBadge variant="success" className="mt-2 gap-1.5 px-3 py-1">
                 <BadgeCheck className="h-4 w-4" aria-hidden />
-                Verified worker
+                Verified candidate
               </WvBadge>
             )}
             {safeProfile.industry && (
@@ -295,32 +318,17 @@ export function CandidateProfileViewer({
         </HiringDataUnlockGate>
       )}
 
-      {/* Trust Score Gauge + Breakdown (near Verification Summary / Trust) */}
+      {/* Trust score — canonical engine via /api/trust */}
       {trustReviewsUnlocked ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div
-            id="wv-guide-trust"
-            className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:bg-[#111827] dark:border-slate-700"
-          >
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Trust score</p>
-            <TrustScoreHint />
-            <TrustScoreGauge
-              score={trust_score ?? 0}
-              referenceCount={trust_reference_count ?? 0}
-            />
-          </div>
-          <TrustScoreBreakdown profileId={safeProfile.id} />
+        <div id="wv-guide-trust">
+          <TrustScoreHint className="mb-3" />
+          <TrustCardEmployerView profileId={safeProfile.id} fallbackScore={trust_score ?? 0} />
         </div>
       ) : (
         <HiringDataUnlockGate>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:bg-[#111827] dark:border-slate-700 text-center">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Trust score</p>
-              <TrustScoreHint className="text-center" />
-              <p className="mt-2 text-6xl font-bold text-blue-600 tabular-nums">{Math.round(trust_score ?? 0)}</p>
-              <p className="text-sm text-slate-500 mt-1">0–100 scale</p>
-            </div>
-            <TrustScoreBreakdown profileId={safeProfile.id} />
+          <div id="wv-guide-trust">
+            <TrustScoreHint className="mb-3" />
+            <TrustCardEmployerView profileId={safeProfile.id} fallbackScore={trust_score ?? 0} />
           </div>
         </HiringDataUnlockGate>
       )}
@@ -375,7 +383,7 @@ export function CandidateProfileViewer({
               <RiskAlertPanel candidateId={safeProfile.id} />
             </div>
           </div>
-          {/* Top row: Verification, Depth, Timeline, Trust Policy Match */}
+          {/* Top row: Verification, Depth, Timeline */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <VerificationCoverageCardCandidate candidateId={safeProfile.id} />
             <TrustGraphDepthCardCandidate candidateId={safeProfile.id} />
@@ -387,13 +395,6 @@ export function CandidateProfileViewer({
               View trust graph
             </WvButton>
           </div>
-          {/* Trust Timeline: chronological trust events for this candidate */}
-          <section aria-labelledby="trust-timeline-heading">
-            <h2 id="trust-timeline-heading" className="sr-only">
-              Trust Timeline
-            </h2>
-            <TrustTimelinePanel candidateId={safeProfile.id} />
-          </section>
           {/* Trust Policy Match: candidate vs employer hiring standards */}
           <div className="grid grid-cols-1 gap-6">
             <TrustPolicyMatchPanel candidateId={safeProfile.id} />
@@ -434,8 +435,8 @@ export function CandidateProfileViewer({
           <Card className="p-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-1">Reputation Score</h2>
-                <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">Portable credibility score (0–100)</p>
+                <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-1">Trust score</h2>
+                <p className="text-sm text-grey-medium dark:text-gray-400 mb-2">Verified credibility score (0–100)</p>
                 <ul className="text-sm text-grey-dark dark:text-gray-200 space-y-0.5 list-disc list-inside">
                   {typeof total_employment_count === "number" && total_employment_count > 0 && (
                     <li title="Percentage of listed roles confirmed through independent verification.">
@@ -473,13 +474,13 @@ export function CandidateProfileViewer({
       {showMessageForm && (
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
-            Send Message
+            Send message
           </h3>
           <textarea
             value={messageBody}
             onChange={(e) => setMessageBody(e.target.value)}
             rows={4}
-            placeholder="Type your message..."
+            placeholder="Write your message…"
             className="mb-4 w-full rounded-xl border border-wv-border bg-wv-surface px-4 py-3 text-sm text-wv-foreground placeholder:text-white/30 focus:border-wv-brand-blue/50 focus:outline-none focus:ring-2 focus:ring-wv-brand-blue/30"
           />
           <div className="flex gap-2">
@@ -512,7 +513,7 @@ export function CandidateProfileViewer({
       {industry_fields && Array.isArray(industry_fields) && industry_fields.length > 0 && (
         <Card className="p-6">
           <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
-            Industry-Specific Information
+            Industry credentials
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {(industry_fields as Record<string, unknown>[]).map((field: Record<string, unknown>, idx: number) => (
@@ -528,7 +529,7 @@ export function CandidateProfileViewer({
                 </p>
                 {Boolean(field.verified) && (
                   <div className="flex items-center gap-1 mt-2">
-                    <CheckBadgeIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <BadgeCheck className="h-4 w-4 text-green-600 dark:text-green-400" aria-hidden />
                     <span className="text-xs text-green-600 dark:text-green-400 font-semibold">
                       Verified
                     </span>

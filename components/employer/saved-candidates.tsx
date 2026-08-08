@@ -9,10 +9,12 @@ import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { BookmarkSlashIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { WvLoadingState } from "@/components/wv";
 
 export function SavedCandidates() {
   const [candidates, setCandidates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadCandidates();
@@ -20,30 +22,40 @@ export function SavedCandidates() {
 
   const loadCandidates = async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await getSavedCandidates();
       setCandidates(data);
-    } catch (error: any) {
-      alert(error.message || "Failed to load saved candidates");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load saved candidates");
     } finally {
       setLoading(false);
     }
   };
 
   const handleUnsave = async (candidateId: string) => {
+    setError(null);
     try {
       await unsaveCandidate(candidateId);
       await loadCandidates();
-    } catch (error: any) {
-      alert(error.message || "Failed to unsave candidate");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to unsave candidate");
     }
   };
 
   if (loading) {
     return (
       <Card className="p-12 text-center">
-        <p className="text-grey-medium dark:text-gray-400">
-          Loading saved candidates...
+        <WvLoadingState label="Loading saved candidates…" />
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="p-6">
+        <p className="text-sm text-red-400" role="alert">
+          {error}
         </p>
       </Card>
     );
@@ -53,8 +65,7 @@ export function SavedCandidates() {
     return (
       <Card className="p-12 text-center">
         <p className="text-grey-medium dark:text-gray-400">
-          No saved candidates yet. Start searching and save candidates you're
-          interested in.
+          No saved candidates. Search and save profiles to track them here.
         </p>
       </Card>
     );
@@ -64,7 +75,7 @@ export function SavedCandidates() {
     <div className="space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200">
-          Saved Candidates ({candidates.length})
+          Saved candidates ({candidates.length})
         </h2>
       </div>
       {candidates.map((saved) => {
@@ -93,12 +104,10 @@ export function SavedCandidates() {
                       {candidate.full_name}
                     </h3>
                     <p className="text-sm text-grey-medium dark:text-gray-400">
-                      {candidate.city && candidate.state
-                        ? `${candidate.city}, ${candidate.state}`
-                        : "Location not specified"}
+                      {candidate.state ? candidate.state : "Location not specified"}
                     </p>
                     <p className="text-sm font-semibold text-grey-dark dark:text-gray-200 mt-1">
-                      Reputation Score:{" "}
+                      Trust score:{" "}
                       <span className="text-blue-600 dark:text-blue-400">
                         {trustScore}
                       </span>
@@ -114,9 +123,9 @@ export function SavedCandidates() {
               <div className="flex flex-col gap-2 ml-4">
                 <Button
                   variant="secondary"
-                  href={`/employer/candidates/${candidate.id}`}
+                  href={`/employer/profile/${candidate.id}`}
                 >
-                  View Profile
+                  View profile
                 </Button>
                 <Button
                   variant="ghost"

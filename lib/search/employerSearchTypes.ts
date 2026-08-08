@@ -15,7 +15,6 @@ export type EmployerSearchResult = {
   headline: string | null;
   profilePhotoUrl: string | null;
   industry: string | null;
-  city: string | null;
   state: string | null;
   verifiedEmploymentCount: number;
   totalEmploymentCount: number;

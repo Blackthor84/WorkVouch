@@ -6,44 +6,31 @@ import {
   sendMessage,
   markMessageAsRead,
 } from "@/lib/actions/messages";
-import { supabaseBrowser } from "@/lib/supabase/client";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 
 export function UserMessages() {
-  const supabase = supabaseBrowser;
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadCurrentUser();
     loadMessages();
   }, []);
 
-  const loadCurrentUser = async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        setCurrentUserId(user.id);
-      }
-    } catch (error) {
-      console.error("Failed to load current user:", error);
-    }
-  };
-
   const loadMessages = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const data = await getMessages();
+      const { messages: data, currentUserId: userId } = await getMessages();
       setMessages(data);
-    } catch (error: any) {
-      alert(error.message || "Failed to load messages");
+      setCurrentUserId(userId);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load messages");
     } finally {
       setLoading(false);
     }
@@ -56,8 +43,8 @@ export function UserMessages() {
       await sendMessage(recipientId, newMessage);
       setNewMessage("");
       await loadMessages();
-    } catch (error: any) {
-      alert(error.message || "Failed to send message");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to send message");
     }
   };
 
@@ -65,7 +52,7 @@ export function UserMessages() {
     return (
       <Card className="p-12 text-center">
         <p className="text-grey-medium dark:text-gray-400">
-          Loading messages...
+          Loading messages…
         </p>
       </Card>
     );
@@ -110,6 +97,11 @@ export function UserMessages() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {error && (
+        <p className="lg:col-span-3 text-sm text-red-400" role="alert">
+          {error}
+        </p>
+      )}
       <div className="lg:col-span-1">
         <h2 className="text-lg font-semibold text-grey-dark dark:text-gray-200 mb-4">
           Conversations
@@ -200,7 +192,7 @@ export function UserMessages() {
         ) : (
           <Card className="p-12 text-center">
             <p className="text-grey-medium dark:text-gray-400">
-              Select a conversation to view messages
+              Select a conversation to begin.
             </p>
           </Card>
         )}

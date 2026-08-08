@@ -20,9 +20,9 @@ export default async function EmployerBillingPage() {
   return (
     <EmployerPortalLayout>
       <WvPageHeader
-        eyebrow="Subscription"
-        title="Billing & Subscription"
-        description="Manage your subscription and billing information"
+        eyebrow="Billing"
+        title="Subscription"
+        description="View your plan, payment method, and invoices."
       />
       <div className="mt-8">
         <EmployerBilling />

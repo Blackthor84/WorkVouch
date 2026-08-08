@@ -5,8 +5,8 @@
  * - Dispute detection blocks match when allow_recent_disputes is false
  */
 
-import { describe, it, expect } from "vitest";
-import { evaluateTrustPolicy } from "@/lib/trust/policy";
+import { describe, it, expect, beforeEach } from "vitest";
+import { evaluateTrustPolicy, clearTrustPolicyCache } from "@/lib/trust/policy";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type MockPayload = {
@@ -76,31 +76,27 @@ function createMockSupabase(overrides: MockPayload): SupabaseClient {
       return Promise.resolve(fn(p ? { data: p.data, error: p.error } : { data: null, error: null }));
     },
   });
+  const chain = (table: string): Record<string, unknown> => ({
+    eq: () => chain(table),
+    gte: () => chain(table),
+    or: () => thenable(table),
+    limit: () => resolve(table),
+    maybeSingle: () => resolve(table),
+    single: () => {
+      if (table === "trust_policies" && overrides.policy === null) {
+        return Promise.resolve({ data: null, error: new Error("Not found") });
+      }
+      return table === "trust_policies"
+        ? resolve(table)
+        : Promise.resolve({ data: null, error: new Error("Not found") });
+    },
+    then: (fn: (r: { data: unknown; error: unknown }) => unknown) =>
+      thenable(table).then(fn),
+  });
   const from = (table: string) => {
     currentTable = table;
-    const eqReturn = {
-      or: () => thenable(table),
-      eq: (_c2: string, _v2: unknown) => ({
-        eq: (_c3: string, _v3: unknown) => ({
-          limit: () => resolve(table),
-        }),
-        limit: () => resolve(table),
-      }),
-      gte: () => ({
-        limit: () => resolve(table),
-      }),
-      maybeSingle: () => resolve(table),
-      single: () =>
-        table === "trust_policies"
-          ? resolve(table)
-          : Promise.resolve({ data: null, error: new Error("Not found") }),
-      then: (fn: (r: { data: unknown; error: unknown }) => unknown) =>
-        thenable(table).then(fn),
-    };
     return {
-      select: () => ({
-        eq: (_col: string, _val: unknown) => eqReturn,
-      }),
+      select: () => chain(table),
     };
   };
   return { from } as unknown as SupabaseClient;
@@ -109,6 +105,10 @@ function createMockSupabase(overrides: MockPayload): SupabaseClient {
 describe("Trust Policy evaluation", () => {
   const candidateId = "cand-1";
   const policyId = "policy-1";
+
+  beforeEach(() => {
+    clearTrustPolicyCache();
+  });
 
   it("returns match when all criteria satisfied", async () => {
     const supabase = createMockSupabase({

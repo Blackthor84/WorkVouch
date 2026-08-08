@@ -134,11 +134,11 @@ export function CandidateCard({
           )}
         </div>
         {blurTrust && (
-          <p className="text-xs text-blue-400 font-medium">Upgrade to unlock exact trust data →</p>
+          <p className="text-xs text-blue-400 font-medium">Upgrade for full trust scores →</p>
         )}
         <div className="flex flex-wrap gap-2">
           <WvButton href={`/employer/profile/${candidate.id}`} size="sm">
-            View Profile
+            View profile
           </WvButton>
           <WvButton
             type="button"
@@ -148,7 +148,7 @@ export function CandidateCard({
             disabled={saving}
           >
             <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} aria-hidden />
-            {saving ? "…" : isSaved ? "Saved" : "Save Candidate"}
+            {saving ? "…" : isSaved ? "Saved" : "Save"}
           </WvButton>
         </div>
       </div>

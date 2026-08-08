@@ -71,7 +71,7 @@ export function CompareViewClient() {
       fetchCompare(ids);
     } else {
       setLoading(false);
-      setError(ids.length === 0 ? "No candidates selected." : "Select 2–4 candidates to compare.");
+      setError(ids.length === 0 ? "No candidates selected." : "Select 2–4 candidates from search.");
       setCandidates([]);
     }
   }, [idsParam, fetchCompare]);
@@ -80,7 +80,7 @@ export function CompareViewClient() {
     return (
       <div className="flex flex-col items-center justify-center py-16">
         <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-b-transparent" />
-        <p className="mt-4 text-wv-muted">Loading comparison...</p>
+        <p className="mt-4 text-wv-muted">Loading comparison…</p>
       </div>
     );
   }
@@ -97,7 +97,7 @@ export function CompareViewClient() {
   }
 
   const rows: { label: string; key: keyof CompareCandidateItem }[] = [
-    { label: "Verified employment coverage", key: "verifiedEmploymentCoveragePct" },
+    { label: "Verification coverage", key: "verifiedEmploymentCoveragePct" },
     { label: "Trust band", key: "trustLabel" },
     { label: "Explanation", key: "trustExplanation" },
     { label: "Reference count", key: "referenceCount" },

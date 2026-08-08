@@ -6,7 +6,7 @@ import { respondToRequest } from "@/lib/actions/referenceFeedback";
 import { EmptyState } from "@/components/workvouch/EmptyState";
 import { Inbox, Send } from "lucide-react";
 import Link from "next/link";
-import { WvCard, WvButton, WvBadge } from "@/components/wv";
+import { WvCard, WvButton, WvBadge, WvLoadingState, WvErrorState } from "@/components/wv";
 
 type ReferenceRequestRow = {
   id: string;
@@ -49,6 +49,7 @@ export function RequestsPageClient() {
   const [companyByMatchId, setCompanyByMatchId] = useState<Record<string, string>>({});
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [newRequestAlert, setNewRequestAlert] = useState(false);
   const channelRef = useRef<ReturnType<typeof supabaseBrowser.channel> | null>(null);
@@ -60,14 +61,19 @@ export function RequestsPageClient() {
   }, []);
 
   const fetchAll = async (uid: string) => {
-    const [{ data: inc }, { data: out }] = await Promise.all([
-      supabaseBrowser.from("reference_requests").select("*").eq("receiver_id", uid).order("created_at", { ascending: false }),
-      supabaseBrowser.from("reference_requests").select("*").eq("requester_id", uid).order("created_at", { ascending: false }),
-    ]);
-    const incList = (inc ?? []) as ReferenceRequestRow[];
-    const outList = (out ?? []) as ReferenceRequestRow[];
-    setIncoming(incList);
-    setOutgoing(outList);
+    try {
+      setLoadError(null);
+      const [{ data: inc, error: incErr }, { data: out, error: outErr }] = await Promise.all([
+        supabaseBrowser.from("reference_requests").select("*").eq("receiver_id", uid).order("created_at", { ascending: false }),
+        supabaseBrowser.from("reference_requests").select("*").eq("requester_id", uid).order("created_at", { ascending: false }),
+      ]);
+      if (incErr || outErr) {
+        throw new Error(incErr?.message || outErr?.message || "Failed to load requests");
+      }
+      const incList = (inc ?? []) as ReferenceRequestRow[];
+      const outList = (out ?? []) as ReferenceRequestRow[];
+      setIncoming(incList);
+      setOutgoing(outList);
 
     const matchIds = [...new Set([...incList.map((r) => r.coworker_match_id), ...outList.map((r) => r.coworker_match_id)])];
     if (matchIds.length > 0) {
@@ -90,7 +96,11 @@ export function RequestsPageClient() {
       });
       setProfiles(map);
     }
-    setLoading(false);
+    } catch (err: unknown) {
+      setLoadError(err instanceof Error ? err.message : "Failed to load requests");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -119,12 +129,39 @@ export function RequestsPageClient() {
 
   const handleRespond = async (id: string, status: "accepted" | "rejected") => {
     setUpdatingId(id);
-    await respondToRequest(id, status);
-    setIncoming((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-    setUpdatingId(null);
+    try {
+      await respondToRequest(id, status);
+      setIncoming((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    } catch (err: unknown) {
+      setLoadError(err instanceof Error ? err.message : "Failed to update request");
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <WvCard padding="lg">
+        <WvLoadingState label="Loading requests…" />
+      </WvCard>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <WvErrorState
+        title="Could not load requests"
+        message={loadError}
+        action={
+          userId ? (
+            <WvButton size="sm" onClick={() => fetchAll(userId)}>
+              Try again
+            </WvButton>
+          ) : undefined
+        }
+      />
+    );
+  }
 
   const hasIncoming = incoming.length > 0;
   const hasOutgoing = outgoing.length > 0;
@@ -133,12 +170,12 @@ export function RequestsPageClient() {
     return (
       <EmptyState
         icon={<Inbox className="h-7 w-7" aria-hidden />}
-        title="Request your first vouch—or answer one"
-        description="Send vouch requests from coworker matches, or accept incoming asks. Everything you send and receive lands here."
+        title="No requests yet"
+        description="Request a vouch from a coworker match, or respond when someone asks you."
         action={
           <div className="flex flex-wrap justify-center gap-3">
-            <WvButton href="/coworker-matches">Find coworkers</WvButton>
-            <WvButton href="/jobs/new" variant="secondary">Add a job</WvButton>
+            <WvButton href="/coworker-matches">Coworker matches</WvButton>
+            <WvButton href="/jobs/new" variant="secondary">Add work history</WvButton>
           </div>
         }
         className="mt-8"
@@ -150,13 +187,13 @@ export function RequestsPageClient() {
     <>
       {newRequestAlert && (
         <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-300">
-          New reference request!
+          New verification request
         </div>
       )}
 
       {hasIncoming && (
         <section className="mt-8">
-          <h2 className="text-lg font-semibold text-wv-foreground">Incoming Requests</h2>
+          <h2 className="text-lg font-semibold text-wv-foreground">Incoming</h2>
           <ul className="mt-4 space-y-3">
             {incoming.map((req) => {
               const profile = profiles[req.requester_id];
@@ -217,7 +254,7 @@ export function RequestsPageClient() {
         <section className={hasIncoming ? "mt-10" : "mt-8"}>
           <h2 className="text-lg font-semibold text-wv-foreground flex items-center gap-2">
             <Send className="h-5 w-5 text-violet-400" aria-hidden />
-            Outgoing Requests
+            Outgoing
           </h2>
           <ul className="mt-4 space-y-3">
             {outgoing.map((req) => {
@@ -249,7 +286,7 @@ export function RequestsPageClient() {
                     {req.status === "accepted" && (
                       <p className="mt-3 text-sm text-wv-muted">
                         <Link href="/coworker-matches" className="font-medium text-blue-400 hover:text-blue-300">
-                          Leave reference
+                          Leave vouch
                         </Link>{" "}
                         on your matches page.
                       </p>

@@ -28,8 +28,8 @@ export default async function EnterpriseHiringDashboardPage() {
     <EnterprisePortalLayout>
       <WvPageHeader
         eyebrow="Intelligence"
-        title="Hiring Intelligence Dashboard"
-        description="Verified workforce signals, risk indicators, and decision support for enterprise teams."
+        title="Hiring intelligence"
+        description="Workforce verification signals, risk indicators, and decision support."
       />
       <div className="mt-8">
         <HiringIntelligenceDashboardClient />

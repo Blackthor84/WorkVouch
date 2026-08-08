@@ -29,6 +29,38 @@ export async function sendMessage(
   const supabase = await createClient()
   const supabaseAny = supabase as any
 
+  const { data: senderProfile } = await supabaseAny
+    .from('profiles')
+    .select('role, full_name')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const senderRole = (senderProfile as { role?: string } | null)?.role ?? ''
+  const senderName =
+    (senderProfile as { full_name?: string | null } | null)?.full_name?.trim() || 'A recruiter'
+
+  if (senderRole === 'employer') {
+    const [{ data: saved }, { data: prior }] = await Promise.all([
+      supabaseAny
+        .from('saved_candidates')
+        .select('id')
+        .eq('employer_id', user.id)
+        .eq('candidate_id', recipientId)
+        .maybeSingle(),
+      supabaseAny
+        .from('messages')
+        .select('id')
+        .or(
+          `and(sender_id.eq.${user.id},recipient_id.eq.${recipientId}),and(sender_id.eq.${recipientId},recipient_id.eq.${user.id})`,
+        )
+        .limit(1)
+        .maybeSingle(),
+    ])
+    if (!saved && !prior) {
+      throw new Error('Save this candidate or reply in an existing thread before messaging.')
+    }
+  }
+
   const { data, error } = await supabaseAny
     .from('messages')
     .insert([{
@@ -49,8 +81,8 @@ export async function sendMessage(
   await supabaseAny.rpc('create_notification', {
     p_user_id: recipientId,
     p_type: 'message',
-    p_title: 'New Message',
-    p_message: `You have a new message from ${user.email}`,
+    p_title: 'New message',
+    p_message: `You have a new message from ${senderName}.`,
     p_related_user_id: user.id,
     p_related_job_id: relatedJobPostingId || null,
     p_related_connection_id: null,
@@ -62,10 +94,15 @@ export async function sendMessage(
   return data as Message
 }
 
+export type InboxMessages = {
+  messages: Message[]
+  currentUserId: string
+}
+
 /**
  * Get all messages for current user (inbox)
  */
-export async function getMessages() {
+export async function getMessages(): Promise<InboxMessages> {
   const user = await requireAuth()
   const supabase = await createClient()
   const supabaseAny = supabase as any
@@ -80,12 +117,13 @@ export async function getMessages() {
     `)
     .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
     .order('created_at', { ascending: false })
+    .limit(500)
 
   if (error) {
     throw new Error(`Failed to fetch messages: ${error.message}`)
   }
 
-  return data || []
+  return { messages: (data || []) as Message[], currentUserId: user.id }
 }
 
 /**

@@ -13,7 +13,7 @@ export default async function NotificationsPage() {
       <WvPageHeader
         eyebrow="Activity"
         title="Notifications"
-        description="Matches, reference requests, and other updates."
+        description="Updates on matches, references, and verifications. Mark items read as you review them."
       />
       <Suspense fallback={<NotificationsSkeleton />}>
         <NotificationsPanel initialNotifications={notifications} />

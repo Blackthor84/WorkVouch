@@ -21,11 +21,11 @@ export default async function EmployerCandidatesPage() {
     <EmployerPortalLayout wide>
       <WvPageHeader
         eyebrow="Talent"
-        title="Saved Candidates"
-        description="Candidates you saved from search for quick access and follow-up."
+        title="Saved candidates"
+        description="Profiles you saved from search. Open one to review or send a message."
         action={
           <WvButton href="/employer/search-users" variant="secondary" size="sm">
-            Search candidates
+            Search
           </WvButton>
         }
       />

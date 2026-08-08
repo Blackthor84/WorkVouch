@@ -16,8 +16,8 @@ export default async function EmployerDirectoryPage() {
     <EmployerPortalLayout wide>
       <WvPageHeader
         eyebrow="Directory"
-        title="Workforce Directory"
-        description="Full search with filters. Plan-based limits apply."
+        title="Workforce directory"
+        description="Search verified workers. Access levels depend on your plan."
       />
       <div className="mt-8">
         <EmployerDirectoryClient />

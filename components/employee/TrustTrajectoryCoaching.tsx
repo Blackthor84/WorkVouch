@@ -64,7 +64,7 @@ export function TrustTrajectoryCoaching() {
       </ul>
       <div className="mt-4 flex flex-wrap gap-2">
         <Link href="/my-jobs" className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
-          Job History
+          Work history
         </Link>
         <Link href="/coworker-matches" className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
           Request references

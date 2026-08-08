@@ -5,7 +5,7 @@ import { WvCard, WvTrustScore, WvBadge, WvButton } from "@/components/wv";
 
 function getScoreLabel(score: number): string {
   if (score >= 86) return "Highly Verified";
-  if (score >= 61) return "Strong Reputation";
+  if (score >= 61) return "Strong trust";
   if (score >= 31) return "Building Trust";
   return "Getting Started";
 }

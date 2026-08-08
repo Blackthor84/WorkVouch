@@ -252,13 +252,13 @@ export default function DashboardClient({
           </WvCard>
         )}
         <WvPageHeader
-          eyebrow="Your network"
-          title="Coworker Matches"
-          description="Your verified work reputation, powered by real coworkers"
+          eyebrow="Network"
+          title="Coworker matches"
+          description="Find people you worked with. Request a vouch to build your trust score."
           action={
             <WvButton href="/my-jobs" size="sm">
               <FilePlus className="h-4 w-4" aria-hidden />
-              Add Job
+              Add role
             </WvButton>
           }
         />
@@ -270,7 +270,7 @@ export default function DashboardClient({
 
         {/* Section 3: Your Coworkers (Matches) */}
         <section className="mb-8">
-          <h2 className="mb-4 text-xl font-semibold text-wv-foreground">Your Coworkers</h2>
+          <h2 className="mb-4 text-xl font-semibold text-wv-foreground">Matches</h2>
           {loading ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {[1, 2, 3].map((i) => (
@@ -283,24 +283,24 @@ export default function DashboardClient({
                 <Users className="h-8 w-8 text-wv-muted" aria-hidden />
               </div>
               <h3 className="text-lg font-semibold text-wv-foreground">
-                Add a coworker to get your first vouch
+                No matches yet
               </h3>
-              <p className="mt-2 max-w-sm text-sm text-wv-muted">
-                Add jobs with accurate dates—we use real overlap to suggest people you worked with, then you can request a vouch.
+              <p className="mt-2 max-w-md text-sm text-wv-muted">
+                Add work history with accurate dates. We use overlap to suggest coworkers you can request a vouch from.
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <WvButton href="/jobs/new">Add a job</WvButton>
-                <WvButton href="/my-jobs" variant="secondary">Review my jobs</WvButton>
+                <WvButton href="/jobs/new">Add role</WvButton>
+                <WvButton href="/my-jobs" variant="secondary">View work history</WvButton>
               </div>
             </WvCard>
           ) : (
             <>
               <div className="mb-6 flex items-center gap-2">
                 <p className="text-sm font-medium text-wv-muted">
-                  Trust Score:{" "}
+                  Trust score:{" "}
                   <strong className="text-wv-foreground">{Math.min(100, Math.max(0, trustOverview.trustScore ?? 0))}</strong>
                   {!(trustOverview.trustScore != null && trustOverview.trustScore > 0) && (
-                    <span className="font-normal text-wv-subtle"> — add verifications to grow it</span>
+                    <span className="font-normal text-wv-subtle"> · Add verifications to increase it</span>
                   )}
                 </p>
               </div>
@@ -372,7 +372,7 @@ export default function DashboardClient({
 
         {/* Reference Requests */}
         <section className="mb-8">
-          <h2 className="mb-4 text-lg font-semibold text-wv-foreground">Reference Requests</h2>
+          <h2 className="mb-4 text-lg font-semibold text-wv-foreground">Verification requests</h2>
           <div className="grid gap-6 sm:grid-cols-2">
             <WvCard>
               <h3 className="flex items-center gap-2 text-sm font-semibold text-wv-foreground">

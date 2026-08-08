@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 const DISCLAIMER_MESSAGE =
-  "Before you search candidates or view profiles, you must accept our Employer Agreement. It explains how you may use WorkVouch reputation data and your obligations under employment and fair-chance hiring laws.";
+  "Accept the Employer Agreement before searching or viewing candidate profiles. It covers trust data usage and your obligations under employment law.";
 
 export interface EmployerLegalDisclaimerModalProps {
   open: boolean;
@@ -49,13 +49,13 @@ export function EmployerLegalDisclaimerModal({
           id="employer-disclaimer-title"
           className="text-xl font-semibold text-slate-900 dark:text-slate-100"
         >
-          Employer Agreement required
+          Employer Agreement
         </h2>
         <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
           {DISCLAIMER_MESSAGE}
         </p>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-          By clicking Accept, you agree to the{" "}
+          By accepting, you agree to the{" "}
           <a
             href="/legal/employer-agreement"
             target="_blank"

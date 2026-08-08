@@ -9,9 +9,9 @@ export default function RequestsPage() {
   return (
     <WvContainer size="narrow" className="py-8">
       <WvPageHeader
-        eyebrow="References"
-        title="Verification & reference requests"
-        description="Review incoming requests from coworkers and track outgoing verification invites. Accept or decline to keep your profile accurate."
+        eyebrow="Verification"
+        title="Verification requests"
+        description="Respond to employment verification and coworker vouch requests."
       />
       <Suspense fallback={<RequestListSkeleton />}>
         <RequestsPageClient />

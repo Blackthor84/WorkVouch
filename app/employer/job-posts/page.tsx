@@ -18,15 +18,15 @@ export default async function EmployerJobPostsPage() {
 
   return (
     <EmployerPortalLayout>
-      <WvPageHeader eyebrow="Jobs" title="Job Posts" />
+      <WvPageHeader eyebrow="Jobs" title="Job posts" description="WorkVouch verifies work history — it does not host job listings. Search candidates instead." />
       <WvCard glow className="mt-8 text-center max-w-lg mx-auto">
         <h2 className="text-xl font-semibold text-wv-foreground mb-2">
-          Verification-focused platform
+          Verification, not job boards
         </h2>
         <p className="text-wv-muted mb-4">
-          WorkVouch focuses on verified work history and references, not job listings. Use Candidates to search and request verifications.
+          Search verified candidates and request employment verification from their profiles.
         </p>
-        <WvButton href="/employer/candidates" variant="secondary">
+        <WvButton href="/employer/search-users" variant="secondary">
           Search candidates
         </WvButton>
       </WvCard>

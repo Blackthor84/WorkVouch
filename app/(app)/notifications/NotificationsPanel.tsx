@@ -43,14 +43,17 @@ function getIcon(type: string) {
       return <CheckCircle2 className="h-5 w-5 text-wv-brand-green" aria-hidden />;
     case "employer_purchase":
       return <CreditCard className="h-5 w-5 text-violet-400" aria-hidden />;
+    case "message":
+      return <Bell className="h-5 w-5 text-blue-400" aria-hidden />;
     default:
       return <Bell className="h-5 w-5 text-wv-muted" aria-hidden />;
   }
 }
 
 function getActionLink(n: Notification) {
+  if (n.type === "message") return "/messages";
   if (n.related_job_id) return `/jobs/${n.related_job_id}/coworkers`;
-  if (n.related_user_id) return `/references/request?userId=${n.related_user_id}`;
+  if (n.related_user_id) return `/requests`;
   return "/coworker-matches";
 }
 
@@ -62,19 +65,31 @@ export function NotificationsPanel({
   const router = useRouter();
   const [list, setList] = useState(initialNotifications);
   const [markingAll, setMarkingAll] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const handleMarkRead = async (id: string) => {
-    await markNotificationRead(id);
-    setList((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
-    router.refresh();
+    setActionError(null);
+    try {
+      await markNotificationRead(id);
+      setList((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
+      router.refresh();
+    } catch {
+      setActionError("Could not mark notification as read.");
+    }
   };
 
   const handleMarkAllRead = async () => {
     setMarkingAll(true);
-    await markAllNotificationsRead();
-    setList((prev) => prev.map((n) => ({ ...n, is_read: true })));
-    setMarkingAll(false);
-    router.refresh();
+    setActionError(null);
+    try {
+      await markAllNotificationsRead();
+      setList((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      router.refresh();
+    } catch {
+      setActionError("Could not mark all as read.");
+    } finally {
+      setMarkingAll(false);
+    }
   };
 
   const unreadCount = list.filter((n) => !n.is_read).length;
@@ -83,11 +98,11 @@ export function NotificationsPanel({
     return (
       <WvEmptyState
         icon={<Bell className="h-6 w-6" />}
-        title="You're all caught up"
-        description="Matches, reference requests, and verification updates will appear here as your network grows."
+        title="All caught up"
+        description="Matches, references, and verification updates appear here."
         action={
           <WvButton href="/coworker-matches" size="sm">
-            Find coworker matches
+            Coworker matches
           </WvButton>
         }
         className="mt-8"
@@ -97,6 +112,11 @@ export function NotificationsPanel({
 
   return (
     <div className="mt-6 space-y-4">
+      {actionError && (
+        <p className="text-sm text-red-400" role="alert">
+          {actionError}
+        </p>
+      )}
       {unreadCount > 0 && (
         <div className="flex justify-end">
           <WvButton

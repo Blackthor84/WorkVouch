@@ -22,8 +22,8 @@ export default async function ListedEmployeesPage() {
     <EmployerPortalLayout>
       <WvPageHeader
         eyebrow="Workforce"
-        title="Employees Who Listed You"
-        description="People who added your company to their employment history. View, confirm, or request verification."
+        title="Listed employees"
+        description="Workers who added your company to their work history. Confirm roles or request verification."
       />
       <div className="mt-8 max-w-5xl">
         <ListedEmployeesPageClient

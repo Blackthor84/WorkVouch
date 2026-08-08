@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 type WvButtonProps = {
   children: React.ReactNode;
   href?: string;
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
   type?: "button" | "submit";
   variant?: "primary" | "secondary" | "ghost" | "outline" | "danger";
   size?: "sm" | "md" | "lg";
@@ -51,7 +51,7 @@ export function WvButton({
 
   if (href) {
     return (
-      <Link href={href} className={cls} aria-label={ariaLabel}>
+      <Link href={href} className={cls} aria-label={ariaLabel} onClick={onClick}>
         {children}
       </Link>
     );

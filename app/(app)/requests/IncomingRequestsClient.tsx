@@ -138,7 +138,7 @@ export function IncomingRequestsClient() {
     <>
       {newRequestAlert && (
         <div className="mb-4 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm font-medium text-green-800">
-          New reference request!
+          New verification request!
         </div>
       )}
       <ul className="mt-6 space-y-3">

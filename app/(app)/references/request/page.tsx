@@ -19,7 +19,7 @@ export default async function RequestReferencePage({
         <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50/90 dark:border-blue-800 dark:bg-blue-950/40 px-4 py-3">
           <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">Guided setup — get your first review</p>
           <p className="text-xs text-blue-800/90 dark:text-blue-200/90 mt-1">
-            Send a reference request. When someone leaves you a review, your trust score can take off.
+            Send a verification request. When a coworker leaves a vouch, your trust score can improve.
           </p>
           <Link
             href="/onboarding?celebrate=review"

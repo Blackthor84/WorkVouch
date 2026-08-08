@@ -1,7 +1,6 @@
 /**
  * POST /api/employer/onboarding/create
  * First employer onboarding: create org, org_admin mapping, employer role.
- * No demo data, no sandbox logic. Must be authenticated.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -29,6 +28,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const supabaseAny = admin as any;
+
+    const { data: existingAccount } = await supabaseAny
+      .from("employer_accounts")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (existingAccount) {
+      return NextResponse.json({
+        success: true,
+        organizationId: null,
+        redirect: "/employer/dashboard",
+      });
+    }
+
     const body = await req.json().catch(() => ({}));
     const orgName = typeof body.orgName === "string" ? body.orgName.trim() : "";
     const industry = typeof body.industry === "string" ? body.industry.trim() : "";
@@ -53,9 +68,6 @@ export async function POST(req: NextRequest) {
     if (primaryAdminEmail.toLowerCase() !== (user.email ?? "").toLowerCase()) {
       return NextResponse.json({ error: "Primary admin email must match your account" }, { status: 400 });
     }
-
-    const supabase = await createClient();
-    const supabaseAny = admin as any;
 
     const baseSlug = slugFromName(orgName);
     let slug = baseSlug;
@@ -97,6 +109,10 @@ export async function POST(req: NextRequest) {
 
     const orgId = (org as { id: string }).id;
 
+    const rollbackOrg = async () => {
+      await supabaseAny.from("organizations").delete().eq("id", orgId);
+    };
+
     const { error: membershipError } = await supabaseAny.from("tenant_memberships").insert({
       user_id: user.id,
       organization_id: orgId,
@@ -106,7 +122,7 @@ export async function POST(req: NextRequest) {
 
     if (membershipError) {
       console.error("[employer/onboarding] tenant_memberships insert error:", membershipError);
-      await supabaseAny.from("organizations").delete().eq("id", orgId);
+      await rollbackOrg();
       return NextResponse.json({ error: "Failed to create org admin mapping" }, { status: 500 });
     }
 
@@ -117,6 +133,9 @@ export async function POST(req: NextRequest) {
 
     if (profileError) {
       console.error("[employer/onboarding] profile update error:", profileError);
+      await supabaseAny.from("tenant_memberships").delete().eq("user_id", user.id).eq("organization_id", orgId);
+      await rollbackOrg();
+      return NextResponse.json({ error: "Failed to update profile role" }, { status: 500 });
     }
 
     const industryType = industry.toLowerCase().replace(/\s+/g, "_").replace(/-/g, "_");
@@ -129,6 +148,9 @@ export async function POST(req: NextRequest) {
 
     if (employerError) {
       console.error("[employer/onboarding] employer_accounts insert error:", employerError);
+      await supabaseAny.from("tenant_memberships").delete().eq("user_id", user.id).eq("organization_id", orgId);
+      await rollbackOrg();
+      return NextResponse.json({ error: "Failed to create employer account" }, { status: 500 });
     }
 
     try {
@@ -139,7 +161,7 @@ export async function POST(req: NextRequest) {
         role: "org_admin",
       });
     } catch {
-      // employer_users may not exist or RLS may block; non-fatal
+      // employer_users may not exist; non-fatal
     }
 
     return NextResponse.json({

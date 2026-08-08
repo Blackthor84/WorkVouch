@@ -21,8 +21,8 @@ export default async function EmployerSettingsPage() {
     <EmployerPortalLayout>
       <WvPageHeader
         eyebrow="Company"
-        title="Company Settings"
-        description="Manage your company profile and preferences"
+        title="Company settings"
+        description="Update your organization profile and hiring preferences."
       />
       <div className="mt-8">
         <CompanyProfileSettings />

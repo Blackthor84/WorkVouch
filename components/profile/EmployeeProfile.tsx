@@ -191,7 +191,7 @@ export function EmployeeProfile({
         <ProfileCardContent>
           <div className="flex flex-wrap items-center gap-3">
             <span className="font-medium text-[#1E293B] dark:text-slate-200">
-              Reputation Score: {profile.trustScore}
+              Trust score: {profile.trustScore}
             </span>
             <StatusPill
               label={profile.riskTier.charAt(0).toUpperCase() + profile.riskTier.slice(1)}

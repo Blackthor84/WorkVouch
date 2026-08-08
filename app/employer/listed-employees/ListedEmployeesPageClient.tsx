@@ -31,25 +31,29 @@ export function ListedEmployeesPageClient({ employerId, planTier }: ListedEmploy
   const [employees, setEmployees] = useState<ListedEmployee[]>([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const refetch = () => {
-    fetch("/api/employer/listed-employees", { credentials: "include" })
+    setLoading(true);
+    return fetch("/api/employer/listed-employees", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data.employees)) setEmployees(data.employees);
       })
       .catch((error) => {
         console.error("[SYSTEM_FAIL]", error);
-      });
+        setActionError("Could not load listed employees.");
+      })
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
     refetch();
-    setLoading(false);
   }, []);
 
   const confirmEmployment = async (recordId: string) => {
     setActing(recordId);
+    setActionError(null);
     try {
       const res = await fetch("/api/employer/confirm-employment", {
         method: "POST",
@@ -58,16 +62,17 @@ export function ListedEmployeesPageClient({ employerId, planTier }: ListedEmploy
         credentials: "include",
       });
       const data = await res.json();
-      if (res.ok && data.success) refetch();
-      else if (!res.ok) alert(data.error ?? "Failed to confirm");
+      if (res.ok && data.success) await refetch();
+      else setActionError(data.error ?? "Failed to confirm employment");
     } finally {
       setActing(null);
     }
   };
 
   const disputeEmployment = async (recordId: string) => {
-    if (!confirm("Dispute this employment? The record will be marked as flagged.")) return;
+    if (!window.confirm("Dispute this employment record? It will be flagged for review.")) return;
     setActing(recordId);
+    setActionError(null);
     try {
       const res = await fetch("/api/employer/dispute-employment", {
         method: "POST",
@@ -76,8 +81,8 @@ export function ListedEmployeesPageClient({ employerId, planTier }: ListedEmploy
         credentials: "include",
       });
       const data = await res.json();
-      if (res.ok && data.success) refetch();
-      else if (!res.ok) alert(data.error ?? "Failed to dispute");
+      if (res.ok && data.success) await refetch();
+      else setActionError(data.error ?? "Failed to dispute employment");
     } finally {
       setActing(null);
     }
@@ -85,6 +90,7 @@ export function ListedEmployeesPageClient({ employerId, planTier }: ListedEmploy
 
   const requestVerification = async (recordId: string) => {
     setActing(recordId);
+    setActionError(null);
     try {
       const res = await fetch("/api/employer/request-employment-verification", {
         method: "POST",
@@ -93,8 +99,8 @@ export function ListedEmployeesPageClient({ employerId, planTier }: ListedEmploy
         credentials: "include",
       });
       const data = await res.json();
-      if (res.ok && data.success) refetch();
-      else if (!res.ok) alert(data.error ?? "Failed to request verification");
+      if (res.ok && data.success) await refetch();
+      else setActionError(data.error ?? "Failed to request verification");
     } finally {
       setActing(null);
     }
@@ -124,6 +130,12 @@ export function ListedEmployeesPageClient({ employerId, planTier }: ListedEmploy
   }
 
   return (
+    <>
+      {actionError && (
+        <p className="mb-4 text-sm text-red-400" role="alert">
+          {actionError}
+        </p>
+      )}
     <WvCard padding="none" className="overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -158,7 +170,7 @@ export function ListedEmployeesPageClient({ employerId, planTier }: ListedEmploy
                   </td>
                 )}
                 <td className="p-3 flex flex-wrap gap-1">
-                  <WvButton href={`/employer/candidates/${emp.user_id}`} variant="ghost" size="sm">
+                  <WvButton href={`/employer/profile/${emp.user_id}`} variant="ghost" size="sm">
                     View
                   </WvButton>
                   {(emp.verification_status === "pending" || emp.verification_status === "matched") && (
@@ -205,5 +217,6 @@ export function ListedEmployeesPageClient({ employerId, planTier }: ListedEmploy
         </WvButton>
       </div>
     </WvCard>
+    </>
   );
 }

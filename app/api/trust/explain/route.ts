@@ -9,17 +9,10 @@ import { explainTrustScore } from "@/lib/trust/explainTrustScore";
 import type { TrustEngineSnapshot } from "@/lib/trust/types";
 import { admin } from "@/lib/supabase-admin";
 import { getTrustTrajectory } from "@/lib/trust/trustTrajectory";
+import { getTrustBandLabel } from "@/lib/trust/trustBandLabels";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-/** User-facing trust band label from score (read-only, no admin metadata). */
-function getTrustBandLabel(trustScore: number): string {
-  if (trustScore < 40) return "Needs Improvement";
-  if (trustScore < 60) return "Fair";
-  if (trustScore < 80) return "Good";
-  return "Excellent";
-}
 
 /** Build short explanation prose from top/risk factors (user-safe). */
 function buildExplanationProse(topFactors: string[], riskFactors: string[]): string {
@@ -87,11 +80,21 @@ export async function GET(req: NextRequest) {
   const verifiedEmploymentCoveragePct =
     totalEmployment > 0 ? Math.round((verifiedCount / totalEmployment) * 100) : null;
 
+  const { data: profileRow } = await admin
+    .from("profiles")
+    .select("industry, vertical")
+    .eq("id", profileId)
+    .maybeSingle();
+  const industry =
+    (profileRow as { industry?: string | null; vertical?: string | null } | null)?.industry ??
+    (profileRow as { vertical?: string | null } | null)?.vertical ??
+    "general";
+
   const snapshot: TrustEngineSnapshot = {
     trustScore,
     profileStrength,
     confidenceScore: referenceScore,
-    industry: "retail",
+    industry: industry.toLowerCase().replace(/\s+/g, "_"),
     employerMode: "enterprise",
     actorMode: "employer",
     events: [],

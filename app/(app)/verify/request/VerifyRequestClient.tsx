@@ -11,13 +11,19 @@ export default function VerifyRequestClient() {
     <>
       <WvPageHeader
         eyebrow="Verification"
-        title="Request employment verification"
-        description="Invite coworkers, managers, or clients to confirm your work history. Verified records strengthen your trust score and help employers hire with confidence."
+        title="Request verification"
+        description="Invite coworkers or managers to confirm your work history. Verified records increase your trust score."
       />
       <VerificationRequestModal
         open={true}
         onOpenChange={(open) => {
-          if (!open) router.push("/dashboard");
+          if (!open) {
+            if (typeof window !== "undefined" && window.history.length > 1) {
+              router.back();
+            } else {
+              router.push("/dashboard");
+            }
+          }
         }}
         onSuccess={() => {}}
       />

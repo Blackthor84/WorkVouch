@@ -19,9 +19,11 @@ export function EmployerLegalDisclaimerGate({
 }: EmployerLegalDisclaimerGateProps) {
   const router = useRouter();
   const [accepting, setAccepting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAccept = async () => {
     setAccepting(true);
+    setError(null);
     try {
       const res = await fetch("/api/employer/legal-acceptance", {
         method: "POST",
@@ -29,7 +31,7 @@ export function EmployerLegalDisclaimerGate({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert((data as { error?: string }).error ?? "Failed to accept");
+        setError((data as { error?: string }).error ?? "Failed to accept terms");
         return;
       }
       router.push(redirectPath);
@@ -39,10 +41,17 @@ export function EmployerLegalDisclaimerGate({
   };
 
   return (
-    <EmployerLegalDisclaimerModal
-      open={true}
-      onAccept={handleAccept}
-      accepting={accepting}
-    />
+    <>
+      {error && (
+        <p className="mb-4 text-center text-sm text-red-400" role="alert">
+          {error}
+        </p>
+      )}
+      <EmployerLegalDisclaimerModal
+        open={true}
+        onAccept={handleAccept}
+        accepting={accepting}
+      />
+    </>
   );
 }

@@ -69,7 +69,7 @@ export function PublicProfileView({
         {profileData.trust_score && (
           <div className="mt-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 p-4">
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              Reputation Score: {profileData.trust_score.score.toFixed(1)}/100
+              Trust score: {profileData.trust_score.score.toFixed(1)}/100
             </div>
             <div className="mt-2 text-sm text-grey-600">
               {profileData.trust_score.job_count} jobs •{" "}
@@ -88,7 +88,7 @@ export function PublicProfileView({
 
       <div className="rounded-2xl bg-white dark:bg-[#1A1F2B] p-6 shadow-md">
         <h2 className="mb-4 text-xl font-semibold text-grey-900">
-          Job History ({profileData.jobs.length})
+          Work history ({profileData.jobs.length})
         </h2>
         <div className="space-y-4">
           {profileData.jobs.map((job) => (

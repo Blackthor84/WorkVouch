@@ -14,8 +14,8 @@ export default async function EmployerClaimPage() {
     <EmployerPortalLayout>
       <WvPageHeader
         eyebrow="Verification"
-        title="Claim a company"
-        description="Request to become the verified owner of a company profile. An admin will review your request."
+        title="Claim company"
+        description="Request verified ownership of a company profile. An admin will review your submission."
       />
       <div className="mt-8 max-w-2xl">
         <ClaimEmployerClient />

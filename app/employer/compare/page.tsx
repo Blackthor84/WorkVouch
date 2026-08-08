@@ -14,9 +14,9 @@ export default async function ComparePage() {
   return (
     <EmployerPortalLayout wide>
       <WvPageHeader
-        eyebrow="Decisions"
+        eyebrow="Compare"
         title="Compare candidates"
-        description="Side-by-side view of verification, trust band, references, and flags. No raw scores are shown."
+        description="Review verification, trust band, and references side by side. Select 2–4 profiles from search."
       />
       <div className="mt-8">
         <CompareViewClient />

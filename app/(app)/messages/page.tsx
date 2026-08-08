@@ -10,7 +10,7 @@ export default async function MessagesPage() {
       <WvPageHeader
         eyebrow="Inbox"
         title="Messages"
-        description="Your conversations and notifications."
+        description="Your conversations with employers and coworkers."
       />
       <UserMessages />
     </WvContainer>

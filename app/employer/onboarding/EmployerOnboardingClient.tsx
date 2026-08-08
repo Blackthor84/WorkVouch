@@ -385,8 +385,7 @@ export function EmployerOnboardingClient({ userEmail }: { userEmail: string | un
             placeholder="colleague@company.com"
           />
           <p className="text-xs text-wv-muted">
-            You can skip this and invite recruiters later from your dashboard. Invitations are sent
-            after your organization is created.
+            Optional — saved for later. Invite teammates from Settings after setup.
           </p>
         </div>
       )}

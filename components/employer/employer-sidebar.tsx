@@ -13,18 +13,20 @@ import {
   CreditCard,
   Settings,
   Bookmark,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/employer/dashboard", label: "Dashboard", Icon: LayoutDashboard },
-  { href: "/employer/verified-workers", label: "Verified workers", Icon: Users },
-  { href: "/employer/compare", label: "Decision Comparison", Icon: GitCompare },
+  { href: "/employer/search-users", label: "Search", Icon: Search },
+  { href: "/employer/verified-workers", label: "Verified candidates", Icon: Users },
+  { href: "/employer/compare", label: "Compare", Icon: GitCompare },
   { href: "/employer/claim", label: "Claim company", Icon: Building2 },
   { href: "/employer/directory", label: "Directory", Icon: BookUser },
-  { href: "/employer/candidates", label: "Candidates", Icon: Search },
-  { href: "/employer/candidates", label: "Saved Profiles", Icon: Bookmark },
+  { href: "/employer/candidates", label: "Saved", Icon: Bookmark },
   { href: "/employer/messages", label: "Messages", Icon: MessageSquare },
+  { href: "/employer/notifications", label: "Notifications", Icon: Bell },
   { href: "/employer/billing", label: "Billing", Icon: CreditCard },
   { href: "/employer/settings", label: "Settings", Icon: Settings },
 ];

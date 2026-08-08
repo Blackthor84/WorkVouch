@@ -22,21 +22,21 @@ export function EmployerSearchFilters({ filters, onChange }: Props) {
         type="text"
         value={filters.query ?? ""}
         onChange={(e) => set({ query: e.target.value })}
-        placeholder="First or full name"
+        placeholder="Full or first name"
       />
       <WvInput
         label="Company"
         type="text"
         value={filters.company ?? ""}
         onChange={(e) => set({ company: e.target.value })}
-        placeholder="Current or previous employer"
+        placeholder="Current or past employer"
       />
       <WvInput
         label="Job title"
         type="text"
         value={filters.jobTitle ?? ""}
         onChange={(e) => set({ jobTitle: e.target.value })}
-        placeholder="e.g. Security Guard"
+        placeholder="e.g. Security officer"
       />
       <div>
         <label htmlFor="search-industry" className="mb-1.5 block text-sm font-medium text-wv-muted">
@@ -57,11 +57,11 @@ export function EmployerSearchFilters({ filters, onChange }: Props) {
         </select>
       </div>
       <WvInput
-        label="Location"
+        label="State"
         type="text"
         value={filters.location ?? ""}
         onChange={(e) => set({ location: e.target.value })}
-        placeholder="City or state"
+        placeholder="e.g. CA"
       />
       <WvInput
         label="Min trust score"

@@ -12,12 +12,11 @@ import {
 } from "@/lib/admin/getAdminContext";
 
 describe("Admin context and 403", () => {
-  it("adminForbiddenResponse returns 403 with Upgrade Required message", async () => {
+  it("adminForbiddenResponse returns 403 with admin access message", async () => {
     const res = adminForbiddenResponse();
     expect(res.status).toBe(403);
     const body = await res.json();
-    expect(body.error).toContain("Upgrade Required");
-    expect(body.error).toContain("Enterprise Recommended");
+    expect(body.error).toContain("Admin access required");
   });
 
   it("hasAdminAccess is false for regular user context", () => {

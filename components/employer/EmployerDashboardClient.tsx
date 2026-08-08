@@ -25,7 +25,7 @@ import { EmployerHiringDecisionWorkspace } from "@/components/employer/EmployerH
 import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
 import { getVerticalConfig } from "@/lib/verticals/config";
 import { runSimulation } from "@/lib/simulation/engine";
-import type { PlanTier, SimulationOutput } from "@/lib/simulation/types";
+import type { PlanTier } from "@/lib/simulation/types";
 
 interface EmployerDashboardClientProps {
   userRole: string;
@@ -192,17 +192,6 @@ export function EmployerDashboardClient({
   const isFreePlan = planTier === "free" || !planTier;
   const isBasicPlan = planTier === "free" || planTier === "basic" || planTier === "lite" || !planTier;
 
-  const simulationOutput: SimulationOutput = {
-    allowedReports: 40,
-    allowedSearches: 50,
-    seatsAllowed: 10,
-    overLimit: false,
-    subscriptionExpired: false,
-    rehireProbability: 87,
-    teamCompatibilityScore: 91,
-    workforceRiskScore: 12,
-  };
-
   return (
     <>
       {isBasicPlan && showUpgradeModal && (
@@ -215,7 +204,7 @@ export function EmployerDashboardClient({
       <div className="max-w-7xl mx-auto space-y-6">
         {showWelcome && !welcomeDismissed && (
           <WvCard glow className="border-emerald-500/30 bg-emerald-500/10 flex items-center justify-between gap-4">
-            <p className="font-semibold text-emerald-300">Account created successfully. You&apos;re all set.</p>
+            <p className="font-semibold text-emerald-300">Account ready. Complete your company profile to start hiring.</p>
             <div className="flex items-center gap-2">
               <WvButton
                 size="sm"
@@ -227,8 +216,8 @@ export function EmployerDashboardClient({
               >
                 Dismiss
               </WvButton>
-              <WvButton href="/employer/profile" size="sm">
-                Complete company profile
+              <WvButton href="/employer/settings" size="sm">
+                Set up company
               </WvButton>
             </div>
           </WvCard>
@@ -238,22 +227,21 @@ export function EmployerDashboardClient({
         <WvCard glow>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-wv-foreground">Verified workers directory</h2>
+              <h2 className="text-lg font-semibold text-wv-foreground">Verified candidates</h2>
               <p className="mt-1 text-sm text-wv-muted">
-                Most employers only see a small portion of verified workers. Browse coworker-backed profiles and
-                upgrade to unlock full access.
+                Browse coworker-verified profiles. Upgrade for full directory access.
               </p>
             </div>
             <WvButton href="/employer/verified-workers" className="shrink-0">
-              Open verified workers
+              Browse directory
             </WvButton>
           </div>
         </WvCard>
 
         <WvPageHeader
           eyebrow="Overview"
-          title="Employer dashboard"
-          description="Your hiring command center — search verified candidates, track verifications, and review team activity."
+          title="Dashboard"
+          description="Search verified candidates, manage verification requests, and monitor hiring activity."
           action={
             planTier ? (
               <WvBadge variant={planTier === "pro" ? "brand" : planTier === "custom" ? "warning" : "default"}>
@@ -332,22 +320,22 @@ export function EmployerDashboardClient({
           <WvButton
             id="onboarding-company-profile"
             variant="secondary"
-            href="/employer/profile"
+            href="/employer/settings"
             className="h-auto flex-col items-start p-4 text-left"
           >
             <Building2 className="mb-2 h-6 w-6" aria-hidden />
             <span className="font-semibold">Company profile</span>
-            <span className="text-sm opacity-90">Complete your company details</span>
+            <span className="text-sm opacity-90">Set up your organization details</span>
           </WvButton>
           <WvButton
             id="onboarding-add-team"
             variant="secondary"
-            href="/employer/employees"
+            href="/employer/search-users"
             className="h-auto flex-col items-start p-4 text-left"
           >
             <Search className="mb-2 h-6 w-6" aria-hidden />
-            <span className="font-semibold">Search employees</span>
-            <span className="text-sm opacity-90">View employees who list your company</span>
+            <span className="font-semibold">Search candidates</span>
+            <span className="text-sm opacity-90">Filter by role, industry, and trust score</span>
           </WvButton>
           <WvButton
             id="onboarding-request-verification"
@@ -356,30 +344,32 @@ export function EmployerDashboardClient({
             className="h-auto flex-col items-start p-4 text-left"
           >
             <ShieldCheck className="mb-2 h-6 w-6" aria-hidden />
-            <span className="font-semibold">Verification requests</span>
-            <span className="text-sm opacity-90">Review candidates and request verification</span>
+            <span className="font-semibold">Verifications</span>
+            <span className="text-sm opacity-90">Review saved candidates and request verification</span>
           </WvButton>
           {isFreePlan ? (
             <WvButton variant="secondary" href="/employer/upgrade" className="h-auto flex-col items-start p-4 text-left">
               <TrendingUp className="mb-2 h-6 w-6" aria-hidden />
-              <span className="font-semibold">Upgrade plan</span>
-              <span className="text-sm opacity-90">Unlock premium hiring features</span>
+              <span className="font-semibold">Upgrade</span>
+              <span className="text-sm opacity-90">Unlock full search and trust analytics</span>
             </WvButton>
           ) : (
             <WvButton
               variant="secondary"
-              href="/pricing"
+              href={isBasicPlan ? undefined : "/pricing"}
               className="h-auto flex-col items-start p-4 text-left"
-              onClick={(e) => {
-                if (isBasicPlan) {
-                  e.preventDefault();
-                  setShowUpgradeModal(true);
-                }
-              }}
+              onClick={
+                isBasicPlan
+                  ? (e) => {
+                      e.preventDefault();
+                      setShowUpgradeModal(true);
+                    }
+                  : undefined
+              }
             >
               <TrendingUp className="mb-2 h-6 w-6" aria-hidden />
-              <span className="font-semibold">Upgrade plan</span>
-              <span className="text-sm opacity-90">Unlock premium hiring features</span>
+              <span className="font-semibold">Upgrade</span>
+              <span className="text-sm opacity-90">Unlock full search and trust analytics</span>
             </WvButton>
           )}
         </div>
@@ -554,7 +544,7 @@ export function EmployerDashboardClient({
         {/* Advanced Analytics (feature-flagged) */}
         {analyticsEnabled && (
           <div className="mt-6">
-            <AdvancedAnalytics simulation={simulationOutput} />
+            <AdvancedAnalytics />
           </div>
         )}
         {!analyticsEnabled && (
@@ -632,7 +622,7 @@ export function EmployerDashboardClient({
                   <ExportDataButton
                     endpoint="/api/employer/analytics/export?type=trust-scores"
                     filename="trust-scores.csv"
-                    label="Export Reputation Scores"
+                    label="Export trust scores"
                   />
                 </div>
               ) : null}

@@ -88,7 +88,7 @@ export function ConfidenceScoreMeter() {
             ) : (
               <span className="h-5 w-5 rounded-full border-2 border-gray-300 dark:border-gray-600 flex-shrink-0" />
             )}
-            <span>Verified Job History</span>
+            <span>Verified work history</span>
           </li>
           <li className="flex items-center gap-2">
             {hasResumeConsistency ? (

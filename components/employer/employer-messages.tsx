@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import {
   getMessages,
   sendMessage,
+  markMessageAsRead,
 } from "@/lib/actions/employer/messages";
 import { Send } from "lucide-react";
 import {
@@ -13,10 +14,18 @@ import {
   WvBadge,
   WvLoadingState,
   WvEmptyState,
+  WvErrorState,
 } from "@/components/wv";
 
+type Thread = {
+  messages: Array<Record<string, unknown>>;
+  otherUser: { full_name?: string; email?: string } | null;
+  otherUserId: string;
+};
+
 export function EmployerMessages() {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Array<Record<string, unknown>>>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
@@ -30,12 +39,35 @@ export function EmployerMessages() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getMessages();
+      const { messages: data, currentUserId: userId } = await getMessages();
       setMessages(data);
+      setCurrentUserId(userId);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load messages");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSelectThread = async (otherUserId: string) => {
+    setSelectedThread(otherUserId);
+    if (!currentUserId) return;
+
+    const unread = messages.filter(
+      (m) =>
+        !m.is_read &&
+        m.recipient_id === currentUserId &&
+        m.sender_id === otherUserId,
+    );
+    await Promise.all(
+      unread.map((m) => markMessageAsRead(String(m.id)).catch(() => {})),
+    );
+    if (unread.length > 0) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          unread.some((u) => u.id === m.id) ? { ...m, is_read: true } : m,
+        ),
+      );
     }
   };
 
@@ -59,24 +91,61 @@ export function EmployerMessages() {
     );
   }
 
-  const threads = new Map<string, any[]>();
-  messages.forEach((msg) => {
-    const otherUserId =
-      msg.sender_id === selectedThread ? msg.recipient_id : msg.sender_id;
-    if (!threads.has(otherUserId)) {
-      threads.set(otherUserId, []);
-    }
-    threads.get(otherUserId)!.push(msg);
-  });
+  if (error) {
+    return (
+      <WvErrorState
+        title="Could not load messages"
+        message={error}
+        action={
+          <WvButton size="sm" onClick={loadMessages}>
+            Retry
+          </WvButton>
+        }
+      />
+    );
+  }
+
+  const threads = new Map<string, Thread>();
+
+  if (currentUserId) {
+    messages.forEach((msg) => {
+      const otherUserId =
+        msg.sender_id === currentUserId
+          ? String(msg.recipient_id)
+          : String(msg.sender_id);
+      const otherUser =
+        msg.sender_id === currentUserId ? msg.recipient : msg.sender;
+
+      const threadKey =
+        String(msg.sender_id) < String(msg.recipient_id)
+          ? `${msg.sender_id}-${msg.recipient_id}`
+          : `${msg.recipient_id}-${msg.sender_id}`;
+
+      if (!threads.has(threadKey)) {
+        threads.set(threadKey, {
+          messages: [],
+          otherUser: otherUser as Thread["otherUser"],
+          otherUserId,
+        });
+      }
+      threads.get(threadKey)!.messages.push(msg);
+    });
+  }
+
+  const currentThread = selectedThread
+    ? Array.from(threads.values()).find(
+        (thread) => thread.otherUserId === selectedThread,
+      )?.messages
+    : null;
 
   if (threads.size === 0) {
     return (
       <WvEmptyState
-        title="No messages yet"
-        description="When you contact candidates from their profile, conversations will appear here."
+        title="No messages"
+        description="Message candidates from their profile. Conversations appear here."
         action={
           <WvButton href="/employer/search-users" size="sm">
-            Search candidates
+            Search
           </WvButton>
         }
       />
@@ -93,33 +162,37 @@ export function EmployerMessages() {
       <div className="lg:col-span-1">
         <h2 className="mb-4 text-lg font-semibold text-wv-foreground">Conversations</h2>
         <div className="space-y-2">
-          {Array.from(threads.entries()).map(([userId, threadMessages]) => {
-            const otherUser =
-              threadMessages[0].sender_id === userId
-                ? threadMessages[0].sender
-                : threadMessages[0].recipient;
-            const unreadCount = threadMessages.filter(
-              (m) => !m.is_read && m.recipient_id === userId,
+          {Array.from(threads.entries()).map(([threadKey, thread]) => {
+            const sorted = [...thread.messages].sort(
+              (a, b) =>
+                new Date(String(b.created_at)).getTime() -
+                new Date(String(a.created_at)).getTime(),
+            );
+            const latest = sorted[0];
+            const unreadCount = thread.messages.filter(
+              (m) => !m.is_read && m.recipient_id === currentUserId,
             ).length;
 
             return (
               <WvCard
-                key={userId}
+                key={threadKey}
                 hover
                 padding="sm"
-                onClick={() => setSelectedThread(userId)}
+                onClick={() => handleSelectThread(thread.otherUserId)}
                 className={
-                  selectedThread === userId ? "ring-2 ring-wv-brand-blue/50" : ""
+                  selectedThread === thread.otherUserId
+                    ? "ring-2 ring-wv-brand-blue/50"
+                    : ""
                 }
-                ariaLabel={`Conversation with ${otherUser?.full_name || otherUser?.email}`}
+                ariaLabel={`Conversation with ${thread.otherUser?.full_name || thread.otherUser?.email}`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-wv-foreground">
-                      {otherUser?.full_name || otherUser?.email}
+                      {thread.otherUser?.full_name || thread.otherUser?.email}
                     </p>
                     <p className="line-clamp-1 text-sm text-wv-muted">
-                      {threadMessages[0].body}
+                      {String(latest?.body ?? "")}
                     </p>
                   </div>
                   {unreadCount > 0 && (
@@ -133,27 +206,39 @@ export function EmployerMessages() {
       </div>
 
       <div className="lg:col-span-2">
-        {selectedThread ? (
+        {selectedThread && currentThread ? (
           <WvCard padding="lg">
             <div className="space-y-4">
-              {threads.get(selectedThread)?.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`rounded-xl p-4 ${
-                    msg.sender_id === selectedThread
-                      ? "ml-auto max-w-[85%] bg-blue-500/15"
-                      : "mr-auto max-w-[85%] bg-wv-surface"
-                  }`}
-                >
-                  <p className="mb-1 text-sm font-semibold text-wv-foreground">
-                    {msg.sender?.full_name || msg.sender?.email}
-                  </p>
-                  <p className="text-wv-muted">{msg.body}</p>
-                  <p className="mt-1 text-xs text-wv-subtle">
-                    {new Date(msg.created_at).toLocaleString()}
-                  </p>
-                </div>
-              ))}
+              {[...currentThread]
+                .sort(
+                  (a, b) =>
+                    new Date(String(a.created_at)).getTime() -
+                    new Date(String(b.created_at)).getTime(),
+                )
+                .map((msg) => {
+                  const isFromCurrentUser =
+                    currentUserId && msg.sender_id === currentUserId;
+                  return (
+                    <div
+                      key={String(msg.id)}
+                      className={`rounded-xl p-4 ${
+                        isFromCurrentUser
+                          ? "ml-auto max-w-[85%] bg-blue-500/15"
+                          : "mr-auto max-w-[85%] bg-wv-surface"
+                      }`}
+                    >
+                      <p className="mb-1 text-sm font-semibold text-wv-foreground">
+                        {(msg.sender as { full_name?: string; email?: string })
+                          ?.full_name ||
+                          (msg.sender as { email?: string })?.email}
+                      </p>
+                      <p className="text-wv-muted">{String(msg.body)}</p>
+                      <p className="mt-1 text-xs text-wv-subtle">
+                        {new Date(String(msg.created_at)).toLocaleString()}
+                      </p>
+                    </div>
+                  );
+                })}
               <div className="flex gap-2 border-t border-wv-border pt-4">
                 <WvInput
                   value={newMessage}
@@ -181,7 +266,7 @@ export function EmployerMessages() {
           <WvEmptyState
             compact
             title="Select a conversation"
-            description="Choose a thread on the left to read and reply to candidate messages."
+            description="Choose a thread to read and reply."
           />
         )}
       </div>

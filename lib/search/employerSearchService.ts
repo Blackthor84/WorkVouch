@@ -41,7 +41,6 @@ type ViewRow = {
   user_id: string;
   full_name: string | null;
   industry: string | null;
-  city: string | null;
   state: string | null;
   verified_employment_count: number;
   total_employment_count: number;
@@ -70,7 +69,7 @@ export async function searchEmployerCandidates(
   let query = admin
     .from("employer_candidate_view")
     .select(
-      "user_id, full_name, industry, city, state, verified_employment_count, total_employment_count, verified_employment_coverage_pct, trust_score, reference_count, aggregate_rating, rehire_eligible_count",
+      "user_id, full_name, industry, state, verified_employment_count, total_employment_count, verified_employment_coverage_pct, trust_score, reference_count, aggregate_rating, rehire_eligible_count",
     )
     .eq("restricted_from_employer_search", false);
 
@@ -85,8 +84,10 @@ export async function searchEmployerCandidates(
   }
 
   if (filters.location) {
-    const loc = filters.location.replace(/[%_]/g, "");
-    query = query.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+    const loc = filters.location.replace(/[%_]/g, "").trim();
+    if (loc) {
+      query = query.ilike("state", `%${loc}%`);
+    }
   }
 
   if (filters.minTrustScore != null) {
@@ -199,7 +200,6 @@ export async function searchEmployerCandidates(
         headline: meta?.headline ?? null,
         profilePhotoUrl: meta?.profile_photo_url ?? null,
         industry: null,
-        city: c.city ?? null,
         state: c.state ?? null,
         verifiedEmploymentCount: 0,
         totalEmploymentCount: 0,
@@ -226,7 +226,6 @@ export async function searchEmployerCandidates(
       headline: meta?.headline ?? null,
       profilePhotoUrl: meta?.profile_photo_url ?? null,
       industry: c.industry ?? null,
-      city: c.city ?? null,
       state: c.state ?? null,
       verifiedEmploymentCount: c.verified_employment_count ?? 0,
       totalEmploymentCount: c.total_employment_count ?? 0,

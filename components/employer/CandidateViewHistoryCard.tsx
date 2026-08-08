@@ -31,7 +31,7 @@ export function CandidateViewHistoryCard({ recentViews = [], loading = false }: 
       ) : recentViews.length === 0 ? (
         <>
           <p className="text-sm text-grey-medium dark:text-gray-400">
-            No candidate profiles viewed yet. Search verified workers to start building your pipeline.
+            No candidate profiles viewed yet. Search verified candidates to start building your pipeline.
           </p>
           <Button variant="secondary" size="sm" className="mt-4" asChild>
             <Link href="/employer/search-users">Search candidates</Link>
@@ -45,7 +45,7 @@ export function CandidateViewHistoryCard({ recentViews = [], loading = false }: 
               className="flex items-center justify-between gap-3 text-sm"
             >
               <Link
-                href={`/employer/candidates/${view.candidate_id}`}
+                href={`/employer/profile/${view.candidate_id}`}
                 className="font-medium text-grey-dark hover:underline dark:text-gray-200"
               >
                 {view.candidate_name ?? "Candidate"}

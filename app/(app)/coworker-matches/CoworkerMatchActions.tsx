@@ -85,11 +85,11 @@ export function CoworkerMatchActions({
             variant="secondary"
             href={`/messages?user=${otherUserId}`}
           >
-            Request review (message)
+            Request vouch (message)
           </Button>
           {!showReviewForm ? (
             <Button size="sm" onClick={() => setShowReviewForm(true)}>
-              Leave a review
+              Leave a vouch
             </Button>
           ) : (
             <div className="border rounded p-3 space-y-2 bg-slate-50 dark:bg-slate-900">
@@ -112,7 +112,7 @@ export function CoworkerMatchActions({
               />
               <div className="flex gap-2">
                 <Button size="sm" onClick={handleSubmitReview} disabled={!!loading}>
-                  {loading === "review" ? "..." : "Submit review"}
+                  {loading === "review" ? "..." : "Submit vouch"}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setShowReviewForm(false)}>
                   Cancel

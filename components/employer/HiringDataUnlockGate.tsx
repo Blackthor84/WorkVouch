@@ -12,18 +12,16 @@ export function HiringDataUnlockGate({ children }: { children: React.ReactNode }
       <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-white/70 via-white/85 to-white/95 dark:from-[#0D1117]/80 dark:via-[#0D1117]/90 dark:to-[#0D1117] backdrop-blur-[3px] px-4 py-8">
         <div className="text-center max-w-md">
           <p className="text-lg font-semibold text-slate-900 dark:text-white">
-            <span aria-hidden>🔒 </span>
-            Upgrade to unlock full insights
+            Upgrade required
           </p>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-            Unlock full trust breakdown with Pro—exact scores, references, and hiring intelligence for every
-            candidate.
+            Pro unlocks full trust scores, references, and hiring analytics for every candidate.
           </p>
           <Link
-            href="/enterprise/upgrade"
+            href="/employer/upgrade"
             className="mt-4 inline-flex rounded-xl bg-[#2563EB] px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-[#1D4ED8]"
           >
-            Upgrade Plan
+            View plans
           </Link>
         </div>
       </div>
