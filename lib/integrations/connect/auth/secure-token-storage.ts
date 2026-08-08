@@ -10,6 +10,9 @@ export class ConnectSecureTokenStorage {
   encrypt(plaintext: string): string {
     const key = this.encryptionKey ?? process.env.ATS_ENCRYPTION_KEY;
     if (!key) {
+      if (process.env.NODE_ENV === "production") {
+        throw new Error("ATS_ENCRYPTION_KEY is required in production");
+      }
       return Buffer.from(plaintext, "utf8").toString("base64");
     }
 

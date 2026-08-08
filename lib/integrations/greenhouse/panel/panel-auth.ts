@@ -4,8 +4,12 @@ import type { PanelAuthContext } from "./types";
 const PANEL_TOKEN_TTL_SECONDS = 15 * 60;
 
 function getSecret(): Uint8Array {
-  const secret = process.env.PANEL_JWT_SECRET ?? process.env.ATS_ENCRYPTION_KEY ?? "dev-panel-secret";
-  return new TextEncoder().encode(secret);
+  const secret = process.env.PANEL_JWT_SECRET;
+  if (!secret && process.env.NODE_ENV === "production") {
+    throw new Error("PANEL_JWT_SECRET is required in production");
+  }
+  const value = secret ?? process.env.ATS_ENCRYPTION_KEY ?? "dev-panel-secret";
+  return new TextEncoder().encode(value);
 }
 
 /** Issue a short-lived panel token for Greenhouse iframe embedding. */

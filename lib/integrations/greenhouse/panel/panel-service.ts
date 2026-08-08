@@ -4,6 +4,7 @@ import { getTrustBandLabel } from "@/lib/trust/trustBandLabels";
 import type { ConnectRuntime } from "../../connect/connect-runtime";
 import type { LifecycleState } from "../../connect/orchestration/types";
 import { buildDemoPanelPayload } from "./demo-payload";
+import { buildDemoScenarioPayload } from "./demo-scenarios";
 import { buildTrustExplainability } from "./explainability";
 import type {
   GreenhousePanelPayload,
@@ -26,7 +27,10 @@ export class GreenhousePanelService {
 
   async buildPanel(input: PanelBuildInput): Promise<GreenhousePanelPayload> {
     if (input.demo) {
-      return buildDemoPanelPayload(input.externalCandidateId);
+      return buildDemoScenarioPayload(
+        input.externalCandidateId,
+        (input.demoScenario as "high" | "moderate" | "warning" | "not_linked") ?? "high"
+      );
     }
 
     const start = Date.now();

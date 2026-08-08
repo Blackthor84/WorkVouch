@@ -122,10 +122,11 @@ export interface PanelAuthContext {
 }
 
 export interface PanelBuildInput {
-  externalCandidateId: string;
   connectionId: string;
   employerAccountId: string;
+  externalCandidateId: string;
   demo?: boolean;
+  demoScenario?: string;
 }
 
 export const WORKFLOW_STEP_DEFINITIONS: Array<{ id: PanelWorkflowStepId; label: string }> = [

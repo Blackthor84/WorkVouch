@@ -142,7 +142,9 @@ export class WebhookService {
     }
 
     this.deps.metrics.recordDelivery(result.success, Date.now() - started);
-    this.deps.metrics.setQueueDepth(this.deps.deadLetterQueue.size());
+    void this.deps.deadLetterQueue.sizeAsync().then((depth) => {
+      this.deps.metrics.setQueueDepth(depth);
+    });
 
     return {
       status: 200,
@@ -163,7 +165,7 @@ export class WebhookService {
   }
 
   async replayDeadLetter(webhookLogId: string): Promise<WebhookHandleResult> {
-    const dlqEvent = this.deps.deadLetterQueue.replay(webhookLogId);
+    const dlqEvent = await this.deps.deadLetterQueue.replayAsync(webhookLogId);
     if (!dlqEvent) {
       return {
         status: 404,
@@ -205,7 +207,9 @@ export class WebhookService {
   }
 
   getMetrics(): ReturnType<WebhookMetrics["getSnapshot"]> {
-    this.deps.metrics.setQueueDepth(this.deps.deadLetterQueue.size());
+    void this.deps.deadLetterQueue.sizeAsync().then((depth) => {
+      this.deps.metrics.setQueueDepth(depth);
+    });
     return this.deps.metrics.getSnapshot();
   }
 

@@ -1,4 +1,15 @@
 /** @type {import('next').NextConfig} */
+const { validateConnectEnvAtBuild } = require('./env.mjs');
+
+try {
+  validateConnectEnvAtBuild();
+} catch (err) {
+  console.error(err instanceof Error ? err.message : err);
+  if (process.env.NODE_ENV === 'production') {
+    throw err;
+  }
+}
+
 const nextConfig = {
   reactStrictMode: true,
   typescript: {

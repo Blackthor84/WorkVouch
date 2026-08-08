@@ -8,6 +8,7 @@ export function GreenhousePanelPageClient() {
   const candidateId = params.get("candidateId") ?? params.get("externalCandidateId") ?? "demo";
   const connectionId = params.get("connectionId") ?? undefined;
   const token = params.get("token") ?? undefined;
+  const scenario = params.get("scenario") ?? "high";
   const demo = params.get("demo") === "1" || candidateId === "demo";
 
   return (
@@ -16,6 +17,7 @@ export function GreenhousePanelPageClient() {
       connectionId={connectionId}
       panelToken={token}
       demo={demo}
+      scenario={scenario}
     />
   );
 }

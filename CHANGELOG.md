@@ -2,6 +2,35 @@
 
 All notable changes to the WorkVouch Connect integration platform are documented here.
 
+## Sprint 10.1 — Final QA & Production Polish
+
+- Build-time Connect env validation (`connect-env.ts`, `env.mjs`, `next.config.js`) — fails production build when secrets missing
+- Distributed rate limiting: Upstash REST + standard Redis (`REDIS_URL`) abstraction; memory fallback in dev
+- Persistent DLQ: `connect_dead_letter_queue` table + `SupabaseDeadLetterQueue` — survives restarts
+- Production logging: Sentry sink via `SENTRY_DSN` with secret redaction
+- Async rate limit on all API routes; Connect ingress routes use distributed store in production
+- Fixed trust-signals test (lazy Supabase import in `trustTrajectory.ts`)
+- Fixed trust-forecast test (stable threshold precedence)
+- Fixed intelligence test imports and stale expectations (no product behavior changes)
+- Ops doc: `docs/operations/rate-limiting.md`
+- `FINAL_QA_REPORT.md` — engineering sign-off
+- **307/307 automated tests passing**
+
+## Sprint 10 — Production Hardening & Marketplace Readiness
+
+- Added Connect route guards (`connect-route-guards.ts`) — feature flags, cron auth, rate limiting, production secret validation
+- Secured `/api/integrations/v1/import` — cron secret required; employers use authenticated import route
+- Secured `/api/integrations/v1/health` — cron OR employer session + connection ownership
+- Webhook ingress: Connect enabled check + rate limit (300/min)
+- Panel: demo mode gated in production (`CONNECT_DEMO_MODE_ENABLED`); JWT via `X-Panel-Token` header only (removed from URL)
+- Production enforcement: `ATS_ENCRYPTION_KEY` and `PANEL_JWT_SECRET` required in production
+- Marketplace demo scenarios: high, moderate, warning, not_linked (`demo-scenarios.ts`)
+- Demo reset script: `scripts/connect-demo-reset.mjs`
+- Operations runbooks (10): deployment, rollback, backup, incident, OAuth/secret rotation, Greenhouse outage, monitoring, release checklist, on-call
+- Marketplace submission package (11 docs): overview, architecture, installation, configuration, security, privacy, support, FAQ, limitations, review checklist, demo script
+- `SECURITY_REVIEW.md` and `PRODUCTION_READINESS_REPORT.md` with scores and go/no-go
+- 8 new route guard tests (179 Connect/trust tests passing)
+
 ## Sprint 9A — Hiring Confidence Engine
 
 - Added Hiring Confidence Engine (`lib/trust/confidence/`) — presentation layer aggregating trust, verification, references, workflow

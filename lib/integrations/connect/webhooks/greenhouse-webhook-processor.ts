@@ -258,22 +258,25 @@ export class GreenhouseWebhookProcessor {
     error: string,
     correlationId: string
   ): void {
-    this.deps.deadLetterQueue.enqueue({
-      id: input.webhookLogId ?? correlationId,
-      type: "webhook.greenhouse.failed",
-      provider: "greenhouse",
-      employerAccountId: input.employerAccountId,
-      connectionId: input.connectionId,
-      correlationId,
-      priority: 1,
-      payload: { rawPayload: input.rawPayload, error },
-      status: "dead_letter",
-      attemptCount: 0,
-      maxAttempts: 5,
-      scheduledAt: nowIso(),
-      createdAt: nowIso(),
-      lastError: error,
-    });
+    this.deps.deadLetterQueue.enqueue(
+      {
+        id: input.webhookLogId ?? correlationId,
+        type: "webhook.greenhouse.failed",
+        provider: "greenhouse",
+        employerAccountId: input.employerAccountId,
+        connectionId: input.connectionId,
+        correlationId,
+        priority: 1,
+        payload: { rawPayload: input.rawPayload, error },
+        status: "dead_letter",
+        attemptCount: 0,
+        maxAttempts: 5,
+        scheduledAt: nowIso(),
+        createdAt: nowIso(),
+        lastError: error,
+      },
+      { sourceType: "webhook", failureReason: error }
+    );
     this.deps.metrics?.recordDeadLetter();
     this.deps.logger.warn("Webhook sent to DLQ", {
       provider: "greenhouse",

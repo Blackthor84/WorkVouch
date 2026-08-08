@@ -4,8 +4,6 @@
  * No raw scores exposed. No ML. No new schema.
  */
 
-import { getSupabaseServer } from "@/lib/supabase/admin";
-
 export type TrustTrajectoryResult = "improving" | "stable" | "at_risk";
 
 export type TrustTrajectoryPayload = {
@@ -153,6 +151,7 @@ export type TrustTrajectoryInput = {
 
 /** Fetch inputs for one user from existing tables. */
 export async function getTrustTrajectoryInput(userId: string): Promise<TrustTrajectoryInput> {
+  const { getSupabaseServer } = await import("@/lib/supabase/admin");
   const supabase = getSupabaseServer();
 
   const [verifiedRows, refRows, disputeRows, employmentForYears] = await Promise.all([
@@ -228,6 +227,7 @@ export async function getTrustTrajectoryBatch(
 ): Promise<Map<string, TrustTrajectoryPayload>> {
   if (userIds.length === 0) return new Map();
 
+  const { getSupabaseServer } = await import("@/lib/supabase/admin");
   const supabase = getSupabaseServer();
   const uniq = [...new Set(userIds)];
 

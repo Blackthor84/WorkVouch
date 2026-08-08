@@ -11,6 +11,7 @@ export interface GreenhousePanelClientProps {
   connectionId?: string;
   panelToken?: string;
   demo?: boolean;
+  scenario?: string;
 }
 
 export function GreenhousePanelClient({
@@ -18,6 +19,7 @@ export function GreenhousePanelClient({
   connectionId,
   panelToken,
   demo,
+  scenario = "high",
 }: GreenhousePanelClientProps) {
   const [data, setData] = useState<GreenhousePanelPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,10 @@ export function GreenhousePanelClient({
     setError(null);
     try {
       const params = new URLSearchParams();
-      if (demo) params.set("demo", "1");
+      if (demo) {
+        params.set("demo", "1");
+        params.set("scenario", scenario);
+      }
       if (connectionId) params.set("connectionId", connectionId);
 
       const headers: HeadersInit = {};
@@ -50,7 +55,7 @@ export function GreenhousePanelClient({
     } finally {
       setLoading(false);
     }
-  }, [connectionId, demo, externalCandidateId, panelToken]);
+  }, [connectionId, demo, externalCandidateId, panelToken, scenario]);
 
   useEffect(() => {
     void load();

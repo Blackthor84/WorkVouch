@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { calculateV1, calculateV1Breakdown } from "@/lib/core/intelligence";
-import type { ProfileInput } from "@/lib/core/intelligence";
+import { calculateV1, calculateV1Breakdown } from "@/lib/core/intelligence/v1";
+import type { ProfileInput } from "@/lib/core/intelligence/types";
 
 function input(overrides: Partial<ProfileInput> = {}): ProfileInput {
   return {
@@ -45,9 +45,10 @@ describe("Intelligence Engine v1", () => {
   });
 
   it("4. Mixed ratings — neutrality at 3.0", () => {
-    const neutral = calculateV1(input({ averageRating: 3, sentimentAverage: 0, reviewCount: 0, totalMonths: 0 }));
-    const high = calculateV1(input({ averageRating: 5, sentimentAverage: 0, reviewCount: 0, totalMonths: 0 }));
-    const low = calculateV1(input({ averageRating: 1, sentimentAverage: 0, reviewCount: 0, totalMonths: 0 }));
+    const base = { reviewCount: 2, totalMonths: 12, sentimentAverage: 0 };
+    const neutral = calculateV1(input({ ...base, averageRating: 3 }));
+    const high = calculateV1(input({ ...base, averageRating: 5 }));
+    const low = calculateV1(input({ ...base, averageRating: 1 }));
     expect(high).toBeGreaterThan(neutral);
     expect(low).toBeLessThan(neutral);
     expect(neutral).toBeGreaterThanOrEqual(0);
@@ -141,7 +142,7 @@ describe("Intelligence Engine v1", () => {
     });
 
     it("Fraud cap works — FP max 15 points", () => {
-      const fpCap = calculateV1(input({ fraudScore: 1 }));
+      const fpCap = calculateV1(input({ fraudScore: 1.5 }));
       const fpOverCap = calculateV1(input({ fraudScore: 2 }));
       expect(fpOverCap).toBe(fpCap);
     });

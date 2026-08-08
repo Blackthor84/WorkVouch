@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server";
 import { getConnectApiRuntime } from "@/lib/integrations/connect/connect-api-runtime";
+import {
+  requireConnectEnabled,
+  rateLimitIntegrationRoute,
+} from "@/lib/integrations/connect/connect-route-guards";
 
 /** POST /api/integrations/v1/webhooks/greenhouse — Greenhouse Hookshot webhook ingress */
 export async function POST(request: Request) {
+  const disabled = requireConnectEnabled();
+  if (disabled) return disabled;
+
+  const limited = await rateLimitIntegrationRoute(request, "connect:webhook:", 300);
+  if (limited) return limited;
+
   const started = Date.now();
   try {
     const rawBody = await request.text();

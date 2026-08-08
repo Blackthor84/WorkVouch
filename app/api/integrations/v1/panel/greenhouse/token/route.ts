@@ -29,11 +29,12 @@ export async function POST(request: Request) {
   });
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-  const panelUrl = `${baseUrl}/integrations/greenhouse/panel?candidateId=${encodeURIComponent(body.externalCandidateId)}&connectionId=${encodeURIComponent(body.connectionId)}&token=${encodeURIComponent(token)}`;
+  const panelUrl = `${baseUrl}/integrations/greenhouse/panel?candidateId=${encodeURIComponent(body.externalCandidateId)}&connectionId=${encodeURIComponent(body.connectionId)}`;
 
   return NextResponse.json({
     token,
     expiresInSeconds: PANEL_TOKEN_TTL_SECONDS,
     panelUrl,
+    tokenDelivery: "Pass token via X-Panel-Token header when loading the panel iframe",
   });
 }

@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   const session = await requireFinanceForApi();
   if (!session) return adminForbiddenResponse();
 
-  const rateLimitResult = withRateLimit(req, {
+  const rateLimitResult = await withRateLimit(req, {
     userId: session.userId,
     windowMs: 60_000,
     maxPerWindow: 60,

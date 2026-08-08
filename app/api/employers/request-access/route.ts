@@ -21,7 +21,7 @@ function sanitize(s: unknown, max: number): string {
  * Persists lead and notifies sales (aggregated operational email; no PII in audit metadata).
  */
 export async function POST(req: Request) {
-  const rate = withRateLimit(req, {
+  const rate = await withRateLimit(req, {
     userId: null,
     prefix: "employer_access_req:",
     windowMs: 60_000,

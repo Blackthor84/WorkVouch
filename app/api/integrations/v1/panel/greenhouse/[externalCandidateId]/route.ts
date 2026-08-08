@@ -1,31 +1,47 @@
 import { NextResponse } from "next/server";
 import { getConnectApiRuntime } from "@/lib/integrations/connect/connect-api-runtime";
-import { GreenhousePanelService } from "@/lib/integrations/greenhouse/panel/panel-service";
 import { verifyPanelToken } from "@/lib/integrations/greenhouse/panel/panel-auth";
 import { requireConnectionAccess, requireEmployerIntegration } from "@/lib/employer/integrations/auth";
+import {
+  isConnectDemoAllowed,
+  rateLimitIntegrationRoute,
+  requireConnectEnabled,
+} from "@/lib/integrations/connect/connect-route-guards";
 
 type RouteParams = { params: Promise<{ externalCandidateId: string }> };
 
 /** GET /api/integrations/v1/panel/greenhouse/[externalCandidateId] */
 export async function GET(request: Request, { params }: RouteParams) {
+  const disabled = requireConnectEnabled();
+  if (disabled) return disabled;
+
+  const limited = await rateLimitIntegrationRoute(request, "connect:panel:", 120);
+  if (limited) return limited;
+
   const { externalCandidateId } = await params;
   const url = new URL(request.url);
   const demo = url.searchParams.get("demo") === "1" || url.searchParams.get("demo") === "true";
 
   if (demo) {
+    if (!isConnectDemoAllowed()) {
+      return NextResponse.json({ error: "Demo mode disabled in production" }, { status: 403 });
+    }
+    const { GreenhousePanelService } = await import("@/lib/integrations/greenhouse/panel/panel-service");
+    const scenario = url.searchParams.get("scenario") ?? "high";
     const service = new GreenhousePanelService({ runtime: getConnectApiRuntime() });
     const payload = await service.buildPanel({
       externalCandidateId,
       connectionId: "demo",
       employerAccountId: "demo",
       demo: true,
+      demoScenario: scenario,
     });
     return NextResponse.json(payload, {
-      headers: { "Cache-Control": "private, max-age=60" },
+      headers: { "Cache-Control": "private, max-age=60", "X-Connect-Demo": "1" },
     });
   }
 
-  const panelToken = request.headers.get("X-Panel-Token") ?? url.searchParams.get("token") ?? "";
+  const panelToken = request.headers.get("X-Panel-Token") ?? "";
   let connectionId = url.searchParams.get("connectionId") ?? "";
   let employerAccountId = "";
 
@@ -53,6 +69,7 @@ export async function GET(request: Request, { params }: RouteParams) {
   }
 
   try {
+    const { GreenhousePanelService } = await import("@/lib/integrations/greenhouse/panel/panel-service");
     const service = new GreenhousePanelService({ runtime: getConnectApiRuntime() });
     const payload = await service.buildPanel({
       externalCandidateId,
