@@ -14,6 +14,7 @@ import {
   Settings,
   Bookmark,
   Bell,
+  Plug,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,7 @@ const navItems = [
   { href: "/employer/messages", label: "Messages", Icon: MessageSquare },
   { href: "/employer/notifications", label: "Notifications", Icon: Bell },
   { href: "/employer/billing", label: "Billing", Icon: CreditCard },
+  { href: "/employer/integrations", label: "Integrations", Icon: Plug },
   { href: "/employer/settings", label: "Settings", Icon: Settings },
 ];
 

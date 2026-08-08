@@ -42,6 +42,9 @@ import { GreenhouseWebhookProcessor } from "./webhooks/greenhouse-webhook-proces
 import { WebhookService } from "./webhooks/webhook-service";
 import { CandidateLifecycleEngine } from "./orchestration/candidate-lifecycle-engine";
 import { LifecycleObservability } from "./orchestration/lifecycle-observability";
+import { HiringMetricsEngine } from "./intelligence/hiring-metrics-engine";
+import { InMemoryHiringMetricsRepository } from "./intelligence/in-memory-hiring-metrics-repository";
+import { DiagnosticBundleService } from "./diagnostics/diagnostic-bundle-service";
 import { AtsEventPipeline } from "../core/pipeline/ats-event-pipeline";
 import type { EventDispatcher } from "../events/EventDispatcher";
 import type { DeadLetterQueue } from "../queue/DeadLetterQueue";
@@ -87,6 +90,8 @@ export interface ConnectRuntime {
   oauthStateAdapter: ConnectOAuthStateAdapter;
   lifecycle: CandidateLifecycleEngine;
   lifecycleObservability: LifecycleObservability;
+  hiringMetrics: HiringMetricsEngine;
+  diagnosticBundles: DiagnosticBundleService;
 }
 
 function useSupabase(client?: SupabaseClient) {
@@ -106,6 +111,7 @@ function useSupabase(client?: SupabaseClient) {
       webhooks: new InMemoryWebhookRepository(),
       invitationQueue: new InMemoryInvitationQueueRepository(),
       lifecycleState: new InMemoryLifecycleStateRepository(),
+      hiringMetrics: new InMemoryHiringMetricsRepository(),
     };
   }
 
@@ -124,6 +130,7 @@ function useSupabase(client?: SupabaseClient) {
     webhooks: new SupabaseWebhookRepository(client),
     invitationQueue: new InMemoryInvitationQueueRepository(),
     lifecycleState: new InMemoryLifecycleStateRepository(),
+    hiringMetrics: new InMemoryHiringMetricsRepository(),
   };
 }
 
@@ -235,6 +242,22 @@ export function createConnectRuntime(deps: ConnectRuntimeDeps): ConnectRuntime {
   });
   lifecycle.subscribe();
 
+  const hiringMetrics = new HiringMetricsEngine({
+    eventStore,
+    repository: repos.hiringMetrics,
+    lifecycleObservability,
+    webhookMetrics,
+  });
+
+  const diagnosticBundles = new DiagnosticBundleService({
+    connections,
+    health,
+    connect,
+    webhookMetrics,
+    lifecycleObservability,
+    hiringMetrics,
+  });
+
   return {
     connections,
     eventStore,
@@ -250,6 +273,8 @@ export function createConnectRuntime(deps: ConnectRuntimeDeps): ConnectRuntime {
     oauthStateAdapter,
     lifecycle,
     lifecycleObservability,
+    hiringMetrics,
+    diagnosticBundles,
   };
 }
 

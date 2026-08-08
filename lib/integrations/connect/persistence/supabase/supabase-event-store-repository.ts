@@ -100,8 +100,11 @@ export class SupabaseEventStoreRepository implements EventStoreRepository {
     let query = this.client.from("connect_event_store").select("*").order("occurred_at", { ascending: true });
     if (filter.correlationId) query = query.eq("correlation_id", filter.correlationId);
     if (filter.companyId) query = query.eq("company_id", filter.companyId);
+    if (filter.connectionId) query = query.eq("connection_id", filter.connectionId);
     if (filter.aggregateType) query = query.eq("aggregate_type", filter.aggregateType);
     if (filter.aggregateId) query = query.eq("aggregate_id", filter.aggregateId);
+    if (filter.fromOccurredAt) query = query.gte("occurred_at", filter.fromOccurredAt);
+    if (filter.toOccurredAt) query = query.lte("occurred_at", filter.toOccurredAt);
     if (filter.limit) query = query.limit(filter.limit);
 
     const { data, error } = await query;

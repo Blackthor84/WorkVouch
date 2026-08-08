@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
     if (error) {
       return NextResponse.redirect(
-        new URL(`/settings/integrations?error=${encodeURIComponent(error)}`, request.url)
+        new URL(`/employer/integrations/connect?error=${encodeURIComponent(error)}`, request.url)
       );
     }
 
@@ -53,10 +53,8 @@ export async function GET(request: Request) {
 
     await runtime.connections.initializeCursor(result.connectionId, "greenhouse", GREENHOUSE_MANIFEST.version);
 
-    const redirectBase = oauthRow.redirect_uri || "/settings/integrations";
-    const redirectTarget = redirectBase.startsWith("http")
-      ? new URL(redirectBase)
-      : new URL(redirectBase, request.url);
+    const redirectTarget = new URL("/employer/integrations/connect", request.url);
+    redirectTarget.searchParams.set("step", "validate");
     redirectTarget.searchParams.set("connected", "greenhouse");
     redirectTarget.searchParams.set("connectionId", result.connectionId);
     if (result.providerAccountName) {

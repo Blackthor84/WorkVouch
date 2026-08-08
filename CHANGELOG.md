@@ -2,6 +2,45 @@
 
 All notable changes to the WorkVouch Connect integration platform are documented here.
 
+## Sprint 8B — Connect Diagnostic Bundle
+
+- Added Diagnostic Bundle system (`DiagnosticBundleService`, `BundleBuilder`, `BundleRedactor`, `BundleValidator`, `BundleExporter`)
+- Portable support bundle: connection metadata, health, sync cursor/history, events, audit, replay refs, metrics
+- Automatic secret redaction (OAuth tokens, API keys, Bearer/JWT, PII email mask) with redaction audit trail
+- Export formats: ZIP (default), JSON, Markdown with checksums and README.md support summary
+- Developer API: `generateDiagnosticBundle()`, `downloadDiagnosticBundle()`, `validateDiagnosticBundle()`, `previewDiagnosticBundle()`
+- Employer API: `GET /api/employer/integrations/connections/[connectionId]/diagnostic-bundle`
+- Employer UI: Download Diagnostic Bundle on provider details with progress, size, and timestamp
+- Wired `runtime.diagnosticBundles` on Connect runtime
+- 8 new diagnostic bundle tests
+
+## Sprint 8A — Hiring Intelligence & Business Metrics
+
+- Added Hiring Intelligence Engine (`HiringMetricsEngine`, calculator, aggregator, snapshot service, scheduler)
+- Business funnel metrics: import → invite → accept → verify → references → trust → complete
+- Core metrics: invitation rates, verification time, reference time, automation success/failure
+- Advanced metrics: import success, replay rate, manual override, sync/recovery success, queue wait
+- ROI metrics: hours saved, manual tasks eliminated, automation coverage
+- Aggregation: per candidate, job, department, employer, provider, connection; day/week/month periods
+- Historical trends: 7d, 30d, 90d, YTD, lifetime with period comparison
+- Metrics snapshots in `connect_hiring_metrics_snapshots`; event store as single source of truth
+- Employer API: `GET/POST /api/employer/integrations/intelligence`
+- Wired `runtime.hiringMetrics` on Connect runtime
+- 5 new hiring intelligence tests (111 total integration tests passing)
+
+## Sprint 8 — Employer Integration Experience
+
+- Added employer integration portal at `/employer/integrations/` (dashboard, wizard, provider details, sync, events, health, settings, replay)
+- Added authenticated employer API routes under `/api/employer/integrations/`
+- Connection wizard: 6-step Greenhouse OAuth flow with import preview and automation setup
+- Integration dashboard: health score, sync stats, automation status, sync now action
+- Health dashboard: component-level health, webhook metrics, lifecycle observability
+- Event explorer: correlation ID search, event store + webhook log timeline
+- Replay center: simulate and live replay failed webhooks
+- Automation settings UI: triggers, job/department/location filters, delay
+- OAuth callback redirects to employer portal; sidebar Integrations link added
+- 3 new employer portal tests (106 total integration tests passing)
+
 ## Sprint 7 — Candidate Lifecycle Orchestration
 
 - Added Candidate Lifecycle Engine (`CandidateLifecycleEngine`, `WorkflowEngine`, `AutomationRuleEvaluator`, `DecisionEngine`)

@@ -83,8 +83,15 @@ export class InMemoryEventStoreRepository implements EventStoreRepository {
       results = results.filter((e) => e.correlationId === filter.correlationId);
     }
     if (filter.companyId) results = results.filter((e) => e.companyId === filter.companyId);
+    if (filter.connectionId) results = results.filter((e) => e.connectionId === filter.connectionId);
     if (filter.aggregateType) results = results.filter((e) => e.aggregateType === filter.aggregateType);
     if (filter.aggregateId) results = results.filter((e) => e.aggregateId === filter.aggregateId);
+    if (filter.fromOccurredAt) {
+      results = results.filter((e) => e.occurredAt >= filter.fromOccurredAt!);
+    }
+    if (filter.toOccurredAt) {
+      results = results.filter((e) => e.occurredAt <= filter.toOccurredAt!);
+    }
     results.sort((a, b) => a.occurredAt.localeCompare(b.occurredAt));
     if (filter.limit) results = results.slice(-filter.limit);
     return results.map((e) => ({ ...e }));

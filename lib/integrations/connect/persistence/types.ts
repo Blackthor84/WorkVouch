@@ -166,7 +166,10 @@ export interface SnapshotConfig {
 export interface TimelineFilter {
   correlationId?: string;
   companyId?: string;
+  connectionId?: string;
   aggregateType?: ConnectAggregateType;
   aggregateId?: string;
+  fromOccurredAt?: string;
+  toOccurredAt?: string;
   limit?: number;
 }

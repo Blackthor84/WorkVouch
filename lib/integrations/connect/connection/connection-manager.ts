@@ -147,6 +147,11 @@ export class ConnectionManager {
     return row ? this.toSummary(row) : null;
   }
 
+  async listByEmployer(employerAccountId: string): Promise<ConnectionSummary[]> {
+    const rows = await this.deps.connections.listByEmployer(employerAccountId);
+    return rows.map((row) => this.toSummary(row));
+  }
+
   async getTokens(connectionId: string): Promise<ConnectStoredTokens | null> {
     const row = await this.deps.connections.getById(connectionId);
     if (!row?.accessTokenEncrypted) return null;
