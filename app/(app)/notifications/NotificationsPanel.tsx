@@ -1,20 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   markNotificationRead,
   markAllNotificationsRead,
 } from "@/lib/actions/notifications";
-import { useRouter } from "next/navigation";
 import {
-  UserGroupIcon,
-  DocumentTextIcon,
-  CheckCircleIcon,
-  CreditCardIcon,
-  BellIcon,
-} from "@heroicons/react/24/outline";
+  Users,
+  FileText,
+  CheckCircle2,
+  CreditCard,
+  Bell,
+} from "lucide-react";
 import Link from "next/link";
-import { EmptyState } from "@/components/workvouch/EmptyState";
+import {
+  WvCard,
+  WvButton,
+  WvEmptyState,
+} from "@/components/wv";
 
 interface Notification {
   id: string;
@@ -31,16 +35,16 @@ interface Notification {
 function getIcon(type: string) {
   switch (type) {
     case "coworker_match":
-      return <UserGroupIcon className="h-5 w-5 text-slate-600" />;
+      return <Users className="h-5 w-5 text-wv-brand-blue" aria-hidden />;
     case "reference_request":
     case "reference_received":
-      return <DocumentTextIcon className="h-5 w-5 text-emerald-600" />;
+      return <FileText className="h-5 w-5 text-emerald-400" aria-hidden />;
     case "connection_confirmed":
-      return <CheckCircleIcon className="h-5 w-5 text-slate-600" />;
+      return <CheckCircle2 className="h-5 w-5 text-wv-brand-green" aria-hidden />;
     case "employer_purchase":
-      return <CreditCardIcon className="h-5 w-5 text-violet-600" />;
+      return <CreditCard className="h-5 w-5 text-violet-400" aria-hidden />;
     default:
-      return <BellIcon className="h-5 w-5 text-slate-400" />;
+      return <Bell className="h-5 w-5 text-wv-muted" aria-hidden />;
   }
 }
 
@@ -77,17 +81,14 @@ export function NotificationsPanel({
 
   if (list.length === 0) {
     return (
-      <EmptyState
-        icon={<BellIcon className="h-7 w-7" />}
-        title="Nothing new—yet"
-        description="Matches, vouch requests, and confirmations will show up here as you build your network."
+      <WvEmptyState
+        icon={<Bell className="h-6 w-6" />}
+        title="You're all caught up"
+        description="Matches, reference requests, and verification updates will appear here as your network grows."
         action={
-          <Link
-            href="/coworker-matches"
-            className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-          >
-            Go to coworker matches
-          </Link>
+          <WvButton href="/coworker-matches" size="sm">
+            Find coworker matches
+          </WvButton>
         }
         className="mt-8"
       />
@@ -98,14 +99,14 @@ export function NotificationsPanel({
     <div className="mt-6 space-y-4">
       {unreadCount > 0 && (
         <div className="flex justify-end">
-          <button
-            type="button"
+          <WvButton
+            variant="ghost"
+            size="sm"
             onClick={handleMarkAllRead}
             disabled={markingAll}
-            className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors disabled:opacity-50"
           >
             Mark all as read
-          </button>
+          </WvButton>
         </div>
       )}
       <ul className="space-y-3">
@@ -114,33 +115,34 @@ export function NotificationsPanel({
             <Link
               href={getActionLink(n)}
               onClick={() => !n.is_read && handleMarkRead(n.id)}
-              className={`block rounded-xl border bg-white p-5 shadow-sm transition-all hover:shadow-md ${
-                !n.is_read
-                  ? "border-slate-200/80 bg-slate-50/50"
-                  : "border-slate-200/80"
-              }`}
+              className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wv-brand-blue/40 rounded-2xl"
             >
-              <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 ring-1 ring-slate-200/80">
-                  {getIcon(n.type)}
+              <WvCard
+                padding="md"
+                className={!n.is_read ? "border-wv-brand-blue/30 bg-wv-surface-hover/50" : ""}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-wv-surface ring-1 ring-wv-border">
+                    {getIcon(n.type)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3
+                      className={`text-sm font-semibold ${
+                        !n.is_read ? "text-wv-foreground" : "text-wv-muted"
+                      }`}
+                    >
+                      {n.title}
+                    </h3>
+                    <p className="mt-1 text-sm text-wv-muted">{n.message}</p>
+                    <p className="mt-2 text-xs text-wv-subtle">
+                      {new Date(n.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  {!n.is_read && (
+                    <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-wv-brand-blue" aria-hidden />
+                  )}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h3
-                    className={`text-sm font-semibold ${
-                      !n.is_read ? "text-slate-900" : "text-slate-600"
-                    }`}
-                  >
-                    {n.title}
-                  </h3>
-                  <p className="mt-1 text-sm text-slate-500">{n.message}</p>
-                  <p className="mt-2 text-xs text-slate-400">
-                    {new Date(n.created_at).toLocaleString()}
-                  </p>
-                </div>
-                {!n.is_read && (
-                  <span className="h-2 w-2 shrink-0 rounded-full bg-slate-900 mt-2" />
-                )}
-              </div>
+              </WvCard>
             </Link>
           </li>
         ))}

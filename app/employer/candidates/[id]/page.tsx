@@ -5,6 +5,7 @@ import { EMPLOYER_DISCLAIMER_NOT_ACCEPTED } from "@/lib/employer/requireEmployer
 import { EmployerPortalLayout } from "@/components/employer/EmployerPortalLayout";
 import { CandidateProfileViewer } from "@/components/employer/candidate-profile-viewer";
 import { EmployerLegalDisclaimerGate } from "@/components/employer/EmployerLegalDisclaimerGate";
+import { WvErrorState } from "@/components/wv";
 
 export default async function CandidateProfilePage(props: {
   params: Promise<{ id: string }>;
@@ -35,11 +36,11 @@ export default async function CandidateProfilePage(props: {
       );
     }
     return (
-      <EmployerPortalLayout>
-        <div className="text-center py-16">
-          <h1 className="text-2xl font-bold text-wv-foreground mb-2">Candidate Not Found</h1>
-          <p className="text-wv-muted">{message || "This candidate profile could not be loaded."}</p>
-        </div>
+      <EmployerPortalLayout wide>
+        <WvErrorState
+          title="Candidate not found"
+          message={message || "This profile could not be loaded. They may have removed public access or the link is incorrect."}
+        />
       </EmployerPortalLayout>
     );
   }

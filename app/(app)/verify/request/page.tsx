@@ -2,11 +2,18 @@ export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
 import VerifyRequestClient from "./VerifyRequestClient";
+import { WvContainer, WvLoadingState } from "@/components/wv";
 
 export default function VerifyRequestPage() {
   return (
-    <Suspense fallback={<div>Loading…</div>}>
-      <VerifyRequestClient />
-    </Suspense>
+    <WvContainer size="narrow" className="py-8">
+      <Suspense
+        fallback={
+          <WvLoadingState label="Loading verification request…" fullPage />
+        }
+      >
+        <VerifyRequestClient />
+      </Suspense>
+    </WvContainer>
   );
 }

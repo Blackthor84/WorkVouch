@@ -20,8 +20,8 @@ export default async function SearchUsersPage() {
     <EmployerPortalLayout wide>
       <WvPageHeader
         eyebrow="Search"
-        title="Search Candidates"
-        description="Find verified professionals by name, role, company, industry, location, and trust score."
+        title="Search candidates"
+        description="Find verified professionals by name, role, company, industry, location, and trust score — then open a profile to review employment and references."
       />
       <div className="mt-8">
         <EmployerSearchClient />

@@ -1,12 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { WvCard, WvButton, WvBadge, WvPageHeader } from "@/components/wv";
+import { WvCard, WvButton, WvBadge, WvPageHeader, WvLoadingState } from "@/components/wv";
+import { Building2, Search, ShieldCheck, TrendingUp } from "lucide-react";
 import UpgradeModal from "@/components/UpgradeModal";
 import EmployerAnalytics from "./EmployerAnalytics";
 import { AdvancedAnalytics } from "@/components/AdvancedAnalytics";
@@ -29,11 +26,6 @@ import { useFeatureFlag } from "@/lib/hooks/useFeatureFlag";
 import { getVerticalConfig } from "@/lib/verticals/config";
 import { runSimulation } from "@/lib/simulation/engine";
 import type { PlanTier, SimulationOutput } from "@/lib/simulation/types";
-import {
-  PlusIcon,
-  MagnifyingGlassIcon,
-  ArrowTrendingUpIcon,
-} from "@heroicons/react/24/outline";
 
 interface EmployerDashboardClientProps {
   userRole: string;
@@ -260,8 +252,8 @@ export function EmployerDashboardClient({
 
         <WvPageHeader
           eyebrow="Overview"
-          title="Dashboard"
-          description="Welcome back. Manage candidates, verifications, and your subscription."
+          title="Employer dashboard"
+          description="Your hiring command center — search verified candidates, track verifications, and review team activity."
           action={
             planTier ? (
               <WvBadge variant={planTier === "pro" ? "brand" : planTier === "custom" ? "warning" : "default"}>
@@ -285,30 +277,26 @@ export function EmployerDashboardClient({
 
         {/* Vertical Intelligence (display only) */}
         {vertical && (
-          <Card className="mt-6 border border-blue-500/40 bg-slate-900 dark:bg-slate-800">
-            <h2 className="text-lg font-semibold text-white">
-              {vertical.label}
-            </h2>
-            <p className="mt-2 text-sm text-slate-200">
-              {vertical.description}
-            </p>
+          <WvCard className="mt-6 border-blue-500/30">
+            <h2 className="text-lg font-semibold text-wv-foreground">{vertical.label}</h2>
+            <p className="mt-2 text-sm text-wv-muted">{vertical.description}</p>
             <div className="mt-4">
-              <p className="font-medium text-blue-400">Highlighted Metrics</p>
-              <ul className="mt-1 list-disc pl-6 text-sm text-white">
+              <p className="font-medium text-wv-brand-blue">Highlighted metrics</p>
+              <ul className="mt-1 list-disc pl-6 text-sm text-wv-muted">
                 {vertical.highlightMetrics.map((m) => (
                   <li key={m}>{m}</li>
                 ))}
               </ul>
             </div>
             <div className="mt-4">
-              <p className="font-medium text-red-400">Risk Signals</p>
-              <ul className="mt-1 list-disc pl-6 text-sm text-white">
+              <p className="font-medium text-red-400">Risk signals</p>
+              <ul className="mt-1 list-disc pl-6 text-sm text-wv-muted">
                 {vertical.riskSignals.map((r) => (
                   <li key={r}>{r}</li>
                 ))}
               </ul>
             </div>
-          </Card>
+          </WvCard>
         )}
 
         {/* Employees Who Listed You */}
@@ -340,52 +328,48 @@ export function EmployerDashboardClient({
         )}
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <WvButton
             id="onboarding-company-profile"
             variant="secondary"
             href="/employer/profile"
-            className="h-auto p-4 flex flex-col items-start"
+            className="h-auto flex-col items-start p-4 text-left"
           >
-            <PlusIcon className="h-6 w-6 mb-2" />
+            <Building2 className="mb-2 h-6 w-6" aria-hidden />
             <span className="font-semibold">Company profile</span>
             <span className="text-sm opacity-90">Complete your company details</span>
-          </Button>
-          <Button
+          </WvButton>
+          <WvButton
             id="onboarding-add-team"
             variant="secondary"
             href="/employer/employees"
-            className="h-auto p-4 flex flex-col items-start"
+            className="h-auto flex-col items-start p-4 text-left"
           >
-            <MagnifyingGlassIcon className="h-6 w-6 mb-2" />
-            <span className="font-semibold">Search Employees</span>
-            <span className="text-sm opacity-90">
-              View employees who list your company
-            </span>
-          </Button>
-          <Button
+            <Search className="mb-2 h-6 w-6" aria-hidden />
+            <span className="font-semibold">Search employees</span>
+            <span className="text-sm opacity-90">View employees who list your company</span>
+          </WvButton>
+          <WvButton
             id="onboarding-request-verification"
             variant="secondary"
             href="/employer/candidates"
-            className="h-auto p-4 flex flex-col items-start"
+            className="h-auto flex-col items-start p-4 text-left"
           >
-            <MagnifyingGlassIcon className="h-6 w-6 mb-2" />
-            <span className="font-semibold">Request verification</span>
-            <span className="text-sm opacity-90">View candidates & request verification</span>
-          </Button>
+            <ShieldCheck className="mb-2 h-6 w-6" aria-hidden />
+            <span className="font-semibold">Verification requests</span>
+            <span className="text-sm opacity-90">Review candidates and request verification</span>
+          </WvButton>
           {isFreePlan ? (
-            <Button variant="secondary" className="h-auto p-4 flex flex-col items-start" asChild>
-              <Link href="/employer/upgrade">
-                <ArrowTrendingUpIcon className="h-6 w-6 mb-2" />
-                <span className="font-semibold">Upgrade Plan</span>
-                <span className="text-sm opacity-90">Unlock premium features</span>
-              </Link>
-            </Button>
+            <WvButton variant="secondary" href="/employer/upgrade" className="h-auto flex-col items-start p-4 text-left">
+              <TrendingUp className="mb-2 h-6 w-6" aria-hidden />
+              <span className="font-semibold">Upgrade plan</span>
+              <span className="text-sm opacity-90">Unlock premium hiring features</span>
+            </WvButton>
           ) : (
-            <Button
+            <WvButton
               variant="secondary"
               href="/pricing"
-              className="h-auto p-4 flex flex-col items-start"
+              className="h-auto flex-col items-start p-4 text-left"
               onClick={(e) => {
                 if (isBasicPlan) {
                   e.preventDefault();
@@ -393,55 +377,53 @@ export function EmployerDashboardClient({
                 }
               }}
             >
-              <ArrowTrendingUpIcon className="h-6 w-6 mb-2" />
-              <span className="font-semibold">Upgrade Plan</span>
-              <span className="text-sm opacity-90">Unlock premium features</span>
-            </Button>
+              <TrendingUp className="mb-2 h-6 w-6" aria-hidden />
+              <span className="font-semibold">Upgrade plan</span>
+              <span className="text-sm opacity-90">Unlock premium hiring features</span>
+            </WvButton>
           )}
         </div>
 
         {/* Workforce Overview */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
-            Workforce Overview
-          </h2>
+        <WvCard>
+          <h2 className="mb-4 text-xl font-semibold text-wv-foreground">Workforce overview</h2>
           {workforceStatsLoading ? (
-            <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
+            <WvLoadingState label="Loading workforce metrics…" size="sm" />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">Total verified employees</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{workforceStats?.totalVerified ?? 0}</p>
+                <p className="text-sm text-wv-muted">Total verified employees</p>
+                <p className="text-2xl font-bold text-wv-foreground">{workforceStats?.totalVerified ?? 0}</p>
               </div>
               <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">Verification completion rate (30d)</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{workforceStats?.verificationCompletionRate != null ? `${workforceStats.verificationCompletionRate}%` : "—"}</p>
+                <p className="text-sm text-wv-muted">Verification completion rate (30d)</p>
+                <p className="text-2xl font-bold text-wv-foreground">{workforceStats?.verificationCompletionRate != null ? `${workforceStats.verificationCompletionRate}%` : "—"}</p>
               </div>
               <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">Dispute rate</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{workforceStats?.disputeRate != null ? `${workforceStats.disputeRate}%` : "—"}</p>
+                <p className="text-sm text-wv-muted">Dispute rate</p>
+                <p className="text-2xl font-bold text-wv-foreground">{workforceStats?.disputeRate != null ? `${workforceStats.disputeRate}%` : "—"}</p>
               </div>
               <div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">Rehire eligibility %</p>
-                <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{workforceStats?.rehireEligibilityPct != null ? `${workforceStats.rehireEligibilityPct}%` : "—"}</p>
+                <p className="text-sm text-wv-muted">Rehire eligibility %</p>
+                <p className="text-2xl font-bold text-wv-foreground">{workforceStats?.rehireEligibilityPct != null ? `${workforceStats.rehireEligibilityPct}%` : "—"}</p>
               </div>
             </div>
           )}
-        </Card>
+        </WvCard>
 
         {/* Workforce Risk Overview — Risk Band (no raw score), Avg, High Risk Count */}
         {(riskSnapshotEnabled || workforceDashboardEnabled) && !isFreePlan && (
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
+          <WvCard>
+            <h2 className="text-xl font-semibold text-wv-foreground mb-4">
               Workforce Risk Overview
             </h2>
             {riskOverviewLoading ? (
-              <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
+              <p className="text-sm text-wv-muted">Loading…</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <p className="text-sm text-grey-medium dark:text-gray-400">Avg workforce risk band</p>
-                  <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">
+                  <p className="text-sm text-wv-muted">Avg workforce risk band</p>
+                  <p className="text-2xl font-bold text-wv-foreground">
                     {riskOverview?.workforceRiskAverage != null
                       ? riskOverview.workforceRiskAverage >= 70
                         ? "Low"
@@ -452,30 +434,30 @@ export function EmployerDashboardClient({
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-grey-medium dark:text-gray-400">High risk count</p>
-                  <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{riskOverview?.workforceHighRiskCount ?? 0}</p>
+                  <p className="text-sm text-wv-muted">High risk count</p>
+                  <p className="text-2xl font-bold text-wv-foreground">{riskOverview?.workforceHighRiskCount ?? 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-grey-medium dark:text-gray-400">Verification completion rate</p>
-                  <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{workforceStats?.verificationCompletionRate != null ? `${workforceStats.verificationCompletionRate}%` : "—"}</p>
+                  <p className="text-sm text-wv-muted">Verification completion rate</p>
+                  <p className="text-2xl font-bold text-wv-foreground">{workforceStats?.verificationCompletionRate != null ? `${workforceStats.verificationCompletionRate}%` : "—"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-grey-medium dark:text-gray-400">Dispute rate</p>
-                  <p className="text-2xl font-bold text-grey-dark dark:text-gray-200">{workforceStats?.disputeRate != null ? `${workforceStats.disputeRate}%` : "—"}</p>
+                  <p className="text-sm text-wv-muted">Dispute rate</p>
+                  <p className="text-2xl font-bold text-wv-foreground">{workforceStats?.disputeRate != null ? `${workforceStats.disputeRate}%` : "—"}</p>
                 </div>
               </div>
             )}
-          </Card>
+          </WvCard>
         )}
 
         {/* Alerts — approaching limits, disputes, verification gaps */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
+        <WvCard>
+          <h2 className="text-xl font-semibold text-wv-foreground mb-4">
             Alerts
           </h2>
           <div className="space-y-2">
             {workforceStatsLoading && (
-              <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
+              <p className="text-sm text-wv-muted">Loading…</p>
             )}
             {!workforceStatsLoading && isBasicPlan && verificationLimit > 0 && verificationCount >= verificationLimit * 0.8 && (
               <p className="text-sm text-amber-600 dark:text-amber-400">
@@ -493,25 +475,25 @@ export function EmployerDashboardClient({
               </p>
             )}
             {!workforceStatsLoading && !workforceStats?.totalVerified && (
-              <p className="text-sm text-grey-medium dark:text-gray-400">No alerts. Add and verify employees to see alerts here.</p>
+              <p className="text-sm text-wv-muted">No alerts. Add and verify employees to see alerts here.</p>
             )}
             {!workforceStatsLoading && (workforceStats?.totalVerified ?? 0) > 0 && (!workforceStats?.disputeRate || workforceStats.disputeRate <= 10) && (workforceStats?.verificationCompletionRate == null || workforceStats.verificationCompletionRate >= 50) && (!isBasicPlan || verificationCount < verificationLimit * 0.8) && (
-              <p className="text-sm text-grey-medium dark:text-gray-400">No active alerts.</p>
+              <p className="text-sm text-wv-muted">No active alerts.</p>
             )}
           </div>
-        </Card>
+        </WvCard>
 
         {/* Candidate Oversight — recent checks, risk band distribution */}
         {(riskSnapshotEnabled || workforceDashboardEnabled) && !isFreePlan && (
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
+          <WvCard>
+            <h2 className="text-xl font-semibold text-wv-foreground mb-4">
               Candidate Oversight
             </h2>
             {riskOverviewLoading ? (
-              <p className="text-sm text-grey-medium dark:text-gray-400">Loading…</p>
+              <p className="text-sm text-wv-muted">Loading…</p>
             ) : riskOverview?.riskSnapshotSample ? (
               <div className="space-y-4">
-                <p className="text-sm text-grey-medium dark:text-gray-400">Recent check sample — risk band distribution</p>
+                <p className="text-sm text-wv-muted">Recent check sample — risk band distribution</p>
                 <div className="flex flex-wrap gap-4">
                   <span className="inline-flex items-center rounded-md bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1 text-sm font-medium text-emerald-800 dark:text-emerald-200">
                     Low (70–100)
@@ -523,7 +505,7 @@ export function EmployerDashboardClient({
                     High (0–39)
                   </span>
                 </div>
-                <p className="text-sm text-grey-medium dark:text-gray-400">
+                <p className="text-sm text-wv-muted">
                   Workforce average band: {riskOverview.workforceRiskAverage != null
                     ? riskOverview.workforceRiskAverage >= 70
                       ? "Low"
@@ -534,31 +516,31 @@ export function EmployerDashboardClient({
                 </p>
               </div>
             ) : (
-              <p className="text-sm text-grey-medium dark:text-gray-400">No candidate checks yet. Verified employees will appear here.</p>
+              <p className="text-sm text-wv-muted">No candidate checks yet. Verified employees will appear here.</p>
             )}
-          </Card>
+          </WvCard>
         )}
 
         {/* Hiring Confidence — Pro only */}
         {planTier === "pro" && !isFreePlan && (
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+          <WvCard>
+            <h2 className="text-xl font-semibold text-wv-foreground mb-2">
               Hiring Confidence
             </h2>
-            <p className="text-sm text-grey-medium dark:text-gray-400 mb-4">Pro: view hiring confidence indicators for your verified workforce.</p>
-            <Button variant="secondary" href="/employer/candidates">View candidates</Button>
-          </Card>
+            <p className="text-sm text-wv-muted mb-4">Pro: view hiring confidence indicators for your verified workforce.</p>
+            <WvButton variant="secondary" href="/employer/candidates">View candidates</WvButton>
+          </WvCard>
         )}
 
         {/* Team Fit — Pro / Enterprise only */}
         {(planTier === "pro" || planTier === "custom") && !isFreePlan && (
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-2">
+          <WvCard>
+            <h2 className="text-xl font-semibold text-wv-foreground mb-2">
               Team Fit
             </h2>
-            <p className="text-sm text-grey-medium dark:text-gray-400 mb-4">See how candidates fit with your team based on verified data.</p>
-            <Button variant="secondary" href="/employer/candidates">View team fit</Button>
-          </Card>
+            <p className="text-sm text-wv-muted mb-4">See how candidates fit with your team based on verified data.</p>
+            <WvButton variant="secondary" href="/employer/candidates">View team fit</WvButton>
+          </WvCard>
         )}
 
         {/* Verification Limit Warning */}
@@ -576,9 +558,9 @@ export function EmployerDashboardClient({
           </div>
         )}
         {!analyticsEnabled && (
-          <div className="mt-6 rounded-xl border border-grey-background dark:border-[#374151] bg-white dark:bg-[#1A1F2B] p-6">
-            <p className="text-sm text-grey-medium dark:text-gray-400">Unlock advanced analytics with a Pro plan.</p>
-            <Button variant="primary" className="mt-3" onClick={() => setShowUpgradeModal(true)}>Upgrade to see analytics</Button>
+          <div className="mt-6 rounded-xl border border-wv-border bg-wv-surface p-6">
+            <p className="text-sm text-wv-muted">Unlock advanced analytics with a Pro plan.</p>
+            <WvButton className="mt-3" onClick={() => setShowUpgradeModal(true)}>Upgrade to see analytics</WvButton>
           </div>
         )}
 
@@ -610,9 +592,9 @@ export function EmployerDashboardClient({
             {isFreePlan ? (
               <UpgradeGate feature="Rehire Registry" />
             ) : rehireListLoading ? (
-              <Card className="p-6">
-                <p className="text-sm text-grey-medium dark:text-gray-400">Loading rehire registry…</p>
-              </Card>
+              <WvCard>
+                <p className="text-sm text-wv-muted">Loading rehire registry…</p>
+              </WvCard>
             ) : (
               <RehireRegistrySection entries={rehireList} onRefresh={fetchRehireList} />
             )}
@@ -622,11 +604,11 @@ export function EmployerDashboardClient({
         {/* Analytics Section */}
         <div id="onboarding-analytics" className="mt-8">
           {loadingAnalytics ? (
-            <Card className="p-6">
-              <p className="text-grey-medium dark:text-gray-400 text-center">
+            <WvCard>
+              <p className="text-wv-muted text-center">
                 Loading analytics...
               </p>
-            </Card>
+            </WvCard>
           ) : (
             <>
               <EmployerAnalytics

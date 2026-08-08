@@ -2,8 +2,14 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { WvCard, WvButton } from "@/components/wv";
+import { Search } from "lucide-react";
+import {
+  WvCard,
+  WvButton,
+  WvEmptyState,
+  WvErrorState,
+  WvLoadingState,
+} from "@/components/wv";
 import { EmployerSearchFilters } from "@/components/employer/EmployerSearchFilters";
 import { CandidateCard } from "@/components/employer/CandidateCard";
 import { EmployerLegalDisclaimerModal } from "@/components/employer/EmployerLegalDisclaimerModal";
@@ -106,7 +112,7 @@ export function EmployerSearchClient() {
     e?.preventDefault();
     const params = buildSearchParams(filters);
     if (!params) {
-      setError("Enter a name or at least one filter to search");
+      setError("Enter a name or at least one filter to start your search.");
       return;
     }
 
@@ -181,10 +187,13 @@ export function EmployerSearchClient() {
   return (
     <>
       <WvCard glow className="mb-6 space-y-4">
+        <p className="text-sm text-wv-muted">
+          Search verified professionals. Filter by role, company, or trust score — then open a profile to review employment and references.
+        </p>
         <EmployerSearchFilters filters={filters} onChange={setFilters} />
         <form onSubmit={handleSearch} className="flex flex-wrap items-center gap-3">
-          <WvButton type="submit" disabled={isSearching} size="lg">
-            <MagnifyingGlassIcon className="h-5 w-5" aria-hidden />
+          <WvButton type="submit" disabled={isSearching} size="lg" ariaLabel="Search candidates">
+            <Search className="h-5 w-5" aria-hidden />
             {isSearching ? "Searching…" : "Search candidates"}
           </WvButton>
           {recentSearches.length > 0 && (
@@ -194,7 +203,7 @@ export function EmployerSearchClient() {
                 <button
                   key={label}
                   type="button"
-                  className="rounded-lg border border-wv-border px-2 py-1 hover:bg-wv-surface"
+                  className="rounded-lg border border-wv-border px-2 py-1 transition-colors hover:bg-wv-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wv-brand-blue/40"
                   onClick={() => {
                     setFilters({ query: label });
                     void handleSearch();
@@ -206,31 +215,45 @@ export function EmployerSearchClient() {
             </div>
           )}
         </form>
-        {error && <p className="text-sm text-red-400">{error}</p>}
+        {error && <WvErrorState message={error} className="py-6" />}
         {limitedPreview && (
-          <p className="text-xs text-amber-400/90">
+          <p className="text-xs text-amber-300/90">
             Free preview — upgrade for full trust scores and filters.{" "}
-            <a href="/employer/upgrade" className="underline">
+            <a href="/employer/upgrade" className="underline hover:text-amber-200">
               View plans
             </a>
           </p>
         )}
       </WvCard>
 
+      {!hasSearched && !error && (
+        <WvEmptyState
+          title="Start your candidate search"
+          description="Enter a name, role, or company above. Results include trust scores and verified employment where available."
+        />
+      )}
+
       {hasSearched && (
         <div className="space-y-4">
           {isSearching ? (
-            <WvCard className="py-12 text-center text-wv-muted">Searching…</WvCard>
-          ) : results.length === 0 ? (
-            <WvCard className="py-12 text-center">
-              <p className="text-wv-muted">No candidates match your search.</p>
-              <p className="mt-2 text-sm text-wv-subtle">Try adjusting filters or broadening your query.</p>
+            <WvCard padding="lg">
+              <WvLoadingState label="Searching verified candidates…" />
             </WvCard>
+          ) : results.length === 0 ? (
+            <WvEmptyState
+              title="No candidates match your search"
+              description="Try broadening your query, removing filters, or searching by company name instead."
+              action={
+                <WvButton variant="outline" size="sm" onClick={() => setFilters({})}>
+                  Clear filters
+                </WvButton>
+              }
+            />
           ) : (
             <>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm text-wv-muted">
-                  {results.length} {results.length === 1 ? "result" : "results"}
+                  {results.length} {results.length === 1 ? "candidate" : "candidates"} — select up to 4 to compare side by side.
                 </p>
                 {selectedIds.size >= 2 && selectedIds.size <= 4 && (
                   <WvButton onClick={goToCompare} size="sm">
@@ -248,6 +271,7 @@ export function EmployerSearchClient() {
                         onChange={() => toggleSelect(user.id)}
                         disabled={!selectedIds.has(user.id) && selectedIds.size >= 4}
                         className="rounded border-wv-border"
+                        aria-label={`Select ${user.full_name ?? "candidate"} for comparison`}
                       />
                       Compare
                     </label>

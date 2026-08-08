@@ -8,14 +8,14 @@ import {
 } from "@/lib/actions/employer/saved-candidates";
 import { sendMessage } from "@/lib/actions/employer/messages";
 import { Card } from "../ui/card";
-import { Button } from "../ui/button";
+import { WvButton, WvBadge, WvErrorState } from "@/components/wv";
 import {
-  BookmarkIcon,
-  BookmarkSlashIcon,
-  PaperAirplaneIcon,
-  CheckBadgeIcon,
-} from "@heroicons/react/24/outline";
-import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
+  Bookmark,
+  BookmarkMinus,
+  Send,
+  BadgeCheck,
+  Database,
+} from "lucide-react";
 import { WorkHistoryViewer } from "./work-history-viewer";
 import { ReferenceViewer } from "./reference-viewer";
 import { WorkVouchInsightsSection } from "./workvouch-insights-section";
@@ -26,7 +26,6 @@ import { VerificationCoverageCardCandidate } from "@/components/employer/Verific
 import { CandidateVerificationSummary } from "@/components/employer/CandidateVerificationSummary";
 import { TrustGraphDepthCardCandidate } from "@/components/employer/TrustGraphDepthCardCandidate";
 import Link from "next/link";
-import { CircleStackIcon } from "@heroicons/react/24/outline";
 import { TrustRadarChart } from "@/components/trust/TrustRadarChart";
 import { TrustForecastCard } from "@/components/trust/TrustForecastCard";
 import { IndustryBenchmarkCard } from "@/components/trust/IndustryBenchmarkCard";
@@ -193,16 +192,21 @@ export function CandidateProfileViewer({
     : [];
 
   if (!safeProfile) {
-    return <div>Profile not found</div>;
+    return (
+      <WvErrorState
+        title="Profile unavailable"
+        message="This candidate profile could not be loaded."
+      />
+    );
   }
 
   return (
     <div className="space-y-6">
       <HiringGuidanceCoachmarks enabled={!isEmployeeSelfView} />
       {isEmployeeSelfView && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20 px-4 py-3 text-sm text-blue-800 dark:text-blue-200" role="status">
-          This is exactly what employers see when viewing your profile.
-        </div>
+        <WvBadge variant="brand" className="block w-fit px-3 py-2 text-sm">
+          Preview — this is what employers see on your profile
+        </WvBadge>
       )}
       {/* Header */}
       <div className="flex items-start justify-between">
@@ -214,15 +218,15 @@ export function CandidateProfileViewer({
               className="h-24 w-24 rounded-full object-cover"
             />
           ) : (
-            <div className="h-24 w-24 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-              <span className="text-blue-600 dark:text-blue-400 font-semibold text-2xl">
+            <div className="h-24 w-24 rounded-full bg-gradient-to-br from-blue-500/20 to-violet-600/20 flex items-center justify-center ring-1 ring-wv-border">
+              <span className="text-wv-brand-blue font-semibold text-2xl">
                 {safeProfile.full_name?.charAt(0) || "U"}
               </span>
             </div>
           )}
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-3xl font-bold text-grey-dark dark:text-gray-200">
+              <h1 className="text-3xl font-bold text-wv-foreground">
                 {safeProfile.full_name}
               </h1>
               <TrustRankInlineBadge
@@ -232,20 +236,20 @@ export function CandidateProfileViewer({
               />
             </div>
             {safeProfile.headline ? (
-              <p className="text-base text-slate-600 dark:text-slate-300 mt-1 max-w-2xl">
+              <p className="text-base text-wv-muted mt-1 max-w-2xl">
                 {safeProfile.headline}
               </p>
             ) : null}
-            <p className="text-grey-medium dark:text-gray-400">
+            <p className="text-wv-muted">
               {safeProfile.city && safeProfile.state
                 ? `${safeProfile.city}, ${safeProfile.state}`
                 : "Location not specified"}
             </p>
             {(verified_employment_count ?? 0) > 0 && (
-              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1 text-xs font-semibold text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800">
-                <CheckBadgeIcon className="h-4 w-4" aria-hidden />
+              <WvBadge variant="success" className="mt-2 gap-1.5 px-3 py-1">
+                <BadgeCheck className="h-4 w-4" aria-hidden />
                 Verified worker
-              </div>
+              </WvBadge>
             )}
             {safeProfile.industry && (
               <p className="text-sm text-grey-medium dark:text-gray-400 capitalize">
@@ -262,23 +266,23 @@ export function CandidateProfileViewer({
           </div>
         </div>
         <div className="flex gap-2" id={!isEmployeeSelfView ? "wv-guide-actions" : undefined}>
-          <Button variant="secondary" onClick={handleSave} disabled={loading}>
+          <WvButton variant="secondary" onClick={handleSave} disabled={loading}>
             {saved ? (
               <>
-                <BookmarkSlashIcon className="h-5 w-5 mr-2" />
+                <BookmarkMinus className="h-5 w-5 mr-2" aria-hidden />
                 Saved
               </>
             ) : (
               <>
-                <BookmarkIcon className="h-5 w-5 mr-2" />
-                Save Candidate
+                <Bookmark className="h-5 w-5 mr-2" aria-hidden />
+                Save candidate
               </>
             )}
-          </Button>
-          <Button onClick={() => setShowMessageForm(!showMessageForm)}>
-            <PaperAirplaneIcon className="h-5 w-5 mr-2" />
+          </WvButton>
+          <WvButton variant="secondary" onClick={() => setShowMessageForm(!showMessageForm)}>
+            <Send className="h-5 w-5 mr-2" aria-hidden />
             Message
-          </Button>
+          </WvButton>
         </div>
       </div>
 
@@ -378,12 +382,10 @@ export function CandidateProfileViewer({
             <TrustTimelinePanel candidateId={safeProfile.id} />
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href={`/employer/trust-graph/${safeProfile.id}`}>
-              <Button variant="secondary" className="inline-flex items-center gap-2">
-                <CircleStackIcon className="h-5 w-5" />
-                View Trust Graph
-              </Button>
-            </Link>
+            <WvButton href={`/employer/trust-graph/${safeProfile.id}`} variant="secondary">
+              <Database className="h-5 w-5" aria-hidden />
+              View trust graph
+            </WvButton>
           </div>
           {/* Trust Timeline: chronological trust events for this candidate */}
           <section aria-labelledby="trust-timeline-heading">
@@ -478,13 +480,13 @@ export function CandidateProfileViewer({
             onChange={(e) => setMessageBody(e.target.value)}
             rows={4}
             placeholder="Type your message..."
-            className="w-full rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2 mb-4"
+            className="mb-4 w-full rounded-xl border border-wv-border bg-wv-surface px-4 py-3 text-sm text-wv-foreground placeholder:text-white/30 focus:border-wv-brand-blue/50 focus:outline-none focus:ring-2 focus:ring-wv-brand-blue/30"
           />
           <div className="flex gap-2">
-            <Button onClick={handleSendMessage}>Send Message</Button>
-            <Button variant="ghost" onClick={() => setShowMessageForm(false)}>
+            <WvButton onClick={handleSendMessage}>Send message</WvButton>
+            <WvButton variant="ghost" onClick={() => setShowMessageForm(false)}>
               Cancel
-            </Button>
+            </WvButton>
           </div>
         </Card>
       )}

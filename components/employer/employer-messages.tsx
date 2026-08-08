@@ -4,17 +4,23 @@ import { useState, useEffect } from "react";
 import {
   getMessages,
   sendMessage,
-  markMessageAsRead,
 } from "@/lib/actions/employer/messages";
-import { Card } from "../ui/card";
-import { Button } from "../ui/button";
-import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import { Send } from "lucide-react";
+import {
+  WvCard,
+  WvButton,
+  WvInput,
+  WvBadge,
+  WvLoadingState,
+  WvEmptyState,
+} from "@/components/wv";
 
 export function EmployerMessages() {
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadMessages();
@@ -22,11 +28,12 @@ export function EmployerMessages() {
 
   const loadMessages = async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await getMessages();
       setMessages(data);
-    } catch (error: any) {
-      alert(error.message || "Failed to load messages");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load messages");
     } finally {
       setLoading(false);
     }
@@ -39,22 +46,19 @@ export function EmployerMessages() {
       await sendMessage(recipientId, newMessage);
       setNewMessage("");
       await loadMessages();
-    } catch (error: any) {
-      alert(error.message || "Failed to send message");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to send message");
     }
   };
 
   if (loading) {
     return (
-      <Card className="p-12 text-center">
-        <p className="text-grey-medium dark:text-gray-400">
-          Loading messages...
-        </p>
-      </Card>
+      <WvCard padding="lg">
+        <WvLoadingState label="Loading conversations…" />
+      </WvCard>
     );
   }
 
-  // Group messages by thread
   const threads = new Map<string, any[]>();
   messages.forEach((msg) => {
     const otherUserId =
@@ -65,12 +69,29 @@ export function EmployerMessages() {
     threads.get(otherUserId)!.push(msg);
   });
 
+  if (threads.size === 0) {
+    return (
+      <WvEmptyState
+        title="No messages yet"
+        description="When you contact candidates from their profile, conversations will appear here."
+        action={
+          <WvButton href="/employer/search-users" size="sm">
+            Search candidates
+          </WvButton>
+        }
+      />
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      {error && (
+        <p className="lg:col-span-3 text-sm text-red-400" role="alert">
+          {error}
+        </p>
+      )}
       <div className="lg:col-span-1">
-        <h2 className="text-xl font-semibold text-grey-dark dark:text-gray-200 mb-4">
-          Messages
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-wv-foreground">Conversations</h2>
         <div className="space-y-2">
           {Array.from(threads.entries()).map(([userId, threadMessages]) => {
             const otherUser =
@@ -82,29 +103,30 @@ export function EmployerMessages() {
             ).length;
 
             return (
-              <div
+              <WvCard
                 key={userId}
-                className={`cursor-pointer ${selectedThread === userId ? "ring-2 ring-blue-600 dark:ring-blue-400" : ""}`}
+                hover
+                padding="sm"
                 onClick={() => setSelectedThread(userId)}
+                className={
+                  selectedThread === userId ? "ring-2 ring-wv-brand-blue/50" : ""
+                }
+                ariaLabel={`Conversation with ${otherUser?.full_name || otherUser?.email}`}
               >
-                <Card className="p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-grey-dark dark:text-gray-200">
-                        {otherUser?.full_name || otherUser?.email}
-                      </p>
-                      <p className="text-sm text-grey-medium dark:text-gray-400 line-clamp-1">
-                        {threadMessages[0].body}
-                      </p>
-                    </div>
-                    {unreadCount > 0 && (
-                      <span className="px-2 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded-full text-xs font-semibold">
-                        {unreadCount}
-                      </span>
-                    )}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-wv-foreground">
+                      {otherUser?.full_name || otherUser?.email}
+                    </p>
+                    <p className="line-clamp-1 text-sm text-wv-muted">
+                      {threadMessages[0].body}
+                    </p>
                   </div>
-                </Card>
-              </div>
+                  {unreadCount > 0 && (
+                    <WvBadge variant="brand">{unreadCount}</WvBadge>
+                  )}
+                </div>
+              </WvCard>
             );
           })}
         </div>
@@ -112,53 +134,55 @@ export function EmployerMessages() {
 
       <div className="lg:col-span-2">
         {selectedThread ? (
-          <Card className="p-6">
+          <WvCard padding="lg">
             <div className="space-y-4">
               {threads.get(selectedThread)?.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`p-4 rounded-xl ${
+                  className={`rounded-xl p-4 ${
                     msg.sender_id === selectedThread
-                      ? "bg-blue-50 dark:bg-blue-900/20 ml-auto"
-                      : "bg-grey-background dark:bg-[#1A1F2B]"
+                      ? "ml-auto max-w-[85%] bg-blue-500/15"
+                      : "mr-auto max-w-[85%] bg-wv-surface"
                   }`}
                 >
-                  <p className="text-sm font-semibold text-grey-dark dark:text-gray-200 mb-1">
+                  <p className="mb-1 text-sm font-semibold text-wv-foreground">
                     {msg.sender?.full_name || msg.sender?.email}
                   </p>
-                  <p className="text-grey-dark dark:text-gray-200">
-                    {msg.body}
-                  </p>
-                  <p className="text-xs text-grey-medium dark:text-gray-400 mt-1">
+                  <p className="text-wv-muted">{msg.body}</p>
+                  <p className="mt-1 text-xs text-wv-subtle">
                     {new Date(msg.created_at).toLocaleString()}
                   </p>
                 </div>
               ))}
-              <div className="flex gap-2 pt-4 border-t border-grey-background dark:border-[#374151]">
-                <input
-                  type="text"
+              <div className="flex gap-2 border-t border-wv-border pt-4">
+                <WvInput
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={(e) => {
+                  onKeyDown={(e) => {
                     if (e.key === "Enter") {
+                      e.preventDefault();
                       handleSendMessage(selectedThread);
                     }
                   }}
-                  placeholder="Type a message..."
-                  className="flex-1 rounded-xl border bg-white dark:bg-[#111827] text-grey-dark dark:text-gray-200 border-gray-300 dark:border-[#374151] px-4 py-2"
+                  placeholder="Type a message…"
+                  className="flex-1"
+                  aria-label="Message body"
                 />
-                <Button onClick={() => handleSendMessage(selectedThread)}>
-                  <PaperAirplaneIcon className="h-5 w-5" />
-                </Button>
+                <WvButton
+                  onClick={() => handleSendMessage(selectedThread)}
+                  ariaLabel="Send message"
+                >
+                  <Send className="h-5 w-5" />
+                </WvButton>
               </div>
             </div>
-          </Card>
+          </WvCard>
         ) : (
-          <Card className="p-12 text-center">
-            <p className="text-grey-medium dark:text-gray-400">
-              Select a conversation to view messages
-            </p>
-          </Card>
+          <WvEmptyState
+            compact
+            title="Select a conversation"
+            description="Choose a thread on the left to read and reply to candidate messages."
+          />
         )}
       </div>
     </div>

@@ -68,7 +68,7 @@ export function CandidateCard({
               <img
                 src={candidate.profile_photo_url}
                 alt=""
-                className="h-14 w-14 rounded-full object-cover border border-slate-200 flex-shrink-0"
+                className="h-14 w-14 rounded-full object-cover border border-wv-border flex-shrink-0"
               />
             ) : (
               <div className="h-14 w-14 rounded-full bg-gradient-to-br from-blue-500/20 to-violet-600/20 text-blue-300 font-semibold flex items-center justify-center flex-shrink-0 ring-1 ring-wv-border">

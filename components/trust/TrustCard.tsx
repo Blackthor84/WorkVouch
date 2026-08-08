@@ -2,6 +2,8 @@
 
 import { WvCard } from "@/components/wv";
 import { WvTrustScore } from "@/components/wv/WvTrustScore";
+import { WvBadge } from "@/components/wv/WvBadge";
+import { WvLoadingState } from "@/components/wv/WvLoadingState";
 import type { TrustExplanationLine, TrustBadge } from "@/lib/trust/trustExplanation";
 
 type Props = {
@@ -33,7 +35,9 @@ export function TrustCard({
 }: Props) {
   if (loading) {
     return (
-      <WvCard className="py-10 text-center text-sm text-wv-muted">Loading trust score…</WvCard>
+      <WvCard padding="lg">
+        <WvLoadingState label="Loading trust score…" />
+      </WvCard>
     );
   }
 
@@ -53,20 +57,17 @@ export function TrustCard({
           {badges.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {badges.map((b) => (
-                <span
-                  key={b.id}
-                  className="rounded-full border border-wv-border bg-wv-surface/80 px-2.5 py-0.5 text-xs text-wv-muted"
-                >
+                <WvBadge key={b.id} variant="default">
                   {b.label}
-                </span>
+                </WvBadge>
               ))}
             </div>
           )}
 
           {!compact && explanation.length > 0 && (
             <div className="mt-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-wv-subtle mb-2">
-                Why?
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-wv-subtle">
+                Why this score?
               </p>
               <ul className="space-y-1.5 text-sm">
                 {explanation.map((line, i) => (

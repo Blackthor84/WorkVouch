@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { EmployerOnboardingClient } from "../EmployerOnboardingClient";
-import { WvShell } from "@/components/wv";
+import { WvShell, WvLoadingState } from "@/components/wv";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +35,7 @@ export default async function EmployerOnboardingStartPage() {
   return (
     <WvShell>
       <div className="mx-auto max-w-lg px-4 py-12">
-        <Suspense fallback={<div className="text-wv-muted p-6">Loading…</div>}>
+        <Suspense fallback={<WvLoadingState label="Setting up your account…" fullPage />}>
           <EmployerOnboardingClient userEmail={user.email} />
         </Suspense>
       </div>
