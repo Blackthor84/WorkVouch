@@ -55,7 +55,7 @@ export default async function UserDashboardPage() {
             verificationsThisMonth={data.verificationsThisMonth}
           />
           <InviteSentFeedback show={false} />
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-wv-subtle">
             People in your area are already getting verified
           </p>
         </div>
