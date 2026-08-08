@@ -31,7 +31,7 @@ export default async function CandidateReportPage(props: {
         <WvCard glow className="max-w-2xl mx-auto">
           <h1 className="text-2xl font-bold text-wv-foreground mb-4">Access Denied</h1>
           <p className="text-wv-muted mb-6">{message}</p>
-          <WvButton href={`/employer/search?candidateId=${candidateId}`}>
+          <WvButton href={`/employer/search-users?query=${encodeURIComponent(candidateId)}`}>
             Purchase Report
           </WvButton>
         </WvCard>

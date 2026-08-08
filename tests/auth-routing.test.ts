@@ -95,6 +95,13 @@ describe("getRoleZoneRedirect", () => {
     expect(getRoleZoneRedirect("/dashboard/employer/search", "employer")).toBe("/employer/dashboard");
   });
 
+  it("redirects legacy employer search routes to canonical search", () => {
+    expect(getRoleZoneRedirect("/employer/search", "employer")).toBe("/employer/search-users");
+    expect(getRoleZoneRedirect("/employer/search/healthcare", "employer")).toBe(
+      "/employer/search-users",
+    );
+  });
+
   it("redirects legacy /onboarding/employer paths to canonical onboarding", () => {
     expect(getRoleZoneRedirect("/onboarding/employer/healthcare", "employer")).toBe(
       "/employer/onboarding/start"

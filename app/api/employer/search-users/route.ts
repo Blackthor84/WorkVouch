@@ -1,27 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
-
-export const runtime = "nodejs";
-import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getCurrentUserRole, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { enforceLimit } from "@/lib/enforceLimit";
 import { incrementUsage } from "@/lib/usage";
-import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { resolveEmployerDataAccess } from "@/lib/employer/employerPlanServer";
 import { checkOrgLimits, incrementOrgUnlockCount } from "@/lib/enterprise/enforceOrgLimits";
 import { planLimit403Response } from "@/lib/enterprise/checkOrgLimits";
 import { getOrgHealthScore } from "@/lib/scoring/orgHealthScore";
 import {
-  getEmployeeAuditScoresBatch,
-  getAuditLabel,
-  getAuditExplanation,
-  compareAuditForRank,
-  type AuditBand,
-} from "@/lib/scoring/employeeAuditScore";
-import { getTrustTrajectoryBatch } from "@/lib/trust/trustTrajectory";
+  hasActiveEmployerSearchFilters,
+  parseEmployerSearchFilters,
+  searchEmployerCandidates,
+} from "@/lib/search/employerSearchService";
 
-const MAX_RESULTS = 50;
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const FREE_SEARCH_PREVIEW_CAP = 8;
 
 export async function GET(request: NextRequest) {
@@ -37,41 +32,58 @@ export async function GET(request: NextRequest) {
 
     const disclaimerResponse = await requireEmployerLegalAcceptanceOrResponse(
       user.id,
-      await getCurrentUserRole()
+      await getCurrentUserRole(),
     );
     if (disclaimerResponse) return disclaimerResponse;
 
-    const subCheck = await requireActiveSubscription(user.id);
-    if (!subCheck.allowed) {
-      return NextResponse.json(
-        { error: subCheck.error ?? "Active subscription required." },
-        { status: 403 },
-      );
+    const access = await resolveEmployerDataAccess(user.id);
+    if (!access.ok) {
+      return NextResponse.json({ error: access.error }, { status: access.status });
     }
 
-    const supabase = await createClient();
-    type EmployerRow = { id: string; plan_tier: string | null };
+    const limitedPreview = access.mode === "free_preview";
+
+    type EmployerRow = { id: string; plan_tier: string | null; organization_id?: string | null };
     const { data: employerAccount } = await admin
       .from("employer_accounts")
-      .select("id, plan_tier")
+      .select("id, plan_tier, organization_id")
       .eq("user_id", user.id)
       .single()
       .returns<EmployerRow | null>();
+
     if (!employerAccount) {
+      return NextResponse.json({ error: "Employer account not found" }, { status: 404 });
+    }
+
+    if (!limitedPreview) {
+      const result = await enforceLimit(
+        { plan_tier: employerAccount.plan_tier ?? "" },
+        "searches",
+      );
+      if (!result.allowed) {
+        return NextResponse.json(
+          { error: result.error || "Plan limit reached", limitReached: true },
+          { status: 403 },
+        );
+      }
+    }
+
+    const filters = parseEmployerSearchFilters(request.nextUrl.searchParams);
+    if (!hasActiveEmployerSearchFilters(filters)) {
       return NextResponse.json(
-        { error: "Employer account not found" },
-        { status: 404 },
+        { error: "Enter a name or at least one filter to search" },
+        { status: 400 },
       );
     }
-    const result = await enforceLimit(
-      { plan_tier: employerAccount.plan_tier ?? "" },
-      "searches"
-    );
-    if (!result.allowed) {
-      return NextResponse.json(
-        { error: result.error || "Plan limit reached", limitReached: true },
-        { status: 403 },
-      );
+
+    if (filters.query) {
+      const sanitized = filters.query.replace(/[%_]/g, "");
+      if (sanitized.length < 2) {
+        return NextResponse.json(
+          { error: "Search query must be at least 2 characters" },
+          { status: 400 },
+        );
+      }
     }
 
     const orgIdForLimits = limitedPreview ? null : employerAccount.organization_id ?? null;
@@ -80,145 +92,24 @@ export async function GET(request: NextRequest) {
       const orgCheck = await checkOrgLimits({ organizationId: orgIdForLimits, month }, "unlock");
       if (!orgCheck.allowed) {
         const health = await getOrgHealthScore(orgIdForLimits);
-        return planLimit403Response(
-          orgCheck,
-          "run_check",
-          { status: health.status, recommended_plan: health.recommended_plan }
-        );
+        return planLimit403Response(orgCheck, "run_check", {
+          status: health.status,
+          recommended_plan: health.recommended_plan,
+        });
       }
     }
 
-    const searchParams = request.nextUrl.searchParams;
-    const query = searchParams.get("query")?.trim();
-
-    if (!query || query.length === 0) {
-      return NextResponse.json(
-        { error: "Search query is required" },
-        { status: 400 },
-      );
-    }
-
-    const sanitizedQuery = query.replace(/[%_]/g, "");
-    if (sanitizedQuery.length < 2) {
-      return NextResponse.json(
-        { error: "Search query must be at least 2 characters" },
-        { status: 400 },
-      );
-    }
-
-    // Use employer_candidate_view: no email, no private identifiers. Exclude restricted profiles.
-    const { data: candidates, error: viewError } = await admin.from("employer_candidate_view")
-      .select(
-        "user_id, full_name, industry, city, state, verified_employment_count, total_employment_count, verified_employment_coverage_pct, trust_score, reference_count, aggregate_rating, rehire_eligible_count"
-      )
-      .ilike("full_name", `%${sanitizedQuery}%`)
-      .eq("restricted_from_employer_search", false)
-      .order("trust_score", { ascending: false })
-      .limit(MAX_RESULTS);
-
-    if (viewError) {
-      console.error("employer_candidate_view query error:", viewError);
-      return NextResponse.json(
-        { error: "Failed to search candidates" },
-        { status: 500 },
-      );
-    }
-
-    if (!candidates || candidates.length === 0) {
-      return NextResponse.json({ users: [] });
-    }
-
-    await incrementUsage(employerAccount.id, "search", 1);
-    if (orgIdForLimits) {
-      incrementOrgUnlockCount(orgIdForLimits).catch(() => {});
-    }
-
-    const userIds = (candidates as { user_id: string }[]).map((c) => c.user_id);
-
-    type SkillRow = { user_id: string; skill_name: string };
-    const [auditScoresMap, skillsResult, trajectoryMap] = await Promise.all([
-      getEmployeeAuditScoresBatch(userIds),
-      admin.from("skills").select("user_id, skill_name").in("user_id", userIds).returns<SkillRow[]>(),
-      getTrustTrajectoryBatch(userIds),
-    ]);
-
-    const skillsData: SkillRow[] | null = skillsResult.data ?? null;
-    const skillsByUser = new Map<string, string[]>();
-    if (skillsData) {
-      skillsData.forEach((s) => {
-        if (!skillsByUser.has(s.user_id)) skillsByUser.set(s.user_id, []);
-        skillsByUser.get(s.user_id)!.push(s.skill_name);
-      });
-    }
-
-    type CandidateRow = {
-      user_id: string;
-      full_name: string | null;
-      industry: string | null;
-      city: string | null;
-      state: string | null;
-      verified_employment_count: number;
-      total_employment_count: number;
-      verified_employment_coverage_pct: number;
-      trust_score: number;
-      reference_count: number;
-      aggregate_rating: number;
-      rehire_eligible_count: number;
-    };
-    const candidateList = candidates as CandidateRow[];
-    candidateList.sort((a, b) => compareAuditForRank(auditScoresMap.get(a.user_id) ?? null, auditScoresMap.get(b.user_id) ?? null));
-
-    const users = candidateList.map((c) => {
-      const audit = auditScoresMap.get(c.user_id);
-      const band: AuditBand = audit?.band ?? "unverified";
-      const trajectory = trajectoryMap.get(c.user_id);
-      if (limitedPreview) {
-        return {
-          id: c.user_id,
-          name: c.full_name,
-          industry: null,
-          city: c.city ?? null,
-          state: c.state ?? null,
-          verifiedEmploymentCount: 0,
-          totalEmploymentCount: 0,
-          verifiedEmploymentCoveragePct: 0,
-          trustScore: null as number | null,
-          referenceCount: 0,
-          aggregateRating: 0,
-          rehireEligibleCount: 0,
-          skills: [] as string[],
-          auditScore: null as number | null,
-          auditBand: "unverified" as AuditBand,
-          auditLabel: "Preview",
-          auditExplanation: "See full candidate insights with a paid plan.",
-          trustTrajectory: "stable" as const,
-          trustTrajectoryLabel: "—",
-          trustTrajectoryTooltipFactors: [] as string[],
-        };
-      }
-      return {
-        id: c.user_id,
-        name: c.full_name,
-        industry: c.industry ?? null,
-        city: c.city ?? null,
-        state: c.state ?? null,
-        verifiedEmploymentCount: c.verified_employment_count ?? 0,
-        totalEmploymentCount: c.total_employment_count ?? 0,
-        verifiedEmploymentCoveragePct: c.verified_employment_coverage_pct ?? 0,
-        trustScore: c.trust_score ?? 0,
-        referenceCount: c.reference_count ?? 0,
-        aggregateRating: c.aggregate_rating ?? 0,
-        rehireEligibleCount: c.rehire_eligible_count ?? 0,
-        skills: (skillsByUser.get(c.user_id) ?? []).slice(0, 10),
-        auditScore: audit?.score ?? null,
-        auditBand: band,
-        auditLabel: getAuditLabel(band),
-        auditExplanation: audit ? getAuditExplanation(band, audit.breakdown) : "Verification data not yet calculated.",
-        trustTrajectory: trajectory?.trajectory ?? "stable",
-        trustTrajectoryLabel: trajectory?.label ?? "Stable",
-        trustTrajectoryTooltipFactors: trajectory?.tooltipFactors ?? [],
-      };
+    const users = await searchEmployerCandidates(filters, {
+      limitedPreview,
+      maxResults: limitedPreview ? FREE_SEARCH_PREVIEW_CAP : undefined,
     });
+
+    if (users.length > 0 && !limitedPreview) {
+      await incrementUsage(employerAccount.id, "search", 1);
+      if (orgIdForLimits) {
+        incrementOrgUnlockCount(orgIdForLimits).catch(() => {});
+      }
+    }
 
     return NextResponse.json({
       users,
@@ -228,20 +119,17 @@ export async function GET(request: NextRequest) {
             entitlements: {
               tier: access.plan,
               limitedPreview: true,
-              upgradeUrl: "/enterprise/upgrade",
+              upgradeUrl: "/employer/upgrade",
               previewCap: FREE_SEARCH_PREVIEW_CAP,
             },
           }
         : {}),
     });
   } catch (error) {
-    console.error("Search users error:", error);
+    console.error("[employer/search-users]", error);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred",
+        error: error instanceof Error ? error.message : "An unexpected error occurred",
       },
       { status: 500 },
     );

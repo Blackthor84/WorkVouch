@@ -35,7 +35,7 @@ export function Sidebar({ role }: SidebarProps) {
   if (role === "employer") {
     navigation.push({
       name: "Search",
-      href: "/employer/search",
+      href: "/employer/search-users",
       icon: MagnifyingGlassIcon,
     });
   }

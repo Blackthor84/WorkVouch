@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { EmployerPortalLayout } from "@/components/employer/EmployerPortalLayout";
-import { UserSearchForm } from "@/components/employer/user-search-form";
+import { EmployerSearchClient } from "@/components/employer/EmployerSearchClient";
 import { WvPageHeader } from "@/components/wv";
 
 export default async function SearchUsersPage() {
@@ -17,14 +17,14 @@ export default async function SearchUsersPage() {
   }
 
   return (
-    <EmployerPortalLayout>
+    <EmployerPortalLayout wide>
       <WvPageHeader
         eyebrow="Search"
-        title="Search Users"
-        description="Search for users by name to view their profiles, skills, and work history"
+        title="Search Candidates"
+        description="Find verified professionals by name, role, company, industry, location, and trust score."
       />
       <div className="mt-8">
-        <UserSearchForm />
+        <EmployerSearchClient />
       </div>
     </EmployerPortalLayout>
   );
