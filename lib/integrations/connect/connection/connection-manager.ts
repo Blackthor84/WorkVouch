@@ -346,6 +346,7 @@ export class ConnectionManager {
       lastHealthCheckAt: row!.lastHealthCheckAt,
       lastHealthStatus: row!.lastHealthStatus,
       lastSyncAt: row!.lastSyncAt,
+      metadata: row!.metadata ?? {},
       createdAt: row!.createdAt,
       updatedAt: row!.updatedAt,
     };

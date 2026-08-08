@@ -60,6 +60,7 @@ export interface ConnectionSummary {
   lastHealthCheckAt?: string;
   lastHealthStatus?: string;
   lastSyncAt?: string;
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }

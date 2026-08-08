@@ -2,6 +2,19 @@
 
 All notable changes to the WorkVouch Connect integration platform are documented here.
 
+## Sprint 7 — Candidate Lifecycle Orchestration
+
+- Added Candidate Lifecycle Engine (`CandidateLifecycleEngine`, `WorkflowEngine`, `AutomationRuleEvaluator`, `DecisionEngine`)
+- Automation rules: invite triggers (application, phone screen, final interview, offer, hire, manual), job/department/location/employment filters
+- Lifecycle states: imported through archived/cancelled (12 states)
+- Workflow actions: invite, reminder, cancel, archive, verification, references, trust refresh, AI summary placeholder
+- Internal invitation queue with pending/scheduled/sent/failed/retry/cancelled/expired statuses
+- Business events: VerificationRequested, ReferenceRequested, InvitationSent, WorkflowCompleted, WorkflowCancelled
+- LifecycleObservability: automation triggers, decisions, rule matched, execution time, workflow result
+- Database migration: connect_lifecycle_state, connect_invitation_queue, connect_workflow_log
+- Wired into Connect runtime via EventDispatcher subscription
+- 8 new lifecycle tests (103 total integration tests passing)
+
 ## Sprint 6 — Live Webhooks & Real-Time Sync
 
 - Added `POST /api/integrations/v1/webhooks/greenhouse` with HMAC-SHA256 signature verification

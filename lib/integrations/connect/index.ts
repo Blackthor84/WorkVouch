@@ -18,6 +18,7 @@ export * from "./health";
 export * from "./recovery/connect-recovery-service";
 export * from "./sync";
 export * from "./webhooks";
+export * from "./orchestration";
 export * from "./auth/secure-token-storage";
 export * from "./auth/connect-token-store-adapter";
 export * from "./auth/connect-oauth-state-adapter";

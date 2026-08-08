@@ -19,6 +19,8 @@ import {
   InMemorySyncCheckpointRepository,
   InMemorySyncCursorRepository,
   InMemorySyncLogRepository,
+  InMemoryInvitationQueueRepository,
+  InMemoryLifecycleStateRepository,
   InMemoryWebhookRepository,
   SupabaseCandidateMapRepository,
   SupabaseConnectionRepository,
@@ -38,6 +40,8 @@ import { SyncCursorManager } from "./sync/sync-cursor-manager";
 import { WebhookMetrics } from "./webhooks/webhook-metrics";
 import { GreenhouseWebhookProcessor } from "./webhooks/greenhouse-webhook-processor";
 import { WebhookService } from "./webhooks/webhook-service";
+import { CandidateLifecycleEngine } from "./orchestration/candidate-lifecycle-engine";
+import { LifecycleObservability } from "./orchestration/lifecycle-observability";
 import { AtsEventPipeline } from "../core/pipeline/ats-event-pipeline";
 import type { EventDispatcher } from "../events/EventDispatcher";
 import type { DeadLetterQueue } from "../queue/DeadLetterQueue";
@@ -81,6 +85,8 @@ export interface ConnectRuntime {
   webhooks: WebhookService;
   webhookMetrics: WebhookMetrics;
   oauthStateAdapter: ConnectOAuthStateAdapter;
+  lifecycle: CandidateLifecycleEngine;
+  lifecycleObservability: LifecycleObservability;
 }
 
 function useSupabase(client?: SupabaseClient) {
@@ -98,6 +104,8 @@ function useSupabase(client?: SupabaseClient) {
       syncCursor: new InMemorySyncCursorRepository(),
       syncCheckpoint: new InMemorySyncCheckpointRepository(),
       webhooks: new InMemoryWebhookRepository(),
+      invitationQueue: new InMemoryInvitationQueueRepository(),
+      lifecycleState: new InMemoryLifecycleStateRepository(),
     };
   }
 
@@ -114,6 +122,8 @@ function useSupabase(client?: SupabaseClient) {
     syncCursor: new SupabaseSyncCursorRepository(client),
     syncCheckpoint: new SupabaseSyncCheckpointRepository(client),
     webhooks: new SupabaseWebhookRepository(client),
+    invitationQueue: new InMemoryInvitationQueueRepository(),
+    lifecycleState: new InMemoryLifecycleStateRepository(),
   };
 }
 
@@ -212,6 +222,19 @@ export function createConnectRuntime(deps: ConnectRuntimeDeps): ConnectRuntime {
     metrics: webhookMetrics,
   });
 
+  const lifecycleObservability = new LifecycleObservability();
+  const lifecycle = new CandidateLifecycleEngine({
+    connections,
+    candidateMap: repos.candidateMap,
+    invitationQueue: repos.invitationQueue,
+    lifecycleState: repos.lifecycleState,
+    eventStore,
+    dispatcher: deps.dispatcher,
+    logger: deps.logger,
+    observability: lifecycleObservability,
+  });
+  lifecycle.subscribe();
+
   return {
     connections,
     eventStore,
@@ -225,6 +248,8 @@ export function createConnectRuntime(deps: ConnectRuntimeDeps): ConnectRuntime {
     webhooks,
     webhookMetrics,
     oauthStateAdapter,
+    lifecycle,
+    lifecycleObservability,
   };
 }
 
