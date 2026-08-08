@@ -23,7 +23,7 @@ function enableAtsFlags() {
   process.env.MOCK_ATS_ENABLED = "true";
 }
 
-describe("ATS Integration Platform — Sprint 3A", () => {
+describe("WorkVouch Connect — Sprint 3A platform foundation", () => {
   beforeEach(() => {
     enableAtsFlags();
     resetMockAtsProviderState();

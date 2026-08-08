@@ -8,6 +8,7 @@ import type { AtsProviderId } from "../types/common";
 import { IntegrationPlatformError } from "../utils/errors";
 import type { FeatureFlagService } from "../config/ConfigurationService";
 import type { LoggingService } from "../logging/LoggingService";
+import { validateProviderManifestVersion } from "../connect/version";
 
 export class ProviderRegistry {
   private readonly providers = new Map<AtsProviderId, ProviderRegistration>();
@@ -25,6 +26,18 @@ export class ProviderRegistry {
         retryable: false,
         provider: registration.providerId,
       });
+    }
+
+    if (registration.manifest) {
+      const versionCheck = validateProviderManifestVersion(registration.manifest);
+      if (!versionCheck.valid) {
+        throw new IntegrationPlatformError({
+          code: "PROVIDER_VERSION_INCOMPATIBLE",
+          message: versionCheck.errors.join("; "),
+          retryable: false,
+          provider: registration.providerId,
+        });
+      }
     }
 
     this.providers.set(registration.providerId, registration);

@@ -11,3 +11,4 @@ export * from "./core";
 export * from "./sync";
 export * from "./auth";
 export * from "./mappings";
+export * from "./connect";

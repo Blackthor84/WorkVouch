@@ -33,7 +33,7 @@ import {
   resolveGreenhouseConfig,
   validateGreenhouseConfig,
 } from "./config/greenhouse-config";
-import { GREENHOUSE_PROVIDER_CAPABILITIES } from "./config/manifest";
+import { GREENHOUSE_PROVIDER_CAPABILITIES, GREENHOUSE_MANIFEST } from "./config/manifest";
 import { FetchHttpClient } from "./api/http-client";
 import { HarvestClient } from "./api/harvest-client";
 import { GreenhouseOAuthService } from "./auth/oauth-service";
@@ -164,6 +164,7 @@ export function createGreenhouseRegistration(
     providerId: "greenhouse",
     displayName: "Greenhouse",
     capabilities: GREENHOUSE_PROVIDER_CAPABILITIES,
+    manifest: GREENHOUSE_MANIFEST,
     factory: () => createGreenhouseProvider(deps),
   };
 }

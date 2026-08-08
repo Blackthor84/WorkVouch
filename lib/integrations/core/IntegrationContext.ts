@@ -6,7 +6,7 @@ import type { DeadLetterQueue, RetryService } from "../queue";
 import type { ProviderLoader, ProviderRegistry } from "../registry";
 
 /**
- * Dependency container for the ATS integration platform.
+ * Dependency container for WorkVouch Connect (internal ATS integration platform).
  * All services are injected — no global singletons in consumer code.
  */
 export interface IntegrationContext {

@@ -1,0 +1,12 @@
+{
+  "_fixture": true,
+  "_scenario": "candidate_rejected_replay",
+  "action": "reject_candidate",
+  "payload": {
+    "id": 90010,
+    "candidate_id": 90001,
+    "jobs": [{ "id": 90011, "name": "Staff Engineer" }],
+    "status": "rejected",
+    "updated_at": "2026-08-06T15:00:00Z"
+  }
+}

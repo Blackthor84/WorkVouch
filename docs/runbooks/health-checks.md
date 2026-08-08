@@ -1,4 +1,4 @@
-# Health Checks — ATS Integration Platform
+# Health Checks — WorkVouch Connect
 
 > **Sprint:** 3A  
 > **Last updated:** 2026-08-07

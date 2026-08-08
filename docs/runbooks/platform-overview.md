@@ -1,16 +1,20 @@
-# Platform Overview
+# Platform Overview — WorkVouch Connect
 
-> **Sprint:** 3A — ATS Integration Platform Foundation  
-> **Last updated:** 2026-08-07
+> **Sprint:** 3A — WorkVouch Connect Foundation  
+> **Last updated:** 2026-08-08
 
 ---
 
 ## Purpose
 
-The ATS Integration Platform (`lib/integrations/`) is the permanent, provider-agnostic home for all WorkVouch ATS connections. It sits **alongside** the existing WorkVouch application — it does not replace trust, verification, billing, or employer/worker dashboards.
+**WorkVouch Connect** (`lib/integrations/`) is the permanent, provider-agnostic home for all WorkVouch ATS connections. It sits **alongside** the existing WorkVouch application — it does not replace trust, verification, billing, or employer/worker dashboards.
 
-**Sprint 3A:** Platform foundation + MockATS only.  
-**Sprint 3B:** Greenhouse adapter plugs into this platform.
+**Sprint 3A:** Platform foundation + MockATS.  
+**Sprint 3B-1:** Greenhouse provider.  
+**Sprint 3B-2:** Event translation pipeline.  
+**Sprint 3B-3:** Connect developer platform (inspector, replay, audit, diagnostics).
+
+API namespaces (`ATS_ENABLED`, `AtsProvider`, etc.) remain unchanged.
 
 ---
 

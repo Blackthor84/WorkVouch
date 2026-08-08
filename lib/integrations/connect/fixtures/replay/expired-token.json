@@ -1,0 +1,15 @@
+{
+  "_fixture": true,
+  "_scenario": "expired_token",
+  "_error": {
+    "code": "OAUTH_TOKEN_EXPIRED",
+    "message": "Access token expired during webhook processing"
+  },
+  "action": "candidate_updated",
+  "payload": {
+    "id": 90001,
+    "first_name": "Token",
+    "last_name": "Expired",
+    "updated_at": "2026-08-05T12:00:00Z"
+  }
+}

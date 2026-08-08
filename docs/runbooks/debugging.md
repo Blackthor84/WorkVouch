@@ -1,4 +1,4 @@
-# Debugging — ATS Integration Platform
+# Debugging — WorkVouch Connect
 
 > **Sprint:** 3A  
 > **Last updated:** 2026-08-07

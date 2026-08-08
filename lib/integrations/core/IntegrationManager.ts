@@ -64,7 +64,7 @@ export class IntegrationManager {
     if (!this.context.featureFlags.isEnabled("ATS_ENABLED")) {
       throw new IntegrationPlatformError({
         code: "PLATFORM_DISABLED",
-        message: "ATS integration platform is disabled.",
+        message: "WorkVouch Connect is disabled.",
         retryable: false,
       });
     }

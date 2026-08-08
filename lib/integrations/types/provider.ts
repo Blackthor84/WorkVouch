@@ -104,6 +104,8 @@ export interface ProviderRegistration {
   displayName: string;
   factory: () => import("../providers/base/AtsProvider").AtsProvider;
   capabilities: ProviderCapabilities;
+  /** Provider manifest including Connect version compatibility (Sprint 4+). */
+  manifest?: import("../connect/version").ConnectProviderManifestVersion;
 }
 
 export interface ProviderSummary {

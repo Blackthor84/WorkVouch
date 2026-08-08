@@ -49,7 +49,11 @@ export const GREENHOUSE_PROVIDER_CAPABILITIES: ProviderCapabilities = {
 export const GREENHOUSE_MANIFEST = {
   provider: "greenhouse" as const,
   displayName: "Greenhouse",
+  version: "1.0.0",
   apiVersion: "1.0",
+  compatibleConnectVersion: "1.0.0",
+  minimumConnectVersion: "1.0.0",
+  maximumTestedConnectVersion: "1.0.0",
   logoUrl: "https://workvouch.com/integrations/greenhouse-logo.svg",
   docsUrl: "https://docs.workvouch.com/integrations/greenhouse",
   status: "available" as const,

@@ -1,4 +1,4 @@
-/** Shared primitives for the ATS integration platform. */
+/** Shared primitives for WorkVouch Connect. */
 
 export type AtsProviderId =
   | "mock"

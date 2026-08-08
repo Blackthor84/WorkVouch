@@ -33,6 +33,27 @@ import {
   resetMockStore,
 } from "./mock-data";
 
+const MOCK_MANIFEST = {
+  provider: "mock" as const,
+  displayName: "MockATS",
+  version: "1.0.0",
+  apiVersion: "1.0",
+  compatibleConnectVersion: "1.0.0",
+  minimumConnectVersion: "1.0.0",
+  maximumTestedConnectVersion: "1.0.0",
+  supportsOAuth: true,
+  supportsWebhooks: true,
+  supportsCandidates: true,
+  supportsJobs: true,
+  supportsApplications: true,
+  supportsCustomFields: true,
+  supportsStatusSync: true,
+  supportsReferenceRequests: false,
+  supportsBatchSync: true,
+  supportsAttachments: false,
+  authenticationType: "oauth2_pkce" as const,
+};
+
 const MOCK_CAPABILITIES: ProviderCapabilities = {
   providerId: "mock",
   displayName: "MockATS",
@@ -238,6 +259,7 @@ export function createMockAtsRegistration(): ProviderRegistration {
     providerId: "mock",
     displayName: "MockATS",
     capabilities: MOCK_CAPABILITIES,
+    manifest: MOCK_MANIFEST,
     factory: () => new MockAtsProvider(),
   };
 }

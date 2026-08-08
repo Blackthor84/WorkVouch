@@ -1,0 +1,5 @@
+{
+  "_fixture": true,
+  "_scenario": "invalid_payload",
+  "action": "candidate_created"
+}
