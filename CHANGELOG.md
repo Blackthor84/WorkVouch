@@ -2,6 +2,42 @@
 
 All notable changes to the WorkVouch Connect integration platform are documented here.
 
+## Sprint 6 — Live Webhooks & Real-Time Sync
+
+- Added `POST /api/integrations/v1/webhooks/greenhouse` with HMAC-SHA256 signature verification
+- Added `GET /api/integrations/v1/connect/greenhouse/callback` OAuth callback route
+- Implemented WebhookService, GreenhouseWebhookProcessor, WebhookMetrics
+- Real-time pipeline: webhook → validate → translate → event store → projection → audit
+- Greenhouse receiveWebhook with signature validation and 12 supported event types
+- Idempotency via connect_webhook_log + event store keys; duplicate detection
+- Dead letter queue for failed webhooks with replay support
+- Sync cursor updates on webhook (lastWebhookProcessed, entity timestamps)
+- 9 new webhook tests (95 total integration tests passing)
+
+## Sprint 6A — Incremental Sync Cursor Engine
+
+- Added provider-agnostic Sync Cursor Engine (`SyncCursorService`, `SyncCursorManager`, `SyncCursorValidator`, `SyncCheckpoint`)
+- Added `connect_sync_cursor` and `connect_sync_checkpoints` database tables
+- Cursor operations: initialize, advance, reset, archive, clone, validate, compare
+- Checkpoint system with performance metrics after each successful sync
+- HarvestImportService: full, incremental, resume, recovery, and dry-run import modes
+- HarvestClient: `updated_after` query param for incremental API calls
+- ConnectionManager cursor API: getCursor, updateCursor, resetCursor, scheduleNextSync, validateCursor
+- ConnectHealthService: cursor health component (healthy, behind, missing, corrupted, expired)
+- ReplayService: replayFromCursor, replaySinceCheckpoint, replaySinceTimestamp, replayUntilCursor
+- 11 new sync cursor tests (86 total integration tests passing)
+
+## Sprint 5 — First Live Greenhouse Connection
+
+- Added persistent encrypted OAuth token storage
+- Added ConnectionManager (create, reconnect, disconnect, refresh, health, test)
+- Extended HarvestClient for jobs, candidates, applications, users
+- Added HarvestImportService with event store + projection persistence
+- Added ConnectHealthService (internal health dashboard)
+- Added SnapshotService (automatic every 50 events)
+- Added ConnectRecoveryService (OAuth refresh, backoff, reconnect)
+- Added Connect runtime bootstrap and integration API routes
+
 ## Sprint 4 — Event Store & Persistence
 
 - Added immutable append-only `connect_event_store` and supporting Connect tables

@@ -30,6 +30,7 @@ import type { EventValidator } from "../core/validation/event-validator";
 import type { MockEventConsumer } from "../core/consumers/mock-event-consumer";
 import type { ConnectEventStore } from "./event-store/connect-event-store";
 import type { ProjectionEngine } from "./projection/projection-engine";
+import type { SyncCursorManager } from "./sync/sync-cursor-manager";
 import { CONNECT_PLATFORM_VERSION } from "./version";
 import { resolveAggregateFromTranslation } from "./utils/resolve-aggregate";
 
@@ -47,6 +48,7 @@ export interface ConnectPlatformDeps {
   eventStore?: ConnectEventStore;
   projectionEngine?: ProjectionEngine;
   providerVersion?: string;
+  cursorManager?: SyncCursorManager;
 }
 
 export interface RecordConnectEventInput {
@@ -107,7 +109,8 @@ export class ConnectPlatform {
       deps.logger,
       deps.translator,
       deps.eventStore,
-      deps.projectionEngine
+      deps.projectionEngine,
+      deps.cursorManager
     );
     this.diagnostics = new ConnectDiagnosticsService(
       deps.config,

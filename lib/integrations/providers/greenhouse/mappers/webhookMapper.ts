@@ -33,6 +33,11 @@ const ACTION_ROUTES: Record<GreenhouseWebhookAction, WebhookTranslationRoute> = 
     providerEvent: "application_updated",
     mapperUsed: "greenhouse.applicationMapper",
   },
+  application_stage_changed: {
+    universalEvent: ATS_EVENT_TYPES.CandidateMoved,
+    providerEvent: "application_stage_changed",
+    mapperUsed: "greenhouse.applicationMapper",
+  },
   job_created: {
     universalEvent: ATS_EVENT_TYPES.JobCreated,
     providerEvent: "job_created",

@@ -16,6 +16,8 @@ import type { TimelineGenerator } from "../timeline/timeline-generator";
 import type { ConnectEventStore } from "../event-store/connect-event-store";
 import type { ProjectionEngine } from "../projection/projection-engine";
 import type { ConnectAggregateType } from "../persistence/types";
+import type { SyncCursorManager } from "../sync/sync-cursor-manager";
+import type { ConnectSyncCheckpointRow } from "../sync/types";
 import { nowIso } from "../../utils/correlation";
 
 export type ReplayTranslator = (input: {
@@ -50,7 +52,8 @@ export class ReplayService {
     private readonly logger: LoggingService,
     private readonly translator?: ReplayTranslator,
     private readonly eventStore?: ConnectEventStore,
-    private readonly projectionEngine?: ProjectionEngine
+    private readonly projectionEngine?: ProjectionEngine,
+    private readonly cursorManager?: SyncCursorManager
   ) {}
 
   replayEvent(eventId: string, options: ReplayOptions = {}): ReplayResult {
@@ -124,6 +127,110 @@ export class ReplayService {
         simulate: true,
       })
     );
+  }
+
+  async replayFromCursor(connectionId: string, options: ReplayOptions = {}): Promise<ReplayResult & { eventsReplayed?: number }> {
+    if (!this.eventStore || !this.cursorManager) {
+      return { eventId: connectionId, correlationId: "unknown", mode: "dry_run", stagesReplayed: [], success: false, durationMs: 0, message: "Cursor or event store not configured", duplicatePrevented: false };
+    }
+    const cursor = await this.cursorManager.getCursor(connectionId);
+    if (!cursor) {
+      return { eventId: connectionId, correlationId: "unknown", mode: "dry_run", stagesReplayed: [], success: false, durationMs: 0, message: "No cursor found", duplicatePrevented: false };
+    }
+    return this.replaySinceSequence(connectionId, cursor.lastSequenceNumber, options);
+  }
+
+  async replaySinceCheckpoint(connectionId: string, checkpoint: ConnectSyncCheckpointRow, options: ReplayOptions = {}): Promise<ReplayResult & { eventsReplayed?: number }> {
+    if (!this.eventStore) {
+      return { eventId: checkpoint.id, correlationId: "unknown", mode: "dry_run", stagesReplayed: [], success: false, durationMs: 0, message: "Event store not configured", duplicatePrevented: false };
+    }
+    const started = Date.now();
+    const timeline = await this.eventStore.loadTimeline({ correlationId: checkpoint.replayReference?.split(":")[1], limit: 1000 });
+    const filtered = checkpoint.sequenceNumber
+      ? timeline.filter((e) => e.sequenceNumber >= checkpoint.sequenceNumber!)
+      : timeline;
+    return {
+      eventId: checkpoint.id,
+      correlationId: checkpoint.replayReference ?? "unknown",
+      mode: options.dryRun !== false ? "dry_run" : "simulation",
+      stagesReplayed: ["retried", "validated", "completed"],
+      success: filtered.length > 0,
+      durationMs: Date.now() - started,
+      message: `Replayed ${filtered.length} events since checkpoint`,
+      duplicatePrevented: true,
+      eventsReplayed: filtered.length,
+    };
+  }
+
+  async replaySinceTimestamp(connectionId: string, since: string, options: ReplayOptions = {}): Promise<ReplayResult & { eventsReplayed?: number }> {
+    if (!this.eventStore) {
+      return { eventId: connectionId, correlationId: "unknown", mode: "dry_run", stagesReplayed: [], success: false, durationMs: 0, message: "Event store not configured", duplicatePrevented: false };
+    }
+    const started = Date.now();
+    const timeline = await this.eventStore.loadTimeline({ limit: 5000 });
+    const filtered = timeline.filter(
+      (e) => e.connectionId === connectionId && e.occurredAt >= since
+    );
+    return {
+      eventId: connectionId,
+      correlationId: filtered[0]?.correlationId ?? "unknown",
+      mode: options.dryRun !== false ? "dry_run" : "simulation",
+      stagesReplayed: ["retried", "completed"],
+      success: filtered.length > 0,
+      durationMs: Date.now() - started,
+      message: `Replayed ${filtered.length} events since ${since}`,
+      duplicatePrevented: true,
+      eventsReplayed: filtered.length,
+    };
+  }
+
+  async replaySinceSequence(connectionId: string, fromSequence: number, options: ReplayOptions = {}): Promise<ReplayResult & { eventsReplayed?: number }> {
+    if (!this.eventStore) {
+      return { eventId: connectionId, correlationId: "unknown", mode: "dry_run", stagesReplayed: [], success: false, durationMs: 0, message: "Event store not configured", duplicatePrevented: false };
+    }
+    const started = Date.now();
+    const timeline = await this.eventStore.loadTimeline({ limit: 5000 });
+    const connectionEvents = timeline
+      .filter((e) => e.connectionId === connectionId)
+      .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt));
+    const filtered = fromSequence > 0 ? connectionEvents.slice(fromSequence) : connectionEvents;
+    return {
+      eventId: connectionId,
+      correlationId: filtered[0]?.correlationId ?? "unknown",
+      mode: options.dryRun !== false ? "dry_run" : "simulation",
+      stagesReplayed: ["retried", "completed"],
+      success: filtered.length > 0,
+      durationMs: Date.now() - started,
+      message: `Replayed ${filtered.length} connection events from index ${fromSequence}`,
+      duplicatePrevented: true,
+      eventsReplayed: filtered.length,
+    };
+  }
+
+  async replayUntilCursor(connectionId: string, options: ReplayOptions = {}): Promise<ReplayResult & { eventsReplayed?: number }> {
+    if (!this.eventStore || !this.cursorManager) {
+      return { eventId: connectionId, correlationId: "unknown", mode: "dry_run", stagesReplayed: [], success: false, durationMs: 0, message: "Cursor or event store not configured", duplicatePrevented: false };
+    }
+    const cursor = await this.cursorManager.getCursor(connectionId);
+    if (!cursor?.lastSuccessfulSync) {
+      return { eventId: connectionId, correlationId: "unknown", mode: "dry_run", stagesReplayed: [], success: false, durationMs: 0, message: "No cursor timestamp", duplicatePrevented: false };
+    }
+    const started = Date.now();
+    const timeline = await this.eventStore.loadTimeline({ limit: 5000 });
+    const filtered = timeline.filter(
+      (e) => e.connectionId === connectionId && e.occurredAt <= cursor.lastSuccessfulSync!
+    );
+    return {
+      eventId: connectionId,
+      correlationId: filtered[0]?.correlationId ?? "unknown",
+      mode: options.dryRun !== false ? "dry_run" : "simulation",
+      stagesReplayed: ["retried", "completed"],
+      success: filtered.length > 0,
+      durationMs: Date.now() - started,
+      message: `Replayed ${filtered.length} events until cursor`,
+      duplicatePrevented: true,
+      eventsReplayed: filtered.length,
+    };
   }
 
   dryRunReplay(eventId: string): ReplayResult {

@@ -21,7 +21,8 @@ import type {
   SyncResult,
 } from "../../types/sync";
 import type { ReceiveWebhookParams, WebhookReceiveResult } from "../../types/webhook";
-import { NotImplementedYetError } from "../../utils/errors";
+import { verifyGreenhouseWebhookSignature } from "./auth/webhook-signature";
+import { buildIdempotencyKey, parseGreenhouseWebhook } from "./mappers/webhookMapper";
 import { nowIso } from "../../utils/correlation";
 import type {
   GreenhouseProviderConfig,
@@ -44,6 +45,12 @@ import {
   InMemoryTokenStore,
 } from "./auth/token-store";
 import { GreenhouseHealthService } from "./health/greenhouse-health-service";
+import { generateCodeVerifier, generateOAuthState } from "./auth/pkce";
+import type { ConnectionManager } from "../../connect/connection/connection-manager";
+import type { HarvestImportService } from "./sync/harvest-import-service";
+import { mapGreenhouseCandidate } from "./mappers/candidateMapper";
+import { mapGreenhouseJob } from "./mappers/jobMapper";
+import { mapGreenhouseApplication } from "./mappers/applicationMapper";
 
 export interface GreenhouseProviderDeps {
   config?: GreenhouseProviderConfig;
@@ -53,6 +60,8 @@ export interface GreenhouseProviderDeps {
   oauth?: GreenhouseOAuthService;
   harvest?: HarvestClient;
   health?: GreenhouseHealthService;
+  connectionManager?: ConnectionManager;
+  harvestImport?: HarvestImportService;
 }
 
 export class GreenhouseProvider implements AtsProvider {
@@ -64,6 +73,8 @@ export class GreenhouseProvider implements AtsProvider {
   private readonly harvest: HarvestClient;
   private readonly tokenStore: TokenStore;
   private readonly healthService: GreenhouseHealthService;
+  private readonly connectionManager?: ConnectionManager;
+  private readonly harvestImport?: HarvestImportService;
 
   constructor(deps: GreenhouseProviderDeps = {}) {
     this.config = deps.config ?? resolveGreenhouseConfig();
@@ -77,13 +88,41 @@ export class GreenhouseProvider implements AtsProvider {
     this.harvest = deps.harvest ?? new HarvestClient(this.config, http);
     this.healthService =
       deps.health ?? new GreenhouseHealthService(this.config, this.harvest, this.tokenStore);
+    this.connectionManager = deps.connectionManager;
+    this.harvestImport = deps.harvestImport;
   }
 
   async connect(params: ConnectParams): Promise<ConnectResult> {
     if (!params.code) {
+      if (this.connectionManager) {
+        const state = params.state || generateOAuthState();
+        const codeVerifier = params.codeVerifier ?? generateCodeVerifier();
+        const pending = await this.connectionManager.startOAuth({
+          employerAccountId: params.employerAccountId,
+          provider: "greenhouse",
+          redirectUri: params.redirectUri,
+          requiredScopes: this.config.oauth.scopes,
+          codeVerifier,
+          state,
+        });
+        return this.oauth.startConnect({ ...params, connectionId: pending.connectionId, state, codeVerifier });
+      }
       return this.oauth.startConnect(params);
     }
-    return this.oauth.completeConnect(params);
+
+    const result = await this.oauth.completeConnect(params);
+    if (this.connectionManager) {
+      await this.connectionManager.testConnection(result.connectionId, async (accessToken) => {
+        const user = await this.harvest.getCurrentUser(accessToken);
+        return {
+          success: true,
+          message: `Connected as ${user.name}`,
+          providerAccountId: String(user.id),
+          providerAccountName: user.name,
+        };
+      });
+    }
+    return result;
   }
 
   async disconnect(params: DisconnectParams): Promise<void> {
@@ -136,20 +175,123 @@ export class GreenhouseProvider implements AtsProvider {
     }
   }
 
-  async syncCandidate(_params: SyncCandidateParams): Promise<SyncResult> {
-    throw new NotImplementedYetError("greenhouse", "syncCandidate");
+  async syncCandidate(params: SyncCandidateParams): Promise<SyncResult> {
+    const started = Date.now();
+    try {
+      const raw = await this.harvest.getCandidate(params.accessToken, params.externalCandidateId);
+      const universal = mapGreenhouseCandidate(raw);
+      return {
+        success: true,
+        externalId: universal.externalId,
+        operation: "update",
+        status: "success",
+        fieldsUpdated: Object.keys(universal),
+        durationMs: Date.now() - started,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        externalId: params.externalCandidateId,
+        operation: "update",
+        status: "error",
+        durationMs: Date.now() - started,
+        error: { code: "SYNC_FAILED", message: error instanceof Error ? error.message : "Sync failed", retryable: true },
+      };
+    }
   }
 
-  async syncJob(_params: SyncJobParams): Promise<SyncResult> {
-    throw new NotImplementedYetError("greenhouse", "syncJob");
+  async syncJob(params: SyncJobParams): Promise<SyncResult> {
+    const started = Date.now();
+    try {
+      const raw = await this.harvest.getJob(params.accessToken, params.externalJobId);
+      const universal = mapGreenhouseJob(raw);
+      return {
+        success: true,
+        externalId: universal.externalId,
+        operation: "update",
+        status: "success",
+        fieldsUpdated: Object.keys(universal),
+        durationMs: Date.now() - started,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        externalId: params.externalJobId,
+        operation: "update",
+        status: "error",
+        durationMs: Date.now() - started,
+        error: { code: "SYNC_FAILED", message: error instanceof Error ? error.message : "Sync failed", retryable: true },
+      };
+    }
   }
 
-  async syncApplication(_params: SyncApplicationParams): Promise<SyncResult> {
-    throw new NotImplementedYetError("greenhouse", "syncApplication");
+  async syncApplication(params: SyncApplicationParams): Promise<SyncResult> {
+    const started = Date.now();
+    try {
+      const raw = await this.harvest.getApplication(params.accessToken, params.externalApplicationId);
+      const universal = mapGreenhouseApplication(raw);
+      return {
+        success: true,
+        externalId: universal.externalId,
+        operation: "update",
+        status: "success",
+        fieldsUpdated: Object.keys(universal),
+        durationMs: Date.now() - started,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        externalId: params.externalApplicationId,
+        operation: "update",
+        status: "error",
+        durationMs: Date.now() - started,
+        error: { code: "SYNC_FAILED", message: error instanceof Error ? error.message : "Sync failed", retryable: true },
+      };
+    }
   }
 
-  async receiveWebhook(_params: ReceiveWebhookParams): Promise<WebhookReceiveResult> {
-    throw new NotImplementedYetError("greenhouse", "receiveWebhook");
+  async receiveWebhook(params: ReceiveWebhookParams): Promise<WebhookReceiveResult> {
+    const signature =
+      params.headers["signature"] ??
+      params.headers["Signature"] ??
+      params.headers["x-greenhouse-signature"] ??
+      "";
+
+    const valid = verifyGreenhouseWebhookSignature(
+      params.rawBody,
+      signature,
+      params.webhookSecret || this.config.webhookSecret || ""
+    );
+
+    if (!valid) {
+      return { accepted: false, duplicate: false, error: "Invalid webhook signature" };
+    }
+
+    let payload: Record<string, unknown>;
+    try {
+      payload = JSON.parse(params.rawBody) as Record<string, unknown>;
+    } catch {
+      return { accepted: false, duplicate: false, error: "Invalid webhook payload" };
+    }
+
+    const webhook = parseGreenhouseWebhook(payload);
+    const eventId = buildIdempotencyKey(webhook);
+
+    return {
+      accepted: true,
+      duplicate: false,
+      event: {
+        eventId,
+        eventType: webhook.action,
+        provider: "greenhouse",
+        externalCandidateId: webhook.payload.candidate_id
+          ? String(webhook.payload.candidate_id)
+          : undefined,
+        externalApplicationId: webhook.payload.id ? String(webhook.payload.id) : undefined,
+        payload: webhook.payload,
+        receivedAt: nowIso(),
+      },
+    };
   }
 }
 

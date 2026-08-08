@@ -56,6 +56,13 @@ export interface ConnectConnectionRow {
   providerAccountName?: string;
   status: string;
   oauthScopes: string[];
+  accessTokenEncrypted?: string;
+  refreshTokenEncrypted?: string;
+  tokenExpiresAt?: string;
+  tokenStatus?: string;
+  lastHealthCheckAt?: string;
+  lastHealthStatus?: string;
+  lastSyncAt?: string;
   metadata: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
@@ -139,6 +146,21 @@ export interface EventStreamFilter {
   aggregateId: string;
   fromSequence?: number;
   limit?: number;
+}
+
+export interface ConnectEventSnapshotRow {
+  id: string;
+  aggregateType: ConnectAggregateType;
+  aggregateId: string;
+  sequenceNumber: number;
+  state: Record<string, unknown>;
+  eventCount: number;
+  snapshotType: "automatic" | "manual";
+  createdAt: string;
+}
+
+export interface SnapshotConfig {
+  eventsPerSnapshot: number;
 }
 
 export interface TimelineFilter {

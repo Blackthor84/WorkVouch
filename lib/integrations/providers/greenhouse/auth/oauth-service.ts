@@ -30,14 +30,19 @@ export class GreenhouseOAuthService {
     const state = params.state || generateOAuthState();
     const codeChallenge = generateCodeChallenge(codeVerifier);
 
-    await this.stateStore.saveState(
-      createOAuthStateRecord({
-        state,
-        employerAccountId: params.employerAccountId,
-        codeVerifier,
-        redirectUri: params.redirectUri,
-      })
-    );
+    const connectionId = params.connectionId ?? randomUUID();
+
+    if (!params.connectionId) {
+      await this.stateStore.saveState(
+        createOAuthStateRecord({
+          state,
+          employerAccountId: params.employerAccountId,
+          codeVerifier,
+          redirectUri: params.redirectUri,
+          connectionId,
+        })
+      );
+    }
 
     const url = new URL(this.config.oauth.authorizationUrl);
     url.searchParams.set("response_type", "code");
@@ -49,7 +54,7 @@ export class GreenhouseOAuthService {
     url.searchParams.set("code_challenge_method", "S256");
 
     return {
-      connectionId: randomUUID(),
+      connectionId,
       status: "pending",
       scopes: this.config.oauth.scopes,
       authorizationUrl: url.toString(),
@@ -91,7 +96,7 @@ export class GreenhouseOAuthService {
       codeVerifier: storedState.codeVerifier,
     });
 
-    const connectionId = randomUUID();
+    const connectionId = storedState.connectionId ?? randomUUID();
     const tokenPair = this.toTokenPair(tokenResponse);
     const now = nowIso();
 

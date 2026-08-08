@@ -47,6 +47,7 @@ export function createOAuthStateRecord(input: {
   employerAccountId: string;
   codeVerifier: string;
   redirectUri: string;
+  connectionId?: string;
   ttlMs?: number;
 }): StoredOAuthState {
   const createdAt = new Date();
@@ -56,6 +57,7 @@ export function createOAuthStateRecord(input: {
     employerAccountId: input.employerAccountId,
     codeVerifier: input.codeVerifier,
     redirectUri: input.redirectUri,
+    connectionId: input.connectionId,
     createdAt: createdAt.toISOString(),
     expiresAt: new Date(createdAt.getTime() + ttl).toISOString(),
   };

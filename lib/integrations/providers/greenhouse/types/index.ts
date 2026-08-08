@@ -41,6 +41,7 @@ export interface StoredOAuthState {
   employerAccountId: string;
   codeVerifier: string;
   redirectUri: string;
+  connectionId?: string;
   expiresAt: string;
   createdAt: string;
 }

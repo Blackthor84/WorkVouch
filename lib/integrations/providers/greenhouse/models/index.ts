@@ -90,6 +90,7 @@ export type GreenhouseWebhookAction =
   | "candidate_updated"
   | "application_created"
   | "application_updated"
+  | "application_stage_changed"
   | "job_created"
   | "job_updated"
   | "offer_created"

@@ -319,45 +319,27 @@ describe("Greenhouse Provider — Sprint 3B-1", () => {
     expect(attempts).toBeGreaterThan(1);
   });
 
-  it("throws NotImplementedYetError for sync and webhook methods", async () => {
+  it("syncs via Harvest and validates webhook signatures", async () => {
     const provider = createTestProvider();
 
-    await expect(
-      provider.syncCandidate({
-        connectionId: "c1",
-        accessToken: "t",
-        externalCandidateId: "ext-1",
-        direction: "inbound",
-      })
-    ).rejects.toSatisfy((error: unknown) => isNotImplementedYetError(error));
+    const candidateResult = await provider.syncCandidate({
+      connectionId: "c1",
+      accessToken: "t",
+      externalCandidateId: "ext-1",
+      direction: "inbound",
+    });
+    expect(candidateResult.success).toBe(false);
+    expect(candidateResult.error?.code).toBe("SYNC_FAILED");
 
-    await expect(
-      provider.syncJob({
-        connectionId: "c1",
-        accessToken: "t",
-        externalJobId: "job-1",
-        direction: "inbound",
-      })
-    ).rejects.toSatisfy((error: unknown) => isNotImplementedYetError(error));
-
-    await expect(
-      provider.syncApplication({
-        connectionId: "c1",
-        accessToken: "t",
-        externalApplicationId: "app-1",
-        direction: "inbound",
-      })
-    ).rejects.toSatisfy((error: unknown) => isNotImplementedYetError(error));
-
-    await expect(
-      provider.receiveWebhook({
-        connectionId: "c1",
-        employerAccountId: "e1",
-        rawBody: "{}",
-        headers: {},
-        webhookSecret: "secret",
-      })
-    ).rejects.toSatisfy((error: unknown) => isNotImplementedYetError(error));
+    const invalid = await provider.receiveWebhook({
+      connectionId: "c1",
+      employerAccountId: "e1",
+      rawBody: "{}",
+      headers: {},
+      webhookSecret: "secret",
+    });
+    expect(invalid.accepted).toBe(false);
+    expect(invalid.error).toContain("signature");
   });
 
   it("supports manual registration with injected dependencies", () => {
