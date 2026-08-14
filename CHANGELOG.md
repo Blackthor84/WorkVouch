@@ -2,6 +2,20 @@
 
 All notable changes to the WorkVouch Connect integration platform are documented here.
 
+## Sprint 11 — Resume Intelligence
+
+- Repaired upload contract: form field `resume`, response `{ path, url }` — fixed `ImportResumeClient` mismatch
+- Shared resume library (`lib/resume/`) — types, text extraction, parsing, duplicates, confidence, confirm
+- Identity extraction: name, email, phone, city, state, country with High/Medium/Low confidence (no silent profile overwrite)
+- Employment extraction with confidence, duplicate detection, and user resolution (keep / update / create)
+- Confirm route: `source: resume`, pending `employment_records`, optional profile opt-in, verification handoff URL
+- `DELETE /api/resume` — remove file without deleting verified employment
+- TXT file support; legacy `/api/resume-upload` returns 410 Gone
+- Review workflow UI: personal info + employment sections, confidence badges, verification CTA
+- Security: path ownership checks, private storage, no resume text in logs
+- Docs: `docs/resume-intelligence/` (9 files) + `RESUME_INTELLIGENCE_REPORT.md`
+- New tests: `tests/resume-intelligence.test.ts`
+
 ## Sprint 10.1 — Final QA & Production Polish
 
 - Build-time Connect env validation (`connect-env.ts`, `env.mjs`, `next.config.js`) — fails production build when secrets missing

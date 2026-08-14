@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { DocumentArrowUpIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 
-const ALLOWED_EXTENSIONS = ["pdf", "doc", "docx"];
+const ALLOWED_EXTENSIONS = ["pdf", "doc", "docx", "txt"];
 const MAX_MB = 5;
 const MAX_BYTES = MAX_MB * 1024 * 1024;
 
@@ -30,7 +30,7 @@ export function UploadResumeForm() {
     }
     const ext = selectedFile.name.split(".").pop()?.toLowerCase();
     if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
-      setError("Invalid file type. Please upload a PDF, DOC, or DOCX file.");
+      setError("Invalid file type. Please upload a PDF, DOC, DOCX, or TXT file.");
       setFile(null);
       return;
     }
@@ -107,12 +107,12 @@ export function UploadResumeForm() {
 
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Choose file (PDF, DOC, or DOCX, max {MAX_MB}MB)
+          Choose file (PDF, DOC, DOCX, or TXT, max {MAX_MB}MB)
         </label>
         <input
           ref={fileInputRef}
           type="file"
-          accept=".pdf,.doc,.docx"
+          accept=".pdf,.doc,.docx,.txt"
           onChange={handleFileChange}
           disabled={isUploading}
           className="block w-full text-sm text-gray-900 dark:text-gray-100 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-blue-700 dark:file:bg-blue-500 dark:hover:file:bg-blue-600"

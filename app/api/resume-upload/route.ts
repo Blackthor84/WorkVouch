@@ -1,43 +1,13 @@
-// IMPORTANT:
-// All server routes must use the `admin` Supabase client.
-// Do not use `supabase` in API routes.
-
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-import OpenAI from "openai";
-import { admin } from "@/lib/supabase-admin";
-import { env } from "@/lib/env";
 
-export async function POST(req: Request) {
-  try {
-    if (!env.OPENAI_API_KEY) {
-      throw new Error(
-        "OPENAI_API_KEY is required. Please set it in Vercel Project Settings → Environment Variables.",
-      );
-    }
-    const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
-
-    const formData = await req.formData();
-    const file = formData.get("file");
-
-    if (!file || !(file instanceof File)) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
-    }
-
-    const fileBytes = await file.arrayBuffer();
-    const buffer = Buffer.from(fileBytes);
-
-    const parsed = await openai.responses.parse({
-      model: "gpt-4.1",
-      input:
-        "Extract job titles, companies, start dates, end dates, and skills from this resume.",
-      file: buffer,
-    });
-
-    return NextResponse.json(parsed.output, { status: 200 });
-  } catch (error: any) {
-    console.error(error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+/** Legacy unauthenticated route — disabled in favor of POST /api/resume/upload */
+export async function POST() {
+  return NextResponse.json(
+    {
+      error: "This endpoint is deprecated. Use POST /api/resume/upload with field \"resume\".",
+    },
+    { status: 410 }
+  );
 }

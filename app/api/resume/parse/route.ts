@@ -1,99 +1,21 @@
-// IMPORTANT:
-// All server routes must use the `admin` Supabase client.
-// Do not use `supabase` in API routes.
-
 /**
  * POST /api/resume/parse
- * Receives uploaded file path, fetches from Supabase (service role), extracts text,
- * sends to OpenAI for structured employment JSON. Normalizes and returns employment array.
- * Rate limit: 3 attempts per user per day. Does not store raw resume text.
+ * Extract identity + employment from an uploaded resume. Rate limit: 3/user/day.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/auth/getUser";
 import { admin } from "@/lib/supabase-admin";
-import { parseResumeAndUpdateRecord } from "@/lib/resume/parseAndStore";
-import { env } from "@/lib/env";
-import OpenAI from "openai";
-import { z } from "zod";
+import { attachDuplicateHints } from "@/lib/resume/duplicate-detection";
+import { isResumePathOwnedByUser, toStoragePath } from "@/lib/resume/path-utils";
+import { parseResumeBuffer } from "@/lib/resume/parse-resume";
+import { RESUME_BUCKET } from "@/lib/resume/types";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-const EmploymentSchema = z.object({
-  company_name: z.string().min(1),
-  job_title: z.string().optional().nullable(),
-  start_date: z.string().min(4),
-  end_date: z.string().optional().nullable(),
-  is_current: z.boolean().optional(),
-});
-
-const ResumeParseSchema = z.object({
-  employment: z.array(EmploymentSchema),
-});
-
-type EmploymentInput = z.infer<typeof EmploymentSchema>;
-
-type NormalizedEmployment = {
-  company_name: string;
-  job_title: string;
-  start_date: string;
-  end_date: string | null;
-  is_current: boolean;
-  company_normalized: string;
-};
-
-const BUCKET = "resumes";
 const PARSE_LIMIT_PER_DAY = 3;
 const PARSE_ENTITY_TYPE = "resume_parse";
-
-function normalizeDate(s: string | null | undefined): string | null {
-  if (s == null || s === "") return null;
-  const trimmed = String(s).trim();
-  if (/^(present|current|now)$/i.test(trimmed)) return null;
-  const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (match) return trimmed;
-  const d = new Date(trimmed);
-  if (Number.isNaN(d.getTime())) return null;
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-function normalizeEmployment(raw: EmploymentInput[]): NormalizedEmployment[] {
-  const seen = new Set<string>();
-  const out: NormalizedEmployment[] = [];
-
-  for (const item of raw) {
-    const company = (item.company_name ?? "").trim();
-    if (!company) continue;
-    const start = normalizeDate(item.start_date ?? "");
-    if (!start) continue;
-
-    const endRaw = item.is_current ? null : (item.end_date ?? null);
-    const end = normalizeDate(endRaw);
-    if (end !== null && start !== null && end < start) continue;
-
-    const company_normalized = company.toLowerCase().trim();
-    const key = `${company_normalized}|${start}|${end ?? "null"}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-
-    out.push({
-      company_name: company,
-      job_title: (item.job_title ?? "").trim() || "Unknown",
-      start_date: start,
-      end_date: end,
-      is_current:
-        item.is_current === true ||
-        (end == null &&
-          (String(item.end_date ?? "").toLowerCase().includes("present") ||
-            String(item.end_date ?? "").trim() === "")),
-      company_normalized,
-    });
-  }
-  return out;
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -104,14 +26,15 @@ export async function POST(req: NextRequest) {
 
     const userId = user.id;
     const body = await req.json().catch(() => ({}));
-    const path = typeof body.path === "string" ? body.path.trim() : "";
+    const path = toStoragePath(typeof body.path === "string" ? body.path : "");
 
     if (!path) {
       return NextResponse.json({ error: "Missing file path" }, { status: 400 });
     }
-    if (!path.startsWith(userId + "/") && !path.startsWith("sandbox/")) {
-      if (path.includes("..")) return NextResponse.json({ error: "Invalid file path" }, { status: 403 });
+    if (!isResumePathOwnedByUser(path, userId)) {
+      return NextResponse.json({ error: "Invalid file path" }, { status: 403 });
     }
+
     const todayStart = new Date();
     todayStart.setUTCHours(0, 0, 0, 0);
     const { count } = await admin
@@ -129,114 +52,63 @@ export async function POST(req: NextRequest) {
     }
 
     const { data: fileData, error: downloadError } = await admin.storage
-      .from(BUCKET)
+      .from(RESUME_BUCKET)
       .download(path);
 
     if (downloadError || !fileData) {
-      console.error("[resume/parse] download error:", downloadError);
       return NextResponse.json(
-        { error: "Could not extract structured employment data. Please add manually." },
+        { error: "Could not read your resume. Upload again and retry." },
         { status: 400 }
       );
     }
 
     const buffer = Buffer.from(await fileData.arrayBuffer());
-    const ext = path.toLowerCase().endsWith(".docx") ? "docx" : "pdf";
-    let rawText = "";
+    const parsed = await parseResumeBuffer(buffer, path);
 
-    if (ext === "pdf") {
-      const { PDFParse } = await import("pdf-parse");
-      const parser = new PDFParse({ data: new Uint8Array(buffer) });
-      try {
-        const result = await parser.getText();
-        rawText = result?.text ?? "";
-        await parser.destroy?.();
-      } catch (e) {
-        console.error("[resume/parse] pdf-parse error:", e);
-        return NextResponse.json(
-          { error: "Could not extract structured employment data. Please add manually." },
-          { status: 400 }
-        );
-      }
-    } else {
-      const mammoth = await import("mammoth");
-      const result = await mammoth.extractRawText({ buffer });
-      rawText = result.value ?? "";
+    if (!parsed.ok) {
+      const status =
+        parsed.code === "PARSER_UNAVAILABLE" || parsed.code === "PARSER_TIMEOUT" ? 503 : 400;
+      return NextResponse.json({ error: parsed.error, code: parsed.code }, { status });
     }
 
-    if (!rawText || rawText.trim().length < 50) {
-      return NextResponse.json(
-        { error: "Could not extract structured employment data. Please add manually." },
-        { status: 400 }
-      );
-    }
+    const { data: existingRows } = await admin
+      .from("employment_records")
+      .select("id, company_name, company_normalized, job_title, start_date, end_date, is_current, verification_status")
+      .eq("user_id", userId);
 
-    if (!env.OPENAI_API_KEY) {
-      console.error("[resume/parse] OPENAI_API_KEY not set");
-      return NextResponse.json(
-        { error: "Could not extract structured employment data. Please add manually." },
-        { status: 500 }
-      );
-    }
-
-    const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
-    const prompt = `Extract employment history from the following resume text. Return a JSON object with a single key "employment" whose value is an array of objects. Each object must have: company_name (string), job_title (string), start_date (YYYY-MM-DD), end_date (YYYY-MM-DD or null if current/Present), is_current (boolean). Skip entries without company name or start date. If "Present" or "Current" is mentioned for end date, set end_date to null and is_current to true. Dates must be normalized to YYYY-MM-DD.
-
-Resume text:
-${rawText.slice(0, 12000)}`;
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      response_format: { type: "json_object" },
-    });
-
-    const content = completion.choices?.[0]?.message?.content;
-    if (!content) {
-      return NextResponse.json(
-        { error: "Could not extract structured employment data. Please add manually." },
-        { status: 400 }
-      );
-    }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      return NextResponse.json(
-        { error: "Could not extract structured employment data. Please add manually." },
-        { status: 400 }
-      );
-    }
-
-    const result = ResumeParseSchema.safeParse(parsed);
-    if (!result.success) {
-      return NextResponse.json(
-        { error: "Invalid structured employment data from parser." },
-        { status: 400 }
-      );
-    }
-    const employment = result.data.employment;
-    const normalized = normalizeEmployment(employment);
+    const employment = attachDuplicateHints(
+      parsed.data.employment,
+      (existingRows ?? []).map((r) => ({
+        id: r.id,
+        company_name: r.company_name,
+        company_normalized: r.company_normalized,
+        job_title: r.job_title,
+        start_date: r.start_date,
+        end_date: r.end_date,
+        is_current: r.is_current,
+        verification_status: r.verification_status,
+      }))
+    );
 
     await admin.from("audit_logs").insert({
       entity_type: PARSE_ENTITY_TYPE,
       entity_id: userId,
       changed_by: userId,
-      new_value: { path, employment_count: normalized.length },
+      new_value: {
+        path,
+        employment_count: employment.length,
+        parse_status: parsed.data.parse_status,
+      },
       change_reason: "resume_parse",
     });
 
-    return NextResponse.json({ employment: normalized });
-  } catch (e) {
-    console.error("[resume/parse] error:", e);
+    return NextResponse.json({
+      ...parsed.data,
+      employment,
+    });
+  } catch {
     return NextResponse.json(
-      { error: "Could not extract structured employment data. Please add manually." },
+      { error: "Could not parse this resume. Please add employment manually." },
       { status: 500 }
     );
   }
