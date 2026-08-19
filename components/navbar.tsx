@@ -26,7 +26,7 @@ export default function Navbar() {
   const isActive = (path: string) =>
     pathname === path || (path !== "/coworker-matches" && pathname?.startsWith(path));
 
-  if (pathname?.startsWith("/demo")) {
+  if (pathname?.startsWith("/demo") || pathname?.startsWith("/product-tour")) {
     return null;
   }
 
