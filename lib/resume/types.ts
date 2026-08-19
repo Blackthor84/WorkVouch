@@ -22,6 +22,8 @@ export type ExtractedIdentity = {
   country?: ExtractedField<string>;
 };
 
+export type ProfileFieldChoice = "keep_existing" | "use_resume" | "manual";
+
 export type ExtractedEmployment = {
   client_id: string;
   company_name: string;
@@ -38,6 +40,7 @@ export type ExtractedEmployment = {
   /** Set when duplicate detection finds an existing record */
   duplicate_of: string | null;
   duplicate_match_reason: string | null;
+  duplicate_verification_status: string | null;
 };
 
 export type ResumeUploadResponse = {
@@ -60,6 +63,9 @@ export type IdentityConfirmInput = {
   city?: string | null;
   state?: string | null;
   country?: string | null;
+  field_choices?: Partial<
+    Record<"full_name" | "phone" | "city" | "state" | "country" | "location", ProfileFieldChoice>
+  >;
 };
 
 export type EmploymentConfirmItem = {
@@ -85,6 +91,8 @@ export type ResumeConfirmResponse = {
   record_ids: string[];
   skipped_count: number;
   updated_count: number;
+  verified_protected_count: number;
   profile_updated: boolean;
+  profile_skipped_fields: string[];
   verification_url: string;
 };

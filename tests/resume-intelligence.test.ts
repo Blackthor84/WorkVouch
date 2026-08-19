@@ -5,14 +5,25 @@
 import { describe, it, expect } from "vitest";
 import { numericToConfidence, confidenceLabel } from "@/lib/resume/confidence";
 import { attachDuplicateHints } from "@/lib/resume/duplicate-detection";
+import {
+  allowedDuplicateActions,
+  isVerifiedEmployment,
+  resolveEmploymentConfirmAction,
+} from "@/lib/resume/employment-protection";
 import { normalizeResumeDate } from "@/lib/resume/normalize-dates";
 import {
   isResumePathOwnedByUser,
   toProfileResumeUrl,
   toStoragePath,
 } from "@/lib/resume/path-utils";
+import {
+  listProfileConflicts,
+  profileFieldsConflict,
+  resolveProfileUpdates,
+} from "@/lib/resume/profile-population";
 import { validateResumeFile } from "@/lib/resume/validate-upload";
 import type { ExtractedEmployment } from "@/lib/resume/types";
+import { RESUME_ALLOWED_EXTENSIONS } from "@/lib/resume/types";
 
 describe("resume upload contract", () => {
   it("toProfileResumeUrl and toStoragePath round-trip", () => {
@@ -101,6 +112,7 @@ describe("duplicate detection", () => {
     source: "resume",
     duplicate_of: null,
     duplicate_match_reason: null,
+    duplicate_verification_status: null,
     ...overrides,
   });
 
@@ -148,6 +160,106 @@ describe("verification boundary (regression)", () => {
     const source = "resume";
     expect(pendingStatus).not.toBe("verified");
     expect(source).toBe("resume");
+  });
+});
+
+describe("verified employment protection (F-04)", () => {
+  it("blocks update action on verified records", () => {
+    const result = resolveEmploymentConfirmAction("update", "verified");
+    expect(result.action).toBe("skip");
+    expect(result.verified_protected).toBe(true);
+  });
+
+  it("allows update on pending records", () => {
+    const result = resolveEmploymentConfirmAction("update", "pending");
+    expect(result.action).toBe("update");
+    expect(result.verified_protected).toBe(false);
+  });
+
+  it("hides update option for verified duplicates in UI helper", () => {
+    expect(allowedDuplicateActions("verified")).toEqual(["skip", "create"]);
+    expect(allowedDuplicateActions("pending")).toContain("update");
+  });
+
+  it("detects verified status", () => {
+    expect(isVerifiedEmployment("verified")).toBe(true);
+    expect(isVerifiedEmployment("pending")).toBe(false);
+  });
+});
+
+describe("profile protection (F-03)", () => {
+  it("detects field conflicts", () => {
+    expect(profileFieldsConflict("Manchester", "Concord")).toBe(true);
+    expect(profileFieldsConflict("Manchester", "Manchester")).toBe(false);
+    expect(profileFieldsConflict("", "Concord")).toBe(false);
+  });
+
+  it("does not overwrite existing fields without explicit use_resume choice", () => {
+    const { updates, skipped_fields } = resolveProfileUpdates(
+      { full_name: "Jane Doe", city: "Manchester", state: "NH" },
+      {
+        apply: true,
+        full_name: "John Smith",
+        city: "Concord",
+        state: "NH",
+        field_choices: {},
+      }
+    );
+    expect(updates.full_name).toBeUndefined();
+    expect(updates.city).toBeUndefined();
+    expect(skipped_fields).toContain("full_name");
+    expect(skipped_fields).toContain("city");
+  });
+
+  it("applies resume value when user explicitly chooses use_resume", () => {
+    const { updates } = resolveProfileUpdates(
+      { city: "Manchester" },
+      {
+        apply: true,
+        city: "Concord",
+        field_choices: { city: "use_resume" },
+      }
+    );
+    expect(updates.city).toBe("Concord");
+  });
+
+  it("fills empty profile fields when apply is true", () => {
+    const { updates } = resolveProfileUpdates(
+      { full_name: "", city: null },
+      {
+        apply: true,
+        full_name: "John Smith",
+        city: "Concord",
+      }
+    );
+    expect(updates.full_name).toBe("John Smith");
+    expect(updates.city).toBe("Concord");
+  });
+
+  it("lists conflicts for review UI", () => {
+    const conflicts = listProfileConflicts(
+      { city: "Manchester" },
+      { apply: true, city: "Concord" }
+    );
+    expect(conflicts).toHaveLength(1);
+    expect(conflicts[0].field).toBe("city");
+  });
+});
+
+describe("TXT support (F-01)", () => {
+  it("includes txt in allowed extensions", () => {
+    expect(RESUME_ALLOWED_EXTENSIONS).toContain("txt");
+  });
+
+  it("validates txt uploads at application layer", () => {
+    const f = new File(["resume text"], "resume.txt", { type: "text/plain" });
+    expect(validateResumeFile(f)).toEqual({ ok: true });
+  });
+});
+
+describe("supabase admin lazy init (F-06)", () => {
+  it("does not throw when module is imported without env vars", async () => {
+    await expect(import("@/lib/supabase-admin")).resolves.toBeDefined();
   });
 });
 

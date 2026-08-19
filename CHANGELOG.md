@@ -2,6 +2,15 @@
 
 All notable changes to the WorkVouch Connect integration platform are documented here.
 
+## Sprint 11.2 — Resume Intelligence Hardening
+
+- **F-06:** Lazy Supabase admin init (`lib/supabase-admin.ts`, `lib/supabaseAdmin.ts`) — build no longer requires credentials at module import
+- **F-04:** Verified employment cannot be downgraded by resume import; update blocked server-side and in UI
+- **F-03:** Profile field conflicts require explicit keep / use resume / manual choice; no silent overwrites
+- **F-01:** Storage migration adds `text/plain` to resumes bucket MIME allowlist
+- Parse API returns `existing_profile` for conflict review UI
+- 12 new regression tests (338 total)
+
 ## Sprint 11 — Resume Intelligence
 
 - Repaired upload contract: form field `resume`, response `{ path, url }` — fixed `ImportResumeClient` mismatch

@@ -1,13 +1,5 @@
 /**
  * Supabase admin client (service role) for auth.admin and privileged DB operations.
- * Use for: updateUserById (email), admin_audit_logs, cross-tenant reads.
- * [AUTH_UPDATE] Do not persist session; server-side only.
+ * Re-exports lazy singleton from @/lib/supabase-admin — safe at Next.js build import time.
  */
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/supabase";
-
-export const supabaseAdmin = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { persistSession: false } }
-);
+export { admin as supabaseAdmin, getAdminClient } from "@/lib/supabase-admin";

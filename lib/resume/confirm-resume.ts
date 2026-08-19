@@ -1,9 +1,12 @@
 /**
  * Confirm resume extraction — pending employment + optional profile updates.
  * Resume-derived records remain verification_status = pending; never verified automatically.
+ * Verified employment cannot be downgraded or overwritten (Sprint 11.2).
  */
 
 import { admin } from "@/lib/supabase-admin";
+import { resolveEmploymentConfirmAction } from "./employment-protection";
+import { resolveProfileUpdates, type ProfileSnapshot } from "./profile-population";
 import type {
   EmploymentConfirmItem,
   IdentityConfirmInput,
@@ -18,11 +21,6 @@ export type ConfirmResumeInput = {
   cookieHeader?: string | null;
 };
 
-function buildLocationString(city?: string | null, state?: string | null, country?: string | null): string | null {
-  const parts = [city, state, country].map((p) => (p ?? "").trim()).filter(Boolean);
-  return parts.length ? parts.join(", ") : null;
-}
-
 type ExistingRow = {
   id: string;
   company_name: string;
@@ -30,12 +28,15 @@ type ExistingRow = {
   job_title: string;
   start_date: string;
   end_date: string | null;
+  verification_status: string;
 };
 
 async function loadExistingEmployment(userId: string): Promise<ExistingRow[]> {
   const { data } = await admin
     .from("employment_records")
-    .select("id, company_name, company_normalized, job_title, start_date, end_date")
+    .select(
+      "id, company_name, company_normalized, job_title, start_date, end_date, verification_status"
+    )
     .eq("user_id", userId);
   return (data ?? []) as ExistingRow[];
 }
@@ -57,6 +58,11 @@ function isDuplicateOfExisting(item: EmploymentConfirmItem, existing: ExistingRo
   return null;
 }
 
+function findExistingRow(existing: ExistingRow[], id: string | null | undefined): ExistingRow | null {
+  if (!id) return null;
+  return existing.find((r) => r.id === id) ?? null;
+}
+
 export async function confirmResumeExtraction(
   input: ConfirmResumeInput
 ): Promise<ResumeConfirmResponse> {
@@ -66,9 +72,22 @@ export async function confirmResumeExtraction(
   const insertedIds: string[] = [];
   let skippedCount = 0;
   let updatedCount = 0;
+  let verifiedProtectedCount = 0;
 
   for (const item of employment) {
-    const action = item.duplicate_action ?? "create";
+    const existingRow = findExistingRow(existing, item.existing_record_id);
+    const resolved = resolveEmploymentConfirmAction(
+      item.duplicate_action ?? "create",
+      existingRow?.verification_status
+    );
+
+    if (resolved.verified_protected) {
+      verifiedProtectedCount += 1;
+      skippedCount += 1;
+      continue;
+    }
+
+    const action = resolved.action;
     if (action === "skip") {
       skippedCount += 1;
       continue;
@@ -90,6 +109,13 @@ export async function confirmResumeExtraction(
     };
 
     if (action === "update" && item.existing_record_id) {
+      const target = findExistingRow(existing, item.existing_record_id);
+      if (target?.verification_status === "verified") {
+        verifiedProtectedCount += 1;
+        skippedCount += 1;
+        continue;
+      }
+
       const { data: updated, error } = await admin
         .from("employment_records")
         .update({
@@ -103,6 +129,7 @@ export async function confirmResumeExtraction(
         })
         .eq("id", item.existing_record_id)
         .eq("user_id", userId)
+        .neq("verification_status", "verified")
         .select("id")
         .single();
 
@@ -156,28 +183,21 @@ export async function confirmResumeExtraction(
   }
 
   let profileUpdated = false;
+  let profileSkippedFields: string[] = [];
+
   if (identity?.apply) {
     const adminAny = admin as { from: (t: string) => ReturnType<typeof admin.from> };
     const { data: profile } = await adminAny
       .from("profiles")
-      .select("full_name, city, state, location")
+      .select("full_name, email, city, state, location")
       .eq("id", userId)
       .single();
 
-    const updates: Record<string, string> = {};
-    if (identity.full_name?.trim() && (!profile?.full_name || profile.full_name.trim().length === 0)) {
-      updates.full_name = identity.full_name.trim();
-    }
-    if (identity.city?.trim()) {
-      updates.city = identity.city.trim();
-    }
-    if (identity.state?.trim()) {
-      updates.state = identity.state.trim();
-    }
-    const location = buildLocationString(identity.city, identity.state, identity.country);
-    if (location) {
-      updates.location = location;
-    }
+    const { updates, skipped_fields } = resolveProfileUpdates(
+      (profile ?? {}) as ProfileSnapshot,
+      identity
+    );
+    profileSkippedFields = skipped_fields;
 
     if (Object.keys(updates).length > 0) {
       const { error } = await adminAny.from("profiles").update(updates).eq("id", userId);
@@ -212,8 +232,10 @@ export async function confirmResumeExtraction(
       employment_count: insertedIds.length,
       skipped_count: skippedCount,
       updated_count: updatedCount,
+      verified_protected_count: verifiedProtectedCount,
       record_ids: insertedIds,
       profile_updated: profileUpdated,
+      profile_skipped_fields: profileSkippedFields,
     } as Record<string, unknown>,
     change_reason: "resume_import_confirmed",
   });
@@ -223,7 +245,9 @@ export async function confirmResumeExtraction(
     record_ids: insertedIds,
     skipped_count: skippedCount,
     updated_count: updatedCount,
+    verified_protected_count: verifiedProtectedCount,
     profile_updated: profileUpdated,
+    profile_skipped_fields: profileSkippedFields,
     verification_url: "/dashboard?openVerification=1",
   };
 }

@@ -111,6 +111,7 @@ function normalizeEmploymentItems(
       source: "resume",
       duplicate_of: null,
       duplicate_match_reason: null,
+      duplicate_verification_status: null,
     });
   }
 

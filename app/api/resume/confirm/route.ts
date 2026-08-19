@@ -24,6 +24,8 @@ const employmentItemSchema = z.object({
   existing_record_id: z.string().uuid().nullable().optional(),
 });
 
+const fieldChoiceSchema = z.enum(["keep_existing", "use_resume", "manual"]);
+
 const identitySchema = z.object({
   apply: z.boolean(),
   full_name: z.string().max(200).nullable().optional(),
@@ -31,6 +33,16 @@ const identitySchema = z.object({
   city: z.string().max(100).nullable().optional(),
   state: z.string().max(50).nullable().optional(),
   country: z.string().max(10).nullable().optional(),
+  field_choices: z
+    .object({
+      full_name: fieldChoiceSchema.optional(),
+      phone: fieldChoiceSchema.optional(),
+      city: fieldChoiceSchema.optional(),
+      state: fieldChoiceSchema.optional(),
+      country: fieldChoiceSchema.optional(),
+      location: fieldChoiceSchema.optional(),
+    })
+    .optional(),
 });
 
 const confirmBodySchema = z.object({

@@ -9,8 +9,10 @@ import {
   ExclamationTriangleIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import type { ConfidenceLevel, ExtractedIdentity } from "@/lib/resume/types";
+import type { ConfidenceLevel, ExtractedIdentity, ProfileFieldChoice } from "@/lib/resume/types";
 import { confidenceLabel } from "@/lib/resume/confidence";
+import { allowedDuplicateActions } from "@/lib/resume/employment-protection";
+import { profileFieldsConflict } from "@/lib/resume/profile-population";
 
 export type ReviewEmploymentItem = {
   client_id: string;
@@ -23,8 +25,19 @@ export type ReviewEmploymentItem = {
   confidence: ConfidenceLevel;
   duplicate_of: string | null;
   duplicate_match_reason: string | null;
+  duplicate_verification_status: string | null;
   duplicate_action: "create" | "skip" | "update";
 };
+
+type ExistingProfile = {
+  full_name?: string | null;
+  email?: string | null;
+  city?: string | null;
+  state?: string | null;
+  location?: string | null;
+};
+
+type FieldChoiceKey = "full_name" | "city" | "state" | "location";
 
 type Step = "upload" | "review" | "success";
 
@@ -104,6 +117,8 @@ export function ImportResumeClient() {
   const [identityConfidences, setIdentityConfidences] = useState<
     Record<string, ConfidenceLevel | undefined>
   >({});
+  const [existingProfile, setExistingProfile] = useState<ExistingProfile | null>(null);
+  const [fieldChoices, setFieldChoices] = useState<Partial<Record<FieldChoiceKey, ProfileFieldChoice>>>({});
   const [warnings, setWarnings] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -170,11 +185,33 @@ export function ImportResumeClient() {
         apply: Boolean(mapped.full_name || mapped.city || mapped.state),
       });
       setIdentityConfidences(mapped.confidences);
+      setExistingProfile(parseData.existing_profile ?? null);
+
+      const initialChoices: Partial<Record<FieldChoiceKey, ProfileFieldChoice>> = {};
+      const ex = parseData.existing_profile as ExistingProfile | null;
+      if (ex) {
+        for (const [field, resumeVal] of [
+          ["full_name", mapped.full_name],
+          ["city", mapped.city],
+          ["state", mapped.state],
+        ] as const) {
+          const existingVal = ex[field];
+          initialChoices[field] = profileFieldsConflict(existingVal, resumeVal)
+            ? "keep_existing"
+            : "use_resume";
+        }
+        const resumeLocation = [mapped.city, mapped.state, mapped.country].filter(Boolean).join(", ");
+        initialChoices.location = profileFieldsConflict(ex.location, resumeLocation)
+          ? "keep_existing"
+          : "use_resume";
+      }
+      setFieldChoices(initialChoices);
 
       const list = Array.isArray(parseData.employment) ? parseData.employment : [];
       setEmployment(
         list.map((e: ReviewEmploymentItem) => ({
           ...e,
+          duplicate_verification_status: e.duplicate_verification_status ?? null,
           duplicate_action: e.duplicate_of ? "skip" : "create",
         }))
       );
@@ -218,6 +255,7 @@ export function ImportResumeClient() {
         confidence: "medium" as ConfidenceLevel,
         duplicate_of: null,
         duplicate_match_reason: null,
+        duplicate_verification_status: null,
         duplicate_action: "create",
       },
     ]);
@@ -254,6 +292,7 @@ export function ImportResumeClient() {
               city: identity.city.trim() || null,
               state: identity.state.trim() || null,
               country: identity.country.trim() || null,
+              field_choices: fieldChoices,
             }
           : { apply: false },
         resume_path: uploadPath,
@@ -274,7 +313,7 @@ export function ImportResumeClient() {
     } finally {
       setLoading(false);
     }
-  }, [employment, identity, uploadPath]);
+  }, [employment, identity, fieldChoices, uploadPath]);
 
   if (step === "success") {
     return (
@@ -380,29 +419,72 @@ export function ImportResumeClient() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {(
             [
-              ["full_name", "Full name"],
-              ["email", "Email"],
-              ["phone", "Phone"],
-              ["city", "City"],
-              ["state", "State / Province"],
-              ["country", "Country"],
+              ["full_name", "Full name", existingProfile?.full_name],
+              ["email", "Email", existingProfile?.email],
+              ["phone", "Phone", null],
+              ["city", "City", existingProfile?.city],
+              ["state", "State / Province", existingProfile?.state],
+              ["country", "Country", null],
             ] as const
-          ).map(([key, label]) => (
-            <label key={key} className="block text-sm text-gray-600 dark:text-gray-400">
-              <span className="flex items-center justify-between gap-2">
-                {label}
-                {identityConfidences[key] && (
-                  <ConfidenceBadge level={identityConfidences[key]!} />
+          ).map(([key, label, existingVal]) => {
+            const choiceKey = key === "country" ? null : (key as FieldChoiceKey);
+            const hasConflict =
+              choiceKey &&
+              profileFieldsConflict(existingVal, identity[key as keyof typeof identity]);
+            return (
+              <div key={key} className="block text-sm text-gray-600 dark:text-gray-400">
+                <span className="flex items-center justify-between gap-2">
+                  {label}
+                  {identityConfidences[key] && (
+                    <ConfidenceBadge level={identityConfidences[key]!} />
+                  )}
+                </span>
+                {hasConflict && choiceKey && (
+                  <div className="mt-1 mb-1 rounded border border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-900/20 p-2 text-xs">
+                    <p>
+                      Existing: <strong>{String(existingVal)}</strong> → Resume:{" "}
+                      <strong>{identity[key as keyof typeof identity]}</strong>
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {(
+                        [
+                          ["keep_existing", "Keep existing"],
+                          ["use_resume", "Use resume value"],
+                          ["manual", "Edit manually"],
+                        ] as const
+                      ).map(([choice, labelChoice]) => (
+                        <button
+                          key={choice}
+                          type="button"
+                          onClick={() =>
+                            setFieldChoices((prev) => ({ ...prev, [choiceKey]: choice }))
+                          }
+                          className={`px-2 py-1 rounded border ${
+                            (fieldChoices[choiceKey] ?? "keep_existing") === choice
+                              ? "border-blue-600 bg-blue-50 dark:bg-blue-900/30"
+                              : "border-gray-300 dark:border-gray-600"
+                          }`}
+                        >
+                          {labelChoice}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              </span>
-              <input
-                type="text"
-                value={identity[key]}
-                onChange={(e) => setIdentity((i) => ({ ...i, [key]: e.target.value }))}
-                className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-gray-100"
-              />
-            </label>
-          ))}
+                <input
+                  type="text"
+                  value={identity[key]}
+                  onChange={(e) => {
+                    setIdentity((i) => ({ ...i, [key]: e.target.value }));
+                    if (choiceKey) {
+                      setFieldChoices((prev) => ({ ...prev, [choiceKey]: "manual" }));
+                    }
+                  }}
+                  className="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+            );
+          })}
         </div>
       </section>
 
@@ -428,6 +510,11 @@ export function ImportResumeClient() {
                   {item.duplicate_of && (
                     <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
                       {item.duplicate_match_reason ?? "Looks like a record you already have."}
+                      {item.duplicate_verification_status === "verified" && (
+                        <span className="block mt-0.5 text-green-700 dark:text-green-400">
+                          Verified record — resume cannot change it. Keep existing or create separate.
+                        </span>
+                      )}
                     </p>
                   )}
                 </div>
@@ -443,7 +530,7 @@ export function ImportResumeClient() {
 
               {item.duplicate_of && (
                 <div className="flex flex-wrap gap-2 text-xs">
-                  {(["skip", "update", "create"] as const).map((action) => (
+                  {allowedDuplicateActions(item.duplicate_verification_status).map((action) => (
                     <button
                       key={action}
                       type="button"

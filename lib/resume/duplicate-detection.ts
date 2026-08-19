@@ -43,13 +43,19 @@ export function attachDuplicateHints(
     });
 
     if (!match) {
-      return { ...job, duplicate_of: null, duplicate_match_reason: null };
+      return {
+        ...job,
+        duplicate_of: null,
+        duplicate_match_reason: null,
+        duplicate_verification_status: null,
+      };
     }
 
     return {
       ...job,
       duplicate_of: match.id,
       duplicate_match_reason: `Looks like ${match.company_name} — ${match.job_title} (${match.verification_status})`,
+      duplicate_verification_status: match.verification_status,
     };
   });
 }

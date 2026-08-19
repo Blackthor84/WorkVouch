@@ -90,6 +90,12 @@ export async function POST(req: NextRequest) {
       }))
     );
 
+    const { data: existingProfile } = await admin
+      .from("profiles")
+      .select("full_name, email, city, state, location")
+      .eq("id", userId)
+      .single();
+
     await admin.from("audit_logs").insert({
       entity_type: PARSE_ENTITY_TYPE,
       entity_id: userId,
@@ -105,6 +111,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       ...parsed.data,
       employment,
+      existing_profile: existingProfile ?? null,
     });
   } catch {
     return NextResponse.json(
