@@ -2,6 +2,18 @@
 
 All notable changes to the WorkVouch Connect integration platform are documented here.
 
+## Sprint 12 — Greenhouse Harvest V3 + Partner OAuth Migration
+
+- Partner OAuth: `auth.greenhouse.io/authorize` + `/token` with HTTP Basic auth (no PKCE)
+- Approved granular scopes (7) for WorkVouch testing client
+- Harvest V3 client: `harvest.greenhouse.io/v3/` with Link-header cursor pagination
+- Import service: `updated_at` incremental filter + provider API cursor persistence
+- Custom fields: V3 object-map normalization + definition catalog on import
+- Health service: V3 connectivity probe, OAuth config validation, webhook secret check
+- Docs: `docs/audits/greenhouse-v3-migration-audit.md`, `docs/providers/greenhouse/*`, `SPRINT_12_REPORT.md`
+- Tests: 342 passing (+3 V3 migration tests); production build passes
+- Live Greenhouse sandbox OAuth: **pending manual verification**
+
 ## Sprint 11.2 — Resume Intelligence Hardening
 
 - **F-06:** Lazy Supabase admin init (`lib/supabase-admin.ts`, `lib/supabaseAdmin.ts`) — build no longer requires credentials at module import

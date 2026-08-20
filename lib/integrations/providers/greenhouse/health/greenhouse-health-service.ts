@@ -1,5 +1,5 @@
 import type { HealthCheckParams, HealthCheckResult } from "../../../types/provider";
-import type { GreenhouseProviderConfig, HarvestUser, TokenStore } from "../types";
+import type { GreenhouseProviderConfig, TokenStore } from "../types";
 import { validateGreenhouseConfig } from "../config/greenhouse-config";
 import { GREENHOUSE_OAUTH_CONFIG } from "../config/manifest";
 import { HarvestClient } from "../api/harvest-client";
@@ -8,12 +8,14 @@ import { isIntegrationPlatformError } from "../../../utils/errors";
 
 export interface GreenhouseHealthDetail {
   configuration: { ok: boolean; errors: string[]; warnings: string[] };
-  oauth: { ok: boolean; message?: string };
+  oauth: { ok: boolean; message?: string; partnerOAuth?: boolean; v3Api?: boolean };
   token: { ok: boolean; expired: boolean; expiresAt?: string; message?: string };
-  scopes: { ok: boolean; missing: string[] };
-  harvest: { ok: boolean; latencyMs: number; message?: string; user?: HarvestUser };
+  scopes: { ok: boolean; missing: string[]; granted: string[] };
+  harvest: { ok: boolean; latencyMs: number; message?: string; probe?: string };
   rateLimit: { ok: boolean; message?: string };
   network: { ok: boolean; message?: string };
+  pagination: { ok: boolean; message?: string };
+  webhooks: { ok: boolean; message?: string };
 }
 
 export class GreenhouseHealthService {
@@ -41,6 +43,7 @@ export class GreenhouseHealthService {
       detail.harvest.message,
       detail.rateLimit.message,
       detail.network.message,
+      detail.pagination.message,
       detail.scopes.missing.length
         ? `Missing scopes: ${detail.scopes.missing.join(", ")}`
         : undefined,
@@ -49,7 +52,7 @@ export class GreenhouseHealthService {
     return {
       healthy,
       latencyMs: detail.harvest.latencyMs,
-      providerAccountName: detail.harvest.user?.name,
+      providerAccountName: detail.harvest.probe,
       error: healthy ? undefined : errors.join("; "),
       checkedAt: nowIso(),
     };
@@ -70,16 +73,23 @@ export class GreenhouseHealthService {
       warnings: configResult.warnings ?? [],
     };
 
+    const partnerOAuth =
+      GREENHOUSE_OAUTH_CONFIG.authorizationUrl === "https://auth.greenhouse.io/authorize" &&
+      GREENHOUSE_OAUTH_CONFIG.tokenUrl === "https://auth.greenhouse.io/token";
+    const v3Api = this.config.harvest.baseUrl.includes("/v3");
+
     const oauth = {
-      ok: Boolean(
-        this.config.clientId &&
-          this.config.clientSecret &&
-          GREENHOUSE_OAUTH_CONFIG.authorizationUrl.startsWith("https://")
-      ),
+      ok: Boolean(this.config.clientId && this.config.clientSecret && partnerOAuth && v3Api),
+      partnerOAuth,
+      v3Api,
       message: undefined as string | undefined,
     };
 
-    if (!oauth.ok) {
+    if (!partnerOAuth) {
+      oauth.message = "OAuth endpoints must use Partner OAuth URLs (/authorize, /token).";
+    } else if (!v3Api) {
+      oauth.message = "Harvest base URL must target /v3.";
+    } else if (!oauth.ok) {
       oauth.message = "Greenhouse OAuth configuration is incomplete.";
     }
 
@@ -109,6 +119,7 @@ export class GreenhouseHealthService {
     const scopes = {
       ok: missing.length === 0 || grantedScopes.length === 0,
       missing,
+      granted: grantedScopes,
     };
 
     let harvest: GreenhouseHealthDetail["harvest"] = {
@@ -119,6 +130,7 @@ export class GreenhouseHealthService {
 
     let rateLimit = { ok: true, message: undefined as string | undefined };
     let network = { ok: true, message: undefined as string | undefined };
+    let pagination = { ok: true, message: undefined as string | undefined };
 
     if (params.accessToken && !tokenExpired) {
       try {
@@ -127,7 +139,7 @@ export class GreenhouseHealthService {
           ok: result.healthy,
           latencyMs: result.latencyMs,
           message: result.error,
-          user: result.user,
+          probe: result.probe,
         };
       } catch (error) {
         if (isIntegrationPlatformError(error)) {
@@ -135,6 +147,8 @@ export class GreenhouseHealthService {
             rateLimit = { ok: false, message: error.message };
           } else if (error.code === "NETWORK_UNREACHABLE") {
             network = { ok: false, message: error.message };
+          } else if (error.message.toLowerCase().includes("pagination")) {
+            pagination = { ok: false, message: error.message };
           } else {
             harvest = {
               ok: false,
@@ -151,6 +165,13 @@ export class GreenhouseHealthService {
       }
     }
 
+    const webhooks = {
+      ok: Boolean(this.config.webhookSecret),
+      message: this.config.webhookSecret
+        ? undefined
+        : "Webhook secret not configured — Hookshot ingress unverified.",
+    };
+
     return {
       configuration,
       oauth,
@@ -159,6 +180,8 @@ export class GreenhouseHealthService {
       harvest,
       rateLimit,
       network,
+      pagination,
+      webhooks,
     };
   }
 }

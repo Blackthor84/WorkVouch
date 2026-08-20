@@ -73,25 +73,34 @@ describe("WorkVouch Connect — Sprint 5 Live Connection", () => {
     snapshots = new SnapshotService(eventStore, new InMemorySnapshotRepository(), projections);
 
     mockHttp = new MockHttpClient();
-    mockHttp.on("/users/me", () => ({
+    mockHttp.on("harvest.greenhouse.io/v3/jobs", () => ({
       status: 200,
-      headers: {},
-      body: JSON.stringify({ id: 1, name: "Test User", email: "test@greenhouse.io" }),
+      headers: { link: "" },
+      body: JSON.stringify([loadFixture("job-created.json")]),
     }));
 
-    const jobs = [loadFixture("job-created.json")];
-    mockHttp.on("/jobs?page=1", () => ({ status: 200, headers: {}, body: JSON.stringify(jobs) }));
-    mockHttp.on("/jobs?page=2", () => ({ status: 200, headers: {}, body: JSON.stringify([]) }));
-
-    const candidates = [loadFixture("candidate-created.json")];
-    mockHttp.on("/candidates?page=1", () => ({ status: 200, headers: {}, body: JSON.stringify(candidates) }));
-    mockHttp.on("/candidates?page=2", () => ({ status: 200, headers: {}, body: JSON.stringify([]) }));
-
-    mockHttp.on("/applications?page=1", () => ({ status: 200, headers: {}, body: JSON.stringify([]) }));
-    mockHttp.on("/users?page=1", () => ({
+    mockHttp.on("harvest.greenhouse.io/v3/candidates", () => ({
       status: 200,
-      headers: {},
-      body: JSON.stringify([{ id: 1, name: "Test User", email: "test@greenhouse.io" }]),
+      headers: { link: "" },
+      body: JSON.stringify([loadFixture("candidate-created.json")]),
+    }));
+
+    mockHttp.on("harvest.greenhouse.io/v3/applications", () => ({
+      status: 200,
+      headers: { link: "" },
+      body: JSON.stringify([]),
+    }));
+
+    mockHttp.on("harvest.greenhouse.io/v3/candidate_employments", () => ({
+      status: 200,
+      headers: { link: "" },
+      body: JSON.stringify([]),
+    }));
+
+    mockHttp.on("harvest.greenhouse.io/v3/custom_fields", () => ({
+      status: 200,
+      headers: { link: "" },
+      body: JSON.stringify([{ id: 1, name: "WorkVouch Trust Score", field_type: "number" }]),
     }));
 
     harvest = new HarvestClient(resolveGreenhouseConfig(), mockHttp);

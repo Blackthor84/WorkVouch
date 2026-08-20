@@ -49,7 +49,9 @@ export interface StoredOAuthState {
 export interface GreenhouseTokenResponse {
   access_token: string;
   refresh_token?: string;
-  expires_in: number;
+  /** Partner OAuth returns ISO8601 expires_at; legacy responses may use expires_in seconds. */
+  expires_at?: string;
+  expires_in?: number;
   token_type: string;
   scope?: string;
 }

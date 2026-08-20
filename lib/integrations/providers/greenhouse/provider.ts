@@ -95,8 +95,11 @@ export class GreenhouseProvider implements AtsProvider {
   async connect(params: ConnectParams): Promise<ConnectResult> {
     if (!params.code) {
       if (this.connectionManager) {
-        const state = params.state || generateOAuthState();
-        const codeVerifier = params.codeVerifier ?? generateCodeVerifier();
+      const pkceRequired = this.config.oauth.pkceRequired;
+      const state = params.state || generateOAuthState();
+      const codeVerifier = pkceRequired
+        ? params.codeVerifier ?? generateCodeVerifier()
+        : params.codeVerifier ?? "";
         const pending = await this.connectionManager.startOAuth({
           employerAccountId: params.employerAccountId,
           provider: "greenhouse",
@@ -113,12 +116,12 @@ export class GreenhouseProvider implements AtsProvider {
     const result = await this.oauth.completeConnect(params);
     if (this.connectionManager) {
       await this.connectionManager.testConnection(result.connectionId, async (accessToken) => {
-        const user = await this.harvest.getCurrentUser(accessToken);
+        const probe = await this.harvest.healthCheck(accessToken);
         return {
-          success: true,
-          message: `Connected as ${user.name}`,
-          providerAccountId: String(user.id),
-          providerAccountName: user.name,
+          success: probe.healthy,
+          message: probe.healthy
+            ? probe.probe ?? "Harvest V3 API reachable"
+            : probe.error ?? "Connection test failed",
         };
       });
     }
@@ -158,11 +161,13 @@ export class GreenhouseProvider implements AtsProvider {
   async testConnection(params: TestConnectionParams): Promise<TestConnectionResult> {
     const started = Date.now();
     try {
-      const user = await this.harvest.getCurrentUser(params.accessToken);
+      const probe = await this.harvest.healthCheck(params.accessToken);
       return {
-        success: true,
+        success: probe.healthy,
         latencyMs: Date.now() - started,
-        message: `Connected as ${user.name} (${user.email})`,
+        message: probe.healthy
+          ? probe.probe ?? "Harvest V3 API reachable"
+          : probe.error ?? "Connection test failed",
         checkedAt: nowIso(),
       };
     } catch (error) {

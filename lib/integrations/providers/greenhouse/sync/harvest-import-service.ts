@@ -15,6 +15,7 @@ import { createCorrelationId } from "../../../utils/correlation";
 import type { HarvestClient } from "../api/harvest-client";
 import { mapGreenhouseApplication } from "../mappers/applicationMapper";
 import { mapGreenhouseCandidate } from "../mappers/candidateMapper";
+import { mapCustomFieldDefinitions } from "../mappers/customFieldMapper";
 import { mapGreenhouseJob } from "../mappers/jobMapper";
 import { GREENHOUSE_MANIFEST } from "../config/manifest";
 
@@ -32,12 +33,14 @@ export interface HarvestImportResult {
   jobsImported: number;
   candidatesImported: number;
   applicationsImported: number;
-  usersImported: number;
+  candidateEmploymentsImported: number;
+  customFieldsCataloged: number;
   eventsStored: number;
   durationMs: number;
   errors: string[];
   dryRun: boolean;
   cursorAdvanced: boolean;
+  paginationTruncated: boolean;
 }
 
 export interface HarvestImportDeps {
@@ -51,7 +54,7 @@ export interface HarvestImportDeps {
   cursorManager?: SyncCursorManager;
 }
 
-/** Greenhouse-specific Harvest import with incremental cursor support. */
+/** Greenhouse Harvest V3 import with cursor pagination + WorkVouch sync cursor. */
 export class HarvestImportService {
   constructor(private readonly deps: HarvestImportDeps) {}
 
@@ -110,8 +113,10 @@ export class HarvestImportService {
     let jobsImported = 0;
     let candidatesImported = 0;
     let applicationsImported = 0;
-    let usersImported = 0;
+    let candidateEmploymentsImported = 0;
+    let customFieldsCataloged = 0;
     let eventsStored = 0;
+    let paginationTruncated = false;
     const dryRun = flags.dryRun === true;
 
     await this.deps.connections.initializeCursor(options.connectionId, "greenhouse", GREENHOUSE_MANIFEST.version);
@@ -122,17 +127,40 @@ export class HarvestImportService {
     const tokens = await this.deps.connections.getTokens(options.connectionId);
     if (!tokens) {
       errors.push("No tokens available for connection");
-      return this.buildResult({ correlationId, mode, started, errors, jobsImported, candidatesImported, applicationsImported, usersImported, eventsStored, dryRun, cursorAdvanced: false });
+      return this.buildResult({
+        correlationId,
+        mode,
+        started,
+        errors,
+        jobsImported,
+        candidatesImported,
+        applicationsImported,
+        candidateEmploymentsImported,
+        customFieldsCataloged,
+        eventsStored,
+        dryRun,
+        cursorAdvanced: false,
+        paginationTruncated,
+      });
     }
 
     if (this.deps.connections.isTokenExpired(tokens.expiresAt) && tokens.refreshToken) {
       errors.push("Token expired — refresh required before import");
-      if (this.deps.cursorManager) {
-        await this.deps.cursorManager.getCursor(options.connectionId).then(() =>
-          this.deps.connections.validateCursor(options.connectionId)
-        );
-      }
-      return this.buildResult({ correlationId, mode, started, errors, jobsImported, candidatesImported, applicationsImported, usersImported, eventsStored, dryRun, cursorAdvanced: false });
+      return this.buildResult({
+        correlationId,
+        mode,
+        started,
+        errors,
+        jobsImported,
+        candidatesImported,
+        applicationsImported,
+        candidateEmploymentsImported,
+        customFieldsCataloged,
+        eventsStored,
+        dryRun,
+        cursorAdvanced: false,
+        paginationTruncated,
+      });
     }
 
     const cursor = await this.deps.connections.getCursor(options.connectionId);
@@ -145,54 +173,77 @@ export class HarvestImportService {
     const perPage = options.perPage ?? 100;
     const accessToken = tokens.accessToken;
 
+    const providerCursors = (cursor?.providerCursor ?? {}) as Record<string, string | undefined>;
+
     try {
-      for (let page = 1; page <= maxPages; page += 1) {
-        const jobs = await this.deps.harvest.listJobs(accessToken, page, perPage, updatedAfter);
-        for (const raw of jobs.items) {
-          try {
-            const universal = mapGreenhouseJob(raw);
-            if (!dryRun) await this.persistJob(options, universal, correlationId);
-            jobsImported += 1;
-            eventsStored += dryRun ? 0 : 1;
-          } catch (error) {
-            errors.push(error instanceof Error ? error.message : "Job import failed");
-          }
+      const jobsPage = await this.deps.harvest.listJobs(accessToken, {
+        perPage,
+        updatedAfter,
+        maxPages,
+        startUrl: flags.resume ? providerCursors.jobsNextUrl : undefined,
+      });
+      paginationTruncated = paginationTruncated || jobsPage.truncated;
+      for (const raw of jobsPage.items) {
+        try {
+          const universal = mapGreenhouseJob(raw);
+          if (!dryRun) await this.persistJob(options, universal, correlationId);
+          jobsImported += 1;
+          eventsStored += dryRun ? 0 : 1;
+        } catch (error) {
+          errors.push(error instanceof Error ? error.message : "Job import failed");
         }
-        if (!jobs.hasMore) break;
       }
 
-      for (let page = 1; page <= maxPages; page += 1) {
-        const candidates = await this.deps.harvest.listCandidates(accessToken, page, perPage, updatedAfter);
-        for (const raw of candidates.items) {
-          try {
-            const universal = mapGreenhouseCandidate(raw);
-            if (!dryRun) await this.persistCandidate(options, universal, correlationId);
-            candidatesImported += 1;
-            eventsStored += dryRun ? 0 : 1;
-          } catch (error) {
-            errors.push(error instanceof Error ? error.message : "Candidate import failed");
-          }
+      const candidatesPage = await this.deps.harvest.listCandidates(accessToken, {
+        perPage,
+        updatedAfter,
+        maxPages,
+        startUrl: flags.resume ? providerCursors.candidatesNextUrl : undefined,
+      });
+      paginationTruncated = paginationTruncated || candidatesPage.truncated;
+      for (const raw of candidatesPage.items) {
+        try {
+          const universal = mapGreenhouseCandidate(raw);
+          if (!dryRun) await this.persistCandidate(options, universal, correlationId);
+          candidatesImported += 1;
+          eventsStored += dryRun ? 0 : 1;
+        } catch (error) {
+          errors.push(error instanceof Error ? error.message : "Candidate import failed");
         }
-        if (!candidates.hasMore) break;
       }
 
-      for (let page = 1; page <= maxPages; page += 1) {
-        const applications = await this.deps.harvest.listApplications(accessToken, page, perPage, updatedAfter);
-        for (const raw of applications.items) {
-          try {
-            const universal = mapGreenhouseApplication(raw);
-            if (!dryRun) await this.persistApplication(options, universal, correlationId);
-            applicationsImported += 1;
-            eventsStored += dryRun ? 0 : 1;
-          } catch (error) {
-            errors.push(error instanceof Error ? error.message : "Application import failed");
-          }
+      const applicationsPage = await this.deps.harvest.listApplications(accessToken, {
+        perPage,
+        updatedAfter,
+        maxPages,
+        startUrl: flags.resume ? providerCursors.applicationsNextUrl : undefined,
+      });
+      paginationTruncated = paginationTruncated || applicationsPage.truncated;
+      for (const raw of applicationsPage.items) {
+        try {
+          const universal = mapGreenhouseApplication(raw);
+          if (!dryRun) await this.persistApplication(options, universal, correlationId);
+          applicationsImported += 1;
+          eventsStored += dryRun ? 0 : 1;
+        } catch (error) {
+          errors.push(error instanceof Error ? error.message : "Application import failed");
         }
-        if (!applications.hasMore) break;
       }
 
-      const users = await this.deps.harvest.listUsers(accessToken, 1, perPage);
-      usersImported = users.items.length;
+      const employmentsPage = await this.deps.harvest.listCandidateEmployments(accessToken, {
+        perPage,
+        updatedAfter,
+        maxPages,
+      });
+      paginationTruncated = paginationTruncated || employmentsPage.truncated;
+      candidateEmploymentsImported = employmentsPage.items.length;
+
+      const customFieldsPage = await this.deps.harvest.listCustomFields(accessToken, {
+        perPage,
+        maxPages: 1,
+      });
+      const catalog = mapCustomFieldDefinitions(customFieldsPage.items);
+      customFieldsCataloged = Object.keys(catalog).length;
 
       let cursorAdvanced = false;
       if (!dryRun && this.deps.cursorManager) {
@@ -207,6 +258,15 @@ export class HarvestImportService {
           correlationId,
           lastSequenceNumber: connectionEventCount,
         });
+        await this.deps.connections.updateCursor(options.connectionId, {
+          providerCursor: {
+            updatedAfter: new Date().toISOString(),
+            jobsNextUrl: jobsPage.lastNextUrl ?? undefined,
+            candidatesNextUrl: candidatesPage.lastNextUrl ?? undefined,
+            applicationsNextUrl: applicationsPage.lastNextUrl ?? undefined,
+            employmentsNextUrl: employmentsPage.lastNextUrl ?? undefined,
+          },
+        });
         cursorAdvanced = true;
         await this.deps.connections.updateLastSync(options.connectionId);
       }
@@ -220,7 +280,16 @@ export class HarvestImportService {
           direction: "inbound",
           status: errors.length === 0 ? "completed" : "partial",
           durationMs: Date.now() - started,
-          metadata: { jobsImported, candidatesImported, applicationsImported, usersImported, eventsStored, mode },
+          metadata: {
+            jobsImported,
+            candidatesImported,
+            applicationsImported,
+            candidateEmploymentsImported,
+            customFieldsCataloged,
+            eventsStored,
+            mode,
+            paginationTruncated,
+          },
         });
       }
 
@@ -232,10 +301,12 @@ export class HarvestImportService {
         jobsImported,
         candidatesImported,
         applicationsImported,
-        usersImported,
+        candidateEmploymentsImported,
+        customFieldsCataloged,
         eventsStored,
         dryRun,
         cursorAdvanced,
+        paginationTruncated,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Import failed";
@@ -243,7 +314,21 @@ export class HarvestImportService {
       if (this.deps.cursorManager) {
         await this.deps.connections.recordCursorError(options.connectionId, message);
       }
-      return this.buildResult({ correlationId, mode, started, errors, jobsImported, candidatesImported, applicationsImported, usersImported, eventsStored, dryRun, cursorAdvanced: false });
+      return this.buildResult({
+        correlationId,
+        mode,
+        started,
+        errors,
+        jobsImported,
+        candidatesImported,
+        applicationsImported,
+        candidateEmploymentsImported,
+        customFieldsCataloged,
+        eventsStored,
+        dryRun,
+        cursorAdvanced: false,
+        paginationTruncated,
+      });
     }
   }
 
@@ -255,10 +340,12 @@ export class HarvestImportService {
     jobsImported: number;
     candidatesImported: number;
     applicationsImported: number;
-    usersImported: number;
+    candidateEmploymentsImported: number;
+    customFieldsCataloged: number;
     eventsStored: number;
     dryRun: boolean;
     cursorAdvanced: boolean;
+    paginationTruncated: boolean;
   }): HarvestImportResult {
     return {
       correlationId: input.correlationId,
@@ -266,12 +353,14 @@ export class HarvestImportService {
       jobsImported: input.jobsImported,
       candidatesImported: input.candidatesImported,
       applicationsImported: input.applicationsImported,
-      usersImported: input.usersImported,
+      candidateEmploymentsImported: input.candidateEmploymentsImported,
+      customFieldsCataloged: input.customFieldsCataloged,
       eventsStored: input.eventsStored,
       durationMs: Date.now() - input.started,
       errors: input.errors,
       dryRun: input.dryRun,
       cursorAdvanced: input.cursorAdvanced,
+      paginationTruncated: input.paginationTruncated,
     };
   }
 

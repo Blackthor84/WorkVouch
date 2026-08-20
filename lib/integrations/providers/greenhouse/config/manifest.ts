@@ -1,12 +1,15 @@
 import type { ProviderCapabilities } from "../../../types/provider";
 import type { GreenhouseCapabilityFlags, GreenhouseOAuthConfig } from "../types";
+import { GREENHOUSE_PARTNER_SCOPES } from "./scopes";
 
+/** Partner OAuth endpoints — Harvest V3 Authorization Code Grant. */
 export const GREENHOUSE_OAUTH_CONFIG: GreenhouseOAuthConfig = {
-  authorizationUrl: "https://auth.greenhouse.io/oauth/authorize",
-  tokenUrl: "https://auth.greenhouse.io/oauth/token",
+  authorizationUrl: "https://auth.greenhouse.io/authorize",
+  tokenUrl: "https://auth.greenhouse.io/token",
+  /** Revoke is not documented for Partner OAuth; kept for best-effort local disconnect only. */
   revokeUrl: "https://auth.greenhouse.io/oauth/revoke",
-  scopes: ["harvest:read", "harvest:write", "harvest:webhooks"],
-  pkceRequired: true,
+  scopes: [...GREENHOUSE_PARTNER_SCOPES],
+  pkceRequired: false,
 };
 
 export const GREENHOUSE_CAPABILITY_FLAGS: GreenhouseCapabilityFlags = {
@@ -25,7 +28,7 @@ export const GREENHOUSE_CAPABILITY_FLAGS: GreenhouseCapabilityFlags = {
 export const GREENHOUSE_PROVIDER_CAPABILITIES: ProviderCapabilities = {
   providerId: "greenhouse",
   displayName: "Greenhouse",
-  apiVersion: "1.0",
+  apiVersion: "3.0",
   features: [
     "oauth",
     "webhooks",
@@ -39,7 +42,7 @@ export const GREENHOUSE_PROVIDER_CAPABILITIES: ProviderCapabilities = {
   supportsOAuth: GREENHOUSE_CAPABILITY_FLAGS.supportsOAuth,
   supportsWebhooks: GREENHOUSE_CAPABILITY_FLAGS.supportsWebhooks,
   supportsBatchSync: GREENHOUSE_CAPABILITY_FLAGS.supportsBatchSync,
-  authenticationType: "oauth2_pkce",
+  authenticationType: "oauth2",
   rateLimits: {
     requestsPerWindow: 50,
     windowSeconds: 10,
@@ -49,8 +52,8 @@ export const GREENHOUSE_PROVIDER_CAPABILITIES: ProviderCapabilities = {
 export const GREENHOUSE_MANIFEST = {
   provider: "greenhouse" as const,
   displayName: "Greenhouse",
-  version: "1.0.0",
-  apiVersion: "1.0",
+  version: "3.0.0",
+  apiVersion: "3.0",
   compatibleConnectVersion: "1.0.0",
   minimumConnectVersion: "1.0.0",
   maximumTestedConnectVersion: "1.0.0",
@@ -58,7 +61,7 @@ export const GREENHOUSE_MANIFEST = {
   docsUrl: "https://docs.workvouch.com/integrations/greenhouse",
   status: "available" as const,
   ...GREENHOUSE_CAPABILITY_FLAGS,
-  authenticationType: "oauth2_pkce" as const,
+  authenticationType: "oauth2" as const,
   oauthConfig: GREENHOUSE_OAUTH_CONFIG,
   rateLimits: {
     requestsPerWindow: 50,

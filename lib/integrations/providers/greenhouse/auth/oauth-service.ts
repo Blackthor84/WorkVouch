@@ -10,12 +10,12 @@ import type {
 } from "../types";
 import { IntegrationPlatformError } from "../../../utils/errors";
 import { nowIso } from "../../../utils/correlation";
-import {
-  generateCodeChallenge,
-  generateCodeVerifier,
-  generateOAuthState,
-} from "./pkce";
+import { generateCodeChallenge, generateCodeVerifier, generateOAuthState } from "./pkce";
 import { createOAuthStateRecord } from "./oauth-state-store";
+
+function buildBasicAuthHeader(clientId: string, clientSecret: string): string {
+  return `Basic ${Buffer.from(`${clientId}:${clientSecret}`, "utf8").toString("base64")}`;
+}
 
 export class GreenhouseOAuthService {
   constructor(
@@ -26,10 +26,11 @@ export class GreenhouseOAuthService {
   ) {}
 
   async startConnect(params: ConnectParams): Promise<ConnectResult> {
-    const codeVerifier = params.codeVerifier ?? generateCodeVerifier();
+    const pkceRequired = this.config.oauth.pkceRequired;
+    const codeVerifier = pkceRequired
+      ? params.codeVerifier ?? generateCodeVerifier()
+      : params.codeVerifier ?? "";
     const state = params.state || generateOAuthState();
-    const codeChallenge = generateCodeChallenge(codeVerifier);
-
     const connectionId = params.connectionId ?? randomUUID();
 
     if (!params.connectionId) {
@@ -50,8 +51,11 @@ export class GreenhouseOAuthService {
     url.searchParams.set("redirect_uri", params.redirectUri);
     url.searchParams.set("scope", this.config.oauth.scopes.join(" "));
     url.searchParams.set("state", state);
-    url.searchParams.set("code_challenge", codeChallenge);
-    url.searchParams.set("code_challenge_method", "S256");
+
+    if (pkceRequired) {
+      url.searchParams.set("code_challenge", generateCodeChallenge(codeVerifier));
+      url.searchParams.set("code_challenge_method", "S256");
+    }
 
     return {
       connectionId,
@@ -92,8 +96,6 @@ export class GreenhouseOAuthService {
 
     const tokenResponse = await this.exchangeAuthorizationCode({
       code: params.code,
-      redirectUri: storedState.redirectUri,
-      codeVerifier: storedState.codeVerifier,
     });
 
     const connectionId = storedState.connectionId ?? randomUUID();
@@ -122,17 +124,16 @@ export class GreenhouseOAuthService {
   }
 
   async refresh(refreshToken: string, connectionId: string): Promise<TokenPair> {
-    const body = new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: refreshToken,
-      client_id: this.config.clientId,
-      client_secret: this.config.clientSecret,
-    });
+    const tokenUrl = new URL(this.config.oauth.tokenUrl);
+    tokenUrl.searchParams.set("grant_type", "refresh_token");
+    tokenUrl.searchParams.set("refresh_token", refreshToken);
 
-    const response = await this.http.request(this.config.oauth.tokenUrl, {
+    const response = await this.http.request(tokenUrl.toString(), {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body,
+      headers: {
+        Authorization: buildBasicAuthHeader(this.config.clientId, this.config.clientSecret),
+      },
+      body: "",
     });
 
     if (response.status >= 400) {
@@ -166,22 +167,17 @@ export class GreenhouseOAuthService {
 
   private async exchangeAuthorizationCode(input: {
     code: string;
-    redirectUri: string;
-    codeVerifier: string;
   }): Promise<GreenhouseTokenResponse> {
-    const body = new URLSearchParams({
-      grant_type: "authorization_code",
-      code: input.code,
-      redirect_uri: input.redirectUri,
-      client_id: this.config.clientId,
-      client_secret: this.config.clientSecret,
-      code_verifier: input.codeVerifier,
-    });
+    const tokenUrl = new URL(this.config.oauth.tokenUrl);
+    tokenUrl.searchParams.set("grant_type", "authorization_code");
+    tokenUrl.searchParams.set("code", input.code);
 
-    const response = await this.http.request(this.config.oauth.tokenUrl, {
+    const response = await this.http.request(tokenUrl.toString(), {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body,
+      headers: {
+        Authorization: buildBasicAuthHeader(this.config.clientId, this.config.clientSecret),
+      },
+      body: "",
     });
 
     if (response.status >= 400) {
@@ -197,7 +193,9 @@ export class GreenhouseOAuthService {
   }
 
   private toTokenPair(response: GreenhouseTokenResponse): TokenPair {
-    const expiresAt = new Date(Date.now() + response.expires_in * 1000).toISOString();
+    const expiresAt =
+      response.expires_at ??
+      new Date(Date.now() + (response.expires_in ?? 3600) * 1000).toISOString();
     const scopes = response.scope
       ? response.scope.split(" ").filter(Boolean)
       : this.config.oauth.scopes;

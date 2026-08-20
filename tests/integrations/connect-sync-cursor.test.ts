@@ -80,18 +80,30 @@ describe("WorkVouch Connect — Sprint 6A Sync Cursor Engine", () => {
     const projections = new ProjectionEngine(eventStore, new InMemoryProjectionRepository());
 
     mockHttp = new MockHttpClient();
-    const jobs = [loadFixture("job-created.json")];
-    mockHttp.on("/jobs", () => ({ status: 200, headers: {}, body: JSON.stringify(jobs) }));
-    mockHttp.on("/candidates", () => ({
+    mockHttp.on("harvest.greenhouse.io/v3/jobs", () => ({
       status: 200,
-      headers: {},
+      headers: { link: "" },
+      body: JSON.stringify([loadFixture("job-created.json")]),
+    }));
+    mockHttp.on("harvest.greenhouse.io/v3/candidates", () => ({
+      status: 200,
+      headers: { link: "" },
       body: JSON.stringify([loadFixture("candidate-created.json")]),
     }));
-    mockHttp.on("/applications", () => ({ status: 200, headers: {}, body: JSON.stringify([]) }));
-    mockHttp.on("/users", () => ({
+    mockHttp.on("harvest.greenhouse.io/v3/applications", () => ({
       status: 200,
-      headers: {},
-      body: JSON.stringify([{ id: 1, name: "Test User", email: "test@greenhouse.io" }]),
+      headers: { link: "" },
+      body: JSON.stringify([]),
+    }));
+    mockHttp.on("harvest.greenhouse.io/v3/candidate_employments", () => ({
+      status: 200,
+      headers: { link: "" },
+      body: JSON.stringify([]),
+    }));
+    mockHttp.on("harvest.greenhouse.io/v3/custom_fields", () => ({
+      status: 200,
+      headers: { link: "" },
+      body: JSON.stringify([{ id: 1, name: "WorkVouch Trust Score" }]),
     }));
 
     const harvest = new HarvestClient(resolveGreenhouseConfig(), mockHttp);

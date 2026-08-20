@@ -4,7 +4,6 @@ import {
   ProviderLoader,
   ProviderRegistry,
   StructuredLoggingService,
-  isNotImplementedYetError,
 } from "@/lib/integrations";
 import { MockHttpClient } from "@/lib/integrations/providers/greenhouse/api/http-client";
 import {
@@ -15,11 +14,16 @@ import {
   validateGreenhouseConfig,
   resolveGreenhouseConfig,
 } from "@/lib/integrations/providers/greenhouse/config/greenhouse-config";
-import { GREENHOUSE_MANIFEST, GREENHOUSE_PROVIDER_CAPABILITIES } from "@/lib/integrations/providers/greenhouse/config/manifest";
 import {
-  FIXTURE_HARVEST_USER,
+  GREENHOUSE_MANIFEST,
+  GREENHOUSE_OAUTH_CONFIG,
+  GREENHOUSE_PROVIDER_CAPABILITIES,
+} from "@/lib/integrations/providers/greenhouse/config/manifest";
+import { GREENHOUSE_PARTNER_SCOPES } from "@/lib/integrations/providers/greenhouse/config/scopes";
+import {
   FIXTURE_REFRESH_RESPONSE,
   FIXTURE_TOKEN_RESPONSE,
+  FIXTURE_V3_JOBS_PAGE,
 } from "@/lib/integrations/providers/greenhouse/fixtures/responses";
 import { InMemoryTokenStore } from "@/lib/integrations/providers/greenhouse/auth/token-store";
 import { InMemoryOAuthStateStore } from "@/lib/integrations/providers/greenhouse/auth/oauth-state-store";
@@ -29,15 +33,9 @@ const TEST_CONFIG: GreenhouseProviderConfig = {
   clientId: "gh-client-id",
   clientSecret: "gh-client-secret",
   webhookSecret: "gh-webhook-secret",
-  oauth: {
-    authorizationUrl: "https://auth.greenhouse.io/oauth/authorize",
-    tokenUrl: "https://auth.greenhouse.io/oauth/token",
-    revokeUrl: "https://auth.greenhouse.io/oauth/revoke",
-    scopes: ["harvest:read", "harvest:write", "harvest:webhooks"],
-    pkceRequired: true,
-  },
+  oauth: GREENHOUSE_OAUTH_CONFIG,
   harvest: {
-    baseUrl: "https://harvest.greenhouse.io/v1",
+    baseUrl: "https://harvest.greenhouse.io/v3",
     timeoutMs: 5000,
     maxRetries: 3,
     retryBackoffMs: [100, 200, 400],
@@ -47,9 +45,12 @@ const TEST_CONFIG: GreenhouseProviderConfig = {
 function createMockHttp(): MockHttpClient {
   const http = new MockHttpClient();
 
-  http.on("auth.greenhouse.io/oauth/token", (_url, options) => {
-    const body = String(options.body ?? "");
-    if (body.includes("grant_type=refresh_token")) {
+  http.on("auth.greenhouse.io/token", (_url, options) => {
+    const authHeader = options.headers?.Authorization ?? "";
+    expect(authHeader.startsWith("Basic ")).toBe(true);
+    expect(String(options.body ?? "")).toBe("");
+
+    if (_url.includes("grant_type=refresh_token")) {
       return {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -69,10 +70,10 @@ function createMockHttp(): MockHttpClient {
     body: "",
   }));
 
-  http.on("harvest.greenhouse.io/v1/users/me", () => ({
+  http.on("harvest.greenhouse.io/v3/jobs", () => ({
     status: 200,
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(FIXTURE_HARVEST_USER),
+    headers: { link: "" },
+    body: JSON.stringify(FIXTURE_V3_JOBS_PAGE),
   }));
 
   return http;
@@ -89,7 +90,7 @@ function createTestProvider() {
   });
 }
 
-describe("Greenhouse Provider — Sprint 3B-1", () => {
+describe("Greenhouse Provider — Harvest V3 Partner OAuth", () => {
   beforeEach(() => {
     process.env.ATS_ENABLED = "true";
     process.env.GREENHOUSE_ENABLED = "true";
@@ -146,7 +147,7 @@ describe("Greenhouse Provider — Sprint 3B-1", () => {
   it("resolves configuration from environment", () => {
     const config = resolveGreenhouseConfig();
     expect(config.clientId).toBe(TEST_CONFIG.clientId);
-    expect(config.harvest.baseUrl).toContain("harvest.greenhouse.io");
+    expect(config.harvest.baseUrl).toContain("/v3");
   });
 
   it("exposes provider capabilities and manifest", () => {
@@ -155,33 +156,31 @@ describe("Greenhouse Provider — Sprint 3B-1", () => {
 
     expect(capabilities.providerId).toBe("greenhouse");
     expect(capabilities.supportsOAuth).toBe(true);
-    expect(capabilities.supportsWebhooks).toBe(true);
-    expect(capabilities.supportsBatchSync).toBe(true);
+    expect(capabilities.apiVersion).toBe("3.0");
     expect(GREENHOUSE_MANIFEST.supportsCandidates).toBe(true);
-    expect(GREENHOUSE_MANIFEST.supportsReferenceRequests).toBe(false);
-    expect(GREENHOUSE_PROVIDER_CAPABILITIES.authenticationType).toBe("oauth2_pkce");
+    expect(GREENHOUSE_PROVIDER_CAPABILITIES.authenticationType).toBe("oauth2");
+    expect(GREENHOUSE_OAUTH_CONFIG.scopes).toEqual([...GREENHOUSE_PARTNER_SCOPES]);
   });
 
-  it("starts OAuth connect with PKCE authorization URL", async () => {
+  it("starts Partner OAuth connect without PKCE", async () => {
     const provider = createTestProvider();
     const pending = await provider.connect({
       employerAccountId: "employer-1",
-      redirectUri: "https://workvouch.test/callback",
+      redirectUri: "https://tryworkvouch.com/api/integrations/v1/connect/greenhouse/callback",
       state: "",
     });
 
     expect(pending.status).toBe("pending");
-    expect(pending.authorizationUrl).toContain("auth.greenhouse.io/oauth/authorize");
-    expect(pending.authorizationUrl).toContain("code_challenge=");
-    expect(pending.authorizationUrl).toContain("code_challenge_method=S256");
-    expect(pending.authorizationUrl).toContain("scope=harvest%3Aread");
+    expect(pending.authorizationUrl).toContain("auth.greenhouse.io/authorize");
+    expect(pending.authorizationUrl).not.toContain("code_challenge=");
+    expect(pending.authorizationUrl).toContain("scope=harvest%3Acandidates%3Alist");
   });
 
-  it("completes OAuth connect with state validation and token exchange", async () => {
+  it("completes OAuth connect with state validation and Basic-auth token exchange", async () => {
     const provider = createTestProvider();
     const pending = await provider.connect({
       employerAccountId: "employer-1",
-      redirectUri: "https://workvouch.test/callback",
+      redirectUri: "https://tryworkvouch.com/api/integrations/v1/connect/greenhouse/callback",
       state: "",
     });
 
@@ -190,13 +189,13 @@ describe("Greenhouse Provider — Sprint 3B-1", () => {
 
     const connected = await provider.connect({
       employerAccountId: "employer-1",
-      redirectUri: "https://workvouch.test/callback",
+      redirectUri: "https://tryworkvouch.com/api/integrations/v1/connect/greenhouse/callback",
       state,
       code: "auth-code-123",
     });
 
     expect(connected.status).toBe("connected");
-    expect(connected.scopes).toContain("harvest:read");
+    expect(connected.scopes).toContain("harvest:candidates:list");
     expect(connected.connectionId).toBeTruthy();
   });
 
@@ -205,24 +204,24 @@ describe("Greenhouse Provider — Sprint 3B-1", () => {
     await expect(
       provider.connect({
         employerAccountId: "employer-1",
-        redirectUri: "https://workvouch.test/callback",
+        redirectUri: "https://tryworkvouch.com/api/integrations/v1/connect/greenhouse/callback",
         state: "invalid-state",
         code: "auth-code",
       })
     ).rejects.toThrow(/state/i);
   });
 
-  it("refreshes tokens and updates connection", async () => {
+  it("refreshes tokens and replaces refresh token", async () => {
     const provider = createTestProvider();
     const pending = await provider.connect({
       employerAccountId: "employer-1",
-      redirectUri: "https://workvouch.test/callback",
+      redirectUri: "https://tryworkvouch.com/api/integrations/v1/connect/greenhouse/callback",
       state: "",
     });
     const state = new URL(pending.authorizationUrl!).searchParams.get("state")!;
     const connected = await provider.connect({
       employerAccountId: "employer-1",
-      redirectUri: "https://workvouch.test/callback",
+      redirectUri: "https://tryworkvouch.com/api/integrations/v1/connect/greenhouse/callback",
       state,
       code: "auth-code",
     });
@@ -233,7 +232,7 @@ describe("Greenhouse Provider — Sprint 3B-1", () => {
     });
 
     expect(refreshed.accessToken).toBe(FIXTURE_REFRESH_RESPONSE.access_token);
-    expect(refreshed.scopes).toContain("harvest:read");
+    expect(refreshed.scopes).toContain("harvest:jobs:list");
   });
 
   it("disconnects and revokes tokens", async () => {
@@ -246,13 +245,13 @@ describe("Greenhouse Provider — Sprint 3B-1", () => {
     });
     const pending = await provider.connect({
       employerAccountId: "employer-1",
-      redirectUri: "https://workvouch.test/callback",
+      redirectUri: "https://tryworkvouch.com/api/integrations/v1/connect/greenhouse/callback",
       state: "",
     });
     const state = new URL(pending.authorizationUrl!).searchParams.get("state")!;
     const connected = await provider.connect({
       employerAccountId: "employer-1",
-      redirectUri: "https://workvouch.test/callback",
+      redirectUri: "https://tryworkvouch.com/api/integrations/v1/connect/greenhouse/callback",
       state,
       code: "auth-code",
     });
@@ -266,7 +265,7 @@ describe("Greenhouse Provider — Sprint 3B-1", () => {
     expect(await tokenStore.getConnection(connected.connectionId)).toBeNull();
   });
 
-  it("calls Harvest API via testConnection and healthCheck", async () => {
+  it("calls Harvest V3 via testConnection and healthCheck", async () => {
     const provider = createTestProvider();
     const test = await provider.testConnection({
       connectionId: "conn-test",
@@ -274,20 +273,20 @@ describe("Greenhouse Provider — Sprint 3B-1", () => {
     });
 
     expect(test.success).toBe(true);
-    expect(test.message).toContain(FIXTURE_HARVEST_USER.name);
+    expect(test.message).toContain("/v3/jobs");
 
     const health = await provider.healthCheck({
       connectionId: "conn-test",
       accessToken: FIXTURE_TOKEN_RESPONSE.access_token,
     });
     expect(health.healthy).toBe(true);
-    expect(health.providerAccountName).toBe(FIXTURE_HARVEST_USER.name);
+    expect(health.providerAccountName).toContain("/v3/jobs");
   });
 
   it("retries Harvest requests on rate limit", async () => {
     let attempts = 0;
     const http = new MockHttpClient();
-    http.on("harvest.greenhouse.io/v1/users/me", () => {
+    http.on("harvest.greenhouse.io/v3/jobs", () => {
       attempts += 1;
       if (attempts === 1) {
         return {
@@ -298,8 +297,8 @@ describe("Greenhouse Provider — Sprint 3B-1", () => {
       }
       return {
         status: 200,
-        headers: {},
-        body: JSON.stringify(FIXTURE_HARVEST_USER),
+        headers: { link: "" },
+        body: JSON.stringify(FIXTURE_V3_JOBS_PAGE),
       };
     });
 

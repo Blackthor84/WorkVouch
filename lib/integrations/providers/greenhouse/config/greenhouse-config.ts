@@ -3,7 +3,7 @@ import type { ValidationResult } from "../../../types/common";
 import type { GreenhouseProviderConfig } from "../types";
 import { GREENHOUSE_OAUTH_CONFIG } from "./manifest";
 
-const DEFAULT_HARVEST_BASE_URL = "https://harvest.greenhouse.io/v1";
+const DEFAULT_HARVEST_BASE_URL = "https://harvest.greenhouse.io/v3";
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_RETRIES = 5;
 
@@ -69,6 +69,10 @@ export function validateGreenhouseConfig(
   const baseUrl = config?.baseUrl ?? process.env.GREENHOUSE_BASE_URL ?? DEFAULT_HARVEST_BASE_URL;
   if (!baseUrl.startsWith("https://")) {
     errors.push("Harvest base URL must use HTTPS");
+  }
+
+  if (!baseUrl.includes("/v3")) {
+    warnings.push("GREENHOUSE_BASE_URL should target Harvest V3 (/v3)");
   }
 
   if (!process.env.GREENHOUSE_WEBHOOK_SECRET && !config?.webhookSecret) {

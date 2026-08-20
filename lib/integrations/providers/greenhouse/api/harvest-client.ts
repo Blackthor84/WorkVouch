@@ -1,19 +1,34 @@
+import type { GreenhouseProviderConfig, HttpClient } from "../types";
 import type {
   GreenhouseApplication,
   GreenhouseCandidate,
+  GreenhouseCandidateEmployment,
+  GreenhouseCustomFieldDefinition,
   GreenhouseJob,
-  GreenhouseProviderConfig,
-  GreenhouseUser,
-  HttpClient,
-} from "../types";
+  GreenhouseJobInterviewStage,
+} from "../models";
+import { parseLinkHeaderNext } from "./link-pagination";
 import { normalizeHarvestError, parseRetryAfterMs } from "./errors";
 import { IntegrationPlatformError } from "../../../utils/errors";
 
-export interface HarvestListResult<T> {
+export interface HarvestCursorPage<T> {
   items: T[];
-  page: number;
-  perPage: number;
-  hasMore: boolean;
+  nextUrl: string | null;
+}
+
+export interface HarvestPaginateOptions {
+  perPage?: number;
+  updatedAfter?: string;
+  /** Resume from a prior Link header next URL (cursor-only — no other query params). */
+  startUrl?: string;
+  maxPages?: number;
+}
+
+export interface HarvestPaginateResult<T> {
+  items: T[];
+  pagesFetched: number;
+  lastNextUrl: string | null;
+  truncated: boolean;
 }
 
 export class HarvestClient {
@@ -22,56 +37,27 @@ export class HarvestClient {
     private readonly http: HttpClient
   ) {}
 
-  async getCurrentUser(accessToken: string): Promise<GreenhouseUser> {
-    const response = await this.requestWithRetry("/users/me", accessToken);
-    return JSON.parse(response.body) as GreenhouseUser;
+  private get apiRoot(): string {
+    return this.config.harvest.baseUrl.replace(/\/$/, "");
   }
 
-  async listUsers(accessToken: string, page = 1, perPage = 100): Promise<HarvestListResult<GreenhouseUser>> {
-    return this.list<GreenhouseUser>(`/users?page=${page}&per_page=${perPage}`, accessToken, page, perPage);
-  }
-
-  async listJobs(accessToken: string, page = 1, perPage = 100, updatedAfter?: string): Promise<HarvestListResult<GreenhouseJob>> {
-    const query = updatedAfter
-      ? `/jobs?page=${page}&per_page=${perPage}&updated_after=${encodeURIComponent(updatedAfter)}`
-      : `/jobs?page=${page}&per_page=${perPage}`;
-    return this.list<GreenhouseJob>(query, accessToken, page, perPage);
-  }
-
-  async getJob(accessToken: string, jobId: string): Promise<GreenhouseJob> {
-    const response = await this.requestWithRetry(`/jobs/${jobId}`, accessToken);
-    return JSON.parse(response.body) as GreenhouseJob;
-  }
-
-  async listCandidates(accessToken: string, page = 1, perPage = 100, updatedAfter?: string): Promise<HarvestListResult<GreenhouseCandidate>> {
-    const query = updatedAfter
-      ? `/candidates?page=${page}&per_page=${perPage}&updated_after=${encodeURIComponent(updatedAfter)}`
-      : `/candidates?page=${page}&per_page=${perPage}`;
-    return this.list<GreenhouseCandidate>(query, accessToken, page, perPage);
-  }
-
-  async getCandidate(accessToken: string, candidateId: string): Promise<GreenhouseCandidate> {
-    const response = await this.requestWithRetry(`/candidates/${candidateId}`, accessToken);
-    return JSON.parse(response.body) as GreenhouseCandidate;
-  }
-
-  async listApplications(accessToken: string, page = 1, perPage = 100, updatedAfter?: string): Promise<HarvestListResult<GreenhouseApplication>> {
-    const query = updatedAfter
-      ? `/applications?page=${page}&per_page=${perPage}&updated_after=${encodeURIComponent(updatedAfter)}`
-      : `/applications?page=${page}&per_page=${perPage}`;
-    return this.list<GreenhouseApplication>(query, accessToken, page, perPage);
-  }
-
-  async getApplication(accessToken: string, applicationId: string): Promise<GreenhouseApplication> {
-    const response = await this.requestWithRetry(`/applications/${applicationId}`, accessToken);
-    return JSON.parse(response.body) as GreenhouseApplication;
-  }
-
-  async healthCheck(accessToken: string): Promise<{ healthy: boolean; latencyMs: number; user?: GreenhouseUser; error?: string }> {
+  async healthCheck(accessToken: string): Promise<{
+    healthy: boolean;
+    latencyMs: number;
+    probe?: string;
+    error?: string;
+  }> {
     const started = Date.now();
     try {
-      const user = await this.getCurrentUser(accessToken);
-      return { healthy: true, latencyMs: Date.now() - started, user };
+      await this.fetchPage<GreenhouseJob>(
+        `${this.apiRoot}/jobs?per_page=1`,
+        accessToken
+      );
+      return {
+        healthy: true,
+        latencyMs: Date.now() - started,
+        probe: "GET /v3/jobs?per_page=1",
+      };
     } catch (error) {
       return {
         healthy: false,
@@ -81,15 +67,167 @@ export class HarvestClient {
     }
   }
 
-  private async list<T>(path: string, accessToken: string, page: number, perPage: number): Promise<HarvestListResult<T>> {
-    const response = await this.requestWithRetry(path, accessToken);
-    const items = JSON.parse(response.body) as T[];
-    return { items, page, perPage, hasMore: items.length >= perPage };
+  async listCandidates(
+    accessToken: string,
+    options: HarvestPaginateOptions = {}
+  ): Promise<HarvestPaginateResult<GreenhouseCandidate>> {
+    return this.paginateResource<GreenhouseCandidate>("/candidates", accessToken, options);
   }
 
-  private async requestWithRetry(path: string, accessToken: string, attempt = 1): Promise<{ status: number; headers: Record<string, string>; body: string }> {
-    const url = `${this.config.harvest.baseUrl}${path}`;
+  async listApplications(
+    accessToken: string,
+    options: HarvestPaginateOptions = {}
+  ): Promise<HarvestPaginateResult<GreenhouseApplication>> {
+    return this.paginateResource<GreenhouseApplication>("/applications", accessToken, options);
+  }
 
+  async listJobs(
+    accessToken: string,
+    options: HarvestPaginateOptions = {}
+  ): Promise<HarvestPaginateResult<GreenhouseJob>> {
+    return this.paginateResource<GreenhouseJob>("/jobs", accessToken, options);
+  }
+
+  async listCandidateEmployments(
+    accessToken: string,
+    options: HarvestPaginateOptions = {}
+  ): Promise<HarvestPaginateResult<GreenhouseCandidateEmployment>> {
+    return this.paginateResource<GreenhouseCandidateEmployment>(
+      "/candidate_employments",
+      accessToken,
+      options
+    );
+  }
+
+  async listJobInterviewStages(
+    accessToken: string,
+    options: HarvestPaginateOptions = {}
+  ): Promise<HarvestPaginateResult<GreenhouseJobInterviewStage>> {
+    return this.paginateResource<GreenhouseJobInterviewStage>(
+      "/job_interview_stages",
+      accessToken,
+      options
+    );
+  }
+
+  async listCustomFields(
+    accessToken: string,
+    options: HarvestPaginateOptions = {}
+  ): Promise<HarvestPaginateResult<GreenhouseCustomFieldDefinition>> {
+    return this.paginateResource<GreenhouseCustomFieldDefinition>(
+      "/custom_fields",
+      accessToken,
+      options
+    );
+  }
+
+  async getCandidate(accessToken: string, candidateId: string): Promise<GreenhouseCandidate> {
+    const page = await this.fetchPage<GreenhouseCandidate>(
+      `${this.apiRoot}/candidates?ids=${encodeURIComponent(candidateId)}`,
+      accessToken
+    );
+    const item = page.items[0];
+    if (!item) {
+      throw new IntegrationPlatformError({
+        code: "SYNC_ENTITY_NOT_FOUND",
+        message: `Greenhouse candidate ${candidateId} not found.`,
+        retryable: false,
+        provider: "greenhouse",
+      });
+    }
+    return item;
+  }
+
+  async getJob(accessToken: string, jobId: string): Promise<GreenhouseJob> {
+    const page = await this.fetchPage<GreenhouseJob>(
+      `${this.apiRoot}/jobs?ids=${encodeURIComponent(jobId)}`,
+      accessToken
+    );
+    const item = page.items[0];
+    if (!item) {
+      throw new IntegrationPlatformError({
+        code: "SYNC_ENTITY_NOT_FOUND",
+        message: `Greenhouse job ${jobId} not found.`,
+        retryable: false,
+        provider: "greenhouse",
+      });
+    }
+    return item;
+  }
+
+  async getApplication(accessToken: string, applicationId: string): Promise<GreenhouseApplication> {
+    const page = await this.fetchPage<GreenhouseApplication>(
+      `${this.apiRoot}/applications?ids=${encodeURIComponent(applicationId)}`,
+      accessToken
+    );
+    const item = page.items[0];
+    if (!item) {
+      throw new IntegrationPlatformError({
+        code: "SYNC_ENTITY_NOT_FOUND",
+        message: `Greenhouse application ${applicationId} not found.`,
+        retryable: false,
+        provider: "greenhouse",
+      });
+    }
+    return item;
+  }
+
+  private buildInitialUrl(path: string, options: HarvestPaginateOptions): string {
+    if (options.startUrl) return options.startUrl;
+
+    const url = new URL(`${this.apiRoot}${path}`);
+    const perPage = options.perPage ?? 100;
+    url.searchParams.set("per_page", String(perPage));
+    if (options.updatedAfter) {
+      url.searchParams.set("updated_at", options.updatedAfter);
+    }
+    return url.toString();
+  }
+
+  private async paginateResource<T>(
+    path: string,
+    accessToken: string,
+    options: HarvestPaginateOptions
+  ): Promise<HarvestPaginateResult<T>> {
+    const items: T[] = [];
+    let nextUrl: string | null = this.buildInitialUrl(path, options);
+    let pagesFetched = 0;
+    const maxPages = options.maxPages;
+
+    while (nextUrl) {
+      pagesFetched += 1;
+      const page = await this.fetchPage<T>(nextUrl, accessToken);
+      items.push(...page.items);
+      nextUrl = page.nextUrl;
+
+      if (maxPages != null && pagesFetched >= maxPages) {
+        return {
+          items,
+          pagesFetched,
+          lastNextUrl: nextUrl,
+          truncated: Boolean(nextUrl),
+        };
+      }
+    }
+
+    return { items, pagesFetched, lastNextUrl: null, truncated: false };
+  }
+
+  private async fetchPage<T>(url: string, accessToken: string): Promise<HarvestCursorPage<T>> {
+    const response = await this.requestWithRetry(url, accessToken);
+    const items = JSON.parse(response.body) as T[];
+    const linkHeader = response.headers.link ?? response.headers.Link;
+    return {
+      items: Array.isArray(items) ? items : [],
+      nextUrl: parseLinkHeaderNext(linkHeader),
+    };
+  }
+
+  private async requestWithRetry(
+    url: string,
+    accessToken: string,
+    attempt = 1
+  ): Promise<{ status: number; headers: Record<string, string>; body: string }> {
     try {
       const response = await this.http.request(url, {
         method: "GET",
@@ -104,7 +242,7 @@ export class HarvestClient {
         return response;
       }
 
-      const normalized = normalizeHarvestError(response, path);
+      const normalized = normalizeHarvestError(response, url);
 
       if (
         normalized.retryable &&
@@ -116,7 +254,7 @@ export class HarvestClient {
           this.config.harvest.retryBackoffMs[attempt - 1] ??
           1000;
         await new Promise((resolve) => setTimeout(resolve, retryAfterMs));
-        return this.requestWithRetry(path, accessToken, attempt + 1);
+        return this.requestWithRetry(url, accessToken, attempt + 1);
       }
 
       throw normalized;
@@ -126,7 +264,7 @@ export class HarvestClient {
       if (attempt < this.config.harvest.maxRetries) {
         const delay = this.config.harvest.retryBackoffMs[attempt - 1] ?? 1000;
         await new Promise((resolve) => setTimeout(resolve, delay));
-        return this.requestWithRetry(path, accessToken, attempt + 1);
+        return this.requestWithRetry(url, accessToken, attempt + 1);
       }
 
       throw new IntegrationPlatformError({
