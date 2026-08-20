@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     }
     const userId = user.id as string;
 
-    const rl = withRateLimit(request, { userId, ...RATE_LIMITS.defaultWrite, prefix: "rl:email:" });
+    const rl = await withRateLimit(request, { userId, ...RATE_LIMITS.defaultWrite, prefix: "rl:email:" });
     if (!rl.allowed) return rl.response;
 
     const body = await request.json().catch(() => ({}));

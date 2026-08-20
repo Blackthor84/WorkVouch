@@ -3,16 +3,11 @@ import { admin } from "@/lib/supabase-admin";
 import { insertActivityLog } from "@/lib/activity";
 import { getEffectiveUserId } from "@/lib/server/effectiveUserId";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
+import { toProfileResumeUrl } from "@/lib/resume/path-utils";
+import { resumeContentType, validateResumeFile } from "@/lib/resume/validate-upload";
+import { RESUME_BUCKET } from "@/lib/resume/types";
 
 export const runtime = "nodejs";
-
-const ALLOWED_EXTENSIONS = ["pdf", "doc", "docx"];
-const ALLOWED_TYPES = [
-  "application/pdf",
-  "application/msword", // .doc
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-];
-const MAX_BYTES = 5 * 1024 * 1024; // 5MB
 
 export async function POST(req: Request) {
   try {
@@ -24,7 +19,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const adminAny = admin as any;
+    const adminAny = admin as { from: (t: string) => ReturnType<typeof admin.from> };
     const { data: profile } = await adminAny
       .from("profiles")
       .select("role")
@@ -42,45 +37,24 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const file = formData.get("resume") as File | null;
 
-    if (!file || !(file instanceof File)) {
-      return NextResponse.json({ error: "Missing resume file" }, { status: 400 });
+    const validation = file ? validateResumeFile(file) : { ok: false as const, error: "Missing resume file" };
+    if (!validation.ok) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    const ext = file.name.split(".").pop()?.toLowerCase();
-    if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
-      return NextResponse.json(
-        { error: "Invalid file type. Only PDF, DOC, and DOCX are allowed." },
-        { status: 400 }
-      );
-    }
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json(
-        { error: "Invalid file type. Only PDF, DOC, and DOCX are allowed." },
-        { status: 400 }
-      );
-    }
-    if (file.size > MAX_BYTES) {
-      return NextResponse.json(
-        { error: "File size exceeds 5MB limit." },
-        { status: 400 }
-      );
-    }
-
+    const ext = file!.name.split(".").pop()!.toLowerCase();
     const fileName = `${effectiveUserId}-${Date.now()}.${ext}`;
-    const filePath = fileName;
 
-    const { error: uploadError } = await admin.storage
-      .from("resumes")
-      .upload(filePath, file, {
-        upsert: true,
-        contentType: file.type,
-      });
+    const { error: uploadError } = await admin.storage.from(RESUME_BUCKET).upload(fileName, file!, {
+      upsert: true,
+      contentType: file!.type || resumeContentType(ext),
+    });
 
     if (uploadError) {
-      return NextResponse.json({ error: uploadError.message }, { status: 500 });
+      return NextResponse.json({ error: "Upload failed. Please try again." }, { status: 500 });
     }
 
-    const resumeUrl = `resumes/${filePath}`;
+    const resumeUrl = toProfileResumeUrl(fileName);
 
     const { error: updateError } = await adminAny
       .from("profiles")
@@ -96,12 +70,14 @@ export async function POST(req: Request) {
 
     insertActivityLog({ userId: effectiveUserId, action: "resume_uploaded" }).catch(() => {});
 
-    return NextResponse.json({ success: true, url: resumeUrl });
-  } catch (e) {
-    console.warn("[resume/upload] error:", e);
-    return NextResponse.json(
-      { error: "Upload failed, try again" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: true,
+      /** Canonical storage key within the resumes bucket */
+      path: fileName,
+      /** Backward-compatible profile reference */
+      url: resumeUrl,
+    });
+  } catch {
+    return NextResponse.json({ error: "Upload failed, try again" }, { status: 500 });
   }
 }

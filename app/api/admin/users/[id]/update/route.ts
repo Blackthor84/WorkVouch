@@ -21,7 +21,7 @@ export async function PATCH(
   try {
     const admin = await requireAdminForApi();
     if (!admin) return adminForbiddenResponse();
-    const rl = withRateLimit(request, { userId: admin.authUserId, ...RATE_LIMITS.admin, prefix: "rl:admin:" });
+    const rl = await withRateLimit(request, { userId: admin.authUserId, ...RATE_LIMITS.admin, prefix: "rl:admin:" });
     if (!rl.allowed) return rl.response;
     const { id: targetUserId } = await params;
     if (!targetUserId) {

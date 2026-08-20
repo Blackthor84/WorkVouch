@@ -1,0 +1,13 @@
+{
+  "_fixture": true,
+  "_scenario": "duplicate_event",
+  "action": "candidate_created",
+  "payload": {
+    "id": 90001,
+    "first_name": "Replay",
+    "last_name": "Candidate",
+    "email_addresses": [{ "value": "replay.candidate@example.com", "type": "work" }],
+    "updated_at": "2026-08-05T10:00:00Z"
+  },
+  "_duplicateOf": "candidate_created:90001:2026-08-05T10:00:00Z"
+}

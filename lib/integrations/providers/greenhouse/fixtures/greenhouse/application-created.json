@@ -1,0 +1,17 @@
+{
+  "_fixture": true,
+  "_description": "Greenhouse application_created webhook fixture — not production data",
+  "action": "application_created",
+  "payload": {
+    "id": 67890,
+    "candidate_id": 12345,
+    "jobs": [{ "id": 111, "name": "Senior Software Engineer" }],
+    "status": "active",
+    "current_stage": {
+      "id": 222,
+      "name": "Application Review"
+    },
+    "applied_at": "2026-08-07T20:00:00Z",
+    "updated_at": "2026-08-07T20:00:00Z"
+  }
+}

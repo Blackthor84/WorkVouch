@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser, hasRole } from "@/lib/auth";
 import { EmployerPortalLayout } from "@/components/employer/EmployerPortalLayout";
 import { CompanyProfileSettings } from "@/components/employer/company-profile-settings";
-import { WvPageHeader } from "@/components/wv";
+import { WvButton, WvPageHeader } from "@/components/wv";
 
 export default async function EmployerSettingsPage() {
   const user = await getCurrentUser();
@@ -23,6 +23,11 @@ export default async function EmployerSettingsPage() {
         eyebrow="Company"
         title="Company settings"
         description="Update your organization profile and hiring preferences."
+        action={
+          <WvButton href="/employer/integrations" variant="outline" size="sm">
+            Integrations
+          </WvButton>
+        }
       />
       <div className="mt-8">
         <CompanyProfileSettings />

@@ -14,9 +14,9 @@ describe("Trust Forecast rules", () => {
     previousImpact: number
   ): "improving" | "stable" | "at_risk" {
     if (hasDispute) return "at_risk";
-    if (recentImpact > previousImpact) return "improving";
     const diff = Math.abs(recentImpact - previousImpact);
     if (diff < STABLE_THRESHOLD) return "stable";
+    if (recentImpact > previousImpact) return "improving";
     return "at_risk";
   }
 
@@ -25,9 +25,13 @@ describe("Trust Forecast rules", () => {
     expect(applyForecastRules(true, 0, 0)).toBe("at_risk");
   });
 
-  it("returns improving when recentImpact > previousImpact and no dispute", () => {
+  it("returns improving when recentImpact > previousImpact and diff >= stable threshold", () => {
     expect(applyForecastRules(false, 15, 10)).toBe("improving");
-    expect(applyForecastRules(false, 1, 0)).toBe("improving");
+    expect(applyForecastRules(false, 6, 0)).toBe("improving");
+  });
+
+  it("returns stable when abs(recent - previous) < 5 even if recent > previous", () => {
+    expect(applyForecastRules(false, 1, 0)).toBe("stable");
   });
 
   it("returns stable when abs(recent - previous) < 5", () => {

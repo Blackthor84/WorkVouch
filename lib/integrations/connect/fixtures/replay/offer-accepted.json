@@ -1,0 +1,12 @@
+{
+  "_fixture": true,
+  "_scenario": "offer_accepted_replay",
+  "action": "offer_accepted",
+  "payload": {
+    "id": 90099,
+    "application_id": 90010,
+    "candidate_id": 90001,
+    "status": "accepted",
+    "updated_at": "2026-08-06T09:00:00Z"
+  }
+}
