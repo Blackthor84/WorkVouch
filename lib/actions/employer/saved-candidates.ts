@@ -81,8 +81,7 @@ export async function getSavedCandidates() {
         full_name,
         email,
         state,
-        profile_photo_url,
-        trust_scores(score)
+        professional_summary
       )
     `)
     .eq('employer_id', user.id)
@@ -92,7 +91,7 @@ export async function getSavedCandidates() {
     throw new Error(`Failed to fetch saved candidates: ${error.message}`)
   }
 
-  return data || []
+  return data ?? []
 }
 
 /**

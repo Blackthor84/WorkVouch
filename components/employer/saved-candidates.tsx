@@ -79,39 +79,40 @@ export function SavedCandidates() {
         </h2>
       </div>
       {candidates.map((saved) => {
-        const candidate = saved.profiles;
-        const trustScore = candidate.trust_scores?.[0]?.score || 0;
+        const candidate = saved.profiles as {
+          id?: string;
+          full_name?: string | null;
+          email?: string | null;
+          state?: string | null;
+          professional_summary?: string | null;
+        } | null;
+        if (!candidate?.id) {
+          return null;
+        }
+        const displayName = candidate.full_name?.trim() || "Candidate";
+        const initial = displayName.charAt(0).toUpperCase() || "?";
         return (
           <Card key={saved.id} className="p-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-4 mb-3">
-                  {candidate.profile_photo_url ? (
-                    <img
-                      src={candidate.profile_photo_url}
-                      alt={candidate.full_name}
-                      className="h-16 w-16 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                      <span className="text-blue-600 dark:text-blue-400 font-semibold text-lg">
-                        {candidate.full_name?.charAt(0)}
-                      </span>
-                    </div>
-                  )}
+                  <div className="h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <span className="text-blue-600 dark:text-blue-400 font-semibold text-lg">
+                      {initial}
+                    </span>
+                  </div>
                   <div>
                     <h3 className="text-xl font-semibold text-grey-dark dark:text-gray-200">
-                      {candidate.full_name}
+                      {displayName}
                     </h3>
                     <p className="text-sm text-grey-medium dark:text-gray-400">
                       {candidate.state ? candidate.state : "Location not specified"}
                     </p>
-                    <p className="text-sm font-semibold text-grey-dark dark:text-gray-200 mt-1">
-                      Trust score:{" "}
-                      <span className="text-blue-600 dark:text-blue-400">
-                        {trustScore}
-                      </span>
-                    </p>
+                    {candidate.professional_summary?.trim() ? (
+                      <p className="text-sm text-grey-medium dark:text-gray-400 mt-1 line-clamp-2">
+                        {candidate.professional_summary.trim()}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
                 {saved.notes && (
