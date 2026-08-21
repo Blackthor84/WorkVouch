@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
 
     const { error: profileError } = await supabaseAny
       .from("profiles")
-      .update({ role: "employer", plan: "free" })
+      .update({ role: "employer" })
       .eq("id", user.id);
 
     if (profileError) {

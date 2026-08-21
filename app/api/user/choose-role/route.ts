@@ -45,9 +45,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const updatePayload =
-      role === "employer" ? ({ role, plan: "free" } as const) : ({ role } as const);
-    const { error: upErr } = await admin.from("profiles").update(updatePayload).eq("id", user.id);
+    const { error: upErr } = await admin.from("profiles").update({ role }).eq("id", user.id);
     if (upErr) {
       return NextResponse.json({ error: upErr.message }, { status: 500 });
     }
