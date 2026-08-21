@@ -1,21 +1,32 @@
 import { admin } from "@/lib/supabase-admin";
+import { enterpriseOrgTablesAvailable } from "@/lib/employer/enterpriseOrgTables";
 
 /**
  * Employer home after login or role selection.
- * Onboarding until employer_accounts + enterprise_owner membership exist.
+ * Production (no organizations table): onboarding until employer_accounts exists.
+ * Enterprise deploy: also requires tenant_memberships enterprise_owner row.
  */
 export async function getEmployerHomePath(userId: string): Promise<string> {
-  const [{ data: existingEmployer }, { data: existingMemberships }] = await Promise.all([
-    admin.from("employer_accounts").select("id").eq("user_id", userId).limit(1),
-    admin
-      .from("tenant_memberships")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("role", "enterprise_owner")
-      .limit(1),
-  ]);
+  const { data: existingEmployer } = await admin
+    .from("employer_accounts")
+    .select("id")
+    .eq("user_id", userId)
+    .limit(1);
 
   const hasEmployer = Array.isArray(existingEmployer) && existingEmployer.length > 0;
+
+  const enterpriseAvailable = await enterpriseOrgTablesAvailable(admin);
+  if (!enterpriseAvailable) {
+    return hasEmployer ? "/employer/dashboard" : "/employer/onboarding/start";
+  }
+
+  const { data: existingMemberships } = await admin
+    .from("tenant_memberships")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("role", "enterprise_owner")
+    .limit(1);
+
   const hasOrgOwner = Array.isArray(existingMemberships) && existingMemberships.length > 0;
 
   if (!hasEmployer || !hasOrgOwner) {

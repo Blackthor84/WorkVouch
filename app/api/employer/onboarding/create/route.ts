@@ -1,15 +1,14 @@
 /**
  * POST /api/employer/onboarding/create
- * First employer onboarding: create org, org_admin mapping, employer role.
+ * Employer onboarding: enterprise org stack when deployed; otherwise employer_accounts only.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
+import { getCurrentUser } from "@/lib/auth";
+import { enterpriseOrgTablesAvailable } from "@/lib/employer/enterpriseOrgTables";
 
 export const runtime = "nodejs";
-import { getCurrentUser } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
-
 export const dynamic = "force-dynamic";
 
 function slugFromName(name: string): string {
@@ -19,6 +18,46 @@ function slugFromName(name: string): string {
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9-]/g, "");
   return base || "org";
+}
+
+function normalizeIndustryType(industry: string): string | null {
+  const industryType = industry.toLowerCase().replace(/\s+/g, "_").replace(/-/g, "_");
+  return industryType || null;
+}
+
+async function createEmployerAccountOnly(
+  supabaseAny: any,
+  userId: string,
+  orgName: string,
+  industry: string
+): Promise<{ error: NextResponse } | { ok: true }> {
+  const { error: profileError } = await supabaseAny
+    .from("profiles")
+    .update({ role: "employer" })
+    .eq("id", userId);
+
+  if (profileError) {
+    console.error("[employer/onboarding] profile update error:", profileError);
+    return {
+      error: NextResponse.json({ error: "Failed to update profile role" }, { status: 500 }),
+    };
+  }
+
+  const { error: employerError } = await supabaseAny.from("employer_accounts").insert({
+    user_id: userId,
+    company_name: orgName,
+    industry_type: normalizeIndustryType(industry),
+    plan_tier: "free",
+  });
+
+  if (employerError) {
+    console.error("[employer/onboarding] employer_accounts insert error:", employerError);
+    return {
+      error: NextResponse.json({ error: "Failed to create employer account" }, { status: 500 }),
+    };
+  }
+
+  return { ok: true };
 }
 
 export async function POST(req: NextRequest) {
@@ -67,6 +106,19 @@ export async function POST(req: NextRequest) {
     }
     if (primaryAdminEmail.toLowerCase() !== (user.email ?? "").toLowerCase()) {
       return NextResponse.json({ error: "Primary admin email must match your account" }, { status: 400 });
+    }
+
+    const enterpriseAvailable = await enterpriseOrgTablesAvailable(supabaseAny);
+
+    if (!enterpriseAvailable) {
+      const result = await createEmployerAccountOnly(supabaseAny, user.id, orgName, industry);
+      if ("error" in result) return result.error;
+
+      return NextResponse.json({
+        success: true,
+        organizationId: null,
+        redirect: "/employer/dashboard?welcome=1",
+      });
     }
 
     const baseSlug = slugFromName(orgName);
@@ -126,31 +178,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to create org admin mapping" }, { status: 500 });
     }
 
-    const { error: profileError } = await supabaseAny
-      .from("profiles")
-      .update({ role: "employer" })
-      .eq("id", user.id);
-
-    if (profileError) {
-      console.error("[employer/onboarding] profile update error:", profileError);
+    const result = await createEmployerAccountOnly(supabaseAny, user.id, orgName, industry);
+    if ("error" in result) {
       await supabaseAny.from("tenant_memberships").delete().eq("user_id", user.id).eq("organization_id", orgId);
       await rollbackOrg();
-      return NextResponse.json({ error: "Failed to update profile role" }, { status: 500 });
-    }
-
-    const industryType = industry.toLowerCase().replace(/\s+/g, "_").replace(/-/g, "_");
-    const { error: employerError } = await supabaseAny.from("employer_accounts").insert({
-      user_id: user.id,
-      company_name: orgName,
-      industry_type: industryType || null,
-      plan_tier: "free",
-    });
-
-    if (employerError) {
-      console.error("[employer/onboarding] employer_accounts insert error:", employerError);
-      await supabaseAny.from("tenant_memberships").delete().eq("user_id", user.id).eq("organization_id", orgId);
-      await rollbackOrg();
-      return NextResponse.json({ error: "Failed to create employer account" }, { status: 500 });
+      return result.error;
     }
 
     try {
