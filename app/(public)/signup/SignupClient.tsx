@@ -74,7 +74,6 @@ export default function SignupClient() {
       setLoading(true);
       setError("");
 
-      const role = "employee";
       const username = cleanEmail.split("@")[0] || undefined;
       const inviteTok = searchParams.get("invite")?.trim() ?? "";
 
@@ -84,7 +83,7 @@ export default function SignupClient() {
         options: {
           data: {
             full_name: fullName.trim() || undefined,
-            role,
+            // Role is intentionally omitted — profiles.role stays NULL until /choose-role.
             username,
             ...(inviteTok ? { coworker_invite_token: inviteTok } : {}),
           },
