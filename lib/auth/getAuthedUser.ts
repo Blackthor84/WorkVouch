@@ -17,20 +17,25 @@ export async function getAuthedUser(): Promise<AuthedUser | null> {
     const user = await getUser();
     if (!user) return null;
 
-    if (!user?.id || !user?.email) {
+    if (!user?.id) {
       return null;
     }
 
+    const email =
+      user.email ??
+      (user as { user_metadata?: { email?: string } }).user_metadata?.email ??
+      "";
+
     const userLike: UserLike = {
       id: user.id,
-      email: user.email,
+      email,
       app_metadata: (user as { app_metadata?: { role?: string } }).app_metadata,
     };
 
     const role = getRoleFromUser(userLike);
 
     return {
-      user: { id: user.id, email: user.email },
+      user: { id: user.id, email },
       role,
     };
   } catch {

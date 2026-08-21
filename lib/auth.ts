@@ -43,10 +43,11 @@ export async function getEffectiveUser(): Promise<EffectiveUser | null> {
   const { effectiveUserId, isImpersonating } = withAuth;
   const supabase = isImpersonating ? getSupabaseServer() : await createClient();
   const supabaseAny = supabase as any;
+  // Production schema: profiles.id = auth user id (no user_id / deleted_at columns).
   const { data: profile, error } = await supabaseAny
     .from("profiles")
-    .select("id, user_id, email, full_name, role, deleted_at")
-    .or(`id.eq.${effectiveUserId},user_id.eq.${effectiveUserId}`)
+    .select("id, email, full_name, role")
+    .eq("id", effectiveUserId)
     .maybeSingle();
   if (error || !profile) {
     if (isImpersonating) {
@@ -70,14 +71,19 @@ export async function getEffectiveUser(): Promise<EffectiveUser | null> {
       deleted_at: undefined,
     };
   }
-  const row = profile as { id?: string; user_id?: string; email?: string | null; full_name?: string | null; role?: string | null; deleted_at?: unknown };
+  const row = profile as {
+    id?: string;
+    email?: string | null;
+    full_name?: string | null;
+    role?: string | null;
+  };
   return {
-    id: row.user_id ?? row.id ?? effectiveUserId,
+    id: row.id ?? effectiveUserId,
     email: row.email ?? null,
     full_name: row.full_name ?? null,
     role: row.role ?? null,
     isImpersonating,
-    deleted_at: row.deleted_at,
+    deleted_at: undefined,
   };
 }
 
@@ -134,11 +140,10 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
     if (!effectiveUserId) return null;
     const supabase = await createClient();
     const supabaseAny = supabase as any;
+    // Columns must match production profiles (no profile_photo_url, visibility, updated_at).
     const { data: profile, error } = await supabaseAny
       .from("profiles")
-      .select(
-        "id, full_name, email, role, state, profile_photo_url, professional_summary, visibility, created_at, updated_at"
-      )
+      .select("id, full_name, email, role, state, professional_summary, created_at")
       .eq("id", effectiveUserId)
       .single();
     if (error || !profile) return null;
