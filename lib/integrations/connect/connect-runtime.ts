@@ -62,6 +62,7 @@ import { HarvestClient } from "../providers/greenhouse/api/harvest-client";
 import { FetchHttpClient } from "../providers/greenhouse/api/http-client";
 import { resolveGreenhouseConfig } from "../providers/greenhouse/config/greenhouse-config";
 import { InMemoryOAuthStateStore } from "../providers/greenhouse/auth/oauth-state-store";
+import { ConnectOAuthStateAdapter } from "./auth/connect-oauth-state-adapter";
 import type { InvitationQueueRepository } from "./persistence/repositories/invitation-queue-repository";
 import type { LifecycleStateRepository } from "./persistence/repositories/lifecycle-state-repository";
 
