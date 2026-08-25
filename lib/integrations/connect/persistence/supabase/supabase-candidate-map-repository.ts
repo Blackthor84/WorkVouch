@@ -12,6 +12,15 @@ function mapRow(row: Record<string, unknown>): ConnectCandidateMapRow {
     candidateEmail: row.candidate_email ? String(row.candidate_email) : undefined,
     candidateName: row.candidate_name ? String(row.candidate_name) : undefined,
     applicationStatus: row.application_status ? String(row.application_status) : undefined,
+    employerAccountId: row.employer_account_id ? String(row.employer_account_id) : undefined,
+    externalApplicationId: row.external_application_id
+      ? String(row.external_application_id)
+      : undefined,
+    externalJobId: row.external_job_id ? String(row.external_job_id) : undefined,
+    linkStatus: row.link_status ? String(row.link_status) : undefined,
+    linkMethod: row.link_method ? String(row.link_method) : undefined,
+    linkedAt: row.linked_at ? String(row.linked_at) : undefined,
+    linkedByUserId: row.linked_by_user_id ? String(row.linked_by_user_id) : undefined,
     metadata: (row.metadata as Record<string, unknown>) ?? {},
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
@@ -24,6 +33,10 @@ export class SupabaseCandidateMapRepository implements CandidateMapRepository {
   async upsert(
     input: Omit<ConnectCandidateMapRow, "id" | "createdAt" | "updatedAt">
   ): Promise<ConnectCandidateMapRow> {
+    const linkStatus =
+      input.linkStatus ??
+      (input.workvouchProfileId ? "auto_linked" : "pending");
+
     const { data, error } = await this.client
       .from("connect_candidate_map")
       .upsert(
@@ -35,6 +48,13 @@ export class SupabaseCandidateMapRepository implements CandidateMapRepository {
           candidate_email: input.candidateEmail ?? null,
           candidate_name: input.candidateName ?? null,
           application_status: input.applicationStatus ?? null,
+          employer_account_id: input.employerAccountId ?? null,
+          external_application_id: input.externalApplicationId ?? null,
+          external_job_id: input.externalJobId ?? null,
+          link_status: linkStatus,
+          link_method: input.linkMethod ?? null,
+          linked_at: input.linkedAt ?? null,
+          linked_by_user_id: input.linkedByUserId ?? null,
           metadata: input.metadata,
           updated_at: new Date().toISOString(),
         },

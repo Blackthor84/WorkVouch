@@ -25,7 +25,7 @@ const navItems = [
   { href: "/employer/compare", label: "Compare", Icon: GitCompare },
   { href: "/employer/claim", label: "Claim company", Icon: Building2 },
   { href: "/employer/directory", label: "Directory", Icon: BookUser },
-  { href: "/employer/candidates", label: "Saved", Icon: Bookmark },
+  { href: "/employer/candidates", label: "Candidates", Icon: Bookmark },
   { href: "/employer/messages", label: "Messages", Icon: MessageSquare },
   { href: "/employer/notifications", label: "Notifications", Icon: Bell },
   { href: "/employer/billing", label: "Billing", Icon: CreditCard },

@@ -76,6 +76,13 @@ export interface ConnectCandidateMapRow {
   candidateEmail?: string;
   candidateName?: string;
   applicationStatus?: string;
+  employerAccountId?: string;
+  externalApplicationId?: string;
+  externalJobId?: string;
+  linkStatus?: string;
+  linkMethod?: string;
+  linkedAt?: string;
+  linkedByUserId?: string;
   metadata: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;

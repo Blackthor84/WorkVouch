@@ -509,7 +509,10 @@ export class HarvestImportService {
   private async persistCandidate(options: HarvestImportOptions, candidate: AtsCandidate, correlationId: string): Promise<void> {
     await this.deps.candidateMap.upsert({
       connectionId: options.connectionId,
+      employerAccountId: options.employerAccountId,
       externalCandidateId: candidate.externalId,
+      externalApplicationId: candidate.applicationExternalId,
+      externalJobId: candidate.jobExternalId,
       candidateEmail: candidate.email,
       candidateName: candidate.fullName,
       applicationStatus: candidate.applicationStatus,
