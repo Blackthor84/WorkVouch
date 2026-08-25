@@ -2,6 +2,8 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { describe, expect, it } from "vitest";
 import {
+  DIRECTORY_PROFILE_ENRICHMENT_COLUMNS,
+  SAVED_CANDIDATES_DIRECTORY_PROFILE_COLUMNS,
   mergeEmployerCandidateDirectory,
   maskEmail,
   type ConnectMapRowInput,
@@ -266,5 +268,47 @@ describe("employer candidates directory API route", () => {
     expect(source).not.toContain("getVerifiedWorkersCap");
     expect(source).not.toContain("verified-workers");
     expect(source).toContain("fetchEmployerCandidateDirectory");
+  });
+});
+
+describe("saved candidates production schema compatibility", () => {
+  const directoryServiceSource = readFileSync(
+    join(process.cwd(), "lib/employer/candidates/directory-service.ts"),
+    "utf8"
+  );
+
+  it("uses production-safe saved_candidates profile embed without industry", () => {
+    expect(SAVED_CANDIDATES_DIRECTORY_PROFILE_COLUMNS).toContain("full_name");
+    expect(SAVED_CANDIDATES_DIRECTORY_PROFILE_COLUMNS).toContain("professional_summary");
+    expect(SAVED_CANDIDATES_DIRECTORY_PROFILE_COLUMNS).not.toContain("industry");
+    expect(DIRECTORY_PROFILE_ENRICHMENT_COLUMNS).not.toContain("industry");
+    expect(directoryServiceSource).toContain("SAVED_CANDIDATES_DIRECTORY_PROFILE_COLUMNS");
+    expect(directoryServiceSource).not.toMatch(
+      /profiles:candidate_id[\s\S]*industry/
+    );
+  });
+
+  it("does not throw when saved_candidates query fails (imported ATS rows still load)", () => {
+    expect(directoryServiceSource).toContain("saved candidates query failed");
+    expect(directoryServiceSource).toContain("return []");
+    expect(directoryServiceSource).not.toContain(
+      "Failed to load saved candidates"
+    );
+  });
+
+  it("still merges imported ATS candidates when savedRows is empty", () => {
+    const merged = mergeEmployerCandidateDirectory({
+      connectRows: [jonJonesRow("conn-employer-a")],
+      projections: new Map(),
+      jobTitlesByExternalId: new Map(),
+      profileEnrichment: new Map(),
+      savedRows: [],
+      filters: { source: "all" },
+      maskEmails: false,
+    });
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0]?.displayName).toBe("Jon Jones");
+    expect(merged[0]?.platformStatus).toBe("imported_not_on_workvouch");
   });
 });

@@ -32,11 +32,20 @@ export type ConnectMapRowInput = {
 
 export type ProfileEnrichment = {
   fullName: string;
-  industry?: string | null;
   vouchCount: number;
   locationLabel?: string;
   jobTitle?: string;
 };
+
+/** Matches production-safe embed used by lib/actions/employer/saved-candidates.ts */
+export const SAVED_CANDIDATES_DIRECTORY_PROFILE_COLUMNS = `
+  id,
+  full_name,
+  professional_summary
+`.trim();
+
+/** Profile columns available on production for directory enrichment. */
+export const DIRECTORY_PROFILE_ENRICHMENT_COLUMNS = "id, full_name, vouch_count";
 
 export type SavedRowInput = {
   candidateId: string;
@@ -348,7 +357,6 @@ async function loadProfileEnrichment(
   const profiles: Array<{
     id: string;
     full_name: string | null;
-    industry: string | null;
     vouch_count: number | null;
   }> = [];
 
@@ -356,7 +364,7 @@ async function loadProfileEnrichment(
     const chunk = profileIds.slice(i, i + chunkSize);
     const { data, error } = await sb
       .from("profiles")
-      .select("id, full_name, industry, vouch_count")
+      .select(DIRECTORY_PROFILE_ENRICHMENT_COLUMNS)
       .in("id", chunk);
     if (error) throw new Error(`Failed to load profiles: ${error.message}`);
     profiles.push(...((data ?? []) as typeof profiles));
@@ -391,7 +399,6 @@ async function loadProfileEnrichment(
     const loc = locByUser.get(profile.id);
     enrichment.set(profile.id, {
       fullName: (profile.full_name || "Worker").trim(),
-      industry: profile.industry,
       vouchCount: Math.max(0, Number(profile.vouch_count ?? 0)),
       locationLabel: loc ? locationLabel(loc.country, loc.state) : undefined,
       jobTitle: latestJobByUser.get(profile.id),
@@ -403,55 +410,58 @@ async function loadProfileEnrichment(
 
 async function loadSavedRows(employerUserId: string): Promise<SavedRowInput[]> {
   const sb = admin as any;
-  const { data, error } = await sb
-    .from("saved_candidates")
-    .select(
-      `
+  try {
+    const { data, error } = await sb
+      .from("saved_candidates")
+      .select(
+        `
       candidate_id,
       saved_at,
       profiles:candidate_id (
-        id,
-        full_name,
-        industry,
-        vouch_count
+        ${SAVED_CANDIDATES_DIRECTORY_PROFILE_COLUMNS}
       )
     `
-    )
-    .eq("employer_id", employerUserId)
-    .order("saved_at", { ascending: false });
+      )
+      .eq("employer_id", employerUserId)
+      .order("saved_at", { ascending: false });
 
-  if (error) throw new Error(`Failed to load saved candidates: ${error.message}`);
+    if (error) {
+      console.error("[employer/candidates/directory] saved candidates query failed:", error.message);
+      return [];
+    }
 
-  type SavedDbRow = {
-    candidate_id: string;
-    saved_at: string;
-    profiles: {
-      id: string;
-      full_name: string | null;
-      industry: string | null;
-      vouch_count: number | null;
-    } | null;
-  };
+    type SavedDbRow = {
+      candidate_id: string;
+      saved_at: string;
+      profiles: {
+        id: string;
+        full_name: string | null;
+        professional_summary: string | null;
+      } | null;
+    };
 
-  const rows = (data ?? []) as SavedDbRow[];
-  const candidateIds = rows.map((r) => r.candidate_id).filter(Boolean);
-  const enrichment = await loadProfileEnrichment(candidateIds);
+    const rows = (data ?? []) as SavedDbRow[];
+    const candidateIds = rows.map((r) => r.candidate_id).filter(Boolean);
+    const enrichment = await loadProfileEnrichment(candidateIds);
 
-  return rows
-    .filter((row) => row.profiles?.id)
-    .map((row) => {
-      const profileId = row.candidate_id;
-      const enriched = enrichment.get(profileId);
-      return {
-        candidateId: profileId,
-        savedAt: row.saved_at,
-        profile: enriched ?? {
-          fullName: (row.profiles?.full_name || "Worker").trim(),
-          industry: row.profiles?.industry,
-          vouchCount: Math.max(0, Number(row.profiles?.vouch_count ?? 0)),
-        },
-      };
-    });
+    return rows
+      .filter((row) => row.profiles?.id)
+      .map((row) => {
+        const profileId = row.candidate_id;
+        const enriched = enrichment.get(profileId);
+        return {
+          candidateId: profileId,
+          savedAt: row.saved_at,
+          profile: enriched ?? {
+            fullName: (row.profiles?.full_name || "Worker").trim(),
+            vouchCount: 0,
+          },
+        };
+      });
+  } catch (error) {
+    console.error("[employer/candidates/directory] saved candidates load failed:", error);
+    return [];
+  }
 }
 
 export async function fetchEmployerCandidateDirectory(
