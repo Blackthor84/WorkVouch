@@ -37,5 +37,7 @@ export * from "./in-memory/in-memory-sync-cursor-repository";
 export * from "./in-memory/in-memory-sync-checkpoint-repository";
 export * from "./supabase/supabase-sync-cursor-repository";
 export * from "./supabase/supabase-sync-checkpoint-repository";
+export * from "./supabase/supabase-invitation-queue-repository";
+export * from "./supabase/supabase-lifecycle-state-repository";
 export * from "./in-memory/in-memory-invitation-queue-repository";
 export * from "./in-memory/in-memory-lifecycle-state-repository";

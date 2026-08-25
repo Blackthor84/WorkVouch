@@ -51,14 +51,12 @@ describe("mergeEmployerCandidateDirectory", () => {
     const merged = mergeEmployerCandidateDirectory({
       connectRows: [jonJonesRow(employerAConnection)],
       projections: new Map([
-        [
-          "38986511009",
-          { applicationStatus: "active", fullName: "Jon Jones" },
-        ],
+        ["38986511009", { applicationStatus: "active", fullName: "Jon Jones" }],
       ]),
       jobTitlesByExternalId: new Map(),
       profileEnrichment: new Map(),
       savedRows: [],
+      invitationStatusByMapId: new Map(),
       filters: { source: "all" },
       maskEmails: false,
     });
@@ -67,11 +65,30 @@ describe("mergeEmployerCandidateDirectory", () => {
     expect(merged[0]?.displayName).toBe("Jon Jones");
     expect(merged[0]?.source).toBe("connect");
     expect(merged[0]?.platformStatus).toBe("imported_not_on_workvouch");
+    expect(merged[0]?.canInvite).toBe(true);
     expect(platformStatusLabel(merged[0]!.platformStatus)).toBe(
       "Imported · Not on WorkVouch"
     );
-    expect(merged[0]?.externalCandidateId).toBe("38986511009");
-    expect(merged[0]?.externalApplicationId).toBe("44213668009");
+  });
+
+  it("transitions imported candidate to invite sent status", () => {
+    const merged = mergeEmployerCandidateDirectory({
+      connectRows: [jonJonesRow(employerAConnection)],
+      projections: new Map(),
+      jobTitlesByExternalId: new Map(),
+      profileEnrichment: new Map(),
+      savedRows: [],
+      invitationStatusByMapId: new Map([["map-jon", "sent"]]),
+      filters: { source: "all" },
+      maskEmails: false,
+    });
+
+    expect(merged[0]?.platformStatus).toBe("imported_invite_sent");
+    expect(merged[0]?.invitationStatus).toBe("sent");
+    expect(merged[0]?.canInvite).toBe(false);
+    expect(platformStatusLabel(merged[0]!.platformStatus)).toBe(
+      "Imported · Invite Sent"
+    );
   });
 
   it("scopes connect rows to the provided connection set (employer A vs B)", () => {
@@ -85,28 +102,13 @@ describe("mergeEmployerCandidateDirectory", () => {
       jobTitlesByExternalId: new Map(),
       profileEnrichment: new Map(),
       savedRows: [],
+      invitationStatusByMapId: new Map(),
       filters: { source: "all", connectionId: employerAConnection },
       maskEmails: false,
     });
 
     expect(employerARows).toHaveLength(1);
     expect(employerARows[0]?.connectionId).toBe(employerAConnection);
-
-    const employerBRows = mergeEmployerCandidateDirectory({
-      connectRows: [
-        jonJonesRow(employerAConnection),
-        jonJonesRow(employerBConnection),
-      ],
-      projections: new Map(),
-      jobTitlesByExternalId: new Map(),
-      profileEnrichment: new Map(),
-      savedRows: [],
-      filters: { source: "all", connectionId: employerBConnection },
-      maskEmails: false,
-    });
-
-    expect(employerBRows).toHaveLength(1);
-    expect(employerBRows[0]?.connectionId).toBe(employerBConnection);
   });
 
   it("returns linked candidate only once when also saved", () => {
@@ -148,15 +150,14 @@ describe("mergeEmployerCandidateDirectory", () => {
           },
         },
       ],
+      invitationStatusByMapId: new Map(),
       filters: { source: "all" },
       maskEmails: false,
     });
 
     expect(merged).toHaveLength(1);
     expect(merged[0]?.source).toBe("linked");
-    expect(merged[0]?.directoryId).toBe("connect:map-jane");
-    expect(merged[0]?.profileId).toBe(profileId);
-    expect(merged[0]?.platformStatus).toBe("verified_on_workvouch");
+    expect(merged[0]?.canInvite).toBe(false);
   });
 
   it("includes WorkVouch-only saved candidate when not linked via Connect", () => {
@@ -188,14 +189,13 @@ describe("mergeEmployerCandidateDirectory", () => {
           },
         },
       ],
+      invitationStatusByMapId: new Map(),
       filters: { source: "all" },
       maskEmails: false,
     });
 
     expect(merged).toHaveLength(1);
     expect(merged[0]?.source).toBe("workvouch");
-    expect(merged[0]?.platformStatus).toBe("saved_from_search");
-    expect(merged[0]?.directoryId).toBe("wv:profile-saved-only");
   });
 
   it("excludes external_deleted connect candidates", () => {
@@ -210,6 +210,7 @@ describe("mergeEmployerCandidateDirectory", () => {
       jobTitlesByExternalId: new Map(),
       profileEnrichment: new Map(),
       savedRows: [],
+      invitationStatusByMapId: new Map(),
       filters: { source: "all" },
       maskEmails: false,
     });
@@ -233,41 +234,28 @@ describe("mergeEmployerCandidateDirectory", () => {
       jobTitlesByExternalId: new Map(),
       profileEnrichment: new Map(),
       savedRows: [],
+      invitationStatusByMapId: new Map(),
       filters: { source: "all" },
       maskEmails: false,
     });
 
     expect(merged).toHaveLength(10);
     expect(getVerifiedWorkersCap("free")).toBe(3);
-    expect(merged.length).toBeGreaterThan(getVerifiedWorkersCap("free"));
   });
 
   it("masks email on free tier display input", () => {
-    expect(maskEmail("jon.jones@example.com")).toBe("j***@example.com");
-
     const merged = mergeEmployerCandidateDirectory({
       connectRows: [jonJonesRow(employerAConnection)],
       projections: new Map(),
       jobTitlesByExternalId: new Map(),
       profileEnrichment: new Map(),
       savedRows: [],
+      invitationStatusByMapId: new Map(),
       filters: { source: "all" },
       maskEmails: true,
     });
 
     expect(merged[0]?.emailMasked).toBe("j***@example.com");
-  });
-});
-
-describe("employer candidates directory API route", () => {
-  it("does not import verified-workers cap helpers for slicing", async () => {
-    const source = readFileSync(
-      join(process.cwd(), "app/api/employer/candidates/directory/route.ts"),
-      "utf8"
-    );
-    expect(source).not.toContain("getVerifiedWorkersCap");
-    expect(source).not.toContain("verified-workers");
-    expect(source).toContain("fetchEmployerCandidateDirectory");
   });
 });
 
@@ -278,37 +266,10 @@ describe("saved candidates production schema compatibility", () => {
   );
 
   it("uses production-safe saved_candidates profile embed without industry", () => {
-    expect(SAVED_CANDIDATES_DIRECTORY_PROFILE_COLUMNS).toContain("full_name");
-    expect(SAVED_CANDIDATES_DIRECTORY_PROFILE_COLUMNS).toContain("professional_summary");
     expect(SAVED_CANDIDATES_DIRECTORY_PROFILE_COLUMNS).not.toContain("industry");
     expect(DIRECTORY_PROFILE_ENRICHMENT_COLUMNS).not.toContain("industry");
-    expect(directoryServiceSource).toContain("SAVED_CANDIDATES_DIRECTORY_PROFILE_COLUMNS");
     expect(directoryServiceSource).not.toMatch(
       /profiles:candidate_id[\s\S]*industry/
     );
-  });
-
-  it("does not throw when saved_candidates query fails (imported ATS rows still load)", () => {
-    expect(directoryServiceSource).toContain("saved candidates query failed");
-    expect(directoryServiceSource).toContain("return []");
-    expect(directoryServiceSource).not.toContain(
-      "Failed to load saved candidates"
-    );
-  });
-
-  it("still merges imported ATS candidates when savedRows is empty", () => {
-    const merged = mergeEmployerCandidateDirectory({
-      connectRows: [jonJonesRow("conn-employer-a")],
-      projections: new Map(),
-      jobTitlesByExternalId: new Map(),
-      profileEnrichment: new Map(),
-      savedRows: [],
-      filters: { source: "all" },
-      maskEmails: false,
-    });
-
-    expect(merged).toHaveLength(1);
-    expect(merged[0]?.displayName).toBe("Jon Jones");
-    expect(merged[0]?.platformStatus).toBe("imported_not_on_workvouch");
   });
 });

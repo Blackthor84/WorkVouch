@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ExternalLink, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import { CandidateInviteModal } from "./CandidateInviteModal";
 import { CandidateStatusBadge } from "./CandidateStatusBadge";
 import { WvBadge, WvButton, WvCard, WvEmptyState, WvLoadingState } from "@/components/wv";
 import type {
@@ -40,6 +41,9 @@ export function EmployerCandidatesDirectoryClient({ planTier }: Props) {
   const [data, setData] = useState<DirectoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [inviteTarget, setInviteTarget] = useState<DirectoryCandidate | null>(null);
+  const [inviteSending, setInviteSending] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
 
   const isFree = planTier === "free" || !planTier;
 
@@ -83,6 +87,28 @@ export function EmployerCandidatesDirectoryClient({ planTier }: Props) {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setQuery(searchInput.trim());
+  };
+
+  const handleInviteConfirm = async () => {
+    if (!inviteTarget) return;
+    setInviteSending(true);
+    setInviteError(null);
+    try {
+      const res = await fetch(
+        `/api/employer/candidates/directory/${encodeURIComponent(inviteTarget.directoryId)}/invite`,
+        { method: "POST", credentials: "include" }
+      );
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        throw new Error(body.error || "Failed to send invitation");
+      }
+      setInviteTarget(null);
+      await load();
+    } catch (err) {
+      setInviteError(err instanceof Error ? err.message : "Failed to send invitation");
+    } finally {
+      setInviteSending(false);
+    }
   };
 
   return (
@@ -148,6 +174,12 @@ export function EmployerCandidatesDirectoryClient({ planTier }: Props) {
         </p>
       )}
 
+      {inviteError && (
+        <p className="text-sm text-red-400" role="alert">
+          {inviteError}
+        </p>
+      )}
+
       {loading && (
         <WvCard className="p-12">
           <WvLoadingState label="Loading candidates…" />
@@ -181,19 +213,46 @@ export function EmployerCandidatesDirectoryClient({ planTier }: Props) {
       {!loading && !error && (data?.candidates.length ?? 0) > 0 && (
         <ul className="space-y-3">
           {data!.candidates.map((candidate) => (
-            <CandidateDirectoryRow key={candidate.directoryId} candidate={candidate} />
+            <CandidateDirectoryRow
+              key={candidate.directoryId}
+              candidate={candidate}
+              onInvite={() => {
+                setInviteError(null);
+                setInviteTarget(candidate);
+              }}
+            />
           ))}
         </ul>
+      )}
+
+      {inviteTarget && (
+        <CandidateInviteModal
+          candidate={inviteTarget}
+          open={Boolean(inviteTarget)}
+          sending={inviteSending}
+          onClose={() => {
+            if (!inviteSending) setInviteTarget(null);
+          }}
+          onConfirm={() => void handleInviteConfirm()}
+        />
       )}
     </div>
   );
 }
 
-function CandidateDirectoryRow({ candidate }: { candidate: DirectoryCandidate }) {
+function CandidateDirectoryRow({
+  candidate,
+  onInvite,
+}: {
+  candidate: DirectoryCandidate;
+  onInvite: () => void;
+}) {
   const applicationLabel = formatApplicationStatus(candidate.applicationStatus);
   const profileHref = candidate.profileId
     ? `/employer/profile/${candidate.profileId}`
     : undefined;
+  const inviteSent =
+    candidate.invitationStatus === "sent" || candidate.invitationStatus === "pending";
 
   return (
     <li>
@@ -235,10 +294,14 @@ function CandidateDirectoryRow({ candidate }: { candidate: DirectoryCandidate })
                 View profile
               </WvButton>
             )}
-            {candidate.source === "connect" && (
-              <span className="inline-flex items-center gap-1 rounded-lg border border-wv-border px-3 py-1.5 text-xs text-wv-subtle">
-                <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-                Invite coming soon
+            {candidate.canInvite && (
+              <WvButton type="button" variant="primary" size="sm" onClick={onInvite}>
+                Invite to WorkVouch
+              </WvButton>
+            )}
+            {inviteSent && candidate.source === "connect" && (
+              <span className="inline-flex items-center rounded-lg border border-wv-border px-3 py-1.5 text-xs font-medium text-wv-muted">
+                Invite Sent
               </span>
             )}
           </div>

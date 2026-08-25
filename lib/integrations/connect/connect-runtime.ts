@@ -34,6 +34,8 @@ import {
   SupabaseSyncCursorRepository,
   SupabaseSyncLogRepository,
   SupabaseWebhookRepository,
+  SupabaseInvitationQueueRepository,
+  SupabaseLifecycleStateRepository,
 } from "./persistence";
 import { SyncCursorService } from "./sync/sync-cursor-service";
 import { SyncCursorManager } from "./sync/sync-cursor-manager";
@@ -60,7 +62,8 @@ import { HarvestClient } from "../providers/greenhouse/api/harvest-client";
 import { FetchHttpClient } from "../providers/greenhouse/api/http-client";
 import { resolveGreenhouseConfig } from "../providers/greenhouse/config/greenhouse-config";
 import { InMemoryOAuthStateStore } from "../providers/greenhouse/auth/oauth-state-store";
-import { ConnectOAuthStateAdapter } from "./auth/connect-oauth-state-adapter";
+import type { InvitationQueueRepository } from "./persistence/repositories/invitation-queue-repository";
+import type { LifecycleStateRepository } from "./persistence/repositories/lifecycle-state-repository";
 
 export interface ConnectRuntimeDeps {
   supabase?: SupabaseClient;
@@ -78,6 +81,8 @@ export interface ConnectRuntimeDeps {
 export interface ConnectRuntime {
   connections: ConnectionManager;
   eventStore: ConnectEventStore;
+  invitationQueue: InvitationQueueRepository;
+  lifecycleState: LifecycleStateRepository;
   projections: ProjectionEngine;
   snapshots: SnapshotService;
   health: ConnectHealthService;
@@ -128,8 +133,8 @@ function useSupabase(client?: SupabaseClient) {
     syncCursor: new SupabaseSyncCursorRepository(client),
     syncCheckpoint: new SupabaseSyncCheckpointRepository(client),
     webhooks: new SupabaseWebhookRepository(client),
-    invitationQueue: new InMemoryInvitationQueueRepository(),
-    lifecycleState: new InMemoryLifecycleStateRepository(),
+    invitationQueue: new SupabaseInvitationQueueRepository(client),
+    lifecycleState: new SupabaseLifecycleStateRepository(client),
     hiringMetrics: new InMemoryHiringMetricsRepository(),
   };
 }
@@ -266,6 +271,8 @@ export function createConnectRuntime(deps: ConnectRuntimeDeps): ConnectRuntime {
   return {
     connections,
     eventStore,
+    invitationQueue: repos.invitationQueue,
+    lifecycleState: repos.lifecycleState,
     projections,
     snapshots,
     health,

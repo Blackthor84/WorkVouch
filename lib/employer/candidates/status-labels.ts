@@ -4,6 +4,8 @@ export function platformStatusLabel(status: PlatformStatus): string {
   switch (status) {
     case "imported_not_on_workvouch":
       return "Imported · Not on WorkVouch";
+    case "imported_invite_sent":
+      return "Imported · Invite Sent";
     case "linked_in_progress":
       return "On WorkVouch · In progress";
     case "verified_on_workvouch":
@@ -25,6 +27,8 @@ export function platformStatusBadgeVariant(
       return "success";
     case "imported_not_on_workvouch":
       return "brand";
+    case "imported_invite_sent":
+      return "warning";
     case "ambiguous_link":
       return "warning";
     case "linked_in_progress":

@@ -11,9 +11,11 @@ import {
   type DirectoryResponse,
   type DirectorySource,
   type DirectorySourceFilter,
+  type InvitationDisplayStatus,
   type LinkStatus,
   type PlatformStatus,
 } from "./directory-types";
+import { loadInvitationStatusByMapIds } from "./candidate-invite-service";
 
 export type ConnectMapRowInput = {
   id: string;
@@ -59,6 +61,7 @@ export type MergeDirectoryInput = {
   jobTitlesByExternalId: Map<string, string>;
   profileEnrichment: Map<string, ProfileEnrichment>;
   savedRows: SavedRowInput[];
+  invitationStatusByMapId: Map<string, InvitationDisplayStatus>;
   filters: {
     source?: DirectorySourceFilter;
     connectionId?: string;
@@ -77,15 +80,19 @@ export function maskEmail(email: string): string {
   return `${visible}***@${domain}`;
 }
 
-function resolvePlatformStatus(
+function resolveConnectPlatformStatus(
   profileId: string | undefined,
   linkStatus: string | null | undefined,
-  vouchCount: number
+  vouchCount: number,
+  invitationStatus: InvitationDisplayStatus
 ): PlatformStatus {
   if (profileId) {
     return vouchCount >= 2 ? "verified_on_workvouch" : "linked_in_progress";
   }
   if (linkStatus === "ambiguous") return "ambiguous_link";
+  if (invitationStatus === "sent" || invitationStatus === "pending") {
+    return "imported_invite_sent";
+  }
   return "imported_not_on_workvouch";
 }
 
@@ -166,6 +173,18 @@ export function mergeEmployerCandidateDirectory(
         : emailRaw
       : undefined;
 
+    const invitationStatus = input.invitationStatusByMapId.get(row.id) ?? "none";
+    const platformStatus = resolveConnectPlatformStatus(
+      profileId,
+      row.linkStatus,
+      vouchCount,
+      invitationStatus
+    );
+    const canInvite =
+      source === "connect" &&
+      invitationStatus === "none" &&
+      Boolean(emailRaw);
+
     results.push({
       directoryId: `connect:${row.id}`,
       source,
@@ -174,7 +193,8 @@ export function mergeEmployerCandidateDirectory(
       jobTitle,
       applicationStatus: row.applicationStatus ?? projectionStatus,
       locationLabel: enriched?.locationLabel,
-      platformStatus: resolvePlatformStatus(profileId, row.linkStatus, vouchCount),
+      platformStatus,
+      invitationStatus,
       linkStatus: resolveLinkStatus(row),
       profileId,
       vouchCount: profileId ? vouchCount : undefined,
@@ -186,6 +206,7 @@ export function mergeEmployerCandidateDirectory(
       externalCandidateId: row.externalCandidateId,
       externalApplicationId: row.externalApplicationId ?? undefined,
       updatedAt: row.updatedAt,
+      canInvite,
     });
   }
 
@@ -204,11 +225,13 @@ export function mergeEmployerCandidateDirectory(
       jobTitle: saved.profile.jobTitle ?? "—",
       locationLabel: saved.profile.locationLabel,
       platformStatus: "saved_from_search",
+      invitationStatus: "none",
       linkStatus: null,
       profileId: saved.candidateId,
       vouchCount,
       verificationBadge: vouchDisplayFromCount(vouchCount).badge,
       updatedAt: saved.savedAt,
+      canInvite: false,
     });
   }
 
@@ -514,6 +537,9 @@ export async function fetchEmployerCandidateDirectory(
   const savedProfileIds = savedRows.map((r) => r.candidateId);
   const allProfileIds = [...new Set([...linkedProfileIds, ...savedProfileIds])];
   const profileEnrichment = await loadProfileEnrichment(allProfileIds);
+  const invitationStatusByMapId = await loadInvitationStatusByMapIds(
+    connectRows.map((row) => row.id)
+  );
 
   const merged = mergeEmployerCandidateDirectory({
     connectRows,
@@ -521,6 +547,7 @@ export async function fetchEmployerCandidateDirectory(
     jobTitlesByExternalId,
     profileEnrichment,
     savedRows,
+    invitationStatusByMapId,
     filters: {
       source,
       connectionId: ctx.connectionId,

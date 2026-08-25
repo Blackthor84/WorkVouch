@@ -12,10 +12,13 @@ export type DirectorySourceFilter = "all" | "connect" | "workvouch" | "saved" | 
 
 export type PlatformStatus =
   | "imported_not_on_workvouch"
+  | "imported_invite_sent"
   | "linked_in_progress"
   | "verified_on_workvouch"
   | "ambiguous_link"
   | "saved_from_search";
+
+export type InvitationDisplayStatus = "none" | "pending" | "sent" | "expired" | "claimed";
 
 export type DirectoryCandidate = {
   directoryId: string;
@@ -26,6 +29,7 @@ export type DirectoryCandidate = {
   applicationStatus?: string;
   locationLabel?: string;
   platformStatus: PlatformStatus;
+  invitationStatus: InvitationDisplayStatus;
   linkStatus: LinkStatus | null;
   profileId?: string;
   vouchCount?: number;
@@ -35,6 +39,7 @@ export type DirectoryCandidate = {
   externalCandidateId?: string;
   externalApplicationId?: string;
   updatedAt?: string;
+  canInvite: boolean;
 };
 
 export type DirectoryConnection = {
