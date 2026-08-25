@@ -13,6 +13,7 @@ import type { SyncImportMode } from "../../../connect/sync/types";
 import { CONNECT_PLATFORM_VERSION } from "../../../connect/version";
 import { createCorrelationId } from "../../../utils/correlation";
 import type { HarvestClient } from "../api/harvest-client";
+import type { GreenhouseCandidate } from "../models";
 import { mapGreenhouseApplication } from "../mappers/applicationMapper";
 import { mapGreenhouseCandidate } from "../mappers/candidateMapper";
 import { mapCustomFieldDefinitions } from "../mappers/customFieldMapper";
@@ -30,6 +31,7 @@ export interface HarvestImportOptions {
 export interface HarvestImportResult {
   correlationId: string;
   mode: SyncImportMode;
+  status: "completed" | "partial" | "failed";
   jobsImported: number;
   candidatesImported: number;
   applicationsImported: number;
@@ -41,6 +43,7 @@ export interface HarvestImportResult {
   dryRun: boolean;
   cursorAdvanced: boolean;
   paginationTruncated: boolean;
+  syncLogWritten: boolean;
 }
 
 export interface HarvestImportDeps {
@@ -127,9 +130,26 @@ export class HarvestImportService {
     const tokens = await this.deps.connections.getTokens(options.connectionId);
     if (!tokens) {
       errors.push("No tokens available for connection");
+      const syncLogWritten = await this.recordSyncOutcome({
+        options,
+        mode,
+        correlationId,
+        started,
+        status: "failed",
+        errors,
+        jobsImported,
+        candidatesImported,
+        applicationsImported,
+        candidateEmploymentsImported,
+        customFieldsCataloged,
+        eventsStored,
+        paginationTruncated,
+        dryRun,
+      });
       return this.buildResult({
         correlationId,
         mode,
+        status: "failed",
         started,
         errors,
         jobsImported,
@@ -141,14 +161,32 @@ export class HarvestImportService {
         dryRun,
         cursorAdvanced: false,
         paginationTruncated,
+        syncLogWritten,
       });
     }
 
     if (this.deps.connections.isTokenExpired(tokens.expiresAt) && tokens.refreshToken) {
       errors.push("Token expired — refresh required before import");
+      const syncLogWritten = await this.recordSyncOutcome({
+        options,
+        mode,
+        correlationId,
+        started,
+        status: "failed",
+        errors,
+        jobsImported,
+        candidatesImported,
+        applicationsImported,
+        candidateEmploymentsImported,
+        customFieldsCataloged,
+        eventsStored,
+        paginationTruncated,
+        dryRun,
+      });
       return this.buildResult({
         correlationId,
         mode,
+        status: "failed",
         started,
         errors,
         jobsImported,
@@ -160,6 +198,7 @@ export class HarvestImportService {
         dryRun,
         cursorAdvanced: false,
         paginationTruncated,
+        syncLogWritten,
       });
     }
 
@@ -174,6 +213,8 @@ export class HarvestImportService {
     const accessToken = tokens.accessToken;
 
     const providerCursors = (cursor?.providerCursor ?? {}) as Record<string, string | undefined>;
+    const candidatesByExternalId = new Map<string, GreenhouseCandidate>();
+    const persistedCandidateIds = new Set<string>();
 
     try {
       const jobsPage = await this.deps.harvest.listJobs(accessToken, {
@@ -202,9 +243,11 @@ export class HarvestImportService {
       });
       paginationTruncated = paginationTruncated || candidatesPage.truncated;
       for (const raw of candidatesPage.items) {
+        candidatesByExternalId.set(String(raw.id), raw);
         try {
           const universal = mapGreenhouseCandidate(raw);
           if (!dryRun) await this.persistCandidate(options, universal, correlationId);
+          persistedCandidateIds.add(universal.externalId);
           candidatesImported += 1;
           eventsStored += dryRun ? 0 : 1;
         } catch (error) {
@@ -222,7 +265,18 @@ export class HarvestImportService {
       for (const raw of applicationsPage.items) {
         try {
           const universal = mapGreenhouseApplication(raw);
-          if (!dryRun) await this.persistApplication(options, universal, correlationId);
+          if (!dryRun) {
+            const candidatePersisted = await this.persistApplication(options, universal, correlationId, {
+              accessToken,
+              dryRun,
+              candidatesByExternalId,
+              persistedCandidateIds,
+            });
+            if (candidatePersisted) {
+              candidatesImported += 1;
+              eventsStored += 1;
+            }
+          }
           applicationsImported += 1;
           eventsStored += dryRun ? 0 : 1;
         } catch (error) {
@@ -268,34 +322,30 @@ export class HarvestImportService {
           },
         });
         cursorAdvanced = true;
-        await this.deps.connections.updateLastSync(options.connectionId);
       }
 
-      if (!dryRun) {
-        await this.deps.syncLog.append({
-          connectionId: options.connectionId,
-          provider: "greenhouse",
-          syncType: mode,
-          externalId: correlationId,
-          direction: "inbound",
-          status: errors.length === 0 ? "completed" : "partial",
-          durationMs: Date.now() - started,
-          metadata: {
-            jobsImported,
-            candidatesImported,
-            applicationsImported,
-            candidateEmploymentsImported,
-            customFieldsCataloged,
-            eventsStored,
-            mode,
-            paginationTruncated,
-          },
-        });
-      }
+      const status = errors.length === 0 ? "completed" : "partial";
+      const syncLogWritten = await this.recordSyncOutcome({
+        options,
+        mode,
+        correlationId,
+        started,
+        status,
+        errors,
+        jobsImported,
+        candidatesImported,
+        applicationsImported,
+        candidateEmploymentsImported,
+        customFieldsCataloged,
+        eventsStored,
+        paginationTruncated,
+        dryRun,
+      });
 
       return this.buildResult({
         correlationId,
         mode,
+        status,
         started,
         errors,
         jobsImported,
@@ -307,6 +357,7 @@ export class HarvestImportService {
         dryRun,
         cursorAdvanced,
         paginationTruncated,
+        syncLogWritten,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Import failed";
@@ -314,9 +365,26 @@ export class HarvestImportService {
       if (this.deps.cursorManager) {
         await this.deps.connections.recordCursorError(options.connectionId, message);
       }
+      const syncLogWritten = await this.recordSyncOutcome({
+        options,
+        mode,
+        correlationId,
+        started,
+        status: "failed",
+        errors,
+        jobsImported,
+        candidatesImported,
+        applicationsImported,
+        candidateEmploymentsImported,
+        customFieldsCataloged,
+        eventsStored,
+        paginationTruncated,
+        dryRun,
+      });
       return this.buildResult({
         correlationId,
         mode,
+        status: "failed",
         started,
         errors,
         jobsImported,
@@ -328,13 +396,57 @@ export class HarvestImportService {
         dryRun,
         cursorAdvanced: false,
         paginationTruncated,
+        syncLogWritten,
       });
     }
+  }
+
+  private async recordSyncOutcome(input: {
+    options: HarvestImportOptions;
+    mode: SyncImportMode;
+    correlationId: string;
+    started: number;
+    status: "completed" | "partial" | "failed";
+    errors: string[];
+    jobsImported: number;
+    candidatesImported: number;
+    applicationsImported: number;
+    candidateEmploymentsImported: number;
+    customFieldsCataloged: number;
+    eventsStored: number;
+    paginationTruncated: boolean;
+    dryRun: boolean;
+  }): Promise<boolean> {
+    if (input.dryRun) return false;
+
+    await this.deps.syncLog.append({
+      connectionId: input.options.connectionId,
+      provider: "greenhouse",
+      syncType: input.mode,
+      externalId: input.correlationId,
+      direction: "inbound",
+      status: input.status,
+      durationMs: Date.now() - input.started,
+      metadata: {
+        jobsImported: input.jobsImported,
+        candidatesImported: input.candidatesImported,
+        applicationsImported: input.applicationsImported,
+        candidateEmploymentsImported: input.candidateEmploymentsImported,
+        customFieldsCataloged: input.customFieldsCataloged,
+        eventsStored: input.eventsStored,
+        mode: input.mode,
+        paginationTruncated: input.paginationTruncated,
+        errors: input.errors,
+      },
+    });
+
+    return true;
   }
 
   private buildResult(input: {
     correlationId: string;
     mode: SyncImportMode;
+    status: "completed" | "partial" | "failed";
     started: number;
     errors: string[];
     jobsImported: number;
@@ -346,10 +458,12 @@ export class HarvestImportService {
     dryRun: boolean;
     cursorAdvanced: boolean;
     paginationTruncated: boolean;
+    syncLogWritten: boolean;
   }): HarvestImportResult {
     return {
       correlationId: input.correlationId,
       mode: input.mode,
+      status: input.status,
       jobsImported: input.jobsImported,
       candidatesImported: input.candidatesImported,
       applicationsImported: input.applicationsImported,
@@ -361,6 +475,7 @@ export class HarvestImportService {
       dryRun: input.dryRun,
       cursorAdvanced: input.cursorAdvanced,
       paginationTruncated: input.paginationTruncated,
+      syncLogWritten: input.syncLogWritten,
     };
   }
 
@@ -419,7 +534,17 @@ export class HarvestImportService {
     await this.deps.projections.projectCandidate(candidate.externalId);
   }
 
-  private async persistApplication(options: HarvestImportOptions, application: AtsApplication, correlationId: string): Promise<void> {
+  private async persistApplication(
+    options: HarvestImportOptions,
+    application: AtsApplication,
+    correlationId: string,
+    context: {
+      accessToken: string;
+      dryRun: boolean;
+      candidatesByExternalId: Map<string, GreenhouseCandidate>;
+      persistedCandidateIds: Set<string>;
+    }
+  ): Promise<boolean> {
     await this.deps.eventStore.appendEvent({
       correlationId,
       provider: "greenhouse",
@@ -434,5 +559,19 @@ export class HarvestImportService {
       payload: { universalModel: { entity: { application } }, source: "harvest_import" },
       idempotencyKey: `greenhouse:import:application:${application.externalId}:${options.connectionId}`,
     });
+
+    const candidateExternalId = application.candidateExternalId;
+    if (!candidateExternalId || context.dryRun || context.persistedCandidateIds.has(candidateExternalId)) {
+      return false;
+    }
+
+    const listedCandidate = context.candidatesByExternalId.get(candidateExternalId);
+    const rawCandidate =
+      listedCandidate ??
+      (await this.deps.harvest.getCandidate(context.accessToken, candidateExternalId));
+    const universalCandidate = mapGreenhouseCandidate(rawCandidate);
+    await this.persistCandidate(options, universalCandidate, correlationId);
+    context.persistedCandidateIds.add(candidateExternalId);
+    return true;
   }
 }

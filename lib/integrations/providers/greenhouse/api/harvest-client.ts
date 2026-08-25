@@ -31,6 +31,13 @@ export interface HarvestPaginateResult<T> {
   truncated: boolean;
 }
 
+export interface HarvestEndpointProbe {
+  path: string;
+  healthy: boolean;
+  latencyMs: number;
+  error?: string;
+}
+
 export class HarvestClient {
   constructor(
     private readonly config: GreenhouseProviderConfig,
@@ -46,25 +53,52 @@ export class HarvestClient {
     latencyMs: number;
     probe?: string;
     error?: string;
+    endpoints?: HarvestEndpointProbe[];
   }> {
+    return this.probeListEndpoints(accessToken);
+  }
+
+  /** Lightweight probes for jobs, candidates, and applications list access. */
+  async probeListEndpoints(accessToken: string): Promise<{
+    healthy: boolean;
+    latencyMs: number;
+    probe?: string;
+    error?: string;
+    endpoints: HarvestEndpointProbe[];
+  }> {
+    const paths = ["/jobs", "/candidates", "/applications"] as const;
     const started = Date.now();
-    try {
-      await this.fetchPage<GreenhouseJob>(
-        `${this.apiRoot}/jobs?per_page=1`,
-        accessToken
-      );
-      return {
-        healthy: true,
-        latencyMs: Date.now() - started,
-        probe: "GET /v3/jobs?per_page=1",
-      };
-    } catch (error) {
-      return {
-        healthy: false,
-        latencyMs: Date.now() - started,
-        error: error instanceof Error ? error.message : "Health check failed",
-      };
+    const endpoints: HarvestEndpointProbe[] = [];
+
+    for (const path of paths) {
+      const probeStarted = Date.now();
+      try {
+        await this.fetchPage(`${this.apiRoot}${path}?per_page=1`, accessToken);
+        endpoints.push({
+          path,
+          healthy: true,
+          latencyMs: Date.now() - probeStarted,
+        });
+      } catch (error) {
+        endpoints.push({
+          path,
+          healthy: false,
+          latencyMs: Date.now() - probeStarted,
+          error: error instanceof Error ? error.message : "Probe failed",
+        });
+      }
     }
+
+    const allHealthy = endpoints.every((endpoint) => endpoint.healthy);
+    const firstFailure = endpoints.find((endpoint) => !endpoint.healthy);
+
+    return {
+      healthy: allHealthy,
+      latencyMs: Date.now() - started,
+      probe: "GET /v3/{jobs,candidates,applications}?per_page=1",
+      error: firstFailure?.error,
+      endpoints,
+    };
   }
 
   async listCandidates(

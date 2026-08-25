@@ -42,7 +42,12 @@ export interface ConnectHealthServiceDeps {
   snapshots?: SnapshotService;
   cursorManager?: SyncCursorManager;
   providerVersion?: string;
-  testHarvest?: (accessToken: string) => Promise<{ healthy: boolean; latencyMs: number; error?: string }>;
+  testHarvest?: (accessToken: string) => Promise<{
+    healthy: boolean;
+    latencyMs: number;
+    error?: string;
+    endpoints?: Array<{ path: string; healthy: boolean; latencyMs: number; error?: string }>;
+  }>;
 }
 
 /** Internal-only Connect health dashboard — no UI. */
@@ -91,12 +96,23 @@ export class ConnectHealthService {
 
     if (this.deps.testHarvest && tokens) {
       const harvest = await this.deps.testHarvest(tokens.accessToken);
-      components.push({
-        name: "harvest",
-        status: harvest.healthy ? "healthy" : "unhealthy",
-        message: harvest.error ?? "Harvest API reachable",
-        latencyMs: harvest.latencyMs,
-      });
+      if (harvest.endpoints?.length) {
+        for (const endpoint of harvest.endpoints) {
+          components.push({
+            name: `harvest${endpoint.path.replace(/\//g, "-")}`,
+            status: endpoint.healthy ? "healthy" : "unhealthy",
+            message: endpoint.error ?? `GET /v3${endpoint.path}?per_page=1 reachable`,
+            latencyMs: endpoint.latencyMs,
+          });
+        }
+      } else {
+        components.push({
+          name: "harvest",
+          status: harvest.healthy ? "healthy" : "unhealthy",
+          message: harvest.error ?? "Harvest API reachable",
+          latencyMs: harvest.latencyMs,
+        });
+      }
     }
 
     if (this.deps.eventStore) {

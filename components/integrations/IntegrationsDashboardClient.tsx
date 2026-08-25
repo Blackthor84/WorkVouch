@@ -35,6 +35,7 @@ export function IntegrationsDashboardClient() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [importMessage, setImportMessage] = useState<string | null>(null);
   const [importing, setImporting] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -57,9 +58,39 @@ export function IntegrationsDashboardClient() {
 
   const runImport = async (connectionId: string) => {
     setImporting(connectionId);
+    setError(null);
+    setImportMessage(null);
     try {
-      const res = await fetch(`/api/employer/integrations/connections/${connectionId}/import`, { method: "POST" });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Import failed");
+      const res = await fetch(`/api/employer/integrations/connections/${connectionId}/import`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "full" }),
+      });
+      const result = (await res.json()) as {
+        error?: string;
+        status?: string;
+        mode?: string;
+        errors?: string[];
+        jobsImported?: number;
+        candidatesImported?: number;
+        applicationsImported?: number;
+      };
+
+      if (!res.ok) {
+        const detail = result.errors?.length
+          ? result.errors.join("; ")
+          : result.error ?? "Import failed";
+        throw new Error(detail);
+      }
+
+      const summary = `Sync ${result.status ?? "completed"} (${result.mode ?? "full"}): ${result.jobsImported ?? 0} jobs, ${result.candidatesImported ?? 0} candidates, ${result.applicationsImported ?? 0} applications`;
+
+      if (result.errors?.length) {
+        setError(`${summary}. Issues: ${result.errors.join("; ")}`);
+      } else {
+        setImportMessage(summary);
+      }
+
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Import failed");
@@ -88,6 +119,9 @@ export function IntegrationsDashboardClient() {
       {loading && <WvLoadingState label="Loading integrations…" />}
       {error && (
         <WvCard className="mb-6 border-red-500/30 bg-red-500/5 p-4 text-red-300">{error}</WvCard>
+      )}
+      {importMessage && !error && (
+        <WvCard className="mb-6 border-emerald-500/30 bg-emerald-500/5 p-4 text-emerald-200">{importMessage}</WvCard>
       )}
 
       {!loading && data && (

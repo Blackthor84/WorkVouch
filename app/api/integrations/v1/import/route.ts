@@ -46,12 +46,15 @@ export async function POST(request: Request) {
       maxPages: body.maxPages ?? 5,
     });
 
-    await admin
-      .from("connect_connections")
-      .update({ last_sync_at: new Date().toISOString() })
-      .eq("id", body.connectionId);
+    const syncSucceeded = result.status !== "failed" && result.syncLogWritten;
+    if (syncSucceeded) {
+      await admin
+        .from("connect_connections")
+        .update({ last_sync_at: new Date().toISOString() })
+        .eq("id", body.connectionId);
+    }
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, { status: result.status === "failed" ? 422 : 200 });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Import failed" },

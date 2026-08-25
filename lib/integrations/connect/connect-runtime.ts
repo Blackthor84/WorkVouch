@@ -202,8 +202,13 @@ export function createConnectRuntime(deps: ConnectRuntimeDeps): ConnectRuntime {
     providerVersion: "1.0.0",
     cursorManager,
     testHarvest: async (accessToken) => {
-      const result = await harvest.healthCheck(accessToken);
-      return { healthy: result.healthy, latencyMs: result.latencyMs, error: result.error };
+      const result = await harvest.probeListEndpoints(accessToken);
+      return {
+        healthy: result.healthy,
+        latencyMs: result.latencyMs,
+        error: result.error,
+        endpoints: result.endpoints,
+      };
     },
   });
 

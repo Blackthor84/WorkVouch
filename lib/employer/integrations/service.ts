@@ -53,14 +53,31 @@ async function countEventsByConnection(connectionId: string): Promise<number> {
   return countByConnection("connect_event_store", connectionId);
 }
 
+async function countApplicationEventsByConnection(connectionId: string): Promise<number> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return 0;
+  try {
+    const { admin } = await import("@/lib/supabase-admin");
+    const { count, error } = await admin
+      .from("connect_event_store")
+      .select("*", { count: "exact", head: true })
+      .eq("connection_id", connectionId)
+      .eq("aggregate_type", "application");
+    if (error) return 0;
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 export async function getConnectionStats(
   runtime: ConnectRuntime,
   connection: ConnectionSummary
 ): Promise<IntegrationDashboardStats> {
-  const [candidates, jobs, events] = await Promise.all([
+  const [candidates, jobs, events, applications] = await Promise.all([
     countByConnection("connect_candidate_map", connection.connectionId),
     countByConnection("connect_job_map", connection.connectionId),
     countEventsByConnection(connection.connectionId),
+    countApplicationEventsByConnection(connection.connectionId),
   ]);
 
   const automation = (connection.metadata?.sync_preferences as Record<string, unknown> | undefined)?.automation as
@@ -71,7 +88,7 @@ export async function getConnectionStats(
     eventsProcessed: events,
     candidatesImported: candidates,
     jobsImported: jobs,
-    applicationsImported: candidates,
+    applicationsImported: applications,
     automationEnabled: automation?.auto_invite_enabled !== false,
     automationTrigger: automation?.auto_invite_trigger ? String(automation.auto_invite_trigger) : undefined,
   };
