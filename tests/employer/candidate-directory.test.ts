@@ -272,4 +272,12 @@ describe("saved candidates production schema compatibility", () => {
       /profiles:candidate_id[\s\S]*industry/
     );
   });
+
+  it("uses production-safe profile enrichment without vouch_count", () => {
+    expect(DIRECTORY_PROFILE_ENRICHMENT_COLUMNS).not.toContain("vouch_count");
+    expect(DIRECTORY_PROFILE_ENRICHMENT_COLUMNS).toContain("full_name");
+    expect(directoryServiceSource).toContain(
+      "vouchCount: Math.max(0, Number(profile.vouch_count ?? 0))"
+    );
+  });
 });

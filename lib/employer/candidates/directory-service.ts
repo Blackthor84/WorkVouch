@@ -47,7 +47,7 @@ export const SAVED_CANDIDATES_DIRECTORY_PROFILE_COLUMNS = `
 `.trim();
 
 /** Profile columns available on production for directory enrichment. */
-export const DIRECTORY_PROFILE_ENRICHMENT_COLUMNS = "id, full_name, vouch_count";
+export const DIRECTORY_PROFILE_ENRICHMENT_COLUMNS = "id, full_name";
 
 export type SavedRowInput = {
   candidateId: string;
