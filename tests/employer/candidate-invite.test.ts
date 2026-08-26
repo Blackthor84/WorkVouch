@@ -366,7 +366,7 @@ describe("claimConnectCandidateInvite", () => {
     expect(result.ok).toBe(false);
   });
 
-  it("cannot reuse a claimed invitation token", async () => {
+  it("cannot reuse a claimed invitation token for another profile", async () => {
     mockFrom.mockImplementation((table: string) => {
       if (table === "connect_candidate_invites") {
         return chain({
@@ -374,9 +374,14 @@ describe("claimConnectCandidateInvite", () => {
             id: "invite-1",
             status: "claimed",
             expires_at: new Date(Date.now() + 86400000).toISOString(),
+            connect_candidate_map_id: "map-1",
+            claimed_profile_id: "profile-other",
           },
           error: null,
         });
+      }
+      if (table === "connect_candidate_map") {
+        return chain({ data: { workvouch_profile_id: null }, error: null });
       }
       return chain({ data: null, error: null });
     });
@@ -384,6 +389,32 @@ describe("claimConnectCandidateInvite", () => {
     const result = await claimConnectCandidateInvite("token-abc", "profile-1");
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/already claimed/i);
+  });
+
+  it("returns success idempotently for the same profile", async () => {
+    mockFrom.mockImplementation((table: string) => {
+      if (table === "connect_candidate_invites") {
+        return chain({
+          data: {
+            id: "invite-1",
+            status: "claimed",
+            expires_at: new Date(Date.now() + 86400000).toISOString(),
+            connect_candidate_map_id: "map-1",
+            claimed_profile_id: "profile-1",
+          },
+          error: null,
+        });
+      }
+      if (table === "connect_candidate_map") {
+        return chain({ data: { workvouch_profile_id: "profile-1" }, error: null });
+      }
+      return chain({ data: null, error: null });
+    });
+
+    const result = await claimConnectCandidateInvite("token-abc", "profile-1");
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.alreadyClaimed).toBe(true);
+    expect(mockAppendEvent).not.toHaveBeenCalled();
   });
 });
 

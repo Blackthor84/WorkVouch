@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { persistInviteTokenForSignup } from "@/components/invites/CoworkerInvitePanel";
+import { isSafeConnectInviteReturnTo, buildAuthCallbackRedirectUrl } from "@/lib/auth/safeReturnTo";
 import { WvShell, WvCard, WvButton, WvInput, WvBadge } from "@/components/wv";
 
 let signupAlreadyAttempted = false;
@@ -23,6 +24,8 @@ export default function SignupClient() {
 
   const sourceVerification = searchParams.get("source") === "verification";
   const coworkerInviteToken = searchParams.get("invite")?.trim() ?? "";
+  const returnTo = searchParams.get("returnTo")?.trim() ?? "";
+  const connectInviteReturn = isSafeConnectInviteReturnTo(returnTo);
   const prefilledEmail = searchParams.get("email")?.trim() ?? "";
   const prefilledCompany = searchParams.get("company")?.trim() ?? "";
   const didPrefill = useRef(false);
@@ -76,6 +79,8 @@ export default function SignupClient() {
 
       const username = cleanEmail.split("@")[0] || undefined;
       const inviteTok = searchParams.get("invite")?.trim() ?? "";
+      const safeReturnTo =
+        returnTo && isSafeConnectInviteReturnTo(returnTo) ? returnTo : undefined;
 
       const { data, error } = await supabaseBrowser.auth.signUp({
         email: cleanEmail,
@@ -89,7 +94,7 @@ export default function SignupClient() {
           },
           emailRedirectTo:
             typeof window !== "undefined"
-              ? `${window.location.origin}/auth/callback`
+              ? buildAuthCallbackRedirectUrl(window.location.origin, safeReturnTo)
               : undefined,
         },
       });
@@ -107,6 +112,10 @@ export default function SignupClient() {
           } catch {
             // non-blocking
           }
+        }
+        if (safeReturnTo) {
+          router.push(safeReturnTo);
+          return;
         }
         const redirectRes = await fetch("/api/auth/post-login-redirect", { credentials: "include" });
         if (!redirectRes.ok) {
@@ -132,7 +141,11 @@ export default function SignupClient() {
             // non-blocking
           }
         }
-        router.push("/check-email");
+        router.push(
+          safeReturnTo
+            ? `/check-email?returnTo=${encodeURIComponent(safeReturnTo)}`
+            : "/check-email"
+        );
         return;
       }
     } catch (err) {
@@ -160,6 +173,12 @@ export default function SignupClient() {
           </WvBadge>
           <h1 className="text-2xl font-bold text-center text-wv-foreground">Create account</h1>
 
+          {connectInviteReturn && (
+            <p className="text-sm text-center mt-4 px-3 py-2.5 rounded-xl bg-blue-500/10 text-blue-300 border border-blue-500/30">
+              You&apos;re joining through an employer invitation — after signup you&apos;ll connect your
+              WorkVouch profile to your application.
+            </p>
+          )}
           {coworkerInviteToken && (
             <p className="text-sm text-center mt-4 px-3 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
               You&apos;re joining through a coworker invite — you&apos;ll be linked when you finish signup so you can
@@ -226,7 +245,14 @@ export default function SignupClient() {
 
           <p className="text-center mt-6 text-sm text-wv-muted">
             Already have an account?{" "}
-            <Link href="/login" className="text-blue-400 hover:text-blue-300 font-medium">
+            <Link
+              href={
+                returnTo && isSafeConnectInviteReturnTo(returnTo)
+                  ? `/login?returnTo=${encodeURIComponent(returnTo)}`
+                  : "/login"
+              }
+              className="text-blue-400 hover:text-blue-300 font-medium"
+            >
               Log in
             </Link>
           </p>

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/types/supabase";
 import { getPostLoginRedirect } from "@/lib/auth/getPostLoginRedirect";
+import { resolvePostAuthRedirectPath } from "@/lib/auth/safeReturnTo";
 
 export const runtime = "nodejs";
 
@@ -10,6 +11,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams, origin } = new URL(request.url);
     const code = searchParams.get("code");
+    const returnTo = searchParams.get("returnTo");
 
     if (!code) {
       return NextResponse.redirect(`${origin}/login?error=missing_code`);
@@ -52,7 +54,8 @@ export async function GET(request: Request) {
       .single();
 
     const role = error || !data ? "" : ((data as { role?: string | null }).role ?? "");
-    const path = await getPostLoginRedirect({ id: user.id, role });
+    const defaultPath = await getPostLoginRedirect({ id: user.id, role });
+    const path = resolvePostAuthRedirectPath(returnTo, defaultPath);
     return NextResponse.redirect(`${origin}${path}`);
   } catch {
     const origin = new URL(request.url).origin;

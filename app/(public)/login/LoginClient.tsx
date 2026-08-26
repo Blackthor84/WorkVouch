@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/browser";
+import { isSafeConnectInviteReturnTo } from "@/lib/auth/safeReturnTo";
 import { WvShell, WvCard, WvButton, WvInput } from "@/components/wv";
 
 export default function LoginClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo")?.trim() ?? "";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,6 +27,12 @@ export default function LoginClient() {
         password,
       });
       if (signInError) throw signInError;
+
+      if (returnTo && isSafeConnectInviteReturnTo(returnTo)) {
+        router.push(returnTo);
+        router.refresh();
+        return;
+      }
 
       const redirectRes = await fetch("/api/auth/post-login-redirect", {
         credentials: "include",

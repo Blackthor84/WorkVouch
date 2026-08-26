@@ -48,8 +48,8 @@ export type SendInviteFailure = {
 export type SendInviteResult = SendInviteSuccess | SendInviteFailure;
 
 export type ClaimInviteResult =
-  | { ok: true; profileId: string; connectCandidateMapId: string }
-  | { ok: false; error: string };
+  | { ok: true; profileId: string; connectCandidateMapId: string; alreadyClaimed?: boolean }
+  | { ok: false; error: string; code?: "not_found" | "expired" | "already_claimed" | "invalid" };
 
 const ACTIVE_INVITE_STATUSES = ["pending", "sent"] as const;
 
@@ -357,7 +357,7 @@ export async function sendEmployerCandidateInvite(input: {
   };
 }
 
-/** Claim flow for tests and future signup — invalidates token after success. */
+/** Claim flow for candidate invitation pages — idempotent for the same profile. */
 export async function claimConnectCandidateInvite(
   token: string,
   profileId: string
@@ -372,15 +372,53 @@ export async function claimConnectCandidateInvite(
     .maybeSingle();
 
   if (error || !invite) {
-    return { ok: false, error: "Invitation not found" };
+    return { ok: false, error: "Invitation not found", code: "not_found" };
+  }
+
+  const mapId = String(invite.connect_candidate_map_id);
+  const { data: mapRow } = await sb
+    .from("connect_candidate_map")
+    .select("workvouch_profile_id")
+    .eq("id", mapId)
+    .maybeSingle();
+
+  const linkedProfileId = (mapRow as { workvouch_profile_id?: string | null } | null)
+    ?.workvouch_profile_id;
+
+  if (linkedProfileId) {
+    if (String(linkedProfileId) === String(profileId)) {
+      return {
+        ok: true,
+        profileId,
+        connectCandidateMapId: mapId,
+        alreadyClaimed: true,
+      };
+    }
+    return {
+      ok: false,
+      error: "Invitation already claimed",
+      code: "already_claimed",
+    };
   }
 
   if (invite.status === "claimed") {
-    return { ok: false, error: "Invitation already claimed" };
+    if (String(invite.claimed_profile_id ?? "") === String(profileId)) {
+      return {
+        ok: true,
+        profileId,
+        connectCandidateMapId: mapId,
+        alreadyClaimed: true,
+      };
+    }
+    return {
+      ok: false,
+      error: "Invitation already claimed",
+      code: "already_claimed",
+    };
   }
 
   if (invite.status === "cancelled" || invite.status === "expired") {
-    return { ok: false, error: "Invitation is no longer valid" };
+    return { ok: false, error: "Invitation is no longer valid", code: "invalid" };
   }
 
   if (isConnectInviteExpired(String(invite.expires_at))) {
@@ -388,7 +426,7 @@ export async function claimConnectCandidateInvite(
       .from("connect_candidate_invites")
       .update({ status: "expired", updated_at: new Date().toISOString() })
       .eq("id", invite.id);
-    return { ok: false, error: "Invitation has expired" };
+    return { ok: false, error: "Invitation has expired", code: "expired" };
   }
 
   const claimedAt = new Date().toISOString();
