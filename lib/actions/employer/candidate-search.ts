@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from "@/lib/supabase/server";
+import { admin } from "@/lib/supabase-admin";
 import { requireAuth } from '@/lib/auth'
 import { resolveEmployerDataAccess } from "@/lib/employer/employerPlanServer";
 import {
@@ -54,11 +55,11 @@ function redactCandidateProfileForFreePreview(full: CandidateProfilePayload): Ca
 
 /**
  * Fetch candidate profile data (exact same shape as employer view). No auth.
+ * Uses admin client — employer session RLS only allows reading own profile row.
  * Used by getCandidateProfileForEmployer and getMyProfileAsEmployerSeesIt.
  */
 export async function getCandidateProfileData(candidateId: string): Promise<CandidateProfilePayload> {
-  const supabase = await createClient()
-  const supabaseAny = supabase as any
+  const supabaseAny = admin as any
 
   const { data: candidateProfile, error: profileError } = await supabaseAny
     .from('profiles')

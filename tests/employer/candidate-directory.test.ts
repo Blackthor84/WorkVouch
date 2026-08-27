@@ -160,6 +160,38 @@ describe("mergeEmployerCandidateDirectory", () => {
     expect(merged[0]?.canInvite).toBe(false);
   });
 
+  it("uses workvouch profile id for View profile, not connect map id", () => {
+    const workvouchProfileId = "f05e4025-e1f1-45b4-b919-4c0c605890ce";
+    const connectMapId = "map-jon";
+    const merged = mergeEmployerCandidateDirectory({
+      connectRows: [
+        {
+          id: connectMapId,
+          connectionId: employerAConnection,
+          provider: "greenhouse",
+          externalCandidateId: "38986511009",
+          workvouchProfileId,
+          candidateName: "Jon Jones",
+          linkStatus: "manual_linked",
+        },
+      ],
+      projections: new Map(),
+      jobTitlesByExternalId: new Map(),
+      profileEnrichment: new Map([
+        [workvouchProfileId, { fullName: "Jon Jones", vouchCount: 0 }],
+      ]),
+      savedRows: [],
+      invitationStatusByMapId: new Map(),
+      filters: { source: "all" },
+      maskEmails: false,
+    });
+
+    expect(merged[0]?.profileId).toBe(workvouchProfileId);
+    expect(merged[0]?.directoryId).toBe(`connect:${connectMapId}`);
+    expect(merged[0]?.profileId).not.toBe(connectMapId);
+    expect(merged[0]?.platformStatus).toBe("linked_in_progress");
+  });
+
   it("includes WorkVouch-only saved candidate when not linked via Connect", () => {
     const profileId = "profile-saved-only";
     const merged = mergeEmployerCandidateDirectory({
@@ -279,5 +311,26 @@ describe("saved candidates production schema compatibility", () => {
     expect(directoryServiceSource).toContain(
       "vouchCount: Math.max(0, Number(profile.vouch_count ?? 0))"
     );
+  });
+});
+
+describe("linked candidate View profile routing", () => {
+  it("builds employer profile href from profileId", () => {
+    const source = readFileSync(
+      join(process.cwd(), "components/employer/EmployerCandidatesDirectoryClient.tsx"),
+      "utf8"
+    );
+    expect(source).toContain("/employer/profile/${candidate.profileId}");
+    expect(source).not.toMatch(/employer\/profile\/\$\{candidate\.directoryId\}/);
+  });
+
+  it("loads employer candidate profiles via admin after auth gate", () => {
+    const source = readFileSync(
+      join(process.cwd(), "lib/actions/employer/candidate-search.ts"),
+      "utf8"
+    );
+    expect(source).toContain('from "@/lib/supabase-admin"');
+    expect(source).toMatch(/getCandidateProfileData[\s\S]*admin as any/);
+    expect(source).toMatch(/getCandidateProfileForEmployer[\s\S]*requireAuth/);
   });
 });
