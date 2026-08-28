@@ -31,6 +31,7 @@ type HiringGuidanceCoachmarksProps = {
 export function HiringGuidanceCoachmarks({ enabled }: HiringGuidanceCoachmarksProps) {
   const [step, setStep] = useState(0);
   const [dismissed, setDismissed] = useState(true);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!enabled) return;
@@ -39,6 +40,7 @@ export function HiringGuidanceCoachmarks({ enabled }: HiringGuidanceCoachmarksPr
     } catch {
       setDismissed(true);
     }
+    setReady(true);
   }, [enabled]);
 
   const finish = useCallback(() => {
