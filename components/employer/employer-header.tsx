@@ -1,10 +1,16 @@
 import { getCurrentUser } from "@/lib/auth";
+import {
+  employerPlanDisplayLabel,
+  loadEmployerAccountPlanTier,
+} from "@/lib/employer/employerPlanServer";
 import { SignOutButton } from "../sign-out-button";
 import { WvBadge, WvButton } from "@/components/wv";
 import { Bell } from "lucide-react";
 
 export async function EmployerHeader() {
   const user = await getCurrentUser();
+  const planTier = user ? await loadEmployerAccountPlanTier(user.id) : null;
+  const planLabel = employerPlanDisplayLabel(planTier);
 
   return (
     <header className="sticky top-0 z-30 border-b border-wv-border bg-wv-surface/80 backdrop-blur-xl px-4 py-3 md:px-6">
@@ -13,7 +19,7 @@ export async function EmployerHeader() {
           <h1 className="truncate text-base font-semibold text-wv-foreground md:text-lg">
             {user?.email || "Employer account"}
           </h1>
-          <WvBadge variant="brand">Pro Plan</WvBadge>
+          <WvBadge variant="brand">{planLabel}</WvBadge>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <WvButton variant="ghost" size="sm" ariaLabel="Notifications">
