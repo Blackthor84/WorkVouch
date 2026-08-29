@@ -257,13 +257,16 @@ export async function getCandidateProfileForEmployer(
     }
   }
 
+  const result: CandidateProfileForEmployerResult = { ...full, hiringDataUnlocked: true };
   console.error(EMPLOYER_PROFILE_DIAG, "return: full access", {
     candidateId,
     employerId: user.id,
     profileId: full.profile?.id ?? null,
-    hiringDataUnlocked: true,
-  })
-  return { ...full, hiringDataUnlocked: true }
+    accessMode: access.mode,
+    accessPlan: access.plan,
+    hiringDataUnlocked: result.hiringDataUnlocked,
+  });
+  return result;
 }
 
 /**

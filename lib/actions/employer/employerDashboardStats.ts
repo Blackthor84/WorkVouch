@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/auth";
+import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 
 const FREE_DAILY_VIEW_LIMIT = 5;
 
@@ -20,28 +21,48 @@ function startOfToday(): string {
 }
 
 /**
- * Premium hiring access: profile flag and/or active employer subscription.
+ * Premium hiring access: profile flag and/or paid employer plan (plan_tier / subscription).
+ * Uses the same production-safe authority as requireActiveSubscription().
  */
 export async function isEmployerHiringPremium(): Promise<boolean> {
   const user = await requireAuth();
   const supabase = await createClient();
   const sb = supabase as any;
 
-  const { data: profile } = await sb
+  const { data: profile, error: profileError } = await sb
     .from("profiles")
     .select("role, is_premium")
     .eq("id", user.id)
     .maybeSingle();
-  if ((profile as { role?: string } | null)?.role !== "employer") return false;
-  if ((profile as { is_premium?: boolean } | null)?.is_premium === true) return true;
+  const role = (profile as { role?: string } | null)?.role ?? null;
+  const isPremium = (profile as { is_premium?: boolean } | null)?.is_premium === true;
 
-  const { data: acct } = await sb
-    .from("employer_accounts")
-    .select("subscription_status")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  const status = (acct as { subscription_status?: string | null } | null)?.subscription_status;
-  return status === "active";
+  if (role !== "employer") {
+    console.error("[isEmployerHiringPremium:diag]", "reject: not employer", {
+      employerId: user.id,
+      role,
+      profileError: profileError?.message ?? null,
+    });
+    return false;
+  }
+  if (isPremium) {
+    console.error("[isEmployerHiringPremium:diag]", "allow: profiles.is_premium", {
+      employerId: user.id,
+    });
+    return true;
+  }
+
+  const subscription = await requireActiveSubscription(user.id);
+  const allowed = subscription.allowed;
+
+  console.error("[isEmployerHiringPremium:diag]", "requireActiveSubscription gate", {
+    employerId: user.id,
+    allowed,
+    planTier: subscription.planTier ?? null,
+    error: subscription.error ?? null,
+  });
+
+  return allowed;
 }
 
 /**

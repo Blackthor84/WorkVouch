@@ -62,17 +62,29 @@ export default async function EmployerCandidateProfilePage(props: {
   }
 
   await recordCandidateProfileView(id);
-  const hiringDataUnlocked = await isEmployerHiringPremium();
+  const hiringPremiumGate = await isEmployerHiringPremium();
 
   let candidateData;
   try {
     candidateData = await getCandidateProfileForEmployer(id);
 
+    const viewerHiringDataUnlocked =
+      candidateData.hiringDataUnlocked && hiringPremiumGate;
+
+    console.error("[employer/profile:diag]", "CandidateProfileViewer props", {
+      candidateId: id,
+      employerId: user.id,
+      candidateDataHiringDataUnlocked: candidateData.hiringDataUnlocked,
+      isEmployerHiringPremium: hiringPremiumGate,
+      viewerHiringDataUnlocked,
+      candidateProfileId: candidateData.profile?.id ?? null,
+    });
+
     return (
       <EmployerPortalLayout>
         <CandidateProfileViewer
           candidateData={candidateData}
-          hiringDataUnlocked={candidateData.hiringDataUnlocked && hiringDataUnlocked}
+          hiringDataUnlocked={viewerHiringDataUnlocked}
         />
       </EmployerPortalLayout>
     );
