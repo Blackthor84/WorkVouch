@@ -7,6 +7,16 @@
 import type { DepthBand } from "./depthBands";
 import { toDepthBand } from "./depthBands";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  computeVerificationCoverage,
+  loadCandidateEmploymentRows,
+} from "@/lib/employer/candidateEmploymentSource";
+import {
+  candidateHasReferenceType,
+  hasRecentTrustDispute,
+  loadStoredTrustScore,
+  loadTrustRelationships,
+} from "@/lib/trust/productionSafeQueries";
 
 export type TrustPolicyRow = {
   id: string;
@@ -113,48 +123,33 @@ export async function evaluateTrustPolicy(
   const matched: PolicyCriterion[] = [];
   const failed: PolicyCriterion[] = [];
 
-  // 1) Trust score (stored)
-  const { data: scoreRow } = await supabase
-    .from("trust_scores")
-    .select("score")
-    .eq("user_id", candidateId)
-    .maybeSingle();
-  const candidateTrustScore = scoreRow?.score != null ? Number(scoreRow.score) : 0;
+  // 1) Trust score (stored, production-safe when trust_scores absent)
+  const candidateTrustScore = await loadStoredTrustScore(supabase, candidateId);
   if (candidateTrustScore >= pol.min_trust_score) {
     matched.push("trust_score");
   } else {
     failed.push("trust_score");
   }
 
-  // 2) Verification coverage (from employment_records, not recomputed each time)
-  const { data: empRows } = await supabase
-    .from("employment_records")
-    .select("verification_status")
-    .eq("user_id", candidateId);
-  const list = (empRows ?? []) as { verification_status?: string }[];
-  const totalRoles = list.length;
-  const verifiedRoles = list.filter((r) => r.verification_status === "verified").length;
-  const coveragePercent = totalRoles > 0 ? Math.round((verifiedRoles / totalRoles) * 100) : 0;
+  // 2) Verification coverage (employment_records → jobs fallback)
+  const employmentRows = await loadCandidateEmploymentRows(
+    candidateId,
+    supabase as unknown as import("@/lib/employer/candidateEmploymentSource").EmploymentClient
+  );
+  const { coveragePercent } = computeVerificationCoverage(employmentRows);
   if (coveragePercent >= pol.min_verification_coverage) {
     matched.push("verification_coverage");
   } else {
     failed.push("verification_coverage");
   }
 
-  // 3) Reference type (manager -> supervisor, coworker, client)
+  // 3) Reference type (user_references → employment_references fallback)
   const requiredRef = (pol.required_reference_type ?? "").trim().toLowerCase();
   if (!requiredRef) {
     matched.push("reference_type");
   } else {
     const dbType = REFERENCE_TYPE_MAP[requiredRef] ?? requiredRef;
-    const { data: refRows } = await supabase
-      .from("user_references")
-      .select("id")
-      .eq("to_user_id", candidateId)
-      .eq("relationship_type", dbType)
-      .eq("is_deleted", false)
-      .limit(1);
-    const hasRef = (refRows?.length ?? 0) > 0;
+    const hasRef = await candidateHasReferenceType(supabase, candidateId, dbType);
     if (hasRef) {
       matched.push("reference_type");
     } else {
@@ -165,15 +160,7 @@ export async function evaluateTrustPolicy(
   // 4) Trust graph depth (from trust_relationships, band via depthBands)
   const minDepth = (pol.min_trust_graph_depth ?? "").trim().toLowerCase() || "weak";
   const depthOrder = DEPTH_ORDER[minDepth] ?? 1;
-  const { data: relRows } = await supabase
-    .from("trust_relationships")
-    .select("source_profile_id, target_profile_id, relationship_type")
-    .or(`source_profile_id.eq.${candidateId},target_profile_id.eq.${candidateId}`);
-  const relList = (relRows ?? []) as {
-    source_profile_id: string;
-    target_profile_id: string;
-    relationship_type: string;
-  }[];
+  const relList = await loadTrustRelationships(supabase, candidateId);
   const directConnections = relList.filter((r) => r.source_profile_id === candidateId).length;
   const managerConfirmations = relList.filter(
     (r) => r.relationship_type === "manager_confirmation"
@@ -193,14 +180,11 @@ export async function evaluateTrustPolicy(
   } else {
     const since = new Date();
     since.setDate(since.getDate() - DISPUTE_LOOKBACK_DAYS);
-    const { data: disputeRows } = await supabase
-      .from("trust_events")
-      .select("id")
-      .eq("profile_id", candidateId)
-      .eq("event_type", "dispute")
-      .gte("created_at", since.toISOString())
-      .limit(1);
-    const hasRecentDispute = (disputeRows?.length ?? 0) > 0;
+    const hasRecentDispute = await hasRecentTrustDispute(
+      supabase,
+      candidateId,
+      since.toISOString()
+    );
     if (!hasRecentDispute) {
       matched.push("no_recent_disputes");
     } else {

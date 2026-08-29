@@ -12,7 +12,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 type MockPayload = {
   policy?: Record<string, unknown> | null;
   trustScore?: { score: number } | null;
-  employmentRecords?: { verification_status: string }[];
+    employmentRecords?: Array<Record<string, unknown>>;
   userReferences?: { id: string }[];
   trustRelationships?: { source_profile_id: string; relationship_type: string }[];
   trustEventsDisputes?: { id: string }[];
@@ -41,10 +41,35 @@ function createMockSupabase(overrides: MockPayload): SupabaseClient {
     employment_records: {
       data:
         overrides.employmentRecords ?? [
-          { verification_status: "verified" },
-          { verification_status: "verified" },
-          { verification_status: "pending" },
+          {
+            id: "er-1",
+            company_name: "Acme",
+            job_title: "Tech",
+            start_date: "2024-01-01",
+            end_date: null,
+            verification_status: "verified",
+          },
+          {
+            id: "er-2",
+            company_name: "Beta",
+            job_title: "Tech",
+            start_date: "2023-01-01",
+            end_date: "2023-12-31",
+            verification_status: "verified",
+          },
+          {
+            id: "er-3",
+            company_name: "Gamma",
+            job_title: "Tech",
+            start_date: "2022-01-01",
+            end_date: "2022-12-31",
+            verification_status: "pending",
+          },
         ],
+      error: null,
+    },
+    jobs: {
+      data: [],
       error: null,
     },
     user_references: {
@@ -80,6 +105,7 @@ function createMockSupabase(overrides: MockPayload): SupabaseClient {
     eq: () => chain(table),
     gte: () => chain(table),
     or: () => thenable(table),
+    order: () => chain(table),
     limit: () => resolve(table),
     maybeSingle: () => resolve(table),
     single: () => {
@@ -125,8 +151,22 @@ describe("Trust Policy evaluation", () => {
       },
       trustScore: { score: 80 },
       employmentRecords: [
-        { verification_status: "verified" },
-        { verification_status: "verified" },
+        {
+          id: "er-1",
+          company_name: "Acme",
+          job_title: "Tech",
+          start_date: "2024-01-01",
+          end_date: null,
+          verification_status: "verified",
+        },
+        {
+          id: "er-2",
+          company_name: "Beta",
+          job_title: "Tech",
+          start_date: "2023-01-01",
+          end_date: "2023-12-31",
+          verification_status: "verified",
+        },
       ],
       userReferences: [{ id: "r1" }],
       trustRelationships: [

@@ -3,25 +3,32 @@
 // Do not use `supabase` in API routes.
 
 /**
- * GET /api/employer/policy-match/[candidateId]
- * Returns trust policy match results for the candidate against all of the employer's policies.
+ * GET /api/employer/candidate/[id]/radar
+ * Employer-only Trust Radar dimensions for a candidate profile.
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser, isEmployer } from "@/lib/auth";
+import { getCurrentUser, getCurrentUserRole, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
-import { getCurrentUserRole } from "@/lib/auth";
 import { admin } from "@/lib/supabase-admin";
-import { evaluateTrustPolicy } from "@/lib/trust/policy";
-import { isTrustPoliciesTableMissing } from "@/lib/trust/productionSafeQueries";
+import { getTrustRadarDimensions } from "@/lib/trust/radar";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+export type EmployerCandidateRadarResponse = {
+  verificationCoverage: number;
+  referenceCredibility: number;
+  networkDepth: number;
+  disputeScore: number;
+  consistencyScore: number;
+  recencyScore: number;
+};
+
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ candidateId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -38,27 +45,18 @@ export async function GET(
       return NextResponse.json({ error: sub.error ?? "Subscription required" }, { status: 403 });
     }
 
-    const { candidateId } = await params;
+    const { id: candidateId } = await params;
     if (!candidateId) {
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
-    const { data: policies, error: listError } = await admin.from("trust_policies")
-      .select("id")
-      .eq("employer_id", user.id);
 
-    if (listError) {
-      if (isTrustPoliciesTableMissing(listError)) {
-        return NextResponse.json({ matches: [] });
-      }
-      return NextResponse.json({ error: listError.message }, { status: 500 });
-    }
-    const list = (policies ?? []) as { id: string }[];
-    const results = await Promise.all(
-      list.map((p) => evaluateTrustPolicy(candidateId, p.id, admin))
+    const dimensions = await getTrustRadarDimensions(
+      admin as Parameters<typeof getTrustRadarDimensions>[0],
+      candidateId
     );
-    return NextResponse.json({ matches: results });
+    return NextResponse.json(dimensions satisfies EmployerCandidateRadarResponse);
   } catch (e) {
-    console.error("[employer/policy-match]", e);
+    console.error("[employer/candidate/radar]", e);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

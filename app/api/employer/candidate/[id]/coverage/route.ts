@@ -12,7 +12,11 @@ import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { getCurrentUserRole } from "@/lib/auth";
-import { admin } from "@/lib/supabase-admin";
+import {
+  computeVerificationCoverage,
+  loadCandidateEmploymentRows,
+} from "@/lib/employer/candidateEmploymentSource";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -35,21 +39,9 @@ export async function GET(
     if (!candidateId) {
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
-    const { data: rows, error } = await admin.from("employment_records")
-      .select("verification_status")
-      .eq("user_id", candidateId);
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    const list = (rows ?? []) as { verification_status?: string }[];
-    const totalRoles = list.length;
-    const verifiedRoles = list.filter((r) => r.verification_status === "verified").length;
-    const coveragePercent = totalRoles > 0 ? Math.round((verifiedRoles / totalRoles) * 100) : 0;
-    return NextResponse.json({
-      coveragePercent,
-      verifiedRoles,
-      totalRoles,
-    });
+
+    const rows = await loadCandidateEmploymentRows(candidateId);
+    return NextResponse.json(computeVerificationCoverage(rows));
   } catch (e) {
     console.error("[employer/candidate/coverage]", e);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

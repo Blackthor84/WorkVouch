@@ -405,7 +405,7 @@ export function CandidateProfileViewer({
           </div>
           {/* Middle row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <TrustRadarChart profileId={safeProfile.id} />
+            <TrustRadarChart profileId={safeProfile.id} employerCandidateId={safeProfile.id} />
             <EmploymentVerificationPanel candidateId={safeProfile.id} />
             <ReferenceConsistencyPanel candidateId={safeProfile.id} />
           </div>

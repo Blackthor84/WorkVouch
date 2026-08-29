@@ -12,7 +12,8 @@ import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { getCurrentUserRole } from "@/lib/auth";
-import { admin } from "@/lib/supabase-admin";
+import { loadCandidateEmploymentRows } from "@/lib/employer/candidateEmploymentSource";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -45,15 +46,8 @@ export async function GET(
     if (!candidateId) {
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
-    const { data: rows, error } = await admin.from("employment_records")
-      .select("id, company_name, job_title, start_date, end_date, is_current, verification_status")
-      .eq("user_id", candidateId)
-      .order("start_date", { ascending: false })
-      .limit(50);
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    const entries = (rows ?? []) as EmploymentVerificationEntry[];
+
+    const entries = (await loadCandidateEmploymentRows(candidateId)) as EmploymentVerificationEntry[];
     return NextResponse.json({ entries });
   } catch (e) {
     console.error("[employer/candidate/employment-verification]", e);

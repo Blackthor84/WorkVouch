@@ -32,9 +32,14 @@ function toChartData(d: TrustRadarDimensions) {
 
 interface TrustRadarChartProps {
   profileId?: string;
+  /** When set, fetches employer-gated radar for candidate profiles. */
+  employerCandidateId?: string;
 }
 
-export function TrustRadarChart({ profileId: propProfileId }: TrustRadarChartProps) {
+export function TrustRadarChart({
+  profileId: propProfileId,
+  employerCandidateId,
+}: TrustRadarChartProps) {
   const [profileId, setProfileId] = useState<string | null>(propProfileId ?? null);
   const [data, setData] = useState<TrustRadarDimensions | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,7 +64,10 @@ export function TrustRadarChart({ profileId: propProfileId }: TrustRadarChartPro
         return;
       }
       try {
-        const res = await fetch("/api/trust/radar/" + encodeURIComponent(id), { credentials: "include" });
+        const radarUrl = employerCandidateId
+          ? "/api/employer/candidate/" + encodeURIComponent(employerCandidateId) + "/radar"
+          : "/api/trust/radar/" + encodeURIComponent(id);
+        const res = await fetch(radarUrl, { credentials: "include" });
         if (!res.ok) throw new Error("Failed to load");
         const body: TrustRadarDimensions = await res.json();
         if (!cancelled) setData(body);
@@ -71,7 +79,7 @@ export function TrustRadarChart({ profileId: propProfileId }: TrustRadarChartPro
     };
     run();
     return () => { cancelled = true; };
-  }, [propProfileId]);
+  }, [propProfileId, employerCandidateId]);
 
   if (loading) {
     return (

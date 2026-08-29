@@ -12,7 +12,8 @@ import { getCurrentUser, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { getCurrentUserRole } from "@/lib/auth";
-import { admin } from "@/lib/supabase-admin";
+import { loadCandidateReferenceRatings } from "@/lib/employer/candidateReferencesSource";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -42,16 +43,13 @@ export async function GET(
     if (!candidateId) {
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
-    const { data: refs, error } = await admin.from("employment_references")
-      .select("rating")
-      .eq("reviewed_user_id", candidateId);
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    const list = (refs ?? []) as { rating: number }[];
+
+    const list = await loadCandidateReferenceRatings(candidateId);
     const referenceCount = list.length;
     const averageRating =
-      referenceCount > 0 ? list.reduce((s, r) => s + (r.rating ?? 0), 0) / referenceCount : 0;
+      referenceCount > 0
+        ? list.reduce((s, r) => s + (Number(r.rating) || 0), 0) / referenceCount
+        : 0;
 
     let status: ReferenceConsistencyResponse["status"] = "no_references";
     let summary: string;
