@@ -24,6 +24,16 @@ export type RadarDimensions = {
   recencyScore: number;
 };
 
+/** Safe all-zero response when optional radar inputs are unavailable. */
+export const EMPTY_RADAR_DIMENSIONS: RadarDimensions = {
+  verificationCoverage: 0,
+  referenceCredibility: 0,
+  networkDepth: 0,
+  disputeScore: 0,
+  consistencyScore: 0,
+  recencyScore: 0,
+};
+
 function toPercent(value: number, max: number): number {
   if (max <= 0) return 0;
   return Math.round(Math.min(100, (value / max) * 100));
@@ -133,7 +143,19 @@ type TrustEventRecencyRow = {
   impact?: string;
   impact_score?: number;
   payload?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  event_type?: string;
 };
+
+const TRUST_EVENT_RECENCY_SELECTS = [
+  "created_at, impact, impact_score",
+  "created_at, impact, metadata, event_type",
+  "created_at, impact, metadata",
+  "created_at, impact",
+  "created_at, metadata, event_type",
+  "created_at, metadata",
+  "created_at",
+] as const;
 
 function impactScoreFromEvent(e: TrustEventRecencyRow): number {
   if (typeof e.impact_score === "number") {
@@ -141,43 +163,47 @@ function impactScoreFromEvent(e: TrustEventRecencyRow): number {
   }
   if (e.impact === "positive") return 1;
   if (e.impact === "negative") return 0.3;
-  const payloadImpact = String(e.payload?.impact ?? "").toLowerCase();
-  if (payloadImpact === "positive") return 1;
-  if (payloadImpact === "negative") return 0.3;
+  const nestedImpact = String(
+    e.payload?.impact ?? e.metadata?.impact ?? ""
+  ).toLowerCase();
+  if (nestedImpact === "positive") return 1;
+  if (nestedImpact === "negative") return 0.3;
+  const eventType = String(e.event_type ?? e.metadata?.event_type ?? "").toLowerCase();
+  if (eventType.includes("dispute") || eventType.includes("flag")) return 0.3;
   return 0.7;
+}
+
+async function loadTrustEventsForRecency(
+  supabase: SupabaseClient,
+  profileId: string
+): Promise<TrustEventRecencyRow[]> {
+  for (const columns of TRUST_EVENT_RECENCY_SELECTS) {
+    const result = await supabase
+      .from("trust_events")
+      .select(columns)
+      .eq("profile_id", profileId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (!result.error) {
+      return (result.data ?? []) as TrustEventRecencyRow[];
+    }
+    if (isMissingTableError(result.error)) {
+      return [];
+    }
+    if (isMissingColumnError(result.error)) {
+      continue;
+    }
+    return [];
+  }
+  return [];
 }
 
 async function getRecencyScore(
   supabase: SupabaseClient,
   profileId: string
 ): Promise<number> {
-  const extended = await supabase
-    .from("trust_events")
-    .select("created_at, impact, impact_score")
-    .eq("profile_id", profileId)
-    .order("created_at", { ascending: false })
-    .limit(20);
-
-  let list: TrustEventRecencyRow[] = [];
-  if (!extended.error) {
-    list = (extended.data ?? []) as TrustEventRecencyRow[];
-  } else if (isMissingColumnError(extended.error)) {
-    const base = await supabase
-      .from("trust_events")
-      .select("created_at, payload")
-      .eq("profile_id", profileId)
-      .order("created_at", { ascending: false })
-      .limit(20);
-    if (base.error) {
-      if (isMissingTableError(base.error)) return 50;
-      throw new Error(base.error.message ?? "Failed to load trust events");
-    }
-    list = (base.data ?? []) as TrustEventRecencyRow[];
-  } else if (isMissingTableError(extended.error)) {
-    return 50;
-  } else {
-    throw new Error(extended.error.message ?? "Failed to load trust events");
-  }
+  const list = await loadTrustEventsForRecency(supabase, profileId);
 
   if (list.length === 0) return 50;
   const now = Date.now();
@@ -193,6 +219,17 @@ async function getRecencyScore(
   return toPercent(weighted / totalWeight, 1);
 }
 
+async function safeDimension(
+  compute: () => Promise<number>,
+  fallback: number
+): Promise<number> {
+  try {
+    return await compute();
+  } catch {
+    return fallback;
+  }
+}
+
 export async function getTrustRadarDimensions(
   supabase: SupabaseClient,
   profileId: string
@@ -205,12 +242,12 @@ export async function getTrustRadarDimensions(
     consistencyScore,
     recencyScore,
   ] = await Promise.all([
-    getVerificationCoverage(profileId),
-    getReferenceCredibility(profileId),
-    getNetworkDepth(supabase, profileId),
-    getDisputeScore(supabase, profileId),
-    getConsistencyScore(profileId),
-    getRecencyScore(supabase, profileId),
+    safeDimension(() => getVerificationCoverage(profileId), 0),
+    safeDimension(() => getReferenceCredibility(profileId), 0),
+    safeDimension(() => getNetworkDepth(supabase, profileId), 0),
+    safeDimension(() => getDisputeScore(supabase, profileId), 100),
+    safeDimension(() => getConsistencyScore(profileId), 100),
+    safeDimension(() => getRecencyScore(supabase, profileId), 50),
   ]);
 
   return {

@@ -12,7 +12,7 @@ import { getCurrentUser, getCurrentUserRole, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { requireActiveSubscription } from "@/lib/employer-require-active-subscription";
 import { admin } from "@/lib/supabase-admin";
-import { getTrustRadarDimensions } from "@/lib/trust/radar";
+import { EMPTY_RADAR_DIMENSIONS, getTrustRadarDimensions } from "@/lib/trust/radar";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,13 +50,19 @@ export async function GET(
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
 
-    const dimensions = await getTrustRadarDimensions(
-      admin as Parameters<typeof getTrustRadarDimensions>[0],
-      candidateId
-    );
+    let dimensions: EmployerCandidateRadarResponse;
+    try {
+      dimensions = await getTrustRadarDimensions(
+        admin as Parameters<typeof getTrustRadarDimensions>[0],
+        candidateId
+      );
+    } catch (e) {
+      console.error("[employer/candidate/radar] dimension compute failed", e);
+      dimensions = EMPTY_RADAR_DIMENSIONS;
+    }
     return NextResponse.json(dimensions satisfies EmployerCandidateRadarResponse);
   } catch (e) {
     console.error("[employer/candidate/radar]", e);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(EMPTY_RADAR_DIMENSIONS satisfies EmployerCandidateRadarResponse);
   }
 }
