@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser, isEmployer } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { resolveHiringOutcomeStatusFromQuery } from "@/lib/employer/hiringOutcomeFeedback";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,25 +29,16 @@ export async function GET(
       return NextResponse.json({ error: "Missing candidate id" }, { status: 400 });
     }
 
-    const supabase = await createServerSupabaseClient();
-    const { data, error } = await admin.from("hiring_outcome_feedback")
+    const { data, error } = await admin
+      .from("hiring_outcome_feedback")
       .select("id")
       .eq("employer_id", user.id)
       .eq("candidate_id", candidateId)
       .limit(1)
       .maybeSingle();
 
-    if (error) {
-      console.error("[hiring-outcome-status]", error);
-      return NextResponse.json(
-        { error: "Failed to check status" },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      showPrompt: !data,
-    });
+    const status = resolveHiringOutcomeStatusFromQuery(data, error);
+    return NextResponse.json(status);
   } catch (e) {
     console.error("[hiring-outcome-status]", e);
     return NextResponse.json(

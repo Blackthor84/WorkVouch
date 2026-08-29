@@ -9,6 +9,7 @@ import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser, getCurrentUserRole, isEmployer } from "@/lib/auth";
 import { requireEmployerLegalAcceptanceOrResponse } from "@/lib/employer/requireEmployerLegalAcceptance";
 import { resolveEmployerDataAccess } from "@/lib/employer/employerPlanServer";
+import { isHiringOutcomeFeedbackTableMissingError } from "@/lib/employer/hiringOutcomeFeedback";
 import type {
   HiringIntelligenceCandidate,
   PipelineStage,
@@ -100,7 +101,7 @@ export async function GET(request: NextRequest) {
       rangeParam === "30" ? 30 : rangeParam === "90" ? 90 : 7;
     const since = new Date(Date.now() - rangeDays * 24 * 60 * 60 * 1000).toISOString();
 
-    const [{ data: companyRow }, { data: savedRows, error: savedErr }, { data: outcomeRows }] =
+    const [{ data: companyRow }, { data: savedRows, error: savedErr }, outcomeResult] =
       await Promise.all([
         admin.from("employer_accounts").select("company_name").eq("user_id", user.id).maybeSingle(),
         admin
@@ -113,6 +114,13 @@ export async function GET(request: NextRequest) {
           .select("candidate_id, hired, dismissed")
           .eq("employer_id", user.id),
       ]);
+
+    const outcomeRows = isHiringOutcomeFeedbackTableMissingError(outcomeResult.error)
+      ? []
+      : (outcomeResult.data ?? []);
+    if (outcomeResult.error && !isHiringOutcomeFeedbackTableMissingError(outcomeResult.error)) {
+      console.warn("[hiring-intelligence/summary] hiring_outcome_feedback", outcomeResult.error);
+    }
 
     if (savedErr) {
       console.error("[hiring-intelligence/summary] saved_candidates", savedErr);

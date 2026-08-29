@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 import { getCurrentUser, isEmployer } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { isHiringOutcomeFeedbackTableMissingError } from "@/lib/employer/hiringOutcomeFeedback";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,8 +34,6 @@ export async function POST(
     const hired = body.hired as boolean | undefined;
     const would_rehire = body.would_rehire as boolean | undefined;
 
-    const supabase = await createServerSupabaseClient();
-
     if (dismissed) {
       const { error } = await admin.from("hiring_outcome_feedback").upsert(
         {
@@ -49,6 +47,9 @@ export async function POST(
         { onConflict: "employer_id,candidate_id" }
       );
       if (error) {
+        if (isHiringOutcomeFeedbackTableMissingError(error)) {
+          return new NextResponse(null, { status: 204 });
+        }
         console.error("[hiring-outcome]", error);
         return NextResponse.json(
           { error: "Failed to save" },
@@ -70,6 +71,9 @@ export async function POST(
       { onConflict: "employer_id,candidate_id" }
     );
     if (error) {
+      if (isHiringOutcomeFeedbackTableMissingError(error)) {
+        return new NextResponse(null, { status: 204 });
+      }
       console.error("[hiring-outcome]", error);
       return NextResponse.json(
         { error: "Failed to save" },
