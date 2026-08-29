@@ -1,4 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
+import {
+  normalizeEmployerMonetizationTier,
+  type EmployerMonetizationTier,
+} from "@/lib/employer/verifiedWorkersLimits";
 
 export interface RequireActiveSubscriptionResult {
   allowed: boolean;
@@ -9,6 +13,12 @@ export interface RequireActiveSubscriptionResult {
   enterprisePlan?: string;
 }
 
+/** Production-safe until Stripe subscription columns are migrated. */
+export const EMPLOYER_SUBSCRIPTION_ACCOUNT_COLUMNS = "id, plan_tier";
+
+export const EMPLOYER_SUBSCRIPTION_ACCOUNT_COLUMNS_EXTENDED =
+  "id, plan_tier, subscription_status, organization_id";
+
 /** Employee count limits per enterprise plan (org-level). */
 const ENTERPRISE_PLAN_EMPLOYEE_LIMITS: Record<string, number> = {
   enterprise_basic: 500,
@@ -16,34 +26,64 @@ const ENTERPRISE_PLAN_EMPLOYEE_LIMITS: Record<string, number> = {
   enterprise_security: 10000,
 };
 
+function isMissingEmployerAccountColumnError(
+  error: { message?: string; code?: string } | null | undefined
+): boolean {
+  const message = String(error?.message ?? "");
+  return error?.code === "42703" || message.includes("does not exist");
+}
+
+/** Paid tiers from employer_accounts.plan_tier (authoritative in production). */
+export function isPaidEmployerPlanTier(planTier: string | null | undefined): boolean {
+  const tier: EmployerMonetizationTier = normalizeEmployerMonetizationTier(planTier);
+  return tier === "pro" || tier === "custom" || tier === "starter";
+}
+
+type EmployerSubscriptionRow = {
+  id: string;
+  plan_tier?: string | null;
+  subscription_status?: string | null;
+  organization_id?: string | null;
+};
+
+async function loadEmployerSubscriptionAccount(
+  supabaseAny: { from: (table: string) => unknown },
+  userId: string
+): Promise<{ data: EmployerSubscriptionRow | null; error: { message?: string; code?: string } | null }> {
+  const extended = (await (supabaseAny as any)
+    .from("employer_accounts")
+    .select(EMPLOYER_SUBSCRIPTION_ACCOUNT_COLUMNS_EXTENDED)
+    .eq("user_id", userId)
+    .maybeSingle()) as { data: EmployerSubscriptionRow | null; error: { message?: string; code?: string } | null };
+
+  if (!extended.error) return extended;
+  if (!isMissingEmployerAccountColumnError(extended.error)) return extended;
+
+  return (await (supabaseAny as any)
+    .from("employer_accounts")
+    .select(EMPLOYER_SUBSCRIPTION_ACCOUNT_COLUMNS)
+    .eq("user_id", userId)
+    .maybeSingle()) as { data: EmployerSubscriptionRow | null; error: { message?: string; code?: string } | null };
+}
+
 /**
- * Enforce active subscription for employer-facing candidate data routes.
- * If employer is linked to an organization with enterprise_plan, bypass per-location subscription check
- * but enforce employee count limit for that plan.
- * Otherwise returns 403 "Active subscription required." if subscription_status !== 'active'.
- * Do NOT rely on frontend gating.
+ * Enforce paid employer access for candidate data routes.
+ * Production: employer_accounts.plan_tier (pro/starter/custom) is authoritative.
+ * When subscription_status exists (Stripe-synced envs), inactive statuses deny access.
  */
 export async function requireActiveSubscription(
   userId: string
 ): Promise<RequireActiveSubscriptionResult> {
   const supabase = await createClient();
   const supabaseAny = supabase as any;
-  const { data: account, error } = await supabaseAny
-    .from("employer_accounts")
-    .select("id, plan_tier, subscription_status, organization_id")
-    .eq("user_id", userId)
-    .single();
+  const { data: account, error } = await loadEmployerSubscriptionAccount(supabaseAny, userId);
 
   if (error || !account) {
     return { allowed: false, error: "Employer account not found" };
   }
 
-  const row = account as {
-    id: string;
-    plan_tier?: string;
-    subscription_status?: string | null;
-    organization_id?: string | null;
-  };
+  const row = account;
+  const planTier = row.plan_tier ?? undefined;
 
   if (row.organization_id) {
     const { data: org } = await supabaseAny
@@ -56,7 +96,7 @@ export async function requireActiveSubscription(
       return {
         allowed: true,
         employerId: row.id,
-        planTier: row.plan_tier ?? undefined,
+        planTier,
         organizationId: row.organization_id,
       };
     }
@@ -80,25 +120,49 @@ export async function requireActiveSubscription(
       return {
         allowed: true,
         employerId: row.id,
-        planTier: row.plan_tier ?? undefined,
+        planTier,
         organizationId: row.organization_id,
         enterprisePlan,
       };
     }
   }
 
-  if (row.subscription_status !== "active") {
+  const subscriptionStatus = row.subscription_status;
+  const hasSubscriptionStatusField = Object.prototype.hasOwnProperty.call(row, "subscription_status");
+
+  if (
+    hasSubscriptionStatusField &&
+    subscriptionStatus != null &&
+    subscriptionStatus !== "active"
+  ) {
     return {
       allowed: false,
       error: "Active subscription required.",
       employerId: row.id,
-      planTier: row.plan_tier ?? undefined,
+      planTier,
+    };
+  }
+
+  if (hasSubscriptionStatusField && subscriptionStatus === "active") {
+    return {
+      allowed: true,
+      employerId: row.id,
+      planTier,
+    };
+  }
+
+  if (isPaidEmployerPlanTier(row.plan_tier)) {
+    return {
+      allowed: true,
+      employerId: row.id,
+      planTier,
     };
   }
 
   return {
-    allowed: true,
+    allowed: false,
+    error: "Active subscription required.",
     employerId: row.id,
-    planTier: row.plan_tier ?? undefined,
+    planTier,
   };
 }

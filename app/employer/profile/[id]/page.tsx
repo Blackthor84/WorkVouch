@@ -78,6 +78,11 @@ export default async function EmployerCandidateProfilePage(props: {
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "";
+    console.error("[employer/profile:diag]", "getCandidateProfileForEmployer failed", {
+      candidateId: id,
+      employerId: user.id,
+      message,
+    });
     if (message === EMPLOYER_DISCLAIMER_NOT_ACCEPTED) {
       return (
         <EmployerPortalLayout>
@@ -97,6 +102,14 @@ export default async function EmployerCandidateProfilePage(props: {
         </EmployerPortalLayout>
       );
     } catch (fallbackError: unknown) {
+      const fallbackMessage =
+        fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+      console.error("[employer/profile:diag]", "Profile Not Found render path", {
+        candidateId: id,
+        employerId: user.id,
+        primaryError: message,
+        fallbackError: fallbackMessage,
+      });
       return (
         <EmployerPortalLayout>
           <div className="text-center py-16">

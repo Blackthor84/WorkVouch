@@ -68,8 +68,20 @@ export async function getCandidateProfileData(candidateId: string): Promise<Cand
     .single()
 
   if (profileError || !candidateProfile) {
+    console.error("[getCandidateProfileData:diag]", "reject: profiles lookup", {
+      candidateId,
+      code: (profileError as { code?: string } | null)?.code ?? null,
+      message: profileError?.message ?? null,
+      hasRow: Boolean(candidateProfile),
+    })
     throw new Error('Candidate not found')
   }
+
+  console.error("[getCandidateProfileData:diag]", "profiles lookup ok", {
+    candidateId,
+    profileId: (candidateProfile as { id?: string }).id ?? null,
+    role: (candidateProfile as { role?: string }).role ?? null,
+  })
 
   const { data: jobs } = await supabaseAny
     .from('jobs')
@@ -163,14 +175,20 @@ export async function getCandidateProfileData(candidateId: string): Promise<Cand
  * Get full candidate profile for employer view (employer-only).
  * Free plan: limited fields + hiringDataUnlocked false (UI gates premium sections).
  */
+const EMPLOYER_PROFILE_DIAG = "[getCandidateProfileForEmployer:diag]";
+
 export async function getCandidateProfileForEmployer(
   candidateId: string
 ): Promise<CandidateProfileForEmployerResult> {
+  console.error(EMPLOYER_PROFILE_DIAG, "start", { candidateId });
+
   const user = await requireAuth()
+  console.error(EMPLOYER_PROFILE_DIAG, "auth ok", { employerId: user.id, candidateId });
+
   const supabase = await createClient()
   const supabaseAny = supabase as any
 
-  const { data: profile } = await supabaseAny
+  const { data: profile, error: employerRoleError } = await supabaseAny
     .from('profiles')
     .select('role')
     .eq('id', user.id)
@@ -178,27 +196,73 @@ export async function getCandidateProfileForEmployer(
 
   const role = (profile as { role?: string } | null)?.role ?? null
   if (role !== 'employer') {
+    console.error(EMPLOYER_PROFILE_DIAG, "reject: employer role check", {
+      candidateId,
+      employerId: user.id,
+      role,
+      employerRoleError: employerRoleError?.message ?? null,
+    })
     throw new Error('Only employers can view candidate profiles')
   }
 
   const legalCheck = await requireEmployerLegalAcceptance(user.id, role)
   if (!legalCheck.allowed) {
+    console.error(EMPLOYER_PROFILE_DIAG, "reject: legal acceptance", {
+      candidateId,
+      employerId: user.id,
+      reasonCode: legalCheck.reasonCode,
+    })
     throw new Error(legalCheck.reasonCode)
   }
 
   const access = await resolveEmployerDataAccess(user.id)
   if (!access.ok) {
+    console.error(EMPLOYER_PROFILE_DIAG, "reject: resolveEmployerDataAccess", {
+      candidateId,
+      employerId: user.id,
+      status: access.status,
+      error: access.error,
+    })
     throw new Error(access.error)
   }
 
-  const full = await getCandidateProfileData(candidateId)
+  console.error(EMPLOYER_PROFILE_DIAG, "employer access ok", {
+    candidateId,
+    employerId: user.id,
+    mode: access.mode,
+    plan: access.plan,
+  })
+
+  let full: CandidateProfilePayload
+  try {
+    full = await getCandidateProfileData(candidateId)
+  } catch (error: unknown) {
+    console.error(EMPLOYER_PROFILE_DIAG, "reject: getCandidateProfileData threw", {
+      candidateId,
+      employerId: user.id,
+      message: error instanceof Error ? error.message : String(error),
+    })
+    throw error
+  }
+
   if (access.mode === 'free_preview') {
+    console.error(EMPLOYER_PROFILE_DIAG, "return: free_preview redaction", {
+      candidateId,
+      employerId: user.id,
+      profileId: full.profile?.id ?? null,
+    })
     return {
       ...redactCandidateProfileForFreePreview(full),
       hiringDataUnlocked: false,
     }
   }
 
+  console.error(EMPLOYER_PROFILE_DIAG, "return: full access", {
+    candidateId,
+    employerId: user.id,
+    profileId: full.profile?.id ?? null,
+    hiringDataUnlocked: true,
+  })
   return { ...full, hiringDataUnlocked: true }
 }
 
