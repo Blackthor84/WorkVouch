@@ -21,8 +21,8 @@ function startOfToday(): string {
 }
 
 /**
- * Premium hiring access: profile flag and/or paid employer plan (plan_tier / subscription).
- * Uses the same production-safe authority as requireActiveSubscription().
+ * Premium hiring access via employer_accounts.plan_tier / subscription (production-safe).
+ * Authoritative source: requireActiveSubscription(), same as resolveEmployerDataAccess().
  */
 export async function isEmployerHiringPremium(): Promise<boolean> {
   const user = await requireAuth();
@@ -31,11 +31,10 @@ export async function isEmployerHiringPremium(): Promise<boolean> {
 
   const { data: profile, error: profileError } = await sb
     .from("profiles")
-    .select("role, is_premium")
+    .select("role")
     .eq("id", user.id)
     .maybeSingle();
   const role = (profile as { role?: string } | null)?.role ?? null;
-  const isPremium = (profile as { is_premium?: boolean } | null)?.is_premium === true;
 
   if (role !== "employer") {
     console.error("[isEmployerHiringPremium:diag]", "reject: not employer", {
@@ -44,12 +43,6 @@ export async function isEmployerHiringPremium(): Promise<boolean> {
       profileError: profileError?.message ?? null,
     });
     return false;
-  }
-  if (isPremium) {
-    console.error("[isEmployerHiringPremium:diag]", "allow: profiles.is_premium", {
-      employerId: user.id,
-    });
-    return true;
   }
 
   const subscription = await requireActiveSubscription(user.id);

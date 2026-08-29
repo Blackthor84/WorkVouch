@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import fs from "fs";
+import path from "path";
 
 const EMPLOYER_ID = "92369cd3-8080-41a8-82d8-86e6df56ee58";
 const CANDIDATE_ID = "f05e4025-e1f1-45b4-b919-4c0c605890ce";
@@ -26,87 +28,90 @@ import {
   EMPLOYER_SUBSCRIPTION_ACCOUNT_COLUMNS_EXTENDED,
 } from "@/lib/employer-require-active-subscription";
 
+function mockProductionEmployerProfile() {
+  mockMaybeSingle.mockResolvedValueOnce({
+    data: { role: "employer" },
+    error: null,
+  });
+}
+
+function mockMissingSubscriptionStatusThenPlanTier(planTier: string) {
+  mockMaybeSingle
+    .mockResolvedValueOnce({
+      data: null,
+      error: {
+        code: "42703",
+        message: "column employer_accounts.subscription_status does not exist",
+      },
+    })
+    .mockResolvedValueOnce({
+      data: { id: "acct-1", plan_tier: planTier },
+      error: null,
+    });
+}
+
 describe("isEmployerHiringPremium (production schema)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRequireAuth.mockResolvedValue({ id: EMPLOYER_ID });
   });
 
-  it("returns true for pro plan_tier when subscription_status column is missing", async () => {
-    mockMaybeSingle
-      .mockResolvedValueOnce({
-        data: { role: "employer", is_premium: false },
-        error: null,
-      })
-      .mockResolvedValueOnce({
-        data: null,
-        error: {
-          code: "42703",
-          message: "column employer_accounts.subscription_status does not exist",
-        },
-      })
-      .mockResolvedValueOnce({
-        data: { id: "acct-1", plan_tier: "pro" },
-        error: null,
-      });
+  it("does not query profiles.is_premium", () => {
+    const source = fs.readFileSync(
+      path.join(process.cwd(), "lib/actions/employer/employerDashboardStats.ts"),
+      "utf8"
+    );
+    const fnBody = source.slice(
+      source.indexOf("export async function isEmployerHiringPremium"),
+      source.indexOf("export async function getEmployerDashboardStats")
+    );
+    expect(fnBody).not.toMatch(/is_premium/);
+    expect(fnBody).toMatch(/requireActiveSubscription/);
+  });
+
+  it("returns true for pro plan_tier when is_premium and subscription_status columns are absent", async () => {
+    mockProductionEmployerProfile();
+    mockMissingSubscriptionStatusThenPlanTier("pro");
 
     const result = await isEmployerHiringPremium();
 
     expect(result).toBe(true);
+    expect(mockSelect).toHaveBeenNthCalledWith(1, "role");
     expect(mockSelect).toHaveBeenNthCalledWith(2, EMPLOYER_SUBSCRIPTION_ACCOUNT_COLUMNS_EXTENDED);
     expect(mockSelect).toHaveBeenNthCalledWith(3, EMPLOYER_SUBSCRIPTION_ACCOUNT_COLUMNS);
   });
 
   it("returns false for free plan_tier when subscription_status column is missing", async () => {
-    mockMaybeSingle
-      .mockResolvedValueOnce({
-        data: { role: "employer", is_premium: false },
-        error: null,
-      })
-      .mockResolvedValueOnce({
-        data: null,
-        error: { code: "42703", message: "column employer_accounts.subscription_status does not exist" },
-      })
-      .mockResolvedValueOnce({
-        data: { id: "acct-1", plan_tier: "free" },
-        error: null,
-      });
+    mockProductionEmployerProfile();
+    mockMissingSubscriptionStatusThenPlanTier("free");
 
     expect(await isEmployerHiringPremium()).toBe(false);
   });
 
   it("returns false when subscription_status exists and is not active", async () => {
-    mockMaybeSingle
-      .mockResolvedValueOnce({
-        data: { role: "employer", is_premium: false },
-        error: null,
-      })
-      .mockResolvedValueOnce({
-        data: {
-          id: "acct-1",
-          plan_tier: "pro",
-          subscription_status: "canceled",
-        },
-        error: null,
-      });
+    mockProductionEmployerProfile();
+    mockMaybeSingle.mockResolvedValueOnce({
+      data: {
+        id: "acct-1",
+        plan_tier: "pro",
+        subscription_status: "canceled",
+      },
+      error: null,
+    });
 
     expect(await isEmployerHiringPremium()).toBe(false);
   });
 
   it("returns true when subscription_status is active", async () => {
-    mockMaybeSingle
-      .mockResolvedValueOnce({
-        data: { role: "employer", is_premium: false },
-        error: null,
-      })
-      .mockResolvedValueOnce({
-        data: {
-          id: "acct-1",
-          plan_tier: "pro",
-          subscription_status: "active",
-        },
-        error: null,
-      });
+    mockProductionEmployerProfile();
+    mockMaybeSingle.mockResolvedValueOnce({
+      data: {
+        id: "acct-1",
+        plan_tier: "pro",
+        subscription_status: "active",
+      },
+      error: null,
+    });
 
     expect(await isEmployerHiringPremium()).toBe(true);
   });
@@ -115,22 +120,22 @@ describe("isEmployerHiringPremium (production schema)", () => {
     for (const tier of ["starter", "custom"] as const) {
       vi.clearAllMocks();
       mockRequireAuth.mockResolvedValue({ id: EMPLOYER_ID });
-      mockMaybeSingle
-        .mockResolvedValueOnce({
-          data: { role: "employer", is_premium: false },
-          error: null,
-        })
-        .mockResolvedValueOnce({
-          data: null,
-          error: { code: "42703", message: "column employer_accounts.subscription_status does not exist" },
-        })
-        .mockResolvedValueOnce({
-          data: { id: "acct-1", plan_tier: tier },
-          error: null,
-        });
+      mockProductionEmployerProfile();
+      mockMissingSubscriptionStatusThenPlanTier(tier);
 
       expect(await isEmployerHiringPremium()).toBe(true);
     }
+  });
+
+  it("returns false for non-employer role without checking subscription", async () => {
+    mockMaybeSingle.mockResolvedValueOnce({
+      data: { role: "employee" },
+      error: null,
+    });
+
+    expect(await isEmployerHiringPremium()).toBe(false);
+    expect(mockSelect).toHaveBeenCalledTimes(1);
+    expect(mockSelect).toHaveBeenCalledWith("role");
   });
 });
 
@@ -147,8 +152,6 @@ describe("employer profile viewer unlock path", () => {
   });
 
   it("page.tsx combines getCandidateProfileForEmployer and isEmployerHiringPremium", () => {
-    const fs = require("fs");
-    const path = require("path");
     const source = fs.readFileSync(
       path.join(process.cwd(), "app/employer/profile/[id]/page.tsx"),
       "utf8"
