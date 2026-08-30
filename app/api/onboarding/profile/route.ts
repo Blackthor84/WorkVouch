@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
+import { saveOnboardingProfileFields } from "@/lib/onboarding/onboardingProfileFields";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,25 +24,27 @@ export async function POST(req: Request) {
       vertical_metadata?: Record<string, unknown>;
     };
 
-    const update: Record<string, unknown> = {};
-    if (typeof body.industry === "string" && body.industry.trim()) {
-      update.industry = body.industry.trim();
-    }
-    if (typeof body.professional_summary === "string") {
-      update.professional_summary = body.professional_summary.trim();
-    }
-    if (body.vertical_metadata != null && typeof body.vertical_metadata === "object") {
-      update.vertical_metadata = body.vertical_metadata;
-    }
+    const hasIndustry = typeof body.industry === "string" && body.industry.trim().length > 0;
+    const hasSummary = typeof body.professional_summary === "string";
+    const hasVertical =
+      body.vertical_metadata != null && typeof body.vertical_metadata === "object";
 
-    if (Object.keys(update).length === 0) {
+    if (!hasIndustry && !hasSummary && !hasVertical) {
       return NextResponse.json({ error: "Nothing to save" }, { status: 400 });
     }
 
-    const { error } = await admin.from("profiles").update(update).eq("id", user.id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    const result = await saveOnboardingProfileFields(user.id, body);
 
-    return NextResponse.json({ ok: true });
+    if (
+      hasSummary &&
+      !result.persisted.professional_summary &&
+      typeof body.professional_summary === "string" &&
+      body.professional_summary.trim().length > 0
+    ) {
+      return NextResponse.json({ error: "Could not save profile summary" }, { status: 500 });
+    }
+
+    return NextResponse.json(result);
   } catch (e) {
     console.error("[onboarding/profile]", e);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

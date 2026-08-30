@@ -22,3 +22,11 @@ export function isMissingColumnError(error: PostgrestErrorLike): boolean {
 export function isSchemaMismatchError(error: PostgrestErrorLike): boolean {
   return isMissingTableError(error) || isMissingColumnError(error);
 }
+
+/** Parse PostgREST/Postgres missing-column errors, e.g. profiles.industry → industry */
+export function missingColumnFromError(error: PostgrestErrorLike): string | null {
+  if (!error) return null;
+  const message = String(error.message ?? "");
+  const match = message.match(/column (?:[\w.]+\.)?(\w+) does not exist/i);
+  return match?.[1] ?? null;
+}

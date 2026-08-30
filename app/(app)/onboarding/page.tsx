@@ -5,6 +5,7 @@ import { getUser } from "@/lib/auth/getUser";
 import { createClient } from "@/lib/supabase/server";
 import { getDashboardHomeData } from "@/lib/actions/dashboard/getDashboardHome";
 import { isGuidedProfileComplete } from "@/lib/onboarding/guidedOnboarding";
+import { loadOnboardingProfileFields } from "@/lib/onboarding/onboardingProfileFields";
 import { VouchOnboardingWizard } from "@/components/onboarding/VouchOnboardingWizard";
 
 export const dynamic = "force-dynamic";
@@ -43,12 +44,8 @@ export default async function OnboardingPage() {
   };
 
   if (isGuidedProfileComplete(stats) && data.profileBasicsComplete) {
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("worker_onboarding_loop_completed_at")
-      .eq("id", user.id)
-      .maybeSingle();
-    if ((prof as { worker_onboarding_loop_completed_at?: string | null } | null)?.worker_onboarding_loop_completed_at) {
+    const profileFields = await loadOnboardingProfileFields(user.id);
+    if (profileFields.workerOnboardingLoopCompletedAt) {
       redirect("/dashboard");
     }
   }

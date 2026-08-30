@@ -11,6 +11,7 @@ import {
   getVerticalOnboardingConfig,
   verticalOnboarding,
 } from "@/lib/verticals/onboarding";
+import { ONBOARDING_INDUSTRY_DRAFT_KEY } from "@/lib/onboarding/onboardingProfileFields";
 
 type ServerState = {
   step: number;
@@ -126,8 +127,19 @@ export function VouchOnboardingWizard({ firstName }: { firstName: string }) {
       }
       const s = data as ServerState;
       setServer(s);
-      setStep(resolveInitialStep(s));
-      if (s.industry) setIndustry(s.industry);
+      let nextStep = resolveInitialStep(s);
+      try {
+        const draft = localStorage.getItem(ONBOARDING_INDUSTRY_DRAFT_KEY);
+        if (draft?.trim()) {
+          setIndustry(draft.trim());
+          if (nextStep === 2) nextStep = 3;
+        } else if (s.industry) {
+          setIndustry(s.industry);
+        }
+      } catch {
+        if (s.industry) setIndustry(s.industry);
+      }
+      setStep(nextStep);
       if (s.professionalSummary) setBio(s.professionalSummary);
       if (s.verticalMetadata && typeof s.verticalMetadata === "object") {
         setVerticalValues(s.verticalMetadata as VerticalFieldValues);
@@ -193,6 +205,13 @@ export function VouchOnboardingWizard({ firstName }: { firstName: string }) {
       if (!res.ok) {
         setError(typeof data?.error === "string" ? data.error : "Could not save profile");
         return false;
+      }
+      if (payload.industry?.trim()) {
+        try {
+          localStorage.setItem(ONBOARDING_INDUSTRY_DRAFT_KEY, payload.industry.trim());
+        } catch {
+          /* ignore storage errors */
+        }
       }
       await load();
       return true;

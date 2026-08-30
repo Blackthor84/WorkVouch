@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
+import { markWorkerOnboardingLoopComplete } from "@/lib/onboarding/onboardingProfileFields";
+import { isMissingTableError } from "@/lib/supabase/postgrestErrors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,17 +29,21 @@ export async function POST() {
       return NextResponse.json({ error: "Add at least one job first" }, { status: 400 });
     }
 
-    const { count: contactCount } = await admin
+    const { count: contactCount, error: contactError } = await admin
       .from("worker_onboarding_contacts")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id);
+
+    if (contactError && !isMissingTableError(contactError)) {
+      return NextResponse.json({ error: contactError.message }, { status: 500 });
+    }
 
     const { count: inviteCount } = await admin
       .from("coworker_invites")
       .select("id", { count: "exact", head: true })
       .eq("sender_id", user.id);
 
-    const c = contactCount ?? 0;
+    const c = contactError && isMissingTableError(contactError) ? 0 : (contactCount ?? 0);
     const i = inviteCount ?? 0;
     if (c < 1 && i < 1) {
       return NextResponse.json(
@@ -47,16 +53,9 @@ export async function POST() {
     }
 
     const now = new Date().toISOString();
-    const { error } = await admin
-      .from("profiles")
-      .update({ worker_onboarding_loop_completed_at: now })
-      .eq("id", user.id);
+    const persisted = await markWorkerOnboardingLoopComplete(user.id);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ ok: true, completedAt: now });
+    return NextResponse.json({ ok: true, completedAt: now, persisted });
   } catch (e) {
     console.error("[onboarding/vouch/done]", e);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

@@ -4,22 +4,32 @@ import { getUser } from "@/lib/auth/getUser";
 import { onboardingReminderRows } from "@/lib/onboarding/workerOnboardingNudges";
 import { getStatus, type VouchStatusSlug } from "@/lib/onboarding/vouchOnboarding";
 import { isGuidedProfileComplete } from "@/lib/onboarding/guidedOnboarding";
+import { loadOnboardingProfileFields } from "@/lib/onboarding/onboardingProfileFields";
+import { isMissingTableError } from "@/lib/supabase/postgrestErrors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function ensureReminderQueue(userId: string, profileCreatedAt: string | null) {
-  const { data: anyRow } = await admin
+  const { data: anyRow, error: readError } = await admin
     .from("worker_onboarding_reminder_queue")
     .select("id")
     .eq("user_id", userId)
     .limit(1)
     .maybeSingle();
 
+  if (readError) {
+    if (isMissingTableError(readError)) return;
+    throw new Error(readError.message ?? "Failed to read onboarding reminder queue");
+  }
+
   if (anyRow) return;
 
   const rows = onboardingReminderRows(userId, profileCreatedAt);
-  await admin.from("worker_onboarding_reminder_queue").insert(rows);
+  const { error: insertError } = await admin.from("worker_onboarding_reminder_queue").insert(rows);
+  if (insertError && !isMissingTableError(insertError)) {
+    throw new Error(insertError.message ?? "Failed to seed onboarding reminder queue");
+  }
 }
 
 export async function GET() {
@@ -33,29 +43,11 @@ export async function GET() {
       return NextResponse.json({ error: "Not for employer accounts" }, { status: 403 });
     }
 
-    const { data: profile } = await admin
-      .from("profiles")
-      .select(
-        "worker_onboarding_loop_completed_at, created_at, vouch_count, vouch_tier, industry, professional_summary, vertical_metadata"
-      )
-      .eq("id", user.id)
-      .maybeSingle();
-
-    const prof = profile as {
-      worker_onboarding_loop_completed_at?: string | null;
-      created_at?: string;
-      vouch_count?: number;
-      vouch_tier?: number;
-      vouch_status?: string | null;
-      industry?: string | null;
-      professional_summary?: string | null;
-      vertical_metadata?: Record<string, unknown> | null;
-    } | null;
-
-    const completed = Boolean(prof?.worker_onboarding_loop_completed_at);
+    const profileFields = await loadOnboardingProfileFields(user.id);
+    const completed = Boolean(profileFields.workerOnboardingLoopCompletedAt);
 
     if (!completed) {
-      await ensureReminderQueue(user.id, prof?.created_at ?? null);
+      await ensureReminderQueue(user.id, profileFields.createdAt);
     }
 
     const { data: jobRow } = await admin
@@ -73,19 +65,26 @@ export async function GET() {
       title: string | null;
     } | null;
 
-    const { data: contactRows } = await admin
+    const { data: contactRows, error: contactsError } = await admin
       .from("worker_onboarding_contacts")
       .select("position, display_name, email, phone, coworker_invite_id")
       .eq("user_id", user.id)
       .order("position", { ascending: true });
 
-    const contacts = (contactRows ?? []) as Array<{
-      position: number;
-      display_name: string;
-      email: string | null;
-      phone: string | null;
-      coworker_invite_id: string | null;
-    }>;
+    const contacts =
+      contactsError && isMissingTableError(contactsError)
+        ? []
+        : ((contactRows ?? []) as Array<{
+            position: number;
+            display_name: string;
+            email: string | null;
+            phone: string | null;
+            coworker_invite_id: string | null;
+          }>);
+
+    if (contactsError && !isMissingTableError(contactsError)) {
+      throw new Error(contactsError.message ?? "Failed to load onboarding contacts");
+    }
 
     const { count: invitesCount } = await admin
       .from("coworker_invites")
@@ -102,14 +101,22 @@ export async function GET() {
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id);
 
-    const { data: trustRow } = await admin
+    const { data: trustRow, error: trustError } = await admin
       .from("trust_scores")
       .select("reference_count")
       .eq("user_id", user.id)
       .maybeSingle();
 
-    const referenceCount = Number((trustRow as { reference_count?: number } | null)?.reference_count ?? 0);
-    const vouchCount = Number(prof?.vouch_count ?? 0);
+    const referenceCount =
+      trustError && isMissingTableError(trustError)
+        ? 0
+        : Number((trustRow as { reference_count?: number } | null)?.reference_count ?? 0);
+
+    if (trustError && !isMissingTableError(trustError)) {
+      throw new Error(trustError.message ?? "Failed to load trust scores");
+    }
+
+    const vouchCount = profileFields.vouchCount;
     const vouchStatus: VouchStatusSlug = getStatus(vouchCount);
 
     const guidedComplete = isGuidedProfileComplete({
@@ -117,7 +124,7 @@ export async function GET() {
       matchesCount: matchesCount ?? 0,
       referenceCount,
     });
-    const bioLen = prof?.professional_summary?.trim().length ?? 0;
+    const bioLen = profileFields.professionalSummary.trim().length;
     const profileBasicsComplete = bioLen >= 20;
 
     const invitesSentCount = invitesCount ?? 0;
@@ -125,8 +132,7 @@ export async function GET() {
     const contactsCount = contacts.length;
     const hasEmailContact = contacts.some((c) => (c.email ?? "").trim().length > 0);
     const anyInviteLinked = contacts.some((c) => c.coworker_invite_id != null);
-    const sendStepDone =
-      anyInviteLinked || (contactsCount >= 1 && !hasEmailContact);
+    const sendStepDone = anyInviteLinked || (contactsCount >= 1 && !hasEmailContact);
     const canComplete = hasJob && (contactsCount >= 1 || invitesSentCount >= 1);
 
     let step = 1;
@@ -154,14 +160,14 @@ export async function GET() {
       })),
       invitesSentCount,
       vouchCount,
-      vouchTier: Number(prof?.vouch_tier ?? 0),
+      vouchTier: profileFields.vouchTier,
       vouchStatus,
       completed,
       canComplete,
       sendStepDone,
-      industry: prof?.industry ?? null,
-      professionalSummary: prof?.professional_summary ?? "",
-      verticalMetadata: prof?.vertical_metadata ?? {},
+      industry: profileFields.industry,
+      professionalSummary: profileFields.professionalSummary,
+      verticalMetadata: profileFields.verticalMetadata,
       profileBasicsComplete,
       guidedComplete,
       jobsCount: jobCount ?? 0,

@@ -8,6 +8,7 @@ import { getUser } from "@/lib/auth/getUser";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/auth/isAdmin";
 import { applyScenario } from "@/lib/impersonation/scenarioResolver";
+import { loadOnboardingProfileFields } from "@/lib/onboarding/onboardingProfileFields";
 
 export const dynamic = "force-dynamic";
 
@@ -43,10 +44,10 @@ export async function GET() {
 
     const supabase = await createClient();
 
-    type ProfileOnboardingRow = { id: string; role: string | null; full_name: string | null; industry: string | null };
+    type ProfileOnboardingRow = { id: string; role: string | null; full_name: string | null };
     const { data: profile, error: profileError } = await admin
       .from("profiles")
-      .select("id, role, full_name, industry")
+      .select("id, role, full_name")
       .eq("id", effectiveUserId)
       .single()
       .returns<ProfileOnboardingRow | null>();
@@ -93,7 +94,11 @@ export async function GET() {
       .select("*", { count: "exact", head: true })
       .eq("user_id", effectiveUserId);
 
-    const profileComplete = Boolean(profileRow?.full_name?.trim() && profileRow?.industry?.trim());
+    const onboardingProfile = await loadOnboardingProfileFields(effectiveUserId);
+    const profileComplete = Boolean(
+      profileRow?.full_name?.trim() &&
+        (onboardingProfile.industry?.trim() || onboardingProfile.professionalSummary.trim().length >= 20)
+    );
     const hasJobs = (jobsCount ?? 0) > 0;
 
     /** Employee onboarding uses /onboarding wizard — no overlay for workers. */
