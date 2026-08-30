@@ -162,5 +162,32 @@ describe("onboardingProfileFields (production schema)", () => {
     expect(result.persisted.professional_summary).toBe(true);
     expect(result.persisted.industry).toBe(false);
     expect(result.industry).toBe("Healthcare");
+    expect(result.ok).toBe(true);
+  });
+
+  it("returns ok when industry persistence fully fails so onboarding is not blocked", async () => {
+    mockUpdate.mockImplementation(() => ({
+      eq: vi.fn(async () => ({
+        error: {
+          code: "42703",
+          message: "column profiles.industry does not exist",
+        },
+      })),
+    }));
+
+    mockUpsert.mockResolvedValueOnce({
+      error: {
+        code: "PGRST205",
+        message: "Could not find the table 'public.employee_profiles' in the schema cache",
+      },
+    });
+
+    const result = await saveOnboardingProfileFields("user-1", {
+      industry: "Healthcare",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.industry).toBe("Healthcare");
+    expect(result.persisted.industry).toBe(false);
   });
 });

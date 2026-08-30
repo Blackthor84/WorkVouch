@@ -29,7 +29,7 @@ const EMPLOYER_STEPS: OnboardingStep[] = [
 ];
 
 const WORKER_STEPS: OnboardingStep[] = [
-  { id: "profile", targetId: "onboarding-profile", title: "Complete your profile", description: "Add your name, industry, and summary so employers can find you." },
+  { id: "profile", targetId: "onboarding-profile", title: "Complete your profile", description: "Add your name and summary so employers can find you." },
   { id: "job", targetId: "onboarding-add-job", title: "Add your first job", description: "Add a job or upload your resume to build your verified work history." },
   { id: "coworker", targetId: "onboarding-invite-coworker", title: "Invite a coworker", description: "Connect with a coworker to get references and strengthen your profile." },
   { id: "trust", targetId: "onboarding-trust-score", title: "View your trust score", description: "Your trust score shows employers your verified reputation at a glance." },

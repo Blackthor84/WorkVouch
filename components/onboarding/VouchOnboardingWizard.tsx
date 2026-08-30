@@ -12,6 +12,12 @@ import {
   verticalOnboarding,
 } from "@/lib/verticals/onboarding";
 import { ONBOARDING_INDUSTRY_DRAFT_KEY } from "@/lib/onboarding/onboardingProfileFields";
+import {
+  readOnboardingClientDraft,
+  resolveVouchWizardStep,
+  validateRoleStepInput,
+  writeRoleStepDraft,
+} from "@/lib/onboarding/vouchWizardStep";
 
 type ServerState = {
   step: number;
@@ -63,25 +69,19 @@ function Progress({ current }: { current: number }) {
 }
 
 function resolveInitialStep(data: ServerState): number {
-  if (data.completed) {
-    if (!data.profileBasicsComplete) return 6;
-    const vertical = getVerticalOnboardingConfig(data.industry);
-    const meta = data.verticalMetadata ?? {};
-    const hasVerticalData =
-      !vertical ||
-      vertical.employeeFields.some((f) => {
-        const v = meta[f.key];
-        return v != null && v !== "" && !(Array.isArray(v) && v.length === 0);
-      });
-    if (vertical && !hasVerticalData) return 7;
-    return 9;
-  }
-  if (!data.industry?.trim()) return data.step <= 1 ? 1 : 2;
-  if (data.step === 2) return 3;
-  if (data.step === 3) return 4;
-  if (data.step === 4) return 5;
-  if (data.step >= 5) return 5;
-  return 1;
+  const draft = readOnboardingClientDraft();
+  return resolveVouchWizardStep(
+    {
+      step: data.step,
+      hasJob: data.hasJob,
+      completed: data.completed,
+      industry: data.industry ?? draft.industry,
+      verticalMetadata: data.verticalMetadata ?? {},
+      profileBasicsComplete: data.profileBasicsComplete,
+      contacts: data.contacts ?? [],
+    },
+    { roleStepCompleted: draft.roleStepCompleted }
+  );
 }
 
 export function VouchOnboardingWizard({ firstName }: { firstName: string }) {
@@ -127,19 +127,16 @@ export function VouchOnboardingWizard({ firstName }: { firstName: string }) {
       }
       const s = data as ServerState;
       setServer(s);
-      let nextStep = resolveInitialStep(s);
-      try {
-        const draft = localStorage.getItem(ONBOARDING_INDUSTRY_DRAFT_KEY);
-        if (draft?.trim()) {
-          setIndustry(draft.trim());
-          if (nextStep === 2) nextStep = 3;
-        } else if (s.industry) {
-          setIndustry(s.industry);
-        }
-      } catch {
-        if (s.industry) setIndustry(s.industry);
+      const draft = readOnboardingClientDraft();
+      setStep(resolveInitialStep(s));
+      if (draft.industry) {
+        setIndustry(draft.industry);
+      } else if (s.industry) {
+        setIndustry(s.industry);
       }
-      setStep(nextStep);
+      if (draft.professionalRole) {
+        setProfessionalRole(draft.professionalRole);
+      }
       if (s.professionalSummary) setBio(s.professionalSummary);
       if (s.verticalMetadata && typeof s.verticalMetadata === "object") {
         setVerticalValues(s.verticalMetadata as VerticalFieldValues);
@@ -221,15 +218,19 @@ export function VouchOnboardingWizard({ firstName }: { firstName: string }) {
   }
 
   async function saveRoleStep() {
-    if (!industry.trim() || !professionalRole.trim()) {
-      setError("Choose your industry and professional role.");
+    const validationError = validateRoleStepInput(professionalRole);
+    if (validationError) {
+      setError(validationError);
       return;
     }
-    const ok = await saveProfileFields({ industry: industry.trim() });
-    if (ok) {
-      setRole(professionalRole.trim());
-      setStep(3);
+
+    if (industry.trim()) {
+      await saveProfileFields({ industry: industry.trim() });
     }
+
+    writeRoleStepDraft(professionalRole, industry);
+    setRole(professionalRole.trim());
+    setStep(3);
   }
 
   async function saveJob() {
@@ -396,14 +397,16 @@ export function VouchOnboardingWizard({ firstName }: { firstName: string }) {
 
         {step === 2 && (
           <section className="space-y-5">
-            <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">Your professional role</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">Tell us about your work</h1>
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              This helps us tailor optional industry questions and match you with the right coworkers.
+              This helps WorkVouch tailor verification, matching, and trust insights to your profession.
             </p>
             <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Industry</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Industry (Optional)
+              </span>
               <select className={`mt-1 ${fieldClass}`} value={industry} onChange={(e) => setIndustry(e.target.value)}>
-                <option value="">Select industry</option>
+                <option value="">Select industry (optional)</option>
                 {INDUSTRY_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
                     {opt}
@@ -426,7 +429,7 @@ export function VouchOnboardingWizard({ firstName }: { firstName: string }) {
               </button>
               <button
                 type="button"
-                disabled={saving || !industry.trim() || !professionalRole.trim()}
+                disabled={saving || !professionalRole.trim()}
                 onClick={saveRoleStep}
                 className="flex-[2] rounded-2xl bg-indigo-600 text-white font-semibold py-3 disabled:opacity-50"
               >
