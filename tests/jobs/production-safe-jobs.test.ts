@@ -113,6 +113,40 @@ describe("productionSafeJobs", () => {
     expect(mockInsert).toHaveBeenCalled();
   });
 
+  it("inserts onboarding jobs when PostgREST returns PGRST204 for is_visible_to_employer", async () => {
+    mockMaybeSingle.mockResolvedValueOnce({ data: null, error: null });
+    mockSingle
+      .mockResolvedValueOnce({
+        data: null,
+        error: {
+          code: "PGRST204",
+          message:
+            "Could not find the 'is_visible_to_employer' column of 'jobs' in the schema cache",
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          id: "job-pgrst",
+          company_name: "Acme",
+          job_title: "Operator",
+          title: "Operator",
+        },
+        error: null,
+      });
+
+    const client = { from: mockFrom };
+    const result = await saveOnboardingVouchJob(client, {
+      userId: "user-1",
+      companyName: "Acme",
+      role: "Operator",
+      startDate: "2026-01-01",
+    });
+
+    expect(result.error).toBeNull();
+    expect(result.result?.job.id).toBe("job-pgrst");
+    expect(result.result?.persistedVisibility.is_private).toBe(true);
+  });
+
   it("retries insert without is_visible_to_employer when column is missing", async () => {
     let payload: Record<string, unknown> | undefined;
     mockInsert.mockImplementation((row: Record<string, unknown>) => {
@@ -153,6 +187,59 @@ describe("productionSafeJobs", () => {
       })
     );
     expect(payload).not.toHaveProperty("is_visible_to_employer");
+  });
+
+  it("retries insert without is_visible_to_employer on PGRST204 and preserves job fields", async () => {
+    const payloads: Record<string, unknown>[] = [];
+    mockInsert.mockImplementation((row: Record<string, unknown>) => {
+      payloads.push({ ...row });
+      return { select: () => ({ single: mockSingle }) };
+    });
+
+    mockSingle
+      .mockResolvedValueOnce({
+        data: null,
+        error: {
+          code: "PGRST204",
+          message:
+            "Could not find the 'is_visible_to_employer' column of 'jobs' in the schema cache",
+        },
+      })
+      .mockResolvedValueOnce({
+        data: { id: "job-4", company_name: "Acme", job_title: "Tech", title: "Tech" },
+        error: null,
+      });
+
+    const client = { from: mockFrom };
+    const baseRow = {
+      user_id: "user-1",
+      company_name: "Acme",
+      job_title: "Tech",
+      title: "Tech",
+      start_date: "2026-01-01",
+      end_date: null,
+      is_current: true,
+      employment_type: "full_time",
+      verification_status: "unverified",
+    };
+    const result = await insertJobWithColumnFallback(client, baseRow, "hidden");
+
+    expect(result.error).toBeNull();
+    expect(payloads).toHaveLength(2);
+    expect(payloads[0]).toEqual(
+      expect.objectContaining({
+        ...baseRow,
+        is_visible_to_employer: false,
+        is_private: true,
+      })
+    );
+    expect(payloads[1]).toEqual(
+      expect.objectContaining({
+        ...baseRow,
+        is_private: true,
+      })
+    );
+    expect(payloads[1]).not.toHaveProperty("is_visible_to_employer");
   });
 
   it("keeps is_visible_to_employer when the column exists", async () => {

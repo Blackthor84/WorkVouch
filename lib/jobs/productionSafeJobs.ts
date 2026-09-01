@@ -57,18 +57,35 @@ export function isJobRowVisibleToEmployers(row: {
 
 async function mutateWithColumnFallback(
   payload: Record<string, unknown>,
-  apply: (row: Record<string, unknown>) => Promise<MutateResult>
+  apply: (row: Record<string, unknown>) => Promise<MutateResult>,
+  helperName: string
 ): Promise<MutateResult> {
   let current = { ...payload };
+  let usedFallback = false;
 
   while (Object.keys(current).length > 0) {
+    console.log("[production-safe jobs]", {
+      helper: helperName,
+      includes_is_visible_to_employer: "is_visible_to_employer" in current,
+      includes_is_private: "is_private" in current,
+    });
+
     const result = await apply(current);
-    if (!result.error) return result;
+    if (!result.error) {
+      if (usedFallback) {
+        console.log("production-safe jobs: fallback insert succeeded");
+      }
+      return result;
+    }
 
     if (isMissingColumnError(result.error)) {
       const column = missingColumnFromError(result.error);
       if (column && column in current) {
+        if (column === "is_visible_to_employer") {
+          console.log("production-safe jobs: retrying without is_visible_to_employer");
+        }
         delete current[column];
+        usedFallback = true;
         continue;
       }
     }
@@ -107,8 +124,10 @@ export async function insertJobWithColumnFallback(
     ...employerVisibilityFields(visibility),
   };
 
-  return mutateWithColumnFallback(payload, async (current) =>
-    table.insert(current).select(select).single()
+  return mutateWithColumnFallback(
+    payload,
+    async (current) => table.insert(current).select(select).single(),
+    "insertJobWithColumnFallback"
   );
 }
 
@@ -126,8 +145,11 @@ export async function updateJobWithColumnFallback(
       ? { ...row, ...employerVisibilityFields(visibility) }
       : { ...row };
 
-  return mutateWithColumnFallback(payload, async (current) =>
-    table.update(current).eq("id", jobId).eq("user_id", userId).select(select).single()
+  return mutateWithColumnFallback(
+    payload,
+    async (current) =>
+      table.update(current).eq("id", jobId).eq("user_id", userId).select(select).single(),
+    "updateJobWithColumnFallback"
   );
 }
 
