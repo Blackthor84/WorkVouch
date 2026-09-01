@@ -5,6 +5,7 @@ import { onboardingReminderRows } from "@/lib/onboarding/workerOnboardingNudges"
 import { getStatus, type VouchStatusSlug } from "@/lib/onboarding/vouchOnboarding";
 import { isGuidedProfileComplete } from "@/lib/onboarding/guidedOnboarding";
 import { loadOnboardingProfileFields } from "@/lib/onboarding/onboardingProfileFields";
+import { loadOnboardingContacts } from "@/lib/onboarding/productionSafeOnboardingContacts";
 import { isMissingTableError } from "@/lib/supabase/postgrestErrors";
 
 export const runtime = "nodejs";
@@ -65,22 +66,7 @@ export async function GET() {
       title: string | null;
     } | null;
 
-    const { data: contactRows, error: contactsError } = await admin
-      .from("worker_onboarding_contacts")
-      .select("position, display_name, email, phone, coworker_invite_id")
-      .eq("user_id", user.id)
-      .order("position", { ascending: true });
-
-    const contacts =
-      contactsError && isMissingTableError(contactsError)
-        ? []
-        : ((contactRows ?? []) as Array<{
-            position: number;
-            display_name: string;
-            email: string | null;
-            phone: string | null;
-            coworker_invite_id: string | null;
-          }>);
+    const { contacts, error: contactsError } = await loadOnboardingContacts(user.id);
 
     if (contactsError && !isMissingTableError(contactsError)) {
       throw new Error(contactsError.message ?? "Failed to load onboarding contacts");

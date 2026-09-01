@@ -3,6 +3,7 @@ import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 import { markWorkerOnboardingLoopComplete } from "@/lib/onboarding/onboardingProfileFields";
+import { countOnboardingContacts } from "@/lib/onboarding/productionSafeOnboardingContacts";
 import { isMissingTableError } from "@/lib/supabase/postgrestErrors";
 
 export const runtime = "nodejs";
@@ -29,10 +30,7 @@ export async function POST() {
       return NextResponse.json({ error: "Add at least one job first" }, { status: 400 });
     }
 
-    const { count: contactCount, error: contactError } = await admin
-      .from("worker_onboarding_contacts")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id);
+    const { count: contactCount, error: contactError } = await countOnboardingContacts(user.id);
 
     if (contactError && !isMissingTableError(contactError)) {
       return NextResponse.json({ error: contactError.message }, { status: 500 });
@@ -43,7 +41,7 @@ export async function POST() {
       .select("id", { count: "exact", head: true })
       .eq("sender_id", user.id);
 
-    const c = contactError && isMissingTableError(contactError) ? 0 : (contactCount ?? 0);
+    const c = contactCount ?? 0;
     const i = inviteCount ?? 0;
     if (c < 1 && i < 1) {
       return NextResponse.json(

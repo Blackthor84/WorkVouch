@@ -8,6 +8,12 @@ import {
   dispatchCoworkerVouchInviteMessages,
 } from "@/lib/invites/dispatchCoworkerVouchInvite";
 import { generateInviteToken } from "@/lib/invites/inviteToken";
+import {
+  linkContactToInvite,
+  loadOnboardingContacts,
+  type OnboardingContactRecord,
+} from "@/lib/onboarding/productionSafeOnboardingContacts";
+import { isMissingColumnError } from "@/lib/supabase/postgrestErrors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +21,84 @@ export const dynamic = "force-dynamic";
 function normCompany(name: string | undefined | null): string | null {
   const t = (name ?? "").trim().toLowerCase();
   return t.length ? t : null;
+}
+
+async function markInviteDispatched(inviteId: string): Promise<void> {
+  const { error } = await admin
+    .from("coworker_invites")
+    .update({ invite_sent_at: new Date().toISOString() })
+    .eq("id", inviteId);
+
+  if (error && !isMissingColumnError(error)) {
+    console.error("[onboarding/vouch/sendinvite] invite_sent_at update", error);
+  }
+}
+
+async function resolveInviteForContact(
+  contact: OnboardingContactRecord,
+  userId: string,
+  job: { id: string; company_name: string },
+  email: string
+): Promise<{ inviteId: string; inviteToken: string } | { error: string }> {
+  if (contact.storage === "coworker_invites") {
+    const { data, error } = await admin
+      .from("coworker_invites")
+      .select("id, invite_token")
+      .eq("id", contact.id)
+      .eq("sender_id", userId)
+      .maybeSingle();
+
+    if (error || !data) {
+      return { error: error?.message ?? "Could not load saved coworker invite" };
+    }
+
+    const row = data as { id: string; invite_token: string };
+    return { inviteId: row.id, inviteToken: row.invite_token };
+  }
+
+  if (contact.coworker_invite_id) {
+    const { data, error } = await admin
+      .from("coworker_invites")
+      .select("id, invite_token")
+      .eq("id", contact.coworker_invite_id)
+      .maybeSingle();
+
+    if (error || !data) {
+      return { error: error?.message ?? "Could not load coworker invite" };
+    }
+
+    const row = data as { id: string; invite_token: string };
+    return { inviteId: row.id, inviteToken: row.invite_token };
+  }
+
+  const invite_token = generateInviteToken(16);
+  const { data: row, error } = await admin
+    .from("coworker_invites")
+    .insert({
+      sender_id: userId,
+      email,
+      invite_token,
+      status: "pending",
+      company_normalized: normCompany(job.company_name),
+      job_id: job.id,
+    })
+    .select("id, invite_token")
+    .single();
+
+  if (error) {
+    if (error.code === "23505") {
+      return { error: `${email}: already invited` };
+    }
+    return { error: error.message };
+  }
+
+  const inv = row as { id: string; invite_token: string };
+  const linkResult = await linkContactToInvite(contact, inv.id);
+  if (linkResult.error) {
+    return { error: linkResult.error.message ?? "Could not link coworker invite" };
+  }
+
+  return { inviteId: inv.id, inviteToken: inv.invite_token };
 }
 
 export async function POST(req: Request) {
@@ -42,17 +126,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Add a job first" }, { status: 400 });
     }
 
-    const { data: contacts } = await admin
-      .from("worker_onboarding_contacts")
-      .select("id, email, coworker_invite_id")
-      .eq("user_id", user.id)
-      .order("position", { ascending: true });
-
-    const list = (contacts ?? []) as Array<{
-      id: string;
-      email: string | null;
-      coworker_invite_id: string | null;
-    }>;
+    const { contacts, error: contactsError } = await loadOnboardingContacts(user.id);
+    if (contactsError) {
+      return NextResponse.json({ error: contactsError.message ?? "Could not load coworkers" }, { status: 500 });
+    }
 
     const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
     const origin =
@@ -67,7 +144,7 @@ export async function POST(req: Request) {
       ((senderProfile as { full_name?: string } | null)?.full_name ?? "Someone").trim() || "Someone";
     const companyDisplay = (job.company_name ?? "").trim() || "their workplace";
 
-    for (const c of list) {
+    for (const c of contacts) {
       const email = (c.email ?? "").trim().toLowerCase();
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) continue;
       if (c.coworker_invite_id) {
@@ -75,41 +152,22 @@ export async function POST(req: Request) {
         continue;
       }
 
-      const invite_token = generateInviteToken(16);
-      const { data: row, error } = await admin
-        .from("coworker_invites")
-        .insert({
-          sender_id: user.id,
-          email,
-          invite_token,
-          status: "pending",
-          company_normalized: normCompany(job.company_name),
-          job_id: job.id,
-        })
-        .select("id, invite_token")
-        .single();
-
-      if (error) {
-        if (error.code === "23505") {
-          errors.push(`${email}: already invited`);
-          continue;
-        }
-        errors.push(error.message);
+      const resolved = await resolveInviteForContact(c, user.id, job, email);
+      if ("error" in resolved) {
+        errors.push(resolved.error);
         continue;
       }
 
-      const inv = row as { id: string; invite_token: string };
-      await admin.from("worker_onboarding_contacts").update({ coworker_invite_id: inv.id }).eq("id", c.id);
       sent.push(email);
 
       if (origin) {
-        const confirmUrl = buildVouchConfirmUrl(origin, inv.invite_token);
-        const signupUrl = buildSignupWithInviteUrl(origin, inv.invite_token);
+        const confirmUrl = buildVouchConfirmUrl(origin, resolved.inviteToken);
+        const signupUrl = buildSignupWithInviteUrl(origin, resolved.inviteToken);
         inviteUrls.push({ email, confirmUrl, signupUrl });
 
         const dispatch = await dispatchCoworkerVouchInviteMessages({
-          inviteId: inv.id,
-          inviteToken: inv.invite_token,
+          inviteId: resolved.inviteId,
+          inviteToken: resolved.inviteToken,
           origin,
           inviterName,
           companyName: companyDisplay,
@@ -119,6 +177,8 @@ export async function POST(req: Request) {
         });
         if (dispatch.errors.length) {
           errors.push(`${email}: ${dispatch.errors.join(", ")}`);
+        } else {
+          await markInviteDispatched(resolved.inviteId);
         }
       }
     }

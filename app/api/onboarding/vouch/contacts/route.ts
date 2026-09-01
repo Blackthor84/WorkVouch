@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
+import { saveOnboardingContacts } from "@/lib/onboarding/productionSafeOnboardingContacts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -67,24 +68,23 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "Duplicate positions" }, { status: 400 });
     }
 
-    await admin.from("worker_onboarding_contacts").delete().eq("user_id", user.id);
+    const { data: jobRow } = await admin
+      .from("jobs")
+      .select("id, company_name")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    const { error: insErr } = await admin.from("worker_onboarding_contacts").insert(
-      cleaned.map((c) => ({
-        user_id: user.id,
-        position: c.position,
-        display_name: c.display_name,
-        email: c.email,
-        phone: c.phone,
-      }))
-    );
+    const job = jobRow as { id: string; company_name: string } | null;
+    const result = await saveOnboardingContacts(user.id, cleaned, job);
 
-    if (insErr) {
-      console.error("[onboarding/vouch/contacts]", insErr);
-      return NextResponse.json({ error: insErr.message }, { status: 500 });
+    if (!result.ok) {
+      console.error("[onboarding/vouch/contacts]", result.error);
+      return NextResponse.json({ error: result.error }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, count: cleaned.length });
+    return NextResponse.json({ ok: true, count: result.count, storage: result.storage });
   } catch (e) {
     console.error("[onboarding/vouch/contacts]", e);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
