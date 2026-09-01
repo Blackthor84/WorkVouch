@@ -5,6 +5,7 @@ import { onboardingReminderRows } from "@/lib/onboarding/workerOnboardingNudges"
 import { getStatus, type VouchStatusSlug } from "@/lib/onboarding/vouchOnboarding";
 import { isGuidedProfileComplete } from "@/lib/onboarding/guidedOnboarding";
 import { loadOnboardingProfileFields } from "@/lib/onboarding/onboardingProfileFields";
+import { countInvitesForSender } from "@/lib/invites/coworkerVouchInviteStore";
 import { loadOnboardingContacts } from "@/lib/onboarding/productionSafeOnboardingContacts";
 import { isMissingTableError } from "@/lib/supabase/postgrestErrors";
 
@@ -72,10 +73,7 @@ export async function GET() {
       throw new Error(contactsError.message ?? "Failed to load onboarding contacts");
     }
 
-    const { count: invitesCount } = await admin
-      .from("coworker_invites")
-      .select("id", { count: "exact", head: true })
-      .eq("sender_id", user.id);
+    const invitesSentCount = await countInvitesForSender(user.id);
 
     const { count: matchesCount } = await admin
       .from("coworker_matches")
@@ -113,7 +111,7 @@ export async function GET() {
     const bioLen = profileFields.professionalSummary.trim().length;
     const profileBasicsComplete = bioLen >= 20;
 
-    const invitesSentCount = invitesCount ?? 0;
+    const invitesSentCount = await countInvitesForSender(user.id);
     const hasJob = Boolean(job?.id);
     const contactsCount = contacts.length;
     const hasEmailContact = contacts.some((c) => (c.email ?? "").trim().length > 0);

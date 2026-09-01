@@ -1,8 +1,8 @@
 /**
- * Send coworker vouch invite link (email and/or SMS). Updates invite_sent_at on success.
+ * Send coworker vouch invite link (email and/or SMS).
+ * Production public.invites has no `sent` status — status stays `pending` until the recipient opens the link.
  */
 
-import { admin } from "@/lib/supabase-admin";
 import { sendEmail } from "@/lib/utils/sendgrid";
 import { sendCoworkerVouchInviteSms } from "@/lib/sms/sendSms";
 
@@ -37,7 +37,7 @@ export type DispatchCoworkerInviteResult = {
 export async function dispatchCoworkerVouchInviteMessages(
   args: DispatchArgs
 ): Promise<DispatchCoworkerInviteResult> {
-  const { inviteId, inviteToken, origin, inviterName, companyName, email, phone, channels } = args;
+  const { inviteToken, origin, inviterName, companyName, email, phone, channels } = args;
   const confirmUrl = buildVouchConfirmUrl(origin, inviteToken);
   const signupUrl = buildSignupWithInviteUrl(origin, inviteToken);
 
@@ -71,10 +71,6 @@ export async function dispatchCoworkerVouchInviteMessages(
     const r = await sendCoworkerVouchInviteSms(phone, confirmUrl, inviterName, safeCompany);
     if (r.ok) smsSent = true;
     else errors.push(r.error ?? "sms_failed");
-  }
-
-  if (emailSent || smsSent) {
-    await admin.from("coworker_invites").update({ invite_sent_at: new Date().toISOString() }).eq("id", inviteId);
   }
 
   return { emailSent, smsSent, errors };

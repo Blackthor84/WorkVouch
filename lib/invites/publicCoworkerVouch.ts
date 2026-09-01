@@ -3,6 +3,15 @@
  * All DB access uses admin client (API / server components only).
  */
 
+import {
+  findInviteByToken,
+  markInviteAccepted,
+  markInviteDeclined,
+  markInviteOpened,
+  resolveCompanyNameForInvite,
+  type CoworkerVouchInvite,
+} from "@/lib/invites/coworkerVouchInviteStore";
+import { refreshCoworkerVouchStats } from "@/lib/invites/refreshCoworkerVouchStats";
 import { admin } from "@/lib/supabase-admin";
 
 const TOKEN_MAX_LEN = 256;
@@ -24,74 +33,45 @@ export function sanitizeInviteToken(raw: string | undefined | null): string | nu
   return t;
 }
 
-function prettyFromNormalized(normalized: string | null | undefined): string {
-  const n = (normalized ?? "").trim();
-  if (!n) return "their workplace";
-  return n
-    .split(/\s+/)
-    .map((w) => (w.length ? w.charAt(0).toUpperCase() + w.slice(1) : w))
-    .join(" ");
+function normalizePublicStatus(status: string | null | undefined): PublicInviteState | null {
+  const s = (status ?? "").toLowerCase();
+  if (s === "pending" || s === "opened") return "pending";
+  if (s === "accepted") return "accepted";
+  if (s === "declined") return "declined";
+  return null;
 }
 
-type InviteRow = {
-  id: string;
-  status: string;
-  sender_id: string;
-  company_normalized: string | null;
-  job_id: string | null;
-};
-
 /**
- * First time the recipient loads the link: set `invite_opened_at` (invite funnel “opened”).
- * Unlike a fictional `status: "opened"`, pending stays `pending` until yes/no.
- * @returns true if this call was the first open (row updated).
+ * First time the recipient loads the link — pending → opened (production status).
  */
 export async function touchCoworkerInviteOpened(token: string): Promise<boolean> {
-  const now = new Date().toISOString();
-  const { data, error } = await admin
-    .from("coworker_invites")
-    .update({ invite_opened_at: now })
-    .eq("invite_token", token)
-    .eq("status", "pending")
-    .is("invite_opened_at", null)
-    .select("id")
-    .maybeSingle();
-  if (error || !data) return false;
-  return true;
+  const { invite, error } = await findInviteByToken(token);
+  if (error || !invite) return false;
+  if ((invite.status ?? "").toLowerCase() !== "pending") return false;
+  return markInviteOpened(invite.id);
 }
 
 export async function loadPublicCoworkerInvitePreview(token: string): Promise<PublicInvitePreview> {
-  const { data: inv, error } = await admin
-    .from("coworker_invites")
-    .select("id, status, sender_id, company_normalized, job_id")
-    .eq("invite_token", token)
+  const { invite, error } = await findInviteByToken(token);
+
+  if (error || !invite) {
+    return { ok: false, error: "not_found" };
+  }
+
+  const status = normalizePublicStatus(invite.status);
+  if (!status) {
+    return { ok: false, error: "not_found" };
+  }
+
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("full_name")
+    .eq("id", invite.sender_id)
     .maybeSingle();
 
-  if (error || !inv) {
-    return { ok: false, error: "not_found" };
-  }
-
-  const row = inv as InviteRow;
-  const status = row.status as PublicInviteState;
-  if (status !== "pending" && status !== "accepted" && status !== "declined") {
-    return { ok: false, error: "not_found" };
-  }
-
-  const [{ data: profile }, { data: job }] = await Promise.all([
-    admin.from("profiles").select("full_name").eq("id", row.sender_id).maybeSingle(),
-    row.job_id
-      ? admin.from("jobs").select("company_name").eq("id", row.job_id).maybeSingle()
-      : Promise.resolve({ data: null } as { data: { company_name?: string } | null }),
-  ]);
-
-  const inviterName = (
-    (profile as { full_name?: string } | null)?.full_name ?? "Someone"
-  ).trim() || "Someone";
-
-  const companyFromJob = (job as { company_name?: string } | null)?.company_name?.trim();
-  const companyName = companyFromJob && companyFromJob.length > 0
-    ? companyFromJob
-    : prettyFromNormalized(row.company_normalized);
+  const inviterName =
+    ((profile as { full_name?: string } | null)?.full_name ?? "Someone").trim() || "Someone";
+  const companyName = await resolveCompanyNameForInvite(invite);
 
   return {
     ok: true,
@@ -105,95 +85,72 @@ export type RespondResult =
   | { ok: true; status: "accepted" | "declined" | "already_accepted" | "already_declined" }
   | { ok: false; error: "not_found" | "invalid" | "already_resolved" };
 
+function isRespondableStatus(status: string | null | undefined): boolean {
+  const s = (status ?? "").toLowerCase();
+  return s === "pending" || s === "opened";
+}
+
 export async function respondToPublicCoworkerInvite(
   token: string,
   decision: "yes" | "no"
 ): Promise<RespondResult> {
-  const now = new Date().toISOString();
+  const { invite: existing, error: fetchErr } = await findInviteByToken(token);
 
-  const { data: existing } = await admin
-    .from("coworker_invites")
-    .select("id, status, sender_id, job_id")
-    .eq("invite_token", token)
-    .maybeSingle();
-
-  if (!existing) {
+  if (fetchErr || !existing) {
     return { ok: false, error: "not_found" };
   }
 
-  const ex = existing as { id: string; status: string; sender_id: string; job_id: string | null };
+  const ex = existing as CoworkerVouchInvite;
+  const statusLower = (ex.status ?? "").toLowerCase();
 
   if (decision === "no") {
-    if (ex.status === "declined") {
+    if (statusLower === "declined") {
       return { ok: true, status: "already_declined" };
     }
-    if (ex.status === "accepted") {
+    if (statusLower === "accepted") {
       return { ok: false, error: "already_resolved" };
     }
-    if (ex.status !== "pending") {
+    if (!isRespondableStatus(ex.status)) {
       return { ok: false, error: "invalid" };
     }
 
-    const { data: updated, error: updErr } = await admin
-      .from("coworker_invites")
-      .update({ status: "declined", declined_at: now })
-      .eq("id", ex.id)
-      .eq("status", "pending")
-      .select("id")
-      .maybeSingle();
-
-    if (updErr || !updated) {
+    const updErr = await markInviteDeclined(ex.id);
+    if (updErr) {
       return { ok: false, error: "invalid" };
     }
     return { ok: true, status: "declined" };
   }
 
-  // yes
-  if (ex.status === "accepted") {
+  if (statusLower === "accepted") {
     return { ok: true, status: "already_accepted" };
   }
-  if (ex.status === "declined") {
+  if (statusLower === "declined") {
     return { ok: false, error: "already_resolved" };
   }
-  if (ex.status !== "pending") {
+  if (!isRespondableStatus(ex.status)) {
     return { ok: false, error: "invalid" };
   }
 
-  const { data: updated, error: updErr } = await admin
-    .from("coworker_invites")
-    .update({
-      status: "accepted",
-      accepted_at: now,
-      accepted_user_id: null,
-    })
-    .eq("id", ex.id)
-    .eq("status", "pending")
-    .select("id, sender_id, job_id")
-    .maybeSingle();
-
-  if (updErr || !updated) {
-    const { data: again } = await admin.from("coworker_invites").select("status").eq("id", ex.id).maybeSingle();
-    if ((again as { status?: string } | null)?.status === "accepted") {
+  const updErr = await markInviteAccepted(ex.id);
+  if (updErr) {
+    const { invite: again } = await findInviteByToken(token);
+    if ((again?.status ?? "").toLowerCase() === "accepted") {
       return { ok: true, status: "already_accepted" };
     }
     return { ok: false, error: "invalid" };
   }
 
-  const u = updated as { id: string; sender_id: string; job_id: string | null };
-
-  try {
-    await admin.rpc("refresh_user_vouch_stats", { p_user_id: u.sender_id });
-  } catch {
-    /* migration may not be applied */
-  }
+  await refreshCoworkerVouchStats(ex.sender_id).catch((e) => {
+    console.warn("[respondToPublicCoworkerInvite] refreshCoworkerVouchStats", e);
+  });
 
   await admin.from("notifications").insert({
-    user_id: u.sender_id,
+    user_id: ex.sender_id,
     type: "vouch_received",
     title: "Someone vouched for you",
     message: "A coworker confirmed your invite — you got a new vouch 🔥",
     related_user_id: null,
-    related_job_id: u.job_id,
+    related_job_id: ex.job_id,
   });
 
   return { ok: true, status: "accepted" };

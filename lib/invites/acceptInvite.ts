@@ -1,11 +1,6 @@
 /**
  * Accept / decline coworker vouch invites by token (server-only).
- *
- * Your sketch used `invites` + `users.vouch_count++`. WorkVouch instead:
- * - **`coworker_invites`** — column `invite_token` (not `token`), `sender_id` → `profiles.id`
- * - **`admin`** from `@/lib/supabase-admin` in API routes (not the browser `supabase` client)
- * - **`refresh_user_vouch_stats(sender_id)`** — recomputes `profiles.vouch_count`, `vouch_tier`, `vouch_status`
- *   (do not manually `update({ vouch_count: user.vouch_count + 1 })`; tier/status would drift)
+ * Backed by public.invites via publicCoworkerVouch + refreshCoworkerVouchStats.
  */
 
 import {

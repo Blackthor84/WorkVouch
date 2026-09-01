@@ -7,32 +7,19 @@ import {
   buildVouchConfirmUrl,
   dispatchCoworkerVouchInviteMessages,
 } from "@/lib/invites/dispatchCoworkerVouchInvite";
-import { generateInviteToken } from "@/lib/invites/inviteToken";
 import {
-  linkContactToInvite,
+  createDraftInvite,
+  findInviteById,
+  inviteWasSent,
+} from "@/lib/invites/coworkerVouchInviteStore";
+import { isValidEmail } from "@/lib/invites/coworkerVouchContact";
+import {
   loadOnboardingContacts,
   type OnboardingContactRecord,
 } from "@/lib/onboarding/productionSafeOnboardingContacts";
-import { isMissingColumnError } from "@/lib/supabase/postgrestErrors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function normCompany(name: string | undefined | null): string | null {
-  const t = (name ?? "").trim().toLowerCase();
-  return t.length ? t : null;
-}
-
-async function markInviteDispatched(inviteId: string): Promise<void> {
-  const { error } = await admin
-    .from("coworker_invites")
-    .update({ invite_sent_at: new Date().toISOString() })
-    .eq("id", inviteId);
-
-  if (error && !isMissingColumnError(error)) {
-    console.error("[onboarding/vouch/sendinvite] invite_sent_at update", error);
-  }
-}
 
 async function resolveInviteForContact(
   contact: OnboardingContactRecord,
@@ -40,65 +27,38 @@ async function resolveInviteForContact(
   job: { id: string; company_name: string },
   email: string
 ): Promise<{ inviteId: string; inviteToken: string } | { error: string }> {
-  if (contact.storage === "coworker_invites") {
-    const { data, error } = await admin
-      .from("coworker_invites")
-      .select("id, invite_token")
-      .eq("id", contact.id)
-      .eq("sender_id", userId)
-      .maybeSingle();
-
-    if (error || !data) {
-      return { error: error?.message ?? "Could not load saved coworker invite" };
-    }
-
-    const row = data as { id: string; invite_token: string };
-    return { inviteId: row.id, inviteToken: row.invite_token };
+  const { invite: existing, error: loadErr } = await findInviteById(contact.id, userId);
+  if (loadErr || !existing) {
+    return { error: loadErr?.message ?? "Could not load saved coworker invite" };
   }
 
-  if (contact.coworker_invite_id) {
-    const { data, error } = await admin
-      .from("coworker_invites")
-      .select("id, invite_token")
-      .eq("id", contact.coworker_invite_id)
-      .maybeSingle();
-
-    if (error || !data) {
-      return { error: error?.message ?? "Could not load coworker invite" };
-    }
-
-    const row = data as { id: string; invite_token: string };
-    return { inviteId: row.id, inviteToken: row.invite_token };
+  if (inviteWasSent(existing.status)) {
+    return { inviteId: existing.id, inviteToken: existing.token };
   }
 
-  const invite_token = generateInviteToken(16);
-  const { data: row, error } = await admin
-    .from("coworker_invites")
-    .insert({
-      sender_id: userId,
-      email,
-      invite_token,
-      status: "pending",
-      company_normalized: normCompany(job.company_name),
-      job_id: job.id,
-    })
-    .select("id, invite_token")
-    .single();
+  if (existing.token && existing.email === email) {
+    return { inviteId: existing.id, inviteToken: existing.token };
+  }
+
+  const { invite: created, error } = await createDraftInvite({
+    senderId: userId,
+    jobId: job.id,
+    email,
+    phone: contact.phone,
+  });
 
   if (error) {
     if (error.code === "23505") {
       return { error: `${email}: already invited` };
     }
-    return { error: error.message };
+    return { error: error.message ?? "Could not create invite" };
   }
 
-  const inv = row as { id: string; invite_token: string };
-  const linkResult = await linkContactToInvite(contact, inv.id);
-  if (linkResult.error) {
-    return { error: linkResult.error.message ?? "Could not link coworker invite" };
+  if (!created) {
+    return { error: "Could not create invite" };
   }
 
-  return { inviteId: inv.id, inviteToken: inv.invite_token };
+  return { inviteId: created.id, inviteToken: created.token };
 }
 
 export async function POST(req: Request) {
@@ -146,9 +106,20 @@ export async function POST(req: Request) {
 
     for (const c of contacts) {
       const email = (c.email ?? "").trim().toLowerCase();
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) continue;
-      if (c.coworker_invite_id) {
-        sent.push(email);
+      if (!email || !isValidEmail(email)) continue;
+
+      if (c.inviteSent) {
+        const { invite } = await findInviteById(c.id, user.id);
+        if (invite?.token) {
+          sent.push(email);
+          if (origin) {
+            inviteUrls.push({
+              email,
+              confirmUrl: buildVouchConfirmUrl(origin, invite.token),
+              signupUrl: buildSignupWithInviteUrl(origin, invite.token),
+            });
+          }
+        }
         continue;
       }
 
@@ -177,8 +148,6 @@ export async function POST(req: Request) {
         });
         if (dispatch.errors.length) {
           errors.push(`${email}: ${dispatch.errors.join(", ")}`);
-        } else {
-          await markInviteDispatched(resolved.inviteId);
         }
       }
     }

@@ -33,8 +33,8 @@ export function vouchTierFromCount(count: number): VouchTier {
 
 /**
  * Fields to write on `profiles` after a vouch count change (mirrors `refresh_user_vouch_stats`).
- * Prefer calling `admin.rpc("refresh_user_vouch_stats", { p_user_id })` in API routes so counts stay
- * tied to `coworker_invites`; use this when building a patch in app code only.
+ * Prefer calling `refreshCoworkerVouchStats(userId)` in API routes so counts stay
+ * tied to `public.invites`; use vouchProfileFieldsFromCount when building a patch in app code only.
  */
 export function vouchProfileFieldsFromCount(count: number): {
   vouch_count: number;

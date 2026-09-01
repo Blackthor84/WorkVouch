@@ -3,6 +3,7 @@ import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
 import { markWorkerOnboardingLoopComplete } from "@/lib/onboarding/onboardingProfileFields";
+import { countInvitesForSender } from "@/lib/invites/coworkerVouchInviteStore";
 import { countOnboardingContacts } from "@/lib/onboarding/productionSafeOnboardingContacts";
 import { isMissingTableError } from "@/lib/supabase/postgrestErrors";
 
@@ -36,10 +37,7 @@ export async function POST() {
       return NextResponse.json({ error: contactError.message }, { status: 500 });
     }
 
-    const { count: inviteCount } = await admin
-      .from("coworker_invites")
-      .select("id", { count: "exact", head: true })
-      .eq("sender_id", user.id);
+    const inviteCount = await countInvitesForSender(user.id);
 
     const c = contactCount ?? 0;
     const i = inviteCount ?? 0;

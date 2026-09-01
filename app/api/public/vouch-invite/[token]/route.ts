@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/public/vouch-invite/[token]
- * Public preview for confirm page; records invite_opened_at once (pending only).
+ * Public preview for confirm page; records first open as status=opened when pending.
  */
 export async function GET(_req: Request, ctx: { params: Promise<{ token: string }> }) {
   const { token: raw } = await ctx.params;

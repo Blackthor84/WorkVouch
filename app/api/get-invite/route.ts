@@ -11,9 +11,8 @@ export const dynamic = "force-dynamic";
 /**
  * GET /api/get-invite?token=...
  *
- * WorkVouch equivalent of:
- * - `invites` + `token` → **`coworker_invites`** + **`invite_token`**
- * - `status: "opened"` → **`invite_opened_at`** (timestamp; row stays **`pending`** until accept/decline)
+ * WorkVouch equivalent of legacy `invites` + `token` (now public.invites.token).
+ * Records first open as public.invites.status = opened when still pending.
  * - Uses **`admin`** (not browser `supabase`) per API route rules
  *
  * Response is a **safe subset** (not `select("*")`) for the public confirm UI.

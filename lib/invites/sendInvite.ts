@@ -2,26 +2,20 @@
  * Create a coworker vouch invite and optionally send SMS/email with a short link.
  *
  * **Server-only** — uses the admin Supabase client. Call from API routes or server actions, not the browser.
- *
- * This maps your pattern (`sendInvite`, `nanoid`, Twilio) onto WorkVouch’s `coworker_invites` table
- * and shared dispatch helpers (SendGrid + Twilio).
+ * Persists to production public.invites via coworkerVouchInviteStore.
  */
 
 import { admin } from "@/lib/supabase-admin";
+import { buildContactField } from "@/lib/invites/coworkerVouchContact";
+import { createDraftInvite, findInviteForContact } from "@/lib/invites/coworkerVouchInviteStore";
 import {
   buildSignupWithInviteUrl,
   buildVouchConfirmUrl,
   dispatchCoworkerVouchInviteMessages,
 } from "@/lib/invites/dispatchCoworkerVouchInvite";
-import { generateInviteToken } from "@/lib/invites/inviteToken";
 import { normalizeToE164 } from "@/lib/invites/phone";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function normalizeCompany(name: string | undefined | null): string | null {
-  const t = (name ?? "").trim().toLowerCase();
-  return t.length ? t : null;
-}
 
 function parseContact(contact: string | { email?: string; phone?: string }): {
   email: string | null;
@@ -62,11 +56,6 @@ export type SendInviteResult = {
   dispatch?: { emailSent: boolean; smsSent: boolean; errors: string[] };
 };
 
-/**
- * Same idea as:
- * `nanoid` → insert `invites` → `https://app/vouch/${token}` → Twilio.
- * Here: `coworker_invites` + `/vouch/:token` + optional email/SMS.
- */
 export async function sendInvite({
   userId,
   jobId,
@@ -91,29 +80,45 @@ export async function sendInvite({
     throw new Error("Valid email or phone required");
   }
 
-  const token = generateInviteToken(16);
-  const company_normalized = normalizeCompany(j.company_name);
-
-  const insertPayload: Record<string, unknown> = {
-    sender_id: userId,
-    invite_token: token,
-    status: "pending",
-    company_normalized,
-    job_id: j.id,
-  };
-  if (email) insertPayload.email = email;
-  if (phone) insertPayload.phone = phone;
-
-  const { data: row, error } = await admin.from("coworker_invites").insert(insertPayload).select("id").single();
-
-  if (error) {
-    if (error.code === "23505") {
-      throw new Error("Already invited this contact");
-    }
-    throw new Error(error.message);
+  const contactField = buildContactField(email, phone);
+  if (!contactField) {
+    throw new Error("Valid email or phone required");
   }
 
-  const inviteId = (row as { id: string }).id;
+  const existing = await findInviteForContact(userId, contactField);
+  if (existing.error) {
+    throw new Error(existing.error.message ?? "Could not check existing invite");
+  }
+
+  let inviteId: string;
+  let token: string;
+
+  if (existing.invite) {
+    inviteId = existing.invite.id;
+    token = existing.invite.token;
+  } else {
+    const created = await createDraftInvite({
+      senderId: userId,
+      jobId: j.id,
+      email,
+      phone,
+    });
+
+    if (created.error) {
+      if (created.error.code === "23505") {
+        throw new Error("Already invited this contact");
+      }
+      throw new Error(created.error.message ?? "Failed to create invite");
+    }
+
+    if (!created.invite) {
+      throw new Error("Failed to create invite");
+    }
+
+    inviteId = created.invite.id;
+    token = created.invite.token;
+  }
+
   const root = (originArg ?? process.env.NEXT_PUBLIC_SITE_URL ?? "").replace(/\/$/, "");
   if (!root) {
     throw new Error("origin or NEXT_PUBLIC_SITE_URL is required for invite links");

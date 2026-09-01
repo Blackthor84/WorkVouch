@@ -1,21 +1,17 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { admin } from "@/lib/supabase-admin";
+import { buildContactField } from "@/lib/invites/coworkerVouchContact";
+import { createDraftInvite } from "@/lib/invites/coworkerVouchInviteStore";
 import {
   buildSignupWithInviteUrl,
   buildVouchConfirmUrl,
   dispatchCoworkerVouchInviteMessages,
 } from "@/lib/invites/dispatchCoworkerVouchInvite";
-import { generateInviteToken } from "@/lib/invites/inviteToken";
 import { normalizeToE164 } from "@/lib/invites/phone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function normalizeCompany(name: string | undefined | null): string | null {
-  const t = (name ?? "").trim().toLowerCase();
-  return t.length ? t : null;
-}
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -27,9 +23,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  *   company_name?: string,
  *   job_id?: string,
  *   send?: boolean,
- *   channels?: ("email"|"sms")[]  // default: infer from provided email/phone when send=true
+ *   channels?: ("email"|"sms")[]
  * }
- * Creates a pending coworker_invite; optional SMS/email with short /vouch/:token → confirm UI
+ * Creates a pending invite in public.invites; optional SMS/email with short /vouch/:token → confirm UI
  */
 export async function POST(req: Request) {
   try {
@@ -55,7 +51,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "You cannot invite yourself" }, { status: 400 });
     }
 
-    const company_normalized = normalizeCompany(body.company_name);
     const job_id = typeof body.job_id === "string" && body.job_id.length >= 30 ? body.job_id : null;
 
     if (job_id) {
@@ -80,37 +75,30 @@ export async function POST(req: Request) {
       }
     }
 
-    const invite_token = generateInviteToken(16);
-
-    const insertPayload: Record<string, unknown> = {
-      sender_id: user.id,
-      invite_token,
-      status: "pending",
-      company_normalized,
-      job_id,
-    };
-    if (email) insertPayload.email = email;
-    if (phoneE164) insertPayload.phone = phoneE164;
-
-    const { data: row, error } = await admin
-      .from("coworker_invites")
-      .insert(insertPayload)
-      .select("id, invite_token")
-      .single();
-
-    if (error) {
-      if (error.code === "23505") {
-        return NextResponse.json({ error: "Already invited this contact" }, { status: 409 });
-      }
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    const contact = buildContactField(email || null, phoneE164);
+    if (!contact) {
+      return NextResponse.json({ error: "Valid email or phone required" }, { status: 400 });
     }
 
-    const inv = row as { id: string; invite_token: string };
+    const { invite, error } = await createDraftInvite({
+      senderId: user.id,
+      jobId: job_id,
+      email: email || null,
+      phone: phoneE164,
+    });
+
+    if (error || !invite) {
+      if (error?.code === "23505") {
+        return NextResponse.json({ error: "Already invited this contact" }, { status: 409 });
+      }
+      return NextResponse.json({ error: error?.message ?? "Failed to create invite" }, { status: 500 });
+    }
+
     const base = process.env.NEXT_PUBLIC_SITE_URL || "";
     const origin = base || new URL(req.url).origin;
     const root = origin.replace(/\/$/, "");
-    const confirmUrl = buildVouchConfirmUrl(root, inv.invite_token);
-    const signupUrl = buildSignupWithInviteUrl(root, inv.invite_token);
+    const confirmUrl = buildVouchConfirmUrl(root, invite.token);
+    const signupUrl = buildSignupWithInviteUrl(root, invite.token);
 
     let dispatch: Awaited<ReturnType<typeof dispatchCoworkerVouchInviteMessages>> | null = null;
 
@@ -128,8 +116,8 @@ export async function POST(req: Request) {
       }
 
       dispatch = await dispatchCoworkerVouchInviteMessages({
-        inviteId: inv.id,
-        inviteToken: inv.invite_token,
+        inviteId: invite.id,
+        inviteToken: invite.token,
         origin: root,
         inviterName,
         companyName: companyName || "their workplace",
@@ -141,7 +129,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      invite_token: inv.invite_token,
+      invite_token: invite.token,
       inviteUrl: signupUrl,
       confirmUrl,
       signupUrl,

@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
+import { countInvitesForSender } from "@/lib/invites/coworkerVouchInviteStore";
 import {
   ONBOARDING_NUDGE_MESSAGES,
   shouldSkipOnboardingNudge,
@@ -56,12 +57,8 @@ export async function GET(req: NextRequest) {
       continue;
     }
 
-    const { count: inviteCount } = await admin
-      .from("coworker_invites")
-      .select("id", { count: "exact", head: true })
-      .eq("sender_id", r.user_id);
-
-    const hasInvite = (inviteCount ?? 0) > 0;
+    const inviteCount = await countInvitesForSender(r.user_id);
+    const hasInvite = inviteCount > 0;
     if (shouldSkipOnboardingNudge(hasInvite)) {
       await admin.from("worker_onboarding_reminder_queue").update({ sent_at: now }).eq("id", r.id);
       processed++;

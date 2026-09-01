@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 async function countInvites(
   filter?: (q: ReturnType<typeof admin.from>) => ReturnType<typeof admin.from>
 ): Promise<number> {
-  let q = admin.from("coworker_invites").select("*", { count: "exact", head: true });
+  let q = admin.from("invites").select("*", { count: "exact", head: true });
   if (filter) q = filter(q);
   const { count, error } = await q;
   if (error) {
@@ -44,29 +44,27 @@ export async function GET(req: NextRequest) {
     actorId: adminSession.authUserId,
     action: "VIEW_ADMIN_INVITE_METRICS",
     resource: "admin/metrics",
-    metadata: { scope: "coworker_invites_aggregate" },
+    metadata: { scope: "invites_aggregate" },
   });
 
-  const [total, pending, accepted, declined, opened, inviteDispatched] = await Promise.all([
+  const [total, pending, opened, accepted, declined] = await Promise.all([
     countInvites(),
     countInvites((q) => q.eq("status", "pending")),
+    countInvites((q) => q.eq("status", "opened")),
     countInvites((q) => q.eq("status", "accepted")),
     countInvites((q) => q.eq("status", "declined")),
-    countInvites((q) => q.not("invite_opened_at", "is", null)),
-    countInvites((q) => q.not("invite_sent_at", "is", null)),
   ]);
 
-  const sent = pending;
   const openRate = total ? ((opened / total) * 100).toFixed(1) : "0";
   const acceptRate = total ? ((accepted / total) * 100).toFixed(1) : "0";
 
   return NextResponse.json({
     total,
-    sent,
+    sent: pending,
     opened,
     accepted,
     declined,
-    invite_dispatched: inviteDispatched,
+    invite_dispatched: opened + accepted + declined,
     openRate,
     acceptRate,
   });
