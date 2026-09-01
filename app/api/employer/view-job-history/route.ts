@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isJobRowVisibleToEmployers } from "@/lib/jobs/productionSafeJobs";
 import { admin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -103,6 +104,7 @@ export async function GET(req: NextRequest) {
       end_date: string | null;
       verification_status?: string;
       is_visible_to_employer?: boolean;
+      is_private?: boolean;
       profiles?: {
         id: string;
         full_name: string;
@@ -126,7 +128,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Verify visibility (unless employer is searching manually - paid feature)
-    if (!(jobHistory as any).is_visible_to_employer) {
+    if (!isJobRowVisibleToEmployers(jobHistoryTyped)) {
       return NextResponse.json(
         { error: "This job history is not visible to employers" },
         { status: 403 },

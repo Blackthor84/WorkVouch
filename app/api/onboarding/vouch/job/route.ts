@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { admin } from "@/lib/supabase-admin";
 import { getUser } from "@/lib/auth/getUser";
 import { rejectWriteIfImpersonating } from "@/lib/server/rejectWriteIfImpersonating";
+import { saveOnboardingVouchJob } from "@/lib/jobs/productionSafeJobs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,68 +32,23 @@ export async function POST(req: Request) {
     }
 
     const startIso = new Date().toISOString().slice(0, 10);
+    const { result, error } = await saveOnboardingVouchJob(admin as Parameters<typeof saveOnboardingVouchJob>[0], {
+      userId: user.id,
+      companyName: company,
+      role,
+      startDate: startIso,
+    });
 
-    const { data: existing } = await admin
-      .from("jobs")
-      .select("id")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const existingId = (existing as { id?: string } | null)?.id;
-
-    let job: { id: string; company_name: string; job_title: string | null; title: string | null } | null = null;
-    let error: { message: string } | null = null;
-
-    if (existingId) {
-      const up = await admin
-        .from("jobs")
-        .update({
-          company_name: company,
-          job_title: role,
-          title: role,
-        })
-        .eq("id", existingId)
-        .eq("user_id", user.id)
-        .select("id, company_name, job_title, title")
-        .single();
-      job = up.data as typeof job;
-      error = up.error;
-    } else {
-      const ins = await admin
-        .from("jobs")
-        .insert({
-          user_id: user.id,
-          company_name: company,
-          job_title: role,
-          title: role,
-          start_date: startIso,
-          end_date: null,
-          is_current: true,
-          employment_type: "full_time",
-          is_visible_to_employer: false,
-          verification_status: "unverified",
-        })
-        .select("id, company_name, job_title, title")
-        .single();
-      job = ins.data as typeof job;
-      error = ins.error;
-    }
-
-    if (error) {
+    if (error || !result) {
       console.error("[onboarding/vouch/job]", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: error?.message ?? "Failed to save job" }, { status: 500 });
     }
 
-    const j = job as { id: string; company_name: string; job_title: string | null; title: string | null };
     return NextResponse.json({
       ok: true,
-      job: {
-        id: j.id,
-        company_name: j.company_name,
-        job_title: j.job_title ?? j.title,
-      },
+      job: result.job,
+      visibility: result.visibility,
+      persistedVisibility: result.persistedVisibility,
     });
   } catch (e) {
     console.error("[onboarding/vouch/job]", e);

@@ -7,6 +7,7 @@ import {
   type AuditBand,
 } from "@/lib/scoring/employeeAuditScore";
 import { getTrustTrajectoryBatch } from "@/lib/trust/trustTrajectory";
+import { queryEmployerVisibleJobs } from "@/lib/jobs/productionSafeJobs";
 import type { EmployerSearchFilters, EmployerSearchResult } from "@/lib/search/employerSearchTypes";
 
 const MAX_RESULTS = 50;
@@ -118,19 +119,22 @@ export async function searchEmployerCandidates(
     end_date: string | null;
   };
 
-  const [auditScoresMap, skillsResult, trajectoryMap, jobsResult, profilesResult] =
+  const [auditScoresMap, skillsResult, trajectoryMap, jobsQuery, profilesResult] =
     await Promise.all([
       getEmployeeAuditScoresBatch(userIds),
       admin.from("skills").select("user_id, skill_name").in("user_id", userIds),
       getTrustTrajectoryBatch(userIds),
-      admin
-        .from("jobs")
-        .select("user_id, company_name, job_title, title, start_date, end_date")
-        .in("user_id", userIds)
-        .or("is_visible_to_employer.eq.true,is_visible_to_employer.is.null")
-        .order("start_date", { ascending: false }),
+      queryEmployerVisibleJobs<JobRow>(
+        admin as Parameters<typeof queryEmployerVisibleJobs>[0],
+        userIds,
+        "user_id, company_name, job_title, title, start_date, end_date"
+      ),
       admin.from("profiles").select("id, headline, profile_photo_url").in("id", userIds),
     ]);
+
+  if (jobsQuery.error) {
+    throw new Error(jobsQuery.error.message ?? "Failed to load employer-visible jobs");
+  }
 
   const skillsByUser = new Map<string, string[]>();
   for (const s of (skillsResult.data ?? []) as { user_id: string; skill_name: string }[]) {
@@ -139,7 +143,7 @@ export async function searchEmployerCandidates(
   }
 
   const jobsByUser = new Map<string, JobRow[]>();
-  for (const row of (jobsResult.data ?? []) as JobRow[]) {
+  for (const row of jobsQuery.data) {
     if (!jobsByUser.has(row.user_id)) jobsByUser.set(row.user_id, []);
     jobsByUser.get(row.user_id)!.push(row);
   }
