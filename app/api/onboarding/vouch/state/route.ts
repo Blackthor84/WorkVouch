@@ -111,7 +111,6 @@ export async function GET() {
     const bioLen = profileFields.professionalSummary.trim().length;
     const profileBasicsComplete = bioLen >= 20;
 
-    const invitesSentCount = await countInvitesForSender(user.id);
     const hasJob = Boolean(job?.id);
     const contactsCount = contacts.length;
     const hasEmailContact = contacts.some((c) => (c.email ?? "").trim().length > 0);
