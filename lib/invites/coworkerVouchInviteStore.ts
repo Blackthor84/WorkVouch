@@ -5,6 +5,7 @@
  * Production status constraint (CHECK): pending | opened | accepted | declined only.
  */
 
+import { ensureLegacyUsersRowForAuthUser } from "@/lib/invites/ensureLegacyUsersRow";
 import { admin } from "@/lib/supabase-admin";
 import { generateInviteToken } from "@/lib/invites/inviteToken";
 import {
@@ -76,6 +77,14 @@ export function isPendingInviteStatus(status: string | null | undefined): boolea
   return (status ?? "").toLowerCase() === "pending";
 }
 
+/** Canonical sender id for public.invites (= auth/profile UUID after legacy users sync). */
+async function resolveInviteSenderId(
+  authUserId: string
+): Promise<{ senderId: string; error: PostgrestErrorLike }> {
+  const { userId, error } = await ensureLegacyUsersRowForAuthUser(authUserId);
+  return { senderId: userId, error };
+}
+
 export async function createDraftInvite(args: {
   senderId: string;
   jobId: string | null;
@@ -87,12 +96,17 @@ export async function createDraftInvite(args: {
     return { invite: null, error: { message: "Email or phone required" } };
   }
 
+  const { senderId, error: senderError } = await resolveInviteSenderId(args.senderId);
+  if (senderError) {
+    return { invite: null, error: senderError };
+  }
+
   const token = generateInviteToken(16);
 
   const { data, error } = await admin
     .from(TABLE)
     .insert({
-      sender_id: args.senderId,
+      sender_id: senderId,
       job_id: args.jobId,
       contact,
       token,

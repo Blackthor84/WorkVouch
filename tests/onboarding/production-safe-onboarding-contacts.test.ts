@@ -65,6 +65,17 @@ vi.mock("@/lib/invites/inviteToken", () => ({
   generateInviteToken: vi.fn(() => "test-invite-token"),
 }));
 
+const { mockEnsureLegacyUsersRow } = vi.hoisted(() => ({
+  mockEnsureLegacyUsersRow: vi.fn(async (authUserId: string) => ({
+    userId: authUserId,
+    error: null,
+  })),
+}));
+
+vi.mock("@/lib/invites/ensureLegacyUsersRow", () => ({
+  ensureLegacyUsersRowForAuthUser: mockEnsureLegacyUsersRow,
+}));
+
 import {
   loadOnboardingContacts,
   saveOnboardingContacts,
@@ -73,12 +84,16 @@ import {
 describe("productionSafeOnboardingContacts (public.invites)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockEnsureLegacyUsersRow.mockImplementation(async (authUserId: string) => ({
+      userId: authUserId,
+      error: null,
+    }));
     nextSelectResult({ data: [], error: null });
     nextDeleteResult({ data: null, error: null });
     nextInsertResult({ data: null, error: null });
   });
 
-  it("saves coworkers to public.invites", async () => {
+  it("saves coworkers to public.invites after legacy users sync", async () => {
     nextDeleteResult({ data: null, error: null });
     nextInsertResult({
       data: {
@@ -104,6 +119,7 @@ describe("productionSafeOnboardingContacts (public.invites)", () => {
       expect(result.storage).toBe("invites");
       expect(result.count).toBe(1);
     }
+    expect(mockEnsureLegacyUsersRow).toHaveBeenCalledWith("user-1");
     expect(mockFrom).toHaveBeenCalledWith("invites");
   });
 
